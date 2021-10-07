@@ -360,12 +360,14 @@ export class PayCompleteFlow {
         urlParams.canonicalUrl = response.requestMetadata.contentId;
         urlParams.isAnonymous = response.requestMetadata.anonymous;
       }
+
+      // Add feArgs to be passed via activities.
       if (response.swgUserToken) {
-        urlParams.sut = response.swgUserToken;
+        args.swgUserToken = response.swgUserToken;
       }
       const orderId = parseOrderIdFromPurchaseDataSafe(response.purchaseData);
       if (orderId) {
-        urlParams.orderId = orderId;
+        args.orderId = orderId;
       }
       confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
     } else {
