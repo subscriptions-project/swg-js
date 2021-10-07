@@ -32,6 +32,7 @@ import {
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
   queryStringHasFreshGaaParams,
+  gaaNotifySignIn,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
 import {tick} from '../../test/tick';
@@ -877,8 +878,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      sandbox.stub(self, 'postMessage');
-
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
@@ -895,27 +894,36 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      expect(self.postMessage).to.be.calledWithExactly({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_USER,
+      await new Promise((resolve) => {
+        sandbox.stub(self.parent, 'postMessage').callsFake(() => {
+          resolve();
+        });
       });
+
+      expect(self.parent.postMessage).to.be.calledWithExactly(
+        {
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_USER,
+        },
+        location.origin
+      );
     });
 
     it('sends errors to parent', async () => {
       if (self.postMessage.restore) {
         self.postMessage.restore();
       }
+
       const invalidOrigin = [
         // Bad protocol, should be http or https.
         'ftp://localhost:8080',
+        location.origin,
       ];
 
       GaaGoogle3pSignInButton.show(
-        {allowedOrigins: [invalidOrigin]},
+        {allowedOrigins: invalidOrigin},
         GOOGLE_3P_AUTH_URL
       );
-
-      sandbox.stub(self, 'postMessage');
 
       // Send intro post message.
       postMessage({
@@ -927,10 +935,20 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      expect(self.postMessage).to.be.calledWithExactly({
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-        stamp: POST_MESSAGE_STAMP,
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
       });
+
+      expect(self.postMessage).to.be.calledWith(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
     });
 
     it('fails and warns when passed invalid origins', async () => {
@@ -961,6 +979,21 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
           `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
         );
       }
+    });
+  });
+});
+
+describes.realWin('gaaNotifySignIn', {}, () => {
+  it.only('posts message when passed a user', () => {
+    self.opener = self;
+    sandbox.stub(self, 'postMessage');
+    const gaaUser = {};
+    gaaNotifySignIn.bind(self, {gaaUser})();
+
+    expect(self.postMessage).to.have.been.calledWithExactly({
+      stamp: POST_MESSAGE_STAMP,
+      command: POST_MESSAGE_COMMAND_USER,
+      gaaUser,
     });
   });
 });
