@@ -166,6 +166,28 @@ function swgjs_create_amp_release_pr() {
 }
 
 
+# Deploys Swgjs Demos.
+#
+# You can run this after updating demos and merging
+# your changes into the `main` branch.
+function swgjs_deploy_demos() {
+  if ! command -v gcloud &> /dev/null
+  then
+      echo "Please install gcloud: https://cloud.google.com/sdk/gcloud"
+      return
+  fi
+
+  cd $SWGJS_PATH/demos
+  git stash
+  git fetch team main
+  git checkout team/main
+  npx yarn deploy
+  git checkout -
+  git stash pop
+  cd -
+}
+
+
 
 #####################
 ## Private methods ##
