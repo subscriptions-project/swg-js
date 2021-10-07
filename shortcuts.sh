@@ -173,7 +173,8 @@ function swgjs_create_amp_release_pr() {
 function swgjs_deploy_demos() {
   if ! command -v gcloud &> /dev/null
   then
-      echo "Please install gcloud: https://cloud.google.com/sdk/gcloud"
+      echo "Please install gcloud and select the 'swgjs-demos' project:"
+      echo "https://cloud.google.com/sdk/gcloud"
       return
   fi
 
