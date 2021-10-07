@@ -152,9 +152,9 @@ export class ClientConfigManager {
    * @return {!ClientConfig}
    */
   parseClientConfig_(json) {
-    const paySwgVersion = json['paySwgVersion'] || null;
+    const paySwgVersion = json['paySwgVersion'];
     const autoPromptConfigJson = json['autoPromptConfig'];
-    let autoPromptConfig = null;
+    let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig(
         autoPromptConfigJson.maxImpressionsPerWeek,
@@ -166,7 +166,7 @@ export class ClientConfigManager {
     }
 
     const uiPredicatesJson = json['uiPredicates'];
-    let uiPredicates = null;
+    let uiPredicates = undefined;
     if (uiPredicatesJson) {
       uiPredicates = new UiPredicates(
         uiPredicatesJson.canDisplayAutoPrompt,
@@ -175,7 +175,7 @@ export class ClientConfigManager {
     }
 
     const attributionParamsJson = json['attributionParams'];
-    let attributionParams = null;
+    let attributionParams = undefined;
     if (attributionParamsJson) {
       attributionParams = new AttributionParams(
         attributionParamsJson.displayName,

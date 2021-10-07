@@ -15,11 +15,27 @@
  */
 
 /**
+ * Client configuration options.
+ *
+ * Properties:
+ * - attributionParams: Options for attribution.
+ *
+ * @typedef {{
+ *   attributionParams: (./attribution-params.AttributionParams|undefined),
+ *   autoPromptConfig: (./auto-prompt-config.AutoPromptConfig|undefined),
+ *   paySwgVersion: (string|undefined),
+ *   uiPredicates: (./auto-prompt-config.UiPredicates|undefined),
+ *   useUpdatedOfferFlows: (boolean|undefined),
+ * }}
+ */
+export let ClientConfigOptions;
+
+/**
  * Container for the details relating to how the client should be configured.
  */
 export class ClientConfig {
   /**
-   * @param {{attributionParams: ./attribution-params.AttributionParams, autoPromptConfig: ./auto-prompt-config.AutoPromptConfig, paySwgVersion: string, uiPredicates: ./auto-prompt-config.UiPredicates, useUpdatedOfferFlows: boolean}} options
+   * @param {ClientConfigOptions} options
    */
   constructor({
     attributionParams,
