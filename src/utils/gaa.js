@@ -961,7 +961,7 @@ export class GaaGoogle3pSignInButton {
     const buttonEl = self.document.createElement('div');
     buttonEl.id = GOOGLE_3P_SIGN_IN_BUTTON_ID;
     buttonEl.tabIndex = 0;
-    buttonEl.appendChild(GOOGLE_3P_SIGN_IN_BUTTON_HTML);
+    buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
       self.open(authorizationUrl);
     };
