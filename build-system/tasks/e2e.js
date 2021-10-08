@@ -17,8 +17,8 @@
 
 const argv = require('minimist')(process.argv.slice(2));
 const gulp = require('gulp');
-const nock = require('nock');
 const nightwatch = require('gulp-nightwatch');
+const nock = require('nock');
 const {build} = require('./builders');
 
 async function e2e() {
