@@ -17,10 +17,13 @@
 
 const argv = require('minimist')(process.argv.slice(2));
 const gulp = require('gulp');
+const nock = require('nock');
 const nightwatch = require('gulp-nightwatch');
 const {build} = require('./builders');
 
 async function e2e() {
+  nock('https://pay.sandbox.google.com').get('/gp/p/ui/pay').reply(200, 'Hi!');
+
   // Compile js and css so e2e tests will run against local js and css.
   await build();
   return gulp.src('gulpfile.js').pipe(
