@@ -15,26 +15,35 @@
  */
 
 /**
+ * Client configuration options.
+ *
+ * @typedef {{
+ *   attributionParams: (./attribution-params.AttributionParams|undefined),
+ *   autoPromptConfig: (./auto-prompt-config.AutoPromptConfig|undefined),
+ *   paySwgVersion: (string|undefined),
+ *   uiPredicates: (./auto-prompt-config.UiPredicates|undefined),
+ *   usePrefixedHostPath: (boolean|undefined),
+ *   useUpdatedOfferFlows: (boolean|undefined),
+ * }}
+ */
+export let ClientConfigOptions;
+
+/**
  * Container for the details relating to how the client should be configured.
  */
 export class ClientConfig {
   /**
-   * @param {!./auto-prompt-config.AutoPromptConfig=} autoPromptConfig
-   * @param {string=} paySwgVersion
-   * @param {boolean=} useUpdatedOfferFlows
-   * @param {./auto-prompt-config.UiPredicates=} uiPredicates
-   * @param {./attribution-params.AttributionParams=} attributionParams
-   * @param {boolean=} usePrefixedHostPath
+   * @param {ClientConfigOptions} options
    */
-  constructor(
+  constructor({
+    attributionParams,
     autoPromptConfig,
     paySwgVersion,
-    useUpdatedOfferFlows,
     uiPredicates,
-    attributionParams,
-    usePrefixedHostPath
-  ) {
-    /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
+    usePrefixedHostPath,
+    useUpdatedOfferFlows,
+  } = {}) {
+    /** @const {./auto-prompt-config.AutoPromptConfig|undefined} */
     this.autoPromptConfig = autoPromptConfig;
 
     /** @const {string|undefined} */

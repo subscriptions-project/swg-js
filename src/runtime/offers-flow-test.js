@@ -106,13 +106,7 @@ describes.realWin('OffersFlow', {}, (env) => {
   it('should have valid OffersFlow constructed, routed to the new offers iframe', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true
-        )
-      );
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}));
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     callbacksMock
       .expects('triggerFlowStarted')
@@ -137,16 +131,12 @@ describes.realWin('OffersFlow', {}, (env) => {
   });
 
   it('start should not show offers if predicates disable', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true,
-          /* uiPredicates */ {canDisplayAutoPrompt: false}
-        )
-      );
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: false},
+      })
+    );
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     callbacksMock.expects('triggerFlowStarted').never();
 
@@ -154,16 +144,12 @@ describes.realWin('OffersFlow', {}, (env) => {
   });
 
   it('start should show offers if predicates enable', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true,
-          /* uiPredicates */ {canDisplayAutoPrompt: true}
-        )
-      );
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     callbacksMock.expects('triggerFlowStarted').once();
 
@@ -173,15 +159,11 @@ describes.realWin('OffersFlow', {}, (env) => {
   });
 
   it('opens dialog without desktop config when useUpdatedOfferFlows=false', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ false
-        )
-      );
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: false,
+      })
+    );
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     dialogManagerMock
       .expects('openView')
@@ -191,15 +173,11 @@ describes.realWin('OffersFlow', {}, (env) => {
   });
 
   it('opens dialog with desktop config when useUpdatedOfferFlows=true', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true
-        )
-      );
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+      })
+    );
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     dialogManagerMock
       .expects('openView')
