@@ -17,9 +17,6 @@
 /**
  * Client configuration options.
  *
- * Properties:
- * - attributionParams: Options for attribution.
- *
  * @typedef {{
  *   attributionParams: (./attribution-params.AttributionParams|undefined),
  *   autoPromptConfig: (./auto-prompt-config.AutoPromptConfig|undefined),
@@ -48,15 +45,15 @@ export class ClientConfig {
     this.autoPromptConfig = autoPromptConfig || undefined;
 
     /** @const {string|undefined} */
-    this.paySwgVersion = paySwgVersion || undefined;
+    this.paySwgVersion = paySwgVersion;
 
     /** @const {boolean} */
     this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
 
     /** @const {./auto-prompt-config.UiPredicates|undefined} */
-    this.uiPredicates = uiPredicates || undefined;
+    this.uiPredicates = uiPredicates;
 
     /** @const {./attribution-params.AttributionParams|undefined} */
-    this.attributionParams = attributionParams || undefined;
+    this.attributionParams = attributionParams;
   }
 }
