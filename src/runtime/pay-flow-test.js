@@ -923,7 +923,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
-          '&canonicalUrl=url&isAnonymous=true&sut=swgUserToken&orderId=ORDER',
+          '&canonicalUrl=url&isAnonymous=true',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
@@ -931,6 +931,8 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.VIRTUAL_GIFT,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          swgUserToken: 'swgUserToken',
+          orderId: 'ORDER',
           useUpdatedConfirmUi: false,
         }
       )
