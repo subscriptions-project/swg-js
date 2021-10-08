@@ -270,6 +270,16 @@ app.get('/gsi-iframe', (req, res) => {
 });
 
 /**
+ * Google third party sign in iframe for metering demo.
+ */
+app.get('/g3p-iframe', (req, res) => {
+  const setup = getSetup(req);
+  res.render('../examples/google-signin/google-3p-signin-iframe', {
+    swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
+  });
+});
+
+/**
  * Setup page.
  */
 app.get('/setup', (req, res) => {
