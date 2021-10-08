@@ -984,7 +984,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
 });
 
 describes.realWin('gaaNotifySignIn', {}, () => {
-  it.only('posts message when passed a user', () => {
+  it('posts message when passed a user', () => {
     self.opener = self;
     sandbox.stub(self, 'postMessage');
     const gaaUser = {
