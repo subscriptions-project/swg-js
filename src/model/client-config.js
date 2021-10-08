@@ -41,7 +41,7 @@ export class ClientConfig {
     uiPredicates,
     useUpdatedOfferFlows,
   } = {}) {
-    /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
+    /** @const {./auto-prompt-config.AutoPromptConfig|undefined} */
     this.autoPromptConfig = autoPromptConfig;
 
     /** @const {string|undefined} */
