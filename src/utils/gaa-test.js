@@ -987,7 +987,24 @@ describes.realWin('gaaNotifySignIn', {}, () => {
   it.only('posts message when passed a user', () => {
     self.opener = self;
     sandbox.stub(self, 'postMessage');
-    const gaaUser = {};
+    const gaaUser = {
+      email: 'email',
+      familyName: 'familyName',
+      givenName: 'givenName',
+      idToken: 'idToken',
+      imageUrl: 'imageUrl',
+      name: 'name',
+      authorizationData: {
+        /* eslint-disable google-camelcase/google-camelcase */
+        access_token: 'accessToken',
+        id_token: 'idToken',
+        scope: 'scope',
+        expires_in: 0,
+        first_issued_at: 0,
+        expires_at: 0,
+        /* eslint-enable google-camelcase/google-camelcase */
+      },
+    };
     gaaNotifySignIn.bind(self, {gaaUser})();
 
     expect(self.postMessage).to.have.been.calledWithExactly({
