@@ -31,8 +31,8 @@ import {
   REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
-  queryStringHasFreshGaaParams,
   gaaNotifySignIn,
+  queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
 import {tick} from '../../test/tick';
