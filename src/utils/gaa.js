@@ -1029,7 +1029,7 @@ export class GaaGoogle3pSignInButton {
 
 /**
  * Notify Google Intervention of a complete sign-in event.
- * @param {{ gaaUser: <GaaUserDef>}} params
+ * @param {{ gaaUser: GaaUserDef}} params
  */
 export function gaaNotifySignIn({gaaUser}) {
   self.opener.postMessage({
