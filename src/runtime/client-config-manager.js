@@ -175,7 +175,7 @@ export class ClientConfigManager {
     }
 
     const attributionParamsJson = json['attributionParams'];
-    let attributionParams = undefined;
+    let attributionParams;
     if (attributionParamsJson) {
       attributionParams = new AttributionParams(
         attributionParamsJson.displayName,
