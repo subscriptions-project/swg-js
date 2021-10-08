@@ -910,10 +910,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     });
 
     it('sends errors to parent', async () => {
-      if (self.postMessage.restore) {
-        self.postMessage.restore();
-      }
-
       const invalidOrigin = [
         // Bad protocol, should be http or https.
         'ftp://localhost:8080',
