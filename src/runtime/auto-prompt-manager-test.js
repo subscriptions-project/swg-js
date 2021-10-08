@@ -327,7 +327,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(entitlements))
       .once();
     const autoPromptConfig = new AutoPromptConfig(/* maxImpressionsPerWeek*/ 2);
-    const clientConfig = new ClientConfig(autoPromptConfig);
+    const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
@@ -362,7 +362,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(entitlements))
       .once();
     const autoPromptConfig = new AutoPromptConfig(/* maxImpressionsPerWeek*/ 2);
-    const clientConfig = new ClientConfig(autoPromptConfig);
+    const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
@@ -396,7 +396,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(entitlements))
       .once();
     const autoPromptConfig = new AutoPromptConfig(/* maxImpressionsPerWeek*/ 2);
-    const clientConfig = new ClientConfig(autoPromptConfig);
+    const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
@@ -438,7 +438,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* maxDismissalsPerWeek */ 1,
       /* maxDismissalsResultingHideSeconds */ 10
     );
-    const clientConfig = new ClientConfig(autoPromptConfig);
+    const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
@@ -479,7 +479,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* maxDismissalsPerWeek */ 1,
       /* maxDismissalsResultingHideSeconds */ 10
     );
-    const clientConfig = new ClientConfig(autoPromptConfig);
+    const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
@@ -520,7 +520,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* maxDismissalsPerWeek */ 2,
       /* maxDismissalsResultingHideSeconds */ 5
     );
-    const clientConfig = new ClientConfig(autoPromptConfig);
+    const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
@@ -561,7 +561,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* maxDismissalsPerWeek */ 2,
       /* maxDismissalsResultingHideSeconds */ 10
     );
-    const clientConfig = new ClientConfig(autoPromptConfig);
+    const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
@@ -669,12 +669,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* canDisplayAutoPrompt */ false,
       /* canDisplayButton */ true
     );
-    const clientConfig = new ClientConfig(
+    const clientConfig = new ClientConfig({
       autoPromptConfig,
-      undefined,
-      2,
-      uiPredicates
-    );
+      useUpdatedOfferFlows: true,
+      uiPredicates,
+    });
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
@@ -701,12 +700,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       /* canDisplayAutoPrompt */ true,
       /* canDisplayButton */ true
     );
-    const clientConfig = new ClientConfig(
+    const clientConfig = new ClientConfig({
       autoPromptConfig,
-      undefined,
-      2,
-      uiPredicates
-    );
+      useUpdatedOfferFlows: true,
+      uiPredicates,
+    });
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))

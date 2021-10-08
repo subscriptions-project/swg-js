@@ -183,12 +183,12 @@ export class ClientConfigManager {
       );
     }
 
-    return new ClientConfig(
+    return new ClientConfig({
       autoPromptConfig,
       paySwgVersion,
-      json['useUpdatedOfferFlows'],
+      useUpdatedOfferFlows: json['useUpdatedOfferFlows'],
       uiPredicates,
-      attributionParams
-    );
+      attributionParams,
+    });
   }
 }
