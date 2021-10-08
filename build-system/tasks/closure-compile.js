@@ -28,6 +28,8 @@ const sourcemaps = require('gulp-sourcemaps');
 const {isCiBuild} = require('../ci');
 const {red} = require('ansi-colors');
 const {VERSION: internalRuntimeVersion} = require('./internal-version');
+const through = require('through2');
+const os = require('os');
 
 const queue = [];
 let inProgress = 0;
@@ -246,6 +248,18 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
           replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k])
         );
       }
+
+      // Appends a newline terminator to .map files
+      stream = stream.pipe(through.obj((file, _, cb) => {
+        if(file.sourceMap && file.path.endsWith('.map')) {
+          file.contents = Buffer.concat([
+            file.contents,
+            Buffer.from(os.EOL)
+          ]);
+        }
+        
+        cb(null, file);
+      }));
 
       // Complete build: dist and source maps.
       stream = stream.pipe(gulp.dest(outputDir)).on('end', resolve);
