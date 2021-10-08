@@ -42,7 +42,7 @@ export class ClientConfig {
     useUpdatedOfferFlows,
   } = {}) {
     /** @const {!./auto-prompt-config.AutoPromptConfig|undefined} */
-    this.autoPromptConfig = autoPromptConfig || undefined;
+    this.autoPromptConfig = autoPromptConfig;
 
     /** @const {string|undefined} */
     this.paySwgVersion = paySwgVersion;
