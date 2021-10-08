@@ -30,9 +30,9 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@ampproject/google-closure-compiler": "20210601.0.0",
-    "@babel/core": "7.15.5",
-    "@babel/preset-env": "7.15.6",
+    "@ampproject/google-closure-compiler": "20210907.0.0",
+    "@babel/core": "7.15.8",
+    "@babel/preset-env": "7.15.8",
     "ansi-colors": "4.1.1",
     "autoprefixer": "10.3.7",
     "babel-eslint": "10.1.0",
@@ -44,7 +44,7 @@
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
     "cheerio": "1.0.0-rc.10",
-    "chromedriver": "93.0.1",
+    "chromedriver": "94.0.0",
     "cookie-parser": "1.4.5",
     "cssnano": "5.0.8",
     "del": "6.0.0",
