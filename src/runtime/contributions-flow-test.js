@@ -197,19 +197,12 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   });
 
   it('constructs valid ContributionsFlow with forced language', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
     sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true
-        )
-      );
-    sandbox
-      .stub(runtime.clientConfigManager(), 'shouldForceLangInIframes')
-      .returns(true);
-    sandbox.stub(runtime.clientConfigManager(), 'getLanguage').returns('fr-CA');
+      .stub(clientConfigManager, 'getClientConfig')
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}));
+    sandbox.stub(clientConfigManager, 'shouldForceLangInIframes').returns(true);
+    sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-CA');
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     activitiesMock
       .expects('openIframe')
