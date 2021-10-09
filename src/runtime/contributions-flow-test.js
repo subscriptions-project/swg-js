@@ -202,6 +202,41 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
+  it('constructs valid ContributionsFlow with forced language', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(
+        new ClientConfig(
+          /* autoPromptConfig */ undefined,
+          /* paySwgVersion */ undefined,
+          /* useUpdatedOfferFlows */ true
+        )
+      );
+    sandbox
+      .stub(runtime.clientConfigManager(), 'shouldForceLangInIframes')
+      .returns(true);
+    sandbox.stub(runtime.clientConfigManager(), 'getLanguage').returns('fr-CA');
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          productType: ProductType.UI_CONTRIBUTION,
+          list: 'other',
+          skus: null,
+          isClosable: true,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+    await contributionsFlow.start();
+  });
+
   it('start should not show contributions if predicates disable', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')

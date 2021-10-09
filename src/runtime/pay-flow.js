@@ -348,14 +348,14 @@ export class PayCompleteFlow {
       args['loginHint'] = response.userData && response.userData.email;
     }
 
-    let confirmFeUrl;
+    const /* {!Object<string, string>} */ urlParams = {};
     if (args.productType === ProductType.VIRTUAL_GIFT) {
-      const urlParams = {
+      Object.assign(urlParams, {
         productType: args.productType,
         publicationId: args.publicationId,
         offerId: this.sku_,
         origin: parseUrl(this.win_.location.href).origin,
-      };
+      });
       if (response.requestMetadata) {
         urlParams.canonicalUrl = response.requestMetadata.contentId;
         urlParams.isAnonymous = response.requestMetadata.anonymous;
@@ -367,10 +367,11 @@ export class PayCompleteFlow {
       if (orderId) {
         urlParams.orderId = orderId;
       }
-      confirmFeUrl = feUrl('/payconfirmiframe', '', urlParams);
-    } else {
-      confirmFeUrl = feUrl('/payconfirmiframe');
     }
+    if (this.clientConfigManager_.shouldForceLangInIframes()) {
+      urlParams.hl = this.clientConfigManager_.getLanguage();
+    }
+    const confirmFeUrl = feUrl('/payconfirmiframe', '', urlParams);
 
     return (this.activityIframeViewPromise_ = this.clientConfigManager_
       .getClientConfig()

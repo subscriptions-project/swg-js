@@ -953,6 +953,48 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     await flow.readyPromise_;
   });
 
+  it('constructs valid flow with forced language params', async () => {
+    clientConfigManagerMock
+      .expects('shouldForceLangInIframes')
+      .returns(true)
+      .once();
+    clientConfigManagerMock.expects('getLanguage').returns('fr-CA').once();
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_&hl=fr-CA',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          idToken: USER_ID_TOKEN,
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: false,
+        }
+      )
+      .returns(Promise.resolve(port));
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
   it('should complete the flow', async () => {
     const response = createDefaultSubscribeResponse();
     const port = new ActivityPort();

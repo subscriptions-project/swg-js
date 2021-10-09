@@ -85,7 +85,7 @@ export class ClientConfigManager {
 
   /**
    * Gets the language the UI should be displayed in. See
-   * src/api/basic-subscriptions.ClientOptions.lang. This
+   * src/api/basic-subscriptions.ClientOptions.lang.
    * @return {string}
    */
   getLanguage() {
@@ -99,6 +99,19 @@ export class ClientConfigManager {
    */
   getTheme() {
     return this.clientOptions_.theme || ClientTheme.LIGHT;
+  }
+
+  /**
+   * Returns whether iframes should also use the language specified in the
+   * client options, rather than the default of letting the iframes decide the
+   * display language. Note that this will return false if the lang option is
+   * not set, even if forceLangInIframes was set.
+   * @return {boolean}
+   */
+  shouldForceLangInIframes() {
+    return (
+      !!this.clientOptions_.forceLangInIframes && !!this.clientOptions_.lang
+    );
   }
 
   /**
