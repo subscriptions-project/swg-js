@@ -174,13 +174,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   it('has valid ContributionsFlow constructed, routed to the new contributions iframe', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true
-        )
-      );
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}));
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     activitiesMock
       .expects('openIframe')
@@ -238,16 +232,12 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   });
 
   it('start should not show contributions if predicates disable', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true,
-          /* uiPredicates */ {canDisplayAutoPrompt: false}
-        )
-      );
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: false},
+      })
+    );
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     callbacksMock.expects('triggerFlowStarted').never();
 
@@ -255,16 +245,12 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   });
 
   it('start should show contributions if predicates enable', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true,
-          /* uiPredicates */ {canDisplayAutoPrompt: true}
-        )
-      );
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     callbacksMock.expects('triggerFlowStarted').once();
 

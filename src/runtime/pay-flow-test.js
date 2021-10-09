@@ -482,7 +482,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   it('should have paySwgVersion from clientConfig', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig(undefined, '1')))
+      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '1'})))
       .once();
 
     payClientMock
@@ -515,7 +515,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   it('should forceDisableNative for basic paySwgVersion', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig(undefined, '2')))
+      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '2'})))
       .once();
 
     payClientMock
@@ -841,15 +841,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should have valid flow constructed w/ useUpdatedConfirmUi set to true', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(
-        Promise.resolve(
-          new ClientConfig(
-            undefined,
-            undefined,
-            /* useUpdatedOfferFlows */ true
-          )
-        )
-      )
+      .returns(Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true})))
       .once();
 
     const response = createDefaultSubscribeResponse();
@@ -937,7 +929,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
-          '&canonicalUrl=url&isAnonymous=true&sut=swgUserToken&orderId=ORDER',
+          '&canonicalUrl=url&isAnonymous=true',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
@@ -945,6 +937,8 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.VIRTUAL_GIFT,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          swgUserToken: 'swgUserToken',
+          orderId: 'ORDER',
           useUpdatedConfirmUi: false,
         }
       )
