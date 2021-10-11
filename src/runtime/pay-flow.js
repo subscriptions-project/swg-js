@@ -369,9 +369,6 @@ export class PayCompleteFlow {
       if (orderId) {
         args.orderId = orderId;
       }
-      confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
-    } else {
-      confirmFeUrl = feUrl('/payconfirmiframe');
     }
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       urlParams.hl = this.clientConfigManager_.getLanguage();
