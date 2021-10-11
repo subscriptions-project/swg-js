@@ -64,7 +64,7 @@ export class ContributionsFlow {
           ? new ActivityIframeView(
               this.win_,
               this.activityPorts_,
-              feUrl(this.getUrl_(clientConfig)),
+              this.getUrl_(clientConfig),
               feArgs({
                 'productId': deps.pageConfig().getProductId(),
                 'publicationId': deps.pageConfig().getPublicationId(),
@@ -154,14 +154,22 @@ export class ContributionsFlow {
   }
 
   /**
-   * Gets the URL that should be used for the activity iFrame view.
+   * Gets the complete URL that should be used for the activity iFrame view.
    * @param {!../model/client-config.ClientConfig} clientConfig
    * @return {string}
    */
   getUrl_(clientConfig) {
-    return clientConfig.useUpdatedOfferFlows
-      ? '/contributionoffersiframe'
-      : '/contributionsiframe';
+    if (!clientConfig.useUpdatedOfferFlows) {
+      return feUrl('/contributionsiframe');
+    }
+
+    if (this.clientConfigManager_.shouldForceLangInIframes()) {
+      return feUrl('/contributionoffersiframe', '', {
+        'hl': this.clientConfigManager_.getLanguage(),
+      });
+    }
+
+    return feUrl('/contributionoffersiframe');
   }
 
   /**

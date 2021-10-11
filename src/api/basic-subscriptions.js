@@ -98,14 +98,16 @@ export const AutoPromptType = {
 /**
  * Options for configuring all client UI.
  * Properties:
- * - lang: Sets the button and prompt lanugage. Default is "en".
- * - theme: "light" or "dark". Default is "light".
  * - disableButton: whether to enable button.
+ * - forceLangInIframes: whether to force the specified lang in iframes.
+ * - lang: Sets the button and prompt language. Default is "en".
+ * - theme: "light" or "dark". Default is "light".
  *
  * @typedef {{
- *   theme: (ClientTheme|undefined),
- *   lang: (string|undefined),
  *   disableButton: (boolean|undefined),
+ *   lang: (string|undefined),
+ *   forceLangInIframes: (boolean|undefined),
+ *   theme: (ClientTheme|undefined),
  * }}
  */
 export let ClientOptions;
