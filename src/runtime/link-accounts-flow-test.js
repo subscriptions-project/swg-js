@@ -183,14 +183,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
   it('should trigger on link response', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true,
-          /* uiPredicates */ {canDisplayAutoPrompt: false}
-        )
-      );
+      .resolves(new ClientConfig());
 
     dialogManagerMock.expects('popupClosed').once();
     let handler;

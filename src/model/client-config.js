@@ -50,10 +50,10 @@ export class ClientConfig {
     this.paySwgVersion = paySwgVersion;
 
     /** @const {boolean} */
-    this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
+    this.usePrefixedHostPath = usePrefixedHostPath || false;
 
     /** @const {boolean} */
-    this.usePrefixedHostPath = usePrefixedHostPath || false;
+    this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
 
     /** @const {./auto-prompt-config.UiPredicates|undefined} */
     this.uiPredicates = uiPredicates;
