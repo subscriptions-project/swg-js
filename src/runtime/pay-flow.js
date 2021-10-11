@@ -373,7 +373,7 @@ export class PayCompleteFlow {
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       urlParams.hl = this.clientConfigManager_.getLanguage();
     }
-    const confirmFeUrl = feUrl('/payconfirmiframe', '', urlParams);
+    const confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
 
     return (this.activityIframeViewPromise_ = this.clientConfigManager_
       .getClientConfig()
