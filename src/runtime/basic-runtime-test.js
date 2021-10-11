@@ -248,15 +248,17 @@ describes.realWin('BasicRuntime', {}, (env) => {
         isPartOfType: ['Product'],
         isPartOfProductId: 'herald-foo-times.com:basic',
         clientOptions: {
-          theme: ClientTheme.DARK,
-          lang: 'fr',
           disableButton: false,
+          forceLangInIframes: true,
+          lang: 'fr',
+          theme: ClientTheme.DARK,
         },
       });
       expect(basicRuntime.clientOptions_).to.deep.equal({
-        theme: ClientTheme.DARK,
-        lang: 'fr',
         disableButton: false,
+        forceLangInIframes: true,
+        lang: 'fr',
+        theme: ClientTheme.DARK,
       });
     });
   });
