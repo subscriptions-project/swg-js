@@ -130,7 +130,7 @@ export class OffersFlow {
           ? new ActivityIframeView(
               this.win_,
               this.activityPorts_,
-              feUrl(this.getUrl_(clientConfig)),
+              this.getUrl_(clientConfig),
               feArgsObj,
               /* shouldFadeBody */ true
             )
@@ -273,9 +273,17 @@ export class OffersFlow {
    * @return {string}
    */
   getUrl_(clientConfig) {
-    return clientConfig.useUpdatedOfferFlows
-      ? '/subscriptionoffersiframe'
-      : '/offersiframe';
+    if (!clientConfig.useUpdatedOfferFlows) {
+      return feUrl('/offersiframe');
+    }
+
+    if (this.clientConfigManager_.shouldForceLangInIframes()) {
+      return feUrl('/subscriptionoffersiframe', {
+        'hl': this.clientConfigManager_.getLanguage(),
+      });
+    }
+
+    return feUrl('/subscriptionoffersiframe');
   }
 
   /**
