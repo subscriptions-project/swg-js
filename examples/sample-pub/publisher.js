@@ -235,7 +235,7 @@ function startFlowAuto() {
               iframeUrl = MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL;
             }
             const regwallParams = {
-              iframeUrl: iframeUrl,
+              iframeUrl,
             };
 
             // Optionally add a CASL link, for demo purposes.
