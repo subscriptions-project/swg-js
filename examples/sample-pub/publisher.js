@@ -220,8 +220,7 @@ function startFlowAuto() {
               // Skip metering regwall for registered users.
               return meteringState;
             }
-
-            log(getQueryParams());
+          
             const use3pSignIn = getQueryParams().use3pSignIn === 'true';
             const useGIS = getQueryParams().useGIS === 'true';
             let iframeUrl;
