@@ -22,6 +22,7 @@
  *   autoPromptConfig: (./auto-prompt-config.AutoPromptConfig|undefined),
  *   paySwgVersion: (string|undefined),
  *   uiPredicates: (./auto-prompt-config.UiPredicates|undefined),
+ *   usePrefixedHostPath: (boolean|undefined),
  *   useUpdatedOfferFlows: (boolean|undefined),
  * }}
  */
@@ -39,6 +40,7 @@ export class ClientConfig {
     autoPromptConfig,
     paySwgVersion,
     uiPredicates,
+    usePrefixedHostPath,
     useUpdatedOfferFlows,
   } = {}) {
     /** @const {./auto-prompt-config.AutoPromptConfig|undefined} */
@@ -46,6 +48,9 @@ export class ClientConfig {
 
     /** @const {string|undefined} */
     this.paySwgVersion = paySwgVersion;
+
+    /** @const {boolean} */
+    this.usePrefixedHostPath = usePrefixedHostPath || false;
 
     /** @const {boolean} */
     this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
