@@ -1015,10 +1015,6 @@ function configureGoogleSignIn() {
   );
 }
 
-function configureGSI(){
-
-}
-
 /**
  * Calls Swgjs.
  * @param { function(!SubscriptionsDef) } callback
