@@ -141,7 +141,7 @@ function startFlowAuto() {
     if (urlParams.get('use3pSignIn') === 'true') {
       newSearch += '&use3pSignIn=true';
     }
-    if (urlParams.get('useGIS') === 'true') {
+    else if (urlParams.get('useGIS') === 'true') {
       newSearch += '&useGIS=true';
     }
     location.search = newSearch;
@@ -235,7 +235,7 @@ function startFlowAuto() {
               iframeUrl = MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL;
             }
             const regwallParams = {
-              iframeUrl: iframeUrl,
+              iframeUrl,
             };
 
             // Optionally add a CASL link, for demo purposes.
