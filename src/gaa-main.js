@@ -23,6 +23,7 @@ import {
   GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
+  GaaSignInWithGoogleButton,
 } from './utils/gaa';
 import {log} from './utils/log';
 
@@ -31,4 +32,5 @@ log('Subscriptions Showcase Version: $internalRuntimeVersion$');
 // Declare global variables.
 self.GaaGoogleSignInButton = GaaGoogleSignInButton;
 self.GaaGoogle3pSignInButton = GaaGoogle3pSignInButton;
+self.GaaSignInWithGoogleButton = GaaSignInWithGoogleButton;
 self.GaaMeteringRegwall = GaaMeteringRegwall;
