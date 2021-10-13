@@ -32,6 +32,7 @@ import {
   REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
+  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
   gaaNotifySignIn,
   queryStringHasFreshGaaParams,
 } from './gaa';
@@ -909,7 +910,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       await tick(10);
 
       // Click button.
-      self.document.getElementById(GOOGLE_SIGN_IN_BUTTON_ID).click();
+      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
 
       // Wait for button click post message.
       await new Promise((resolve) => {
