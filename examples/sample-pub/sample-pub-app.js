@@ -272,7 +272,7 @@ app.get('/gsi-iframe', (req, res) => {
 /**
  * GSI iframe for metering demo.
  */
- app.get('/gis-iframe', (req, res) => {
+app.get('/gis-iframe', (req, res) => {
   const setup = getSetup(req);
   res.render('../examples/google-signin/sign-in-with-google-iframe', {
     swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],

@@ -140,8 +140,7 @@ function startFlowAuto() {
     // Include 3p sign in param if specified.
     if (urlParams.get('use3pSignIn') === 'true') {
       newSearch += '&use3pSignIn=true';
-    }
-    else if (urlParams.get('useGIS') === 'true') {
+    } else if (urlParams.get('useGIS') === 'true') {
       newSearch += '&useGIS=true';
     }
     location.search = newSearch;
@@ -220,18 +219,16 @@ function startFlowAuto() {
               // Skip metering regwall for registered users.
               return meteringState;
             }
-          
+
             const use3pSignIn = getQueryParams().use3pSignIn === 'true';
             const useGIS = getQueryParams().useGIS === 'true';
             let iframeUrl;
             // Specify a URL that renders a sign-in button.
             if (use3pSignIn) {
               iframeUrl = MeteringDemo.GOOGLE_3P_SIGN_IN_IFRAME_URL;
-            }
-            else if (useGIS) {
+            } else if (useGIS) {
               iframeUrl = MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL;
-            }
-            else {
+            } else {
               iframeUrl = MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL;
             }
             const regwallParams = {
