@@ -574,7 +574,9 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogleSignInButton.show.
-    self.document.head.querySelector('style').remove();
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
 
     self.console.warn.restore();
   });
@@ -837,7 +839,9 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaSignInWithGoogleButton.show.
-    self.document.head.querySelector('style').remove();
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
 
     self.console.warn.restore();
   });
@@ -852,7 +856,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       expect(typeof args[0][1].onsuccess).to.equal('function');
       expect(args).to.deep.equal([
         [
-          'swg-google-sign-in-button',
+          'swg-sign-in-with-google-button',
           {
             longtitle: true,
             onsuccess: args[0][1].onsuccess,
@@ -1090,7 +1094,9 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogle3pSignInButton.show.
-    self.document.head.querySelector('style').remove();
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
 
     self.console.warn.restore();
   });
@@ -1110,7 +1116,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     });
 
     it('renders supported i18n languages', async () => {
-      self.document.head.querySelector('style').remove();
       GaaUtils.getQueryString.returns('?lang=pt-br');
 
       GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);

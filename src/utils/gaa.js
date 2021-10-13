@@ -264,10 +264,12 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     overflow: hidden;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID},
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID},
   #${GOOGLE_SIGN_IN_BUTTON_ID} {
     margin: 0 auto;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} > div,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} > div,
   #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
     animation: fadeIn 0.32s;
   }
@@ -280,6 +282,7 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     }
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue {
     background-color: #1A73E8;
     box-shadow: none;
@@ -288,16 +291,19 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     width: 100% !important;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
     display: none;
   }
   /** Hides default "Sign in with Google" text. */
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID}  .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_],
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID}  .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_],
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_] {
     font-size: 0 !important;
   }
   /** Renders localized "Sign in with Google" text instead. */
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before {
     content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
     font-size: 15px;
@@ -928,10 +934,10 @@ export class GaaSignInWithGoogleButton {
           new Promise((resolve) => {
             // Render the Google Sign-In button.
             const buttonEl = self.document.createElement('div');
-            buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
+            buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
             buttonEl.tabIndex = 0;
             self.document.body.appendChild(buttonEl);
-            self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
+            self.gapi.signin2.render(SIGN_IN_WITH_GOOGLE_BUTTON_ID, {
               'longtitle': true,
               'onsuccess': resolve,
               'prompt': 'select_account',
