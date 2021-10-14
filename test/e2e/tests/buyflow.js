@@ -15,11 +15,13 @@
  */
 
 module.exports = {
-  '@tags': ['buyflow'],
-  'Show offers on web': function (browser) {
-    const setup = browser.page.setup();
-    setup.navigate().select('local_min');
+  beforeEach(browser) {
+    browser.useMinifiedJs();
+  },
 
+  '@tags': ['buyflow'],
+
+  'Show offers on web': function (browser) {
     const publication = browser.page.publication();
     publication
       .navigate()
@@ -33,19 +35,15 @@ module.exports = {
       .assert.containsText('.e02Wob', '$4.99/week')
       .end();
   },
-  'Selecting an offer triggers Google Sign-In prompt': function (browser) {
-    const setup = browser.page.setup();
-    setup.navigate().select('local_min');
 
+  'Selecting an offer triggers Google Sign-In prompt': function (browser) {
     const publication = browser.page.publication();
     publication.navigate().viewFirstArticle().selectOffer();
 
     browser.checkPayment().end();
   },
-  'Show offers on AMP': function (browser) {
-    const setup = browser.page.setup();
-    setup.navigate().select('local_min');
 
+  'Show offers on AMP': function (browser) {
     const amp = browser.page.amp();
     amp
       .navigate()
