@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {CACHE_KEYS, MODES, cacheParam, getSwgMode} from './services';
+import {CACHE_KEYS, MODES, cacheParam, feUrl, getSwgMode} from './services';
 
 describes.sandboxed('services', {}, () => {
   beforeEach(() => {
@@ -73,6 +73,20 @@ describes.sandboxed('services', {}, () => {
 
     it('should resolve unknown value', () => {
       expect(cacheParam('unknown')).to.equal('1520624744987');
+    });
+  });
+
+  describe('feUrl', () => {
+    it('should insert prefix properly', () => {
+      expect(feUrl('/iframe', {}, false, 'u/1')).to.equal(
+        'https://news.google.com/u/1/swg/_/ui/v1/iframe?_=_'
+      );
+    });
+
+    it('should insert prefix properly when hostpath prefixed', () => {
+      expect(feUrl('/iframe', {}, true, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/_/ui/v1/iframe?_=_'
+      );
     });
   });
 });

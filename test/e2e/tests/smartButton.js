@@ -15,11 +15,13 @@
  */
 
 module.exports = {
-  '@tags': ['smart'],
-  'Show Smart Button': function (browser) {
-    const setup = browser.page.setup();
-    setup.navigate().select('local');
+  beforeEach(browser) {
+    browser.useMinifiedJs();
+  },
 
+  '@tags': ['smart'],
+
+  'Show Smart Button': function (browser) {
     const smartButton = browser.page.smartButton();
     smartButton
       .navigate()
@@ -38,6 +40,7 @@ module.exports = {
       )
       .end();
   },
+
   'Show offers after clicking smart button': function (browser) {
     const smartButton = browser.page.smartButton();
     smartButton
