@@ -22,7 +22,7 @@ const constants = require('../constants');
 
 const setup = {
   select: function (mode) {
-    return this.log('Selecting local mode')
+    return this.log(`Selecting ${mode} JS mode`)
       .waitForElementVisible('form')
       .click(`input[value=${mode}]`)
       .submitForm('input[value=Update]');
