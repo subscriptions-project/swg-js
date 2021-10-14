@@ -18,7 +18,7 @@ module.exports = {
   '@tags': ['buyflow'],
   'Show offers on web': function (browser) {
     const setup = browser.page.setup();
-    setup.navigate().select('local');
+    setup.navigate().select('local_min');
 
     const publication = browser.page.publication();
     publication
@@ -34,12 +34,18 @@ module.exports = {
       .end();
   },
   'Selecting an offer triggers Google Sign-In prompt': function (browser) {
+    const setup = browser.page.setup();
+    setup.navigate().select('local_min');
+
     const publication = browser.page.publication();
     publication.navigate().viewFirstArticle().selectOffer();
 
     browser.checkPayment().end();
   },
   'Show offers on AMP': function (browser) {
+    const setup = browser.page.setup();
+    setup.navigate().select('local_min');
+
     const amp = browser.page.amp();
     amp
       .navigate()

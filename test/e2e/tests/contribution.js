@@ -18,7 +18,7 @@ module.exports = {
   '@tags': ['contribution'],
   'Show contribution options': function (browser) {
     const setup = browser.page.setup();
-    setup.navigate().select('local');
+    setup.navigate().select('local_min');
 
     const contribution = browser.page.contribution();
     contribution
