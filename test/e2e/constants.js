@@ -15,8 +15,8 @@
  */
 
 module.exports = {
-  gpay: {
-    origin: 'https://pay.sandbox.google.com',
+  google: {
+    domain: 'google.com',
   },
   setup: {
     url: 'http://localhost:8000/examples/sample-pub/setup',
