@@ -24,7 +24,7 @@ const {dist} = require('./builders');
 async function e2e() {
   // Mock HTTP response from Google Pay.
   nock('https://pay.sandbox.google.com').get('/gp/p/ui/pay').reply(200, 'Hi!');
-  
+
   // Compile minified js and css so e2e tests will run against local minified js and css.
   await dist();
   return gulp.src('gulpfile.js').pipe(
