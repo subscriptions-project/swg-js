@@ -250,7 +250,11 @@ export class Dialog {
     injectStyleSheet(resolveDoc(iframeDoc), DIALOG_CSS);
 
     // Add Loading indicator.
-    this.loadingView_ = new LoadingView(iframeDoc);
+    this.loadingView_ = new LoadingView(iframeDoc, {
+      additionalClasses: this.isPositionCenterOnDesktop()
+        ? 'centered-on-desktop'
+        : '',
+    });
     iframeBody.appendChild(this.loadingView_.getElement());
 
     // Container for all dynamic content, including 3P iframe.

@@ -347,6 +347,13 @@ describes.realWin('Dialog', {}, (env) => {
       expect(loadingView.children.length).to.equal(1);
     });
 
+    it('omits centered-on-desktop on LoadingView by default', async () => {
+      const openedDialog = await dialog.open();
+      const iframeDoc = openedDialog.getIframe().getDocument();
+      const loadingContainer = iframeDoc.querySelector('swg-loading-container');
+      expect(loadingContainer).to.not.have.class('centered-on-desktop');
+    });
+
     it('should display loading view', async () => {
       const openedDialog = await dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
@@ -518,6 +525,16 @@ describes.realWin('Dialog', {}, (env) => {
 
       expect(matchMedia.hasListeners()).to.be.false;
     });
+
+    it('adds centered-on-desktop class to the LoadingView', async () => {
+      immediate();
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.have.class('centered-on-desktop');
+    });
   });
 
   describe('dialog with isCenterPositioned=true on desktop', () => {
@@ -562,6 +579,16 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.close(false);
 
       expect(matchMedia.hasListeners()).to.be.false;
+    });
+
+    it('adds centered-on-desktop class to the LoadingView', async () => {
+      immediate();
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.have.class('centered-on-desktop');
     });
 
     it('stays vertically centered after expand animation', async () => {
