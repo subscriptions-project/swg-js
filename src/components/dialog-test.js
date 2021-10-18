@@ -349,8 +349,10 @@ describes.realWin('Dialog', {}, (env) => {
 
     it('omits centered-on-desktop on LoadingView by default', async () => {
       const openedDialog = await dialog.open();
-      const iframeDoc = openedDialog.getIframe().getDocument();
-      const loadingContainer = iframeDoc.querySelector('swg-loading-container');
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
       expect(loadingContainer).to.not.have.class('centered-on-desktop');
     });
 
