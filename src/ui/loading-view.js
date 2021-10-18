@@ -17,6 +17,18 @@
 import {createElement} from '../utils/dom';
 
 /**
+ * Display configration options for the loading view.
+ *
+ * Properties:
+ * - additionalClasses: List of CSS classes to apply to the loading container.
+ *
+ * @typedef {{
+ *   additionalClasses: (!Array<string>|undefined),
+ * }}
+ */
+export let LoadingViewConfig;
+
+/**
  * Loading indicator class. Builds the loading indicator view to be injected in
  * parent element <iframe class="swg-dialog"> element. Provides methods to
  * show/hide loading indicator.
@@ -24,8 +36,9 @@ import {createElement} from '../utils/dom';
 export class LoadingView {
   /**
    * @param {!Document} doc
+   * @param {!LoadingViewConfig=} config
    */
-  constructor(doc) {
+  constructor(doc, config = {}) {
     /** @private @const {!Document} */
     this.doc_ = doc;
 
@@ -35,6 +48,11 @@ export class LoadingView {
       'swg-loading-container',
       {}
     );
+    if (config.additionalClasses) {
+      config.additionalClasses.forEach((additionalClass) => {
+        this.loadingContainer_.classList.add(additionalClass);
+      });
+    }
 
     /** @private @const {!Element} */
     this.loading_ = createElement(this.doc_, 'swg-loading', {});
