@@ -20,11 +20,10 @@ import {createElement} from '../utils/dom';
  * Display configration options for the loading view.
  *
  * Properties:
- * - additionalClasses: List of CSS classes in string form, space-separated, to
- *       apply to the loading container.
+ * - additionalClasses: List of CSS classes to apply to the loading container.
  *
  * @typedef {{
- *   additionalClasses: (string|undefined),
+ *   additionalClasses: (!Array<string>|undefined),
  * }}
  */
 export let LoadingViewConfig;
@@ -44,9 +43,16 @@ export class LoadingView {
     this.doc_ = doc;
 
     /** @private @const {!Element} */
-    this.loadingContainer_ = createElement(this.doc_, 'swg-loading-container', {
-      'class': config.additionalClasses || '',
-    });
+    this.loadingContainer_ = createElement(
+      this.doc_,
+      'swg-loading-container',
+      {}
+    );
+    if (config.additionalClasses) {
+      config.additionalClasses.forEach((additionalClass) => {
+        this.loadingContainer_.classList.add(additionalClass);
+      });
+    }
 
     /** @private @const {!Element} */
     this.loading_ = createElement(this.doc_, 'swg-loading', {});

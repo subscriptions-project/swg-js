@@ -250,10 +250,12 @@ export class Dialog {
     injectStyleSheet(resolveDoc(iframeDoc), DIALOG_CSS);
 
     // Add Loading indicator.
+    const loadingViewClasses = [];
+    if (this.isPositionCenterOnDesktop()) {
+      loadingViewClasses.push('centered-on-desktop');
+    }
     this.loadingView_ = new LoadingView(iframeDoc, {
-      additionalClasses: this.isPositionCenterOnDesktop()
-        ? 'centered-on-desktop'
-        : '',
+      additionalClasses: loadingViewClasses,
     });
     iframeBody.appendChild(this.loadingView_.getElement());
 
