@@ -18,8 +18,11 @@
 /**
  * @fileoverview Global settings for all tests.
  */
+const browserstack = require('browserstack-local');
 const childProcess = require('child_process');
 const {startServer, stopServer} = require('../../build-system/tasks/serve');
+
+let bs;
 
 module.exports = {
   before: async function () {
@@ -34,10 +37,38 @@ module.exports = {
         setTimeout(resolve, 3000);
       });
     });
+
+    await new Promise((resolve) => {
+      bs = new browserstack.Local();
+      bs.start({key: process.env.BROWSERSTACK_KEY}, function (error) {
+        if (error) {
+          throw error;
+        }
+
+        // eslint-disable-next-line no-console
+        console.log('Connected. Now testing...');
+
+        setTimeout(resolve, 3000);
+      });
+    });
   },
-  after: function () {
+  after: async function () {
     // Chromedriver does not automatically exit after test ends.
     childProcess.exec('pkill chromedriver');
+
+    console.log('After testing');
+
+    if (bs) {
+      console.log('--stop bs');
+
+      await new Promise((resolve, reject) => {
+        bs.stop((error) => {
+          if (error) return reject(error);
+          console.log('Stopped');
+          resolve();
+        });
+      });
+    }
 
     stopServer();
   },

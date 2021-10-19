@@ -4,24 +4,66 @@
   "page_objects_path": "test/e2e/pages",
 
   "webdriver" : {
-    "start_process": true,
-    "server_path": "node_modules/.bin/chromedriver",
-    "port": 9515
+    "keep_alive": true,
+    "timeout_options": {
+      "timeout": 60000,
+      "retry_attempts": 3
+    }
   },
 
   "test_settings" : {
     "default" : {
       "launch_url": "http://localhost:8000/examples/sample-pub/1",
       "custom_commands_path": "test/e2e/commands",
-      "skip_testcases_on_fail": false,
+      "skip_testcases_on_fail": false
+    },
+
+    "browserstack": {
+      "selenium": {
+        "host": "hub-cloud.browserstack.com",
+        "port": 443
+      },
+
       "desiredCapabilities": {
-        "browserName": "chrome",
-        "chromeOptions": {
-          "args": [
-              "--headless"
-          ]
+        "browserstack.local": true,
+        "bstack:options": {
+          "local": "false",
+          "userName": "${BROWSERSTACK_USER}",
+          "accessKey": "${BROWSERSTACK_KEY}"
         }
       }
-    }
+    },
+
+    "browserstack.chrome": {
+      "extends": "browserstack",
+      "desiredCapabilities": {
+        "browserName": "chrome",
+        "chromeOptions" : {
+          "w3c": false
+        }
+      }
+    },
+
+    "browserstack.firefox": {
+      "extends": "browserstack",
+      "desiredCapabilities": {
+        "browserName": "firefox"
+      }
+    },
+
+    "browserstack.ie": {
+      "extends": "browserstack",
+      "desiredCapabilities": {
+        "browserName": "IE",
+        "browserVersion": "11.0",
+        "bstack:options" : {
+          "os": "Windows",
+          "osVersion": 10,
+          "local": false,
+          "seleniumVersion": "3.5.2",
+          "resolution": "1366x768"
+        }
+      }
+    }    
   }
 }
