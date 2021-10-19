@@ -23,10 +23,12 @@ const {build} = require('./builders');
 async function e2e() {
   // Compile js and css so e2e tests will run against local js and css.
   await build();
+  
   return gulp.src('gulpfile.js').pipe(
     nightwatch({
       configFile: 'test/e2e/nightwatch.json',
       cliArgs: {
+        env: argv.env,
         tag: argv.tag,
         skiptags: argv.skiptags,
         retries: argv.retries,
