@@ -40,13 +40,10 @@ module.exports = {
 
     await new Promise((resolve) => {
       bs = new browserstack.Local();
-      bs.start({key: process.env.BROWSERSTACK_KEY}, function (error) {
+      bs.start({key: process.env.BROWSERSTACK_KEY}, (error) => {
         if (error) {
           throw error;
         }
-
-        // eslint-disable-next-line no-console
-        console.log('Connected. Now testing...');
 
         setTimeout(resolve, 3000);
       });
@@ -56,15 +53,13 @@ module.exports = {
     // Chromedriver does not automatically exit after test ends.
     childProcess.exec('pkill chromedriver');
 
-    console.log('After testing');
-
     if (bs) {
-      console.log('--stop bs');
-
       await new Promise((resolve, reject) => {
         bs.stop((error) => {
-          if (error) return reject(error);
-          console.log('Stopped');
+          if (error) {
+            return reject(error);
+          }
+
           resolve();
         });
       });

@@ -27,7 +27,7 @@ async function e2e() {
     nightwatch({
       configFile: 'test/e2e/nightwatch.json',
       cliArgs: {
-        env: argv.env,
+        env: argv.env || 'chrome',
         tag: argv.tag,
         skiptags: argv.skiptags,
         retries: argv.retries,

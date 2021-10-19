@@ -3,19 +3,26 @@
   "globals_path": "globalsModule.js",
   "page_objects_path": "test/e2e/pages",
 
-  "webdriver" : {
-    "keep_alive": true,
-    "timeout_options": {
-      "timeout": 60000,
-      "retry_attempts": 3
-    }
-  },
-
   "test_settings": {
     "default": {
       "launch_url": "http://localhost:8000/examples/sample-pub/1",
       "custom_commands_path": "test/e2e/commands",
       "skip_testcases_on_fail": false
+    },
+
+    "chrome": {
+      "desiredCapabilities": {
+        "browserName": "chrome",
+        "chromeOptions": {
+          "args": ["--headless"]
+        }
+      },
+
+      "webdriver": {
+        "start_process": true,
+        "server_path": "node_modules/.bin/chromedriver",
+        "port": 9515
+      }
     },
 
     "browserstack": {
@@ -31,7 +38,15 @@
           "userName": "${BROWSERSTACK_USER}",
           "accessKey": "${BROWSERSTACK_KEY}"
         }
-      }
+      },
+
+      "webdriver" : {
+        "keep_alive": true,
+        "timeout_options": {
+          "timeout": 60000,
+          "retry_attempts": 3
+        }
+      }    
     },
 
     "browserstack.chrome": {
