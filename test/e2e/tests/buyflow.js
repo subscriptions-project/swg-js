@@ -17,9 +17,6 @@
 module.exports = {
   '@tags': ['buyflow'],
   'Show offers on web': function (browser) {
-    const setup = browser.page.setup();
-    setup.navigate().select('local');
-
     const publication = browser.page.publication();
     publication
       .navigate()

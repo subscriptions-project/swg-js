@@ -17,9 +17,6 @@
 module.exports = {
   '@tags': ['smart'],
   'Show Smart Button': function (browser) {
-    const setup = browser.page.setup();
-    setup.navigate().select('local');
-
     const smartButton = browser.page.smartButton();
     smartButton
       .navigate()
