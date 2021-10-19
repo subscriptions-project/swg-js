@@ -18,12 +18,11 @@
 const argv = require('minimist')(process.argv.slice(2));
 const gulp = require('gulp');
 const nightwatch = require('gulp-nightwatch');
-const {build} = require('./builders');
+const {dist} = require('./builders');
 
 async function e2e() {
-  // Compile js and css so e2e tests will run against local js and css.
-  await build();
-  
+  // Compile minified js and css so e2e tests will run against local minified js and css.
+  await dist();
   return gulp.src('gulpfile.js').pipe(
     nightwatch({
       configFile: 'test/e2e/nightwatch.json',

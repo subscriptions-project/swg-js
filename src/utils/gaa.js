@@ -62,6 +62,9 @@ export const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
 /** ID for the third party Google Sign-In button element.  */
 export const GOOGLE_3P_SIGN_IN_BUTTON_ID = 'swg-google-3p-sign-in-button';
 
+/** ID for the Google Sign-In button element. */
+export const SIGN_IN_WITH_GOOGLE_BUTTON_ID = 'swg-sign-in-with-google-button';
+
 /** ID for the Publisher sign-in button element. */
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
@@ -261,10 +264,12 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     overflow: hidden;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID},
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID},
   #${GOOGLE_SIGN_IN_BUTTON_ID} {
     margin: 0 auto;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} > div,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} > div,
   #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
     animation: fadeIn 0.32s;
   }
@@ -277,6 +282,7 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     }
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue {
     background-color: #1A73E8;
     box-shadow: none;
@@ -285,16 +291,19 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     width: 100% !important;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
     display: none;
   }
   /** Hides default "Sign in with Google" text. */
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID}  .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_],
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID}  .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_],
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_] {
     font-size: 0 !important;
   }
   /** Renders localized "Sign in with Google" text instead. */
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before {
     content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
     font-size: 15px;
@@ -803,6 +812,137 @@ export class GaaGoogleSignInButton {
               'prompt': 'select_account',
               'scope': 'profile email',
               'theme': 'dark',
+            });
+
+            // Track button clicks.
+            buttonEl.addEventListener('click', () => {
+              // Tell parent frame about button click.
+              sendMessageToParentFnPromise.then((sendMessageToParent) => {
+                sendMessageToParent({
+                  stamp: POST_MESSAGE_STAMP,
+                  command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+                });
+              });
+            });
+          })
+      )
+      .then((googleUser) => {
+        // Gather GAA user details.
+        const basicProfile = /** @type {!GoogleUserDef} */ (
+          googleUser
+        ).getBasicProfile();
+        // Gather authorization response.
+        const authorizationData = /** @type {!GoogleUserDef} */ (
+          googleUser
+        ).getAuthResponse(true);
+        /** @type {!GaaUserDef} */
+        const gaaUser = {
+          idToken: authorizationData.id_token,
+          name: basicProfile.getName(),
+          givenName: basicProfile.getGivenName(),
+          familyName: basicProfile.getFamilyName(),
+          imageUrl: basicProfile.getImageUrl(),
+          email: basicProfile.getEmail(),
+          authorizationData,
+        };
+
+        // Send GAA user to parent frame.
+        sendMessageToParentFnPromise.then((sendMessageToParent) => {
+          sendMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_USER,
+            gaaUser,
+          });
+        });
+      })
+      .catch(sendErrorMessageToParent);
+  }
+}
+
+export class GaaSignInWithGoogleButton {
+  /**
+   * Renders the Google Sign-In button.
+   * @nocollapse
+   * @param {{ allowedOrigins: !Array<string> }} params
+   */
+  static show({allowedOrigins}) {
+    // Optionally grab language code from URL.
+    const queryString = GaaUtils.getQueryString();
+    const queryParams = parseQueryString(queryString);
+    const languageCode = queryParams['lang'] || 'en';
+
+    // Apply iframe styles.
+    const styleEl = self.document.createElement('style');
+    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+    );
+    self.document.head.appendChild(styleEl);
+
+    // Promise a function that sends messages to the parent frame.
+    // Note: A function is preferable to a reference to the parent frame
+    // because referencing the parent frame outside of the 'message' event
+    // handler throws an Error. A function defined within the handler can
+    // effectively save a reference to the parent frame though.
+    const sendMessageToParentFnPromise = new Promise((resolve) => {
+      self.addEventListener('message', (e) => {
+        if (
+          allowedOrigins.indexOf(e.origin) !== -1 &&
+          e.data.stamp === POST_MESSAGE_STAMP &&
+          e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
+        ) {
+          resolve((message) => {
+            e.source.postMessage(message, e.origin);
+          });
+        }
+      });
+    });
+
+    function sendErrorMessageToParent() {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_ERROR,
+        });
+      });
+    }
+
+    // Validate origins.
+    for (let i = 0; i < allowedOrigins.length; i++) {
+      const allowedOrigin = allowedOrigins[i];
+      const url = new URL(allowedOrigin);
+
+      const isOrigin = url.origin === allowedOrigin;
+      const protocolIsValid =
+        url.protocol === 'http:' || url.protocol === 'https:';
+      const isValidOrigin = isOrigin && protocolIsValid;
+
+      if (!isValidOrigin) {
+        warn(
+          `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${allowedOrigin}`
+        );
+        sendErrorMessageToParent();
+        return;
+      }
+    }
+
+    // Render the Google Sign-In button.
+    configureGoogleSignIn()
+      .then(
+        // Promise credentials.
+        () =>
+          new Promise((resolve) => {
+            // Render the Google Sign-In button.
+            const buttonEl = self.document.createElement('div');
+            buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
+            buttonEl.tabIndex = 0;
+            self.document.body.appendChild(buttonEl);
+            self.gapi.signin2.render(SIGN_IN_WITH_GOOGLE_BUTTON_ID, {
+              'longtitle': true,
+              'onsuccess': resolve,
+              'prompt': 'select_account',
+              'scope': 'profile email',
+              'theme': 'outline',
             });
 
             // Track button clicks.

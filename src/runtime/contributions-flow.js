@@ -164,7 +164,7 @@ export class ContributionsFlow {
     }
 
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
-      return feUrl('/contributionoffersiframe', '', {
+      return feUrl('/contributionoffersiframe', {
         'hl': this.clientConfigManager_.getLanguage(),
       });
     }

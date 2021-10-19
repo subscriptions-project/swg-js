@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-module.exports = {
-  beforeEach(browser) {
-    browser.useMinifiedJs();
-  },
+/**
+ * @fileoverview Tell Scenic to load local *minified* JS.
+ * This gives us an important line of defense against breakages to minified JS,
+ * since our unit tests check against *un*minified JS.
+ */
 
-  '@tags': ['contribution'],
-
-  'Show contribution options': function (browser) {
-    const contribution = browser.page.contribution();
-    contribution
-      .navigate()
-      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-      .waitForElementVisible('@swgDialog')
-      .viewContributionOptions()
-      .assert.containsText('.K2Fgzb', 'Contribute with your Google Account')
-      .assert.containsText('.Borcjc', '$0.99')
-      .contribute()
-      .checkPayment()
-      .end();
-  },
+module.exports.command = function () {
+  const setup = this.page.setup();
+  setup.navigate().select('local_min');
 };

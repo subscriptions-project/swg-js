@@ -130,6 +130,36 @@ describes.realWin('OffersFlow', {}, (env) => {
     await offersFlow.start();
   });
 
+  it('constructs valid OffersFlow with forced language', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox
+      .stub(clientConfigManager, 'getClientConfig')
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}));
+    sandbox.stub(clientConfigManager, 'shouldForceLangInIframes').returns(true);
+    sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-CA');
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&hl=fr-CA',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    await offersFlow.start();
+  });
+
   it('start should not show offers if predicates disable', async () => {
     sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
       new ClientConfig({

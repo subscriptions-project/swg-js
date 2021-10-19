@@ -53,6 +53,12 @@ swg-loading-container {
     box-shadow: rgba(60, 64, 67, 0.3) 0 1px 1px,
       rgba(60, 64, 67, 0.15) 0 1px 4px 1px !important;
   }
+
+  swg-loading-container.centered-on-desktop {
+    height: 120px !important;
+    min-height: 120px !important;
+    border-radius: 8px !important;
+  }
 }
 
 swg-loading {

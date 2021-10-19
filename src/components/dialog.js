@@ -250,7 +250,13 @@ export class Dialog {
     injectStyleSheet(resolveDoc(iframeDoc), DIALOG_CSS);
 
     // Add Loading indicator.
-    this.loadingView_ = new LoadingView(iframeDoc);
+    const loadingViewClasses = [];
+    if (this.isPositionCenterOnDesktop()) {
+      loadingViewClasses.push('centered-on-desktop');
+    }
+    this.loadingView_ = new LoadingView(iframeDoc, {
+      additionalClasses: loadingViewClasses,
+    });
     iframeBody.appendChild(this.loadingView_.getElement());
 
     // Container for all dynamic content, including 3P iframe.
@@ -563,12 +569,18 @@ export class Dialog {
   }
 
   /**
-   * Add the padding to the containing page so as to not hide the content
-   * behind the popup, if rendered at the bottom.
+   * Update padding-bottom on the containing page to not hide any content
+   * behind the popup, if rendered at the bottom. For centered dialogs, there
+   * should be no added padding.
    * @param {number} newHeight
    * @private
    */
   updatePaddingToHtml_(newHeight) {
+    if (this.positionCenterOnDesktop_ && this.desktopMediaQuery_.matches) {
+      // For centered dialogs, there should be no bottom padding.
+      this.removePaddingToHtml_();
+      return;
+    }
     const bottomPadding = newHeight + 20; // Add some extra padding.
     const htmlElement = this.doc_.getRootElement();
     setImportantStyles(htmlElement, {

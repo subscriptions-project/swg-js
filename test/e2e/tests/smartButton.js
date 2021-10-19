@@ -15,7 +15,12 @@
  */
 
 module.exports = {
+  beforeEach(browser) {
+    browser.useMinifiedJs();
+  },
+
   '@tags': ['smart'],
+
   'Show Smart Button': function (browser) {
     const smartButton = browser.page.smartButton();
     smartButton
@@ -35,6 +40,7 @@ module.exports = {
       )
       .end();
   },
+
   'Show offers after clicking smart button': function (browser) {
     const smartButton = browser.page.smartButton();
     smartButton
