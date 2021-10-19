@@ -537,6 +537,19 @@ describes.realWin('Dialog', {}, (env) => {
         .querySelector('swg-loading-container');
       expect(loadingContainer).to.have.class('centered-on-desktop');
     });
+
+    it('adds padding-bottom to document root on resize', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const newHeight = 110;
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(win.document.documentElement.style.paddingBottom).to.equal(
+        `${newHeight + 20}px`
+      );
+    });
   });
 
   describe('dialog with isCenterPositioned=true on desktop', () => {
@@ -617,6 +630,17 @@ describes.realWin('Dialog', {}, (env) => {
       const iframe = dialog.getElement();
       expectPositionCenter(iframe);
       expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
+    });
+
+    it('does not add padding-bottom to document root on resize', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const newHeight = 110;
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(win.document.documentElement.style.paddingBottom).to.equal('');
     });
   });
 });
