@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "browserstack-local": "^1.4.8",
+    "geckodriver": "^2.0.4",
     "promise-pjs": "1.1.5",
     "selenium-server": "^3.141.59",
     "selenium-webdriver": "^4.0.0-rc-2",
