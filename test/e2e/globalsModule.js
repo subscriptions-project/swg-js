@@ -38,16 +38,18 @@ module.exports = {
       });
     });
 
-    await new Promise((resolve) => {
-      bs = new browserstack.Local();
-      bs.start({key: process.env.BROWSERSTACK_KEY}, (error) => {
-        if (error) {
-          throw error;
-        }
+    if (this.browserstack) {
+      await new Promise((resolve) => {
+        bs = new browserstack.Local();
+        bs.start({key: process.env.BROWSERSTACK_KEY}, (error) => {
+          if (error) {
+            throw error;
+          }
 
-        setTimeout(resolve, 3000);
+          setTimeout(resolve, 3000);
+        });
       });
-    });
+    }
   },
   after: async function () {
     // Chromedriver does not automatically exit after test ends.
@@ -67,6 +69,7 @@ module.exports = {
 
     stopServer();
   },
+
   // Let tests to continue if an assertion fails.
   abortOnAssertionFailure: false,
 

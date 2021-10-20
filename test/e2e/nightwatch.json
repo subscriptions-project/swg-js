@@ -26,6 +26,10 @@
     },
 
     "browserstack": {
+      "globals": {
+        "browserstack": true
+      },
+
       "selenium": {
         "host": "hub-cloud.browserstack.com",
         "port": 443
