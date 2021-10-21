@@ -11,6 +11,10 @@
     },
 
     "chrome": {
+      "globals": {
+        "webdriverProcess": "chromedriver"
+      },
+
       "desiredCapabilities": {
         "browserName": "chrome",
         "chromeOptions": {
@@ -26,6 +30,10 @@
     },
 
     "firefox": {
+      "globals": {
+        "webdriverProcess": "geckodriver"
+      },
+
       "desiredCapabilities": {
         "browserName" : "firefox",
         "acceptInsecureCerts": true

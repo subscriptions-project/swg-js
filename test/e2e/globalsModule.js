@@ -52,8 +52,10 @@ module.exports = {
     }
   },
   after: async function () {
-    // Chromedriver does not automatically exit after test ends.
-    childProcess.exec('pkill chromedriver');
+    // Chrome/Gecko drivers do not automatically exit after test ends.
+    if (this.webdriverProcess) {
+      childProcess.exec(`pkill ${this.webdriverProcess}`);
+    }
 
     if (bs) {
       await new Promise((resolve, reject) => {
