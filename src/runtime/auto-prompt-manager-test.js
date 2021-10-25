@@ -222,6 +222,18 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
   });
 
+  it('should ignore irrelevant events', async () => {
+    storageMock.expects('get').never();
+    storageMock.expects('set').never();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_AD,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   it('should display the contribution mini prompt if the user has no entitlements', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
