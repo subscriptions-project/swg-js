@@ -60,6 +60,9 @@ export class AutoPromptManager {
     /** @private @const {!MiniPromptApi} */
     this.miniPromptAPI_ = this.getMiniPromptApi();
     this.miniPromptAPI_.init();
+
+    /** @private {boolean} */
+    this.autoPromptDisplayed_ = false;
   }
 
   /**
@@ -84,17 +87,14 @@ export class AutoPromptManager {
    * @param {{
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
-   *   displayForLockedContentFn: (function()|undefined),
+   *   displayLargePromptFn: (function()|undefined),
    * }} params
    * @return {!Promise}
    */
   showAutoPrompt(params) {
     // Manual override of display rules, mainly for demo purposes.
     if (params.alwaysShow) {
-      this.miniPromptAPI_.create({
-        autoPromptType: params.autoPromptType,
-        callback: params.displayForLockedContentFn,
-      });
+      this.showPrompt_(params.autoPromptType, params.displayLargePromptFn);
       return Promise.resolve();
     }
 
@@ -117,30 +117,28 @@ export class AutoPromptManager {
    * @param {{
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
-   *   displayForLockedContentFn: (function()|undefined),
+   *   displayLargePromptFn: (function()|undefined),
    * }} params
    * @return {!Promise}
    */
   showAutoPrompt_(clientConfig, entitlements, params) {
-    return this.shouldShowMiniPrompt_(
+    return this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
       params.autoPromptType
-    ).then((shouldShowMiniPrompt) => {
-      if (!shouldShowMiniPrompt) {
+    ).then((shouldShowAutoPrompt) => {
+      if (!shouldShowAutoPrompt) {
         if (
           this.shouldShowLockedContentPrompt_(entitlements) &&
-          params.displayForLockedContentFn
+          params.displayLargePromptFn
         ) {
-          params.displayForLockedContentFn();
+          params.displayLargePromptFn();
         }
         return;
       }
       this.deps_.win().setTimeout(() => {
-        this.miniPromptAPI_.create({
-          autoPromptType: params.autoPromptType,
-          callback: params.displayForLockedContentFn,
-        });
+        this.autoPromptDisplayed_ = true;
+        this.showPrompt_(params.autoPromptType, params.displayLargePromptFn);
       }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
     });
   }
@@ -153,7 +151,7 @@ export class AutoPromptManager {
    * @param {!AutoPromptType|undefined} autoPromptType
    * @returns {!Promise<boolean>}
    */
-  shouldShowMiniPrompt_(clientConfig, entitlements, autoPromptType) {
+  shouldShowAutoPrompt_(clientConfig, entitlements, autoPromptType) {
     // If false publication predicate was returned in the response, don't show
     // the prompt.
     if (
@@ -163,7 +161,7 @@ export class AutoPromptManager {
       return Promise.resolve(false);
     }
 
-    // If the mini auto prompt type is not supported, don't show the prompt.
+    // If the auto prompt type is not supported, don't show the prompt.
     if (
       autoPromptType === undefined ||
       autoPromptType === AutoPromptType.NONE
@@ -176,17 +174,20 @@ export class AutoPromptManager {
       return Promise.resolve(false);
     }
 
-    // The mini auto prompt is only for non-paygated content.
+    // The auto prompt is only for non-paygated content.
     if (this.pageConfig_.isLocked()) {
       return Promise.resolve(false);
     }
 
     // Don't cap subscription prompts.
-    if (autoPromptType === AutoPromptType.SUBSCRIPTION) {
+    if (
+      autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+    ) {
       return Promise.resolve(true);
     }
 
-    // If no mini auto prompt config was returned in the response, don't show
+    // If no auto prompt config was returned in the response, don't show
     // the prompt.
     let autoPromptConfig = undefined;
     if (
@@ -252,6 +253,30 @@ export class AutoPromptManager {
   }
 
   /**
+   * Shows the prompt based on the type specified.
+   * @param {AutoPromptType|undefined} autoPromptType
+   * @param {function()|undefined} displayLargePromptFn
+   * @returns
+   */
+  showPrompt_(autoPromptType, displayLargePromptFn) {
+    if (
+      autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      autoPromptType === AutoPromptType.CONTRIBUTION
+    ) {
+      this.miniPromptAPI_.create({
+        autoPromptType,
+        callback: displayLargePromptFn,
+      });
+    } else if (
+      (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
+      displayLargePromptFn
+    ) {
+      displayLargePromptFn();
+    }
+  }
+
+  /**
    * Determines whether a larger, blocking prompt should be shown.
    * @param {!../api/entitlements.Entitlements} entitlements
    * @returns {boolean}
@@ -268,10 +293,19 @@ export class AutoPromptManager {
    * @return {!Promise}
    */
   handleClientEvent_(event) {
+    // Impressions and dimissals of forced (for paygated) or manually triggered
+    // prompts do not count toward the frequency caps.
+    if (!this.autoPromptDisplayed_ || this.pageConfig_.isLocked()) {
+      return Promise.resolve();
+    }
+
     if (
       event.eventType ===
         AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT ||
-      event.eventType === AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT
+      event.eventType ===
+        AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT ||
+      event.eventType === AnalyticsEvent.IMPRESSION_OFFERS ||
+      event.eventType === AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS
     ) {
       return this.storeEvent_(STORAGE_KEY_IMPRESSIONS);
     }
@@ -280,7 +314,9 @@ export class AutoPromptManager {
       event.eventType ===
         AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE ||
       event.eventType ===
-        AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE
+        AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE ||
+      event.eventType === AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED ||
+      event.eventType === AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED
     ) {
       return this.storeEvent_(STORAGE_KEY_DISMISSALS);
     }
