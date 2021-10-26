@@ -86,7 +86,7 @@ export class MiniPromptApi {
    * Creates the element and displays it on the page.
    * @param {{
    *   autoPromptType: (!AutoPromptType|undefined),
-   *   callback: (function()|undefined),
+   *   clickCallback: (function()|undefined),
    * }} options
    */
   create(options) {
@@ -142,8 +142,8 @@ export class MiniPromptApi {
     // Handle events and logging for the various sub-components.
     const clickFun = () => {
       this.logClick_(options.autoPromptType);
-      if (typeof options.callback === 'function') {
-        options.callback();
+      if (typeof options.clickCallback === 'function') {
+        options.clickCallback();
       }
       setStyle(miniPromptDiv, 'visibility', 'hidden');
     };
