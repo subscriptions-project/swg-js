@@ -92,7 +92,7 @@ export class BasicSubscriptions {
  * The types of autoprompt that can be specified to be shown. CONTRIBUTION and
  * SUBSCRIPTION will trigger the small, button-like prompt, and
  * CONTRIBUTION_LARGE and SUBSCRIPTION_LARGE will trigger the larger purchase
- *
+ * UI.
  * @enum {string}
  */
 export const AutoPromptType = {

@@ -31,7 +31,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
   let clientConfigManager;
   let clientConfigManagerMock;
   let events;
-  let callbackSpy;
+  let clickCallbackSpy;
 
   beforeEach(() => {
     deps = new DepsDef();
@@ -56,7 +56,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
       });
     events = [];
 
-    callbackSpy = sandbox.spy();
+    clickCallbackSpy = sandbox.spy();
     miniPromptApi = new MiniPromptApi(deps);
 
     sandbox.stub(self.console, 'warn');
@@ -184,7 +184,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
         isFromUserAction: true,
       });
       expect(miniPrompt.style.visibility).to.equal('hidden');
-      expect(callbackSpy).to.be.calledOnce;
+      expect(clickCallbackSpy).to.be.calledOnce;
     }
 
     function expectMiniPromptNotCreated() {
@@ -204,14 +204,14 @@ describes.realWin('MiniPromptApi', {}, (env) => {
     it('should create a contribution prompt', async () => {
       setTheme();
       autoPromptType = AutoPromptType.CONTRIBUTION;
-      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      miniPromptApi.create({autoPromptType, clickCallback: clickCallbackSpy});
       await expectMiniPromptCreated();
     });
 
     it('should create a subscription prompt', async () => {
       setTheme();
       autoPromptType = AutoPromptType.SUBSCRIPTION;
-      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      miniPromptApi.create({autoPromptType, clickCallback: clickCallbackSpy});
       await expectMiniPromptCreated();
     });
 
@@ -219,7 +219,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
       isDarkMode = true;
       setTheme();
       autoPromptType = AutoPromptType.CONTRIBUTION;
-      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      miniPromptApi.create({autoPromptType, clickCallback: clickCallbackSpy});
       await expectMiniPromptCreated();
     });
 
@@ -227,7 +227,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
       isDarkMode = true;
       setTheme();
       autoPromptType = AutoPromptType.SUBSCRIPTION;
-      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      miniPromptApi.create({autoPromptType, clickCallback: clickCallbackSpy});
       await expectMiniPromptCreated();
     });
 
@@ -235,20 +235,20 @@ describes.realWin('MiniPromptApi', {}, (env) => {
       setTheme();
       clientConfigManagerMock.expects('getLanguage').returns('fr');
       autoPromptType = AutoPromptType.SUBSCRIPTION;
-      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      miniPromptApi.create({autoPromptType, clickCallback: clickCallbackSpy});
       expectedTitle = "S'abonner avec Google";
       await expectMiniPromptCreated();
     });
 
     it('should close a contribution prompt when the close button is clicked', async () => {
       autoPromptType = AutoPromptType.CONTRIBUTION;
-      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      miniPromptApi.create({autoPromptType, clickCallback: clickCallbackSpy});
 
       expect(gd.getBody().children).to.have.length(1);
       const miniPrompt = gd.getBody().children[0];
       const closeButton = miniPrompt.children[1];
       await closeButton.click();
-      expect(callbackSpy).to.not.be.called;
+      expect(clickCallbackSpy).to.not.be.called;
       expect(events.length).to.equal(2); // First event is the impression.
       expect(events[1]).to.deep.equal({
         eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
@@ -259,13 +259,13 @@ describes.realWin('MiniPromptApi', {}, (env) => {
 
     it('should close a subscription prompt when the close button is clicked', async () => {
       autoPromptType = AutoPromptType.SUBSCRIPTION;
-      miniPromptApi.create({autoPromptType, callback: callbackSpy});
+      miniPromptApi.create({autoPromptType, clickCallback: clickCallbackSpy});
 
       expect(gd.getBody().children).to.have.length(1);
       const miniPrompt = gd.getBody().children[0];
       const closeButton = miniPrompt.children[1];
       await closeButton.click();
-      expect(callbackSpy).to.not.be.called;
+      expect(clickCallbackSpy).to.not.be.called;
       expect(events.length).to.equal(2); // First event is the impression.
       expect(events[1]).to.deep.equal({
         eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,

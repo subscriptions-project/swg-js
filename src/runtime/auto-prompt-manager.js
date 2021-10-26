@@ -265,7 +265,7 @@ export class AutoPromptManager {
     ) {
       this.miniPromptAPI_.create({
         autoPromptType,
-        callback: displayLargePromptFn,
+        clickCallback: displayLargePromptFn,
       });
     } else if (
       (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
