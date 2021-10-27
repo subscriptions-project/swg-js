@@ -36,7 +36,12 @@
 
       "desiredCapabilities": {
         "browserName" : "firefox",
-        "acceptInsecureCerts": true
+        "acceptInsecureCerts": true,
+        "alwaysMatch": {
+          "moz:firefoxOptions": {
+            "args": ["-headless"]
+          }
+        }
       },
 
       "webdriver": {
@@ -109,7 +114,13 @@
     "browserstack.firefox": {
       "extends": "browserstack",
       "desiredCapabilities": {
-        "browserName": "firefox"
+        "browserName": "firefox",
+        "acceptInsecureCerts": true,
+        "alwaysMatch": {
+          "moz:firefoxOptions": {
+            "args": ["-headless"]
+          }
+        }
       }
     },
 
