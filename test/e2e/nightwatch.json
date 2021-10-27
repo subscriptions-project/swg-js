@@ -36,10 +36,7 @@
 
       "desiredCapabilities": {
         "browserName" : "firefox",
-        "acceptInsecureCerts": true,
-        "moz:firefoxOptions": {
-          "args": ["-headless"]
-        }
+        "acceptInsecureCerts": true
       },
 
       "webdriver": {
@@ -51,6 +48,24 @@
         "port": 4444
       }
     },
+
+    "safari": {
+      "globals": {
+        "webdriverProcess": "safaridriver"
+      },
+
+      "desiredCapabilities": {
+        "browserName": "safari",
+        "javascriptEnabled": true,
+        "acceptSslCerts": true
+      },
+
+      "webdriver": {
+        "port": 4445,
+        "start_process": true,
+        "server_path": "/usr/bin/safaridriver"
+      }
+    },    
 
     "browserstack": {
       "globals": {
