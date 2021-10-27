@@ -29,6 +29,11 @@ class Message {
   toArray(unusedIncludeLabel = true) {}
 }
 /** @enum {number} */
+const ActionType = {
+  ACTION_TYPE_UNKNOWN: 0,
+  ACTION_TYPE_RELOAD_PAGE: 1,
+};
+/** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
   IMPRESSION_PAYWALL: 1,
@@ -192,6 +197,59 @@ class AccountCreationRequest {
    */
   label() {
     return 'AccountCreationRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class ActionRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?ActionType} */
+    this.action_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?ActionType}
+   */
+  getAction() {
+    return this.action_;
+  }
+
+  /**
+   * @param {!ActionType} value
+   */
+  setAction(value) {
+    this.action_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.action_, // field 1 - action
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'ActionRequest';
   }
 }
 
@@ -1853,6 +1911,7 @@ class ViewSubscriptionsResponse {
 
 const PROTO_MAP = {
   'AccountCreationRequest': AccountCreationRequest,
+  'ActionRequest': ActionRequest,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
@@ -1902,6 +1961,8 @@ function getLabel(messageType) {
 
 export {
   AccountCreationRequest,
+  ActionRequest,
+  ActionType,
   AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,
