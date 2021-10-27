@@ -36,7 +36,10 @@
 
       "desiredCapabilities": {
         "browserName" : "firefox",
-        "acceptInsecureCerts": true
+        "acceptInsecureCerts": true,
+        "moz:firefoxOptions": {
+          "args": ["-headless"]
+        }
       },
 
       "webdriver": {
@@ -82,7 +85,8 @@
       "desiredCapabilities": {
         "browserName": "chrome",
         "chromeOptions" : {
-          "w3c": false
+          "w3c": false,
+          "args": ["--headless"]
         }
       }
     },
@@ -107,6 +111,32 @@
           "resolution": "1366x768"
         }
       }
-    }    
+    },
+
+    "lambdatest": {
+      "selenium": {
+        "host": "hub.lambdatest.com",
+        "port": 80
+      },
+
+      "username": "${LT_USERNAME}",
+      "access_key": "${LT_ACCESS_KEY}",
+
+      "webdriver" : {
+        "keep_alive": true,
+        "timeout_options": {
+          "timeout": 60000,
+          "retry_attempts": 3
+        }
+      }    
+    },
+
+    "lambdatest.chrome": {
+      "extends": "lambdatest",
+      "desiredCapabilities": {
+        "browserName": "chrome",
+        "headless" : true
+      }
+    } 
   }
 }
