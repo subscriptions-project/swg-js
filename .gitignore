@@ -2,13 +2,12 @@
 .g4ignore
 build
 c
-chromedriver.log
+*.log
 /dist
 dist.3p
 dist.tools
 examples.min
 node_modules
-npm-debug.log
 .idea
 .tm_properties
 .settings
@@ -19,4 +18,3 @@ typings.json
 build-system/runner/TESTS-TestSuites.xml
 test/coverage
 package-lock.json
-yarn-error.log
