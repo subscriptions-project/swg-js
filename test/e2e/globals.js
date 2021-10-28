@@ -18,11 +18,11 @@
 /**
  * @fileoverview Global settings for all tests.
  */
-const browserstack = require('browserstack-local');
+const browserstackLocal = require('browserstack-local');
 const childProcess = require('child_process');
 const {startServer, stopServer} = require('../../build-system/tasks/serve');
 
-let bs;
+let browserStackLocalInstance;
 
 module.exports = {
   before: async function () {
@@ -40,14 +40,18 @@ module.exports = {
 
     if (this.browserstack) {
       await new Promise((resolve) => {
-        bs = new browserstack.Local();
-        bs.start({key: process.env.BROWSERSTACK_KEY}, (error) => {
-          if (error) {
-            throw error;
-          }
+        browserStackLocalInstance = new browserstackLocal.Local();
+        browserStackLocalInstance.start(
+          {key: process.env.BROWSERSTACK_KEY},
+          (error) => {
+            if (error) {
+              throw error;
+            }
 
-          setTimeout(resolve, 3000);
-        });
+            // Give the browserstack local interface time to start up and bind to local server
+            setTimeout(resolve, 3000);
+          }
+        );
       });
     }
   },
@@ -57,9 +61,9 @@ module.exports = {
       childProcess.exec(`pkill ${this.webdriverProcess}`);
     }
 
-    if (bs) {
+    if (browserStackLocalInstance) {
       await new Promise((resolve, reject) => {
-        bs.stop((error) => {
+        browserStackLocalInstance.stop((error) => {
           if (error) {
             return reject(error);
           }
