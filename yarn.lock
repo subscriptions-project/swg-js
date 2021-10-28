@@ -2914,7 +2914,7 @@ browserslist@^4.17.5:
     node-releases "^2.0.1"
     picocolors "^1.0.0"
 
-browserstack-local@^1.4.8:
+browserstack-local@1.4.8:
   version "1.4.8"
   resolved "https://registry.yarnpkg.com/browserstack-local/-/browserstack-local-1.4.8.tgz#07f74a19b324cf2de69ffe65f9c2baa3a2dd9a0e"
   integrity sha512-s+mc3gTOJwELdLWi4qFVKtGwMbb5JWsR+JxKlMaJkRJxoZ0gg3WREgPxAN0bm6iU5+S4Bi0sz0oxBRZT8BiNsQ==
@@ -5944,7 +5944,7 @@ functional-red-black-tree@^1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-geckodriver@^2.0.4:
+geckodriver@2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/geckodriver/-/geckodriver-2.0.4.tgz#2f644ede43ce7bea10336d57838179da0f7374d9"
   integrity sha512-3Fu75v6Ov8h5Vt25+djJU56MJA2gRctgjhvG5xGzLFTQjltPz7nojQdBHbmgWznUt3CHl8VaiDn8MaepY7B0dA==
@@ -11178,12 +11178,12 @@ seek-bzip@^1.0.5:
   dependencies:
     commander "^2.8.1"
 
-selenium-server@^3.141.59:
+selenium-server@3.141.59:
   version "3.141.59"
   resolved "https://registry.yarnpkg.com/selenium-server/-/selenium-server-3.141.59.tgz#cbefdf50aae636ee4c67b819532a8233ce3fd6b0"
   integrity sha512-pL7T1YtAqOEXiBbTx0KdZMkE2U7PYucemd7i0nDLcxcR1APXYZlJfNr5hrvL3mZgwXb7AJEZPINzC6mDU3eP5g==
 
-selenium-webdriver@^4.0.0:
+selenium-webdriver@4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.0.0.tgz#7dc8969facee3be634459e173f557b7e34308e73"
   integrity sha512-tOlu6FnTjPq2FKpd153pl8o2cB7H40Rvl/ogiD2sapMv4IDjQqpIxbd+swDJe9UDLdszeh5CDis6lgy4e9UG1w==
