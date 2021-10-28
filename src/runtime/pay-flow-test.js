@@ -166,6 +166,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should have valid flow constructed in payStartFlow', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', {skuId: 'sku1'})
@@ -206,6 +207,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should trigger the contribution flow if given contribution productType', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     const subscriptionRequest = {
       skuId: 'sku1',
       publicationId: 'pub1',
@@ -252,6 +254,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should have valid flow constructed for one time', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     const subscriptionRequest = {
       skuId: 'newSku',
       oneTime: true,
@@ -298,7 +301,39 @@ describes.realWin('PayStartFlow', {}, (env) => {
     await expect(flowPromise).to.eventually.be.undefined;
   });
 
+  it('should have valid flow constructed with transaction id', async () => {
+    const expectedTransactionId = 'transaction-id';
+    analyticsMock.expects('getTransactionId').returns(expectedTransactionId);
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('subscribe', {skuId: 'sku1'})
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock
+      .expects('start')
+      .withExactArgs(
+        sandbox.match((paymentDataRequest) => {
+          expect(paymentDataRequest.swg.transactionId).to.equal(
+            expectedTransactionId
+          );
+          return true;
+        }),
+        sandbox.match.any
+      )
+      .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('sku1')
+      );
+    const flowPromise = flow.start();
+    await expect(flowPromise).to.eventually.be.undefined;
+  });
+
   it('should have valid flow constructed with metadata', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     const subscriptionRequest = {
       skuId: 'newSku',
       publicationId: 'pub1',
@@ -350,6 +385,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should have valid replace flow constructed', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     const subscriptionRequest = {
       skuId: 'newSku1',
       oldSku: 'oldSku1',
@@ -402,6 +438,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should have valid replace flow constructed (no proration mode)', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     const subscriptionRequest = {
       skuId: 'newSku2',
       oldSku: 'oldSku2',
@@ -452,6 +489,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should force redirect mode', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     runtime.configure({windowOpenMode: 'redirect'});
     payClientMock
       .expects('start')
@@ -480,6 +518,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should have paySwgVersion from clientConfig', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(new ClientConfig({paySwgVersion: '1'})))
@@ -513,6 +552,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 
   it('should forceDisableNative for basic paySwgVersion', async () => {
+    analyticsMock.expects('getTransactionId').returns('');
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(Promise.resolve(new ClientConfig({paySwgVersion: '2'})))

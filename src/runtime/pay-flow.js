@@ -51,7 +51,8 @@ import {parseUrl} from '../utils/url';
  *    replaceSkuProrationMode: (number|undefined),
  *    paymentRecurrence: (number|undefined),
  *    swgVersion: (string|undefined),
- *    metadata: (Object|undefined)
+ *    metadata: (Object|undefined),
+ *    transactionId: (string|undefined)
  * }}
  */
 export let SwgPaymentRequest;
@@ -173,6 +174,11 @@ export class PayStartFlow {
     // Assign additional metadata if available.
     if (this.subscriptionRequest_['metadata']) {
       swgPaymentRequest['metadata'] = this.subscriptionRequest_['metadata'];
+    }
+
+    const transactionId = this.analyticsService_.getTransactionId();
+    if (transactionId) {
+      swgPaymentRequest['transactionId'] = transactionId;
     }
 
     // Start/cancel events.
