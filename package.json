@@ -26,10 +26,7 @@
     "export-to-amp": "gulp export-to-amp"
   },
   "dependencies": {
-    "geckodriver": "^2.0.4",
     "promise-pjs": "1.1.5",
-    "selenium-server": "^3.141.59",
-    "selenium-webdriver": "^4.0.0-rc-2",
     "web-activities": "1.24.0"
   },
   "devDependencies": {
@@ -61,6 +58,7 @@
     "express": "4.17.1",
     "fancy-log": "1.3.3",
     "fs-extra": "10.0.0",
+    "geckodriver": "^2.0.4",
     "glob": "7.2.0",
     "gulp": "4.0.2",
     "gulp-eslint": "6.0.0",
@@ -113,6 +111,8 @@
     "rollup": "2.58.3",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
+    "selenium-server": "^3.141.59",
+    "selenium-webdriver": "^4.0.0",
     "shuffle-seed": "1.1.6",
     "sinon": "11.1.2",
     "sinon-chai": "3.7.0",
