@@ -25,7 +25,7 @@ async function e2e() {
   await dist();
   return gulp.src('gulpfile.js').pipe(
     nightwatch({
-      configFile: 'test/e2e/nightwatch.json',
+      configFile: 'test/e2e/nightwatch.conf.js',
       cliArgs: {
         env: argv.env || 'chrome',
         tag: argv.tag,
