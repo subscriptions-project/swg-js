@@ -126,6 +126,13 @@ module.exports = {
       },
     },
 
+    'selenium.safari': {
+      extends: 'selenium',
+      desiredCapabilities: {
+        browserName: 'safari',
+      },
+    },
+
     browserstack: {
       globals: {
         browserstack: true,
