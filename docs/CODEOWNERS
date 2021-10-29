@@ -1,31 +1,30 @@
-* @jpettitt, @dvoytenko, @cfa
-assets/swg-button.css @diparikh, @cfa
-src/proto/ @sohanirao, @dvoytenko
+* @jpettitt @dvoytenko @ChrisAntaki
+assets/swg-button.css @diparikh @ChrisAntaki
+src/proto/ @sohanirao @dvoytenko
 src/api/ @jpettitt
-src/runtime/analytics-service.js @sohanirao, @cfa
-src/runtime/analytics-service-test.js @sohanirao, @cfa
-src/runtime/button-api.js @diparikh, @cfa
-src/runtime/button-api-test.js @diparikh, @cfa
-src/runtime/contributions-flow.js @diparikh, @cfa
-src/runtime/contributions-flow-test.js @dparikh, @cfa
-src/runtime/link-account-flow.js @sohanirao, @dparikh, @dvoytenko
-src/runtime/link-account-flow-test.js @sohanirao, @dparikh, @dvoytenko
-src/runtime/login-notification-api.js @cfa, @jpettitt
-src/runtime/login-prompt-api.js @cfa, @jpettitt
-src/runtime/login-prompt-api-test.js @cfa, @jpettitt
-src/runtime/offers-flow.js @dparikh, @jpettitt
-src/runtime/offers-flow-test.js @dparikh, @jpettitt
-src/runtime/pay*.js @alin04, @younmi-park
-src/runtime/offers-flow-test.js @dparikh, @jpettitt
-src/runtime/propensity.js @sohanirao, @cfa
-src/runtime/propensity-test.js @sohanirao, @cfa
-src/runtime/propensity-server.js @sohanirao, @cfa
-src/runtime/propensity-server-test.js @sohanirao, @cfa
-src/runtime/smart-button-api.js @diparikh, @cfa
-src/runtime/wait-for-subscription-lookup-api.js @cfa, @jpettitt
-src/runtime/wait-for-subscription-lookup-api-test.js @cfa, @jpettitt
-src/ui/loading-view.js @diparikh, @cfa
-src/ui/loading-view-test.js @diparikh, @cfa
-src/ui/toast.js @diparikh, @cfa
-src/ui/toast-test.js @diparikh, @cfa
-src/ui/ui.css @diparikh, @cfa
+src/runtime/analytics-service.js @sohanirao @ChrisAntaki
+src/runtime/analytics-service-test.js @sohanirao @ChrisAntaki
+src/runtime/button-api.js @diparikh @ChrisAntaki
+src/runtime/button-api-test.js @diparikh @ChrisAntaki
+src/runtime/contributions-flow.js @diparikh @ChrisAntaki
+src/runtime/contributions-flow-test.js @dparikh @ChrisAntaki
+src/runtime/link-accounts-flow.js @sohanirao @dparikh @dvoytenko
+src/runtime/link-accounts-flow-test.js @sohanirao @dparikh @dvoytenko
+src/runtime/login-notification-api.js @ChrisAntaki @jpettitt
+src/runtime/login-prompt-api.js @ChrisAntaki @jpettitt
+src/runtime/login-prompt-api-test.js @ChrisAntaki @jpettitt
+src/runtime/offers-flow.js @dparikh @jpettitt
+src/runtime/offers-flow-test.js @dparikh @jpettitt
+src/runtime/pay*.js @alin04 @younmi-park
+src/runtime/propensity.js @sohanirao @ChrisAntaki
+src/runtime/propensity-test.js @sohanirao @ChrisAntaki
+src/runtime/propensity-server.js @sohanirao @ChrisAntaki
+src/runtime/propensity-server-test.js @sohanirao @ChrisAntaki
+src/runtime/smart-button-api.js @diparikh @ChrisAntaki
+src/runtime/wait-for-subscription-lookup-api.js @ChrisAntaki @jpettitt
+src/runtime/wait-for-subscription-lookup-api-test.js @ChrisAntaki @jpettitt
+src/ui/loading-view.js @diparikh @ChrisAntaki
+src/ui/loading-view-test.js @diparikh @ChrisAntaki
+src/ui/toast.js @diparikh @ChrisAntaki
+src/ui/toast-test.js @diparikh @ChrisAntaki
+src/ui/ui.css @diparikh @ChrisAntaki
