@@ -1,29 +1,3 @@
-* @jpettitt @ChrisAntaki @adolgachev
-assets/swg-button.css @ChrisAntaki @mmmicedcoffee
+* @jpettitt @ChrisAntaki @adolgachev @mmmicedcoffee
 src/api/ @jpettitt
-src/runtime/analytics-service.js @ChrisAntaki @mmmicedcoffee
-src/runtime/analytics-service-test.js @ChrisAntaki @mmmicedcoffee
-src/runtime/button-api.js @ChrisAntaki @mmmicedcoffee
-src/runtime/button-api-test.js @ChrisAntaki @mmmicedcoffee
-src/runtime/contributions-flow.js @ChrisAntaki @mmmicedcoffee
-src/runtime/contributions-flow-test.js @dparikh @ChrisAntaki @mmmicedcoffee
-src/runtime/link-accounts-flow.js @dparikh
-src/runtime/link-accounts-flow-test.js @dparikh
-src/runtime/login-notification-api.js @ChrisAntaki @jpettitt @mmmicedcoffee
-src/runtime/login-prompt-api.js @ChrisAntaki @jpettitt @mmmicedcoffee
-src/runtime/login-prompt-api-test.js @ChrisAntaki @jpettitt @mmmicedcoffee
-src/runtime/offers-flow.js @dparikh @jpettitt
-src/runtime/offers-flow-test.js @dparikh @jpettitt
 src/runtime/pay*.js @alin04 @younmi-park
-src/runtime/propensity.js @ChrisAntaki @mmmicedcoffee
-src/runtime/propensity-test.js @ChrisAntaki @mmmicedcoffee
-src/runtime/propensity-server.js @ChrisAntaki @mmmicedcoffee
-src/runtime/propensity-server-test.js @ChrisAntaki @mmmicedcoffee
-src/runtime/smart-button-api.js @ChrisAntaki @mmmicedcoffee
-src/runtime/wait-for-subscription-lookup-api.js @ChrisAntaki @jpettitt @mmmicedcoffee
-src/runtime/wait-for-subscription-lookup-api-test.js @ChrisAntaki @jpettitt @mmmicedcoffee
-src/ui/loading-view.js @ChrisAntaki @mmmicedcoffee
-src/ui/loading-view-test.js @ChrisAntaki @mmmicedcoffee
-src/ui/toast.js @ChrisAntaki @mmmicedcoffee
-src/ui/toast-test.js @ChrisAntaki @mmmicedcoffee
-src/ui/ui.css @ChrisAntaki @mmmicedcoffee
