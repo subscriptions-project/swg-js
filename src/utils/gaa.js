@@ -477,6 +477,7 @@ export class GaaMeteringRegwall {
     iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
 
     // Create and style container element.
+    // TODO: Consider using a FriendlyIframe here, to avoid CSS conflicts.
     const containerEl = /** @type {!HTMLDivElement} */ (
       self.document.createElement('div')
     );
