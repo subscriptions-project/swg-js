@@ -260,40 +260,40 @@ const CASL_HTML = `
 /** Base styles for both the Google and Google 3p Sign-In button iframes. */
 const GOOGLE_SIGN_IN_IFRAME_STYLES = `
   body {
-    margin: 0;
-    overflow: hidden;
+    margin: 0 !important;
+    overflow: hidden !important;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID},
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID},
   #${GOOGLE_SIGN_IN_BUTTON_ID} {
-    margin: 0 auto;
+    margin: 0 auto !important;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} > div,
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} > div,
   #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
-    animation: fadeIn 0.32s;
+    animation: fadeIn 0.32s !important;
   }
   @keyframes fadeIn {
     from {
-      opacity: 0;
+      opacity: 0 !important;
     }
     to {
-      opacity: 1;
+      opacity: 1 !important;
     }
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue,
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue {
-    background-color: #1A73E8;
-    box-shadow: none;
-    -webkit-box-shadow: none;
-    border-radius: 4px;
+    background-color: #1A73E8 !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    border-radius: 4px !important;
     width: 100% !important;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon,
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
-    display: none;
+    display: none !important;
   }
   /** Hides default "Sign in with Google" text. */
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID}  .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_],
@@ -305,8 +305,8 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before,
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before,
   #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before {
-    content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
-    font-size: 15px;
+    content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$' !important;
+    font-size: 15px !important;
   }`;
 
 /**
@@ -1034,38 +1034,38 @@ const GOOGLE_3P_SIGN_IN_IFRAME_STYLES =
   GOOGLE_SIGN_IN_IFRAME_STYLES +
   `
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButtonContents {
-    font-family: Roboto,arial,sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: .21px;
-    margin-left: 6px;
-    margin-right: 6px;
-    vertical-align: top;
+    font-family: Roboto,arial,sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    letter-spacing: .21px !important;
+    margin-left: 6px !important;
+    margin-right: 6px !important;
+    vertical-align: top !important;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton {
-    border-radius: 1px;
-    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 25%);
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    -webkit-transition: background-color .218s,border-color .218s,box-shadow .218s;
-    transition: background-color .218s,border-color .218s,box-shadow .218s;
-    -webkit-user-select: none;
-    -webkit-appearance: none;
-    background-color: #fff;
-    background-image: none;
-    color: #262626;
-    cursor: pointer;
-    outline: none;
-    overflow: hidden;
-    position: relative;
-    text-align: center;
-    vertical-align: middle;
-    white-space: nowrap;
-    width: auto;
+    border-radius: 1px !important;
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 25%) !important;
+    -moz-box-sizing: border-box !important;
+    box-sizing: border-box !important;
+    -webkit-transition: background-color .218s,border-color .218s,box-shadow .218s !important;
+    transition: background-color .218s,border-color .218s,box-shadow .218s !important;
+    -webkit-user-select: none !important;
+    -webkit-appearance: none !important;
+    background-color: #fff !important;
+    background-image: none !important;
+    color: #262626 !important;
+    cursor: pointer !important;
+    outline: none !important;
+    overflow: hidden !important;
+    position: relative !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    width: auto !important;
   }
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButtonBlue {
-    border: none;
-    color: #fff;
+    border: none !important;
+    color: #fff !important;
   }
   `;
 
