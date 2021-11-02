@@ -18,6 +18,30 @@
 const Services = {};
 loadServices();
 
+const CHROME_CAPABILITIES = {
+  browserName: 'chrome',
+  chromeOptions: {
+    w3c: false,
+    args: ['--headless'],
+  },
+};
+
+const FIREFOX_CAPABILITIES = {
+  browserName: 'firefox',
+  acceptInsecureCerts: true,
+  alwaysMatch: {
+    'moz:firefoxOptions': {
+      args: ['-headless'],
+    },
+  },
+};
+
+const SAFARI_CAPABILITIES = {
+  browserName: 'safari',
+  javascriptEnabled: true,
+  acceptSslCerts: true,
+};
+
 /* eslint-disable google-camelcase/google-camelcase */
 module.exports = {
   src_folders: ['test/e2e/tests'],
@@ -36,12 +60,7 @@ module.exports = {
         webdriverProcess: 'chromedriver',
       },
 
-      desiredCapabilities: {
-        browserName: 'chrome',
-        chromeOptions: {
-          args: ['--headless'],
-        },
-      },
+      desiredCapabilities: CHROME_CAPABILITIES,
 
       webdriver: {
         start_process: true,
@@ -55,15 +74,7 @@ module.exports = {
         webdriverProcess: 'geckodriver',
       },
 
-      desiredCapabilities: {
-        browserName: 'firefox',
-        acceptInsecureCerts: true,
-        alwaysMatch: {
-          'moz:firefoxOptions': {
-            args: ['-headless'],
-          },
-        },
-      },
+      desiredCapabilities: FIREFOX_CAPABILITIES,
 
       webdriver: {
         start_process: true,
@@ -79,11 +90,7 @@ module.exports = {
         webdriverProcess: 'safaridriver',
       },
 
-      desiredCapabilities: {
-        browserName: 'safari',
-        javascriptEnabled: true,
-        acceptSslCerts: true,
-      },
+      desiredCapabilities: SAFARI_CAPABILITIES,
 
       webdriver: {
         port: 4445,
@@ -116,27 +123,17 @@ module.exports = {
 
     'selenium.chrome': {
       extends: 'selenium',
-      desiredCapabilities: {
-        browserName: 'chrome',
-        chromeOptions: {
-          w3c: false,
-          args: ['--headless'],
-        },
-      },
+      desiredCapabilities: CHROME_CAPABILITIES,
     },
 
     'selenium.firefox': {
       extends: 'selenium',
-      desiredCapabilities: {
-        browserName: 'firefox',
-      },
+      desiredCapabilities: FIREFOX_CAPABILITIES,
     },
 
     'selenium.safari': {
       extends: 'selenium',
-      desiredCapabilities: {
-        browserName: 'safari',
-      },
+      desiredCapabilities: SAFARI_CAPABILITIES,
     },
 
     browserstack: {
@@ -169,67 +166,17 @@ module.exports = {
 
     'browserstack.chrome': {
       extends: 'browserstack',
-      desiredCapabilities: {
-        browserName: 'chrome',
-        chromeOptions: {
-          w3c: false,
-          args: ['--headless'],
-        },
-      },
+      desiredCapabilities: CHROME_CAPABILITIES,
     },
 
     'browserstack.firefox': {
       extends: 'browserstack',
-      desiredCapabilities: {
-        browserName: 'firefox',
-        acceptInsecureCerts: true,
-        alwaysMatch: {
-          'moz:firefoxOptions': {
-            args: ['-headless'],
-          },
-        },
-      },
+      desiredCapabilities: FIREFOX_CAPABILITIES,
     },
 
-    'browserstack.ie': {
+    'browserstack.safari': {
       extends: 'browserstack',
-      desiredCapabilities: {
-        browserName: 'IE',
-        browserVersion: '11.0',
-        'bstack:options': {
-          os: 'Windows',
-          osVersion: 10,
-          local: false,
-          seleniumVersion: '3.5.2',
-          resolution: '1366x768',
-        },
-      },
-    },
-
-    lambdatest: {
-      selenium: {
-        host: 'hub.lambdatest.com',
-        port: 80,
-      },
-
-      username: '${LT_USERNAME}',
-      access_key: '${LT_ACCESS_KEY}',
-
-      webdriver: {
-        keep_alive: true,
-        timeout_options: {
-          timeout: 60000,
-          retry_attempts: 3,
-        },
-      },
-    },
-
-    'lambdatest.chrome': {
-      extends: 'lambdatest',
-      desiredCapabilities: {
-        browserName: 'chrome',
-        headless: true,
-      },
+      desiredCapabilities: SAFARI_CAPABILITIES,
     },
   },
 };
