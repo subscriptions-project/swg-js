@@ -15,9 +15,8 @@
  */
 'use strict';
 
-const chromeDriver = require('chromedriver');
-const geckoDriver = require('geckodriver');
-const seleniumServer = require('selenium-server');
+const Services = {};
+loadServices();
 
 /* eslint-disable google-camelcase/google-camelcase */
 module.exports = {
@@ -46,7 +45,7 @@ module.exports = {
 
       webdriver: {
         start_process: true,
-        server_path: chromeDriver.path,
+        server_path: Services.chromedriver ? Services.chromedriver.path : '',
         port: 9515,
       },
     },
@@ -69,6 +68,7 @@ module.exports = {
       webdriver: {
         start_process: true,
         server_path: 'node_modules/.bin/geckodriver',
+        // server_path: Services.geckodriver ? Services.geckodriver.path : '',
         cli_args: ['--log', 'debug'],
         port: 4444,
       },
@@ -97,10 +97,16 @@ module.exports = {
       selenium: {
         start_process: true,
         port: 4444,
-        server_path: seleniumServer.path,
+        server_path: Services.seleniumServer
+          ? Services.seleniumServer.path
+          : '',
         cli_args: {
-          'webdriver.chrome.driver': chromeDriver.path,
-          'webdriver.gecko.driver': geckoDriver.path,
+          'webdriver.gecko.driver': Services.geckodriver
+            ? Services.geckodriver.path
+            : '',
+          'webdriver.chrome.driver': Services.chromedriver
+            ? Services.chromedriver.path
+            : '',
         },
       },
       webdriver: {
@@ -227,3 +233,17 @@ module.exports = {
     },
   },
 };
+
+function loadServices() {
+  try {
+    Services.seleniumServer = require('selenium-server');
+  } catch (err) {}
+
+  try {
+    Services.chromedriver = require('chromedriver');
+  } catch (err) {}
+
+  try {
+    Services.geckodriver = require('geckodriver');
+  } catch (err) {}
+}
