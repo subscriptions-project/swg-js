@@ -8,6 +8,7 @@ dist.3p
 dist.tools
 examples.min
 node_modules
+.env
 .idea
 .tm_properties
 .settings
