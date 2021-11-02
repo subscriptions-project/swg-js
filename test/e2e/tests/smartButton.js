@@ -15,10 +15,6 @@
  */
 
 module.exports = {
-  beforeEach(browser) {
-    browser.useMinifiedJs();
-  },
-
   '@tags': ['smart'],
 
   'Show Smart Button': function (browser) {

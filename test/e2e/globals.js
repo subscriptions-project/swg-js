@@ -28,7 +28,7 @@ module.exports = {
   before: async function () {
     // Wait for server to start.
     await new Promise((resolve) => {
-      startServer().once('start', () => {
+      startServer({jsTarget: 'local_min'}).once('start', () => {
         // Give server an extra few seconds to startup.
         // Otherwise, Nightwatch requests pages too soon,
         // and then the first E2E tests fail.

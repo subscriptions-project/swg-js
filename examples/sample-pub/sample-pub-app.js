@@ -29,6 +29,7 @@ app.use('/api', require('./service/authorization-app'));
 
 const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
 const AMP_LOCAL = process.env.SERVE_AMP_LOCAL == 'true';
+const JS_TARGET = process.env.SERVE_JS_TARGET || 'local';
 
 const SWG_JS_URLS = {
   local: '/dist/subscriptions.max.js',
@@ -341,7 +342,7 @@ app.get('/redirect-to/swg-basic.js', (req, res) => {
  */
 function getSetup(req) {
   return {
-    script: (req.cookies && req.cookies['script']) || 'local',
+    script: (req.cookies && req.cookies['script']) || JS_TARGET,
   };
 }
 

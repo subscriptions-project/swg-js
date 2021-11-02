@@ -15,10 +15,6 @@
  */
 
 module.exports = {
-  beforeEach(browser) {
-    browser.useMinifiedJs();
-  },
-
   '@tags': ['buyflow'],
 
   'Show offers on web': function (browser) {
