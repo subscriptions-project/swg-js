@@ -5896,7 +5896,7 @@ functional-red-black-tree@^1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-geckodriver@^2.0.4:
+geckodriver@2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/geckodriver/-/geckodriver-2.0.4.tgz#2f644ede43ce7bea10336d57838179da0f7374d9"
   integrity sha512-3Fu75v6Ov8h5Vt25+djJU56MJA2gRctgjhvG5xGzLFTQjltPz7nojQdBHbmgWznUt3CHl8VaiDn8MaepY7B0dA==
@@ -9102,7 +9102,7 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-nightwatch@^1.7.11:
+nightwatch@1.7.11:
   version "1.7.11"
   resolved "https://registry.yarnpkg.com/nightwatch/-/nightwatch-1.7.11.tgz#b666425a8c901e17431d57fa2140a716f7894b1b"
   integrity sha512-yV795EBXZ/myeoCvBtjC/QwvIprxF7SKh0XCeFnpoOtWXDb0yv+ATLRipKGfp+avyGtagqq38ucA4Uh6WPcnhQ==
