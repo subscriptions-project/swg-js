@@ -3,11 +3,8 @@
       NOTE: Replace `content` with your own Google Sign-In OAuth Client ID.
       https://developers.google.com/identity/sign-in/web/sign-in
     -->
-    <meta
-      content="520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com"
-      name="google-signin-client_id"
-    />
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://accounts.google.com/gsi/intermediatesupport"></script>
   
     <!--
       NOTE: Replace `src` with https://news.google.com/swg/js/v1/swg-gaa.js in production.
@@ -16,6 +13,7 @@
   
     <script>
       GaaSignInWithGoogleButton.show({
+        clientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
         // List the origins you trust to host your Google Sign-In button's iframe.
         // This should include the origin(s) you serve articles from.
         // This should also include your AMP cache origin(s), if you're using AMP.

@@ -38,6 +38,8 @@ import '../model/doc';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
 
+const jsonwebtoken = require('jsonwebtoken');
+
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
 
@@ -863,9 +865,9 @@ export class GaaSignInWithGoogleButton {
   /**
    * Renders the Google Sign-In button.
    * @nocollapse
-   * @param {{ allowedOrigins: !Array<string> }} params
+   * @param {{ clientId: string, allowedOrigins: !Array<string> }} params
    */
-  static show({allowedOrigins}) {
+  static show({clientId, allowedOrigins}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -898,6 +900,41 @@ export class GaaSignInWithGoogleButton {
       });
     });
 
+    const initButtonFnPromise = new Promise((resolve) => {
+      const buttonEl = self.document.createElement('div');
+      buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
+      buttonEl.tabIndex = 0;
+      self.document.body.appendChild(buttonEl);
+
+      self.google.accounts.id.initialize({
+        /* eslint-disable google-camelcase/google-camelcase */
+        client_id: clientId,
+        callback: resolve,
+        allowed_parent_origin: allowedOrigins,
+        /* eslint-enable google-camelcase/google-camelcase */
+      });
+      self.google.accounts.id.renderButton(
+        self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+        {
+          'type': 'standard',
+          'size': 'medium',
+          'theme': 'filled_blue',
+          'text': 'signin_with',
+        }
+      );
+
+      // Track button clicks.
+      buttonEl.addEventListener('click', () => {
+        // Tell parent frame about button click.
+        sendMessageToParentFnPromise.then((sendMessageToParent) => {
+          sendMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          });
+        });
+      });
+    });
+
     function sendErrorMessageToParent() {
       sendMessageToParentFnPromise.then((sendMessageToParent) => {
         sendMessageToParent({
@@ -926,55 +963,18 @@ export class GaaSignInWithGoogleButton {
       }
     }
 
-    // Render the Google Sign-In button.
-    configureGoogleSignIn()
-      .then(
-        // Promise credentials.
-        () =>
-          new Promise((resolve) => {
-            // Render the Google Sign-In button.
-            const buttonEl = self.document.createElement('div');
-            buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
-            buttonEl.tabIndex = 0;
-            self.document.body.appendChild(buttonEl);
-            self.gapi.signin2.render(SIGN_IN_WITH_GOOGLE_BUTTON_ID, {
-              'longtitle': true,
-              'onsuccess': resolve,
-              'prompt': 'select_account',
-              'scope': 'profile email',
-              'theme': 'outline',
-            });
-
-            // Track button clicks.
-            buttonEl.addEventListener('click', () => {
-              // Tell parent frame about button click.
-              sendMessageToParentFnPromise.then((sendMessageToParent) => {
-                sendMessageToParent({
-                  stamp: POST_MESSAGE_STAMP,
-                  command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
-                });
-              });
-            });
-          })
-      )
-      .then((googleUser) => {
-        // Gather GAA user details.
-        const basicProfile = /** @type {!GoogleUserDef} */ (
-          googleUser
-        ).getBasicProfile();
-        // Gather authorization response.
-        const authorizationData = /** @type {!GoogleUserDef} */ (
-          googleUser
-        ).getAuthResponse(true);
+    self.onload = initButtonFnPromise
+      .then((jwt) => {
+        const jwtPayload = jsonwebtoken.decode(jwt.credential);
         /** @type {!GaaUserDef} */
         const gaaUser = {
-          idToken: authorizationData.id_token,
-          name: basicProfile.getName(),
-          givenName: basicProfile.getGivenName(),
-          familyName: basicProfile.getFamilyName(),
-          imageUrl: basicProfile.getImageUrl(),
-          email: basicProfile.getEmail(),
-          authorizationData,
+          idToken: '',
+          name: jwtPayload.name,
+          givenName: jwtPayload.given_name,
+          familyName: jwtPayload.family_name,
+          imageUrl: jwtPayload.picture,
+          email: jwtPayload.email,
+          authorizationData: null,
         };
 
         // Send GAA user to parent frame.
