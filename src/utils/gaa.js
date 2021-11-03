@@ -22,6 +22,7 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
+import {JwtHelper} from './jwt';
 import {
   ShowcaseEvent,
   Subscriptions as SubscriptionsDef,
@@ -29,7 +30,6 @@ import {
 import {addQueryParam, parseQueryString} from './url';
 import {findInArray} from './object';
 import {getLanguageCodeFromElement, msg} from './i18n';
-import {JwtHelper} from './jwt';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
 import {warn} from './log';
