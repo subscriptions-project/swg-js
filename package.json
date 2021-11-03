@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "promise-pjs": "1.1.5",
-    "jsonwebtoken": "8.5.1",
     "web-activities": "1.24.0"
   },
   "devDependencies": {
@@ -77,6 +76,7 @@
     "hogan-express": "0.5.2",
     "is-running": "2.1.0",
     "json-stable-stringify": "1.0.1",
+    "jsonwebtoken": "8.5.1",
     "karma": "6.3.4",
     "karma-browserify": "8.1.0",
     "karma-chai": "0.1.0",

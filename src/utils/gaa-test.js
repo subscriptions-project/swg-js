@@ -37,9 +37,8 @@ import {
   queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
+import {JwtHelper} from './jwt';
 import {tick} from '../../test/tick';
-
-const jsonwebtoken = require('jsonwebtoken');
 
 const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
@@ -942,8 +941,9 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       };
 
       // Mock JWT decoding function.
-      sandbox.stub(jsonwebtoken, 'decode');
-      jsonwebtoken.decode.returns(jwtPayload.credential);
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((credential) => {
+        return credential;
+      });
 
       GaaSignInWithGoogleButton.show({
         clientId,

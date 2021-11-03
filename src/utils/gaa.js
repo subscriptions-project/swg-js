@@ -29,6 +29,7 @@ import {
 import {addQueryParam, parseQueryString} from './url';
 import {findInArray} from './object';
 import {getLanguageCodeFromElement, msg} from './i18n';
+import {JwtHelper} from './jwt';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
 import {warn} from './log';
@@ -37,8 +38,6 @@ import {warn} from './log';
 import '../model/doc';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
-
-const jsonwebtoken = require('jsonwebtoken');
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -965,7 +964,9 @@ export class GaaSignInWithGoogleButton {
 
     self.onload = initButtonFnPromise
       .then((jwt) => {
-        const jwtPayload = jsonwebtoken.decode(jwt.credential);
+        const jwtPayload = /** @type {!Object} */ (
+          new JwtHelper().decode(jwt.credential)
+        );
         /** @type {!GaaUserDef} */
         const gaaUser = {
           idToken: '',
