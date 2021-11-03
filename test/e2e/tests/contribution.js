@@ -15,10 +15,6 @@
  */
 
 module.exports = {
-  beforeEach(browser) {
-    browser.useMinifiedJs();
-  },
-
   '@tags': ['contribution'],
 
   'Show contribution options': function (browser) {
