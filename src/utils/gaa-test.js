@@ -39,7 +39,7 @@ import {
 import {I18N_STRINGS} from '../i18n/strings';
 import {tick} from '../../test/tick';
 
-let jsonwebtoken = require('jsonwebtoken');
+const jsonwebtoken = require('jsonwebtoken');
 
 const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
