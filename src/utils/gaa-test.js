@@ -927,6 +927,67 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       );
     });
 
+    it('sends post message with GAA user', async () => {
+      // Mock GIS response with JWT object.
+      const jwtPayload = {
+        credential: {
+          /* eslint-disable google-camelcase/google-camelcase */
+          name: 'name',
+          given_name: 'givenName',
+          family_name: 'familyName',
+          picture: 'imageUrl',
+          email: 'email',
+          /* eslint-enable google-camelcase/google-camelcase */
+        },
+      };
+
+      // Mock JWT decoding function.
+      sandbox.stub(jsonwebtoken, 'decode');
+      jsonwebtoken.decode.returns(jwtPayload.credential);
+
+      GaaSignInWithGoogleButton.show({
+        clientId,
+        allowedOrigins,
+      });
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      const args = self.google.accounts.id.initialize.args;
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+      // Send JWT.
+      args[0][0].callback(jwtPayload);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_USER,
+          gaaUser: {
+            email: 'email',
+            familyName: 'familyName',
+            givenName: 'givenName',
+            idToken: '',
+            imageUrl: 'imageUrl',
+            name: 'name',
+            authorizationData: null,
+          },
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
     it('sends errors to parent', async () => {
       self.google.accounts.id.initialize = sandbox.fake.throws(
         'Function not loaded'
@@ -988,67 +1049,6 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
           `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${invalidOrigin}`
         );
       }
-    });
-
-    it('sends post message with GAA user', async () => {
-      // Mock GIS response with JWT object.
-      const jwtPayload = {
-        credential: {
-          /* eslint-disable google-camelcase/google-camelcase */
-          name: 'name',
-          given_name: 'givenName',
-          family_name: 'familyName',
-          picture: 'imageUrl',
-          email: 'email',
-          /* eslint-enable google-camelcase/google-camelcase */
-        },
-      };
-
-      // Mock JWT decoding function.
-      sandbox.stub(jsonwebtoken, 'decode');
-      jsonwebtoken.decode.returns(jwtPayload.credential);
-
-      GaaSignInWithGoogleButton.show({
-        clientId,
-        allowedOrigins,
-      });
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      const args = self.google.accounts.id.initialize.args;
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-      // Send JWT.
-      args[0][0].callback(jwtPayload);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
-          command: POST_MESSAGE_COMMAND_USER,
-          gaaUser: {
-            email: 'email',
-            familyName: 'familyName',
-            givenName: 'givenName',
-            idToken: '',
-            imageUrl: 'imageUrl',
-            name: 'name',
-            authorizationData: null,
-          },
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
     });
   });
 });
