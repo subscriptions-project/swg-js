@@ -355,6 +355,19 @@ export let GaaUserDef;
 export let GoogleUserDef;
 
 /**
+ * JWT credential response after initializing GIS sign in button.
+ * https://developers.google.com/identity/gsi/web/reference/js-reference#credential
+ * @typedef {{
+ *  name: string,
+ *  given_name: string,
+ *  family_name: string,
+ *  picture: string,
+ *  email: string,
+ * }} CredentialResponseDef
+ */
+export let CredentialResponseDef;
+
+/**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
  * @param {string} queryString
  * @param {boolean} allowAllAccessTypes
@@ -962,9 +975,9 @@ export class GaaSignInWithGoogleButton {
       }
     }
 
-    self.onload = initButtonFnPromise
+    self.onGoogleLibraryLoad = initButtonFnPromise
       .then((jwt) => {
-        const jwtPayload = /** @type {!Object} */ (
+        const jwtPayload = /** @type {!CredentialResponseDef} */ (
           new JwtHelper().decode(jwt.credential)
         );
         /** @type {!GaaUserDef} */

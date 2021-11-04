@@ -53,3 +53,22 @@ function JsonObject() {}
  * }}
  */
 window.gapi;
+
+/**
+ * GSI (Google Identity Services) API.
+ * @type {{
+ *  accounts: {
+ *    id: {
+ *      initialize: function(!Object): !Promise,
+ *      renderButton: function(HTMLElement, !Object): !Promise,
+ *    },
+ *  },
+ * }}
+ */
+window.google;
+
+/**
+ * Check for when the GSI library is loaded.
+ * @type !Promise
+ */
+window.onGoogleLibraryLoad;
