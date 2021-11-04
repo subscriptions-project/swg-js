@@ -331,6 +331,29 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
 export let GaaUserDef;
 
 /**
+ * Google Identity (V1) that Google Identity Services returns after someone signs in.
+ * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
+ * @typedef {{
+ *   iss: string,
+ *   nbf: number,
+ *   aud: string,
+ *   sub: string,
+ *   hd: string,
+ *   email: string,
+ *   email_verified: boolean,
+ *   azp: string,
+ *   name: string,
+ *   picture: string,
+ *   given_name: string,
+ *   family_name: string,
+ *   iat: number,
+ *   exp: number,
+ *   jti: string,
+ * }} GoogleIdentityV1
+ */
+export let GoogleIdentityV1;
+
+/**
  * GoogleUser object that Google Sign-In returns after users sign in.
  * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
@@ -396,14 +419,17 @@ export function queryStringHasFreshGaaParams(
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
   /**
-   * Returns a promise for a Google Sign-In user object.
-   * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
+   * Returns a promise for a Google user object.
+   * The user object will be a:
+   * - GaaUserDef, if you use the GaaGoogleSignInButton
+   * - GoogleIdentityV1, if you use the GaaSignInWithGoogleButton
+   * - Custom object, if you use the GaaGoogle3pSignInButton
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
    * @param {{ iframeUrl: string, caslUrl: string }} params
-   * @return {!Promise<!GaaUserDef>}
+   * @return {!Promise<!GaaUserDef|!GoogleIdentityV1|!Object>}
    */
   static show({iframeUrl, caslUrl}) {
     const queryString = GaaUtils.getQueryString();
