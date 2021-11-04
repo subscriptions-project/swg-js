@@ -973,7 +973,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       expect(self.postMessage).to.be.calledWithExactly(
         {
           command: POST_MESSAGE_COMMAND_USER,
-          gaaUser: {
+          gisUser: {
             email: 'email',
             familyName: 'familyName',
             givenName: 'givenName',
