@@ -15,24 +15,30 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
-const gulp = require('gulp');
-const nightwatch = require('gulp-nightwatch');
-const {build} = require('./builders');
+const nightwatch = require('nightwatch');
+const {dist} = require('./builders');
 
 async function e2e() {
-  // Compile js and css so e2e tests will run against local js and css.
-  await build();
-  return gulp.src('gulpfile.js').pipe(
-    nightwatch({
-      configFile: 'test/e2e/nightwatch.json',
-      cliArgs: {
-        tag: argv.tag,
-        skiptags: argv.skiptags,
-        retries: argv.retries,
-      },
-    })
-  );
+  // Compile minified js and css so e2e tests will run against local minified js and css.
+  await dist();
+
+  nightwatch.cli(async function (argv) {
+    argv.config = 'test/e2e/nightwatch.conf.js';
+    if (!argv.env || argv.env === 'default') {
+      argv.env = 'chrome';
+    }
+
+    const runner = nightwatch.CliRunner(argv);
+    await runner.setup().startWebDriver();
+
+    try {
+      await runner.runTests();
+    } catch (err) {
+      console.error('An error occurred:', err);
+    }
+
+    await runner.stopWebDriver();
+  });
 }
 
 module.exports = {

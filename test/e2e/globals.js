@@ -18,14 +18,17 @@
 /**
  * @fileoverview Global settings for all tests.
  */
+const browserstackLocal = require('browserstack-local');
 const childProcess = require('child_process');
 const {startServer, stopServer} = require('../../build-system/tasks/serve');
+
+let browserStackLocalInstance;
 
 module.exports = {
   before: async function () {
     // Wait for server to start.
     await new Promise((resolve) => {
-      startServer().once('start', () => {
+      startServer({jsTarget: 'local_min'}).once('start', () => {
         // Give server an extra few seconds to startup.
         // Otherwise, Nightwatch requests pages too soon,
         // and then the first E2E tests fail.
@@ -34,13 +37,45 @@ module.exports = {
         setTimeout(resolve, 3000);
       });
     });
+
+    if (this.browserstack) {
+      await new Promise((resolve) => {
+        browserStackLocalInstance = new browserstackLocal.Local();
+        browserStackLocalInstance.start(
+          {key: process.env.BROWSERSTACK_KEY},
+          (error) => {
+            if (error) {
+              throw error;
+            }
+
+            // Give the browserstack local interface time to start up and bind to local server
+            setTimeout(resolve, 3000);
+          }
+        );
+      });
+    }
   },
-  after: function () {
-    // Chromedriver does not automatically exit after test ends.
-    childProcess.exec('pkill chromedriver');
+  after: async function () {
+    // Chrome/Gecko drivers do not automatically exit after test ends.
+    if (this.webdriverProcess) {
+      childProcess.exec(`pkill ${this.webdriverProcess}`);
+    }
+
+    if (browserStackLocalInstance) {
+      await new Promise((resolve, reject) => {
+        browserStackLocalInstance.stop((error) => {
+          if (error) {
+            return reject(error);
+          }
+
+          resolve();
+        });
+      });
+    }
 
     stopServer();
   },
+
   // Let tests to continue if an assertion fails.
   abortOnAssertionFailure: false,
 

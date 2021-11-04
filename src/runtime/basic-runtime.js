@@ -294,7 +294,7 @@ export class ConfiguredBasicRuntime {
     );
 
     // Do not show toast in swgz.
-    this.entitlementsManager().blockNextNotification();
+    this.entitlementsManager().blockNextToast();
 
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();
@@ -484,14 +484,20 @@ export class ConfiguredBasicRuntime {
 
   /** @override */
   setupAndShowAutoPrompt(options) {
-    if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
-      options.displayForLockedContentFn = () => {
+    if (
+      options.autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      options.autoPromptType == AutoPromptType.SUBSCRIPTION_LARGE
+    ) {
+      options.displayLargePromptFn = () => {
         this.configuredClassicRuntime_.showOffers({
           isClosable: !this.pageConfig().isLocked(),
         });
       };
-    } else if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
-      options.displayForLockedContentFn = () => {
+    } else if (
+      options.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      options.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE
+    ) {
+      options.displayLargePromptFn = () => {
         this.configuredClassicRuntime_.showContributionOptions({
           isClosable: !this.pageConfig().isLocked(),
         });
