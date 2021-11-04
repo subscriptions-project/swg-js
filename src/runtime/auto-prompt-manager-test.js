@@ -28,6 +28,7 @@ import {Fetcher} from './fetcher';
 import {MiniPromptApi} from './mini-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
+import {tick} from '../../test/tick';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
@@ -88,6 +89,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
 
     sandbox.stub(MiniPromptApi.prototype, 'init');
     autoPromptManager = new AutoPromptManager(deps);
+    autoPromptManager.autoPromptDisplayed_ = true;
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
     alternatePromptSpy = sandbox.spy();
@@ -200,6 +202,38 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
   });
 
+  it('should not store events when an impression or dismissal was fired for a paygated article', async () => {
+    sandbox.stub(pageConfig, 'isLocked').returns(true);
+    storageMock.expects('get').never();
+    storageMock.expects('set').never();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it('should ignore irrelevant events', async () => {
+    storageMock.expects('get').never();
+    storageMock.expects('set').never();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_AD,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   it('should display the contribution mini prompt if the user has no entitlements', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
@@ -217,7 +251,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -230,9 +264,22 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: true,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
+  });
+
+  it('should display the large prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
+    entitlementsManagerMock.expects('getEntitlements').never();
+    clientConfigManagerMock.expects('getAutoPromptConfig').never();
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    expect(alternatePromptSpy).to.be.calledOnce;
   });
 
   it('should not display any prompt if the type is undefined', async () => {
@@ -251,7 +298,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: undefined,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -272,7 +319,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.NONE,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -293,7 +340,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -315,7 +362,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -350,7 +397,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -384,9 +431,43 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
+  });
+
+  it('should display the large prompt if the auto prompt config caps impressions, and the user is under the cap', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .returns(Promise.resolve(entitlements))
+      .once();
+    const autoPromptConfig = new AutoPromptConfig(/* maxImpressionsPerWeek*/ 2);
+    const clientConfig = new ClientConfig({autoPromptConfig});
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+      alwaysShow: false,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+
+    await tick(2);
+    expect(alternatePromptSpy).to.be.calledOnce;
   });
 
   it('should display the mini prompt if the auto prompt config caps impressions, and the user is under the cap after discounting old impressions', async () => {
@@ -420,7 +501,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -461,7 +542,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -502,7 +583,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -543,7 +624,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -584,7 +665,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -605,7 +686,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -627,7 +708,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -649,7 +730,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
 
     expect(alternatePromptSpy).to.be.calledOnce;
@@ -683,7 +764,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });
@@ -714,7 +795,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayForLockedContentFn: alternatePromptSpy,
+      displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
   });

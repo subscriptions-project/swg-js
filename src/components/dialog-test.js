@@ -347,6 +347,15 @@ describes.realWin('Dialog', {}, (env) => {
       expect(loadingView.children.length).to.equal(1);
     });
 
+    it('omits centered-on-desktop on LoadingView by default', async () => {
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.not.have.class('centered-on-desktop');
+    });
+
     it('should display loading view', async () => {
       const openedDialog = await dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
@@ -518,6 +527,29 @@ describes.realWin('Dialog', {}, (env) => {
 
       expect(matchMedia.hasListeners()).to.be.false;
     });
+
+    it('adds centered-on-desktop class to the LoadingView', async () => {
+      immediate();
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.have.class('centered-on-desktop');
+    });
+
+    it('adds padding-bottom to document root on resize', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const newHeight = 110;
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(win.document.documentElement.style.paddingBottom).to.equal(
+        `${newHeight + 20}px`
+      );
+    });
   });
 
   describe('dialog with isCenterPositioned=true on desktop', () => {
@@ -564,6 +596,16 @@ describes.realWin('Dialog', {}, (env) => {
       expect(matchMedia.hasListeners()).to.be.false;
     });
 
+    it('adds centered-on-desktop class to the LoadingView', async () => {
+      immediate();
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.have.class('centered-on-desktop');
+    });
+
     it('stays vertically centered after expand animation', async () => {
       const newHeight = 110;
 
@@ -588,6 +630,17 @@ describes.realWin('Dialog', {}, (env) => {
       const iframe = dialog.getElement();
       expectPositionCenter(iframe);
       expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
+    });
+
+    it('does not add padding-bottom to document root on resize', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const newHeight = 110;
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(win.document.documentElement.style.paddingBottom).to.equal('');
     });
   });
 });

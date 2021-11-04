@@ -31,15 +31,16 @@ describes.realWin('LoadingView', {}, (env) => {
     win = env.win;
     doc = env.win.document;
     body = doc.body;
-    loadingView = new LoadingView(doc);
-    body.appendChild(loadingView.getElement());
-
-    // TO test the injected styles have been applied.
     injectStyleSheet(resolveDoc(doc), LOADING_VIEW_CSS);
-    loadingContainer = body.querySelector('swg-loading-container');
   });
 
   describe('loadingView', () => {
+    beforeEach(() => {
+      loadingView = new LoadingView(doc);
+      body.appendChild(loadingView.getElement());
+      loadingContainer = body.querySelector('swg-loading-container');
+    });
+
     it('should have rendered the loading indicator in <BODY>', () => {
       expect(loadingView).to.exist;
       assert.isFunction(loadingView.show);
@@ -63,6 +64,19 @@ describes.realWin('LoadingView', {}, (env) => {
     it('should have hidden loading indicator when called hide()', () => {
       loadingView.hide();
       expect(loadingContainer.getAttribute('style')).to.equal(hiddenStyle);
+    });
+  });
+
+  describe('with config.additionalClasses', () => {
+    beforeEach(() => {
+      loadingView = new LoadingView(doc, {additionalClasses: ['foo', 'bar']});
+      body.appendChild(loadingView.getElement());
+      loadingContainer = body.querySelector('swg-loading-container');
+    });
+
+    it('adds additionalClasses to loading container', () => {
+      expect(loadingContainer).to.have.class('foo');
+      expect(loadingContainer).to.have.class('bar');
     });
   });
 });
