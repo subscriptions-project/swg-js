@@ -332,6 +332,18 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
 export let GaaUserDef;
 
 /**
+ * Conformation of GaaUserDef. Contains a subset of information returned from JWT issued by GIS.
+ * @typedef {{
+ *   name: string,
+ *   givenName: string,
+ *   familyName: string,
+ *   imageUrl: string,
+ *   email: string,
+ * }} GisUserDef
+ */
+export let GisUserDef;
+
+/**
  * GoogleUser object that Google Sign-In returns after users sign in.
  * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
@@ -980,15 +992,13 @@ export class GaaSignInWithGoogleButton {
         const jwtPayload = /** @type {!CredentialResponseDef} */ (
           new JwtHelper().decode(jwt.credential)
         );
-        /** @type {!GaaUserDef} */
-        const gaaUser = {
-          idToken: '',
+        /** @type {!GisUserDef} */
+        const gisUser = {
           name: jwtPayload.name,
           givenName: jwtPayload.given_name,
           familyName: jwtPayload.family_name,
           imageUrl: jwtPayload.picture,
           email: jwtPayload.email,
-          authorizationData: null,
         };
 
         // Send GAA user to parent frame.
@@ -996,7 +1006,7 @@ export class GaaSignInWithGoogleButton {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
-            gaaUser,
+            gisUser,
           });
         });
       })

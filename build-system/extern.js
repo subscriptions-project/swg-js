@@ -60,7 +60,7 @@ window.gapi;
  *  accounts: {
  *    id: {
  *      initialize: function(!Object): !Promise,
- *      renderButton: function(HTMLElement, !Object): !Promise,
+ *      renderButton: function(Element, !Object): !Promise,
  *    },
  *  },
  * }}
