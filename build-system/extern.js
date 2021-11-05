@@ -55,7 +55,7 @@ function JsonObject() {}
 window.gapi;
 
 /**
- * GSI (Google Identity Services) API.
+ * GIS (Google Identity Services) API.
  * @type {{
  *  accounts: {
  *    id: {
