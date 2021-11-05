@@ -928,14 +928,28 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
 
     it('sends post message with GAA user', async () => {
       // Mock GIS response with JWT object.
-      const jwtPayload = {
+      const jwt = {
         credential: {
           /* eslint-disable google-camelcase/google-camelcase */
-          name: 'name',
-          given_name: 'givenName',
-          family_name: 'familyName',
-          picture: 'imageUrl',
-          email: 'email',
+          payload: {
+            iss: 'https://accounts.google.com', // The JWT's issuer
+            nbf: 161803398874,
+            aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
+            sub: '3141592653589793238', // The unique ID of the user's Google Account
+            hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
+            email: 'elisa.g.beckett@gmail.com', // The user's email address
+            email_verified: true, // true, if Google has verified the email address
+            azp: '314159265-pi.apps.googleusercontent.com',
+            name: 'Elisa Beckett',
+            // If present, a URL to user's profile picture
+            picture:
+              'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
+            given_name: 'Elisa',
+            family_name: 'Beckett',
+            iat: 1596474000, // Unix timestamp of the assertion's creation time
+            exp: 1596477600, // Unix timestamp of the assertion's expiration time
+            jti: 'abc161803398874def',
+          },
           /* eslint-enable google-camelcase/google-camelcase */
         },
       };
@@ -961,7 +975,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       clock.tick(100);
       await tick(10);
       // Send JWT.
-      args[0][0].callback(jwtPayload);
+      args[0][0].callback(jwt);
 
       // Wait for post message.
       await new Promise((resolve) => {
@@ -973,13 +987,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       expect(self.postMessage).to.be.calledWithExactly(
         {
           command: POST_MESSAGE_COMMAND_USER,
-          gisUser: {
-            email: 'email',
-            familyName: 'familyName',
-            givenName: 'givenName',
-            imageUrl: 'imageUrl',
-            name: 'name',
-          },
+          jwtPayload: jwt.credential,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin

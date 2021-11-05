@@ -332,18 +332,6 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
 export let GaaUserDef;
 
 /**
- * Conformation of GaaUserDef. Contains a subset of information returned from JWT issued by GIS.
- * @typedef {{
- *   name: string,
- *   givenName: string,
- *   familyName: string,
- *   imageUrl: string,
- *   email: string,
- * }} GisUserDef
- */
-export let GisUserDef;
-
-/**
  * Google Identity (V1) that Google Identity Services returns after someone signs in.
  * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
  * @typedef {{
@@ -388,19 +376,6 @@ export let GoogleIdentityV1;
  * }} GoogleUserDef
  */
 export let GoogleUserDef;
-
-/**
- * JWT credential response after initializing GIS sign in button.
- * https://developers.google.com/identity/gsi/web/reference/js-reference#credential
- * @typedef {{
- *  name: string,
- *  given_name: string,
- *  family_name: string,
- *  picture: string,
- *  email: string,
- * }} CredentialResponseDef
- */
-export let CredentialResponseDef;
 
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
@@ -951,7 +926,35 @@ export class GaaSignInWithGoogleButton {
       });
     });
 
-    const initButtonFnPromise = new Promise((resolve) => {
+    function sendErrorMessageToParent() {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_ERROR,
+        });
+      });
+    }
+
+    // Validate origins.
+    for (let i = 0; i < allowedOrigins.length; i++) {
+      const allowedOrigin = allowedOrigins[i];
+      const url = new URL(allowedOrigin);
+
+      const isOrigin = url.origin === allowedOrigin;
+      const protocolIsValid =
+        url.protocol === 'http:' || url.protocol === 'https:';
+      const isValidOrigin = isOrigin && protocolIsValid;
+
+      if (!isValidOrigin) {
+        warn(
+          `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${allowedOrigin}`
+        );
+        sendErrorMessageToParent();
+        return;
+      }
+    }
+
+    new Promise((resolve) => {
       const buttonEl = self.document.createElement('div');
       buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
       buttonEl.tabIndex = 0;
@@ -984,56 +987,18 @@ export class GaaSignInWithGoogleButton {
           });
         });
       });
-    });
-
-    function sendErrorMessageToParent() {
-      sendMessageToParentFnPromise.then((sendMessageToParent) => {
-        sendMessageToParent({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_ERROR,
-        });
-      });
-    }
-
-    // Validate origins.
-    for (let i = 0; i < allowedOrigins.length; i++) {
-      const allowedOrigin = allowedOrigins[i];
-      const url = new URL(allowedOrigin);
-
-      const isOrigin = url.origin === allowedOrigin;
-      const protocolIsValid =
-        url.protocol === 'http:' || url.protocol === 'https:';
-      const isValidOrigin = isOrigin && protocolIsValid;
-
-      if (!isValidOrigin) {
-        warn(
-          `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${allowedOrigin}`
-        );
-        sendErrorMessageToParent();
-        return;
-      }
-    }
-
-    initButtonFnPromise
+    })
       .then((jwt) => {
-        const jwtPayload = /** @type {!CredentialResponseDef} */ (
+        const jwtPayload = /** @type {!GoogleIdentityV1} */ (
           new JwtHelper().decode(jwt.credential)
         );
-        /** @type {!GisUserDef} */
-        const gisUser = {
-          name: jwtPayload.name,
-          givenName: jwtPayload.given_name,
-          familyName: jwtPayload.family_name,
-          imageUrl: jwtPayload.picture,
-          email: jwtPayload.email,
-        };
 
         // Send GAA user to parent frame.
         sendMessageToParentFnPromise.then((sendMessageToParent) => {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
-            gisUser,
+            jwtPayload,
           });
         });
       })
