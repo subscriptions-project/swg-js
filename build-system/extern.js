@@ -66,9 +66,3 @@ window.gapi;
  * }}
  */
 window.google;
-
-/**
- * Check for when the GSI library is loaded.
- * @type !Promise
- */
-window.onGoogleLibraryLoad;

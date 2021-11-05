@@ -1014,7 +1014,7 @@ export class GaaSignInWithGoogleButton {
       }
     }
 
-    self.onGoogleLibraryLoad = initButtonFnPromise
+    initButtonFnPromise
       .then((jwt) => {
         const jwtPayload = /** @type {!CredentialResponseDef} */ (
           new JwtHelper().decode(jwt.credential)
