@@ -47,9 +47,6 @@ describes.realWin('DialogManager', {}, (env) => {
       getCurrentView: sandbox
         .stub(Dialog.prototype, 'getCurrentView')
         .callsFake(() => currentView),
-      setMaxAllowedHeightRatio: sandbox
-        .stub(Dialog.prototype, 'setMaxAllowedHeightRatio')
-        .callsFake(() => {}),
     };
     let graypaneAttached;
     const graypane = dialogManager.popupGraypane_;
@@ -84,6 +81,16 @@ describes.realWin('DialogManager', {}, (env) => {
     expect(dialogIfc.open).to.be.calledWithExactly(true);
   });
 
+  it('opens dialog with configuration options on openDialog()', async () => {
+    expect(dialogManager.dialog_).to.be.null;
+    const dialog = await dialogManager.openDialog(/* hidden */ false, {
+      desktopConfig: {isCenterPositioned: true},
+    });
+    expect(dialog).to.exist;
+    expect(dialog.isPositionCenterOnDesktop()).to.be.true;
+    expect(dialogManager.dialog_).to.equal(dialog);
+  });
+
   it('should re-open the same dialog', async () => {
     // Open dialog twice.
     const dialog1 = await dialogManager.openDialog();
@@ -107,14 +114,15 @@ describes.realWin('DialogManager', {}, (env) => {
     expect(dialogIfc.openView).to.be.calledWith(initView);
   });
 
-  it('should open view with maxAllowedHeightRatio', async () => {
-    await dialogManager.openView(
-      initView,
-      false,
-      1 /* maxAllowedHeightRatio */
-    );
-    expect(dialogIfc.setMaxAllowedHeightRatio).to.be.calledOnce;
-    expect(dialogIfc.setMaxAllowedHeightRatio).to.be.calledWith(1);
+  it('opens dialog with configuration options on openView()', async () => {
+    await dialogManager.openView(initView, false, {
+      maxAllowedHeightRatio: 1,
+      desktopConfig: {isCenterPositioned: true},
+    });
+    const dialog = dialogManager.getDialog();
+    expect(dialog).to.exist;
+    expect(dialog.getMaxAllowedHeightRatio()).to.equal(1);
+    expect(dialog.isPositionCenterOnDesktop()).to.be.true;
   });
 
   it('should complete view and close dialog', async () => {

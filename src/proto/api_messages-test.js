@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -69,6 +69,47 @@ describe('AccountCreationRequest', () => {
     // Verify fields.
     expect(accountcreationrequestDeserialized.getComplete()).to.deep.equal(
         accountcreationrequest.getComplete());
+  });
+});
+
+describe('ActionRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !ActionRequest  */ actionrequest = new ActionRequest();
+    actionrequest.setAction(ActionType.ACTION_TYPE_UNKNOWN);
+
+    let actionrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    actionrequestDeserialized = deserialize(
+        actionrequest.toArray(undefined));
+    expect(actionrequestDeserialized.toArray(undefined)).to.deep.equal(
+        actionrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(actionrequestDeserialized.getAction()).to.deep.equal(
+        actionrequest.getAction());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    actionrequestDeserialized = deserialize(
+        actionrequest.toArray(true));
+    expect(actionrequestDeserialized.toArray(true)).to.deep.equal(
+        actionrequest.toArray(true));
+
+    // Verify fields.
+    expect(actionrequestDeserialized.getAction()).to.deep.equal(
+        actionrequest.getAction());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    actionrequestDeserialized = new ActionRequest(actionrequest.toArray(false), false);
+    expect(actionrequestDeserialized.toArray(false)).to.deep.equal(
+        actionrequest.toArray(false));
+
+    // Verify fields.
+    expect(actionrequestDeserialized.getAction()).to.deep.equal(
+        actionrequest.getAction());
   });
 });
 
@@ -134,6 +175,10 @@ describe('AnalyticsContext', () => {
     analyticscontext.setLabelList([]);
     analyticscontext.setClientVersion('');
     analyticscontext.setUrl('');
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+    analyticscontext.setClientTimestamp(timestamp);
 
     let analyticscontextDeserialized;
 
@@ -167,6 +212,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getClientVersion());
     expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
         analyticscontext.getUrl());
+    expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
+        analyticscontext.getClientTimestamp());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -198,6 +245,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getClientVersion());
     expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
         analyticscontext.getUrl());
+    expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
+        analyticscontext.getClientTimestamp());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -228,6 +277,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getClientVersion());
     expect(analyticscontextDeserialized.getUrl()).to.deep.equal(
         analyticscontext.getUrl());
+    expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
+        analyticscontext.getClientTimestamp());
   });
 });
 
@@ -294,6 +345,10 @@ describe('AnalyticsRequest', () => {
     analyticscontext.setLabelList([]);
     analyticscontext.setClientVersion('');
     analyticscontext.setUrl('');
+    const /** !Timestamp  */ timestamp = new Timestamp();
+    timestamp.setSeconds(0);
+    timestamp.setNanos(0);
+    analyticscontext.setClientTimestamp(timestamp);
     analyticsrequest.setContext(analyticscontext);
     analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
     const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
@@ -759,6 +814,47 @@ describe('LinkingInfoResponse', () => {
     // Verify fields.
     expect(linkinginforesponseDeserialized.getRequested()).to.deep.equal(
         linkinginforesponse.getRequested());
+  });
+});
+
+describe('OpenDialogRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !OpenDialogRequest  */ opendialogrequest = new OpenDialogRequest();
+    opendialogrequest.setUrlPath('');
+
+    let opendialogrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    opendialogrequestDeserialized = deserialize(
+        opendialogrequest.toArray(undefined));
+    expect(opendialogrequestDeserialized.toArray(undefined)).to.deep.equal(
+        opendialogrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(opendialogrequestDeserialized.getUrlPath()).to.deep.equal(
+        opendialogrequest.getUrlPath());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    opendialogrequestDeserialized = deserialize(
+        opendialogrequest.toArray(true));
+    expect(opendialogrequestDeserialized.toArray(true)).to.deep.equal(
+        opendialogrequest.toArray(true));
+
+    // Verify fields.
+    expect(opendialogrequestDeserialized.getUrlPath()).to.deep.equal(
+        opendialogrequest.getUrlPath());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    opendialogrequestDeserialized = new OpenDialogRequest(opendialogrequest.toArray(false), false);
+    expect(opendialogrequestDeserialized.toArray(false)).to.deep.equal(
+        opendialogrequest.toArray(false));
+
+    // Verify fields.
+    expect(opendialogrequestDeserialized.getUrlPath()).to.deep.equal(
+        opendialogrequest.getUrlPath());
   });
 });
 

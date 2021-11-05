@@ -30,6 +30,7 @@ import {XhrFetcher} from './fetcher';
 import {feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
+import {toTimestamp} from '../utils/date-utils';
 
 const URL = 'www.news.com';
 
@@ -438,6 +439,27 @@ describes.realWin('AnalyticsService', {}, (env) => {
       const labels = context.getLabelList();
       expect(labels.length).to.equal(1);
       expect(labels[0]).to.equal('label');
+    });
+
+    it('should set client timestamp in context', async () => {
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      const mockClientTimeSource = sandbox.spy(() => {
+        return toTimestamp(12345);
+      });
+      analyticsService.getTimestamp_ = mockClientTimeSource;
+
+      eventManagerCallback(event);
+
+      await analyticsService.lastAction_;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request =
+          activityIframePort.execute.getCall(0).args[0];
+      expect(request).to.not.be.null;
+      expect(mockClientTimeSource).to.be.calledOnce;
+      expect(request.getContext().getClientTimestamp()).to.deep.equal(
+        mockClientTimeSource()
+      );
     });
 
     it('should set context for empty experiments', async () => {

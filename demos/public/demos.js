@@ -27,12 +27,14 @@
  * Creates a header.
  */
 function createHeader() {
+  const environment = location.pathname.match('/qual/') ? 'Qual' : '';
   const element = document.createElement('div');
   element.classList.add('header');
   element./*OK*/ innerHTML = `
   <a href="index.html">
     Swgjs Demos
   </a>
+  <span class="environment">${environment}</span>
   `;
 
   // Add header before the content.
@@ -52,7 +54,8 @@ function createNavigation() {
     <li><a href="button-dark.html">Button (Dark)</a></li>
     <li><a href="button-french.html">Button (French)</a></li>
     <li><a href="autoprompt-paywalled.html">Auto Prompt (Paywalled Article)</a></li>
-    <li><a href="autoprompt-free.html">Auto Prompt (Free Article)</a></li>
+    <li><a href="autoprompt-free.html">Mini Auto Prompt (Free Article)</a></li>
+    <li><a href="autoprompt-large-free.html">Large Auto Prompt (Free Article)</a></li>
     <li><a href="free-article.html">Free Article</a></li>
   </ul>
   `;

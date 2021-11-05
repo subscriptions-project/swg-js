@@ -34,6 +34,7 @@ import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
+import {toTimestamp} from '../utils/date-utils';
 
 /** @const {!Object<string, string>} */
 const iframeStyles = {
@@ -130,6 +131,12 @@ export class AnalyticsService {
     // the user wait too long.
     /** @private {?number} */
     this.timeout_ = null;
+
+    // A callback for setting the client timestamp before sending requests.
+    /** @private {function():!../proto/api_messages.Timestamp} */
+    this.getTimestamp_ = () => {
+      return toTimestamp(Date.now());
+    };
   }
 
   /**
@@ -315,7 +322,9 @@ export class AnalyticsService {
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(!!event.isFromUserAction);
-
+    // Update the of the analytics context to the current time.
+    // This needs to be current for log analysis.
+    this.context_.setClientTimestamp(this.getTimestamp_());
     const request = new AnalyticsRequest();
     request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
     request.setContext(this.context_);

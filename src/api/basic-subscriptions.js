@@ -88,24 +88,34 @@ export class BasicSubscriptions {
 }
 /* eslint-enable no-unused-vars */
 
-/** @enum {string} */
+/**
+ * The types of autoprompt that can be specified to be shown. CONTRIBUTION and
+ * SUBSCRIPTION will trigger the small, button-like prompt, and
+ * CONTRIBUTION_LARGE and SUBSCRIPTION_LARGE will trigger the larger purchase
+ * UI.
+ * @enum {string}
+ */
 export const AutoPromptType = {
   NONE: 'none',
   CONTRIBUTION: 'contribution',
+  CONTRIBUTION_LARGE: 'contribution_large',
   SUBSCRIPTION: 'subscription',
+  SUBSCRIPTION_LARGE: 'subscription_large',
 };
 
 /**
  * Options for configuring all client UI.
  * Properties:
- * - lang: Sets the button and prompt lanugage. Default is "en".
- * - theme: "light" or "dark". Default is "light".
  * - disableButton: whether to enable button.
+ * - forceLangInIframes: whether to force the specified lang in iframes.
+ * - lang: Sets the button and prompt language. Default is "en".
+ * - theme: "light" or "dark". Default is "light".
  *
  * @typedef {{
- *   theme: (ClientTheme|undefined),
- *   lang: (string|undefined),
  *   disableButton: (boolean|undefined),
+ *   lang: (string|undefined),
+ *   forceLangInIframes: (boolean|undefined),
+ *   theme: (ClientTheme|undefined),
  * }}
  */
 export let ClientOptions;
