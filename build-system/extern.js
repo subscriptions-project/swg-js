@@ -53,3 +53,16 @@ function JsonObject() {}
  * }}
  */
 window.gapi;
+
+/**
+ * GIS (Google Identity Services) API.
+ * @type {{
+ *  accounts: {
+ *    id: {
+ *      initialize: function(!Object): !Promise,
+ *      renderButton: function(Element, !Object): !Promise,
+ *    },
+ *  },
+ * }}
+ */
+window.google;
