@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
+import {getOnExperiments, isExperimentOn} from './experiments';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {Toast} from '../ui/toast';
@@ -301,6 +304,13 @@ export class ConfiguredBasicRuntime {
 
     // Fetch the client config.
     this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig();
+
+    // Start listening to Audience Activity events.
+    if (isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY))   {
+      /** @private @const {!AudienceActivityEventListener} */
+        this.audienceActivityEventListener_ = new AudienceActivityEventListener(this, this.fetcher_);
+        this.audienceActivityEventListener_.start();
+    }
 
     /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(this);

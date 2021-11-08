@@ -708,6 +708,93 @@ class AnalyticsRequest {
 /**
  * @implements {Message}
  */
+ class CreateSwgReaderKeyRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.swgUserToken_ = data[base] == null ? null : data[base];
+
+    /** @private {?AnalyticsEvent} */
+    this.event_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?string} */
+    this.publicationId_ = data[2 + base] == null ? null : data[2 + base];
+  }
+
+  /**
+   * @return {?string}
+   */
+   getSwGUserToken() {
+    return this.swgUserToken_;
+  }
+  /**
+   * @param {!string} value
+   */
+  setSwGUserToken(value){
+    this.swgUserToken_= value;
+  }
+
+  /**
+   * @return {?AnalyticsEvent}
+   */
+  getEvent() {
+    return this.event_;
+  }
+
+  /**
+   * @param {!AnalyticsEvent} value
+   */
+  setEvent(value) {
+    this.event_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+   getPublicationId() {
+    return this.publicationId_;
+  }
+  /**
+   * @param {!string} value
+   */
+  setPublicationId(value){
+    this.publicationId_= value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.swgUserToken_, // field 1 - encrypted swg user token
+        this.event_, // field 2 - event
+        this.publicationId_, // field 3 publication id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'CreateSwgReaderKeyRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class EntitlementJwt {
   /**
    * @param {!Array<*>=} data
@@ -1855,6 +1942,7 @@ const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+  'CreateSwgReaderKeyRequest' : CreateSwgReaderKeyRequest,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
@@ -1905,6 +1993,7 @@ export {
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
+  CreateSwgReaderKeyRequest,
   EntitlementJwt,
   EntitlementResult,
   EntitlementSource,
