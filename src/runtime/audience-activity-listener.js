@@ -5,7 +5,7 @@
 
  import {
     AnalyticsEvent,
-    CreateSwgReaderKeyRequest,
+    AudienceActivityClientLogsRequest,
   } from '../proto/api_messages';
   import {serviceUrl} from './services';
   import {Storage} from './storage';
@@ -50,12 +50,11 @@
       const audienceActivityLoggingEvents = [AnalyticsEvent.IMPRESSION_PAGE_LOAD, AnalyticsEvent.IMPRESSION_PAYWALL, AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED];
       if (audienceActivityLoggingEvents.includes(event.eventType)) {
         const pubId = encodeURIComponent(this.deps_.pageConfig().getPublicationId());
-        const createSwgReaderKeyRequest = this.createLogRequest(event, pubId);
+        const audienceActivityClientLogsRequest = this.createLogRequest(event);
         const url = serviceUrl('/publication/' + pubId + '/audienceactivitylogs');
-        console.log(createSwgReaderKeyRequest);
+        console.log(audienceActivityClientLogsRequest);
         console.log(url);
-        console.log(pubId);
-        this.fetcher_.sendBeacon(url, createSwgReaderKeyRequest);
+        this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
      }
    }
 
@@ -63,12 +62,9 @@
    * @param {!../api/client-event-manager-api.ClientEvent} event
    * @return {!AudienceActivityLogRequest}
    */
-   createLogRequest(event, pubdId) {
-      const request = new CreateSwgReaderKeyRequest();
-      request.setSwGUserToken("encryptedSwgUserToken");
-      // request.setSwGUserToken(this.storage_.get(Constants.USER_TOKEN, true));
+   createLogRequest(event) {
+      const request = new AudienceActivityClientLogsRequest();
       request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
-      request.setPublicationId(pubdId);
       return request;
   }
   
