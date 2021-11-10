@@ -271,7 +271,7 @@ app.get('/gsi-iframe', (req, res) => {
 });
 
 /**
- * GSI iframe for metering demo.
+ * GIS iframe for metering demo.
  */
 app.get('/gis-iframe', (req, res) => {
   const setup = getSetup(req);

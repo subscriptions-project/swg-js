@@ -37,6 +37,7 @@ import {
   queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
+import {JwtHelper} from './jwt';
 import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
@@ -805,6 +806,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
 
 describes.realWin('GaaSignInWithGoogleButton', {}, () => {
   const allowedOrigins = [location.origin];
+  const clientId = 'client_id';
 
   let clock;
 
@@ -812,16 +814,12 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     // Mock clock.
     clock = sandbox.useFakeTimers();
 
-    self.gapi = {
-      load: sandbox.fake((name, callback) => {
-        callback();
-      }),
-      auth2: {
-        init: sandbox.fake(),
-        getAuthInstance: sandbox.fake(),
-      },
-      signin2: {
-        render: sandbox.fake(),
+    self.google = {
+      accounts: {
+        id: {
+          initialize: sandbox.fake(),
+          renderButton: sandbox.fake(),
+        },
       },
     };
 
@@ -849,21 +847,20 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
 
   describe('show', () => {
     it('renders Google Sign-In button', async () => {
-      GaaSignInWithGoogleButton.show({allowedOrigins});
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
       clock.tick(100);
       await tick(10);
 
-      const args = self.gapi.signin2.render.args;
-      expect(typeof args[0][1].onsuccess).to.equal('function');
+      const args = self.google.accounts.id.initialize.args;
+      expect(typeof args[0][0].callback).to.equal('function');
       expect(args).to.deep.equal([
         [
-          'swg-sign-in-with-google-button',
           {
-            longtitle: true,
-            onsuccess: args[0][1].onsuccess,
-            prompt: 'select_account',
-            scope: 'profile email',
-            theme: 'outline',
+            /* eslint-disable google-camelcase/google-camelcase */
+            client_id: clientId,
+            callback: args[0][0].callback,
+            allowed_parent_origin: allowedOrigins,
+            /* eslint-enable google-camelcase/google-camelcase */
           },
         ],
       ]);
@@ -872,7 +869,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     it('renders supported i18n languages', async () => {
       GaaUtils.getQueryString.returns('?lang=pt-br');
 
-      GaaSignInWithGoogleButton.show({allowedOrigins});
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
       clock.tick(100);
       await tick(10);
 
@@ -885,7 +882,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     it('renders English by default, if "lang" URL param is missing', async () => {
       GaaUtils.getQueryString.returns('?');
 
-      GaaSignInWithGoogleButton.show({allowedOrigins});
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
       clock.tick(100);
       await tick(10);
 
@@ -897,7 +894,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
 
     it('sends post message with button click event', async () => {
       // Show button.
-      GaaSignInWithGoogleButton.show({allowedOrigins});
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
 
       // Send intro post message.
       postMessage({
@@ -930,7 +927,42 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     });
 
     it('sends post message with GAA user', async () => {
-      GaaSignInWithGoogleButton.show({allowedOrigins});
+      // Mock GIS response with JWT object.
+      const jwt = {
+        credential: {
+          /* eslint-disable google-camelcase/google-camelcase */
+          payload: {
+            iss: 'https://accounts.google.com', // The JWT's issuer
+            nbf: 161803398874,
+            aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
+            sub: '3141592653589793238', // The unique ID of the user's Google Account
+            hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
+            email: 'elisa.g.beckett@gmail.com', // The user's email address
+            email_verified: true, // true, if Google has verified the email address
+            azp: '314159265-pi.apps.googleusercontent.com',
+            name: 'Elisa Beckett',
+            // If present, a URL to user's profile picture
+            picture:
+              'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
+            given_name: 'Elisa',
+            family_name: 'Beckett',
+            iat: 1596474000, // Unix timestamp of the assertion's creation time
+            exp: 1596477600, // Unix timestamp of the assertion's expiration time
+            jti: 'abc161803398874def',
+          },
+          /* eslint-enable google-camelcase/google-camelcase */
+        },
+      };
+
+      // Mock JWT decoding function.
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((credential) => {
+        return credential;
+      });
+
+      GaaSignInWithGoogleButton.show({
+        clientId,
+        allowedOrigins,
+      });
 
       // Send intro post message.
       postMessage({
@@ -938,41 +970,12 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
         command: POST_MESSAGE_COMMAND_INTRODUCTION,
       });
 
-      // Mock Google Sign-In response with GoogleUser object.
-      const gaaUser = {
-        idToken: 'idToken',
-        name: 'name',
-        givenName: 'givenName',
-        familyName: 'familyName',
-        imageUrl: 'imageUrl',
-        email: 'email',
-        authorizationData: {
-          /* eslint-disable google-camelcase/google-camelcase */
-          access_token: 'accessToken',
-          id_token: 'idToken',
-          scope: 'scope',
-          expires_in: 0,
-          first_issued_at: 0,
-          expires_at: 0,
-          /* eslint-enable google-camelcase/google-camelcase */
-        },
-      };
-      const googleUser = {
-        getBasicProfile: () => ({
-          getName: () => gaaUser.name,
-          getGivenName: () => gaaUser.givenName,
-          getFamilyName: () => gaaUser.familyName,
-          getImageUrl: () => gaaUser.imageUrl,
-          getEmail: () => gaaUser.email,
-        }),
-        getAuthResponse: () => gaaUser.authorizationData,
-      };
-      const args = self.gapi.signin2.render.args;
+      const args = self.google.accounts.id.initialize.args;
       // Wait for promises and intervals to resolve.
       clock.tick(100);
       await tick(10);
-      // Send GoogleUser.
-      args[0][1].onsuccess(googleUser);
+      // Send JWT.
+      args[0][0].callback(jwt);
 
       // Wait for post message.
       await new Promise((resolve) => {
@@ -984,24 +987,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       expect(self.postMessage).to.be.calledWithExactly(
         {
           command: POST_MESSAGE_COMMAND_USER,
-          gaaUser: {
-            email: 'email',
-            familyName: 'familyName',
-            givenName: 'givenName',
-            idToken: 'idToken',
-            imageUrl: 'imageUrl',
-            name: 'name',
-            authorizationData: {
-              /* eslint-disable google-camelcase/google-camelcase */
-              access_token: 'accessToken',
-              id_token: 'idToken',
-              scope: 'scope',
-              expires_in: 0,
-              first_issued_at: 0,
-              expires_at: 0,
-              /* eslint-enable google-camelcase/google-camelcase */
-            },
-          },
+          jwtPayload: jwt.credential,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin
@@ -1009,9 +995,11 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     });
 
     it('sends errors to parent', async () => {
-      self.gapi.signin2.render = sandbox.fake.throws('I need cookies');
+      self.google.accounts.id.initialize = sandbox.fake.throws(
+        'Function not loaded'
+      );
 
-      GaaSignInWithGoogleButton.show({allowedOrigins});
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
 
       // Send intro post message.
       postMessage({
@@ -1048,7 +1036,10 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       ];
 
       for (const invalidOrigin of invalidOrigins) {
-        GaaSignInWithGoogleButton.show({allowedOrigins: [invalidOrigin]});
+        GaaSignInWithGoogleButton.show({
+          clientId,
+          allowedOrigins: [invalidOrigin],
+        });
 
         // Send intro post message.
         postMessage({
