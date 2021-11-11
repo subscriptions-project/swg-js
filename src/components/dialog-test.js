@@ -288,10 +288,9 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('focuses the iframe contents after dialog is opened', async () => {
-      const openedDialog = await dialog.open();
-      expect(win.document.activeElement).to.equal(
-        openedDialog.getElement().contentWindow
-      );
+      immediate();
+      await dialog.open();
+      expect(doc.activeElement).to.equal(dialog.getElement());
     });
 
     it('should throw if container is missing', async () => {
