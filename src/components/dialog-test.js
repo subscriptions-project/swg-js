@@ -287,6 +287,12 @@ describes.realWin('Dialog', {}, (env) => {
       expect(container.nodeName).to.equal('SWG-CONTAINER');
     });
 
+    it('focuses the iframe contents after dialog is opened', async () => {
+      immediate();
+      await dialog.open();
+      expect(doc.activeElement).to.equal(dialog.getElement());
+    });
+
     it('should throw if container is missing', async () => {
       expect(() => dialog.getContainer()).to.throw('not opened yet');
     });
