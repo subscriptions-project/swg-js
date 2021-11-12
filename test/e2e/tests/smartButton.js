@@ -46,6 +46,7 @@ module.exports = {
       .setValue('@smartButtonLabel', browser.Keys.PAGEDOWN)
       .click('@smartButtonLabel', function () {
         this.frameParent(function () {
+          this.waitForElementVisible('iframe.swg-dialog');
           this.assert.elementPresent('iframe.swg-dialog');
         });
       })
