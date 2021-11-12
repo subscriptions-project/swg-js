@@ -41,10 +41,15 @@ module.exports = {
     const smartButton = browser.page.smartButton();
     smartButton
       .navigate()
+      .pause(2500)
+      .assert.not.elementPresent('iframe.swg-dialog')
       .switchToFrame('[src*="smartboxiframe"]', 'SwG Smart Button iFrame')
-      .click('.swg-button-light', function (result) {
-        this.assert.strictEqual(result.status, 0);
-        this.log('Clicking smart button.');
+      .setValue('@smartButtonLabel', browser.Keys.PAGEDOWN)
+      .assert.elementPresent('@smartButtonLabel')
+      .click('css selector', '@smartButtonLabel', function () {
+        browser.frame(null);
+        this.pause(2500);
+        this.assert.elementPresent('iframe.swg-dialog');
       })
       .end();
   },
