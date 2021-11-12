@@ -445,7 +445,10 @@ export class Dialog {
         },
         300,
         'ease-out'
-      );
+      ).then(() => {
+        // Focus the dialog contents, per WAI-ARIA best practices.
+        this.getElement().focus();
+      });
     });
     this.hidden_ = false;
   }
