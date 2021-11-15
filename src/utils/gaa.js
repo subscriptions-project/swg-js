@@ -688,7 +688,7 @@ export class GaaMeteringRegwall {
       self.addEventListener('message', (e) => {
         if (e.data.stamp === POST_MESSAGE_STAMP) {
           if (e.data.command === POST_MESSAGE_COMMAND_USER) {
-            // Pass along GAA user or the JWT payload, whichever is present.
+            // Pass along user details.
             resolve(e.data.gaaUser || e.data.jwtPayload);
           }
 
