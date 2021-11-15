@@ -172,6 +172,11 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight, ANIMATE);
 
       expect(setStylePropertySpy).to.be.callCount(5);
+      // Verify intermediate translate value was set.
+      expect(setStylePropertySpy).to.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
@@ -198,6 +203,11 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight, ANIMATE);
 
       expect(setStylePropertySpy).to.be.callCount(5);
+      // Verify intermediate translate value was set.
+      expect(setStylePropertySpy).to.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
@@ -285,6 +295,12 @@ describes.realWin('Dialog', {}, (env) => {
       const container = openedDialog.getContainer();
       expect(container.nodeType).to.equal(1);
       expect(container.nodeName).to.equal('SWG-CONTAINER');
+    });
+
+    it('focuses the iframe contents after dialog is opened', async () => {
+      immediate();
+      await dialog.open();
+      expect(doc.activeElement).to.equal(dialog.getElement());
     });
 
     it('should throw if container is missing', async () => {
@@ -565,10 +581,10 @@ describes.realWin('Dialog', {}, (env) => {
         /* styles */ {},
         {desktopConfig: {isCenterPositioned: true}}
       );
+      immediate();
     });
 
     it('is vertically centered after open', async () => {
-      immediate();
       await dialog.open();
       await dialog.animating_;
 
@@ -576,7 +592,6 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('repositions to bottom after window resizes to no longer match mediaQuery', async () => {
-      immediate();
       await dialog.open();
       await dialog.animating_;
       expect(matchMedia.hasListeners()).to.be.true;
@@ -588,7 +603,6 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('removes matchMedia listener on close', async () => {
-      immediate();
       await dialog.open();
       await dialog.animating_;
       await dialog.close(false);
@@ -597,7 +611,6 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('adds centered-on-desktop class to the LoadingView', async () => {
-      immediate();
       const openedDialog = await dialog.open();
       const loadingContainer = openedDialog
         .getIframe()
@@ -606,10 +619,25 @@ describes.realWin('Dialog', {}, (env) => {
       expect(loadingContainer).to.have.class('centered-on-desktop');
     });
 
+    it('stays vertically centered during expand animation', async () => {
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.resizeView(view, 110, ANIMATE);
+
+      // Verify intermediate translateY for bottom dialog is not set.
+      expect(setStylePropertySpy).to.not.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
+    });
+
     it('stays vertically centered after expand animation', async () => {
       const newHeight = 110;
-
-      immediate();
       await dialog.open();
       await dialog.openView(view);
       await dialog.resizeView(view, newHeight, ANIMATE);
@@ -619,10 +647,25 @@ describes.realWin('Dialog', {}, (env) => {
       expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
     });
 
+    it('stays vertically centered during collapse animation', async () => {
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.resizeView(view, 90, ANIMATE);
+
+      // Verify intermediate translateY for bottom dialog is not set.
+      expect(setStylePropertySpy).to.not.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
+    });
+
     it('stays vertically centered after collapse animation', async () => {
       const newHeight = 90;
-
-      immediate();
       await dialog.open();
       await dialog.openView(view);
       await dialog.resizeView(view, newHeight, ANIMATE);
@@ -633,7 +676,6 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('does not add padding-bottom to document root on resize', async () => {
-      immediate();
       await dialog.open();
       await dialog.openView(view);
 
