@@ -94,8 +94,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--description,
   .gaa-metering-regwall--description strong,
   .gaa-metering-regwall--iframe,
-  .gaa-metering-regwall--casl,
-  .gaa-metering-regwall--publisher-no-thanks-button {
+  .gaa-metering-regwall--casl {
     all: initial !important;
     box-sizing: border-box !important;
     font-family: Roboto, arial, sans-serif !important;
@@ -182,20 +181,12 @@ const REGWALL_HTML = `
     margin: 0 0 24px !important;
   }
 
-  .gaa-metering-regwall--publisher-sign-in-button,
-  .gaa-metering-regwall--publisher-no-thanks-button {
-    color: #1967d2 !important;
-    display: block !important;
-    cursor: pointer !important;
-    font-size: 12px !important;
-  }
-
   .gaa-metering-regwall--publisher-sign-in-button {
-  }
-
-  .gaa-metering-regwall--publisher-no-thanks-button {
-    display: none !important;
-    float: right !important;
+    color: #1967d2 !important;
+    cursor: pointer !important;
+    display: block !important;
+    font-size: 12px !important;
+    text-decoration: underline !important;
   }
 
   .gaa-metering-regwall--google-sign-in-button {
