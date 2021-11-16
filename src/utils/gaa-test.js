@@ -851,16 +851,31 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      const args = self.google.accounts.id.initialize.args;
-      expect(typeof args[0][0].callback).to.equal('function');
-      expect(args).to.deep.equal([
+      const argsInit = self.google.accounts.id.initialize.args;
+      expect(typeof argsInit[0][0].callback).to.equal('function');
+      expect(argsInit).to.deep.equal([
         [
           {
             /* eslint-disable google-camelcase/google-camelcase */
             client_id: clientId,
-            callback: args[0][0].callback,
+            callback: argsInit[0][0].callback,
             allowed_parent_origin: allowedOrigins,
             /* eslint-enable google-camelcase/google-camelcase */
+          },
+        ],
+      ]);
+
+      const argsRender = self.google.accounts.id.renderButton.args;
+      expect(argsRender).to.deep.equal([
+        [
+          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+          {
+            'type': 'standard',
+            'size': 'medium',
+            'theme': 'outline',
+            'text': 'signin_with',
+            'width': self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID)
+              .offsetWidth,
           },
         ],
       ]);
