@@ -217,8 +217,7 @@ function loadServices() {
   // hardcoded for local mac only as not installed by npm
   Services.safariDriver = '/usr/bin/safaridriver';
 
-  Services.seleniumServer =
-    process.env.SELENIUM_JAR_PATH || require('selenium-server').path;
+  Services.seleniumServer = require('selenium-server').path;
 
   console.log('Services: %o', Services);
 }
