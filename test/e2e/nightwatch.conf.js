@@ -204,8 +204,8 @@ module.exports = {
   },
 };
 
-// Check if env has specific installed path matching installed version, else load npm dep
 function loadServices() {
+  // Check if env specifies driver matching installed browser, else load npm dep
   Services.chromeDriver = process.env.CHROMEWEBDRIVER
     ? `${process.env.CHROMEWEBDRIVER}/chromedriver`
     : require('chromedriver').path;
@@ -218,6 +218,4 @@ function loadServices() {
   Services.safariDriver = '/usr/bin/safaridriver';
 
   Services.seleniumServer = require('selenium-server').path;
-
-  console.log('Services: %o', Services);
 }
