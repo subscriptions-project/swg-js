@@ -37,6 +37,12 @@ jobs:
       - name: E2E Tests
         run: gulp e2e --retries=3
 
+      - name: E2E Tests (FF)
+        run: gulp e2e --env firefox
+
+      - name: E2E Tests (Sel)
+        run: gulp e2e --env selenium.chrome
+
   unit:
     # Canonical will support this LTS until April 2025.
     # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
