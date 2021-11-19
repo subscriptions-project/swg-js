@@ -15,7 +15,13 @@
  */
 'use strict';
 
-const Services = {};
+// Set up (paths to) services and browser drivers (based on environment)
+const Services = {
+  chromeDriver: '',
+  firefoxDriver: '',
+  safariDriver: '',
+  seleniumServer: '',
+};
 loadServices();
 
 const CHROME_CAPABILITIES = {
@@ -64,7 +70,7 @@ module.exports = {
 
       webdriver: {
         start_process: true,
-        server_path: Services.chromedriver ? Services.chromedriver.path : '',
+        server_path: Services.chromeDriver,
         port: 9515,
       },
     },
@@ -78,8 +84,7 @@ module.exports = {
 
       webdriver: {
         start_process: true,
-        server_path: 'node_modules/.bin/geckodriver',
-        // server_path: Services.geckodriver ? Services.geckodriver.path : '',
+        server_path: Services.firefoxDriver,
         cli_args: ['--log', 'debug'],
         port: 4444,
       },
@@ -95,7 +100,7 @@ module.exports = {
       webdriver: {
         port: 4445,
         start_process: true,
-        server_path: '/usr/bin/safaridriver',
+        server_path: Services.safariDriver,
       },
     },
 
@@ -104,16 +109,10 @@ module.exports = {
       selenium: {
         start_process: true,
         port: 4444,
-        server_path: Services.seleniumServer
-          ? Services.seleniumServer.path
-          : '',
+        server_path: Services.seleniumServer,
         cli_args: {
-          'webdriver.gecko.driver': Services.geckodriver
-            ? Services.geckodriver.path
-            : '',
-          'webdriver.chrome.driver': Services.chromedriver
-            ? Services.chromedriver.path
-            : '',
+          'webdriver.chrome.driver': Services.chromeDriver,
+          'webdriver.gecko.driver': Services.firefoxDriver,
         },
       },
       webdriver: {
@@ -181,16 +180,17 @@ module.exports = {
   },
 };
 
+// Check if env has specific installed path matching installed version, else load npm dep
 function loadServices() {
-  try {
-    Services.seleniumServer = require('selenium-server');
-  } catch (err) {}
+  Services.chromeDriver =
+    process.env.CHROMEWEBDRIVER || require('chromedriver').path;
 
-  try {
-    Services.chromedriver = require('chromedriver');
-  } catch (err) {}
+  Services.firefoxDriver =
+    process.env.GECKOWEBDRIVER || require('geckodriver').path;
 
-  try {
-    Services.geckodriver = require('geckodriver');
-  } catch (err) {}
+  // hardcoded for local mac only as not installed by npm
+  Services.safariDriver = '/usr/bin/safaridriver';
+
+  Services.seleniumServer =
+    process.env.SELENIUM_JAR_PATH || require('selenium-server').path;
 }
