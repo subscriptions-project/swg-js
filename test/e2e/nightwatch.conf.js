@@ -206,11 +206,13 @@ module.exports = {
 
 // Check if env has specific installed path matching installed version, else load npm dep
 function loadServices() {
-  Services.chromeDriver =
-    (process.env.CHROMEWEBDRIVER + '/chromedriver') || require('chromedriver').path;
+  Services.chromeDriver = process.env.CHROMEWEBDRIVER
+    ? `${process.env.CHROMEWEBDRIVER}/chromedriver`
+    : require('chromedriver').path;
 
-  Services.firefoxDriver =
-    process.env.GECKOWEBDRIVER || require('geckodriver').path;
+  Services.firefoxDriver = process.env.GECKOWEBDRIVER
+    ? `${process.env.GECKOWEBDRIVER}/geckodriver`
+    : require('geckodriver').path;
 
   // hardcoded for local mac only as not installed by npm
   Services.safariDriver = '/usr/bin/safaridriver';
