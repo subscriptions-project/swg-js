@@ -24,6 +24,13 @@ const Services = {
 };
 loadServices();
 
+const ANDROID_CAPABILITIES = {
+  browserName: 'chrome',
+  deviceName: 'Google Pixel 5',
+  osVersion: '12.0',
+  realMobile: true,
+};
+
 const CHROME_CAPABILITIES = {
   browserName: 'chrome',
   chromeOptions: {
@@ -40,6 +47,13 @@ const FIREFOX_CAPABILITIES = {
       args: ['-headless'],
     },
   },
+};
+
+const IOS_CAPABILITIES = {
+  browserName: 'safari',
+  deviceName: 'iPhone 12',
+  osVersion: '14.0',
+  realMobile: true,
 };
 
 const SAFARI_CAPABILITIES = {
@@ -163,6 +177,11 @@ module.exports = {
       },
     },
 
+    'browserstack.android': {
+      extends: 'browserstack',
+      desiredCapabilities: ANDROID_CAPABILITIES,
+    },
+
     'browserstack.chrome': {
       extends: 'browserstack',
       desiredCapabilities: CHROME_CAPABILITIES,
@@ -171,6 +190,11 @@ module.exports = {
     'browserstack.firefox': {
       extends: 'browserstack',
       desiredCapabilities: FIREFOX_CAPABILITIES,
+    },
+
+    'browserstack.ios': {
+      extends: 'browserstack',
+      desiredCapabilities: IOS_CAPABILITIES,
     },
 
     'browserstack.safari': {
