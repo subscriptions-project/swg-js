@@ -28,6 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install the right version of Nodejs
+        run: sudo npx n 16
+
       - name: Install dependencies
         run: yarn
 
