@@ -207,7 +207,7 @@ module.exports = {
 // Check if env has specific installed path matching installed version, else load npm dep
 function loadServices() {
   Services.chromeDriver =
-    process.env.CHROMEWEBDRIVER || require('chromedriver').path;
+    (process.env.CHROMEWEBDRIVER + '/chromedriver') || require('chromedriver').path;
 
   Services.firefoxDriver =
     process.env.GECKOWEBDRIVER || require('geckodriver').path;
@@ -217,4 +217,6 @@ function loadServices() {
 
   Services.seleniumServer =
     process.env.SELENIUM_JAR_PATH || require('selenium-server').path;
+
+  console.log('Services: %o', Services);
 }
