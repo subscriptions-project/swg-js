@@ -872,7 +872,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
           {
             'type': 'standard',
             'theme': 'outline',
-            'text': 'signin_with',
+            'text': 'continue_with',
           },
         ],
       ]);
