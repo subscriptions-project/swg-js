@@ -19,7 +19,7 @@ module.exports.command = function (iframeSrcString, iframeMsg, callback) {
     if (frame.status == -1) {
       this.log(frame.error, true);
     }
-    this.frame({ELEMENT: frame.value.ELEMENT}, () => {
+    this.frame(frame.value, () => {
       this.log(`Switching to ${iframeMsg}`);
       callback && callback();
     });
