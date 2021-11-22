@@ -261,6 +261,10 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     margin: 0 auto;
   }
 
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID}{
+    width: 220px;
+  }
+
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} > div,
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} > div,
   #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
@@ -966,8 +970,6 @@ export class GaaSignInWithGoogleButton {
           'theme': 'outline',
           'text': 'continue_with',
           'logo_alignment': 'center',
-          'width': self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID)
-            .offsetWidth,
         }
       );
 
