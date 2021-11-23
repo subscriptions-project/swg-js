@@ -871,11 +871,9 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
           self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
           {
             'type': 'standard',
-            'size': 'medium',
             'theme': 'outline',
-            'text': 'signin_with',
-            'width': self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID)
-              .offsetWidth,
+            'text': 'continue_with',
+            'logo_alignment': 'center',
           },
         ],
       ]);
