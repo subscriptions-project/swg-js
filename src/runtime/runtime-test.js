@@ -1012,6 +1012,51 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
     ).to.not.throw();
   });
 
+  it('should throw if skipAccountCreationScreen set but not boolean', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          skipAccountCreationScreen: 1,
+        })
+    ).to.throw();
+  });
+
+  it('should allow enablePropensity to be set in config', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          enablePropensity: true,
+        })
+    ).to.not.throw();
+  });
+
+  it('should throw if enablePropensity set but not boolean', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          enablePropensity: 1,
+        })
+    ).to.throw();
+  });
+
+  it('should allow enableSwgAnalytics to be set in config', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          enableSwgAnalytics: true,
+        })
+    ).to.not.throw();
+  });
+
+  it('should throw if enableSwgAnalytics set but not boolean', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          enableSwgAnalytics: 1,
+        })
+    ).to.throw();
+  });
+
   describe('while configuring', () => {
     let resolveConfig;
     let rejectConfig;
