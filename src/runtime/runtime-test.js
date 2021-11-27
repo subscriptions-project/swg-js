@@ -1003,6 +1003,15 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
     ).to.not.throw();
   });
 
+  it('should allow skipAccountCreationScreen to be set in config', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          skipAccountCreationScreen: true,
+        })
+    ).to.not.throw();
+  });
+
   describe('while configuring', () => {
     let resolveConfig;
     let rejectConfig;
