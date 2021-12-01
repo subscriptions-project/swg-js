@@ -22,6 +22,7 @@
 // Thanks!
 
 import {I18N_STRINGS} from '../i18n/strings';
+import {JwtHelper} from './jwt';
 import {
   ShowcaseEvent,
   Subscriptions as SubscriptionsDef,
@@ -93,8 +94,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--description,
   .gaa-metering-regwall--description strong,
   .gaa-metering-regwall--iframe,
-  .gaa-metering-regwall--casl,
-  .gaa-metering-regwall--publisher-no-thanks-button {
+  .gaa-metering-regwall--casl {
     all: initial !important;
     box-sizing: border-box !important;
     font-family: Roboto, arial, sans-serif !important;
@@ -157,7 +157,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--iframe {
     border: none !important;
     display: block !important;
-    height: 36px !important;
+    height: 44px !important;
     margin: 0 0 30px !important;
     width: 100% !important;
   }
@@ -181,20 +181,12 @@ const REGWALL_HTML = `
     margin: 0 0 24px !important;
   }
 
-  .gaa-metering-regwall--publisher-sign-in-button,
-  .gaa-metering-regwall--publisher-no-thanks-button {
-    color: #1967d2 !important;
-    display: block !important;
-    cursor: pointer !important;
-    font-size: 12px !important;
-  }
-
   .gaa-metering-regwall--publisher-sign-in-button {
-  }
-
-  .gaa-metering-regwall--publisher-no-thanks-button {
-    display: none !important;
-    float: right !important;
+    color: #1967d2 !important;
+    cursor: pointer !important;
+    display: block !important;
+    font-size: 12px !important;
+    text-decoration: underline !important;
   }
 
   .gaa-metering-regwall--google-sign-in-button {
@@ -268,6 +260,11 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
   #${GOOGLE_SIGN_IN_BUTTON_ID} {
     margin: 0 auto;
   }
+
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID}{
+    width: 220px;
+  }
+
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} > div,
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} > div,
   #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
@@ -696,8 +693,8 @@ export class GaaMeteringRegwall {
       self.addEventListener('message', (e) => {
         if (e.data.stamp === POST_MESSAGE_STAMP) {
           if (e.data.command === POST_MESSAGE_COMMAND_USER) {
-            // Pass along GAA user.
-            resolve(e.data.gaaUser);
+            // Pass along user details.
+            resolve(e.data.gaaUser || e.data.jwtPayload);
           }
 
           if (e.data.command === POST_MESSAGE_COMMAND_ERROR) {
@@ -890,9 +887,9 @@ export class GaaSignInWithGoogleButton {
   /**
    * Renders the Google Sign-In button.
    * @nocollapse
-   * @param {{ allowedOrigins: !Array<string> }} params
+   * @param {{ clientId: string, allowedOrigins: !Array<string> }} params
    */
-  static show({allowedOrigins}) {
+  static show({clientId, allowedOrigins}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -953,63 +950,51 @@ export class GaaSignInWithGoogleButton {
       }
     }
 
-    // Render the Google Sign-In button.
-    configureGoogleSignIn()
-      .then(
-        // Promise credentials.
-        () =>
-          new Promise((resolve) => {
-            // Render the Google Sign-In button.
-            const buttonEl = self.document.createElement('div');
-            buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
-            buttonEl.tabIndex = 0;
-            self.document.body.appendChild(buttonEl);
-            self.gapi.signin2.render(SIGN_IN_WITH_GOOGLE_BUTTON_ID, {
-              'longtitle': true,
-              'onsuccess': resolve,
-              'prompt': 'select_account',
-              'scope': 'profile email',
-              'theme': 'outline',
-            });
+    new Promise((resolve) => {
+      const buttonEl = self.document.createElement('div');
+      buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
+      buttonEl.tabIndex = 0;
+      self.document.body.appendChild(buttonEl);
 
-            // Track button clicks.
-            buttonEl.addEventListener('click', () => {
-              // Tell parent frame about button click.
-              sendMessageToParentFnPromise.then((sendMessageToParent) => {
-                sendMessageToParent({
-                  stamp: POST_MESSAGE_STAMP,
-                  command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
-                });
-              });
-            });
-          })
-      )
-      .then((googleUser) => {
-        // Gather GAA user details.
-        const basicProfile = /** @type {!GoogleUserDef} */ (
-          googleUser
-        ).getBasicProfile();
-        // Gather authorization response.
-        const authorizationData = /** @type {!GoogleUserDef} */ (
-          googleUser
-        ).getAuthResponse(true);
-        /** @type {!GaaUserDef} */
-        const gaaUser = {
-          idToken: authorizationData.id_token,
-          name: basicProfile.getName(),
-          givenName: basicProfile.getGivenName(),
-          familyName: basicProfile.getFamilyName(),
-          imageUrl: basicProfile.getImageUrl(),
-          email: basicProfile.getEmail(),
-          authorizationData,
-        };
+      self.google.accounts.id.initialize({
+        /* eslint-disable google-camelcase/google-camelcase */
+        client_id: clientId,
+        callback: resolve,
+        allowed_parent_origin: allowedOrigins,
+        /* eslint-enable google-camelcase/google-camelcase */
+      });
+      self.google.accounts.id.renderButton(
+        self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+        {
+          'type': 'standard',
+          'theme': 'outline',
+          'text': 'continue_with',
+          'logo_alignment': 'center',
+        }
+      );
+
+      // Track button clicks.
+      buttonEl.addEventListener('click', () => {
+        // Tell parent frame about button click.
+        sendMessageToParentFnPromise.then((sendMessageToParent) => {
+          sendMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          });
+        });
+      });
+    })
+      .then((jwt) => {
+        const jwtPayload = /** @type {!GoogleIdentityV1} */ (
+          new JwtHelper().decode(jwt.credential)
+        );
 
         // Send GAA user to parent frame.
         sendMessageToParentFnPromise.then((sendMessageToParent) => {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
-            gaaUser,
+            jwtPayload,
           });
         });
       })
