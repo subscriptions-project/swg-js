@@ -17,7 +17,7 @@
 
 const $$ = require('gulp-load-plugins')();
 const argv = require('minimist')(process.argv.slice(2));
-const babel = require('babelify');
+const babelify = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
 const closureCompile = require('./closure-compile').closureCompile;
@@ -61,7 +61,6 @@ exports.compile = async function (options = {}) {
           minifiedName: options.checkTypes
             ? 'subscriptions.checktypes.js'
             : argv.minifiedName || 'subscriptions.js',
-          includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',
@@ -79,7 +78,6 @@ exports.compile = async function (options = {}) {
           minifiedName: options.checkTypes
             ? 'subscriptions-gaa.checktypes.js'
             : argv.minifiedGaaName || 'subscriptions-gaa.js',
-          includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',
@@ -97,7 +95,6 @@ exports.compile = async function (options = {}) {
           minifiedName: options.checkTypes
             ? 'basic-subscriptions.checktypes.js'
             : argv.minifiedBasicName || 'basic-subscriptions.js',
-          includePolyfills: true,
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',
@@ -118,7 +115,6 @@ exports.checkTypes = function (opts) {
       minifiedName: 'check-types.js',
       minify: true,
       checkTypes: true,
-      includePolyfills: true,
     })
   );
 };
@@ -159,7 +155,20 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   let bundler = browserify(srcDir + srcFilename + '.js', {
     debug: true,
-  }).transform(babel, {presets: ['@babel/preset-env']});
+  }).transform(
+    babelify.configure({
+      'presets': [
+        [
+          '@babel/preset-env',
+          {
+            'targets': {
+              'browsers': ['defaults, not IE 11'],
+            },
+          },
+        ],
+      ],
+    })
+  );
   if (options.watch) {
     bundler = watchify(bundler);
   }
