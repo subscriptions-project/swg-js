@@ -1,0 +1,348 @@
+/**
+ * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  font-family: Playfair Display, serif;
+  font-size: 15px;
+  line-height: 1.42857143;
+  color: #333;
+  background-color: #fff;
+}
+
+*,
+:after,
+:before {
+  box-sizing: border-box;
+}
+
+[data-z-depth='2'] {
+  -webkit-filter: drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.16))
+    drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.23));
+  filter: drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.16))
+    drop-shadow(0 1.8px 1.8px rgba(0, 0, 0, 0.23));
+}
+
+.main-body > header {
+  color: #fff;
+  background-color: #37dc8c;
+  border: 1px solid transparent;
+  border-color: #37dc8c;
+  border-width: 0 0 1px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  height: 50px;
+  overflow: hidden;
+  margin-bottom: 21px;
+  padding: 0 16px;
+
+  display: flex;
+  flex-direction: row;
+}
+
+.brand-header {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  color: #fff;
+  text-decoration: none;
+  align-items: center;
+}
+
+.brand-logo {
+  flex: 0 0 40px;
+  margin-right: 16px;
+  width: 40px;
+  height: 40px;
+  background-image: url('./icons/icon-2x.png');
+  background-size: 40px 40px;
+  background-repeat: no-repeat;
+}
+
+.brand-name {
+  flex: 1;
+  color: #fff;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 21px;
+}
+
+.nav-header {
+  flex: 0 0 48px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.nav-button {
+  width: 24px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-size: 24px 24px;
+  text-decoration: none;
+}
+
+.nav-button.next {
+  background-image: url('./img/chevron-right.png');
+}
+
+.nav-button.prev {
+  background-image: url('./img/chevron-left.png');
+}
+
+main {
+  padding-top: 50px;
+  background: #fff;
+  color: #333;
+  font-family: 'Muli', sans-serif;
+  font-size: 40px;
+  line-height: 22px;
+}
+
+.hero-img-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.hero-img-container:after {
+  z-index: 1;
+  content: '';
+  display: block;
+  padding-top: 60%;
+}
+
+.hero-img-container > img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+main > .container {
+  max-width: 600px;
+  margin: 0 auto;
+  margin-top: 15px;
+  padding: 0px 20px;
+}
+
+h1,
+h2,
+p,
+body,
+figure,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+}
+
+.category {
+  color: #777;
+  font-size: 10pt;
+  line-height: 18pt;
+  letter-spacing: 0.6pt;
+  text-transform: uppercase;
+}
+
+.heading {
+  font-size: 27pt;
+  font-weight: 700;
+  margin-bottom: 0.3em;
+  letter-spacing: 0.33pt;
+  line-height: 30pt;
+}
+
+.kicker {
+  color: #666;
+  font-size: 16pt;
+  line-height: 24pt;
+  letter-spacing: 0.3pt;
+  vertical-align: top;
+  margin-bottom: 0.2em;
+}
+
+.byline {
+  font-size: 10pt;
+  line-height: 18pt;
+  color: black;
+  margin-bottom: 12px;
+}
+
+.hr {
+  background-color: #37dc8c;
+  width: 15%;
+  height: 2px;
+  margin: 0.5em 0;
+}
+
+.text {
+  font-size: 20px;
+  line-height: 30px;
+  letter-spacing: 0.3px;
+  color: #4a4a4a;
+  vertical-align: top;
+  margin-bottom: 16px;
+}
+
+h1.related {
+  font-size: 18pt;
+  line-height: 20pt;
+  margin-bottom: 1em;
+}
+
+ul.related {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul.related li {
+  margin-top: 10px;
+  border-bottom: solid 1px #8c8c8c;
+  height: 90px;
+}
+
+ul.related a {
+  text-decoration: none;
+  color: #777;
+}
+
+ul.related div {
+  height: 100%;
+}
+
+ul.related img {
+  display: block;
+  float: left;
+}
+
+ul.related p {
+  font-size: 12pt;
+  padding-left: 110px;
+  padding-top: 26px;
+}
+
+.articles {
+  font-family: Playfair Display, serif;
+  font-size: 15px;
+  line-height: 1.42857143;
+}
+
+.article-list-item-a {
+  color: #2780e3;
+  text-decoration: none;
+}
+
+.article-list-item {
+  background-size: cover;
+  background-position: 50%;
+  margin-left: -15px;
+  margin-right: -15px;
+  margin-bottom: 5px;
+  height: 200px;
+  position: relative;
+}
+
+.article-list-item .scrim-top {
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.33), transparent);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.33), transparent);
+  height: 80px;
+}
+
+.article-list-item .scrim-bottom {
+  background: -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, 0.33));
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.33));
+  width: 100%;
+  height: 60px;
+  position: absolute;
+  top: 140px;
+}
+
+.article-list-item h3 {
+  font-family: Playfair Display, serif;
+  font-weight: 700;
+  font-size: 22pt;
+  letter-spacing: 2px;
+  top: 25px;
+  right: 12%;
+  margin: 0;
+}
+
+.article-list-item h4 {
+  font-family: Muli, sans-serif;
+  font-weight: 400;
+  font-size: 8pt;
+  letter-spacing: 1px;
+  top: 160px;
+}
+
+.article-list-item h3,
+.article-list-item h4 {
+  color: #fff;
+  position: absolute;
+  left: 12%;
+}
+
+body:not(.metering) #metering-controls {
+  display: none;
+}
+
+#metering-controls {
+  border-radius: 0 0 0 8px;
+  min-height: 40px;
+  position: fixed;
+  right: 80px;
+  top: 7px;
+  text-align: right;
+  z-index: 9999999999;
+}
+
+#metering-controls button {
+  background-color: rgb(61, 199, 123);
+  background-image: linear-gradient(
+    180deg,
+    hsla(0, 0%, 100%, 0.3) 0,
+    hsla(0, 0%, 100%, 0)
+  );
+  border-radius: 999px;
+  border: none;
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 30%), 0 4px 6px rgb(0 0 0 / 22%);
+  color: white;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  font-weight: bold;
+  margin: 0 0 0 6px;
+  padding: 8px 18px 10px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+#metering-controls button:active,
+#metering-controls button:hover {
+  background-color: rgb(76, 220, 140);
+}

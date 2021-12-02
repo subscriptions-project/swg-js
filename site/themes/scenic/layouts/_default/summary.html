@@ -1,0 +1,12 @@
+<a class="article-list-item-a" href="{{.Permalink}}">
+    <div class="article-list-item" style="background-image: url('/{{.Params.hero}}');">
+        <div class="scrim-top"></div>
+        <div class="scrim-bottom"></div>
+        <h3>{{ .Title }}</h3>
+        <h4>
+            By {{ .Params.author }}, 
+            {{ .Date | time.Format ":date_medium" }} 
+            {{ .Date | time.Format ":time_short" }}
+        </h4>
+    </div>
+</a>

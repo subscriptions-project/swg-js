@@ -1,0 +1,9 @@
+baseURL = 'http://example.org/'
+languageCode = 'en-us'
+title = 'My New Hugo Site'
+theme = "scenic"
+staticDir2 = '../dist'
+staticDir3 = '../examples'
+[[related.indices]]
+  name = 'category'
+  weight = 100
