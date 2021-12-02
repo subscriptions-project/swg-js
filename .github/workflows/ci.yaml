@@ -12,7 +12,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install the right version of Nodejs
-        run: sudo npx n 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
 
       - name: Install dependencies
         run: yarn
@@ -29,7 +31,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install the right version of Nodejs
-        run: sudo npx n 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
 
       - name: Install dependencies
         run: yarn
@@ -46,7 +50,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install the right version of Nodejs
-        run: sudo npx n 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
 
       - name: Install dependencies
         run: yarn
