@@ -970,6 +970,8 @@ export class GaaSignInWithGoogleButton {
           'theme': 'outline',
           'text': 'continue_with',
           'logo_alignment': 'center',
+          'width': buttonEl.offsetWidth,
+          'height': buttonEl.offsetHeight,
         }
       );
 
