@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ArticleManager} from './article-manager';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
@@ -280,6 +281,7 @@ export class ConfiguredBasicRuntime {
     integr.configPromise = integr.configPromise || Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
     integr.enableGoogleAnalytics = true;
+    integr.entitlementsManager = ArticleManager;
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = integr.fetcher;

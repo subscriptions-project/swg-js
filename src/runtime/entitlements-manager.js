@@ -100,6 +100,12 @@ export class EntitlementsManager {
      */
     this.encodedParams_ = null;
 
+    /** @protected {!string} */
+    this.encodedParamName_ = 'encodedParams';
+
+    /** @protected {!string} */
+    this.action_ = '/entitlements';
+
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
 
@@ -311,9 +317,7 @@ export class EntitlementsManager {
     }
 
     let url =
-      '/publication/' +
-      encodeURIComponent(this.publicationId_) +
-      '/entitlements';
+      '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
     url = addDevModeParamsToUrl(this.win_.location, url);
 
     // Promise that sets this.encodedParams_ when it resolves.
@@ -336,7 +340,7 @@ export class EntitlementsManager {
     this.entitlementsPostPromise = encodedParamsPromise.then(() => {
       url = addQueryParam(
         url,
-        'encodedParams',
+        this.encodedParamName_,
         /** @type {!string} */ (this.encodedParams_)
       );
 
@@ -394,6 +398,17 @@ export class EntitlementsManager {
   }
 
   /**
+   * If the manager is also responsible for fetching the Article, it
+   * will be accessible from here and should resolve a null promise otherwise.
+   * @returns {!Promise<?Object>}
+   */
+  getArticle() {
+    // The base manager only fetches from the entitlements endpoint, which does
+    // not contain an Article.
+    return Promise.resolve(null);
+  }
+
+  /**
    * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    * @private
@@ -404,16 +419,18 @@ export class EntitlementsManager {
     this.positiveRetries_ = 0;
     const attempt = () => {
       positiveRetries--;
-      return this.fetch_(params).then((entitlements) => {
-        if (entitlements.enablesThis() || positiveRetries <= 0) {
-          return entitlements;
-        }
-        return new Promise((resolve) => {
-          this.win_.setTimeout(() => {
-            resolve(attempt());
-          }, 550);
+      return this.fetch_(params)
+        .then((json) => this.parseEntitlements(json))
+        .then((entitlements) => {
+          if (entitlements.enablesThis() || positiveRetries <= 0) {
+            return entitlements;
+          }
+          return new Promise((resolve) => {
+            this.win_.setTimeout(() => {
+              resolve(attempt());
+            }, 550);
+          });
         });
-      });
     };
     return attempt();
   }
@@ -697,8 +714,8 @@ export class EntitlementsManager {
 
   /**
    * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
-   * @private
+   * @return {!Promise<!Object>}
+   * @protected
    */
   fetch_(params) {
     // Get swgUserToken from getEntitlements params
@@ -709,9 +726,7 @@ export class EntitlementsManager {
       : this.storage_.get(Constants.USER_TOKEN, true);
 
     let url =
-      '/publication/' +
-      encodeURIComponent(this.publicationId_) +
-      '/entitlements';
+      '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
 
     return Promise.all([
       hash(getCanonicalUrl(this.deps_.doc())),
@@ -805,7 +820,11 @@ export class EntitlementsManager {
             this.encodedParams_ = base64UrlEncodeFromBytes(
               utf8EncodeSync(JSON.stringify(encodableParams))
             );
-            url = addQueryParam(url, 'encodedParams', this.encodedParams_);
+            url = addQueryParam(
+              url,
+              this.encodedParamName_,
+              this.encodedParams_
+            );
           } else {
             warn(
               `SwG Entitlements: Please specify a metering state ID string, ideally a hash to avoid PII.`
@@ -828,7 +847,7 @@ export class EntitlementsManager {
             warn('SwG Entitlements: ' + errorMessage);
           });
         }
-        return this.parseEntitlements(json);
+        return json;
       });
   }
 }
