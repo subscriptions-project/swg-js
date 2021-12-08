@@ -1855,7 +1855,6 @@ const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
-  'AudienceActivityClientLogsRequest' : AudienceActivityClientLogsRequest,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
