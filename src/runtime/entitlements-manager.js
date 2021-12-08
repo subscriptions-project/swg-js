@@ -62,7 +62,7 @@ export class EntitlementsManager {
    * @param {!./fetcher.Fetcher} fetcher
    * @param {!./deps.DepsDef} deps
    */
-  constructor(win, pageConfig, fetcher, deps) {
+  constructor(win, pageConfig, fetcher, deps, useArticleEndpoint) {
     /** @private @const {!Window} */
     this.win_ = win;
 
@@ -101,10 +101,12 @@ export class EntitlementsManager {
     this.encodedParams_ = null;
 
     /** @protected {!string} */
-    this.encodedParamName_ = 'encodedParams';
+    this.encodedParamName_ = useArticleEndpoint
+      ? 'encodedEntitlementsParams'
+      : 'encodedParams';
 
     /** @protected {!string} */
-    this.action_ = '/entitlements';
+    this.action_ = useArticleEndpoint ? '/article' : '/entitlements';
 
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
@@ -120,6 +122,9 @@ export class EntitlementsManager {
      * @visibleForTesting
      */
     this.entitlementsPostPromise = null;
+
+    this.useArticleEndpoint_ = useArticleEndpoint;
+    this.article_ = null;
 
     this.deps_
       .eventManager()
@@ -405,7 +410,10 @@ export class EntitlementsManager {
   getArticle() {
     // The base manager only fetches from the entitlements endpoint, which does
     // not contain an Article.
-    return Promise.resolve(null);
+    if (!this.useArticleEndpoint_ || !this.responsePromise_) {
+      return Promise.resolve();
+    }
+    return this.responsePromise_.then(Promise.resolve(this.article_));
   }
 
   /**
@@ -419,18 +427,16 @@ export class EntitlementsManager {
     this.positiveRetries_ = 0;
     const attempt = () => {
       positiveRetries--;
-      return this.fetch_(params)
-        .then((json) => this.parseEntitlements(json))
-        .then((entitlements) => {
-          if (entitlements.enablesThis() || positiveRetries <= 0) {
-            return entitlements;
-          }
-          return new Promise((resolve) => {
-            this.win_.setTimeout(() => {
-              resolve(attempt());
-            }, 550);
-          });
+      return this.fetch_(params).then((entitlements) => {
+        if (entitlements.enablesThis() || positiveRetries <= 0) {
+          return entitlements;
+        }
+        return new Promise((resolve) => {
+          this.win_.setTimeout(() => {
+            resolve(attempt());
+          }, 550);
         });
+      });
     };
     return attempt();
   }
@@ -714,8 +720,8 @@ export class EntitlementsManager {
 
   /**
    * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Object>}
-   * @protected
+   * @return {!Promise<!Entitlements>}
+   * @private
    */
   fetch_(params) {
     // Get swgUserToken from getEntitlements params
@@ -842,12 +848,18 @@ export class EntitlementsManager {
         return this.fetcher_.fetchCredentialedJson(url);
       })
       .then((json) => {
+        let response = json;
+        if (this.useArticleEndpoint_) {
+          this.article_ = this.article_;
+          response = json['entitlements'];
+        }
+
         if (json.errorMessages && json.errorMessages.length > 0) {
           json.errorMessages.forEach((errorMessage) => {
             warn('SwG Entitlements: ' + errorMessage);
           });
         }
-        return json;
+        return this.parseEntitlements(response);
       });
   }
 }

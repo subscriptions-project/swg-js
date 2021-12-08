@@ -52,14 +52,16 @@ export class ClientConfigManager {
 
   /**
    * Fetches the client config from the server.
+   * @param {!Promise<void>} readyPromise
    * @return {!Promise<!ClientConfig>}
    */
-  fetchClientConfig() {
+  fetchClientConfig(readyPromise) {
     if (!this.publicationId_) {
       throw new Error('fetchClientConfig requires publicationId');
     }
     if (!this.responsePromise_) {
-      this.responsePromise_ = this.fetch_();
+      readyPromise = readyPromise || Promise.resolve();
+      this.responsePromise_ = readyPromise.then(this.fetch_());
     }
     return this.responsePromise_;
   }
