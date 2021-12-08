@@ -1905,7 +1905,6 @@ export {
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
-  AudienceActivityClientLogsRequest,
   EntitlementJwt,
   EntitlementResult,
   EntitlementSource,
