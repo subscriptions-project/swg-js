@@ -52,8 +52,6 @@
         const pubId = encodeURIComponent(this.deps_.pageConfig().getPublicationId());
         const audienceActivityClientLogsRequest = this.createLogRequest(event);
         const url = serviceUrl('/publication/' + pubId + '/audienceactivitylogs');
-        console.log(audienceActivityClientLogsRequest);
-        console.log(url);
         this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
      }
    }
