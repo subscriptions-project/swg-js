@@ -52,7 +52,8 @@ export class ClientConfigManager {
 
   /**
    * Fetches the client config from the server.
-   * @param {!Promise<void>} readyPromise
+   * @param {?Promise<void>} readyPromise optional promise to wait on before
+   * attempting to fetch the clientConfiguration.
    * @return {!Promise<!ClientConfig>}
    */
   fetchClientConfig(readyPromise) {

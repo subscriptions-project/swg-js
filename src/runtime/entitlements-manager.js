@@ -123,7 +123,15 @@ export class EntitlementsManager {
      */
     this.entitlementsPostPromise = null;
 
+    /** @private @const {boolean} */
     this.useArticleEndpoint_ = useArticleEndpoint;
+
+    /**
+     * @private @type {{
+     *  entitlements: Entitlements,
+     *  clientConfig: ../model/client-config.ClientConfig
+     * }}
+     * */
     this.article_ = null;
 
     this.deps_
