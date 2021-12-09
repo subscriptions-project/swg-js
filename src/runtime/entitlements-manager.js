@@ -54,6 +54,16 @@ const ENTS_STORAGE_KEY = 'ents';
 const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
 
 /**
+ * Article response object.
+ *
+ * @typedef {{
+ *  entitlements: (../api/entitlements.Entitlements),
+ *  clientConfig: (../model/client-config.ClientConfig),
+ * }}
+ */
+export let Article;
+
+/**
  */
 export class EntitlementsManager {
   /**
@@ -126,12 +136,7 @@ export class EntitlementsManager {
     /** @private @const {boolean} */
     this.useArticleEndpoint_ = useArticleEndpoint;
 
-    /**
-     * @private @type {{
-     *  entitlements: Entitlements,
-     *  clientConfig: ../model/client-config.ClientConfig
-     * }}
-     * */
+    /** @private {?Article} */
     this.article_ = null;
 
     this.deps_
@@ -413,7 +418,7 @@ export class EntitlementsManager {
   /**
    * If the manager is also responsible for fetching the Article, it
    * will be accessible from here and should resolve a null promise otherwise.
-   * @returns {!Promise<?Object>}
+   * @returns {!Promise<?Article>}
    */
   getArticle() {
     // The base manager only fetches from the entitlements endpoint, which does
@@ -421,7 +426,7 @@ export class EntitlementsManager {
     if (!this.useArticleEndpoint_ || !this.responsePromise_) {
       return Promise.resolve();
     }
-    return this.responsePromise_.then(Promise.resolve(this.article_));
+    return this.responsePromise_.then(() => Promise.resolve(this.article_));
   }
 
   /**

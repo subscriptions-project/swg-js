@@ -42,7 +42,8 @@ describes.realWin('MiniPromptApi', {}, (env) => {
 
     clientConfigManager = new ClientConfigManager(
       'pubId',
-      new Fetcher(env.win)
+      new Fetcher(env.win),
+      deps
     );
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);

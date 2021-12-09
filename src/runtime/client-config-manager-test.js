@@ -18,17 +18,25 @@ import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientTheme} from '../api/basic-subscriptions';
+import {DepsDef} from './deps';
 import {Fetcher} from './fetcher';
 
 describes.realWin('ClientConfigManager', {}, () => {
   let clientConfigManager;
   let fetcher;
   let fetcherMock;
+  let deps;
+  let depsMock;
 
   beforeEach(() => {
+    deps = new DepsDef();
     fetcher = new Fetcher();
     fetcherMock = sandbox.mock(fetcher);
-    clientConfigManager = new ClientConfigManager('pubId', fetcher);
+    depsMock = sandbox.mock(deps);
+    depsMock.expects('entitlementsManager').returns({
+      getArticle: () => Promise.resolve(),
+    });
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, deps);
     sandbox.stub(self.console, 'warn');
   });
 
@@ -57,7 +65,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('fetchClientConfig should throw an error for undefined publication ID', async () => {
-    clientConfigManager = new ClientConfigManager(undefined, fetcher);
+    clientConfigManager = new ClientConfigManager(undefined, fetcher, deps);
     fetcherMock.expects('fetchCredentialedJson').never();
 
     expect(() => {
@@ -155,7 +163,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('should return the language set in the constructor', () => {
-    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, deps, {
       lang: 'fr',
     });
     expect(clientConfigManager.getLanguage()).to.equal('fr');
@@ -163,7 +171,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('should return the theme set in the constructor', () => {
-    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, deps, {
       theme: ClientTheme.DARK,
     });
     expect(clientConfigManager.getTheme()).to.equal(ClientTheme.DARK);
@@ -209,6 +217,7 @@ describes.realWin('ClientConfigManager', {}, () => {
         clientConfigManager = new ClientConfigManager(
           'pubId',
           fetcher,
+          deps,
           testCase.clientOptions
         );
         expect(clientConfigManager.shouldForceLangInIframes()).to.equal(
@@ -219,7 +228,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('shouldEnableButton should return false if disableButton is set to be true in ClientOptions', async () => {
-    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, deps, {
       disableButton: true,
     });
 
@@ -228,7 +237,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('shouldEnableButton should return true if ClientConfig has UI predicate canDisplayButton set to be true', async () => {
-    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+    clientConfigManager = new ClientConfigManager('pubId', fetcher, deps, {
       disableButton: false, // this will be ignored
     });
 

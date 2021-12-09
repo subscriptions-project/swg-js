@@ -30,10 +30,10 @@ export class ClientConfigManager {
   /**
    * @param {string} publicationId
    * @param {!./fetcher.Fetcher} fetcher
-   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    * @param {!./deps.DepsDef} deps
+   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
-  constructor(publicationId, fetcher, clientOptions, deps) {
+  constructor(publicationId, fetcher, deps, clientOptions) {
     /** @private @const {!../api/basic-subscriptions.ClientOptions} */
     this.clientOptions_ = clientOptions || {};
 
@@ -52,7 +52,7 @@ export class ClientConfigManager {
 
   /**
    * Fetches the client config from the server.
-   * @param {?Promise<void>} readyPromise optional promise to wait on before
+   * @param {Promise<void>=} readyPromise optional promise to wait on before
    * attempting to fetch the clientConfiguration.
    * @return {!Promise<!ClientConfig>}
    */
@@ -62,7 +62,7 @@ export class ClientConfigManager {
     }
     if (!this.responsePromise_) {
       readyPromise = readyPromise || Promise.resolve();
-      this.responsePromise_ = readyPromise.then(this.fetch_());
+      this.responsePromise_ = readyPromise.then(() => this.fetch_());
     }
     return this.responsePromise_;
   }
