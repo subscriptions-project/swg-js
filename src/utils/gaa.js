@@ -1286,6 +1286,7 @@ export class GaaMetering {
           showGoogleRegwall();
         }
       }
+    
 
       // Show the Google registration intervention.
       function showGoogleRegwall() {
@@ -1295,12 +1296,12 @@ export class GaaMetering {
           // TODO: Specify a URL that renders a Sign in with Google button.
           // TODO: instead of iframUrl, we will be supplying Google Sign-In Client ID
           iframeUrl: "https://examplenews.com/registration_widget.html",
-        }).then((googleSignInDetails) => {
+        }).then((credentials) => {
           // A.5biii) Handle registration for new users
           // Send the googleSignInDetails object to your Registration endpoint.
           // Return a userState object to represent the
           // newly-registered user.
-          registerUserPromise(googleSignInDetails).then((userState) => {
+          registerUser(registrationEndpoint,credentials).then((userState) => {
               // Send the userState object for the newly-registered
               // user to Google.
               checkShowcaseEntitlement(userState);
@@ -1414,35 +1415,7 @@ export class GaaMetering {
 
     // B.2aiii) Handle the case when users click "Subscribe"
     subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
-    }
-
-    /*
-    // Publisher-defined promise
-      const registerUserPromise = new Promise(...); - we send googleSignInDetails to the registration endpoint and waiting for userState object as return (pageConfigResolver)
-      const publisherEntitlementPromise = new Promise(...); - redundant, we have grant reason and entitlements from our side
-
-      // Publisher-defined functions
-      function isArticleFree() { ... } - We get from markup (markup info from line 494)
-      function isUserRegistered() { ... } - We get from getUserState - user id (& timestamps are) is absent
-      function anonymousUserHasAccess() { ... } - Redundant
-      function unlockArticle() { ... } - supplied by partner
-      function showPaywall() { ... } - supplied by partner
-      function openLoginPage() { ... } - supplied by partner
-      // Get userState by calling your userState endpoint server or
-      // retrieving from server-side HTTP only cookie
-      function getUserState = { ... }; - supplied by partner
-
-      function syncEntitlementsWithGoogle() {
-       return checkShowcaseEntitlement(getUserState()); - supply object, not the function
-      }
-
-
-      // Setting up swg.js and registering callbacks
-      (self.SWG = self.SWG || []).push(function(subscriptions) { - line 1040
-        // Use a full productID (publication ID and product label).
-        subscriptions.init("examplenews.com:showcase"); - use productId from the partner / can we grab it from markup?
-
-    */
+  }
   }
 
   validateParameters() {}
@@ -1560,7 +1533,24 @@ export class GaaMetering {
   }
 
   // POST request to registration endpoint
-  registerUser
+  registerUser(registrationEndpointUrl, newUserDetails) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", registrationEndpointUrl, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() { 
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        // TODO: convert string to object - how to do it in a secure way?
+        console.log(xhr.responseText);
+      }
+    }
+    xhr.send(JSON.stringify(newUserDetails));
+  }
+
+  newUserStateToUserState(newUserState) {
+    // TODO: Convert new userState object format to the old userState object
+    
+    return userState
+  }
 }
 
 /**
