@@ -101,7 +101,7 @@
     "nightwatch": "1.7.12",
     "nodemon": "2.0.15",
     "plugin-error": "1.0.1",
-    "postcss": "8.4.4",
+    "postcss": "8.4.5",
     "postcss-import": "14.0.2",
     "prettier": "2.5.1",
     "pumpify": "2.0.1",
