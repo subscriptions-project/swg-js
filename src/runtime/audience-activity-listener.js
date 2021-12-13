@@ -23,7 +23,7 @@
   import {Storage} from './storage';
 
   /** @const {!Object<AnalyticsEvent>} */
-  const audienceActivityLoggingEvents = [AnalyticsEvent.IMPRESSION_PAGE_LOAD, AnalyticsEvent.IMPRESSION_PAYWALL, AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED];
+  const audienceActivityLoggingEvents = new Set([AnalyticsEvent.IMPRESSION_PAGE_LOAD, AnalyticsEvent.IMPRESSION_PAYWALL, AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED]);
 
  export class AudienceActivityEventListener {
     /**
@@ -56,13 +56,12 @@
       );
     }
     
-  
     /**
      *  Listens for new audience activity events from the events manager and sends them to the SwG Client Server.
      * @param {!../api/client-event-manager-api.ClientEvent} event
      */
     handleClientEvent_(event) {
-      if (audienceActivityLoggingEvents.includes(event.eventType)) {
+      if (audienceActivityLoggingEvents.has(event.eventType)) {
         const pubId = encodeURIComponent(this.deps_.pageConfig().getPublicationId());
         const audienceActivityClientLogsRequest = this.createLogRequest(event);
         const url = serviceUrl('/publication/' + pubId + '/audienceactivitylogs');
@@ -80,7 +79,4 @@
       request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
       return request;
   }
-  }
-  
-  
-  
+}  
