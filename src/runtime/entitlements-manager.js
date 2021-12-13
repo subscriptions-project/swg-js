@@ -863,7 +863,7 @@ export class EntitlementsManager {
       .then((json) => {
         let response = json;
         if (this.useArticleEndpoint_) {
-          this.article_ = this.article_;
+          this.article_ = json;
           response = json['entitlements'];
         }
 
