@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -69,6 +69,47 @@ describe('AccountCreationRequest', () => {
     // Verify fields.
     expect(accountcreationrequestDeserialized.getComplete()).to.deep.equal(
         accountcreationrequest.getComplete());
+  });
+});
+
+describe('ActionRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !ActionRequest  */ actionrequest = new ActionRequest();
+    actionrequest.setAction(ActionType.ACTION_TYPE_UNKNOWN);
+
+    let actionrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    actionrequestDeserialized = deserialize(
+        actionrequest.toArray(undefined));
+    expect(actionrequestDeserialized.toArray(undefined)).to.deep.equal(
+        actionrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(actionrequestDeserialized.getAction()).to.deep.equal(
+        actionrequest.getAction());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    actionrequestDeserialized = deserialize(
+        actionrequest.toArray(true));
+    expect(actionrequestDeserialized.toArray(true)).to.deep.equal(
+        actionrequest.toArray(true));
+
+    // Verify fields.
+    expect(actionrequestDeserialized.getAction()).to.deep.equal(
+        actionrequest.getAction());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    actionrequestDeserialized = new ActionRequest(actionrequest.toArray(false), false);
+    expect(actionrequestDeserialized.toArray(false)).to.deep.equal(
+        actionrequest.toArray(false));
+
+    // Verify fields.
+    expect(actionrequestDeserialized.getAction()).to.deep.equal(
+        actionrequest.getAction());
   });
 });
 

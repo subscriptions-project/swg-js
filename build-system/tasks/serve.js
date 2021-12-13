@@ -36,9 +36,7 @@ function serve(done) {
   done();
 }
 
-function startServer() {
-  log(green('Serving unminified js'));
-
+function startServer({jsTarget} = {}) {
   return nodemon({
     script: require.resolve('../server/server.js'),
     watch: [require.resolve('../server/server.js')],
@@ -51,6 +49,7 @@ function startServer() {
       'SERVE_QUIET': quiet,
       'SERVE_PUBID': publicationId,
       'SERVE_AMP_LOCAL': ampLocal,
+      'SERVE_JS_TARGET': jsTarget,
     },
   }).once('quit', stopServer);
 }

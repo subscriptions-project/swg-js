@@ -15,10 +15,6 @@
  */
 
 module.exports = {
-  beforeEach(browser) {
-    browser.useMinifiedJs();
-  },
-
   '@tags': ['smart'],
 
   'Show Smart Button': function (browser) {
@@ -47,8 +43,12 @@ module.exports = {
       .navigate()
       .switchToFrame('[src*="smartboxiframe"]', 'SwG Smart Button iFrame')
       .click('.swg-button-light', function (result) {
-        this.assert.strictEqual(result.status, 0);
         this.log('Clicking smart button.');
+        if (this.capabilities.browserName == 'chrome') {
+          this.assert.strictEqual(result.status, 0);
+        } else {
+          this.assert.strictEqual(result.value, null);
+        }
       })
       .end();
   },

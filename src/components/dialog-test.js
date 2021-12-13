@@ -172,6 +172,11 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight, ANIMATE);
 
       expect(setStylePropertySpy).to.be.callCount(5);
+      // Verify intermediate translate value was set.
+      expect(setStylePropertySpy).to.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
@@ -198,6 +203,11 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight, ANIMATE);
 
       expect(setStylePropertySpy).to.be.callCount(5);
+      // Verify intermediate translate value was set.
+      expect(setStylePropertySpy).to.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
@@ -287,6 +297,12 @@ describes.realWin('Dialog', {}, (env) => {
       expect(container.nodeName).to.equal('SWG-CONTAINER');
     });
 
+    it('focuses the iframe contents after dialog is opened', async () => {
+      immediate();
+      await dialog.open();
+      expect(doc.activeElement).to.equal(dialog.getElement());
+    });
+
     it('should throw if container is missing', async () => {
       expect(() => dialog.getContainer()).to.throw('not opened yet');
     });
@@ -345,6 +361,15 @@ describes.realWin('Dialog', {}, (env) => {
       expect(loadingView.nodeName).to.equal('SWG-LOADING');
 
       expect(loadingView.children.length).to.equal(1);
+    });
+
+    it('omits centered-on-desktop on LoadingView by default', async () => {
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.not.have.class('centered-on-desktop');
     });
 
     it('should display loading view', async () => {
@@ -518,6 +543,29 @@ describes.realWin('Dialog', {}, (env) => {
 
       expect(matchMedia.hasListeners()).to.be.false;
     });
+
+    it('adds centered-on-desktop class to the LoadingView', async () => {
+      immediate();
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.have.class('centered-on-desktop');
+    });
+
+    it('adds padding-bottom to document root on resize', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const newHeight = 110;
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(win.document.documentElement.style.paddingBottom).to.equal(
+        `${newHeight + 20}px`
+      );
+    });
   });
 
   describe('dialog with isCenterPositioned=true on desktop', () => {
@@ -533,10 +581,10 @@ describes.realWin('Dialog', {}, (env) => {
         /* styles */ {},
         {desktopConfig: {isCenterPositioned: true}}
       );
+      immediate();
     });
 
     it('is vertically centered after open', async () => {
-      immediate();
       await dialog.open();
       await dialog.animating_;
 
@@ -544,7 +592,6 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('repositions to bottom after window resizes to no longer match mediaQuery', async () => {
-      immediate();
       await dialog.open();
       await dialog.animating_;
       expect(matchMedia.hasListeners()).to.be.true;
@@ -556,7 +603,6 @@ describes.realWin('Dialog', {}, (env) => {
     });
 
     it('removes matchMedia listener on close', async () => {
-      immediate();
       await dialog.open();
       await dialog.animating_;
       await dialog.close(false);
@@ -564,10 +610,34 @@ describes.realWin('Dialog', {}, (env) => {
       expect(matchMedia.hasListeners()).to.be.false;
     });
 
+    it('adds centered-on-desktop class to the LoadingView', async () => {
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.have.class('centered-on-desktop');
+    });
+
+    it('stays vertically centered during expand animation', async () => {
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.resizeView(view, 110, ANIMATE);
+
+      // Verify intermediate translateY for bottom dialog is not set.
+      expect(setStylePropertySpy).to.not.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
+    });
+
     it('stays vertically centered after expand animation', async () => {
       const newHeight = 110;
-
-      immediate();
       await dialog.open();
       await dialog.openView(view);
       await dialog.resizeView(view, newHeight, ANIMATE);
@@ -577,10 +647,25 @@ describes.realWin('Dialog', {}, (env) => {
       expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
     });
 
+    it('stays vertically centered during collapse animation', async () => {
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.resizeView(view, 90, ANIMATE);
+
+      // Verify intermediate translateY for bottom dialog is not set.
+      expect(setStylePropertySpy).to.not.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
+    });
+
     it('stays vertically centered after collapse animation', async () => {
       const newHeight = 90;
-
-      immediate();
       await dialog.open();
       await dialog.openView(view);
       await dialog.resizeView(view, newHeight, ANIMATE);
@@ -588,6 +673,16 @@ describes.realWin('Dialog', {}, (env) => {
       const iframe = dialog.getElement();
       expectPositionCenter(iframe);
       expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
+    });
+
+    it('does not add padding-bottom to document root on resize', async () => {
+      await dialog.open();
+      await dialog.openView(view);
+
+      const newHeight = 110;
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(win.document.documentElement.style.paddingBottom).to.equal('');
     });
   });
 });

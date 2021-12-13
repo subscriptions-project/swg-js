@@ -1836,6 +1836,31 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(toastOpenStub).to.not.be.called;
     });
 
+    it('should NOT trigger toast when toast is blocked', async () => {
+      const resp = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      });
+      xhrMock
+        .expects('fetch')
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve(JSON.stringify(resp)),
+          })
+        )
+        .once();
+      expectGetIsReadyToPayToBeCalled(null);
+      expectGetSwgUserTokenToBeCalled();
+      manager.blockNextToast();
+
+      const entitlements = await manager.getEntitlements();
+      expect(manager.blockNextToast_).to.be.false; // Reset.
+      expect(entitlements.enablesThis()).to.be.true;
+      expect(callbacks.hasEntitlementsResponsePending()).to.be.true;
+      expect(toastOpenStub).to.not.be.called;
+    });
+
     it('should reset blocked state', () => {
       manager.blockNextNotification();
       expect(manager.blockNextNotification_).to.be.true;
