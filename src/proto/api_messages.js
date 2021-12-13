@@ -704,6 +704,62 @@ class AnalyticsRequest {
     return 'AnalyticsRequest';
   }
 }
+/**
+ * @implements {Message}
+ */
+ class AudienceActivityClientLogsRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.event_ = data[base] == null ? null : data[base];
+
+  }
+  /**
+   * @return {?AnalyticsEvent}
+   */
+  getEvent() {
+    return this.event_;
+  }
+
+  /**
+   * @param {!AnalyticsEvent} value
+   */
+  setEvent(value) {
+    this.event_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.event_, // field 1 - event
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AudienceActivityClientLogsRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 
 /**
  * @implements {Message}
@@ -1853,6 +1909,7 @@ const PROTO_MAP = {
   'AccountCreationRequest': AccountCreationRequest,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
+  'AudienceActivityClientLogsRequest' : AudienceActivityClientLogsRequest,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
   'EntitlementJwt': EntitlementJwt,
@@ -1905,6 +1962,7 @@ export {
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
+  AudienceActivityClientLogsRequest,
   EntitlementJwt,
   EntitlementResult,
   EntitlementSource,

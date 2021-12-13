@@ -14,55 +14,30 @@
  * limitations under the License.
  */
 
- import {ActivityIframePort} from '../components/activities';
  import {
     AnalyticsEvent,
-    AudienceActivityClientLogsRequest,
     EventOriginator,
-    EventParams,
   } from '../proto/api_messages';
   import {ClientEventManager} from './client-event-manager';
-  import {DepsDef} from './deps';
   import {AudienceActivityEventListener} from './audience-activity-listener';
   import {XhrFetcher} from './fetcher';
   import {ConfiguredRuntime} from './runtime';
   import {ExperimentFlags} from './experiment-flags';
   import {PageConfig} from '../model/page-config';
   import {setExperimentsStringForTesting} from './experiments';
-  import {SubscriptionFlows} from '../api/subscriptions';
-
-  const URL = 'www.news.com';
   
   describes.realWin('AudienceActivityEventListener', {}, (env) => {
-    let src;
-    let activityPorts;
-    let activityIframePort;
     let pageConfig;
     let runtime;
     let eventManagerCallback;
     let audienceActivityEventListener;
-    let pretendPortWorks;
-    let loggedErrors;
     let eventsLoggedToService;
-    let listener;
   
-    const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
     const productId = 'pub1:label1';
   
     beforeEach(() => {
         setExperimentsStringForTesting('');
         eventsLoggedToService = [];
-
-
-    // Work around `location.search` being non-configurable,
-    // which means Sinon can't stub it normally.
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_redefine_property
-    env.win = Object.assign({}, env.win, {
-      location: {
-        search: '?utm_source=scenic&utm_medium=email&utm_campaign=campaign',
-      },
-    });
-
     sandbox
       .stub(env.win.document, 'referrer')
       .get(() => 'https://scenic-2017.appspot.com/landing.html');
@@ -72,20 +47,11 @@
       .callsFake((unusedUrl, message) => {
         eventsLoggedToService.push(message);
       });
-
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake((callback) => (eventManagerCallback = callback));
-
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(env.win, pageConfig);
-    sandbox.stub(runtime.doc(), 'getRootNode').callsFake(() => {
-      return {
-        querySelector: () => {
-          return {href: URL};
-        },
-      };
-    });
     audienceActivityEventListener = new AudienceActivityEventListener(runtime, runtime.fetcher_);
     });
 
@@ -100,12 +66,10 @@
             additionalParameters: null,
           });
   
-          // These wait for analytics server to be ready to send data.
+          // These wait for the listener to be ready to send data.
           expect(audienceActivityEventListener.lastAction_).to.not.be.null;
           await audienceActivityEventListener.lastAction_;
-          // await audienceActivityEventListener.whenReady();
-  
-          // expectOpenIframe = true;
+      
           expect(eventsLoggedToService.length).to.equal(0);
         });
   
@@ -120,13 +84,10 @@
             additionalParameters: null,
           });
 
-          // These wait for analytics server to be ready to send data.
+          // These wait for the listener to be ready to send data.
           expect(audienceActivityEventListener.lastAction_).to.not.be.null;
           await audienceActivityEventListener.lastAction_;
-          // await activityIframePort.whenReady();
-  
-          // expectOpenIframe = true;
-          console.log("katTest2");
+          
           expect(eventsLoggedToService.length).to.equal(1);
         });
       });

@@ -21,7 +21,6 @@
   } from '../proto/api_messages';
   import {serviceUrl} from './services';
   import {Storage} from './storage';
-  import {Constants} from '../utils/constants';
 
   /** @const {!Object<AnalyticsEvent>} */
   const audienceActivityLoggingEvents = [AnalyticsEvent.IMPRESSION_PAGE_LOAD, AnalyticsEvent.IMPRESSION_PAYWALL, AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED];
