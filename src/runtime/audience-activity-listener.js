@@ -23,6 +23,9 @@
   import {Storage} from './storage';
   import {Constants} from '../utils/constants';
 
+  /** @const {!Object<AnalyticsEvent>} */
+  const audienceActivityLoggingEvents = [AnalyticsEvent.IMPRESSION_PAGE_LOAD, AnalyticsEvent.IMPRESSION_PAYWALL, AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED];
+
  export class AudienceActivityEventListener {
     /**
      * @param {!./deps.DepsDef} deps
@@ -53,23 +56,19 @@
         this.handleClientEvent_.bind(this)
       );
     }
+    
   
     /**
-     *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
+     *  Listens for new audience activity events from the events manager and sends them to the SwG Client Server.
      * @param {!../api/client-event-manager-api.ClientEvent} event
      */
     handleClientEvent_(event) {
-      const audienceActivityLoggingEvents = [AnalyticsEvent.IMPRESSION_PAGE_LOAD, AnalyticsEvent.IMPRESSION_PAYWALL, AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED, AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED];
       if (audienceActivityLoggingEvents.includes(event.eventType)) {
         const pubId = encodeURIComponent(this.deps_.pageConfig().getPublicationId());
         const audienceActivityClientLogsRequest = this.createLogRequest(event);
         const url = serviceUrl('/publication/' + pubId + '/audienceactivitylogs');
-        if(this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest)) {
-          return;
-        }
-        else {
-          // failure
-        }
+        this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
+
      }
    }
 
@@ -82,8 +81,6 @@
       request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
       return request;
   }
-  
-  
   }
   
   
