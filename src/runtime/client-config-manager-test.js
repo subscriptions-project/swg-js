@@ -27,13 +27,14 @@ describes.realWin('ClientConfigManager', {}, () => {
   let fetcherMock;
   let deps;
   let depsMock;
+  let entitlementsManagerMock;
 
   beforeEach(() => {
     deps = new DepsDef();
     fetcher = new Fetcher();
     fetcherMock = sandbox.mock(fetcher);
     depsMock = sandbox.mock(deps);
-    depsMock.expects('entitlementsManager').returns({
+    entitlementsManagerMock = depsMock.expects('entitlementsManager').returns({
       getArticle: () => Promise.resolve(),
     });
     clientConfigManager = new ClientConfigManager('pubId', fetcher, deps);
@@ -62,6 +63,46 @@ describes.realWin('ClientConfigManager', {}, () => {
 
     clientConfig = await clientConfigManager.getClientConfig();
     expect(clientConfig).to.deep.equal(expectedClientConfig);
+  });
+
+  it('fetchClientConfig should use article from entitlementsManager if provided', async () => {
+    const article = {
+      clientConfig: new ClientConfig({
+        autoPromptConfig: new AutoPromptConfig(1),
+      }),
+    };
+    entitlementsManagerMock.returns({
+      getArticle: () => Promise.resolve(article),
+    });
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+
+    expect(clientConfig).to.deep.equal(article.clientConfig);
+  });
+
+  it('fetchClientConfig should wait on the readyPromise before fetching if provided', async () => {
+    let sequence = 0;
+    const readyPromise = Promise.resolve().then(() => sequence++);
+    entitlementsManagerMock.returns({
+      getArticle: () =>
+        new Promise((resolve) => {
+          sequence++;
+          resolve({
+            clientConfig: new ClientConfig(),
+          });
+        }),
+    });
+
+    await clientConfigManager.fetchClientConfig(readyPromise);
+
+    expect(sequence).to.equal(
+      2,
+      '2 sequenced promises should have been called'
+    );
+    expect(await readyPromise).to.equal(
+      0,
+      'readyPromise should have been called first'
+    );
   });
 
   it('fetchClientConfig should throw an error for undefined publication ID', async () => {
