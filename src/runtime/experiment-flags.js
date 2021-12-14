@@ -62,7 +62,7 @@ export const ExperimentFlags = {
   PAY_CLIENT_REDIRECT: 'pay-client-redirect',
 
   /**
-   * Experiment flag for guarding changes on the logging path for audience activity.
+   * Experiment flag for logging audience activity.
    */
-   LOGGING_AUDIENCE_ACTIVITY: 'logging-audience-activity',
+  LOGGING_AUDIENCE_ACTIVITY: 'logging-audience-activity',
 };
