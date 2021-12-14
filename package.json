@@ -30,8 +30,8 @@
   },
   "devDependencies": {
     "@ampproject/google-closure-compiler": "20210601.0.0",
-    "@babel/core": "7.16.0",
-    "@babel/preset-env": "7.16.4",
+    "@babel/core": "7.16.5",
+    "@babel/preset-env": "7.16.5",
     "ansi-colors": "4.1.1",
     "autoprefixer": "10.4.0",
     "babel-eslint": "10.1.0",
