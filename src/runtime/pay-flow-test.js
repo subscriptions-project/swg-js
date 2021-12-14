@@ -100,6 +100,36 @@ function getEventParams(sku, subscriptionFlow = null) {
   return new EventParams([, , , , sku, , , subscriptionFlow]);
 }
 
+const USER_ID_TOKEN = 'ID_TOK';
+const USER_EMAIL = 'test@example.org';
+const SERVICE_NAME = 'service1';
+const RAW_ENTITLEMENTS = 'RaW';
+
+/** @return {!UserData} */
+function createDefaultUserData() {
+  return new UserData(USER_ID_TOKEN, {'email': USER_EMAIL});
+}
+
+/** @return {!SubscribeResponse} */
+function createDefaultSubscribeResponse() {
+  const purchaseData = new PurchaseData();
+  const userData = createDefaultUserData();
+  const entitlements = new Entitlements(
+    SERVICE_NAME,
+    RAW_ENTITLEMENTS,
+    [],
+    null
+  );
+  return new SubscribeResponse(
+    RAW_ENTITLEMENTS,
+    purchaseData,
+    userData,
+    entitlements,
+    ProductType.SUBSCRIPTION,
+    null
+  );
+}
+
 describes.realWin('PayStartFlow', {}, (env) => {
   let win;
   let pageConfig;
@@ -452,7 +482,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   it('should have paySwgVersion from clientConfig', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig(undefined, '1')))
+      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '1'})))
       .once();
 
     payClientMock
@@ -485,7 +515,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   it('should forceDisableNative for basic paySwgVersion', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig(undefined, '2')))
+      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '2'})))
       .once();
 
     payClientMock
@@ -581,22 +611,10 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   });
 
   it('should have valid flow constructed', async () => {
-    const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
-    const response = new SubscribeResponse(
-      'RaW',
-      purchaseData,
-      userData,
-      entitlements,
-      ProductType.SUBSCRIPTION,
-      null
-    );
+    const response = createDefaultSubscribeResponse();
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
       .once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -617,11 +635,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
-          idToken: 'ID_TOK',
+          idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -633,11 +652,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should have valid flow constructed w/o entitlements', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
+    const userData = createDefaultUserData();
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       null,
@@ -662,11 +679,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
-          loginHint: 'test@example.org',
+          loginHint: USER_EMAIL,
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -677,11 +695,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should have valid flow constructed w/ oldSku', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
+    const userData = createDefaultUserData();
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       null,
@@ -707,11 +723,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
-          loginHint: 'test@example.org',
+          loginHint: USER_EMAIL,
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: true,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -722,11 +739,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should have valid flow constructed w/ one time contributions', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
+    const userData = createDefaultUserData();
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       null,
@@ -754,11 +769,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
-          loginHint: 'test@example.org',
+          loginHint: USER_EMAIL,
           productType: ProductType.UI_CONTRIBUTION,
           isSubscriptionUpdate: false,
           isOneTime: true,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -769,12 +785,15 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should have valid flow constructed w/ user token', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const userData = createDefaultUserData();
+    const entitlements = new Entitlements(
+      SERVICE_NAME,
+      RAW_ENTITLEMENTS,
+      [],
+      null
+    );
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       entitlements,
@@ -786,7 +805,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
       .once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -807,11 +826,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
-          idToken: 'ID_TOK',
+          idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -826,33 +846,13 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should have valid flow constructed w/ useUpdatedConfirmUi set to true', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(
-        Promise.resolve(
-          new ClientConfig(
-            undefined,
-            undefined,
-            /* useUpdatedOfferFlows */ true
-          )
-        )
-      )
+      .returns(Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true})))
       .once();
 
-    const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
-    const response = new SubscribeResponse(
-      'RaW',
-      purchaseData,
-      userData,
-      entitlements,
-      ProductType.SUBSCRIPTION,
-      null
-    );
+    const response = createDefaultSubscribeResponse();
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
       .once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -873,11 +873,12 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
-          idToken: 'ID_TOK',
+          idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: true,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -886,26 +887,78 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
   });
 
-  it('should have valid flow constructed w/ url params', async () => {
+  it('should have valid flow with skipAccountCreationScreen true', async () => {
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(
+        Promise.resolve(new ClientConfig({skipAccountCreationScreen: true}))
+      )
+      .once();
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          idToken: USER_ID_TOKEN,
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: true,
+        }
+      )
+      .returns(Promise.resolve(port));
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
+  });
+
+  it('constructs valid flow w/ virtual gift url params', async () => {
     const purchaseData = new PurchaseData(
       '{"orderId":"ORDER", "productId":"SKU"}',
       'SIG'
     );
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
+    const userData = createDefaultUserData();
+    const entitlements = new Entitlements(
+      SERVICE_NAME,
+      RAW_ENTITLEMENTS,
+      [],
+      null
+    );
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       entitlements,
       ProductType.VIRTUAL_GIFT,
-      null
+      null,
+      null,
+      'swgUserToken',
+      null,
+      {contentId: 'url', anonymous: true}
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
       .once();
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -926,15 +979,62 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
-          expectedOrigin,
+          expectedOrigin +
+          '&canonicalUrl=url&isAnonymous=true',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
-          idToken: 'ID_TOK',
+          idToken: USER_ID_TOKEN,
           productType: ProductType.VIRTUAL_GIFT,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          swgUserToken: 'swgUserToken',
+          orderId: 'ORDER',
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
+        }
+      )
+      .returns(Promise.resolve(port));
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
+  it('constructs valid flow with forced language params', async () => {
+    clientConfigManagerMock
+      .expects('shouldForceLangInIframes')
+      .returns(true)
+      .once();
+    clientConfigManagerMock.expects('getLanguage').returns('fr-CA').once();
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_&hl=fr-CA',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          idToken: USER_ID_TOKEN,
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -943,19 +1043,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   });
 
   it('should complete the flow', async () => {
-    const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
-    const entitlements = new Entitlements('service1', 'RaW', [], null);
-    const response = new SubscribeResponse(
-      'RaW',
-      purchaseData,
-      userData,
-      entitlements,
-      ProductType.SUBSCRIPTION,
-      null
-    );
+    const response = createDefaultSubscribeResponse();
     const port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -967,7 +1055,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .once();
     entitlementsManagerMock
       .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match((arg) => arg === 'RaW'))
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
       .once();
     entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock
@@ -993,14 +1081,49 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
   });
 
+  it('should complete the flow without account creation if skipAccountCreationScreen: true', async () => {
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(
+        Promise.resolve(new ClientConfig({skipAccountCreationScreen: true}))
+      )
+      .once();
+    const response = createDefaultSubscribeResponse();
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    entitlementsManagerMock
+      .expects('reset')
+      .withExactArgs(true) // Expected positive.
+      .once();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+
+    await flow.start(response);
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(
+        Promise.resolve(new ClientConfig({skipAccountCreationScreen: true}))
+      )
+      .once();
+    await flow.complete();
+  });
+
   it('should complete the flow w/o entitlements', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
+    const userData = createDefaultUserData();
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       null,
@@ -1044,11 +1167,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should accept consistent entitlements via messaging', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
-    const userData = new UserData('ID_TOK', {
-      'email': 'test@example.org',
-    });
+    const userData = createDefaultUserData();
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       null,
@@ -1127,10 +1248,10 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       'SIG'
     );
 
-    const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
-    const entitlements = new Entitlements('service1', TOKEN, [], null);
+    const userData = createDefaultUserData();
+    const entitlements = new Entitlements(SERVICE_NAME, TOKEN, [], null);
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       entitlements,
@@ -1157,10 +1278,10 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should tolerate unparseable purchase data', async () => {
     const purchaseData = new PurchaseData('unparseable', 'SIG');
     analyticsMock.expects('setSku').never();
-    const userData = new UserData('ID_TOK', {'email': 'test@example.org'});
-    const entitlements = new Entitlements('service1', TOKEN, [], null);
+    const userData = createDefaultUserData();
+    const entitlements = new Entitlements(SERVICE_NAME, TOKEN, [], null);
     const response = new SubscribeResponse(
-      'RaW',
+      RAW_ENTITLEMENTS,
       purchaseData,
       userData,
       entitlements,
@@ -1662,7 +1783,7 @@ describes.realWin('parseSubscriptionResponse', {}, (env) => {
     const ud = parseUserData({idToken});
     expect(ud.idToken).to.equal(idToken);
     expect(ud.id).to.equal('12345');
-    expect(ud.email).to.equal('test@example.org');
+    expect(ud.email).to.equal(USER_EMAIL);
     expect(ud.emailVerified).to.be.true;
     expect(ud.name).to.equal('Test One');
     expect(ud.givenName).to.equal('Test');

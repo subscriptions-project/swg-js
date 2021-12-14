@@ -19,6 +19,7 @@ const $$ = require('gulp-load-plugins')();
 const autoprefixer = require('autoprefixer');
 const cssnanoDecl = require('cssnano');
 const fs = require('fs-extra');
+const os = require('os');
 const postcss = require('postcss');
 const postcssImport = require('postcss-import');
 
@@ -86,5 +87,5 @@ exports.jsifyCssAsync = async (filename, options = {}) => {
     newCss += '\n/*# sourceURL=/' + filename + '*/';
   }
 
-  return newCss;
+  return newCss + os.EOL;
 };

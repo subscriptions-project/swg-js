@@ -1,0 +1,25 @@
+<body>
+    <!--
+      For more information on Google Identity Service (GIS), see:
+      https://developers.google.com/identity/gsi/web
+    -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="https://accounts.google.com/gsi/intermediatesupport"></script>
+  
+    <!--
+      NOTE: Replace `src` with https://news.google.com/swg/js/v1/swg-gaa.js in production.
+      -->
+    <script src="<% swgGaaJsUrl %>"></script>
+  
+    <script>
+      GaaSignInWithGoogleButton.show({
+        // Replace this client id with your client id.
+        clientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+        // List the origins you trust to host your GIS button's iframe.
+        // This should include the origin(s) you serve articles from.
+        // This should also include your AMP cache origin(s), if you're using AMP.
+        allowedOrigins: ['http://localhost:8000', 'http://localhost:8080'],
+      });
+    </script>
+  </body>
+  

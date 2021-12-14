@@ -11,6 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install the right version of Nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+
       - name: Install dependencies
         run: yarn
 
@@ -25,6 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install the right version of Nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+
       - name: Install dependencies
         run: yarn
 
@@ -38,6 +48,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Install the right version of Nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
 
       - name: Install dependencies
         run: yarn

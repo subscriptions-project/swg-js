@@ -16,10 +16,13 @@
 
 import {AnalyticsEvent} from '../proto/api_messages';
 import {
+  GOOGLE_3P_SIGN_IN_BUTTON_ID,
   GOOGLE_SIGN_IN_BUTTON_ID,
   GOOGLE_SIGN_IN_IFRAME_ID,
+  GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
+  GaaSignInWithGoogleButton,
   GaaUtils,
   POST_MESSAGE_COMMAND_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
@@ -29,13 +32,17 @@ import {
   REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
+  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
+  gaaNotifySignIn,
   queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
+import {JwtHelper} from './jwt';
 import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
+const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
 
 /** Article metadata in ld+json form. */
 const ARTICLE_LD_JSON_METADATA = `
@@ -70,7 +77,7 @@ const ARTICLE_LD_JSON_METADATA = `
 
 /** Article metadata in microdata form. */
 const ARTICLE_MICRODATA_METADATA = `
-<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> 
+<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other">
   <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
     <meta itemprop="name" content="${PUBLISHER_NAME}"/>
   </span>
@@ -569,7 +576,9 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogleSignInButton.show.
-    self.document.head.querySelector('style').remove();
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
 
     self.console.warn.restore();
   });
@@ -791,6 +800,493 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
           `[swg-gaa.js:GaaGoogleSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
         );
       }
+    });
+  });
+});
+
+describes.realWin('GaaSignInWithGoogleButton', {}, () => {
+  const allowedOrigins = [location.origin];
+  const clientId = 'client_id';
+
+  let clock;
+
+  beforeEach(() => {
+    // Mock clock.
+    clock = sandbox.useFakeTimers();
+
+    self.google = {
+      accounts: {
+        id: {
+          initialize: sandbox.fake(),
+          renderButton: sandbox.fake(),
+        },
+      },
+    };
+
+    // Mock query string.
+    sandbox.stub(GaaUtils, 'getQueryString');
+    GaaUtils.getQueryString.returns('?lang=en');
+
+    // Mock console.warn method.
+    sandbox.stub(self.console, 'warn');
+  });
+
+  afterEach(() => {
+    if (self.postMessage.restore) {
+      self.postMessage.restore();
+    }
+    GaaUtils.getQueryString.restore();
+
+    // Remove the injected style from GaaSignInWithGoogleButton.show.
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
+
+    self.console.warn.restore();
+  });
+
+  describe('show', () => {
+    it('renders Google Sign-In button', async () => {
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
+      clock.tick(100);
+      await tick(10);
+
+      const argsInit = self.google.accounts.id.initialize.args;
+      expect(typeof argsInit[0][0].callback).to.equal('function');
+      expect(argsInit).to.deep.equal([
+        [
+          {
+            /* eslint-disable google-camelcase/google-camelcase */
+            client_id: clientId,
+            callback: argsInit[0][0].callback,
+            allowed_parent_origin: allowedOrigins,
+            /* eslint-enable google-camelcase/google-camelcase */
+          },
+        ],
+      ]);
+
+      const argsRender = self.google.accounts.id.renderButton.args;
+      const buttonEl = self.document.getElementById(
+        SIGN_IN_WITH_GOOGLE_BUTTON_ID
+      );
+
+      expect(argsRender).to.deep.equal([
+        [
+          buttonEl,
+          {
+            'type': 'standard',
+            'theme': 'outline',
+            'text': 'continue_with',
+            'logo_alignment': 'center',
+            'width': buttonEl.offsetWidth,
+            'height': buttonEl.offsetHeight,
+          },
+        ],
+      ]);
+    });
+
+    it('renders supported i18n languages', async () => {
+      GaaUtils.getQueryString.returns('?lang=pt-br');
+
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
+      );
+    });
+
+    it('renders English by default, if "lang" URL param is missing', async () => {
+      GaaUtils.getQueryString.returns('?');
+
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
+      );
+    });
+
+    it('sends post message with button click event', async () => {
+      // Show button.
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+
+      // Wait for button click post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      // Expect button click post message.
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('sends post message with GAA user', async () => {
+      // Mock GIS response with JWT object.
+      const jwt = {
+        credential: {
+          /* eslint-disable google-camelcase/google-camelcase */
+          payload: {
+            iss: 'https://accounts.google.com', // The JWT's issuer
+            nbf: 161803398874,
+            aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
+            sub: '3141592653589793238', // The unique ID of the user's Google Account
+            hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
+            email: 'elisa.g.beckett@gmail.com', // The user's email address
+            email_verified: true, // true, if Google has verified the email address
+            azp: '314159265-pi.apps.googleusercontent.com',
+            name: 'Elisa Beckett',
+            // If present, a URL to user's profile picture
+            picture:
+              'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
+            given_name: 'Elisa',
+            family_name: 'Beckett',
+            iat: 1596474000, // Unix timestamp of the assertion's creation time
+            exp: 1596477600, // Unix timestamp of the assertion's expiration time
+            jti: 'abc161803398874def',
+          },
+          /* eslint-enable google-camelcase/google-camelcase */
+        },
+      };
+
+      // Mock JWT decoding function.
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((credential) => {
+        return credential;
+      });
+
+      GaaSignInWithGoogleButton.show({
+        clientId,
+        allowedOrigins,
+      });
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      const args = self.google.accounts.id.initialize.args;
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+      // Send JWT.
+      args[0][0].callback(jwt);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_USER,
+          jwtPayload: jwt.credential,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('sends errors to parent', async () => {
+      self.google.accounts.id.initialize = sandbox.fake.throws(
+        'Function not loaded'
+      );
+
+      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('fails and warns when passed invalid origins', async () => {
+      const invalidOrigins = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        // Includes path.
+        'http://localhost:8080/',
+      ];
+
+      for (const invalidOrigin of invalidOrigins) {
+        GaaSignInWithGoogleButton.show({
+          clientId,
+          allowedOrigins: [invalidOrigin],
+        });
+
+        // Send intro post message.
+        postMessage({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+        });
+
+        // Wait for promises and intervals to resolve.
+        clock.tick(100);
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${invalidOrigin}`
+        );
+      }
+    });
+  });
+});
+
+describes.realWin('GaaGoogle3pSignInButton', {}, () => {
+  const allowedOrigins = [location.origin];
+
+  let clock;
+
+  beforeEach(() => {
+    // Mock clock.
+    clock = sandbox.useFakeTimers();
+
+    // Mock query string.
+    sandbox.stub(GaaUtils, 'getQueryString');
+    GaaUtils.getQueryString.returns('?lang=en');
+
+    // Mock console.warn method.
+    sandbox.stub(self.console, 'warn');
+
+    sandbox.stub(self, 'open');
+  });
+
+  afterEach(() => {
+    if (self.postMessage.restore) {
+      self.postMessage.restore();
+    }
+
+    GaaUtils.getQueryString.restore();
+
+    // Remove the injected style from GaaGoogle3pSignInButton.show.
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
+
+    self.console.warn.restore();
+  });
+
+  describe('show', () => {
+    it('renders third party Google Sign-In button', async () => {
+      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
+      clock.tick(100);
+      await tick(10);
+
+      const buttonDiv = self.document.querySelector(
+        '#' + GOOGLE_3P_SIGN_IN_BUTTON_ID
+      );
+      assert(buttonDiv);
+      expect(buttonDiv.tabIndex).to.equal(0);
+      expect(typeof buttonDiv.onclick).to.equal('function');
+    });
+
+    it('renders supported i18n languages', async () => {
+      GaaUtils.getQueryString.returns('?lang=pt-br');
+
+      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
+      );
+    });
+
+    it('renders English by default, if "lang" URL param is missing', async () => {
+      GaaUtils.getQueryString.returns('?');
+
+      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
+      );
+    });
+
+    it('sends post message with button click event', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+      clock.tick(100);
+      await tick(10);
+
+      expect(self.open).to.have.been.calledOnce;
+
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      await new Promise((resolve) => {
+        sandbox.stub(self.parent, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.parent.postMessage).to.be.calledWithExactly(
+        {
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_USER,
+        },
+        location.origin
+      );
+    });
+
+    it('sends errors to parent', async () => {
+      const invalidOrigin = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        location.origin,
+      ];
+
+      GaaGoogle3pSignInButton.show(
+        {allowedOrigins: invalidOrigin},
+        GOOGLE_3P_AUTH_URL
+      );
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWith(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('fails and warns when passed invalid origins', async () => {
+      const invalidOrigins = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        // Includes path.
+        'http://localhost:8080/',
+      ];
+
+      for (const invalidOrigin of invalidOrigins) {
+        GaaGoogle3pSignInButton.show(
+          {allowedOrigins: [invalidOrigin]},
+          GOOGLE_3P_AUTH_URL
+        );
+
+        // Send intro post message.
+        postMessage({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+        });
+
+        // Wait for promises and intervals to resolve.
+        clock.tick(100);
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
+        );
+      }
+    });
+  });
+});
+
+describes.realWin('gaaNotifySignIn', {}, () => {
+  it('posts message when passed a user', () => {
+    self.opener = self;
+    sandbox.stub(self, 'postMessage');
+    const gaaUser = {
+      email: 'email',
+      familyName: 'familyName',
+      givenName: 'givenName',
+      idToken: 'idToken',
+      imageUrl: 'imageUrl',
+      name: 'name',
+      authorizationData: {
+        /* eslint-disable google-camelcase/google-camelcase */
+        access_token: 'accessToken',
+        id_token: 'idToken',
+        scope: 'scope',
+        expires_in: 0,
+        first_issued_at: 0,
+        expires_at: 0,
+        /* eslint-enable google-camelcase/google-camelcase */
+      },
+    };
+    gaaNotifySignIn.bind(self, {gaaUser})();
+
+    expect(self.postMessage).to.have.been.calledWithExactly({
+      stamp: POST_MESSAGE_STAMP,
+      command: POST_MESSAGE_COMMAND_USER,
+      gaaUser,
     });
   });
 });

@@ -86,8 +86,8 @@ const ShowcaseEvents = {
     AnalyticsEvent.IMPRESSION_PAYWALL,
   ],
   [ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL]: [
-    // TODO(b/181690059): Create showcase ineligible AnalyticsEvent
-    AnalyticsEvent.IMPRESSION_PAYWALL,
+    AnalyticsEvent.EVENT_INELIGIBLE_PAYWALL,
+    AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
   ],
 };
 
@@ -99,6 +99,8 @@ const AnalyticsEventToEntitlementResult = {
     EntitlementResult.UNLOCKED_SUBSCRIBER,
   [AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE]: EntitlementResult.UNLOCKED_FREE,
   [AnalyticsEvent.IMPRESSION_PAYWALL]: EntitlementResult.LOCKED_PAYWALL,
+  [AnalyticsEvent.EVENT_INELIGIBLE_PAYWALL]:
+    EntitlementResult.INELIGIBLE_PAYWALL,
 };
 
 /**

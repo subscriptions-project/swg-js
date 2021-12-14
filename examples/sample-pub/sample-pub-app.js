@@ -29,6 +29,7 @@ app.use('/api', require('./service/authorization-app'));
 
 const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
 const AMP_LOCAL = process.env.SERVE_AMP_LOCAL == 'true';
+const JS_TARGET = process.env.SERVE_JS_TARGET || 'local';
 
 const SWG_JS_URLS = {
   local: '/dist/subscriptions.max.js',
@@ -270,6 +271,26 @@ app.get('/gsi-iframe', (req, res) => {
 });
 
 /**
+ * GIS iframe for metering demo.
+ */
+app.get('/gis-iframe', (req, res) => {
+  const setup = getSetup(req);
+  res.render('../examples/google-signin/sign-in-with-google-iframe', {
+    swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
+  });
+});
+
+/**
+ * Google third party sign in iframe for metering demo.
+ */
+app.get('/g3p-iframe', (req, res) => {
+  const setup = getSetup(req);
+  res.render('../examples/google-signin/google-3p-signin-iframe', {
+    swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
+  });
+});
+
+/**
  * Setup page.
  */
 app.get('/setup', (req, res) => {
@@ -321,7 +342,7 @@ app.get('/redirect-to/swg-basic.js', (req, res) => {
  */
 function getSetup(req) {
   return {
-    script: (req.cookies && req.cookies['script']) || 'local',
+    script: (req.cookies && req.cookies['script']) || JS_TARGET,
   };
 }
 

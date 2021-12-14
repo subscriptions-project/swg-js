@@ -13,6 +13,14 @@ const MeteringDemo = {
   GOOGLE_SIGN_IN_IFRAME_URL:
     'http://localhost:8000/examples/sample-pub/gsi-iframe',
 
+  /** URL of iframe containing a third party Google Sign-In button. */
+  GOOGLE_3P_SIGN_IN_IFRAME_URL:
+    'http://localhost:8000/examples/sample-pub/g3p-iframe',
+
+  /** URL of iframe containing a third party Google Sign-In button. */
+  SIGN_IN_WITH_GOOGLE_IFRAME_URL:
+    'http://localhost:8000/examples/sample-pub/gis-iframe',
+
   /** Optionally updates the HTML tag's `lang` attribute. */
   setupLanguage: () => {
     // Check for optional URL variable.

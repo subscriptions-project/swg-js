@@ -174,13 +174,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   it('has valid ContributionsFlow constructed, routed to the new contributions iframe', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true
-        )
-      );
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}));
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     activitiesMock
       .expects('openIframe')
@@ -202,17 +196,41 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
-  it('start should not show contributions if predicates disable', async () => {
+  it('constructs valid ContributionsFlow with forced language', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
     sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true,
-          /* uiPredicates */ {canDisplayAutoPrompt: false}
-        )
-      );
+      .stub(clientConfigManager, 'getClientConfig')
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}));
+    sandbox.stub(clientConfigManager, 'shouldForceLangInIframes').returns(true);
+    sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-CA');
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          productType: ProductType.UI_CONTRIBUTION,
+          list: 'other',
+          skus: null,
+          isClosable: true,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+    await contributionsFlow.start();
+  });
+
+  it('start should not show contributions if predicates disable', async () => {
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: false},
+      })
+    );
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     callbacksMock.expects('triggerFlowStarted').never();
 
@@ -220,16 +238,12 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   });
 
   it('start should show contributions if predicates enable', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(
-        new ClientConfig(
-          /* autoPromptConfig */ undefined,
-          /* paySwgVersion */ undefined,
-          /* useUpdatedOfferFlows */ true,
-          /* uiPredicates */ {canDisplayAutoPrompt: true}
-        )
-      );
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     callbacksMock.expects('triggerFlowStarted').once();
 

@@ -120,20 +120,23 @@ export class OffersFlow {
     /** @private  @const {!Array<!string>} */
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
+    /** @private @const {!Promise<!../model/client-config.ClientConfig>} */
+    this.clientConfig_ = this.clientConfigManager_.getClientConfig();
+
     /** @private @const {!Promise<?ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfigManager_
-      .getClientConfig()
-      .then((clientConfig) => {
+    this.activityIframeViewPromise_ = this.clientConfig_.then(
+      (clientConfig) => {
         return this.shouldShow_(clientConfig)
           ? new ActivityIframeView(
               this.win_,
               this.activityPorts_,
-              feUrl(this.getUrl_(clientConfig)),
+              this.getUrl_(clientConfig),
               feArgsObj,
               /* shouldFadeBody */ true
             )
           : null;
-      });
+      }
+    );
   }
 
   /**
@@ -225,7 +228,16 @@ export class OffersFlow {
           this.startNativeFlow_.bind(this)
         );
         this.activityIframeView_ = activityIframeView;
-        return this.dialogManager_.openView(this.activityIframeView_);
+        return this.clientConfig_.then((clientConfig) => {
+          if (!this.activityIframeView_) {
+            return;
+          }
+          return this.dialogManager_.openView(
+            this.activityIframeView_,
+            /* hidden */ false,
+            this.getDialogConfig_(clientConfig)
+          );
+        });
       });
     }
     return Promise.resolve();
@@ -243,14 +255,35 @@ export class OffersFlow {
   }
 
   /**
-   * Gets the URL that should be used for the activity iFrame view.
+   * Gets display configuration options for the opened dialog. Uses the
+   * responsive desktop design properties if the updated offer flows UI (for
+   * SwG Basic) is enabled.
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {!../components/dialog.DialogConfig}
+   */
+  getDialogConfig_(clientConfig) {
+    return clientConfig.useUpdatedOfferFlows
+      ? {desktopConfig: {isCenterPositioned: true, supportsWideScreen: true}}
+      : {};
+  }
+
+  /**
+   * Returns the full URL that should be used for the activity iFrame view.
    * @param {!../model/client-config.ClientConfig} clientConfig
    * @return {string}
    */
   getUrl_(clientConfig) {
-    return clientConfig.useUpdatedOfferFlows
-      ? '/subscriptionoffersiframe'
-      : '/offersiframe';
+    if (!clientConfig.useUpdatedOfferFlows) {
+      return feUrl('/offersiframe');
+    }
+
+    if (this.clientConfigManager_.shouldForceLangInIframes()) {
+      return feUrl('/subscriptionoffersiframe', {
+        'hl': this.clientConfigManager_.getLanguage(),
+      });
+    }
+
+    return feUrl('/subscriptionoffersiframe');
   }
 
   /**

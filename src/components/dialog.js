@@ -67,6 +67,40 @@ const resetViewStyles = {
 };
 
 /**
+ * Display configration options for dialogs.
+ *
+ * Properties:
+ * - desktopConfig: Options for dialogs on desktop screens.
+ * - maxAllowedHeightRatio: The max allowed height of the view as a ratio of the
+ *       viewport height.
+ * - iframeCssClassOverride: The CSS class to use for the iframe, overriding
+ *       default classes such as swg-dialog.
+ *
+ * @typedef {{
+ *   desktopConfig: (DesktopDialogConfig|undefined),
+ *   maxAllowedHeightRatio: (number|undefined),
+ *   iframeCssClassOverride: (string|undefined),
+ * }}
+ */
+export let DialogConfig;
+
+/**
+ * Display configuration options for dialogs on desktop screens.
+ *
+ * Properties:
+ * - isCenterPositioned: Whether the dialog should be positioned at the center
+ *       of the viewport rather than at the bottom on desktop screens.
+ * - supportsWideScreen: Whether the dialog supports a 808px width on viewports
+ *       that are >= 870px wide.
+ *
+ * @typedef {{
+ *   isCenterPositioned: (boolean|undefined),
+ *   supportsWideScreen: (boolean|undefined),
+ * }}
+ */
+export let DesktopDialogConfig;
+
+/**
  * The class for the top level dialog.
  * @final
  */
@@ -76,14 +110,24 @@ export class Dialog {
    * @param {!../model/doc.Doc} doc
    * @param {!Object<string, string|number>=} importantStyles
    * @param {!Object<string, string|number>=} styles
+   * @param {!DialogConfig=} dialogConfig Configuration options for the dialog.
    */
-  constructor(doc, importantStyles = {}, styles = {}) {
+  constructor(doc, importantStyles = {}, styles = {}, dialogConfig = {}) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
 
+    const desktopDialogConfig = dialogConfig.desktopConfig || {};
+    const supportsWideScreen = !!desktopDialogConfig.supportsWideScreen;
+
+    const defaultIframeCssClass = `swg-dialog ${
+      supportsWideScreen ? 'swg-wide-dialog' : ''
+    }`;
+    const iframeCssClass =
+      dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
+
     /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(doc.getWin().document, {
-      'class': 'swg-dialog',
+      'class': iframeCssClass,
     });
 
     /** @private @const {!Graypane} */
@@ -122,8 +166,25 @@ export class Dialog {
     /** @private {?./view.View} */
     this.previousProgressView_ = null;
 
-    /** @private {number} */
-    this.maxAllowedHeightRatio_ = 0.9;
+    /** @const @private {number} */
+    this.maxAllowedHeightRatio_ =
+      dialogConfig.maxAllowedHeightRatio !== undefined
+        ? dialogConfig.maxAllowedHeightRatio
+        : 0.9;
+
+    /** @const @private {boolean} */
+    this.positionCenterOnDesktop_ = !!desktopDialogConfig.isCenterPositioned;
+
+    /** @const @private {!MediaQueryList} */
+    this.desktopMediaQuery_ = this.doc_
+      .getWin()
+      .matchMedia('(min-width: 641px)');
+
+    /**
+     * Reference to the listener that acts on changes to desktopMediaQuery.
+     * @private {?function()}
+     */
+    this.desktopMediaQueryListener_ = null;
   }
 
   /**
@@ -159,6 +220,24 @@ export class Dialog {
   }
 
   /**
+   * Opens the iframe embedded in the given container element.
+   * @param {!Element} containerEl
+   */
+  openInContainer(containerEl) {
+    const iframe = this.iframe_;
+    if (iframe.isConnected()) {
+      throw new Error('already opened');
+    }
+
+    containerEl.appendChild(iframe.getElement());
+
+    return iframe.whenReady().then(() => {
+      this.buildIframe_();
+      return this;
+    });
+  }
+
+  /**
    * Build the iframe with the styling after iframe is loaded.
    * @private
    */
@@ -171,13 +250,27 @@ export class Dialog {
     injectStyleSheet(resolveDoc(iframeDoc), DIALOG_CSS);
 
     // Add Loading indicator.
-    this.loadingView_ = new LoadingView(iframeDoc);
+    const loadingViewClasses = [];
+    if (this.isPositionCenterOnDesktop()) {
+      loadingViewClasses.push('centered-on-desktop');
+    }
+    this.loadingView_ = new LoadingView(iframeDoc, {
+      additionalClasses: loadingViewClasses,
+    });
     iframeBody.appendChild(this.loadingView_.getElement());
 
     // Container for all dynamic content, including 3P iframe.
     this.container_ = createElement(iframeDoc, 'swg-container', {});
     iframeBody.appendChild(this.container_);
     this.setPosition_();
+
+    // Add listener to adjust position when crossing a media query breakpoint.
+    if (this.positionCenterOnDesktop_) {
+      this.desktopMediaQueryListener_ = () => {
+        this.setPosition_();
+      };
+      this.desktopMediaQuery_.addListener(this.desktopMediaQueryListener_);
+    }
   }
 
   /**
@@ -208,6 +301,9 @@ export class Dialog {
 
       this.removePaddingToHtml_();
       this.graypane_.destroy();
+      if (this.desktopMediaQueryListener_) {
+        this.desktopMediaQuery_.removeListener(this.desktopMediaQueryListener_);
+      }
     });
   }
 
@@ -244,6 +340,22 @@ export class Dialog {
    */
   getLoadingView() {
     return this.loadingView_;
+  }
+
+  /**
+   * Returns the max allowed height of the view as a ratio of viewport height.
+   * @return {number}
+   */
+  getMaxAllowedHeightRatio() {
+    return this.maxAllowedHeightRatio_;
+  }
+
+  /**
+   * Returns whether the dialog is center-positioned on desktop screens.
+   * @return {boolean}
+   */
+  isPositionCenterOnDesktop() {
+    return this.positionCenterOnDesktop_;
   }
 
   /**
@@ -327,13 +439,16 @@ export class Dialog {
       return transition(
         this.getElement(),
         {
-          'transform': 'translateY(0)',
+          'transform': this.getDefaultTranslateY_(),
           'opacity': 1,
           'visibility': 'visible',
         },
         300,
         'ease-out'
-      );
+      ).then(() => {
+        // Focus the dialog contents, per WAI-ARIA best practices.
+        this.getElement().focus();
+      });
     });
     this.hidden_ = false;
   }
@@ -368,14 +483,20 @@ export class Dialog {
             return Promise.resolve();
           }
 
-          setImportantStyles(this.getElement(), {
+          const immediateStyles = {
             'height': `${newHeight}px`,
-            'transform': `translateY(${newHeight - oldHeight}px)`,
-          });
+          };
+          if (!this.shouldPositionCenter_()) {
+            immediateStyles['transform'] = `translateY(${
+              newHeight - oldHeight
+            }px)`;
+          }
+          setImportantStyles(this.getElement(), immediateStyles);
+
           return transition(
             this.getElement(),
             {
-              'transform': 'translateY(0)',
+              'transform': this.getDefaultTranslateY_(),
             },
             300,
             'ease-out'
@@ -389,7 +510,9 @@ export class Dialog {
             : transition(
                 this.getElement(),
                 {
-                  'transform': `translateY(${oldHeight - newHeight}px)`,
+                  'transform': this.shouldPositionCenter_()
+                    ? this.getDefaultTranslateY_()
+                    : `translateY(${oldHeight - newHeight}px)`,
                 },
                 300,
                 'ease-out'
@@ -401,7 +524,7 @@ export class Dialog {
 
             setImportantStyles(this.getElement(), {
               'height': `${newHeight}px`,
-              'transform': 'translateY(0)',
+              'transform': this.getDefaultTranslateY_(),
             });
           });
         });
@@ -457,28 +580,18 @@ export class Dialog {
   }
 
   /**
-   * Sets the max allowed height as a ratio to the viewport height. For example,
-   * ratio = 0.9 means the max allowed height is 90% of the viewport height.
-   * @param {number} ratio
-   */
-  setMaxAllowedHeightRatio(ratio) {
-    this.maxAllowedHeightRatio_ = ratio;
-  }
-
-  /**
-   * Sets the position of the dialog. Currently 'BOTTOM' is set by default.
-   */
-  setPosition_() {
-    setImportantStyles(this.getElement(), this.getPositionStyle_());
-  }
-
-  /**
-   * Add the padding to the containing page so as to not hide the content
-   * behind the popup, if rendered at the bottom.
+   * Update padding-bottom on the containing page to not hide any content
+   * behind the popup, if rendered at the bottom. For centered dialogs, there
+   * should be no added padding.
    * @param {number} newHeight
    * @private
    */
   updatePaddingToHtml_(newHeight) {
+    if (this.shouldPositionCenter_()) {
+      // For centered dialogs, there should be no bottom padding.
+      this.removePaddingToHtml_();
+      return;
+    }
     const bottomPadding = newHeight + 20; // Add some extra padding.
     const htmlElement = this.doc_.getRootElement();
     setImportantStyles(htmlElement, {
@@ -495,11 +608,51 @@ export class Dialog {
   }
 
   /**
+   * Sets the position of the dialog. Currently only supports 'BOTTOM', with
+   * an option of switching to 'CENTER' on desktop screens.
+   */
+  setPosition_() {
+    setImportantStyles(this.getElement(), this.getPositionStyle_());
+  }
+
+  /**
+   * Returns whether or not the dialog should have position 'CENTER'.
+   * @return {boolean}
+   * @private
+   */
+  shouldPositionCenter_() {
+    return this.positionCenterOnDesktop_ && this.desktopMediaQuery_.matches;
+  }
+
+  /**
    * Returns the styles required to postion the dialog.
    * @return {!Object<string, string|number>}
    * @private
    */
   getPositionStyle_() {
-    return {'bottom': 0};
+    if (this.shouldPositionCenter_()) {
+      return {
+        'top': '50%',
+        'bottom': 0,
+        'transform': this.getDefaultTranslateY_(),
+      };
+    }
+    return {
+      'top': 'auto',
+      'bottom': 0,
+      'transform': this.getDefaultTranslateY_(),
+    };
+  }
+
+  /**
+   * Returns default translateY style for the dialog.
+   * @return {string}
+   * @private
+   */
+  getDefaultTranslateY_() {
+    if (this.shouldPositionCenter_()) {
+      return 'translateY(-50%)';
+    }
+    return 'translateY(0px)';
   }
 }

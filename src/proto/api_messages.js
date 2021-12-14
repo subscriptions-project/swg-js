@@ -29,6 +29,11 @@ class Message {
   toArray(unusedIncludeLabel = true) {}
 }
 /** @enum {number} */
+const ActionType = {
+  ACTION_TYPE_UNKNOWN: 0,
+  ACTION_TYPE_RELOAD_PAGE: 1,
+};
+/** @enum {number} */
 const AnalyticsEvent = {
   UNKNOWN: 0,
   IMPRESSION_PAYWALL: 1,
@@ -57,6 +62,15 @@ const AnalyticsEvent = {
   IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT: 24,
   IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT: 25,
   IMPRESSION_CONTRIBUTION_OFFERS: 26,
+  IMPRESSION_TWG_COUNTER: 27,
+  IMPRESSION_TWG_SITE_SUPPORTER_WALL: 28,
+  IMPRESSION_TWG_PUBLICATION: 29,
+  IMPRESSION_TWG_STATIC_BUTTON: 30,
+  IMPRESSION_TWG_DYNAMIC_BUTTON: 31,
+  IMPRESSION_TWG_STICKER_SELECTION_SCREEN: 32,
+  IMPRESSION_TWG_PUBLICATION_NOT_SET_UP: 33,
+  IMPRESSION_REGWALL_OPT_IN: 34,
+  IMPRESSION_NEWSLETTER_OPT_IN: 35,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -94,7 +108,30 @@ const AnalyticsEvent = {
   ACTION_CONTRIBUTION_OFFER_SELECTED: 1034,
   ACTION_SHOWCASE_REGWALL_GSI_CLICK: 1035,
   ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK: 1036,
+  ACTION_SUBSCRIPTION_OFFERS_CLOSED: 1037,
+  ACTION_CONTRIBUTION_OFFERS_CLOSED: 1038,
+  ACTION_TWG_STATIC_CTA_CLICK: 1039,
+  ACTION_TWG_DYNAMIC_CTA_CLICK: 1040,
+  ACTION_TWG_SITE_LEVEL_SUPPORTER_WALL_CTA_CLICK: 1041,
+  ACTION_TWG_DIALOG_SUPPORTER_WALL_CTA_CLICK: 1042,
+  ACTION_TWG_COUNTER_CLICK: 1043,
+  ACTION_TWG_SITE_SUPPORTER_WALL_ALL_THANKS_CLICK: 1044,
+  ACTION_TWG_PAID_STICKER_SELECTED_SCREEN_CLOSE_CLICK: 1045,
+  ACTION_TWG_PAID_STICKER_SELECTION_CLICK: 1046,
+  ACTION_TWG_FREE_STICKER_SELECTION_CLICK: 1047,
+  ACTION_TWG_MINI_SUPPORTER_WALL_CLICK: 1048,
+  ACTION_TWG_CREATOR_BENEFIT_CLICK: 1049,
+  ACTION_TWG_FREE_TRANSACTION_START_NEXT_BUTTON_CLICK: 1050,
+  ACTION_TWG_PAID_TRANSACTION_START_NEXT_BUTTON_CLICK: 1051,
+  ACTION_TWG_STICKER_SELECTION_SCREEN_CLOSE_CLICK: 1052,
+  ACTION_TWG_ARTICLE_LEVEL_SUPPORTER_WALL_CTA_CLICK: 1053,
+  ACTION_REGWALL_OPT_IN_BUTTON_CLICK: 1054,
+  ACTION_REGWALL_ALREADY_OPTED_IN_CLICK: 1055,
+  ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK: 1056,
+  ACTION_NEWSLETTER_ALREADY_OPTED_IN_CLICK: 1057,
   EVENT_PAYMENT_FAILED: 2000,
+  EVENT_REGWALL_OPT_IN_FAILED: 2001,
+  EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
   EVENT_CHANGED_TX_ID: 3002,
@@ -108,6 +145,18 @@ const AnalyticsEvent = {
   EVENT_HAS_METERING_ENTITLEMENTS: 3010,
   EVENT_OFFERED_METER: 3011,
   EVENT_UNLOCKED_FREE_PAGE: 3012,
+  EVENT_INELIGIBLE_PAYWALL: 3013,
+  EVENT_UNLOCKED_FOR_CRAWLER: 3014,
+  EVENT_TWG_COUNTER_VIEW: 3015,
+  EVENT_TWG_SITE_SUPPORTER_WALL_VIEW: 3016,
+  EVENT_TWG_STATIC_BUTTON_VIEW: 3017,
+  EVENT_TWG_DYNAMIC_BUTTON_VIEW: 3018,
+  EVENT_TWG_PRE_TRANSACTION_PRIVACY_SETTING_PRIVATE: 3019,
+  EVENT_TWG_POST_TRANSACTION_SETTING_PRIVATE: 3020,
+  EVENT_TWG_PRE_TRANSACTION_PRIVACY_SETTING_PUBLIC: 3021,
+  EVENT_TWG_POST_TRANSACTION_SETTING_PUBLIC: 3022,
+  EVENT_REGWALL_OPTED_IN: 3023,
+  EVENT_NEWSLETTER_OPTED_IN: 3024,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -118,6 +167,7 @@ const EntitlementResult = {
   UNLOCKED_METER: 1003,
   LOCKED_REGWALL: 2001,
   LOCKED_PAYWALL: 2002,
+  INELIGIBLE_PAYWALL: 2003,
 };
 /** @enum {number} */
 const EntitlementSource = {
@@ -167,7 +217,7 @@ class AccountCreationRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -187,6 +237,59 @@ class AccountCreationRequest {
    */
   label() {
     return 'AccountCreationRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class ActionRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?ActionType} */
+    this.action_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?ActionType}
+   */
+  getAction() {
+    return this.action_;
+  }
+
+  /**
+   * @param {!ActionType} value
+   */
+  setAction(value) {
+    this.action_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.action_, // field 1 - action
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'ActionRequest';
   }
 }
 
@@ -237,7 +340,7 @@ class AlreadySubscribedResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -304,6 +407,12 @@ class AnalyticsContext {
 
     /** @private {?string} */
     this.url_ = data[10 + base] == null ? null : data[10 + base];
+
+    /** @private {?Timestamp} */
+    this.clientTimestamp_ =
+      data[11 + base] == null || data[11 + base] == undefined
+        ? null
+        : new Timestamp(data[11 + base], includesLabel);
   }
 
   /**
@@ -461,7 +570,21 @@ class AnalyticsContext {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @return {?Timestamp}
+   */
+  getClientTimestamp() {
+    return this.clientTimestamp_;
+  }
+
+  /**
+   * @param {!Timestamp} value
+   */
+  setClientTimestamp(value) {
+    this.clientTimestamp_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -478,6 +601,7 @@ class AnalyticsContext {
         this.label_, // field 9 - label
         this.clientVersion_, // field 10 - client_version
         this.url_, // field 11 - url
+        this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -541,7 +665,7 @@ class AnalyticsEventMeta {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -655,7 +779,7 @@ class AnalyticsRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -678,6 +802,59 @@ class AnalyticsRequest {
    */
   label() {
     return 'AnalyticsRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class AudienceActivityClientLogsRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?AnalyticsEvent} */
+    this.event_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?AnalyticsEvent}
+   */
+  getEvent() {
+    return this.event_;
+  }
+
+  /**
+   * @param {!AnalyticsEvent} value
+   */
+  setEvent(value) {
+    this.event_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.event_,  // field 1 - event
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AudienceActivityClientLogsRequest';
   }
 }
 
@@ -728,7 +905,7 @@ class EntitlementJwt {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -873,7 +1050,7 @@ class EntitlementsRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -948,7 +1125,7 @@ class EntitlementsResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1104,7 +1281,7 @@ class EventParams {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1180,7 +1357,7 @@ class FinishedLoggingResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1251,7 +1428,7 @@ class LinkSaveTokenRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1305,7 +1482,7 @@ class LinkingInfoResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1325,6 +1502,59 @@ class LinkingInfoResponse {
    */
   label() {
     return 'LinkingInfoResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class OpenDialogRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.urlPath_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getUrlPath() {
+    return this.urlPath_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setUrlPath(value) {
+    this.urlPath_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.urlPath_, // field 1 - url_path
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'OpenDialogRequest';
   }
 }
 
@@ -1460,7 +1690,7 @@ class SkuSelectedResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1519,7 +1749,7 @@ class SmartBoxMessage {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1572,7 +1802,7 @@ class SubscribeResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1642,7 +1872,7 @@ class Timestamp {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1696,7 +1926,7 @@ class ToastCloseRequest {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1749,7 +1979,7 @@ class ViewSubscriptionsResponse {
   }
 
   /**
-   * @param {boolean} includeLabel
+   * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
    */
@@ -1774,10 +2004,12 @@ class ViewSubscriptionsResponse {
 
 const PROTO_MAP = {
   'AccountCreationRequest': AccountCreationRequest,
+  'ActionRequest': ActionRequest,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+  'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
@@ -1785,6 +2017,7 @@ const PROTO_MAP = {
   'FinishedLoggingResponse': FinishedLoggingResponse,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
+  'OpenDialogRequest': OpenDialogRequest,
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
@@ -1822,11 +2055,14 @@ function getLabel(messageType) {
 
 export {
   AccountCreationRequest,
+  ActionRequest,
+  ActionType,
   AlreadySubscribedResponse,
   AnalyticsContext,
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
+  AudienceActivityClientLogsRequest,
   EntitlementJwt,
   EntitlementResult,
   EntitlementSource,
@@ -1838,6 +2074,7 @@ export {
   LinkSaveTokenRequest,
   LinkingInfoResponse,
   Message,
+  OpenDialogRequest,
   SkuSelectedResponse,
   SmartBoxMessage,
   SubscribeResponse,

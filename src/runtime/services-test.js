@@ -14,10 +14,33 @@
  * limitations under the License.
  */
 
-import {CACHE_KEYS, cacheParam} from './services';
+import {CACHE_KEYS, MODES, cacheParam, feUrl, getSwgMode} from './services';
 
 describes.sandboxed('services', {}, () => {
-  beforeEach(() => {});
+  beforeEach(() => {
+    self.location.hash = '';
+  });
+
+  describe('runtime mode', () => {
+    it('should return default values', () => {
+      expect(getSwgMode()).to.deep.equal(MODES.default);
+    });
+
+    it('should overide with swg.mode=prod', () => {
+      self.location.hash = 'swg.mode=prod';
+      expect(getSwgMode()).to.deep.equal(MODES.prod);
+    });
+
+    it('should overide with swg.mode=qual', () => {
+      self.location.hash = 'swg.mode=qual';
+      expect(getSwgMode()).to.deep.equal(MODES.qual);
+    });
+
+    it('should overide with swg.mode=autopush', () => {
+      self.location.hash = 'swg.mode=autopush';
+      expect(getSwgMode()).to.deep.equal(MODES.autopush);
+    });
+  });
 
   describe('cache', () => {
     const now = 1520624744987;
@@ -28,9 +51,6 @@ describes.sandboxed('services', {}, () => {
 
     it('should only allow simple keys', () => {
       for (const k in CACHE_KEYS) {
-        if (k == '$frontendCache$') {
-          continue;
-        }
         expect(k).to.match(/^[a-z]+[0-9]*$/);
       }
     });
@@ -47,8 +67,26 @@ describes.sandboxed('services', {}, () => {
       expect(cacheParam('hr12')).to.equal('35199');
     });
 
+    it('should resolve zero', () => {
+      expect(cacheParam('zero')).to.equal('_');
+    });
+
     it('should resolve unknown value', () => {
       expect(cacheParam('unknown')).to.equal('1520624744987');
+    });
+  });
+
+  describe('feUrl', () => {
+    it('should insert prefix properly', () => {
+      expect(feUrl('/iframe', {}, false, 'u/1')).to.equal(
+        'https://news.google.com/u/1/swg/_/ui/v1/iframe?_=_'
+      );
+    });
+
+    it('should insert prefix properly when hostpath prefixed', () => {
+      expect(feUrl('/iframe', {}, true, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/_/ui/v1/iframe?_=_'
+      );
     });
   });
 });

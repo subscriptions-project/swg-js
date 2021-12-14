@@ -36,8 +36,6 @@ describes.realWin('Dialog', {}, (env) => {
     win = env.win;
     doc = env.win.document;
     globalDoc = new GlobalDoc(win);
-    dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
-    graypaneStubs = sandbox.stub(dialog.graypane_);
 
     element = doc.createElement('div');
     view = {
@@ -55,6 +53,11 @@ describes.realWin('Dialog', {}, (env) => {
   }
 
   describe('dialog', () => {
+    beforeEach(() => {
+      dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
+      graypaneStubs = sandbox.stub(dialog.graypane_);
+    });
+
     it('should have created a friendly iframe instance', async () => {
       const iframe = dialog.getElement();
       expect(iframe.nodeType).to.equal(1);
@@ -150,27 +153,6 @@ describes.realWin('Dialog', {}, (env) => {
       );
     });
 
-    it('should resize the element based on the maxAllowedHeightRatio', async () => {
-      const openedDialog = await dialog.open();
-
-      const maxAllowedHeightRatio = 1;
-      openedDialog.setMaxAllowedHeightRatio(maxAllowedHeightRatio);
-      await openedDialog.openView(view);
-
-      const viewportHeight = globalDoc.getWin().innerHeight;
-      // Resize view to a height that is larger than the viewport height.
-      await openedDialog.resizeView(view, viewportHeight * 2, NO_ANIMATE);
-
-      const measuredDialogHeight =
-        // Round the measured height to allow for subpixel differences
-        // between browsers & environments.
-        Math.round(
-          parseFloat(computedStyle(win, dialog.getElement())['height'])
-        ) + 'px';
-      const expectedDialogHeight = viewportHeight * maxAllowedHeightRatio;
-      expect(measuredDialogHeight).to.equal(`${expectedDialogHeight}px`);
-    });
-
     it('should return null if passed wrong view', async () => {
       const wrongView = {};
       expect(dialog.resizeView(wrongView)).to.be.null;
@@ -190,6 +172,11 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight, ANIMATE);
 
       expect(setStylePropertySpy).to.be.callCount(5);
+      // Verify intermediate translate value was set.
+      expect(setStylePropertySpy).to.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
@@ -216,6 +203,11 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight, ANIMATE);
 
       expect(setStylePropertySpy).to.be.callCount(5);
+      // Verify intermediate translate value was set.
+      expect(setStylePropertySpy).to.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
       expect(getStyle(dialog.getElement(), 'transform')).to.equal(
         'translateY(0px)'
       );
@@ -290,6 +282,27 @@ describes.realWin('Dialog', {}, (env) => {
       expect(container.nodeName).to.equal('SWG-CONTAINER');
     });
 
+    it('opens the iframe inside the container element', async () => {
+      const containerEl = doc.createElement('div');
+      doc.body.appendChild(containerEl);
+      const openedDialog = await dialog.openInContainer(containerEl);
+
+      // iframe element should be a child of the container element.
+      expect(containerEl.contains(openedDialog.getIframe().getElement())).to.be
+        .true;
+
+      // The swg-container should also be created.
+      const container = openedDialog.getContainer();
+      expect(container.nodeType).to.equal(1);
+      expect(container.nodeName).to.equal('SWG-CONTAINER');
+    });
+
+    it('focuses the iframe contents after dialog is opened', async () => {
+      immediate();
+      await dialog.open();
+      expect(doc.activeElement).to.equal(dialog.getElement());
+    });
+
     it('should throw if container is missing', async () => {
       expect(() => dialog.getContainer()).to.throw('not opened yet');
     });
@@ -335,6 +348,12 @@ describes.realWin('Dialog', {}, (env) => {
       expect(() => dialog.open()).to.throw('already opened');
     });
 
+    it('throws if iframe already connected when opening in a container', () => {
+      immediate();
+      sandbox.stub(dialog.iframe_, 'isConnected').returns(true);
+      expect(() => dialog.openInContainer(doc.body)).to.throw('already opened');
+    });
+
     it('should have Loading view element added', async () => {
       const openedDialog = await dialog.open();
       const iframeDoc = openedDialog.getIframe().getDocument();
@@ -342,6 +361,15 @@ describes.realWin('Dialog', {}, (env) => {
       expect(loadingView.nodeName).to.equal('SWG-LOADING');
 
       expect(loadingView.children.length).to.equal(1);
+    });
+
+    it('omits centered-on-desktop on LoadingView by default', async () => {
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.not.have.class('centered-on-desktop');
     });
 
     it('should display loading view', async () => {
@@ -390,4 +418,305 @@ describes.realWin('Dialog', {}, (env) => {
       expect(styleDuringInit).to.equal('display: none !important;');
     });
   });
+
+  describe('dialog with maxAllowedHeightRatio', () => {
+    const MAX_ALLOWED_HEIGHT_RATIO = 0.5;
+
+    beforeEach(() => {
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {maxAllowedHeightRatio: MAX_ALLOWED_HEIGHT_RATIO}
+      );
+    });
+
+    it('resizes based on the maxAllowedHeightRatio', async () => {
+      const openedDialog = await dialog.open();
+      await openedDialog.openView(view);
+
+      const viewportHeight = globalDoc.getWin().innerHeight;
+      // Resize view to a height that is larger than the viewport height.
+      await openedDialog.resizeView(view, viewportHeight * 2, NO_ANIMATE);
+
+      const measuredDialogHeight =
+        // Round the measured height to allow for subpixel differences
+        // between browsers & environments.
+        Math.round(
+          parseFloat(computedStyle(win, dialog.getElement())['height'])
+        ) + 'px';
+      const expectedDialogHeight = viewportHeight * MAX_ALLOWED_HEIGHT_RATIO;
+      expect(measuredDialogHeight).to.equal(`${expectedDialogHeight}px`);
+    });
+  });
+
+  describe('dialog with supportsWideScreen=true', () => {
+    beforeEach(() => {
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {supportsWideScreen: true}}
+      );
+    });
+
+    it('creates iframe with swg-wide-dialog class', async () => {
+      const iframe = dialog.getElement();
+      expect(iframe).to.have.class('swg-dialog');
+      expect(iframe).to.have.class('swg-wide-dialog');
+    });
+  });
+
+  describe('dialog with iframeCssClassOverride', () => {
+    const iframeCssClassOverride = 'iframe-css-class';
+
+    beforeEach(() => {
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {iframeCssClassOverride}
+      );
+    });
+
+    it('creates iframe with the iframe css class override', async () => {
+      const iframe = dialog.getElement();
+      expect(iframe).to.have.class(iframeCssClassOverride);
+      expect(iframe).to.not.have.class('swg-dialog');
+    });
+  });
+
+  /** @param {!HTMLIFrameElement} iframe */
+  function expectPositionBottom(iframe) {
+    expect(getStyle(iframe, 'top')).to.equal('auto');
+    expect(getStyle(iframe, 'bottom')).to.equal('0px');
+    expect(getStyle(iframe, 'transform')).to.equal('translateY(0px)');
+  }
+
+  /** @param {!HTMLIFrameElement} iframe */
+  function expectPositionCenter(iframe) {
+    expect(getStyle(iframe, 'top')).to.equal('50%');
+    expect(getStyle(iframe, 'bottom')).to.equal('0px');
+    expect(getStyle(iframe, 'transform')).to.equal('translateY(-50%)');
+  }
+
+  describe('dialog with isCenterPositioned=true on non-desktop', () => {
+    let matchMedia;
+
+    beforeEach(() => {
+      matchMedia = new FakeMediaMatcher(/* matches */ false);
+      sandbox.stub(win, 'matchMedia').returns(matchMedia);
+
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {isCenterPositioned: true}}
+      );
+    });
+
+    it('is positioned at the bottom after open', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+
+      expectPositionBottom(dialog.getElement());
+    });
+
+    it('repositions to center after window resizes to match mediaQuery', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+      expect(matchMedia.hasListeners()).to.be.true;
+
+      matchMedia.toggleMatches();
+      matchMedia.triggerListeners();
+
+      expectPositionCenter(dialog.getElement());
+    });
+
+    it('removes matchMedia listener on close', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.animating_;
+      await dialog.close(false);
+
+      expect(matchMedia.hasListeners()).to.be.false;
+    });
+
+    it('adds centered-on-desktop class to the LoadingView', async () => {
+      immediate();
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.have.class('centered-on-desktop');
+    });
+
+    it('adds padding-bottom to document root on resize', async () => {
+      immediate();
+      await dialog.open();
+      await dialog.openView(view);
+
+      const newHeight = 110;
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(win.document.documentElement.style.paddingBottom).to.equal(
+        `${newHeight + 20}px`
+      );
+    });
+  });
+
+  describe('dialog with isCenterPositioned=true on desktop', () => {
+    let matchMedia;
+
+    beforeEach(() => {
+      matchMedia = new FakeMediaMatcher(/* matches */ true);
+      sandbox.stub(win, 'matchMedia').returns(matchMedia);
+
+      dialog = new Dialog(
+        globalDoc,
+        {height: `${documentHeight}px`},
+        /* styles */ {},
+        {desktopConfig: {isCenterPositioned: true}}
+      );
+      immediate();
+    });
+
+    it('is vertically centered after open', async () => {
+      await dialog.open();
+      await dialog.animating_;
+
+      expectPositionCenter(dialog.getElement());
+    });
+
+    it('repositions to bottom after window resizes to no longer match mediaQuery', async () => {
+      await dialog.open();
+      await dialog.animating_;
+      expect(matchMedia.hasListeners()).to.be.true;
+
+      matchMedia.toggleMatches();
+      matchMedia.triggerListeners();
+
+      expectPositionBottom(dialog.getElement());
+    });
+
+    it('removes matchMedia listener on close', async () => {
+      await dialog.open();
+      await dialog.animating_;
+      await dialog.close(false);
+
+      expect(matchMedia.hasListeners()).to.be.false;
+    });
+
+    it('adds centered-on-desktop class to the LoadingView', async () => {
+      const openedDialog = await dialog.open();
+      const loadingContainer = openedDialog
+        .getIframe()
+        .getDocument()
+        .querySelector('swg-loading-container');
+      expect(loadingContainer).to.have.class('centered-on-desktop');
+    });
+
+    it('stays vertically centered during expand animation', async () => {
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.resizeView(view, 110, ANIMATE);
+
+      // Verify intermediate translateY for bottom dialog is not set.
+      expect(setStylePropertySpy).to.not.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
+    });
+
+    it('stays vertically centered after expand animation', async () => {
+      const newHeight = 110;
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      const iframe = dialog.getElement();
+      expectPositionCenter(iframe);
+      expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
+    });
+
+    it('stays vertically centered during collapse animation', async () => {
+      await dialog.open();
+      await dialog.openView(view);
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.resizeView(view, 90, ANIMATE);
+
+      // Verify intermediate translateY for bottom dialog is not set.
+      expect(setStylePropertySpy).to.not.have.been.calledWith(
+        'transform',
+        'translateY(10px)'
+      );
+    });
+
+    it('stays vertically centered after collapse animation', async () => {
+      const newHeight = 90;
+      await dialog.open();
+      await dialog.openView(view);
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      const iframe = dialog.getElement();
+      expectPositionCenter(iframe);
+      expect(getStyle(iframe, 'height')).to.equal(`${newHeight}px`);
+    });
+
+    it('does not add padding-bottom to document root on resize', async () => {
+      await dialog.open();
+      await dialog.openView(view);
+
+      const newHeight = 110;
+      await dialog.resizeView(view, newHeight, ANIMATE);
+
+      expect(win.document.documentElement.style.paddingBottom).to.equal('');
+    });
+  });
 });
+
+/** Fake implementation for MediaQueryList. */
+class FakeMediaMatcher {
+  /** @param {boolean} matches */
+  constructor(matches) {
+    this.matches = matches;
+    this.listeners_ = new Set();
+  }
+
+  /** @param {!Function} listener */
+  addListener(listener) {
+    this.listeners_.add(listener);
+  }
+
+  /** @param {!Function} listener */
+  removeListener(listener) {
+    this.listeners_.delete(listener);
+  }
+
+  /** @return {boolean} */
+  hasListeners() {
+    return !!this.listeners_.size;
+  }
+
+  triggerListeners() {
+    for (const listener of this.listeners_) {
+      listener();
+    }
+  }
+
+  toggleMatches() {
+    this.matches = !this.matches;
+  }
+}

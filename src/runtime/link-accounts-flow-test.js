@@ -24,6 +24,7 @@ import {
   LinkSaveTokenRequest,
   LinkingInfoResponse,
 } from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
@@ -180,6 +181,10 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
   });
 
   it('should trigger on link response', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(new ClientConfig());
+
     dialogManagerMock.expects('popupClosed').once();
     let handler;
     activitiesMock
@@ -229,7 +234,8 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
 
     await startPromise;
     expect(startStub).to.be.calledWithExactly();
-    expect(instance.activityIframeView_.src_).to.contain('/u/1/');
+    const activityIframeView = await instance.activityIframeViewPromise_;
+    expect(activityIframeView.src_).to.contain('/u/1/swg/');
     expect(triggerFlowCancelSpy).to.not.be.called;
   });
 
@@ -581,7 +587,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     dialogManagerMock
       .expects('openDialog')
-      .withExactArgs(/* hidden */ true)
+      .withExactArgs(/* hidden */ true, {})
       .returns(dialog.open());
     linkSaveFlow.start();
     await linkSaveFlow.openPromise_;
@@ -651,7 +657,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
     const dialog = new Dialog(new GlobalDoc(win));
     dialogManagerMock
       .expects('openDialog')
-      .withExactArgs(/* hidden */ true)
+      .withExactArgs(/* hidden */ true, {})
       .returns(dialog.open());
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));

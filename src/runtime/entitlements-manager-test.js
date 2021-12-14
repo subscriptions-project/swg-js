@@ -35,6 +35,7 @@ import {
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
+  PRIVILEGED_SOURCE,
 } from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
@@ -723,6 +724,44 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       ]);
 
       expect(ents.enablesThis()).to.be.true;
+    });
+
+    it('logs a special event when unlocking for crawlers', async () => {
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+            source: PRIVILEGED_SOURCE,
+          },
+        });
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () =>
+              Promise.resolve('{"signedEntitlements": "SIGNED_DATA"}'),
+          })
+        );
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(
+        AnalyticsEvent.EVENT_UNLOCKED_FOR_CRAWLER,
+        false,
+        getEventParams(true)
+      );
+      expectGetSwgUserTokenToBeCalled();
+
+      await manager.getEntitlements();
     });
 
     it('should only fetch once', async () => {
@@ -1420,6 +1459,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       [AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION]: 1,
       [AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE]: 1,
       [AnalyticsEvent.IMPRESSION_PAYWALL]: 1,
+      [AnalyticsEvent.EVENT_INELIGIBLE_PAYWALL]: 1,
       [AnalyticsEvent.UNKNOWN]: 1,
     };
 
@@ -1459,6 +1499,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           GOOGLE_SOURCE
         ));
 
+      it('should pingback EVENT_INELIGIBLE_PAYWALL', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_INELIGIBLE_PAYWALL,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE
+        ));
+
       it('should pingback with isUserRegistered == true on valid event', () =>
         expectPingback(
           AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -1492,64 +1539,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             continue;
           }
           await expectNoPingback(event, EventOriginator.SWG_CLIENT);
-          await xhrMock.verify();
-        }
-      });
-    });
-
-    describe('SWG_SERVER', () => {
-      it('should pingback IMPRESSION_REGWALL from SWG_SERVER', () =>
-        expectPingback(
-          AnalyticsEvent.IMPRESSION_REGWALL,
-          EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE
-        ));
-
-      it('should NOT pingback EVENT_UNLOCKED_BY_METER from SWG_SERVER', () =>
-        expectNoPingback(
-          AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
-          EventOriginator.SWG_SERVER
-        ));
-
-      it('should pingback EVENT_UNLOCKED_BY_SUBSCRIPTION from SWG_SERVER', () =>
-        expectPingback(
-          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
-          EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE,
-          getEventParams(true)
-        ));
-
-      it('should pingback EVENT_UNLOCKED_FREE_PAGE from SWG_SERVER', () =>
-        expectPingback(
-          AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
-          EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE
-        ));
-
-      it('should pingback IMPRESSION_PAYWALL from SWG_SERVER', () =>
-        expectPingback(
-          AnalyticsEvent.IMPRESSION_PAYWALL,
-          EventOriginator.SWG_SERVER,
-          GOOGLE_SOURCE
-        ));
-
-      it('should NOT pingback on invalid GAA params', async () => {
-        // Stub out Date.now() to some time past the URL timestamp expiration.
-        nowStub.returns(3600389016959);
-        await expectNoPingback(
-          AnalyticsEvent.IMPRESSION_PAYWALL,
-          EventOriginator.SWG_SERVER
-        );
-        await xhrMock.verify();
-      });
-
-      it('should NOT pingback other events', async () => {
-        for (const eventKey in AnalyticsEvent) {
-          const event = AnalyticsEvent[eventKey];
-          if (PINGBACK_EVENTS[event]) {
-            continue;
-          }
-          await expectNoPingback(event, EventOriginator.SWG_SERVER);
           await xhrMock.verify();
         }
       });
@@ -1844,6 +1833,31 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(manager.blockNextNotification_).to.be.false; // Reset.
       expect(entitlements.enablesThis()).to.be.true;
       expect(callbacks.hasEntitlementsResponsePending()).to.be.false;
+      expect(toastOpenStub).to.not.be.called;
+    });
+
+    it('should NOT trigger toast when toast is blocked', async () => {
+      const resp = entitlementsResponse({
+        source: 'google',
+        products: ['pub1:label1'],
+        subscriptionToken: 's1',
+      });
+      xhrMock
+        .expects('fetch')
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve(JSON.stringify(resp)),
+          })
+        )
+        .once();
+      expectGetIsReadyToPayToBeCalled(null);
+      expectGetSwgUserTokenToBeCalled();
+      manager.blockNextToast();
+
+      const entitlements = await manager.getEntitlements();
+      expect(manager.blockNextToast_).to.be.false; // Reset.
+      expect(entitlements.enablesThis()).to.be.true;
+      expect(callbacks.hasEntitlementsResponsePending()).to.be.true;
       expect(toastOpenStub).to.not.be.called;
     });
 

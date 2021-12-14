@@ -15,6 +15,7 @@
  */
 
 export {
+  GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
   GaaUserDef,

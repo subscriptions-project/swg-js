@@ -47,7 +47,9 @@ describes.realWin('ClientConfigManager', {}, () => {
 
     let clientConfig = await clientConfigManager.fetchClientConfig();
     const expectedAutoPromptConfig = new AutoPromptConfig(1);
-    const expectedClientConfig = new ClientConfig(expectedAutoPromptConfig);
+    const expectedClientConfig = new ClientConfig({
+      autoPromptConfig: expectedAutoPromptConfig,
+    });
     expect(clientConfig).to.deep.equal(expectedClientConfig);
 
     clientConfig = await clientConfigManager.getClientConfig();
@@ -166,6 +168,54 @@ describes.realWin('ClientConfigManager', {}, () => {
     });
     expect(clientConfigManager.getTheme()).to.equal(ClientTheme.DARK);
     expect(clientConfigManager.getLanguage()).to.equal('en');
+  });
+
+  describe('shouldForceLangInIframes', () => {
+    const testCases = [
+      {
+        description: 'forceLangInIframes=true and lang is set',
+        clientOptions: {
+          forceLangInIframes: true,
+          lang: 'fr-CA',
+        },
+        expected: true,
+      },
+      {
+        description: 'forceLangInIframes=true and lang is not set',
+        clientOptions: {
+          forceLangInIframes: true,
+        },
+        expected: false,
+      },
+      {
+        description: 'forceLangInIframes=false and lang is set',
+        clientOptions: {
+          forceLangInIframes: false,
+          lang: 'fr-CA',
+        },
+        expected: false,
+      },
+      {
+        description: 'forceLangInIframes is not set',
+        clientOptions: {
+          lang: 'fr-CA',
+        },
+        expected: false,
+      },
+    ];
+
+    for (const testCase of testCases) {
+      it(`returns ${testCase.expected} when ${testCase.description}`, () => {
+        clientConfigManager = new ClientConfigManager(
+          'pubId',
+          fetcher,
+          testCase.clientOptions
+        );
+        expect(clientConfigManager.shouldForceLangInIframes()).to.equal(
+          testCase.expected
+        );
+      });
+    }
   });
 
   it('shouldEnableButton should return false if disableButton is set to be true in ClientOptions', async () => {

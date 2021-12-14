@@ -28,6 +28,7 @@ import {
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
+  PRIVILEGED_SOURCE,
 } from '../api/entitlements';
 import {
   GetEntitlementsParamsExternalDef,
@@ -88,6 +89,9 @@ export class EntitlementsManager {
 
     /** @private {boolean} */
     this.blockNextNotification_ = false;
+
+    /** @private {boolean} */
+    this.blockNextToast_ = false;
 
     /**
      * String containing encoded metering parameters currently.
@@ -259,20 +263,19 @@ export class EntitlementsManager {
     let source = null;
 
     switch (event.eventOriginator) {
-      // The indicates the publisher reported it via subscriptions.setShowcaseEntitlement
+      // Publisher JS logged this event.
       case EventOriginator.SHOWCASE_CLIENT:
         source = EntitlementSource.PUBLISHER_ENTITLEMENT;
         break;
-      case EventOriginator.SWG_CLIENT: // Fallthrough, these are the same
-      case EventOriginator.SWG_SERVER:
+      // Swgjs logged this event.
+      case EventOriginator.SWG_CLIENT:
         if (result == EntitlementResult.UNLOCKED_METER) {
-          // Meters from Google require a valid jwt, which is sent by
-          // an entitlement.
+          // The `consumeMeter_` method already tracks this.
           return;
         }
+
         source = EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT;
         break;
-      // Permission to pingback other sources was not requested
       default:
         return;
     }
@@ -430,6 +433,12 @@ export class EntitlementsManager {
 
   /**
    */
+  blockNextToast() {
+    this.blockNextToast_ = true;
+  }
+
+  /**
+   */
   unblockNextNotification() {
     this.blockNextNotification_ = false;
   }
@@ -561,6 +570,9 @@ export class EntitlementsManager {
     // TODO(dvoytenko): what's the right action when pay flow was canceled?
     const blockNotification = this.blockNextNotification_;
     this.blockNextNotification_ = false;
+    // Let people specifically block toasts too, without blocking notifications.
+    const blockToast = this.blockNextToast_;
+    this.blockNextToast_ = false;
     if (blockNotification) {
       return;
     }
@@ -575,6 +587,10 @@ export class EntitlementsManager {
       this.deps_
         .eventManager()
         .logSwgEvent(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+      return;
+    }
+
+    if (blockToast) {
       return;
     }
     this.maybeShowToast_(entitlement);
@@ -596,13 +612,14 @@ export class EntitlementsManager {
 
     const params = new EventParams();
     params.setIsUserRegistered(true);
-    this.deps_
-      .eventManager()
-      .logSwgEvent(
-        AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
-        false,
-        params
-      );
+
+    // Log unlock event.
+    const eventType =
+      entitlement.source === PRIVILEGED_SOURCE
+        ? AnalyticsEvent.EVENT_UNLOCKED_FOR_CRAWLER
+        : AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION;
+    this.deps_.eventManager().logSwgEvent(eventType, false, params);
+
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
     return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
       const toastWasShown = value === '1';
@@ -721,7 +738,11 @@ export class EntitlementsManager {
         }
 
         // Add metering params.
-        if (this.publicationId_ && params?.metering?.state) {
+        if (
+          this.publicationId_ &&
+          params?.metering?.state &&
+          queryStringHasFreshGaaParams(this.win_.location.search)
+        ) {
           const meteringStateId = params.metering.state.id;
           if (
             typeof meteringStateId === 'string' &&
