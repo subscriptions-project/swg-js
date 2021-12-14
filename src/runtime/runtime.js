@@ -638,9 +638,9 @@ export class ConfiguredRuntime {
 
     /** @private @const {!ClientConfigManager} */
     this.clientConfigManager_ = new ClientConfigManager(
+      this, // See note about 'this' above
       pageConfig.getPublicationId(),
       this.fetcher_,
-      this, // See note about 'this' above
       clientOptions
     );
 

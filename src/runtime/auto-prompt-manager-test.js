@@ -83,7 +83,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     entitlementsManagerMock = sandbox.mock(entitlementsManager);
     sandbox.stub(deps, 'entitlementsManager').returns(entitlementsManager);
 
-    clientConfigManager = new ClientConfigManager(pubId, fetcher, deps);
+    clientConfigManager = new ClientConfigManager(deps, pubId, fetcher);
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 

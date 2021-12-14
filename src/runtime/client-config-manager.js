@@ -28,12 +28,15 @@ import {warn} from '../utils/log';
  */
 export class ClientConfigManager {
   /**
+   * @param {!./deps.DepsDef} deps
    * @param {string} publicationId
    * @param {!./fetcher.Fetcher} fetcher
-   * @param {!./deps.DepsDef} deps
    * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
-  constructor(publicationId, fetcher, deps, clientOptions) {
+  constructor(deps, publicationId, fetcher, clientOptions) {
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!../api/basic-subscriptions.ClientOptions} */
     this.clientOptions_ = clientOptions || {};
 
@@ -42,9 +45,6 @@ export class ClientConfigManager {
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
-
-    /** @private @const {!./deps.DepsDef} */
-    this.deps_ = deps;
 
     /** @private {?Promise<!ClientConfig>} */
     this.responsePromise_ = null;
