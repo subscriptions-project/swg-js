@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, deserialize, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, getLabel, LinkingInfoResponse, LinkSaveTokenRequest, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -416,6 +416,51 @@ describe('AnalyticsRequest', () => {
         analyticsrequest.getMeta());
     expect(analyticsrequestDeserialized.getParams()).to.deep.equal(
         analyticsrequest.getParams());
+  });
+});
+
+describe('AudienceActivityClientLogsRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !AudienceActivityClientLogsRequest  */
+        audienceactivityclientlogsrequest =
+            new AudienceActivityClientLogsRequest();
+    audienceactivityclientlogsrequest.setEvent(AnalyticsEvent.UNKNOWN);
+
+    let audienceactivityclientlogsrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    audienceactivityclientlogsrequestDeserialized =
+        deserialize(audienceactivityclientlogsrequest.toArray(undefined));
+    expect(audienceactivityclientlogsrequestDeserialized.toArray(undefined))
+        .to.deep.equal(audienceactivityclientlogsrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(audienceactivityclientlogsrequestDeserialized.getEvent())
+        .to.deep.equal(audienceactivityclientlogsrequest.getEvent());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    audienceactivityclientlogsrequestDeserialized =
+        deserialize(audienceactivityclientlogsrequest.toArray(true));
+    expect(audienceactivityclientlogsrequestDeserialized.toArray(true))
+        .to.deep.equal(audienceactivityclientlogsrequest.toArray(true));
+
+    // Verify fields.
+    expect(audienceactivityclientlogsrequestDeserialized.getEvent())
+        .to.deep.equal(audienceactivityclientlogsrequest.getEvent());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    audienceactivityclientlogsrequestDeserialized =
+        new AudienceActivityClientLogsRequest(
+            audienceactivityclientlogsrequest.toArray(false), false);
+    expect(audienceactivityclientlogsrequestDeserialized.toArray(false))
+        .to.deep.equal(audienceactivityclientlogsrequest.toArray(false));
+
+    // Verify fields.
+    expect(audienceactivityclientlogsrequestDeserialized.getEvent())
+        .to.deep.equal(audienceactivityclientlogsrequest.getEvent());
   });
 });
 
