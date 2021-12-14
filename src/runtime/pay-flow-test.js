@@ -640,6 +640,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -683,6 +684,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -726,6 +728,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           isSubscriptionUpdate: true,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -771,6 +774,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           isSubscriptionUpdate: false,
           isOneTime: true,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -827,6 +831,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -873,6 +878,52 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: true,
+          skipAccountCreationScreen: false,
+        }
+      )
+      .returns(Promise.resolve(port));
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
+  });
+
+  it('should have valid flow with skipAccountCreationScreen true', async () => {
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(
+        Promise.resolve(new ClientConfig({skipAccountCreationScreen: true}))
+      )
+      .once();
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          publicationId: 'pub1',
+          idToken: USER_ID_TOKEN,
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: true,
         }
       )
       .returns(Promise.resolve(port));
@@ -940,6 +991,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           swgUserToken: 'swgUserToken',
           orderId: 'ORDER',
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -982,6 +1034,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           isSubscriptionUpdate: false,
           isOneTime: false,
           useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
         }
       )
       .returns(Promise.resolve(port));
@@ -1026,6 +1079,43 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     const accountCreationRequest = new AccountCreationRequest();
     accountCreationRequest.setComplete(true);
     expect(messageStub).to.be.calledOnce.calledWith(accountCreationRequest);
+  });
+
+  it('should complete the flow without account creation if skipAccountCreationScreen: true', async () => {
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(
+        Promise.resolve(new ClientConfig({skipAccountCreationScreen: true}))
+      )
+      .once();
+    const response = createDefaultSubscribeResponse();
+    const port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.resolve();
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    entitlementsManagerMock
+      .expects('reset')
+      .withExactArgs(true) // Expected positive.
+      .once();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+
+    await flow.start(response);
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(
+        Promise.resolve(new ClientConfig({skipAccountCreationScreen: true}))
+      )
+      .once();
+    await flow.complete();
   });
 
   it('should complete the flow w/o entitlements', async () => {

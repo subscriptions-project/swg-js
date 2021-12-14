@@ -157,7 +157,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--iframe {
     border: none !important;
     display: block !important;
-    height: 36px !important;
+    height: 44px !important;
     margin: 0 0 30px !important;
     width: 100% !important;
   }
@@ -260,6 +260,11 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
   #${GOOGLE_SIGN_IN_BUTTON_ID} {
     margin: 0 auto;
   }
+
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID}{
+    width: 220px;
+  }
+
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} > div,
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} > div,
   #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
@@ -962,9 +967,11 @@ export class GaaSignInWithGoogleButton {
         self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
         {
           'type': 'standard',
-          'size': 'medium',
-          'theme': 'filled_blue',
-          'text': 'signin_with',
+          'theme': 'outline',
+          'text': 'continue_with',
+          'logo_alignment': 'center',
+          'width': buttonEl.offsetWidth,
+          'height': buttonEl.offsetHeight,
         }
       );
 

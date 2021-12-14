@@ -24,6 +24,7 @@
  *   uiPredicates: (./auto-prompt-config.UiPredicates|undefined),
  *   usePrefixedHostPath: (boolean|undefined),
  *   useUpdatedOfferFlows: (boolean|undefined),
+ *   skipAccountCreationScreen: (boolean|undefined),
  * }}
  */
 export let ClientConfigOptions;
@@ -42,6 +43,7 @@ export class ClientConfig {
     uiPredicates,
     usePrefixedHostPath,
     useUpdatedOfferFlows,
+    skipAccountCreationScreen,
   } = {}) {
     /** @const {./auto-prompt-config.AutoPromptConfig|undefined} */
     this.autoPromptConfig = autoPromptConfig;
@@ -54,6 +56,9 @@ export class ClientConfig {
 
     /** @const {boolean} */
     this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
+
+    /** @const {boolean} */
+    this.skipAccountCreationScreen = skipAccountCreationScreen || false;
 
     /** @const {./auto-prompt-config.UiPredicates|undefined} */
     this.uiPredicates = uiPredicates;
