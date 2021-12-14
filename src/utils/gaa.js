@@ -1269,24 +1269,8 @@ export class GaaMetering {
     const registrationEndpoint = params.registrationEndpoint;
     const productId = GaaMetering.getProductIDFromPageConfig_();
 
-
     callSwg((subscriptions) => {
       subscriptions.init(productId);
-
-      // Define function to send userState to Google using
-      // subscriptions object
-      function checkShowcaseEntitlement(userState) {
-        if (userState) {
-          // Send userState to Google
-          subscriptions.getEntitlements(userState);
-        } else {
-          // If userState is undefined, it’s likely the user isn’t
-          // logged in. Do not send an empty userState to Google in
-          // this case.
-          showGoogleRegwall();
-        }
-      }
-    
 
       // Show the Google registration intervention.
       function showGoogleRegwall() {
@@ -1295,127 +1279,69 @@ export class GaaMetering {
         GaaMeteringRegwall.show({
           // TODO: Specify a URL that renders a Sign in with Google button.
           // TODO: instead of iframUrl, we will be supplying Google Sign-In Client ID
-          iframeUrl: "https://examplenews.com/registration_widget.html",
+          iframeUrl: 'https://examplenews.com/registration_widget.html',
         }).then((credentials) => {
           // A.5biii) Handle registration for new users
           // Send the googleSignInDetails object to your Registration endpoint.
           // Return a userState object to represent the
           // newly-registered user.
-          registerUser(registrationEndpoint,credentials).then((userState) => {
-              // Send the userState object for the newly-registered
-              // user to Google.
-              checkShowcaseEntitlement(userState);
-            });
+          registerUser(registrationEndpoint, credentials).then((userState) => {
+            // Send the userState object for the newly-registered
+            // user to Google.
+            checkShowcaseEntitlement(userState);
+          });
         });
       }
 
-
-      // Step A: Handle anonymous Showcase users.
-      // A.1) Check if the user came from showcase
-      if (isGaa()) {
-        // A.2) Check if the article is free
-        if (isArticleFree()) {
+      // user subscribed
+      // (may want to use ? operator for cleaner code)
+      if (userState.granted) {
+        if (userState.grantReason == 'SUBSCRIBER') {
+          subscriptions.setShowcaseEntitlement({
+            entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+            isUserRegistered: isUserRegistered(),
+          });
+          // free article
+        } else if (userState.grantReason == 'FREE') {
           subscriptions.setShowcaseEntitlement({
             entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
-            isUserRegistered: isUserRegistered()
+            isUserRegistered: isUserRegistered(),
           });
-        // A.3) Check if the publisher knows the user or not.
-        } else if (isUserRegistered()) {
-          // A.4) The publisher knows who the user is already.
-          // Create a userState object for the user and send it to Google
-          syncEntitlementsWithGoogle();
-        // A.5) The user is anonymous and is trying to read a paywalled article.
-        } else {
-          // If the publisher has a meter for anonymous users, the publisher should check
-          // if the user has reads left from that meter.
-          if (anonymousUserHasAccess()) {
-            // A.5a) The user has access from the anonymous user meter
-            subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
-              isUserRegistered: false
-            });
-            unlockArticle();
-          } else {
-            // A.5b) The publisher does not have a meter for anonymous users or the current
-            // user has run out of reads.
-
-            // A.5bi) Show the registration intervention
-            showGoogleRegwall();
-            // A.5bii) Handle login for existing users
-            subscriptions.setOnLoginRequest(() => {
-              // Open the login page
-              openLoginPage();
-              // Once the user has logged in, send the userState object to Google
-              // See the Sync entitlements with Google section.
-            });
-          }
+        } else if (userState.grantReason == 'METERED') {
+          subscriptions.setShowcaseEntitlement({
+            entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+            isUserRegistered: isUserRegistered(),
+          });
         }
       } else {
-        // Carry out normal paywall decision
+        if (isUserRegistered()) {
+          subscriptions
+            .getEntitlements(this.userState)
+            .then((googleEntitlement) => {
+              if (googleEntitlement.enablesThisWithGoogleMetering()) {
+                googleEntitlement.consume(() => {
+                  unlockArticle();
+                });
+              } else if (googleEntitlement.enablesThis()) {
+                handleSwGEntitlement();
+              } else {
+                // B.3a) User does not any access from publisher or Google so show the standard paywall
+                subscriptions.setShowcaseEntitlement({
+                  entitlement: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',
+                  isUserRegistered: isUserRegistered(),
+                });
+                // B.3b) Show the paywall
+                showPaywall();
+              }
+            });
+        } else {
+          showGoogleRegwall();
+        }
       }
 
-      // Step B: Sync entitlements with Google.
-      // Define the callback that is triggered once the entitlement
-      // response is returned from Google. This is the main logic to
-      // determine what to show to users depending on:
-      // - If the already have access from the publisher
-      // - If Google is granting extended access to a registered user
-      // - If the user is not yet registered
-      subscriptions.setOnEntitlementsResponse((entitlementsPromise) => {
-        // Wait for Google check and publisher check to finish
-        Promise.all([entitlementsPromise, publisherAccessCheck]).then((entitlements) => {
-          // Determine Google response from publisher response.
-          const [googleEntitlement, publisherEntitlement] = entitlements;
-
-          if(publisherEntitlement.granted) {
-            // B.1b) User has access from publisher so unlock article
-            unlockArticle();
-            // At the same time, share information about the entitlement with Google.
-            // See here for the specification of PublisherEntitlement: https://git.io/Jk1SW
-            if(publisherEntitlement.grantReason === 'SUBSCRIBER') {
-              // B.1ai) The user has access because they have a subscription
-              subscriptions.setShowcaseEntitlement({
-                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
-                isUserRegistered: isUserRegistered()
-              });
-            } else if (publisherEntitlement.grantReason === 'METERED') {
-              // B.1aii) The user has access from the publisher's meter
-              subscriptions.setShowcaseEntitlement({
-                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
-                isUserRegistered: isUserRegistered()
-              });
-            }
-        } else if (googleEntitlement.enablesThisWithGoogleMetering()) {
-          // B.2a) Google returned metering entitlement so grant access
-          googleEntitlement.consume(() => {
-            // B.2ai) Consume the entitlement and trigger a dialog that lets the user
-            // know Google provided them with a free read.
-
-            // B.2aii) Unlock the article AFTER the user consumes a free read.
-            unlockArticle();
-          });
-        } else if (googleEntitlement.enablesThis()) {
-          // B.2b) Google returned a non-metering entitlement
-          // This is only relevant for publishers doing SwG
-          handleSwGEntitlement();
-        } else if (!isUserRegistered() && isGaa()) {
-          // This is an anonymous user so show the Google registration intervention
-          showGoogleRegwall();
-        } else {
-          // B.3a) User does not any access from publisher or Google so show the standard paywall
-          subscriptions.setShowcaseEntitlement({
-            entitlement: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',
-            isUserRegistered: isUserRegistered()
-          });
-          // B.3b) Show the paywall
-          showPaywall();
-        }
-      });
+      // B.2aiii) Handle the case when users click "Subscribe"
+      subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
     });
-
-    // B.2aiii) Handle the case when users click "Subscribe"
-    subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
-  }
   }
 
   validateParameters() {}
@@ -1535,21 +1461,25 @@ export class GaaMetering {
   // POST request to registration endpoint
   registerUser(registrationEndpointUrl, newUserDetails) {
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", registrationEndpointUrl, true);
+    xhr.open('POST', registrationEndpointUrl, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onreadystatechange = function() { 
+    xhr.onreadystatechange = function () {
       if (xhr.readyState == 4 && xhr.status == 200) {
         // TODO: convert string to object - how to do it in a secure way?
         console.log(xhr.responseText);
       }
-    }
+    };
     xhr.send(JSON.stringify(newUserDetails));
   }
 
   newUserStateToUserState(newUserState) {
     // TODO: Convert new userState object format to the old userState object
-    
-    return userState
+
+    return userState;
+  }
+
+  isUserRegistered() {
+    return this.userState.id !== undefined && this.userState.id != '';
   }
 }
 
