@@ -2003,6 +2003,10 @@ const PROTO_MAP = {
   'AudienceActivityClientLogsRequest' : AudienceActivityClientLogsRequest,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+<<<<<<< HEAD
+=======
+  'AudienceActivityClientLogsRequest' : AudienceActivityClientLogsRequest,
+>>>>>>> 17627b11 (change to request to AudienceActivityClientLogsRequest)
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
