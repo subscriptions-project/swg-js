@@ -335,6 +335,29 @@ app.get('/redirect-to/swg-basic.js', (req, res) => {
 });
 
 /**
+ * EA - Simplified API
+ * TODO: make it a flow of "An Article"
+ */
+ app.get('/ea-simplified-api', (req, res) => {
+  const id = 1;
+  const article = ARTICLES[id - 1];
+  const prevId = id - 1 >= 0 ? String(id - 1) : false;
+  const nextId = id + 1 < ARTICLES.length ? String(id + 1) : false;
+  const setup = getSetup(req);
+  res.render('../examples/ea-newapi/article-ea-simplified-api', {
+    swgJsUrl: SWG_JS_URLS[setup.script],
+    swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
+    setup,
+    publicationId: PUBLICATION_ID,
+    id,
+    article,
+    prev: prevId,
+    next: nextId,
+    testParams: getTestParams(req),
+  });
+});
+
+/**
  * @param {!HttpRequest} req
  * @return {{
  *   script: string,

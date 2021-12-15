@@ -24,6 +24,7 @@ import {
   GaaGoogleSignInButton,
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
+  GaaMetering,
 } from './utils/gaa';
 import {log} from './utils/log';
 
@@ -34,3 +35,4 @@ self.GaaGoogleSignInButton = GaaGoogleSignInButton;
 self.GaaGoogle3pSignInButton = GaaGoogle3pSignInButton;
 self.GaaSignInWithGoogleButton = GaaSignInWithGoogleButton;
 self.GaaMeteringRegwall = GaaMeteringRegwall;
+self.GaaMetering = GaaMetering;
