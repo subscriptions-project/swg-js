@@ -791,6 +791,11 @@ export class ConfiguredRuntime {
             error = 'Unknown enablePropensity value: ' + v;
           }
           break;
+        case 'skipAccountCreationScreen':
+          if (!isBoolean(v)) {
+            error = 'Unknown skipAccountCreationScreen value: ' + v;
+          }
+          break;
         default:
           error = 'Unknown config property: ' + k;
       }

@@ -157,7 +157,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--iframe {
     border: none !important;
     display: block !important;
-    height: 36px !important;
+    height: 44px !important;
     margin: 0 0 30px !important;
     width: 100% !important;
   }
@@ -260,6 +260,11 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
   #${GOOGLE_SIGN_IN_BUTTON_ID} {
     margin: 0 auto;
   }
+
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID}{
+    width: 220px;
+  }
+
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID} > div,
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} > div,
   #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
@@ -616,8 +621,7 @@ export class GaaMeteringRegwall {
       'script[type="application/ld+json"]'
     );
 
-    for (let i = 0; i < ldJsonElements.length; i++) {
-      const ldJsonElement = ldJsonElements[i];
+    for (const ldJsonElement of ldJsonElements) {
       let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
@@ -646,8 +650,7 @@ export class GaaMeteringRegwall {
       '[itemscope][itemtype][itemprop="publisher"] [itemprop="name"]'
     );
 
-    for (let i = 0; i < publisherNameElements.length; i++) {
-      const publisherNameElement = publisherNameElements[i];
+    for (const publisherNameElement of publisherNameElements) {
       const publisherName = publisherNameElement.content;
       if (publisherName) {
         return publisherName;
@@ -796,8 +799,7 @@ export class GaaGoogleSignInButton {
     }
 
     // Validate origins.
-    for (let i = 0; i < allowedOrigins.length; i++) {
-      const allowedOrigin = allowedOrigins[i];
+    for (const allowedOrigin of allowedOrigins) {
       const url = new URL(allowedOrigin);
 
       const isOrigin = url.origin === allowedOrigin;
@@ -962,11 +964,11 @@ export class GaaSignInWithGoogleButton {
         self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
         {
           'type': 'standard',
-          'size': 'medium',
           'theme': 'outline',
-          'text': 'signin_with',
-          'width': self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID)
-            .offsetWidth,
+          'text': 'continue_with',
+          'logo_alignment': 'center',
+          'width': buttonEl.offsetWidth,
+          'height': buttonEl.offsetHeight,
         }
       );
 

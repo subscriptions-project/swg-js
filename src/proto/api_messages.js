@@ -68,6 +68,9 @@ const AnalyticsEvent = {
   IMPRESSION_TWG_STATIC_BUTTON: 30,
   IMPRESSION_TWG_DYNAMIC_BUTTON: 31,
   IMPRESSION_TWG_STICKER_SELECTION_SCREEN: 32,
+  IMPRESSION_TWG_PUBLICATION_NOT_SET_UP: 33,
+  IMPRESSION_REGWALL_OPT_IN: 34,
+  IMPRESSION_NEWSLETTER_OPT_IN: 35,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -121,7 +124,14 @@ const AnalyticsEvent = {
   ACTION_TWG_FREE_TRANSACTION_START_NEXT_BUTTON_CLICK: 1050,
   ACTION_TWG_PAID_TRANSACTION_START_NEXT_BUTTON_CLICK: 1051,
   ACTION_TWG_STICKER_SELECTION_SCREEN_CLOSE_CLICK: 1052,
+  ACTION_TWG_ARTICLE_LEVEL_SUPPORTER_WALL_CTA_CLICK: 1053,
+  ACTION_REGWALL_OPT_IN_BUTTON_CLICK: 1054,
+  ACTION_REGWALL_ALREADY_OPTED_IN_CLICK: 1055,
+  ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK: 1056,
+  ACTION_NEWSLETTER_ALREADY_OPTED_IN_CLICK: 1057,
   EVENT_PAYMENT_FAILED: 2000,
+  EVENT_REGWALL_OPT_IN_FAILED: 2001,
+  EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
   EVENT_CHANGED_TX_ID: 3002,
@@ -145,6 +155,8 @@ const AnalyticsEvent = {
   EVENT_TWG_POST_TRANSACTION_SETTING_PRIVATE: 3020,
   EVENT_TWG_PRE_TRANSACTION_PRIVACY_SETTING_PUBLIC: 3021,
   EVENT_TWG_POST_TRANSACTION_SETTING_PUBLIC: 3022,
+  EVENT_REGWALL_OPTED_IN: 3023,
+  EVENT_NEWSLETTER_OPTED_IN: 3024,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -790,6 +802,59 @@ class AnalyticsRequest {
    */
   label() {
     return 'AnalyticsRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class AudienceActivityClientLogsRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?AnalyticsEvent} */
+    this.event_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?AnalyticsEvent}
+   */
+  getEvent() {
+    return this.event_;
+  }
+
+  /**
+   * @param {!AnalyticsEvent} value
+   */
+  setEvent(value) {
+    this.event_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+      this.event_,  // field 1 - event
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'AudienceActivityClientLogsRequest';
   }
 }
 
@@ -1944,6 +2009,7 @@ const PROTO_MAP = {
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
+  'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
@@ -1996,6 +2062,7 @@ export {
   AnalyticsEvent,
   AnalyticsEventMeta,
   AnalyticsRequest,
+  AudienceActivityClientLogsRequest,
   EntitlementJwt,
   EntitlementResult,
   EntitlementSource,

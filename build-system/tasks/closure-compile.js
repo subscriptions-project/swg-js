@@ -109,7 +109,6 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       'src/**/*.js',
       '!src/*-babel.js',
       'third_party/gpay/**/*.js',
-      'node_modules/promise-pjs/promise.js',
       'node_modules/web-activities/activity-ports.js',
       //'node_modules/core-js/modules/**.js',
       // Not sure what these files are, but they seem to duplicate code
@@ -124,18 +123,6 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     ];
     if (options.extraGlobs) {
       srcs.push.apply(srcs, options.extraGlobs);
-    }
-    // Many files include the polyfills, but we only want to deliver them
-    // once. Since all files automatically wait for the main binary to load
-    // this works fine.
-    if (options.includePolyfills) {
-      srcs.push(
-        '!build/fake-module/src/polyfills.js',
-        '!build/fake-module/src/polyfills/**/*.js'
-      );
-    } else {
-      srcs.push('!src/polyfills.js');
-      unneededFiles.push('build/fake-module/src/polyfills.js');
     }
     unneededFiles.forEach(function (fake) {
       if (!fs.existsSync(fake)) {
@@ -159,10 +146,8 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       assume_function_wrapper: true,
       // Transpile from modern JavaScript to ES5.
       language_in: 'ECMASCRIPT_2020',
-      language_out: 'ECMASCRIPT5',
+      language_out: 'ECMASCRIPT_2019',
       // We do not use the polyfills provided by closure compiler.
-      // If you need a polyfill. Manually include them in the
-      // respective top level polyfills.js files.
       rewrite_polyfills: false,
       externs,
       js_module_root: ['build/fake-module/'],
@@ -181,12 +166,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       // certain dependencies.
       jscomp_off: ['unknownDefines', 'partialAlias'],
       define: [],
-      hide_warnings_for: [
-        'src/polyfills/',
-        'src/proto/',
-        'node_modules/',
-        'third_party/',
-      ],
+      hide_warnings_for: ['src/proto/', 'node_modules/', 'third_party/'],
       jscomp_error: [],
     };
 

@@ -866,16 +866,20 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       ]);
 
       const argsRender = self.google.accounts.id.renderButton.args;
+      const buttonEl = self.document.getElementById(
+        SIGN_IN_WITH_GOOGLE_BUTTON_ID
+      );
+
       expect(argsRender).to.deep.equal([
         [
-          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+          buttonEl,
           {
             'type': 'standard',
-            'size': 'medium',
             'theme': 'outline',
-            'text': 'signin_with',
-            'width': self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID)
-              .offsetWidth,
+            'text': 'continue_with',
+            'logo_alignment': 'center',
+            'width': buttonEl.offsetWidth,
+            'height': buttonEl.offsetHeight,
           },
         ],
       ]);

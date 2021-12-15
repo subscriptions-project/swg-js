@@ -219,6 +219,7 @@ export class ClientConfigManager {
       paySwgVersion,
       usePrefixedHostPath: json['usePrefixedHostPath'],
       useUpdatedOfferFlows: json['useUpdatedOfferFlows'],
+      skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
       uiPredicates,
       attributionParams,
     });

@@ -51,6 +51,8 @@ export const SWG_I18N_STRINGS = {
     'th': 'สมัครฟาน Google',
     'tr': 'Google ile Abone Ol',
     'uk': 'Підписатися через Google',
+    'zh-cn': '通过 Google 订阅',
+    'zh-hk': '透過 Google 訂閱',
     'zh-tw': '透過 Google 訂閱',
   },
   'CONTRIBUTION_TITLE_LANG_MAP': {
@@ -83,6 +85,8 @@ export const SWG_I18N_STRINGS = {
     'th': 'มีส่วนร่วมผ่าน Google',
     'tr': 'Google ile Katkıda Bulun',
     'uk': 'Зробити внесок через Google',
+    'zh-cn': '通过 Google 捐赠',
+    'zh-hk': '透過 Google 提供內容',
     'zh-tw': '透過 Google 捐款',
   },
 };
