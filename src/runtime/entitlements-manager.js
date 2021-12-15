@@ -54,6 +54,16 @@ const ENTS_STORAGE_KEY = 'ents';
 const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
 
 /**
+ * Article response object.
+ *
+ * @typedef {{
+ *  entitlements: (../api/entitlements.Entitlements),
+ *  clientConfig: (../model/client-config.ClientConfig),
+ * }}
+ */
+export let Article;
+
+/**
  */
 export class EntitlementsManager {
   /**
@@ -62,7 +72,7 @@ export class EntitlementsManager {
    * @param {!./fetcher.Fetcher} fetcher
    * @param {!./deps.DepsDef} deps
    */
-  constructor(win, pageConfig, fetcher, deps) {
+  constructor(win, pageConfig, fetcher, deps, useArticleEndpoint) {
     /** @private @const {!Window} */
     this.win_ = win;
 
@@ -100,6 +110,14 @@ export class EntitlementsManager {
      */
     this.encodedParams_ = null;
 
+    /** @protected {!string} */
+    this.encodedParamName_ = useArticleEndpoint
+      ? 'encodedEntitlementsParams'
+      : 'encodedParams';
+
+    /** @protected {!string} */
+    this.action_ = useArticleEndpoint ? '/article' : '/entitlements';
+
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
 
@@ -114,6 +132,12 @@ export class EntitlementsManager {
      * @visibleForTesting
      */
     this.entitlementsPostPromise = null;
+
+    /** @private @const {boolean} */
+    this.useArticleEndpoint_ = useArticleEndpoint;
+
+    /** @private {?Article} */
+    this.article_ = null;
 
     this.deps_
       .eventManager()
@@ -311,9 +335,7 @@ export class EntitlementsManager {
     }
 
     let url =
-      '/publication/' +
-      encodeURIComponent(this.publicationId_) +
-      '/entitlements';
+      '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
     url = addDevModeParamsToUrl(this.win_.location, url);
 
     // Promise that sets this.encodedParams_ when it resolves.
@@ -336,7 +358,7 @@ export class EntitlementsManager {
     this.entitlementsPostPromise = encodedParamsPromise.then(() => {
       url = addQueryParam(
         url,
-        'encodedParams',
+        this.encodedParamName_,
         /** @type {!string} */ (this.encodedParams_)
       );
 
@@ -391,6 +413,20 @@ export class EntitlementsManager {
         return ents;
       });
     });
+  }
+
+  /**
+   * If the manager is also responsible for fetching the Article, it
+   * will be accessible from here and should resolve a null promise otherwise.
+   * @returns {!Promise<?Article>}
+   */
+  getArticle() {
+    // The base manager only fetches from the entitlements endpoint, which does
+    // not contain an Article.
+    if (!this.useArticleEndpoint_ || !this.responsePromise_) {
+      return Promise.resolve();
+    }
+    return this.responsePromise_.then(() => Promise.resolve(this.article_));
   }
 
   /**
@@ -709,9 +745,7 @@ export class EntitlementsManager {
       : this.storage_.get(Constants.USER_TOKEN, true);
 
     let url =
-      '/publication/' +
-      encodeURIComponent(this.publicationId_) +
-      '/entitlements';
+      '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
 
     return Promise.all([
       hash(getCanonicalUrl(this.deps_.doc())),
@@ -805,7 +839,11 @@ export class EntitlementsManager {
             this.encodedParams_ = base64UrlEncodeFromBytes(
               utf8EncodeSync(JSON.stringify(encodableParams))
             );
-            url = addQueryParam(url, 'encodedParams', this.encodedParams_);
+            url = addQueryParam(
+              url,
+              this.encodedParamName_,
+              this.encodedParams_
+            );
           } else {
             warn(
               `SwG Entitlements: Please specify a metering state ID string, ideally a hash to avoid PII.`
@@ -823,12 +861,18 @@ export class EntitlementsManager {
         return this.fetcher_.fetchCredentialedJson(url);
       })
       .then((json) => {
+        let response = json;
+        if (this.useArticleEndpoint_) {
+          this.article_ = json;
+          response = json['entitlements'];
+        }
+
         if (json.errorMessages && json.errorMessages.length > 0) {
           json.errorMessages.forEach((errorMessage) => {
             warn('SwG Entitlements: ' + errorMessage);
           });
         }
-        return this.parseEntitlements(json);
+        return this.parseEntitlements(response);
       });
   }
 }
