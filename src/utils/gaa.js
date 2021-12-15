@@ -1466,6 +1466,7 @@ export class GaaMetering {
     xhr.onreadystatechange = function () {
       if (xhr.readyState == 4 && xhr.status == 200) {
         // TODO: convert string to object - how to do it in a secure way?
+        // Can we just use response (whicih would already be an object)
         console.log(xhr.responseText);
       }
     };
