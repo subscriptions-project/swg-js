@@ -344,7 +344,7 @@ app.get('/redirect-to/swg-basic.js', (req, res) => {
   const prevId = id - 1 >= 0 ? String(id - 1) : false;
   const nextId = id + 1 < ARTICLES.length ? String(id + 1) : false;
   const setup = getSetup(req);
-  res.render('../examples/ea-newapi/article-ea-simplified-api', {
+  res.render('../examples/sample-pub/views/article-ea-simplified-api', {
     swgJsUrl: SWG_JS_URLS[setup.script],
     swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
     setup,
