@@ -1342,12 +1342,21 @@ export class GaaMetering {
       // B.2aiii) Handle the case when users click "Subscribe"
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
     });
+
+    function isUserRegistered() {
+      return this.userState.id !== undefined && this.userState.id != '';
+    }
+    
+
   }
 
-  validateParameters() {}
+  static validateParameters() {
+    //TODO: implement this function
+    return true;
+  }
 
   // TODO: implement logic which accepts no gaa parameters and publisher's domain as referer
-  isGaa() {
+  static isGaa() {
     // Validate GAA params.
     if (!queryStringHasFreshGaaParams()) {
       return false;
@@ -1479,9 +1488,6 @@ export class GaaMetering {
     return userState;
   }
 
-  isUserRegistered() {
-    return this.userState.id !== undefined && this.userState.id != '';
-  }
 }
 
 /**

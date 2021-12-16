@@ -89,13 +89,18 @@
   </head>
   <body>
     <script>
+      // Provide a shortcut to metering params.
+      const urlParams = new URLSearchParams(location.search);
+      if (urlParams.has('metering')) {
+        let newSearch = 'gaa_at=g&gaa_ts=99999999&gaa_n=n0nc3&gaa_sig=51g';        
+        location.search = newSearch;
+      }
+
       (self.SWG = self.SWG || []).push(function (subscriptions) {
         // Forget any subscriptions, for metering demo purposes.
         subscriptions.clear();
-
         // Set up metering demo controls.
         MeteringDemo.setupControls();
-
         // Set up language.
         MeteringDemo.setupLanguage();
 
