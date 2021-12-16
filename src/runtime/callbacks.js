@@ -26,6 +26,7 @@ const CallbackId = {
   LINK_COMPLETE: 6,
   FLOW_STARTED: 7,
   FLOW_CANCELED: 8,
+  PAY_CONFIRM_OPENED: 9,
 };
 
 /**
@@ -120,6 +121,21 @@ export class Callbacks {
    */
   hasLinkCompletePending() {
     return !!this.resultBuffer_[CallbackId.LINK_COMPLETE];
+  }
+
+  /**
+   * @param {function(!../ui/activity-iframe-view.ActivityIframeView)} callback
+   */
+  setOnPayConfirmOpened(callback) {
+    this.setCallback_(CallbackId.PAY_CONFIRM_OPENED, callback);
+  }
+
+  /**
+   * @param {!../ui/activity-iframe-view.ActivityIframeView} activityIframeView
+   * @return {boolean} Whether the callback has been found.
+   */
+  triggerPayConfirmOpened(activityIframeView) {
+    return this.trigger_(CallbackId.PAY_CONFIRM_OPENED, activityIframeView);
   }
 
   /**

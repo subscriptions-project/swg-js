@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {Callbacks} from './callbacks';
 import {tick} from '../../test/tick';
 
@@ -95,6 +96,17 @@ describes.sandboxed('Callbacks', {}, () => {
 
     await tick();
     expect(spy).to.be.calledOnce.calledWith({linkRequested: true});
+  });
+
+  it('triggers and executes payConfirmOpened', async () => {
+    const spy = sandbox.spy();
+    callbacks.setOnPayConfirmOpened(spy);
+
+    const activityIframeView = new ActivityIframeView(self, null, 'src', {});
+    expect(callbacks.triggerPayConfirmOpened(activityIframeView)).to.be.true;
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWith(activityIframeView);
   });
 
   it('should trigger and execute subscribeRequest', async () => {
