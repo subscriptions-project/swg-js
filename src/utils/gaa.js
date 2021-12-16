@@ -1266,6 +1266,8 @@ export class GaaMetering {
     const handleSwGEntitlement = params.handleSwGEntitlement;
 
     const googleSignInClientId = params.googleSignInClientId;
+    const signInWithGoogleIframeUrl = params.signInWithGoogleIframeUrl;
+
     const registrationEndpoint = params.registrationEndpoint;
     const productId = GaaMetering.getProductIDFromPageConfig_();
 
@@ -1279,7 +1281,7 @@ export class GaaMetering {
         GaaMeteringRegwall.show({
           // TODO: Specify a URL that renders a Sign in with Google button.
           // TODO: instead of iframUrl, we will be supplying Google Sign-In Client ID
-          iframeUrl: 'https://examplenews.com/registration_widget.html',
+          iframeUrl: signInWithGoogleIframeUrl,
         }).then((credentials) => {
           // A.5biii) Handle registration for new users
           // Send the googleSignInDetails object to your Registration endpoint.
@@ -1291,6 +1293,10 @@ export class GaaMetering {
             checkShowcaseEntitlement(userState);
           });
         });
+      }
+
+      function isUserRegistered() {
+        return this.userState.id !== undefined && this.userState.id != '';
       }
 
       // user subscribed
@@ -1342,12 +1348,6 @@ export class GaaMetering {
       // B.2aiii) Handle the case when users click "Subscribe"
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
     });
-
-    function isUserRegistered() {
-      return this.userState.id !== undefined && this.userState.id != '';
-    }
-    
-
   }
 
   static validateParameters() {
