@@ -1483,11 +1483,21 @@ export class GaaMetering {
   }
 
   newUserStateToUserState(newUserState) {
-    // TODO: Convert new userState object format to the old userState object
+    const userState = {
+      'metering': {
+        'state': {
+          'id': newUserState.id,
+        },
+        'standardAtributes': {
+          'registered_user': {
+            'timestamp': newUserState.registrationTimestamp,
+          },
+        },
+      },
+    };
 
     return userState;
   }
-
 }
 
 /**

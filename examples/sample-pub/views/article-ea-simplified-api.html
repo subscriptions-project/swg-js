@@ -141,9 +141,22 @@
           });
         }
 
+        const params = {
+          productId: 'examplenews.com:showcase', //(optional override for publishers, otherwise take from markup)
+          signInWithGoogleIframeUrl: MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL, //TODO
+          //googleSignInClientId: '123123123.apps.googleusercontent.com', //TODO
+          registrationEndpoint: 'https://www.examplenews.com/api/registration',
+          userState: getUserState(),
+          onExtendedAccessGrant: unlockArticle,
+          onNoAccess: showPaywall,
+          onLoginRequest: openLoginPage,
+          onSwGEntitlement: handleSwGEntitlement,
+          onNativeSubscribeRequest: showPaywall
+        };
+
         GaaMetering.init({
           productId: 'examplenews.com:showcase', //(optional override for publishers, otherwise take from markup)
-          signInWithGoogleIframeUrl = MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL, //TODO
+          signInWithGoogleIframeUrl: MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL, //TODO
           //googleSignInClientId: '123123123.apps.googleusercontent.com', //TODO
           registrationEndpoint: 'https://www.examplenews.com/api/registration',
           userState: getUserState(),
