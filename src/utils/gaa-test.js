@@ -576,9 +576,9 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogleSignInButton.show.
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
+      style.remove();
+    }
 
     self.console.warn.restore();
   });
@@ -838,9 +838,9 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaSignInWithGoogleButton.show.
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
+      style.remove();
+    }
 
     self.console.warn.restore();
   });
@@ -866,19 +866,20 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       ]);
 
       const argsRender = self.google.accounts.id.renderButton.args;
+      const buttonEl = self.document.getElementById(
+        SIGN_IN_WITH_GOOGLE_BUTTON_ID
+      );
+
       expect(argsRender).to.deep.equal([
         [
-          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+          buttonEl,
           {
             'type': 'standard',
             'theme': 'outline',
             'text': 'continue_with',
             'logo_alignment': 'center',
-            'width': self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID)
-              .offsetWidth,
-            'height': self.document.getElementById(
-              SIGN_IN_WITH_GOOGLE_BUTTON_ID
-            ).offsetHeight,
+            'width': buttonEl.offsetWidth,
+            'height': buttonEl.offsetHeight,
           },
         ],
       ]);
@@ -1104,9 +1105,9 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogle3pSignInButton.show.
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
+      style.remove();
+    }
 
     self.console.warn.restore();
   });

@@ -19,12 +19,14 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
+import {isExperimentOn} from './experiments';
 import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
@@ -81,7 +83,9 @@ export function installBasicRuntime(win) {
 
   // Queue up any callbacks the publication might have provided.
   const waitingCallbacks = [].concat(win[BASIC_RUNTIME_PROP]);
-  waitingCallbacks.forEach(callWhenRuntimeIsReady);
+  for (const waitingCallback of waitingCallbacks) {
+    callWhenRuntimeIsReady(waitingCallback);
+  }
 
   // If any more callbacks are `push`ed to the global SwG Basic variables,
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
@@ -280,6 +284,10 @@ export class ConfiguredBasicRuntime {
     integr.configPromise = integr.configPromise || Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
     integr.enableGoogleAnalytics = true;
+    integr.useArticleEndpoint = isExperimentOn(
+      this.win_,
+      ExperimentFlags.USE_ARTICLE_ENDPOINT
+    );
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = integr.fetcher;
@@ -300,7 +308,12 @@ export class ConfiguredBasicRuntime {
     this.configuredClassicRuntime_.start();
 
     // Fetch the client config.
-    this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig();
+    this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig(
+      integr.useArticleEndpoint
+        ? // Wait on the entitlements to resolve before accessing the clientConfig
+          this.configuredClassicRuntime_.getEntitlements()
+        : Promise.resolve()
+    );
 
     /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(this);

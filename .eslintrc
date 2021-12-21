@@ -38,12 +38,9 @@
   "rules": {
     "swg-internal/dict-string-keys": 2,
     "swg-internal/enforce-private-props": 2,
-    "swg-internal/no-array-destructuring": 2,
     "swg-internal/no-es2015-number-props": 2,
     "swg-internal/no-export-side-effect": 2,
-    "swg-internal/no-for-of-statement": 2,
     "swg-internal/no-global": 0,
-    "swg-internal/no-spread": 2,
     "swg-internal/todo-format": 0,
     "curly": 2,
     "google-camelcase/google-camelcase": 2,
@@ -98,9 +95,6 @@
       "globals": {
         "__dirname": false,
         "require": false
-      },
-      "rules": {
-        "swg-internal/no-for-of-statement": 0
       }
     },
     {
@@ -108,12 +102,6 @@
       "globals": {
         "module": false,
         "require": false
-      }
-    },
-    {
-      "files": ["src/**/*test.js"],
-      "rules": {
-        "swg-internal/no-for-of-statement": 0
       }
     },
     {
