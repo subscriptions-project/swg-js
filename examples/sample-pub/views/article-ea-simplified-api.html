@@ -122,6 +122,7 @@
 
       function getUserState() {
         // Do client-side checks or make a HTTP call
+        /*&
         return Promise.resolve({
           id: 'user1235',
           registrationTimestamp: 1602763054,
@@ -131,6 +132,16 @@
             grantReason: 'SUBSCRIBER'
           }
         });
+        */
+        return {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          publisherEntitlement: {
+            granted: true,
+            grantReason: 'SUBSCRIBER'
+          }
+        };
       }
 
       const params = {
@@ -150,7 +161,7 @@
         
       (self.SWG = self.SWG || []).push(function (subscriptions) {
         // Forget any subscriptions, for metering demo purposes.
-        subscriptions.clear();
+        // subscriptions.clear();
         // Set up metering demo controls.
         MeteringDemo.setupControls();
         // Set up language.

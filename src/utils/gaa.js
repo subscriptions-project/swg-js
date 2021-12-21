@@ -1296,24 +1296,24 @@ export class GaaMetering {
       }
 
       function isUserRegistered() {
-        return this.userState.id !== undefined && this.userState.id != '';
+        return userState.id !== undefined && userState.id != '';
       }
 
       // user subscribed
       // (may want to use ? operator for cleaner code)
-      if (userState.granted) {
-        if (userState.grantReason == 'SUBSCRIBER') {
+      if (userState.publisherEntitlement.granted) {
+        if (userState.publisherEntitlement.grantReason == 'SUBSCRIBER') {
           subscriptions.setShowcaseEntitlement({
             entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
             isUserRegistered: isUserRegistered(),
           });
           // free article
-        } else if (userState.grantReason == 'FREE') {
+        } else if (userState.publisherEntitlement.grantReason == 'FREE') {
           subscriptions.setShowcaseEntitlement({
             entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
             isUserRegistered: isUserRegistered(),
           });
-        } else if (userState.grantReason == 'METERED') {
+        } else if (userState.publisherEntitlement.grantReason == 'METERED') {
           subscriptions.setShowcaseEntitlement({
             entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
             isUserRegistered: isUserRegistered(),
@@ -1322,7 +1322,7 @@ export class GaaMetering {
       } else {
         if (isUserRegistered()) {
           subscriptions
-            .getEntitlements(this.userState)
+            .getEntitlements(GaaMetering.newUserStateToUserState(userState))
             .then((googleEntitlement) => {
               if (googleEntitlement.enablesThisWithGoogleMetering()) {
                 googleEntitlement.consume(() => {
@@ -1350,8 +1350,34 @@ export class GaaMetering {
     });
   }
 
-  static validateParameters() {
+  static validateParameters(params) {
     //TODO: implement this function
+
+    const reqFunc = [
+      'onExtendedAccessGrant',
+      'onNoAccess',
+      'onLoginRequest',
+      'onNativeSubscribeRequest',
+    ];
+
+    for (const reqFuncNo in reqFunc) {
+      if (
+        !(
+          reqFunc[reqFuncNo] in params &&
+          typeof params[reqFunc[reqFuncNo]] === 'function'
+        )
+      ) {
+        debugLog(`Missing ${reqFunc[reqFuncNo]} or it is not a function`);
+        return false;
+      }
+    }
+
+    // Check that apps.googleusercontent.com in googleSignInClientId
+
+    // Check that registrationEndpoint is URL
+
+    // Check userState is an 'object'
+
     return true;
   }
 
@@ -1405,14 +1431,13 @@ export class GaaMetering {
   }
 
   static getProductIDFromPageConfig_() {
-    const jsonLdPageConfig =
-      GaaMeteringRegwall.getProductIDFromJsonLdPageConfig_();
+    const jsonLdPageConfig = GaaMetering.getProductIDFromJsonLdPageConfig_();
     if (jsonLdPageConfig) {
       return jsonLdPageConfig;
     }
 
     const microdataPageConfig =
-      GaaMeteringRegwall.getProductIDFromMicrodataPageConfig_();
+      GaaMetering.getProductIDFromMicrodataPageConfig_();
     if (microdataPageConfig) {
       return microdataPageConfig;
     }
