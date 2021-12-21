@@ -151,10 +151,14 @@ describes.realWin('MeterToastApi', {}, (env) => {
   });
 
   it('should start the flow correctly with iframe url and params', async () => {
-    const meterToastApiWithUrlAndParams = new MeterToastApi(runtime, '/meteriframe', {
-      publicationId: 'pub1',
-      origin: 'pub1.origin',
-    });
+    const meterToastApiWithUrlAndParams = new MeterToastApi(
+      runtime,
+      '/meteriframe',
+      {
+        publicationId: 'pub1',
+        origin: 'pub1.origin',
+      }
+    );
     callbacksMock.expects('triggerFlowStarted').once();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
