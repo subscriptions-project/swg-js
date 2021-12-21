@@ -33,8 +33,10 @@ export const MINIMIZED_IFRAME_SIZE = '420px';
 export class MeterToastApi {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {string=} iframeUrl Relative URL of the iframe, e.g. "/meteriframe".
+   * @param {Object<string, string>=} iframeParams List of extra params appended to the URL.
    */
-  constructor(deps) {
+  constructor(deps, iframeUrl = '/metertoastiframe', iframeParams = {}) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -55,7 +57,7 @@ export class MeterToastApi {
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      feUrl('/metertoastiframe'),
+      feUrl(iframeUrl, iframeParams),
       iframeArgs,
       /* shouldFadeBody */ false
     );
