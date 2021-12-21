@@ -1358,7 +1358,12 @@ export class GaaMetering {
   // TODO: implement logic which accepts no gaa parameters and publisher's domain as referer
   static isGaa() {
     // Validate GAA params.
-    if (!queryStringHasFreshGaaParams()) {
+    if (
+      !queryStringHasFreshGaaParams(
+        self.location.search,
+        /*allowAllAccessTypes=*/ true
+      )
+    ) {
       return false;
     }
 

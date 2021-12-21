@@ -94,6 +94,60 @@
         location.search = newSearch;
       }
 
+      /**
+       * The simplest possible implementation of showPaywall, unlockArticle, openLoginPage 
+       * and handleSwGEntitlement. A more sophisticated implementation could fetch more data, 
+       * or set cookies and refresh the whole page.
+       */
+      function showPaywall() {
+        console.log('show paywall');
+        document.documentElement.classList.remove('open-paywall');
+      };
+
+      function unlockArticle() {
+        console.log('unlock article');
+        document.documentElement.classList.add('open-paywall');
+      };
+
+      function openLoginPage() {
+        console.log('open login page');
+        document.documentElement.classList.add('open-paywall');
+      };
+      
+      function handleSwGEntitlement() {
+        console.log('handle swg entitlement');
+        //entitlements.ack(); //TODO: check what we need to do here
+        unlockArticle();
+      }
+
+      function getUserState() {
+        // Do client-side checks or make a HTTP call
+        return Promise.resolve({
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          publisherEntitlement: {
+            granted: true,
+            grantReason: 'SUBSCRIBER'
+          }
+        });
+      }
+
+      const params = {
+        params: {
+          productId: 'examplenews.com:showcase', //(optional override for publishers, otherwise take from markup)
+          signInWithGoogleIframeUrl: MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL, //TODO
+          //googleSignInClientId: '123123123.apps.googleusercontent.com', //TODO
+          registrationEndpoint: 'https://www.examplenews.com/api/registration',
+          userState: getUserState(),
+          onExtendedAccessGrant: unlockArticle,
+          onNoAccess: showPaywall,
+          onLoginRequest: openLoginPage,
+          onSwGEntitlement: handleSwGEntitlement,
+          onNativeSubscribeRequest: showPaywall
+        }
+      };
+        
       (self.SWG = self.SWG || []).push(function (subscriptions) {
         // Forget any subscriptions, for metering demo purposes.
         subscriptions.clear();
@@ -102,70 +156,7 @@
         // Set up language.
         MeteringDemo.setupLanguage();
 
-        /**
-         * The simplest possible implementation of showPaywall, unlockArticle, openLoginPage 
-         * and handleSwGEntitlement. A more sophisticated implementation could fetch more data, 
-         * or set cookies and refresh the whole page.
-         */
-        function showPaywall() {
-          console.log('show paywall');
-          document.documentElement.classList.remove('open-paywall');
-        };
-
-        function unlockArticle() {
-          console.log('unlock article');
-          document.documentElement.classList.add('open-paywall');
-        };
-
-        function openLoginPage() {
-          console.log('open login page');
-          document.documentElement.classList.add('open-paywall');
-        };
-        
-        function handleSwGEntitlement() {
-          console.log('handle swg entitlement');
-          //entitlements.ack(); //TODO: check what we need to do here
-          unlockArticle();
-        }
-
-        function getUserState() {
-          // Do client-side checks or make a HTTP call
-          return Promise.resolve({
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-            subscriptionTimestamp: 1602763094,
-            publisherEntitlement: {
-              granted: true,
-              grantReason: 'SUBSCRIBER'
-            }
-          });
-        }
-
-        const params = {
-          productId: 'examplenews.com:showcase', //(optional override for publishers, otherwise take from markup)
-          signInWithGoogleIframeUrl: MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL, //TODO
-          //googleSignInClientId: '123123123.apps.googleusercontent.com', //TODO
-          registrationEndpoint: 'https://www.examplenews.com/api/registration',
-          userState: getUserState(),
-          onExtendedAccessGrant: unlockArticle,
-          onNoAccess: showPaywall,
-          onLoginRequest: openLoginPage,
-          onSwGEntitlement: handleSwGEntitlement,
-          onNativeSubscribeRequest: showPaywall
-        };
-
-        GaaMetering.init({
-          productId: 'examplenews.com:showcase', //(optional override for publishers, otherwise take from markup)
-          signInWithGoogleIframeUrl: MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL, //TODO
-          //googleSignInClientId: '123123123.apps.googleusercontent.com', //TODO
-          registrationEndpoint: 'https://www.examplenews.com/api/registration',
-          userState: getUserState(),
-          onExtendedAccessGrant: unlockArticle,
-          onNoAccess: showPaywall,
-          onLoginRequest: openLoginPage,
-          onSwGEntitlement: handleSwGEntitlement,
-          onNativeSubscribeRequest: showPaywall
-        });
+        GaaMetering.init(params);
       });
     </script>
 
