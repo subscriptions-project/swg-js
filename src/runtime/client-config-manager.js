@@ -167,9 +167,9 @@ export class ClientConfigManager {
           );
           return this.fetcher_.fetchCredentialedJson(url).then((json) => {
             if (json.errorMessages && json.errorMessages.length > 0) {
-              json.errorMessages.forEach((errorMessage) => {
+              for (const errorMessage of json.errorMessages) {
                 warn('SwG ClientConfigManager: ' + errorMessage);
-              });
+              }
             }
             return this.parseClientConfig_(json);
           });

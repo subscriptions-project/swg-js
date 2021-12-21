@@ -175,9 +175,9 @@ export function fetchPolyfill(input, init) {
     }
 
     if (init.headers) {
-      Object.keys(init.headers).forEach(function (header) {
+      for (const header of Object.keys(init.headers)) {
         xhr.setRequestHeader(header, init.headers[header]);
-      });
+      }
     }
 
     xhr.onreadystatechange = () => {

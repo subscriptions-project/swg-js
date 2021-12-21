@@ -1208,14 +1208,14 @@ function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
         : [analyticsEvent];
 
       // Log each analytics event.
-      eventTypes.forEach((eventType) => {
+      for (const eventType of eventTypes) {
         eventManager.logEvent({
           eventType,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction,
           additionalParameters: null,
         });
-      });
+      }
     });
   });
 }

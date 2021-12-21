@@ -49,9 +49,9 @@ export class LoadingView {
       {}
     );
     if (config.additionalClasses) {
-      config.additionalClasses.forEach((additionalClass) => {
+      for (const additionalClass of config.additionalClasses) {
         this.loadingContainer_.classList.add(additionalClass);
-      });
+      }
     }
 
     /** @private @const {!Element} */
