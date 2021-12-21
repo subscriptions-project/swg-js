@@ -83,7 +83,9 @@ export function installBasicRuntime(win) {
 
   // Queue up any callbacks the publication might have provided.
   const waitingCallbacks = [].concat(win[BASIC_RUNTIME_PROP]);
-  waitingCallbacks.forEach(callWhenRuntimeIsReady);
+  for (const waitingCallback of waitingCallbacks) {
+    callWhenRuntimeIsReady(waitingCallback);
+  }
 
   // If any more callbacks are `push`ed to the global SwG Basic variables,
   // they'll be queued up to receive the SwG Basic runtime when it's ready.

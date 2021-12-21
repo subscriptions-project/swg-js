@@ -191,11 +191,11 @@ export class AnalyticsService {
   addLabels(labels) {
     if (labels && labels.length > 0) {
       const newLabels = [].concat(this.context_.getLabelList());
-      labels.forEach((label) => {
+      for (const label of labels) {
         if (newLabels.indexOf(label) == -1) {
           newLabels.push(label);
         }
-      });
+      }
       this.context_.setLabelList(newLabels);
     }
   }

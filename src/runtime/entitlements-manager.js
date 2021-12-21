@@ -806,7 +806,7 @@ export class EntitlementsManager {
               }
 
               const attributeNames = Object.keys(attributes);
-              attributeNames.forEach((attributeName) => {
+              for (const attributeName of attributeNames) {
                 const name = `${category}_${attributeName}`;
                 const timestamp = Number(attributes[attributeName].timestamp);
 
@@ -824,7 +824,7 @@ export class EntitlementsManager {
                   name,
                   timestamp,
                 });
-              });
+              }
             }
             collectAttributes({
               attributes: params.metering.state.standardAttributes,
@@ -868,9 +868,9 @@ export class EntitlementsManager {
         }
 
         if (json.errorMessages && json.errorMessages.length > 0) {
-          json.errorMessages.forEach((errorMessage) => {
+          for (const errorMessage of json.errorMessages) {
             warn('SwG Entitlements: ' + errorMessage);
-          });
+          }
         }
         return this.parseEntitlements(response);
       });

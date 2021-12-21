@@ -208,7 +208,7 @@ export class ButtonApi {
     options,
     attributeValueToCallback
   ) {
-    attributeValues.forEach((attributeValue) => {
+    for (const attributeValue of attributeValues) {
       const elements = this.doc_
         .getRootNode()
         .querySelectorAll(`[${attribute}="${attributeValue}"]`);
@@ -227,7 +227,7 @@ export class ButtonApi {
           );
         }
       }
-    });
+    }
   }
 
   /**
