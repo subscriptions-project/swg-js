@@ -138,15 +138,11 @@ class TypeChecker {
   }
 
   /**
-   * @param {Array<?string>} typeArray
+   * @param {!Array<?string>} typeArray
    * @param {Array<string>} expectedTypes
    * @return {boolean}
    */
   checkArray(typeArray, expectedTypes) {
-    if (!typeArray) {
-      return false;
-    }
-
     for (const schemaTypeUrl of typeArray) {
       const schemaType = schemaTypeUrl.replace(/^http:\/\/schema.org\//i, '');
       if (expectedTypes.includes(schemaType)) {
