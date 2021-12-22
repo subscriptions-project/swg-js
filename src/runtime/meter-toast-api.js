@@ -38,7 +38,7 @@ export const DEFAULT_IFRAME_URL = '/metertoastiframe';
  *
  * @typedef {{
  *   iframeUrl: (string|undefined),
- *   iframeUrlParams: (?Object<string, string>),
+ *   iframeUrlParams: (?Object<string, string>|undefined),
  * }}
  */
 export let MeterToastApiParams;
@@ -46,9 +46,9 @@ export let MeterToastApiParams;
 export class MeterToastApi {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {!MeterToastApiParams=} params
+   * @param {?MeterToastApiParams=} params
    */
-  constructor(deps, params = {}) {
+  constructor(deps, params = undefined) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -70,8 +70,8 @@ export class MeterToastApi {
       this.win_,
       this.activityPorts_,
       feUrl(
-        params.iframeUrl ? params.iframeUrl : DEFAULT_IFRAME_URL,
-        params.iframeUrlParams ? params.iframeUrlParams : {}
+        params && params.iframeUrl ? params.iframeUrl : DEFAULT_IFRAME_URL,
+        params && params.iframeUrlParams ? params.iframeUrlParams : {}
       ),
       iframeArgs,
       /* shouldFadeBody */ false

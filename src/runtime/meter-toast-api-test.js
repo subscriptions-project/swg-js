@@ -151,7 +151,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   });
 
   it('should start the flow correctly with iframe url', async () => {
-    const meterToastApiWithUrlAndParams = new MeterToastApi(runtime, {
+    const meterToastApiWithUrl = new MeterToastApi(runtime, {
       iframeUrl: '/meteriframe',
     });
     callbacksMock.expects('triggerFlowStarted').once();
@@ -169,17 +169,11 @@ describes.realWin('MeterToastApi', {}, (env) => {
         iframeArgs
       )
       .returns(Promise.resolve(port));
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
-    await meterToastApiWithUrlAndParams.start();
+    await meterToastApiWithUrl.start();
   });
 
   it('should start the flow correctly with iframe url params', async () => {
-    const meterToastApiWithUrlAndParams = new MeterToastApi(runtime, {
+    const meterToastApiWithParams = new MeterToastApi(runtime, {
       iframeUrlParams: {publicationId: 'pub1', origin: 'pub1.origin'},
     });
     callbacksMock.expects('triggerFlowStarted').once();
@@ -197,13 +191,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
         iframeArgs
       )
       .returns(Promise.resolve(port));
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
-    await meterToastApiWithUrlAndParams.start();
+    await meterToastApiWithParams.start();
   });
 
   it('should start the flow correctly with iframe url and params', async () => {
@@ -226,12 +214,6 @@ describes.realWin('MeterToastApi', {}, (env) => {
         iframeArgs
       )
       .returns(Promise.resolve(port));
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
     await meterToastApiWithUrlAndParams.start();
   });
 
