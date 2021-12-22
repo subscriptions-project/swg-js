@@ -1481,12 +1481,48 @@ export class GaaMetering {
     }
 
     // Check that apps.googleusercontent.com in googleSignInClientId
+    if (
+      !(
+        'googleSignInClientId' in params &&
+        params['googleSignInClientId'].endsWith('.apps.googleusercontent.com')
+      )
+    ) {
+      debugLog(
+        `Missing googleSignInClientId or it is not a valid Google Sign In Client ID`
+      );
+      return false;
+    }
 
     // Check that registrationEndpoint is URL
+    if (
+      !(
+        'registrationEndpoint' in params &&
+        GaaMetering.isValidHttpUrl(params['registrationEndpoint'])
+      )
+    ) {
+      debugLog(`Missing registrationEndpoint or it is not a valid URL`);
+      return false;
+    }
 
     // Check userState is an 'object'
+    if (!('userState' in params && typeof params.userState === 'object')) {
+      debugLog(`Missing userState or it is not an object`);
+      return false;
+    }
 
     return true;
+  }
+
+  static isValidHttpUrl(string) {
+    let url;
+
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;
+    }
+
+    return url.protocol === 'http:' || url.protocol === 'https:';
   }
 
   // TODO: implement logic which accepts no gaa parameters and publisher's domain as referer
