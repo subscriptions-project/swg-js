@@ -873,7 +873,7 @@ export class GaaGoogleSignInButton {
         gaaUser,
       });
     } catch (err) {
-      sendErrorMessageToParent(err);
+      sendErrorMessageToParent();
     }
   }
 }
@@ -994,7 +994,7 @@ export class GaaSignInWithGoogleButton {
         jwtPayload,
       });
     } catch (err) {
-      sendErrorMessageToParent(err);
+      sendErrorMessageToParent();
     }
   }
 }
