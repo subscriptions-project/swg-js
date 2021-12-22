@@ -29,14 +29,26 @@ import {warn} from '../utils/log';
 export const IFRAME_BOX_SHADOW =
   'rgba(60, 64, 67, 0.3) 0px -2px 5px, rgba(60, 64, 67, 0.15) 0px -5px 5px';
 export const MINIMIZED_IFRAME_SIZE = '420px';
+export const DEFAULT_IFRAME_URL = '/metertoastiframe';
+
+/**
+ * Properties:
+ * - iframeUrl: Relative URL of the iframe, e.g. "/meteriframe".
+ * - iframeUrlParams: List of extra params appended to the URL.
+ *
+ * @typedef {{
+ *   iframeUrl: (string|undefined),
+ *   iframeUrlParams: (?Object<string, string>),
+ * }}
+ */
+export let MeterToastApiParams;
 
 export class MeterToastApi {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {string=} iframeUrl Relative URL of the iframe, e.g. "/meteriframe".
-   * @param {Object<string, string>=} iframeParams List of extra params appended to the URL.
+   * @param {!MeterToastApiParams=} params
    */
-  constructor(deps, iframeUrl = '/metertoastiframe', iframeParams = {}) {
+  constructor(deps, params = {}) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -57,7 +69,10 @@ export class MeterToastApi {
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      feUrl(iframeUrl, iframeParams),
+      feUrl(
+        params.iframeUrl ? params.iframeUrl : DEFAULT_IFRAME_URL,
+        params.iframeUrlParams ? params.iframeUrlParams : {}
+      ),
       iframeArgs,
       /* shouldFadeBody */ false
     );

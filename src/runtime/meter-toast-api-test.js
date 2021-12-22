@@ -150,15 +150,67 @@ describes.realWin('MeterToastApi', {}, (env) => {
     await meterToastApi.start();
   });
 
+  it('should start the flow correctly with iframe url', async () => {
+    const meterToastApiWithUrlAndParams = new MeterToastApi(runtime, {
+      iframeUrl: '/meteriframe',
+    });
+    callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/meteriframe?_=_',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
+    await meterToastApiWithUrlAndParams.start();
+  });
+
+  it('should start the flow correctly with iframe url params', async () => {
+    const meterToastApiWithUrlAndParams = new MeterToastApi(runtime, {
+      iframeUrlParams: {publicationId: 'pub1', origin: 'pub1.origin'},
+    });
+    callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=pub1.origin',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
+    await meterToastApiWithUrlAndParams.start();
+  });
+
   it('should start the flow correctly with iframe url and params', async () => {
-    const meterToastApiWithUrlAndParams = new MeterToastApi(
-      runtime,
-      '/meteriframe',
-      {
-        publicationId: 'pub1',
-        origin: 'pub1.origin',
-      }
-    );
+    const meterToastApiWithUrlAndParams = new MeterToastApi(runtime, {
+      iframeUrl: '/meteriframe',
+      iframeUrlParams: {publicationId: 'pub1', origin: 'pub1.origin'},
+    });
     callbacksMock.expects('triggerFlowStarted').once();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
