@@ -57,7 +57,7 @@
     "express": "4.17.2",
     "fancy-log": "1.3.3",
     "fs-extra": "10.0.0",
-    "geckodriver": "2.0.4",
+    "geckodriver": "3.0.1",
     "glob": "7.2.0",
     "gulp": "4.0.2",
     "gulp-eslint": "6.0.0",
