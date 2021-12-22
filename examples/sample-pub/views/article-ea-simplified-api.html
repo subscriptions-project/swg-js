@@ -139,7 +139,8 @@
           subscriptionTimestamp: 1602763094,
           publisherEntitlement: {
             granted: true,
-            grantReason: 'SUBSCRIBER'
+            // grantReason: 'SUBSCRIBER'
+            grantReason: 'FREE'
           }
         };
       }
@@ -148,7 +149,7 @@
         params: {
           productId: 'examplenews.com:showcase', //(optional override for publishers, otherwise take from markup)
           signInWithGoogleIframeUrl: MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL, //TODO
-          //googleSignInClientId: '123123123.apps.googleusercontent.com', //TODO
+          googleSignInClientId: '123123123.apps.googleusercontent.com', //TODO
           registrationEndpoint: 'https://www.examplenews.com/api/registration',
           userState: getUserState(),
           onExtendedAccessGrant: unlockArticle,
