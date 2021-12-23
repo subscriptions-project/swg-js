@@ -602,7 +602,10 @@ export class GaaMeteringRegwall {
     } else {
       // Tell the iframe which language to render.
       iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
-      registrationButtonHtml = REGISTRATION_WIDGET_IFRAME_HTML.replace('$iframeUrl$', iframeUrl);
+      registrationButtonHtml = REGISTRATION_WIDGET_IFRAME_HTML.replace(
+        '$iframeUrl$',
+        iframeUrl
+      );
     }
 
     // Prepare HTML.
@@ -1377,7 +1380,7 @@ export class GaaMetering {
     const signInWithGoogleIframeUrl = params.signInWithGoogleIframeUrl;
 
     const registrationEndpoint = params.registrationEndpoint;
-    const productId = GaaMetering.getProductIDFromPageConfig_();
+    const productId = 'gtech-demo.appspot.com:basic'; //GaaMetering.getProductIDFromPageConfig_();
 
     callSwg((subscriptions) => {
       subscriptions.init(productId);
@@ -1417,6 +1420,7 @@ export class GaaMetering {
           });
           // free article
         } else if (userState.publisherEntitlement.grantReason == 'FREE') {
+          // TODO: Get from markup?
           subscriptions.setShowcaseEntitlement({
             entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
             isUserRegistered: isUserRegistered(),
@@ -1430,7 +1434,7 @@ export class GaaMetering {
       } else {
         if (isUserRegistered()) {
           subscriptions
-            .getEntitlements(GaaMetering.newUserStateToUserState(userState))
+            .getEntitlements(this.newUserStateToUserState(userState))
             .then((googleEntitlement) => {
               if (googleEntitlement.enablesThisWithGoogleMetering()) {
                 googleEntitlement.consume(() => {
@@ -1462,10 +1466,10 @@ export class GaaMetering {
     //TODO: implement this function
 
     const reqFunc = [
-      'onExtendedAccessGrant',
-      'onNoAccess',
-      'onLoginRequest',
-      'onNativeSubscribeRequest',
+      'unlockArticle',
+      'showPaywall',
+      'handleLogin',
+      'handleSwGEntitlement',
     ];
 
     for (const reqFuncNo in reqFunc) {
@@ -1656,15 +1660,15 @@ export class GaaMetering {
     xhr.send(JSON.stringify(newUserDetails));
   }
 
-  newUserStateToUserState(newUserState) {
+  static newUserStateToUserState(newUserState) {
     const userState = {
       'metering': {
         'state': {
           'id': newUserState.id,
-        },
-        'standardAtributes': {
-          'registered_user': {
-            'timestamp': newUserState.registrationTimestamp,
+          'standardAttributes': {
+            'registered_user': {
+              'timestamp': newUserState.registrationTimestamp,
+            },
           },
         },
       },

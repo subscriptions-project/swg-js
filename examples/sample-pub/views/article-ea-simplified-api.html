@@ -109,7 +109,7 @@
         document.documentElement.classList.add('open-paywall');
       };
 
-      function openLoginPage() {
+      function handleLogin() {
         console.log('open login page');
         document.documentElement.classList.add('open-paywall');
       };
@@ -133,22 +133,23 @@
           }
         });
         */
-        /*
+        
         return {
           id: 'user1235',
           registrationTimestamp: 1602763054,
           subscriptionTimestamp: 1602763094,
           publisherEntitlement: {
-            granted: true,
-            grantReason: 'SUBSCRIBER'
+            granted: false,
           }
         };
-        */
+        
+       /* ANONYMOUS
         return {
           publisherEntitlement: {
             granted: false
           }
         };
+        */
       }
 
       const params = {
@@ -158,11 +159,11 @@
           googleSignInClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
           registrationEndpoint: 'https://www.examplenews.com/api/registration',
           userState: getUserState(),
-          onExtendedAccessGrant: unlockArticle,
-          onNoAccess: showPaywall,
-          onLoginRequest: openLoginPage,
-          onSwGEntitlement: handleSwGEntitlement,
-          onNativeSubscribeRequest: showPaywall
+          unlockArticle: unlockArticle,
+          showPaywall: showPaywall,
+          handleLogin: handleLogin,
+          handleSwGEntitlement: handleSwGEntitlement
+
         }
       };
         
