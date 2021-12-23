@@ -37,8 +37,8 @@ export const DEFAULT_IFRAME_URL = '/metertoastiframe';
  * - iframeUrlParams: List of extra params appended to the URL.
  *
  * @typedef {{
- *   iframeUrl: (string|undefined),
- *   iframeUrlParams: (?Object<string, string>|undefined),
+ *   iframeUrl: (string),
+ *   iframeUrlParams: (Object<string, string>),
  * }}
  */
 export let MeterToastApiParams;
@@ -46,9 +46,14 @@ export let MeterToastApiParams;
 export class MeterToastApi {
   /**
    * @param {!./deps.DepsDef} deps
-   * @param {?MeterToastApiParams=} params
+   * @param {!MeterToastApiParams=} params
+   * @param {string} params.iframeUrl
+   * @param {Object<string, string>} params.iframeUrlParams
    */
-  constructor(deps, params = undefined) {
+  constructor(
+    deps,
+    {iframeUrl = DEFAULT_IFRAME_URL, iframeUrlParams = {}} = {}
+  ) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -69,10 +74,7 @@ export class MeterToastApi {
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      feUrl(
-        params && params.iframeUrl ? params.iframeUrl : DEFAULT_IFRAME_URL,
-        params && params.iframeUrlParams ? params.iframeUrlParams : {}
-      ),
+      feUrl(iframeUrl, iframeUrlParams),
       iframeArgs,
       /* shouldFadeBody */ false
     );
