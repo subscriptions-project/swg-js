@@ -1380,7 +1380,7 @@ export class GaaMetering {
     const signInWithGoogleIframeUrl = params.signInWithGoogleIframeUrl;
 
     const registrationEndpoint = params.registrationEndpoint;
-    const productId = 'gtech-demo.appspot.com:basic'; //GaaMetering.getProductIDFromPageConfig_();
+    const productId = GaaMetering.getProductIDFromPageConfig_(); //'gtech-demo.appspot.com:basic';
 
     callSwg((subscriptions) => {
       subscriptions.init(productId);
