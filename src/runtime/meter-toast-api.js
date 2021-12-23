@@ -47,8 +47,6 @@ export class MeterToastApi {
   /**
    * @param {!./deps.DepsDef} deps
    * @param {!MeterToastApiParams=} params
-   * @param {string} params.iframeUrl
-   * @param {Object<string, string>} params.iframeUrlParams
    */
   constructor(
     deps,
