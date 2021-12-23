@@ -37,8 +37,8 @@ export const DEFAULT_IFRAME_URL = '/metertoastiframe';
  * - iframeUrlParams: List of extra params appended to the URL.
  *
  * @typedef {{
- *   iframeUrl: (string),
- *   iframeUrlParams: (Object<string, string>),
+ *   iframeUrl: (string|undefined),
+ *   iframeUrlParams: (Object<string, string>|undefined),
  * }}
  */
 export let MeterToastApiParams;
