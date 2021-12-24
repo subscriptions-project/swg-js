@@ -60,7 +60,6 @@
     "geckodriver": "3.0.1",
     "glob": "7.2.0",
     "gulp": "4.0.2",
-    "gulp-eslint": "6.0.0",
     "gulp-eslint-if-fixed": "1.0.0",
     "gulp-git": "2.10.1",
     "gulp-help": "chmontgomery/gulp-help#gulp4",
