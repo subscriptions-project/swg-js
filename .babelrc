@@ -2,7 +2,6 @@
   "presets": [
     ["@babel/preset-env", {
       "targets": {
-        "loose": true,
         "browsers": ["defaults, not IE 11"]
       }
     }]
