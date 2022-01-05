@@ -75,7 +75,11 @@ export class AudienceActivityEventListener {
    * @private
    */
   handleClientEvent_(event) {
-    if (event.eventType && audienceActivityLoggingEvents.has(event.eventType)) {
+    if (
+      this.storage_.get(Constants.USER_TOKEN) &&
+      event.eventType &&
+      audienceActivityLoggingEvents.has(event.eventType)
+    ) {
       const pubId = encodeURIComponent(
         this.deps_.pageConfig().getPublicationId()
       );
@@ -88,7 +92,6 @@ export class AudienceActivityEventListener {
           Constants.USER_TOKEN
       );
       this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
-      // Constants.USER_TOKEN
     }
   }
 
