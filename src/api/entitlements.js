@@ -19,6 +19,9 @@ import {findInArray} from '../utils/object';
 import {getPropertyFromJsonString} from '../utils/json';
 import {warn} from '../utils/log';
 
+/** Source for Google-provided non-metering entitlements. */
+export const GOOGLE_SOURCE = 'google';
+
 /** Source for Google-provided metering entitlements. */
 export const GOOGLE_METERING_SOURCE = 'google:metering';
 
@@ -27,6 +30,9 @@ export const PRIVILEGED_SOURCE = 'privileged';
 
 /** Subscription token for dev mode entitlements. */
 export const DEV_MODE_TOKEN = 'GOOGLE_DEV_MODE_TOKEN';
+
+/** Order ID returned for dev mode entitlements. */
+export const DEV_MODE_ORDER = 'GOOGLE_DEV_MODE_ORDER';
 
 /**
  * The holder of the entitlements for a service.
@@ -110,8 +116,8 @@ export class Entitlements {
     const entitlement = this.getEntitlementForThis();
     return (
       !!entitlement &&
-      entitlement.source !== GOOGLE_METERING_SOURCE &&
-      entitlement.subscriptionToken !== DEV_MODE_TOKEN
+      !this.enablesThisWithGoogleMetering() &&
+      !this.enablesThisWithGoogleDevMode()
     );
   }
 
@@ -125,6 +131,23 @@ export class Entitlements {
   enablesThisWithGoogleMetering() {
     const entitlement = this.getEntitlementForThis();
     return !!entitlement && entitlement.source === GOOGLE_METERING_SOURCE;
+  }
+
+  /**
+   * Returns true if the current article is unlocked by a Google dev mode
+   * entitlement.
+   * @return {boolean}
+   */
+  enablesThisWithGoogleDevMode() {
+    const entitlement = this.getEntitlementForThis();
+    if (!entitlement) {
+      return false;
+    }
+    const isFirstPartyToken =
+      entitlement.source === GOOGLE_SOURCE &&
+      entitlement.subscriptionToken.indexOf(DEV_MODE_ORDER) !== -1;
+    const isThirdPartyToken = entitlement.subscriptionToken === DEV_MODE_TOKEN;
+    return isFirstPartyToken || isThirdPartyToken;
   }
 
   /**

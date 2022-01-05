@@ -68,9 +68,24 @@ describes.realWin('Entitlements', {}, () => {
       expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.true;
     });
 
-    it('returns false for entitlement with a dev mode token', () => {
+    it('returns false for entitlement with a 3p dev mode token', () => {
       entitlements = createEntitlements([
-        new Entitlement('google', [CURRENT_PRODUCT], 'GOOGLE_DEV_MODE_TOKEN'),
+        new Entitlement('pub1', [CURRENT_PRODUCT], 'GOOGLE_DEV_MODE_TOKEN'),
+      ]);
+      expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.false;
+    });
+
+    it('returns false for entitlement with a 1p dev mode token', () => {
+      entitlements = createEntitlements([
+        new Entitlement(
+          'google',
+          [CURRENT_PRODUCT],
+          '{"autoRenewing":false,"orderId":"GOOGLE_DEV_MODE_ORDER",' +
+            '"packageName":"GOOGLE_DEV_MODE_PACKAGE",' +
+            '"productId":"GOOGLE_DEV_MODE_PRODUCT",' +
+            '"purchaseTime":1641340800000,"purchaseState":0,' +
+            '"developerPayload":"","purchaseToken":"{}"}'
+        ),
       ]);
       expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.false;
     });
