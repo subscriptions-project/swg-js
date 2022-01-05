@@ -883,8 +883,6 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         entitlements
       );
     });
-<<<<<<< HEAD
-=======
 
     it('should set up Audience Activity event listener and listen to events on startup when told to', async () => {
       setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, true);
@@ -898,6 +896,5 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
         .be.false;
     });
->>>>>>> a80e9b45 (squashing the changes from the original checkout of the branch)
   });
 });
