@@ -18,7 +18,6 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {XhrFetcher} from './fetcher';
