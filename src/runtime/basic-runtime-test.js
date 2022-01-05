@@ -19,6 +19,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AudienceActivityEventListener} from './audience-activity-listener';
 import {
   AutoPromptType,
   BasicSubscriptions,
@@ -567,6 +568,8 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
     let winMock;
+    let audienceActivityEventListener;
+    let audienceActivityEventListenerMock;
 
     beforeEach(() => {
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
@@ -580,6 +583,13 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         configuredBasicRuntime.configuredClassicRuntime_
       );
       winMock = sandbox.mock(win);
+      audienceActivityEventListener = new AudienceActivityEventListener(
+        configuredBasicRuntime,
+        configuredBasicRuntime.fetcher_
+      );
+      audienceActivityEventListenerMock = sandbox.mock(
+        audienceActivityEventListener
+      );
     });
 
     afterEach(() => {
@@ -873,5 +883,21 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         entitlements
       );
     });
+<<<<<<< HEAD
+=======
+
+    it('should set up Audience Activity event listener and listen to events on startup when told to', async () => {
+      setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, true);
+      expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
+        .be.true;
+      audienceActivityEventListenerMock.expects('start').once();
+    });
+
+    it('should not set up Audience Activity event listener when the experiment is not turned on', async () => {
+      setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, false);
+      expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
+        .be.false;
+    });
+>>>>>>> a80e9b45 (squashing the changes from the original checkout of the branch)
   });
 });
