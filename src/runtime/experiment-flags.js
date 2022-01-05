@@ -66,4 +66,9 @@ export const ExperimentFlags = {
    * entitlements and clientconfiguration endpoints.
    */
   USE_ARTICLE_ENDPOINT: 'use-article-endpoint',
+
+  /**
+   * Experiment flag for logging audience activity.
+   */
+  LOGGING_AUDIENCE_ACTIVITY: 'logging-audience-activity',
 };

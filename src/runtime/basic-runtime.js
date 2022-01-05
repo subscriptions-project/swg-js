@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
@@ -314,6 +315,21 @@ export class ConfiguredBasicRuntime {
           this.configuredClassicRuntime_.getEntitlements()
         : Promise.resolve()
     );
+
+    // Start listening to Audience Activity events.
+    if (
+      isExperimentOn(
+        this.doc_.getWin(),
+        ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY
+      )
+    ) {
+      /** @private @const {!AudienceActivityEventListener} */
+      this.audienceActivityEventListener_ = new AudienceActivityEventListener(
+        this,
+        this.fetcher_
+      );
+      this.audienceActivityEventListener_.start();
+    }
 
     /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(this);
