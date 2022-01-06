@@ -303,13 +303,14 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
     });
 
-    it('throws if article metadata lacks a publisher name', async () => {
+    it('throws if article metadata lacks a publisher name', () => {
       // Remove JSON-LD.
       script.text = '{}';
 
-      await expect(
-        GaaMeteringRegwall.show({iframeUrl: IFRAME_URL})
-      ).rejectedWith(
+      const showingRegwall = () =>
+        GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+
+      expect(showingRegwall).throws(
         'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
       );
     });
