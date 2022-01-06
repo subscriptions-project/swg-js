@@ -162,7 +162,8 @@
           unlockArticle: unlockArticle,
           showPaywall: showPaywall,
           handleLogin: handleLogin,
-          handleSwGEntitlement: handleSwGEntitlement
+          handleSwGEntitlement: handleSwGEntitlement,
+          allowedReferrers: ["example.com","test.com","localhost"]
 
         }
       };
@@ -175,7 +176,7 @@
         // Set up language.
         MeteringDemo.setupLanguage();
 
-        GaaMetering.init(params);
+        GaaMetering.init({});//params);
       });
     </script>
 
@@ -208,7 +209,7 @@
           <div class="hr"></div>
 
           <p class="text">
-            Jelly jujubes marshmallow donut. Wafer cheesecake lollipop fruitcake danish powder. Pudding croissant biscuit icing. Gummi bears fruitcake cake wafer cake cookie caramels marshmallow bonbon.
+            <a href="http://localhost:8000/examples/sample-pub/ea-simplified-api?gaa_at=g&gaa_ts=99999999&gaa_n=n0nc3&gaa_sig=51g">Jelly</a> jujubes marshmallow donut. Wafer cheesecake lollipop fruitcake danish powder. Pudding croissant biscuit icing. Gummi bears fruitcake cake wafer cake cookie caramels marshmallow bonbon.
           </p>
 
           <p class="text">

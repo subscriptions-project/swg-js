@@ -21,6 +21,7 @@ import {
   GOOGLE_SIGN_IN_IFRAME_ID,
   GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
+  GaaMetering,
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
   GaaUtils,
@@ -1281,6 +1282,50 @@ describes.realWin('gaaNotifySignIn', {}, () => {
       stamp: POST_MESSAGE_STAMP,
       command: POST_MESSAGE_COMMAND_USER,
       gaaUser,
+    });
+  });
+});
+
+describes.realWin('GaaMetering', {}, () => {
+  //const allowedOrigins = [location.origin];
+
+  // let clock;
+
+  beforeEach(() => {
+    // Mock clock.
+    // clock = sandbox.useFakeTimers();
+
+    // Mock query string.
+    sandbox.stub(GaaUtils, 'getQueryString');
+    GaaUtils.getQueryString.returns('?lang=en');
+
+    // Mock console.warn method.
+    sandbox.stub(self.console, 'log');
+  });
+
+  afterEach(() => {
+    GaaUtils.getQueryString.restore();
+
+    // Remove the injected style from GaaGoogleSignInButton.show.
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
+
+    self.console.log.restore();
+  });
+
+  describe('init', () => {
+    it('fails for invalid params', () => {
+      expect(GaaMetering.init({})).to.be.false;
+    });
+
+    it('fails with a warning in debug mode for invalid params', () => {
+      location.hash = `#swg.debug=1`;
+      expect(GaaMetering.init({})).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        '[gaa.js:GaaMetering.init]: Invalid params.'
+      );
     });
   });
 });

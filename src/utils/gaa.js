@@ -1357,14 +1357,9 @@ export class GaaMetering {
    * @param {!GaaMeteringParams} params
    */
   static init({params}) {
-    // Validate gaa parameters and referrer
-    if (!GaaMetering.isGaa()) {
-      debugLog('Extended Access - Invalid gaa parameters or referrer.');
-      return false;
-    }
-
     // Validate GaaMetering parameters
-    if (!GaaMetering.validateParameters(params)) {
+    if (!params || !GaaMetering.validateParameters(params)) {
+      debugLog('[gaa.js:GaaMetering.init]: Invalid params.');
       return false;
     }
 
@@ -1381,6 +1376,13 @@ export class GaaMetering {
 
     const registrationEndpoint = params.registrationEndpoint;
     const productId = GaaMetering.getProductIDFromPageConfig_(); //'gtech-demo.appspot.com:basic';
+    const allowedReferrers = params.allowedReferrers;
+
+    // Validate gaa parameters and referrer
+    if (!GaaMetering.isGaa(allowedReferrers)) {
+      debugLog('Extended Access - Invalid gaa parameters or referrer.');
+      return false;
+    }
 
     callSwg((subscriptions) => {
       subscriptions.init(productId);
@@ -1530,7 +1532,7 @@ export class GaaMetering {
   }
 
   // TODO: implement logic which accepts no gaa parameters and publisher's domain as referer
-  static isGaa() {
+  static isGaa(publisherReferrers) {
     // Validate GAA params.
     if (
       !queryStringHasFreshGaaParams(
@@ -1547,14 +1549,17 @@ export class GaaMetering {
       /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
     const referrer = GaaMetering.getAnchorFromUrl(self.document.referrer);
     if (
-      referrer.protocol !== 'https:' ||
-      !GOOGLE_DOMAIN_RE.test(referrer.hostname)
+      //referrer.protocol !== 'https:' ||
+      !GOOGLE_DOMAIN_RE.test(referrer.hostname) &&
+      !publisherReferrers.includes(referrer.hostname)
     ) {
       // Real publications should bail if this referrer check fails.
       // This script is only logging a warning for metering demo purposes.
       debugLog(
         `SwG Entitlements: This page's referrer ("${referrer.origin}") can't grant Google Article Access. Real publications should bail if this referrer check fails.`
       );
+
+      return false;
     }
 
     return true;
