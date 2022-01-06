@@ -1412,6 +1412,77 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         '[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternalDef.'
       );
     });
+
+    it('should use the article endpoint and correct parameters if configured', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      jwtHelperMock = sandbox.mock(manager.jwtHelper_);
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+            source: 'google:metering',
+          },
+        });
+      const article = {
+        entitlements: {
+          signedEntitlements: 'SIGNED_DATA',
+        },
+        clientConfig: {
+          id: 'foo',
+        },
+      };
+      const encodedParams = base64UrlEncodeFromBytes(
+        utf8EncodeSync(
+          '{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[]},"token":"token"}}'
+        )
+      );
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/article?encodedEntitlementsParams=${encodedParams}`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve(JSON.stringify(article)),
+          })
+        );
+      expectGetSwgUserTokenToBeCalled();
+
+      const ents = await manager.getEntitlements({
+        metering: {
+          state: {
+            id: 'u1',
+          },
+        },
+      });
+
+      expect(ents.entitlements).to.deep.equal([
+        {
+          source: 'google:metering',
+          products: ['pub1:label1'],
+          subscriptionToken: 'token1',
+        },
+      ]);
+      expect(ents.raw).to.equal('SIGNED_DATA');
+      expect(await manager.getArticle()).to.deep.equal(
+        article,
+        'getArticle should return the article endpoint response'
+      );
+    });
   });
 
   describe('event listening', () => {

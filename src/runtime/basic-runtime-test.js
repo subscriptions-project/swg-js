@@ -19,6 +19,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AudienceActivityEventListener} from './audience-activity-listener';
 import {
   AutoPromptType,
   BasicSubscriptions,
@@ -30,8 +31,11 @@ import {
   getBasicRuntime,
   installBasicRuntime,
 } from './basic-runtime';
+import {ClientConfigManager} from './client-config-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
+import {EntitlementsManager} from './entitlements-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
@@ -40,6 +44,11 @@ import {Toast} from '../ui/toast';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
+import {
+  isExperimentOn,
+  setExperiment,
+  setExperimentsStringForTesting,
+} from './experiments';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
   let win;
@@ -187,6 +196,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     win = env.win;
     doc = new GlobalDoc(win);
     basicRuntime = new BasicRuntime(win);
+    setExperimentsStringForTesting('');
   });
 
   describe('initialization', () => {
@@ -558,6 +568,8 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
     let winMock;
+    let audienceActivityEventListener;
+    let audienceActivityEventListenerMock;
 
     beforeEach(() => {
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
@@ -571,6 +583,13 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         configuredBasicRuntime.configuredClassicRuntime_
       );
       winMock = sandbox.mock(win);
+      audienceActivityEventListener = new AudienceActivityEventListener(
+        configuredBasicRuntime,
+        configuredBasicRuntime.fetcher_
+      );
+      audienceActivityEventListenerMock = sandbox.mock(
+        audienceActivityEventListener
+      );
     });
 
     afterEach(() => {
@@ -840,6 +859,42 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .once();
       await configuredBasicRuntime.entitlementsResponseHandler(port);
       contributionsFlowMock.verify();
+    });
+
+    it('should pass getEntitlemnts to fetchClientConfig if useArticleEndpoint is enabled', () => {
+      setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT, true);
+      const entitlements = new Entitlements('foo.service');
+      const entitlementsStub = sandbox.stub(
+        EntitlementsManager.prototype,
+        'getEntitlements'
+      );
+      entitlementsStub.returns(Promise.resolve(entitlements));
+      const clientConfigManagerStub = sandbox.stub(
+        ClientConfigManager.prototype,
+        'fetchClientConfig'
+      );
+
+      configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
+
+      expect(isExperimentOn(win, ExperimentFlags.USE_ARTICLE_ENDPOINT)).to.be
+        .true;
+      expect(clientConfigManagerStub).to.be.calledOnce;
+      expect(clientConfigManagerStub.args[0][0]).to.eventually.be.equal(
+        entitlements
+      );
+    });
+
+    it('should set up Audience Activity event listener and listen to events on startup when told to', async () => {
+      setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, true);
+      expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
+        .be.true;
+      audienceActivityEventListenerMock.expects('start').once();
+    });
+
+    it('should not set up Audience Activity event listener when the experiment is not turned on', async () => {
+      setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, false);
+      expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
+        .be.false;
     });
   });
 });
