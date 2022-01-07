@@ -162,6 +162,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
   describe('Communications', () => {
     let iframeCallback;
     let expectOpenIframe;
+    let expectSwgUserToken;
 
     beforeEach(() => {
       iframeCallback = null;
@@ -173,6 +174,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
           }
         });
       expectOpenIframe = false;
+      expectSwgUserToken = false;
     });
     afterEach(async () => {
       // Ensure that analytics service registers a callback to listen for when
@@ -182,7 +184,12 @@ describes.realWin('AnalyticsService', {}, (env) => {
         expect(activityPorts.openIframe).to.have.been.calledOnce;
         const args = activityPorts.openIframe.getCall(0).args;
         expect(args[0].nodeName).to.equal('IFRAME');
-        expect(args[1]).to.equal(feUrl(src));
+        if (expectSwgUserToken) {
+          const urlParams = {sut: 'swgUserToken'};
+          expect(args[1]).to.equal(feUrl(src, urlParams));
+        } else {
+          expect(args[1]).to.equal(feUrl(src));
+        }
         expect(args[2]).to.be.null;
         expect(args[3]).to.be.true;
       }
@@ -191,6 +198,14 @@ describes.realWin('AnalyticsService', {}, (env) => {
     it('should call openIframe after client event', () => {
       analyticsService.handleClientEvent_(event);
       expectOpenIframe = true;
+      expectSwgUserToken = false;
+      return activityIframePort.whenReady();
+    });
+
+    it('should call openIframe with swg user token url param if specified', () => {
+      analyticsService.start('swgUserToken');
+      expectOpenIframe = true;
+      expectSwgUserToken = true;
       return activityIframePort.whenReady();
     });
 
@@ -213,6 +228,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
       // These ensure the right event was communicated.
       expectOpenIframe = true;
+      expectSwgUserToken = false;
       const call1 = activityIframePort.execute.getCall(0);
       const /* {?AnalyticsRequest} */ request1 = call1.args[0];
       expect(request1.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
@@ -283,6 +299,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
         await activityIframePort.whenReady();
 
         expectOpenIframe = true;
+        expectSwgUserToken = false;
         expect(eventsLoggedToService.length).to.equal(0);
       });
 
@@ -303,6 +320,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
         await activityIframePort.whenReady();
 
         expectOpenIframe = true;
+        expectSwgUserToken = false;
         expect(eventsLoggedToService.length).to.equal(1);
       });
     });
