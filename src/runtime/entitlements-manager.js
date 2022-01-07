@@ -59,6 +59,12 @@ const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
  * @typedef {{
  *  entitlements: (../api/entitlements.Entitlements),
  *  clientConfig: (../model/client-config.ClientConfig),
+ *  audienceActions: ({
+ *    actions: Array<{
+ *      type: (string)
+ *    }>,
+ *    engineId: (string)
+ *  })
  * }}
  */
 export let Article;

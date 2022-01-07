@@ -15,6 +15,7 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
+import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {MiniPromptApi} from './mini-prompt-api';
 import {assert} from '../utils/log';
@@ -24,6 +25,23 @@ const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 const STORAGE_DELIMITER = ',';
 const WEEK_IN_MILLIS = 604800000;
 const SECOND_IN_MILLIS = 1000;
+
+/** @const {!Array<!AnalyticsEvent>} */
+const impressionEvents = [
+  AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+  AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
+  AnalyticsEvent.IMPRESSION_OFFERS,
+  AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+  AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+  AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+];
+/** @const {!Array<!AnalyticsEvent>} */
+const dismissEvents = [
+  AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+  AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+  AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+  AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+];
 
 /**
  * Manages the display of subscription/contribution prompts automatically
@@ -104,8 +122,9 @@ export class AutoPromptManager {
     return Promise.all([
       this.clientConfigManager_.getClientConfig(),
       this.entitlementsManager_.getEntitlements(),
+      this.entitlementsManager_.getArticle(),
     ]).then((values) => {
-      this.showAutoPrompt_(values[0], values[1], params);
+      this.showAutoPrompt_(values[0], values[1], values[2], params);
     });
   }
 
@@ -114,6 +133,7 @@ export class AutoPromptManager {
    * configuration, entitlement state, and options specified in params.
    * @param {!../model/client-config.ClientConfig|undefined} clientConfig
    * @param {!../api/entitlements.Entitlements} entitlements
+   * @param {?./entitlements-manager.Article} article
    * @param {{
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
@@ -121,24 +141,30 @@ export class AutoPromptManager {
    * }} params
    * @return {!Promise}
    */
-  showAutoPrompt_(clientConfig, entitlements, params) {
+  showAutoPrompt_(clientConfig, entitlements, article, params) {
     return this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
       params.autoPromptType
     ).then((shouldShowAutoPrompt) => {
+      const promptFn =
+        article?.audienceActions?.actions?.length > 0
+          ? this.audienceActionPrompt_({
+              action: article.audienceActions.actions[0].type,
+              autoPromptType: params.autoPromptType,
+              fallback: params.displayLargePromptFn,
+            })
+          : params.displayLargePromptFn;
+
       if (!shouldShowAutoPrompt) {
-        if (
-          this.shouldShowLockedContentPrompt_(entitlements) &&
-          params.displayLargePromptFn
-        ) {
-          params.displayLargePromptFn();
+        if (this.shouldShowLockedContentPrompt_(entitlements) && promptFn) {
+          promptFn();
         }
         return;
       }
       this.deps_.win().setTimeout(() => {
         this.autoPromptDisplayed_ = true;
-        this.showPrompt_(params.autoPromptType, params.displayLargePromptFn);
+        this.showPrompt_(params.autoPromptType, promptFn);
       }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
     });
   }
@@ -253,6 +279,28 @@ export class AutoPromptManager {
   }
 
   /**
+   * @param {{
+   *  action: (string|undefined),
+   *  autoPromptType: (AutoPromptType|undefined),
+   *  fallback: (function()|undefined)
+   * }} params
+   * @return {!function()}
+   */
+  audienceActionPrompt_({action, autoPromptType, fallback}) {
+    return () => {
+      const params = {
+        action,
+        fallback:
+          autoPromptType === AutoPromptType.SUBSCRIPTION ||
+          autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+            ? fallback
+            : undefined,
+      };
+      new AudienceActionFlow(this.deps_, params).start();
+    };
+  }
+
+  /**
    * Shows the prompt based on the type specified.
    * @param {AutoPromptType|undefined} autoPromptType
    * @param {function()|undefined} displayLargePromptFn
@@ -295,29 +343,19 @@ export class AutoPromptManager {
   handleClientEvent_(event) {
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
-    if (!this.autoPromptDisplayed_ || this.pageConfig_.isLocked()) {
+    if (
+      !this.autoPromptDisplayed_ ||
+      this.pageConfig_.isLocked() ||
+      !event.eventType
+    ) {
       return Promise.resolve();
     }
 
-    if (
-      event.eventType ===
-        AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT ||
-      event.eventType ===
-        AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT ||
-      event.eventType === AnalyticsEvent.IMPRESSION_OFFERS ||
-      event.eventType === AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS
-    ) {
+    if (impressionEvents.includes(event.eventType)) {
       return this.storeEvent_(STORAGE_KEY_IMPRESSIONS);
     }
 
-    if (
-      event.eventType ===
-        AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE ||
-      event.eventType ===
-        AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE ||
-      event.eventType === AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED ||
-      event.eventType === AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED
-    ) {
+    if (dismissEvents.includes(event.eventType)) {
       return this.storeEvent_(STORAGE_KEY_DISMISSALS);
     }
 
