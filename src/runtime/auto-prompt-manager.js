@@ -148,8 +148,8 @@ export class AutoPromptManager {
       params.autoPromptType
     ).then((shouldShowAutoPrompt) => {
       const promptFn =
-        article.audienceActions?.actions?.length > 0
-          ? this.showAudienceActionPrompt_({
+        article?.audienceActions?.actions?.length > 0
+          ? this.audienceActionPrompt_({
               action: article.audienceActions.actions[0].type,
               autoPromptType: params.autoPromptType,
               fallback: params.displayLargePromptFn,
@@ -164,7 +164,7 @@ export class AutoPromptManager {
       }
       this.deps_.win().setTimeout(() => {
         this.autoPromptDisplayed_ = true;
-        this.showPrompt_(params.autoPromptType, params.displayLargePromptFn);
+        this.showPrompt_(params.autoPromptType, promptFn);
       }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
     });
   }
@@ -296,7 +296,6 @@ export class AutoPromptManager {
             ? fallback
             : undefined,
       };
-
       new AudienceActionFlow(this.deps_, params).start();
     };
   }

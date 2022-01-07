@@ -7,7 +7,7 @@ import {PageConfig} from '../model/page-config';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 
-describes.realWin('ContributionsFlow', {}, (env) => {
+describes.realWin('AudienceActionFlow', {}, (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -110,7 +110,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
 
       await audienceActionFlow.start();
       const entitlementsResponse = new EntitlementsResponse();
-      entitlementsResponse.setSwgUserToken('testUserToken');
+      entitlementsResponse.setSwgUserToken(userToken);
       const messageCallback = messageMap[entitlementsResponse.label()];
       messageCallback(entitlementsResponse);
 
