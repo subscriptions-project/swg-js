@@ -43,13 +43,13 @@ export class JwtHelper {
   }
 
   /**
-   * Decodes JWT token and returns its payload, as well as the raw JWT signature.
+   * Decodes JWT token and returns its payload, as well as the header.
    * @param {string} encodedToken
    * @return {?JsonObject|undefined}
    */
-  decodeAndIncludeSignature(encodedToken) {
+  decodeAndIncludeHeader(encodedToken) {
     const token = this.decodeInternal_(encodedToken);
-    return {payload: token.payload, signature: token.header.kid};
+    return {header: token.header, payload: token.payload};
   }
 
   /**

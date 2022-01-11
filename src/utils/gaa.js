@@ -351,13 +351,17 @@ export let GaaUserDef;
 export let GoogleIdentityV1;
 
 /**
- * An object that wraps the raw JWT signature with the GoogleIdentityV1 payload.
+ * An object that wraps the raw JWT Header with the GoogleIdentityV1 payload.
  * @typedef {
- *    signature: string,
+ *    header: {
+ *      alg: string,
+ *      kid: string,
+ *      typ: string,
+ *    },
  *    payload: GoogleIdentityV1,
- * } GoogleIdentityV1WithSignature
+ * } GoogleIdentityV1WithHeader
  */
-export let GoogleIdentityV1WithSignature;
+export let GoogleIdentityV1WithHeader;
 
 /**
  * GoogleUser object that Google Sign-In returns after users sign in.
@@ -900,7 +904,7 @@ export class GaaSignInWithGoogleButton {
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
     const languageCode = queryParams['lang'] || 'en';
-    const includeSignature = false;
+    const includeHeader = false;
 
     // Apply iframe styles.
     const styleEl = self.document.createElement('style');
@@ -994,13 +998,13 @@ export class GaaSignInWithGoogleButton {
       });
     })
       .then((jwt) => {
-        let jwtPayloadMaybeIncludeSignature;
-        if (includeSignature) {
-          jwtPayloadMaybeIncludeSignature =
-            /** @type {!GoogleIdentityV1WithSignature} */
-            new JwtHelper().decodeAndIncludeSignature(jwt.credential);
+        let jwtPayloadMaybeIncludeHeader;
+        if (includeHeader) {
+          jwtPayloadMaybeIncludeHeader =
+            /** @type {!GoogleIdentityV1WithHeader} */
+            new JwtHelper().decodeAndIncludeHeader(jwt.credential);
         } else {
-          jwtPayloadMaybeIncludeSignature = /** @type {!GoogleIdentityV1} */ (
+          jwtPayloadMaybeIncludeHeader = /** @type {!GoogleIdentityV1} */ (
             new JwtHelper().decode(jwt.credential)
           );
         }
@@ -1010,7 +1014,7 @@ export class GaaSignInWithGoogleButton {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
-            jwtPayloadMaybeIncludeSignature,
+            jwtPayloadMaybeIncludeHeader,
           });
         });
       })
