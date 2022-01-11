@@ -122,7 +122,7 @@
 
       function getUserState() {
         // Do client-side checks or make a HTTP call
-        /*&
+        /*
         return Promise.resolve({
           id: 'user1235',
           registrationTimestamp: 1602763054,
@@ -132,8 +132,8 @@
             grantReason: 'SUBSCRIBER'
           }
         });
-        */
         
+        */
         return {
           id: 'user1235',
           registrationTimestamp: 1602763054,
@@ -176,7 +176,7 @@
         // Set up language.
         MeteringDemo.setupLanguage();
 
-        GaaMetering.init({});//params);
+        GaaMetering.init(params);
       });
     </script>
 
