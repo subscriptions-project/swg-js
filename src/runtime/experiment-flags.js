@@ -60,4 +60,15 @@ export const ExperimentFlags = {
    * Experiment flag for guarding changes to fix PayClient redirect flow.
    */
   PAY_CLIENT_REDIRECT: 'pay-client-redirect',
+
+  /**
+   * Directs basic-runtime to use the article endpoint instead of the separate
+   * entitlements and clientconfiguration endpoints.
+   */
+  USE_ARTICLE_ENDPOINT: 'use-article-endpoint',
+
+  /**
+   * Experiment flag for logging audience activity.
+   */
+  LOGGING_AUDIENCE_ACTIVITY: 'logging-audience-activity',
 };

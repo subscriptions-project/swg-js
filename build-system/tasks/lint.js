@@ -18,7 +18,7 @@
 
 const argv = require('minimist')(process.argv.slice(2));
 const config = require('../config');
-const eslint = require('gulp-eslint');
+const eslint = require('../../third_party/gulp-eslint');
 const eslintIfFixed = require('gulp-eslint-if-fixed');
 const fs = require('fs-extra');
 const gulp = require('gulp');
@@ -33,7 +33,6 @@ const {isCiBuild} = require('../ci');
 const isWatching = argv.watch || argv.w || false;
 const options = {
   fix: false,
-  quiet: argv.quiet || false,
 };
 
 const rootDir = path.dirname(path.dirname(__dirname));
@@ -81,7 +80,7 @@ function runLinter(filePath, stream, options) {
   return stream
     .pipe(eslint(options))
     .pipe(
-      eslint.formatEach('stylish', function (msg) {
+      eslint.formatEach(function (msg) {
         logOnSameLine(msg.trim() + '\n');
       })
     )

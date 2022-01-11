@@ -64,7 +64,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     const eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
-    meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
+    meterToastApi = new MeterToastApi(runtime);
     isMobile = true;
     sandbox.stub(meterToastApi, 'isMobile_').returns(isMobile);
     onConsumeCallbackFake = sandbox.fake();
@@ -140,7 +140,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
         iframeArgs
       )
       .returns(Promise.resolve(port));
-    meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
+    meterToastApi = new MeterToastApi(runtime);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
@@ -148,6 +148,73 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
     await meterToastApi.start();
+  });
+
+  it('should start the flow correctly with iframe url', async () => {
+    const meterToastApiWithUrl = new MeterToastApi(runtime, {
+      iframeUrl: '/meteriframe',
+    });
+    callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/meteriframe?_=_',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    await meterToastApiWithUrl.start();
+  });
+
+  it('should start the flow correctly with iframe url params', async () => {
+    const meterToastApiWithParams = new MeterToastApi(runtime, {
+      iframeUrlParams: {publicationId: 'pub1', origin: 'pub1.origin'},
+    });
+    callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=pub1.origin',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    await meterToastApiWithParams.start();
+  });
+
+  it('should start the flow correctly with iframe url and params', async () => {
+    const meterToastApiWithUrlAndParams = new MeterToastApi(runtime, {
+      iframeUrl: '/meteriframe',
+      iframeUrlParams: {publicationId: 'pub1', origin: 'pub1.origin'},
+    });
+    callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/meteriframe?_=_&publicationId=pub1&origin=pub1.origin',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    await meterToastApiWithUrlAndParams.start();
   });
 
   it('should activate native subscribe request', async () => {

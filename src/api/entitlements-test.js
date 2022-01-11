@@ -17,6 +17,8 @@
 import {Entitlement, Entitlements} from './entitlements';
 
 describes.realWin('Entitlements', {}, () => {
+  const CURRENT_PRODUCT = 'testpub:product_id';
+
   let entitlement;
   let entitlements;
 
@@ -36,19 +38,17 @@ describes.realWin('Entitlements', {}, () => {
     });
   });
 
+  function createEntitlements(entitlements) {
+    return new Entitlements(
+      'service1',
+      'RaW',
+      entitlements,
+      CURRENT_PRODUCT,
+      null
+    );
+  }
+
   describe('enablesThisWithCacheableEntitlements', () => {
-    const CURRENT_PRODUCT = 'testpub:product_id';
-
-    function createEntitlements(entitlements) {
-      return new Entitlements(
-        'service1',
-        'RaW',
-        entitlements,
-        CURRENT_PRODUCT,
-        null
-      );
-    }
-
     it('returns false when no entitlement is found for current product', () => {
       entitlements = createEntitlements([]);
       expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.false;
@@ -68,11 +68,55 @@ describes.realWin('Entitlements', {}, () => {
       expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.true;
     });
 
-    it('returns false for entitlement with a dev mode token', () => {
+    it('returns false for entitlement with a 3p dev mode token', () => {
       entitlements = createEntitlements([
-        new Entitlement('google', [CURRENT_PRODUCT], 'GOOGLE_DEV_MODE_TOKEN'),
+        new Entitlement('pub1', [CURRENT_PRODUCT], 'GOOGLE_DEV_MODE_TOKEN'),
       ]);
       expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.false;
+    });
+
+    it('returns false for entitlement with a 1p dev mode token', () => {
+      entitlements = createEntitlements([
+        new Entitlement(
+          'google',
+          [CURRENT_PRODUCT],
+          '{"autoRenewing":false,"orderId":"GOOGLE_DEV_MODE_ORDER",' +
+            '"packageName":"GOOGLE_DEV_MODE_PACKAGE",' +
+            '"productId":"GOOGLE_DEV_MODE_PRODUCT",' +
+            '"purchaseTime":1641340800000,"purchaseState":0,' +
+            '"developerPayload":"","purchaseToken":"{}"}'
+        ),
+      ]);
+      expect(entitlements.enablesThisWithCacheableEntitlements()).to.be.false;
+    });
+  });
+
+  describe('enablesThisWithGoogleDevMode', () => {
+    it('returns false when no entitlement is found for current product', () => {
+      entitlements = createEntitlements([]);
+      expect(entitlements.enablesThisWithGoogleDevMode()).to.be.false;
+    });
+
+    it('returns true for entitlement with a 3p dev mode token', () => {
+      entitlements = createEntitlements([
+        new Entitlement('pub1', [CURRENT_PRODUCT], 'GOOGLE_DEV_MODE_TOKEN'),
+      ]);
+      expect(entitlements.enablesThisWithGoogleDevMode()).to.be.true;
+    });
+
+    it('returns true for entitlement with a 1p dev mode token', () => {
+      entitlements = createEntitlements([
+        new Entitlement(
+          'google',
+          [CURRENT_PRODUCT],
+          '{"autoRenewing":false,"orderId":"GOOGLE_DEV_MODE_ORDER",' +
+            '"packageName":"GOOGLE_DEV_MODE_PACKAGE",' +
+            '"productId":"GOOGLE_DEV_MODE_PRODUCT",' +
+            '"purchaseTime":1641340800000,"purchaseState":0,' +
+            '"developerPayload":"","purchaseToken":"{}"}'
+        ),
+      ]);
+      expect(entitlements.enablesThisWithGoogleDevMode()).to.be.true;
     });
   });
 

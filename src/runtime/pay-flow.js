@@ -401,6 +401,11 @@ export class PayCompleteFlow {
         });
 
         this.readyPromise_ = this.dialogManager_.openView(activityIframeView);
+
+        this.readyPromise_.then(() => {
+          this.deps_.callbacks().triggerPayConfirmOpened(activityIframeView);
+        });
+
         return activityIframeView;
       }));
   }

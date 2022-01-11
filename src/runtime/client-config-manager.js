@@ -28,11 +28,15 @@ import {warn} from '../utils/log';
  */
 export class ClientConfigManager {
   /**
+   * @param {!./deps.DepsDef} deps
    * @param {string} publicationId
    * @param {!./fetcher.Fetcher} fetcher
    * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
-  constructor(publicationId, fetcher, clientOptions) {
+  constructor(deps, publicationId, fetcher, clientOptions) {
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+
     /** @private @const {!../api/basic-subscriptions.ClientOptions} */
     this.clientOptions_ = clientOptions || {};
 
@@ -48,14 +52,17 @@ export class ClientConfigManager {
 
   /**
    * Fetches the client config from the server.
+   * @param {Promise<void>=} readyPromise optional promise to wait on before
+   * attempting to fetch the clientConfiguration.
    * @return {!Promise<!ClientConfig>}
    */
-  fetchClientConfig() {
+  fetchClientConfig(readyPromise) {
     if (!this.publicationId_) {
       throw new Error('fetchClientConfig requires publicationId');
     }
     if (!this.responsePromise_) {
-      this.responsePromise_ = this.fetch_();
+      readyPromise = readyPromise || Promise.resolve();
+      this.responsePromise_ = readyPromise.then(() => this.fetch_());
     }
     return this.responsePromise_;
   }
@@ -144,19 +151,30 @@ export class ClientConfigManager {
    * @return {!Promise<!ClientConfig>}
    */
   fetch_() {
-    const url = serviceUrl(
-      '/publication/' +
-        encodeURIComponent(this.publicationId_) +
-        '/clientconfiguration'
-    );
-    return this.fetcher_.fetchCredentialedJson(url).then((json) => {
-      if (json.errorMessages && json.errorMessages.length > 0) {
-        json.errorMessages.forEach((errorMessage) => {
-          warn('SwG ClientConfigManager: ' + errorMessage);
-        });
-      }
-      return this.parseClientConfig_(json);
-    });
+    return this.deps_
+      .entitlementsManager()
+      .getArticle()
+      .then((article) => {
+        if (article) {
+          return this.parseClientConfig_(article['clientConfig']);
+        } else {
+          // If there was no article from the entitlement manager, we need
+          // to fetch our own using the internal version.
+          const url = serviceUrl(
+            '/publication/' +
+              encodeURIComponent(this.publicationId_) +
+              '/clientconfiguration'
+          );
+          return this.fetcher_.fetchCredentialedJson(url).then((json) => {
+            if (json.errorMessages && json.errorMessages.length > 0) {
+              for (const errorMessage of json.errorMessages) {
+                warn('SwG ClientConfigManager: ' + errorMessage);
+              }
+            }
+            return this.parseClientConfig_(json);
+          });
+        }
+      });
   }
 
   /**

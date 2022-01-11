@@ -191,11 +191,11 @@ export class AnalyticsService {
   addLabels(labels) {
     if (labels && labels.length > 0) {
       const newLabels = [].concat(this.context_.getLabelList());
-      labels.forEach((label) => {
+      for (const label of labels) {
         if (newLabels.indexOf(label) == -1) {
           newLabels.push(label);
         }
-      });
+      }
       this.context_.setLabelList(newLabels);
     }
   }
@@ -259,16 +259,23 @@ export class AnalyticsService {
   }
 
   /**
+   * @param {?string=} swgUserToken
    * @return {!Promise<!../components/activities.ActivityIframePort>}
    */
-  start() {
+  start(swgUserToken = '') {
     if (!this.serviceReady_) {
       // Please note that currently openIframe reads the current analytics
       // context and that it may not contain experiments activated late during
       // the publishers code lifecycle.
       this.addLabels(getOnExperiments(this.doc_.getWin()));
+      const urlParams = swgUserToken ? {sut: swgUserToken} : {};
       this.serviceReady_ = this.activityPorts_
-        .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
+        .openIframe(
+          this.iframe_,
+          feUrl('/serviceiframe', urlParams),
+          null,
+          true
+        )
         .then(
           (port) => {
             // Register a listener for the logging to code indicate it is

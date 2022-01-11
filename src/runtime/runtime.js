@@ -138,7 +138,9 @@ export function installRuntime(win) {
     win[RUNTIME_PROP],
     win[RUNTIME_LEGACY_PROP]
   );
-  waitingCallbacks.forEach(callWhenRuntimeIsReady);
+  for (const waitingCallback of waitingCallbacks) {
+    callWhenRuntimeIsReady(waitingCallback);
+  }
 
   // If any more callbacks are `push`ed to the global SwG variables,
   // they'll be queued up to receive the SwG runtime when it's ready.
@@ -543,6 +545,7 @@ export class ConfiguredRuntime {
    *     fetcher: (!Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
    *     enableGoogleAnalytics: (boolean|undefined),
+   *     useArticleEndpoint: (boolean|undefined)
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    * @param {!{
@@ -631,11 +634,13 @@ export class ConfiguredRuntime {
       this.win_,
       this.pageConfig_,
       this.fetcher_,
-      this // See note about 'this' above
+      this, // See note about 'this' above
+      integr.useArticleEndpoint || false
     );
 
     /** @private @const {!ClientConfigManager} */
     this.clientConfigManager_ = new ClientConfigManager(
+      this, // See note about 'this' above
       pageConfig.getPublicationId(),
       this.fetcher_,
       clientOptions
@@ -757,44 +762,52 @@ export class ConfiguredRuntime {
   configure_(config) {
     // Validate first.
     let error = '';
-    for (const k in config) {
-      const v = config[k];
-      switch (k) {
+    for (const key in config) {
+      const value = config[key];
+      switch (key) {
         case 'windowOpenMode':
-          if (v != WindowOpenMode.AUTO && v != WindowOpenMode.REDIRECT) {
-            error = 'Unknown windowOpenMode: ' + v;
+          if (
+            value != WindowOpenMode.AUTO &&
+            value != WindowOpenMode.REDIRECT
+          ) {
+            error = 'Unknown windowOpenMode: ' + value;
           }
           break;
         case 'experiments':
-          v.forEach((experiment) => setExperiment(this.win_, experiment, true));
+          for (const experiment of value) {
+            setExperiment(this.win_, experiment, true);
+          }
           if (this.analytics()) {
             // If analytics service isn't set up yet, then it will get the
             // experiments later.
-            this.analytics().addLabels(v);
+            this.analytics().addLabels(value);
           }
           break;
         case 'analyticsMode':
-          if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
-            error = 'Unknown analytics mode: ' + v;
+          if (
+            value != AnalyticsMode.DEFAULT &&
+            value != AnalyticsMode.IMPRESSIONS
+          ) {
+            error = 'Unknown analytics mode: ' + value;
           }
           break;
         case 'enableSwgAnalytics':
-          if (!isBoolean(v)) {
-            error = 'Unknown enableSwgAnalytics value: ' + v;
+          if (!isBoolean(value)) {
+            error = 'Unknown enableSwgAnalytics value: ' + value;
           }
           break;
         case 'enablePropensity':
-          if (!isBoolean(v)) {
-            error = 'Unknown enablePropensity value: ' + v;
+          if (!isBoolean(value)) {
+            error = 'Unknown enablePropensity value: ' + value;
           }
           break;
         case 'skipAccountCreationScreen':
-          if (!isBoolean(v)) {
-            error = 'Unknown skipAccountCreationScreen value: ' + v;
+          if (!isBoolean(value)) {
+            error = 'Unknown skipAccountCreationScreen value: ' + value;
           }
           break;
         default:
-          error = 'Unknown config property: ' + k;
+          error = 'Unknown config property: ' + key;
       }
     }
     // Throw error string if it's not null

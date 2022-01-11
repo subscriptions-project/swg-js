@@ -15,8 +15,6 @@
  */
 'use strict';
 
-const astUtils = require('eslint/lib/rules/utils/ast-utils');
-
 const GLOBALS = Object.create(null);
 GLOBALS.window = 'Use `self` instead.';
 GLOBALS.document = 'Reference it as `self.document` or similar instead.';
@@ -39,10 +37,7 @@ module.exports = function (context) {
         return;
       }
 
-      const variable = astUtils.getVariableByName(
-        context.getScope(),
-        node.name
-      );
+      const variable = getVariableByName(context.getScope(), node.name);
       if (variable.defs.length > 0) {
         return;
       }
@@ -55,3 +50,25 @@ module.exports = function (context) {
     },
   };
 };
+
+/**
+ * Finds the variable by a given name in a given scope and its upper scopes.
+ * @param {eslint-scope.Scope} initScope A scope to start find.
+ * @param {string} name A variable name to find.
+ * @returns {eslint-scope.Variable|null} A found variable or `null`.
+ */
+function getVariableByName(initScope, name) {
+  let scope = initScope;
+
+  while (scope) {
+    const variable = scope.set.get(name);
+
+    if (variable) {
+      return variable;
+    }
+
+    scope = scope.upper;
+  }
+
+  return null;
+}
