@@ -351,6 +351,15 @@ export let GaaUserDef;
 export let GoogleIdentityV1;
 
 /**
+ * An object that wraps the raw JWT signature with the GoogleIdentityV1 payload.
+ * @typedef {
+ *    signature: string,
+ *    payload: GoogleIdentityV1,
+ * } GoogleIdentityV1WithSignature
+ */
+export let GoogleIdentityV1WithSignature;
+
+/**
  * GoogleUser object that Google Sign-In returns after users sign in.
  * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
@@ -894,6 +903,7 @@ export class GaaSignInWithGoogleButton {
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
     const languageCode = queryParams['lang'] || 'en';
+    const includeSignature = false;
 
     // Apply iframe styles.
     const styleEl = self.document.createElement('style');
@@ -987,16 +997,23 @@ export class GaaSignInWithGoogleButton {
       });
     })
       .then((jwt) => {
-        const jwtPayload = /** @type {!GoogleIdentityV1} */ (
-          new JwtHelper().decode(jwt.credential)
-        );
+        let jwtPayloadMaybeIncludeSignature;
+        if (includeSignature) {
+          jwtPayloadMaybeIncludeSignature =
+            /** @type {!GoogleIdentityV1WithSignature} */
+            new JwtHelper().decodeAndIncludeSignature(jwt.credential);
+        } else {
+          jwtPayloadMaybeIncludeSignature = /** @type {!GoogleIdentityV1} */ (
+            new JwtHelper().decode(jwt.credential)
+          );
+        }
 
         // Send GAA user to parent frame.
         sendMessageToParentFnPromise.then((sendMessageToParent) => {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
-            jwtPayload,
+            jwtPayloadMaybeIncludeSignature,
           });
         });
       })

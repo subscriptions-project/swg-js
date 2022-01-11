@@ -43,6 +43,16 @@ export class JwtHelper {
   }
 
   /**
+   * Decodes JWT token and returns its payload, as well as the raw JWT signature.
+   * @param {string} encodedToken
+   * @return {?JsonObject|undefined}
+   */
+  decodeAndIncludeSignature(encodedToken) {
+    const token = this.decodeInternal_(encodedToken);
+    return {payload: token.payload, signature: token.header.kid};
+  }
+
+  /**
    * @param {string} encodedToken
    * @return {!JwtTokenInternalDef}
    * @private
