@@ -25,15 +25,21 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {
+  AlreadySubscribedResponse,
+  EntitlementsResponse,
+} from '../proto/api_messages';
+import {AutoPromptType} from '../api/basic-subscriptions';
 import {Constants} from '../utils/constants';
-import {EntitlementsResponse} from '../proto/api_messages';
+import {ProductType} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
 import {parseUrl} from '../utils/url';
 
 /**
  * @typedef {{
  *  action: (string|undefined),
- *  fallback: (function()|undefined)
+ *  fallback: (function()|undefined),
+ *  autoPromptType: {!AutoPromptType}
  * }}
  */
 export let AudienceActionParams;
@@ -41,6 +47,13 @@ export let AudienceActionParams;
 const actionToIframeMapping = {
   'TYPE_REGISTRATION_WALL': '/regwalliframe',
   'TYPE_NEWSLETTER_SIGNUP': '/newsletteriframe',
+};
+
+const autopromptTypeToProductTypeMapping = {
+  [AutoPromptType.SUBSCRIPTION]: ProductType.SUBSCRIPTION,
+  [AutoPromptType.SUBSCRIPTION_LARGE]: ProductType.SUBSCRIPTION,
+  [AutoPromptType.CONTRIBUTION]: ProductType.UI_CONTRIBUTION,
+  [AutoPromptType.CONTRIBUTION_LARGE]: ProductType.UI_CONTRIBUTION,
 };
 
 /**
@@ -71,7 +84,8 @@ export class AudienceActionFlow {
       this.getUrl_(deps.pageConfig(), deps.win()),
       feArgs({
         'supportsEventManager': true,
-        'isClosable': true,
+        'productType':
+          autopromptTypeToProductTypeMapping[params.autoPromptType],
       }),
       /* shouldFadeBody */ true
     );
@@ -90,6 +104,11 @@ export class AudienceActionFlow {
     this.activityIframeView_.on(
       EntitlementsResponse,
       this.handleEntitlementsResponse_.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
     );
 
     const {fallback} = this.params_;
@@ -137,5 +156,24 @@ export class AudienceActionFlow {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
     this.entitlementsManager_.getEntitlements();
+  }
+
+  /**
+   * @param {AlreadySubscribedResponse} response
+   * @private
+   */
+  handleLinkRequest_(response) {
+    if (response.getSubscriberOrMember()) {
+      this.deps_.callbacks().triggerLoginRequest();
+    }
+  }
+
+  /**
+   * Shows the toast of 'no entitlement found' on activity iFrame view.
+   */
+  showNoEntitlementFoundToast() {
+    if (this.activityIframeView_) {
+      this.activityIframeView_.execute(new EntitlementsResponse());
+    }
   }
 }

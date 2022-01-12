@@ -15,11 +15,16 @@
  */
 
 import {ActivityPort} from '../components/activities';
+import {
+  AlreadySubscribedResponse,
+  EntitlementsResponse,
+} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
+import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
-import {EntitlementsResponse} from '../proto/api_messages';
 import {PageConfig} from '../model/page-config';
+import {ProductType} from '../api/subscriptions';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 
@@ -31,6 +36,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let storageMock;
   let pageConfig;
   let port;
+  let messageCallback;
   let messageMap;
   let fallbackSpy;
 
@@ -66,6 +72,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
         fallback: fallbackSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
       activitiesMock
         .expects('openIframe')
@@ -76,7 +83,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           )}`,
           {
             _client: 'SwG $internalRuntimeVersion$',
-            isClosable: true,
+            productType: ProductType.SUBSCRIPTION,
             supportsEventManager: true,
           }
         )
@@ -133,5 +140,45 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       entitlementsManagerMock.verify();
       storageMock.verify();
     });
+  });
+
+  it('should trigger login flow for a registered user', async () => {
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      fallback: fallbackSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+    const response = new AlreadySubscribedResponse();
+    response.setSubscriberOrMember(true);
+    messageCallback = messageMap['AlreadySubscribedResponse'];
+    messageCallback(response);
+    expect(loginStub).to.be.calledOnce.calledWithExactly();
+  });
+
+  it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      fallback: fallbackSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(new EntitlementsResponse())
+      .once();
+
+    await audienceActionFlow.showNoEntitlementFoundToast();
+
+    activityIframeViewMock.verify();
   });
 });
