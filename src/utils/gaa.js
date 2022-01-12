@@ -351,19 +351,6 @@ export let GaaUserDef;
 export let GoogleIdentityV1;
 
 /**
- * An object that wraps the raw JWT Header with the GoogleIdentityV1 payload.
- * @typedef {
- *    header: {
- *      alg: string,
- *      kid: string,
- *      typ: string,
- *    },
- *    payload: GoogleIdentityV1,
- * } GoogleIdentityV1WithHeader
- */
-export let GoogleIdentityV1WithHeader;
-
-/**
  * GoogleUser object that Google Sign-In returns after users sign in.
  * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
@@ -705,7 +692,7 @@ export class GaaMeteringRegwall {
         if (e.data.stamp === POST_MESSAGE_STAMP) {
           if (e.data.command === POST_MESSAGE_COMMAND_USER) {
             // Pass along user details.
-            resolve(e.data.gaaUser || e.data.jwtPayload);
+            resolve(e.data.gaaUser || e.data.returnedJwt);
           }
 
           if (e.data.command === POST_MESSAGE_COMMAND_ERROR) {
@@ -904,7 +891,7 @@ export class GaaSignInWithGoogleButton {
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
     const languageCode = queryParams['lang'] || 'en';
-    const includeHeader = false;
+    const rawJwt = false;
 
     // Apply iframe styles.
     const styleEl = self.document.createElement('style');
@@ -998,13 +985,9 @@ export class GaaSignInWithGoogleButton {
       });
     })
       .then((jwt) => {
-        let jwtPayloadMaybeIncludeHeader;
-        if (includeHeader) {
-          jwtPayloadMaybeIncludeHeader =
-            /** @type {!GoogleIdentityV1WithHeader} */
-            new JwtHelper().decodeAndIncludeHeader(jwt.credential);
-        } else {
-          jwtPayloadMaybeIncludeHeader = /** @type {!GoogleIdentityV1} */ (
+        let returnedJwt = jwt;
+        if (!rawJwt) {
+          returnedJwt = /** @type {!GoogleIdentityV1} */ (
             new JwtHelper().decode(jwt.credential)
           );
         }
@@ -1014,7 +997,7 @@ export class GaaSignInWithGoogleButton {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
-            jwtPayloadMaybeIncludeHeader,
+            returnedJwt,
           });
         });
       })

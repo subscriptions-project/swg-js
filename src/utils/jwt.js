@@ -43,16 +43,6 @@ export class JwtHelper {
   }
 
   /**
-   * Decodes JWT token and returns its payload, as well as the header.
-   * @param {string} encodedToken
-   * @return {?JsonObject|undefined}
-   */
-  decodeAndIncludeHeader(encodedToken) {
-    const token = this.decodeInternal_(encodedToken);
-    return {header: token.header, payload: token.payload};
-  }
-
-  /**
    * @param {string} encodedToken
    * @return {!JwtTokenInternalDef}
    * @private
