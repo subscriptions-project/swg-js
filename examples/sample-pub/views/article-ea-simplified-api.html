@@ -116,24 +116,11 @@
       
       function handleSwGEntitlement() {
         console.log('handle swg entitlement');
-        //entitlements.ack(); //TODO: check what we need to do here
         unlockArticle();
       }
 
       function getUserState() {
-        // Do client-side checks or make a HTTP call
         /*
-        return Promise.resolve({
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-          subscriptionTimestamp: 1602763094,
-          publisherEntitlement: {
-            granted: true,
-            grantReason: 'SUBSCRIBER'
-          }
-        });
-        
-        */
         return {
           id: 'user1235',
           registrationTimestamp: 1602763054,
@@ -142,41 +129,34 @@
             granted: false,
           }
         };
-        
-       /* ANONYMOUS
+        // */
+       /* ANONYMOUS */
         return {
           publisherEntitlement: {
             granted: false
           }
         };
-        */
-      }
-
-      const params = {
-        params: {
-          productId: 'examplenews.com:showcase', //(optional override for publishers, otherwise take from markup)
-          signInWithGoogleIframeUrl: MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL, //TODO
-          googleSignInClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
-          registrationEndpoint: 'https://www.examplenews.com/api/registration',
-          userState: getUserState(),
-          unlockArticle: unlockArticle,
-          showPaywall: showPaywall,
-          handleLogin: handleLogin,
-          handleSwGEntitlement: handleSwGEntitlement,
-          allowedReferrers: ["example.com","test.com","localhost"]
-
-        }
+        // */
       };
         
       (self.SWG = self.SWG || []).push(function (subscriptions) {
-        // Forget any subscriptions, for metering demo purposes.
-        // subscriptions.clear();
         // Set up metering demo controls.
         MeteringDemo.setupControls();
         // Set up language.
         MeteringDemo.setupLanguage();
 
-        GaaMetering.init(params);
+        GaaMetering.init({
+          params: {
+          productId: 'examplenews.com:showcase', // (optional override for publishers, otherwise take from markup)
+          googleSignInClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+          registrationEndpoint: 'https://www.examplenews.com/api/registration', // promise from partner
+          userState: getUserState(),
+          unlockArticle: unlockArticle,
+          showPaywall: showPaywall,
+          handleLogin: handleLogin,
+          handleSwGEntitlement: handleSwGEntitlement,
+          allowedReferrers: ["example.com","test.com","localhost"],
+        }});
       });
     </script>
 
