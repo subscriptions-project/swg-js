@@ -39,7 +39,7 @@ import {parseUrl} from '../utils/url';
  * @typedef {{
  *  action: (string|undefined),
  *  fallback: (function()|undefined),
- *  autoPromptType: {!AutoPromptType}
+ *  autoPromptType: (AutoPromptType|undefined)
  * }}
  */
 export let AudienceActionParams;
@@ -55,6 +55,8 @@ const autopromptTypeToProductTypeMapping = {
   [AutoPromptType.CONTRIBUTION]: ProductType.UI_CONTRIBUTION,
   [AutoPromptType.CONTRIBUTION_LARGE]: ProductType.UI_CONTRIBUTION,
 };
+
+const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
 /**
  * The flow to initiate and manage handling an audience action.
@@ -84,8 +86,9 @@ export class AudienceActionFlow {
       this.getUrl_(deps.pageConfig(), deps.win()),
       feArgs({
         'supportsEventManager': true,
-        'productType':
-          autopromptTypeToProductTypeMapping[params.autoPromptType],
+        'productType': params.autoPromptType
+          ? autopromptTypeToProductTypeMapping[params.autoPromptType]
+          : DEFAULT_PRODUCT_TYPE,
       }),
       /* shouldFadeBody */ true
     );
@@ -164,7 +167,7 @@ export class AudienceActionFlow {
    */
   handleLinkRequest_(response) {
     if (response.getSubscriberOrMember()) {
-      this.deps_.callbacks().triggerLoginRequest();
+      this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
   }
 

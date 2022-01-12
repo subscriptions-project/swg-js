@@ -156,7 +156,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     response.setSubscriberOrMember(true);
     messageCallback = messageMap['AlreadySubscribedResponse'];
     messageCallback(response);
-    expect(loginStub).to.be.calledOnce.calledWithExactly();
+    expect(loginStub).to.be.calledOnce.calledWithExactly({
+      linkRequested: false,
+    });
   });
 
   it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
