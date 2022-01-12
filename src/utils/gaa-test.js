@@ -1006,7 +1006,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       expect(self.postMessage).to.be.calledWithExactly(
         {
           command: POST_MESSAGE_COMMAND_USER,
-          jwtPayload: jwt.credential,
+          returnedJwt: jwt.credential,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin
