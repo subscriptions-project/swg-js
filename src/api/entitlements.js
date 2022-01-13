@@ -123,9 +123,11 @@ export class Entitlements {
 
   /**
    * Returns true if the current article is unlocked by a
-   * Google metering entitlement. These entitlements come
+   * Google metering entitlement. These entitlements may come
    * from Google News Intiative's licensing program to support news.
    * https://www.blog.google/outreach-initiatives/google-news-initiative/licensing-program-support-news-industry-/
+   * They may also come from Google's Subscribe With Google Metering
+   * functionality.
    * @return {boolean}
    */
   enablesThisWithGoogleMetering() {
