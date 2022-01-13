@@ -48,6 +48,11 @@ export class ClientConfigManager {
 
     /** @private {?Promise<!ClientConfig>} */
     this.responsePromise_ = null;
+
+    /** @private @const {ClientConfig} */
+    this.defaultConfig_ = new ClientConfig({
+      skipAccrountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
+    });
   }
 
   /**
@@ -73,7 +78,7 @@ export class ClientConfigManager {
    * @return {!Promise<!ClientConfig>}
    */
   getClientConfig() {
-    return this.responsePromise_ || Promise.resolve(new ClientConfig());
+    return this.responsePromise_ || Promise.resolve(this.defaultConfig_);
   }
 
   /**
