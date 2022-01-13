@@ -16,7 +16,7 @@
 /**
  * @interface
  */
-class Message {
+ class Message {
   /**
    * @return {string}
    */
@@ -843,7 +843,7 @@ class AudienceActivityClientLogsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-      this.event_,  // field 1 - event
+        this.event_, // field 1 - event
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -857,6 +857,95 @@ class AudienceActivityClientLogsRequest {
    */
   label() {
     return 'AudienceActivityClientLogsRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class CompleteAudienceActionResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.swgUserToken_ = data[base] == null ? null : data[base];
+
+    /** @private {?boolean} */
+    this.actionCompleted_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?string} */
+    this.userEmail_ = data[2 + base] == null ? null : data[2 + base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getSwgUserToken() {
+    return this.swgUserToken_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setSwgUserToken(value) {
+    this.swgUserToken_ = value;
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getActionCompleted() {
+    return this.actionCompleted_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setActionCompleted(value) {
+    this.actionCompleted_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getUserEmail() {
+    return this.userEmail_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setUserEmail(value) {
+    this.userEmail_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.swgUserToken_, // field 1 - swg_user_token
+        this.actionCompleted_, // field 2 - action_completed
+        this.userEmail_, // field 3 - user_email
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'CompleteAudienceActionResponse';
   }
 }
 
@@ -2012,6 +2101,7 @@ const PROTO_MAP = {
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
   'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
+  'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
@@ -2065,6 +2155,7 @@ export {
   AnalyticsEventMeta,
   AnalyticsRequest,
   AudienceActivityClientLogsRequest,
+  CompleteAudienceActionResponse,
   EntitlementJwt,
   EntitlementResult,
   EntitlementSource,
