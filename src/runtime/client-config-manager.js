@@ -51,8 +51,8 @@ export class ClientConfigManager {
 
     /** @private @const {ClientConfig} */
     this.defaultConfig_ = new ClientConfig({
-      skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen
-     });
+      skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
+    });
   }
 
   /**
