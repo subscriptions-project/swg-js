@@ -142,10 +142,12 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         });
 
       await audienceActionFlow.start();
-      const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+      const completeAudienceActionResponse =
+        new CompleteAudienceActionResponse();
       completeAudienceActionResponse.setActionCompleted(true);
       completeAudienceActionResponse.setSwgUserToken(userToken);
-      const messageCallback = messageMap[completeAudienceActionResponse.label()];
+      const messageCallback =
+        messageMap[completeAudienceActionResponse.label()];
       messageCallback(completeAudienceActionResponse);
 
       entitlementsManagerMock.verify();
@@ -157,8 +159,14 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   });
 
   [
-    {action: 'TYPE_REGISTRATION_WALL', toastMessage: 'You have registered before.'},
-    {action: 'TYPE_NEWSLETTER_SIGNUP', toastMessage: 'You have signed up before.'},
+    {
+      action: 'TYPE_REGISTRATION_WALL',
+      toastMessage: 'You have registered before.',
+    },
+    {
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+      toastMessage: 'You have signed up before.',
+    },
   ].forEach(({action, toastMessage}) => {
     it('correctly handles a CompleteAudienceActionResponse with action not completed when returned from the flow', async () => {
       const audienceActionFlow = new AudienceActionFlow(runtime, {
@@ -182,10 +190,12 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         });
 
       await audienceActionFlow.start();
-      const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+      const completeAudienceActionResponse =
+        new CompleteAudienceActionResponse();
       completeAudienceActionResponse.setActionCompleted(false);
       completeAudienceActionResponse.setSwgUserToken('fake user token');
-      const messageCallback = messageMap[completeAudienceActionResponse.label()];
+      const messageCallback =
+        messageMap[completeAudienceActionResponse.label()];
       messageCallback(completeAudienceActionResponse);
 
       entitlementsManagerMock.verify();
