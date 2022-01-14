@@ -220,6 +220,7 @@ export class AudienceActionFlow {
 
   /**
    * Shows the toast of 'no entitlement found' on activity iFrame view.
+   * @public
    */
   showNoEntitlementFoundToast() {
     if (this.activityIframeView_) {
