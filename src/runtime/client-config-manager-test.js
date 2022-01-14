@@ -52,11 +52,11 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should include skipAccountCreation override if specified', async () => {
     clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
-      skipAccrountCretionScreen: true,
+      skipAccountCreationScreen: true,
     });
     const clientConfig = await clientConfigManager.getClientConfig();
     expect(clientConfig).to.deep.equal(
-      new ClientConfig({skipAccrountCretionScreen: true})
+      new ClientConfig({skipAccountCreationScreen: true})
     );
   });
 
@@ -82,7 +82,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('fetchClientConfig should include skipAccountCreationScreen override', async () => {
     clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
-      skipAccrountCretionScreen: true,
+      skipAccountCreationScreen: true,
     });
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
@@ -96,7 +96,7 @@ describes.realWin('ClientConfigManager', {}, () => {
     const expectedAutoPromptConfig = new AutoPromptConfig(1);
     const expectedClientConfig = new ClientConfig({
       autoPromptConfig: expectedAutoPromptConfig,
-      skipAccrountCretionScreen: true,
+      skipAccountCreationScreen: true,
     });
     expect(clientConfig).to.deep.equal(expectedClientConfig);
 
