@@ -191,7 +191,7 @@ export class AudienceActionFlow {
     if (this.params_.action === 'TYPE_REGISTRATION_WALL') {
       customText = msg(
         SWG_I18N_STRINGS.REGWALL_REGISTERED_BEFORE_LANG_MAP,
-        'lang'
+        lang
       );
     } else if (this.params_.action === 'TYPE_NEWSLETTER_SIGNUP') {
       customText = msg(
