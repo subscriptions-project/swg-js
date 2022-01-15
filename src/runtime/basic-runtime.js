@@ -492,8 +492,8 @@ export class ConfiguredBasicRuntime {
           })
         ).open();
       } else {
-        // If no entitlements are returned, subscription/contribution offers iframe will show
-        // a toast with label "no subscription/contribution found"
+        // If no entitlements are returned, subscription/contribution offers or audience
+        // action iframe will show a toast with label "no subscription/contribution found"
         const lastOffersFlow =
           this.configuredClassicRuntime_.getLastOffersFlow();
         if (lastOffersFlow) {
@@ -505,6 +505,13 @@ export class ConfiguredBasicRuntime {
           this.configuredClassicRuntime_.getLastContributionsFlow();
         if (lastContributionsFlow) {
           lastContributionsFlow.showNoEntitlementFoundToast();
+          return;
+        }
+
+        const lastAudienceActionFlow =
+          this.autoPromptManager_.getLastAudienceActionFlow();
+        if (lastAudienceActionFlow) {
+          lastAudienceActionFlow.showNoEntitlementFoundToast();
           return;
         }
       }

@@ -83,6 +83,9 @@ export class AutoPromptManager {
 
     /** @private {boolean} */
     this.autoPromptDisplayed_ = false;
+
+    /** @private {?AudienceActionFlow} */
+    this.lastAudienceActionFlow_ = null;
   }
 
   /**
@@ -297,9 +300,22 @@ export class AutoPromptManager {
           autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
             ? fallback
             : undefined,
+        autoPromptType,
       };
-      new AudienceActionFlow(this.deps_, params).start();
+      const lastAudienceActionFlow = new AudienceActionFlow(this.deps_, params);
+      this.setLastAudienceActionFlow(lastAudienceActionFlow);
+      lastAudienceActionFlow.start();
     };
+  }
+
+  /** @param {!AudienceActionFlow} flow */
+  setLastAudienceActionFlow(flow) {
+    this.lastAudienceActionFlow_ = flow;
+  }
+
+  /** @return {?AudienceActionFlow} */
+  getLastAudienceActionFlow() {
+    return this.lastAudienceActionFlow_;
   }
 
   /**
