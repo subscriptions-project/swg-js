@@ -789,6 +789,17 @@ export class EntitlementsManager {
           url = addQueryParam(url, 'sut', swgUserToken);
         }
 
+        /** @type {!GetEntitlementsParamsInternalDef} */
+        const encodableParams = {
+          metering: {
+            clientTypes: [MeterClientTypes.METERED_BY_GOOGLE],
+            owner: this.publicationId_,
+            resource: {
+              hashedCanonicalUrl,
+            },
+          },
+        };
+
         // Add metering params.
         if (
           this.publicationId_ &&
@@ -800,22 +811,15 @@ export class EntitlementsManager {
             typeof meteringStateId === 'string' &&
             meteringStateId.length > 0
           ) {
-            /** @type {!GetEntitlementsParamsInternalDef} */
-            const encodableParams = {
-              metering: {
-                clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
-                owner: this.publicationId_,
-                resource: {
-                  hashedCanonicalUrl,
-                },
-                // Publisher provided state.
-                state: {
-                  id: meteringStateId,
-                  attributes: [],
-                },
-                token: this.getGaaToken_(),
-              },
+            // Add publisher provided state and additional fields.
+            encodableParams.metering.state = {
+              id: meteringStateId,
+              attributes: [],
             };
+            encodableParams.metering.clientTypes.push(
+              MeterClientTypes.LICENSED_BY_GOOGLE
+            );
+            encodableParams.metering.token = this.getGaaToken_();
 
             // Collect attributes.
             function collectAttributes({attributes, category}) {
@@ -852,22 +856,18 @@ export class EntitlementsManager {
               attributes: params.metering.state.customAttributes,
               category: 'custom',
             });
-
-            // Encode params.
-            this.encodedParams_ = base64UrlEncodeFromBytes(
-              utf8EncodeSync(JSON.stringify(encodableParams))
-            );
-            url = addQueryParam(
-              url,
-              this.encodedParamName_,
-              this.encodedParams_
-            );
           } else {
             warn(
               `SwG Entitlements: Please specify a metering state ID string, ideally a hash to avoid PII.`
             );
           }
         }
+
+        // Encode params.
+        this.encodedParams_ = base64UrlEncodeFromBytes(
+          utf8EncodeSync(JSON.stringify(encodableParams))
+        );
+        url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
 
         // Build URL.
         return serviceUrl(url);
