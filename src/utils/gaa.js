@@ -886,12 +886,11 @@ export class GaaSignInWithGoogleButton {
    * @nocollapse
    * @param {{ clientId: string, allowedOrigins: !Array<string> }} params
    */
-  static show({clientId, allowedOrigins}) {
+  static show({clientId, allowedOrigins, rawJwt = false}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
     const languageCode = queryParams['lang'] || 'en';
-    const rawJwt = false;
 
     // Apply iframe styles.
     const styleEl = self.document.createElement('style');
