@@ -884,7 +884,7 @@ export class GaaSignInWithGoogleButton {
   /**
    * Renders the Google Sign-In button.
    * @nocollapse
-   * @param {{ clientId: string, allowedOrigins: !Array<string> }} params
+   * @param {{ clientId: string, allowedOrigins: !Array<string>, rawJwt: boolean }} params
    */
   static show({clientId, allowedOrigins, rawJwt = false}) {
     // Optionally grab language code from URL.
