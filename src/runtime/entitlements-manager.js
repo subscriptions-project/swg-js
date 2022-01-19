@@ -246,23 +246,34 @@ export class EntitlementsManager {
     }
 
     // If GAA params are present, include them in the pingback.
-    const gaaToken = queryStringHasFreshGaaParams(this.win_.location.search)
-      ? this.getGaaToken_()
-      : '';
-
-    this.deps_
-      .eventManager()
-      .logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
-
-    let entitlementSource = EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE;
+    let gaaToken;
+    let entitlementSource;
     if (
       jwtContents &&
       jwtContents['metering']['clientType'] ===
         MeterClientTypes.METERED_BY_GOOGLE
     ) {
+      // If clientType is METERED_BY_GOOGLE, this is the appropriate
+      // EntitlementSource, and no GAA params are required.
       entitlementSource =
         EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE;
+    } else {
+      // Expected: clientType is LICENSED_BY_GOOGLE
+      if (queryStringHasFreshGaaParams(this.win_.location.search)) {
+        // GAA params are valid. Post back as Showcase.
+        entitlementSource = EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE;
+        gaaToken = this.getGaaToken_();
+      } else {
+        // Sanity check:
+        // If we're not METERED_BY_GOOGLE, and GAA params are not valid, do not
+        // post back.
+        return;
+      }
     }
+
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);

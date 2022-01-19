@@ -48,7 +48,6 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {defaultConfig} from '../api/subscriptions';
 import {serializeProtoMessageForUrl} from '../utils/url';
-import {toTimestamp} from '../utils/date-utils';
 
 const ENTITLEMENTS_URL =
   '$frontend$/swg/_/api/v1/publication/pub1/entitlements';
@@ -1298,7 +1297,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         'token1',
         GOOGLE_METERING_SOURCE,
         /* isUserRegistered */ null,
-        ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams'
+        ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams',
+        '',
+        ''
       );
       const jwtContents = {
         metering: {
@@ -1367,7 +1368,40 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.consumeMeter_(ent);
     });
 
-    it('should pingback for metering without GAA params', async () => {
+    it('should not send pingback with invalid GAA params for showcase without JWT', async () => {
+      // Stub out Date.now() to some time past the URL timestamp expiration.
+      nowStub.returns(3600389016959);
+      xhrMock.expects('fetch').never();
+
+      const ent = new Entitlement(
+        GOOGLE_METERING_SOURCE,
+        ['product1', 'product2'],
+        'token1'
+      );
+      eventManagerMock.expects('logSwgEvent').never();
+      await manager.consumeMeter_(ent);
+    });
+
+    it('should not send pingback with invalid GAA params for showcase with JWT', async () => {
+      // Stub out Date.now() to some time past the URL timestamp expiration.
+      nowStub.returns(3600389016959);
+      xhrMock.expects('fetch').never();
+
+      const ent = new Entitlement(
+        GOOGLE_METERING_SOURCE,
+        ['product1', 'product2'],
+        'token1'
+      );
+      const jwtContents = {
+        metering: {
+          clientType: MeterClientTypes.LICENSED_BY_GOOGLE.valueOf(),
+        },
+      };
+      eventManagerMock.expects('logSwgEvent').never();
+      await manager.consumeMeter_(ent, jwtContents);
+    });
+
+    it('should pingback for metering without GAA params for METERED_BY_GOOGLE ', async () => {
       // Reset the win.location to clear the default from beforeEach
       win.location = {'search': ''};
 
@@ -1377,7 +1411,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         'token1'
       );
       expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+        EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
         EntitlementResult.UNLOCKED_METER,
         'token1',
         GOOGLE_METERING_SOURCE,
@@ -1386,35 +1420,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         /* devModeParams */ '',
         /* gaaToken */ ''
       );
+      const jwtContents = {
+        metering: {
+          clientType: MeterClientTypes.METERED_BY_GOOGLE.valueOf(),
+        },
+      };
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
       manager.encodedParams_ = '3ncod3dM3t3ringParams';
-      await manager.consumeMeter_(ent);
-    });
-
-    it('should not include invalid GAA params', async () => {
-      // Stub out Date.now() to some time past the URL timestamp expiration.
-      const alternateTime = 3600389016959;
-      nowStub.returns(3600389016959);
-      const mockTimeArray = toTimestamp(alternateTime).toArray(false);
-
-      const ent = new Entitlement(
-        GOOGLE_METERING_SOURCE,
-        ['product1', 'product2'],
-        'token1'
-      );
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
-        EntitlementResult.UNLOCKED_METER,
-        'token1',
-        GOOGLE_METERING_SOURCE,
-        /* isUserRegistered */ null,
-        /* pingbackUrl */ '',
-        /* devModeParams */ '',
-        /* gaaToken */ '',
-        mockTimeArray
-      );
-      expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
-      await manager.consumeMeter_(ent);
+      await manager.consumeMeter_(ent, jwtContents);
     });
 
     it('should log error messages from entitlements server', async () => {
