@@ -91,17 +91,23 @@ export class AudienceActionFlow {
     /** @private @const {?./client-config-manager.ClientConfigManager} */
     this.clientConfigManager_ = deps.clientConfigManager();
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
-      deps.win(),
-      deps.activities(),
-      this.getUrl_(deps.pageConfig(), deps.win()),
-      feArgs({
-        'supportsEventManager': true,
-        'productType': this.productType_,
-      }),
-      /* shouldFadeBody */ true
-    );
+    /** @private @const {!Promise<?ActivityIframeView>} */
+    this.activityIframeViewPromise_ = deps.storage().get(Constants.USER_TOKEN, true).then(
+      token => {
+        return new ActivityIframeView(
+          deps.win(),
+          deps.activities(),
+          this.getUrl_(deps.pageConfig(), deps.win(), token),
+          feArgs({
+            'supportsEventManager': true,
+            'productType': this.productType_,
+          }),
+          /* shouldFadeBody */ true
+        );
+      });
+
+      /** @private {?ActivityIframeView} */
+      this.activityIframeView_ = null;
   }
 
   /**
@@ -110,45 +116,54 @@ export class AudienceActionFlow {
    * @return {!Promise}
    */
   start() {
-    if (!this.activityIframeView_) {
+    if (!this.activityIframeViewPromise_) {
       return Promise.resolve();
     }
 
-    this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
-      this.handleCompleteAudienceActionResponse_(response)
-    );
+    return this.activityIframeViewPromise_.then(activityIframeView => {
+      if (!activityIframeView) {
+        return Promise.resolve();
+      }
 
-    this.activityIframeView_.on(
-      AlreadySubscribedResponse,
-      this.handleLinkRequest_.bind(this)
-    );
+      activityIframeView.on(CompleteAudienceActionResponse, (response) =>
+        this.handleCompleteAudienceActionResponse_(response)
+      );
 
-    const {fallback} = this.params_;
-    if (fallback) {
-      /**
-       * For a subscription publication, we need to show
-       * what would have been the original prompt if the
-       * user indicated they do not want to complete an action.
-       */
-      this.activityIframeView_.onCancel(fallback);
-    }
+      activityIframeView.on(
+        AlreadySubscribedResponse,
+        this.handleLinkRequest_.bind(this)
+      );
 
-    return this.dialogManager_.openView(this.activityIframeView_);
+      const {fallback} = this.params_;
+      if (fallback) {
+        /**
+         * For a subscription publication, we need to show
+         * what would have been the original prompt if the
+         * user indicated they do not want to complete an action.
+         */
+        activityIframeView.onCancel(fallback);
+      }
+
+      this.activityIframeView_ = activityIframeView;
+      return this.dialogManager_.openView(activityIframeView);
+    });
   }
 
   /**
    * Builds a URL to access the appropriate iframe path
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!Window} win
+   * @param {?string} userToken
    * @private
    * @return {string}
    */
-  getUrl_(pageConfig, win) {
+  getUrl_(pageConfig, win, userToken) {
     const path = actionToIframeMapping[this.params_.action];
 
     return feUrl(path, {
       'publicationId': pageConfig.getPublicationId(),
       'origin': parseUrl(win.location.href).origin,
+      'sut': userToken ? userToken : '',
     });
   }
 

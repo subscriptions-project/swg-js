@@ -29,6 +29,7 @@ import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
+const EXISTING_USER_TOKEN = 'existingUserToken';
 
 describes.realWin('AudienceActionFlow', {}, (env) => {
   let win;
@@ -50,6 +51,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
+    sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(EXISTING_USER_TOKEN));
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -82,7 +84,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
           `$frontend$/swg/_/ui/v1/${path}?_=_&publicationId=pub1&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
-          )}`,
+          )}&sut=${EXISTING_USER_TOKEN}`,
           {
             _client: 'SwG $internalRuntimeVersion$',
             productType: ProductType.SUBSCRIPTION,
