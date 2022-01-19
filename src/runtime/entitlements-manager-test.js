@@ -354,7 +354,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .atLeast(0);
     });
 
-    // TODO
     it('should fetch empty response', async () => {
       xhrMock
         .expects('fetch')
