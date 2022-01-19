@@ -237,33 +237,51 @@ export class EntitlementsManager {
 
   /**
    * Sends a pingback that marks a metering entitlement as used.
-   * @param {!Entitlements} entitlements
+   * @param {!Entitlement|null} entitlement
    */
-  consumeMeter_(entitlements) {
-    const entitlement = entitlements.getEntitlementForThis();
+  consumeMeter_(entitlement) {
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
-    // Verify GAA params are present, otherwise bail since the pingback
-    // shouldn't happen on non-metering requests.
-    if (!queryStringHasFreshGaaParams(this.win_.location.search)) {
-      return;
+
+    // If GAA params are present, include them in the pingback.
+    let gaaToken;
+    let entitlementSource;
+    if (
+      entitlement.subscriptionTokenContents &&
+      entitlement.subscriptionTokenContents['metering']['clientType'] ===
+        MeterClientTypes.METERED_BY_GOOGLE
+    ) {
+      // If clientType is METERED_BY_GOOGLE, this is the appropriate
+      // EntitlementSource, and no GAA params are required.
+      entitlementSource =
+        EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE;
+    } else {
+      // Expected: clientType is LICENSED_BY_GOOGLE
+      if (queryStringHasFreshGaaParams(this.win_.location.search)) {
+        // GAA params are valid. Post back as Showcase.
+        entitlementSource = EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE;
+        gaaToken = this.getGaaToken_();
+      } else {
+        // Sanity check:
+        // If we're not METERED_BY_GOOGLE, and GAA params are not valid, do not
+        // post back.
+        return;
+      }
     }
 
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
-    const token = this.getGaaToken_();
-
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
     return this.postEntitlementsRequest_(
-      jwt,
-      EntitlementResult.UNLOCKED_METER,
-      EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
-      token
+      /* usedEntitlement */ jwt,
+      /* entitlementResult */ EntitlementResult.UNLOCKED_METER,
+      /* entitlementSource */ entitlementSource,
+      /* optionalToken */ gaaToken
     );
   }
 
@@ -594,7 +612,7 @@ export class EntitlementsManager {
     return new Entitlements(
       SERVICE_ID,
       raw,
-      Entitlement.parseListFromJson(json),
+      Entitlement.parseListFromJson(json, this.jwtHelper_),
       this.pageConfig_.getProductId(),
       this.ack_.bind(this),
       this.consume_.bind(this),
@@ -699,41 +717,38 @@ export class EntitlementsManager {
    */
   consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
+      const entitlement = entitlements.getEntitlementForThis();
+
       const onConsumeCallback = () => {
         if (onCloseDialog) {
           onCloseDialog();
         }
-        this.consumeMeter_(entitlements);
+        this.consumeMeter_(entitlement);
       };
-      const showToast = this.getShowToastFromEntitlements_(entitlements);
-      if (showToast === false) {
-        // If showToast is explicitly false, call onConsumeCallback directly.
+
+      if (!entitlement.subscriptionTokenContents) {
+        // Ignore decoding errors. Don't show a toast, and return
+        // onConsumeCallback directly.
         return onConsumeCallback();
       }
-      const meterToastApi = new MeterToastApi(this.deps_);
-      meterToastApi.setOnConsumeCallback(onConsumeCallback);
-      return meterToastApi.start();
-    }
-  }
 
-  /**
-   * Gets the `showToast` value (or null/undefined if unavailable) from
-   * the Google metering entitlement details in the input entitlements.
-   * @param {!Entitlements} entitlements
-   * @return {boolean|undefined}
-   * @private
-   */
-  getShowToastFromEntitlements_(entitlements) {
-    const entitlement = entitlements.getEntitlementForThis();
-    if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
-      return;
-    }
-    try {
-      const meteringJwt = this.jwtHelper_.decode(entitlement.subscriptionToken);
-      return meteringJwt['metering'] && meteringJwt['metering']['showToast'];
-    } catch (e) {
-      // Ignore decoding errors.
-      return;
+      if (
+        entitlement.subscriptionTokenContents['metering'] &&
+        entitlement.subscriptionTokenContents['metering']['showToast'] === true
+      ) {
+        // Return a delegation to the meterToastApi, which will return the
+        // onConsumeCallback when the toast is dismissed.
+        const meterToastApi = new MeterToastApi(this.deps_, {
+          meterClientType:
+            entitlement.subscriptionTokenContents['metering']['clientType'],
+        });
+        meterToastApi.setOnConsumeCallback(onConsumeCallback);
+        return meterToastApi.start();
+      } else {
+        // If showToast isn't true, don't show a toast, and return
+        // onConsumeCallback directly.
+        return onConsumeCallback();
+      }
     }
   }
 
