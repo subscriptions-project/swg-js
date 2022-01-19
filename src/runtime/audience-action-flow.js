@@ -118,10 +118,6 @@ export class AudienceActionFlow {
    * @return {!Promise}
    */
   start() {
-    if (!this.activityIframeViewPromise_) {
-      return Promise.resolve();
-    }
-
     return this.activityIframeViewPromise_.then((activityIframeView) => {
       if (!activityIframeView) {
         return Promise.resolve();
