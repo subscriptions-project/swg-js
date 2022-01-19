@@ -293,14 +293,17 @@ export class Entitlement {
    * @param {string} source
    * @param {!Array<string>} products
    * @param {string} subscriptionToken
+   * @param {JsonObject|null|undefined} subscriptionTokenContents
    */
-  constructor(source, products, subscriptionToken) {
+  constructor(source, products, subscriptionToken, subscriptionTokenContents) {
     /** @const {string} */
     this.source = source;
     /** @const {!Array<string>} */
     this.products = products;
     /** @const {string} */
     this.subscriptionToken = subscriptionToken;
+    /** @const {JsonObject|null|undefined} */
+    this.subscriptionTokenContents = subscriptionTokenContents;
   }
 
   /**
@@ -310,7 +313,8 @@ export class Entitlement {
     return new Entitlement(
       this.source,
       this.products.slice(0),
-      this.subscriptionToken
+      this.subscriptionToken,
+      this.subscriptionTokenContents
     );
   }
 
@@ -358,16 +362,30 @@ export class Entitlement {
 
   /**
    * @param {?Object} json
+   * @param {!../utils/jwt.JwtHelper} jwtHelper
    * @return {!Entitlement}
    */
-  static parseFromJson(json) {
+  static parseFromJson(json, jwtHelper) {
     if (!json) {
       json = {};
     }
     const source = json['source'] || '';
     const products = json['products'] || [];
     const subscriptionToken = json['subscriptionToken'];
-    return new Entitlement(source, products, subscriptionToken);
+    let subscriptionTokenContents;
+    try {
+      subscriptionTokenContents = subscriptionToken
+        ? jwtHelper.decode(subscriptionToken)
+        : null;
+    } catch (e) {
+      subscriptionTokenContents = null;
+    }
+    return new Entitlement(
+      source,
+      products,
+      subscriptionToken,
+      subscriptionTokenContents
+    );
   }
 
   /**
@@ -375,13 +393,14 @@ export class Entitlement {
    * - Single entitlement: `{products: [], ...}`.
    * - A list of entitlements: `[{products: [], ...}, {...}]`.
    * @param {!Object|!Array<!Object>} json
+   * @param {!../utils/jwt.JwtHelper} jwtHelper
    * @return {!Array<!Entitlement>}
    */
-  static parseListFromJson(json) {
+  static parseListFromJson(json, jwtHelper) {
     const jsonList = Array.isArray(json)
       ? /** @type {!Array<Object>} */ (json)
       : [json];
-    return jsonList.map((json) => Entitlement.parseFromJson(json));
+    return jsonList.map((json) => Entitlement.parseFromJson(json, jwtHelper));
   }
 
   /**

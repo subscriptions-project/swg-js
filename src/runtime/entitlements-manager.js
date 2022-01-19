@@ -238,9 +238,8 @@ export class EntitlementsManager {
   /**
    * Sends a pingback that marks a metering entitlement as used.
    * @param {!Entitlement|null} entitlement
-   * @param {JsonObject|null|undefined} jwtContents
    */
-  consumeMeter_(entitlement, jwtContents) {
+  consumeMeter_(entitlement) {
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
@@ -249,8 +248,8 @@ export class EntitlementsManager {
     let gaaToken;
     let entitlementSource;
     if (
-      jwtContents &&
-      jwtContents['metering']['clientType'] ===
+      entitlement.subscriptionTokenContents &&
+      entitlement.subscriptionTokenContents['metering']['clientType'] ===
         MeterClientTypes.METERED_BY_GOOGLE
     ) {
       // If clientType is METERED_BY_GOOGLE, this is the appropriate
@@ -613,7 +612,7 @@ export class EntitlementsManager {
     return new Entitlements(
       SERVICE_ID,
       raw,
-      Entitlement.parseListFromJson(json),
+      Entitlement.parseListFromJson(json, this.jwtHelper_),
       this.pageConfig_.getProductId(),
       this.ack_.bind(this),
       this.consume_.bind(this),
@@ -719,31 +718,29 @@ export class EntitlementsManager {
   consume_(entitlements, onCloseDialog) {
     if (entitlements.enablesThisWithGoogleMetering()) {
       const entitlement = entitlements.getEntitlementForThis();
-      let meteringJwt;
 
       const onConsumeCallback = () => {
         if (onCloseDialog) {
           onCloseDialog();
         }
-        this.consumeMeter_(entitlement, meteringJwt);
+        this.consumeMeter_(entitlement);
       };
 
-      try {
-        meteringJwt = this.jwtHelper_.decode(entitlement.subscriptionToken);
-      } catch (e) {
+      if (!entitlement.subscriptionTokenContents) {
         // Ignore decoding errors. Don't show a toast, and return
         // onConsumeCallback directly.
         return onConsumeCallback();
       }
 
       if (
-        meteringJwt['metering'] &&
-        meteringJwt['metering']['showToast'] === true
+        entitlement.subscriptionTokenContents['metering'] &&
+        entitlement.subscriptionTokenContents['metering']['showToast'] === true
       ) {
         // Return a delegation to the meterToastApi, which will return the
         // onConsumeCallback when the toast is dismissed.
         const meterToastApi = new MeterToastApi(this.deps_, {
-          meterClientType: meteringJwt['metering']['clientType'],
+          meterClientType:
+            entitlement.subscriptionTokenContents['metering']['clientType'],
         });
         meterToastApi.setOnConsumeCallback(onConsumeCallback);
         return meterToastApi.start();
