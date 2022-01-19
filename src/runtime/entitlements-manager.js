@@ -519,6 +519,9 @@ export class EntitlementsManager {
     const signedData = json['signedEntitlements'];
     const decryptedDocumentKey = json['decryptedDocumentKey'];
     const swgUserToken = json['swgUserToken'];
+    if (swgUserToken) {
+      this.saveSwgUserToken_(swgUserToken);
+    }
     if (signedData) {
       const entitlements = this.getValidJwtEntitlements_(
         signedData,
@@ -527,13 +530,11 @@ export class EntitlementsManager {
         decryptedDocumentKey
       );
       if (entitlements) {
-        this.saveSwgUserToken_(swgUserToken);
         return entitlements;
       }
     } else {
       const plainEntitlements = json['entitlements'];
       if (plainEntitlements) {
-        this.saveSwgUserToken_(swgUserToken);
         return this.createEntitlements_(
           '',
           plainEntitlements,

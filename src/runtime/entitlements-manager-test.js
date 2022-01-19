@@ -685,6 +685,30 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
     });
 
+    it('should handle and store swgUserToken if no entitlements', async () => {
+      xhrMock.expects('fetch').returns(
+        Promise.resolve({
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                swgUserToken: 'abc',
+              })
+            ),
+        })
+      );
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
+      expectGetSwgUserTokenToBeCalled();
+
+      storageMock
+        .expects('set')
+        .withExactArgs(Constants.USER_TOKEN, 'abc', true);
+
+      await manager.getEntitlements();
+    });
+
     it('should handle missing decrypted document key', async () => {
       jwtHelperMock
         .expects('decode')
