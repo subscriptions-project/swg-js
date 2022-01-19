@@ -51,7 +51,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
-    sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(EXISTING_USER_TOKEN));
+    sandbox
+      .stub(runtime.storage(), 'get')
+      .returns(Promise.resolve(EXISTING_USER_TOKEN));
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();

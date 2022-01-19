@@ -92,8 +92,10 @@ export class AudienceActionFlow {
     this.clientConfigManager_ = deps.clientConfigManager();
 
     /** @private @const {!Promise<?ActivityIframeView>} */
-    this.activityIframeViewPromise_ = deps.storage().get(Constants.USER_TOKEN, true).then(
-      token => {
+    this.activityIframeViewPromise_ = deps
+      .storage()
+      .get(Constants.USER_TOKEN, true)
+      .then((token) => {
         return new ActivityIframeView(
           deps.win(),
           deps.activities(),
@@ -106,8 +108,8 @@ export class AudienceActionFlow {
         );
       });
 
-      /** @private {?ActivityIframeView} */
-      this.activityIframeView_ = null;
+    /** @private {?ActivityIframeView} */
+    this.activityIframeView_ = null;
   }
 
   /**
@@ -120,7 +122,7 @@ export class AudienceActionFlow {
       return Promise.resolve();
     }
 
-    return this.activityIframeViewPromise_.then(activityIframeView => {
+    return this.activityIframeViewPromise_.then((activityIframeView) => {
       if (!activityIframeView) {
         return Promise.resolve();
       }
