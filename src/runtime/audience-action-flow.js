@@ -27,12 +27,16 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  CompleteAudienceActionResponse,
   EntitlementsResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {Constants} from '../utils/constants';
 import {ProductType} from '../api/subscriptions';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
+import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 
 /**
@@ -73,11 +77,19 @@ export class AudienceActionFlow {
     /** @private @const {!AudienceActionParams} */
     this.params_ = params;
 
+    /** @private @const {!ProductType} */
+    this.productType_ = params.autoPromptType
+      ? autopromptTypeToProductTypeMapping[params.autoPromptType]
+      : DEFAULT_PRODUCT_TYPE;
+
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
     /** @private @const {!./entitlements-manager.EntitlementsManager} */
     this.entitlementsManager_ = deps.entitlementsManager();
+
+    /** @private @const {?./client-config-manager.ClientConfigManager} */
+    this.clientConfigManager_ = deps.clientConfigManager();
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -86,9 +98,7 @@ export class AudienceActionFlow {
       this.getUrl_(deps.pageConfig(), deps.win()),
       feArgs({
         'supportsEventManager': true,
-        'productType': params.autoPromptType
-          ? autopromptTypeToProductTypeMapping[params.autoPromptType]
-          : DEFAULT_PRODUCT_TYPE,
+        'productType': this.productType_,
       }),
       /* shouldFadeBody */ true
     );
@@ -104,9 +114,8 @@ export class AudienceActionFlow {
       return Promise.resolve();
     }
 
-    this.activityIframeView_.on(
-      EntitlementsResponse,
-      this.handleEntitlementsResponse_.bind(this)
+    this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
+      this.handleCompleteAudienceActionResponse_(response)
     );
 
     this.activityIframeView_.on(
@@ -148,17 +157,57 @@ export class AudienceActionFlow {
    * 1) Store the updated user token
    * 2) Clear existing entitlements from the page
    * 3) Re-fetch entitlements which may potentially provide access to the page
-   * @param {EntitlementsResponse} response
+   * @param {CompleteAudienceActionResponse} response
    * @private
    */
-  handleEntitlementsResponse_(response) {
+  handleCompleteAudienceActionResponse_(response) {
     this.dialogManager_.completeView(this.activityIframeView_);
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
+    if (response.getActionCompleted()) {
+      this.showSignedInToast_();
+    } else {
+      this.showAlreadyOptedInToast_();
+    }
     this.entitlementsManager_.getEntitlements();
+  }
+
+  /** @private */
+  showSignedInToast_() {
+    // Show 'Signed in as abc@gmail.com' toast on the pub page.
+    new Toast(
+      this.deps_,
+      feUrl('/toastiframe', {
+        flavor: 'basic',
+      })
+    ).open();
+  }
+
+  /** @private */
+  showAlreadyOptedInToast_() {
+    const lang = this.clientConfigManager_.getLanguage();
+    let customText = '';
+    if (this.params_.action === 'TYPE_REGISTRATION_WALL') {
+      customText = msg(
+        SWG_I18N_STRINGS.REGWALL_ALREADY_REGISTERED_LANG_MAP,
+        lang
+      );
+    } else if (this.params_.action === 'TYPE_NEWSLETTER_SIGNUP') {
+      customText = msg(
+        SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
+        lang
+      );
+    }
+    new Toast(
+      this.deps_,
+      feUrl('/toastiframe', {
+        flavor: 'custom',
+        customText,
+      })
+    ).open();
   }
 
   /**
