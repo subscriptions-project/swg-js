@@ -120,7 +120,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     {userToken: 'testUserToken', timesStoreSetCalled: 1},
     {userToken: undefined, timesStoreSetCalled: 0},
   ].forEach(({userToken, timesStoreSetCalled}) => {
-    it('correctly handles a CompleteAudienceActionResponse with action completed when returned from the flow', async () => {
+    it('handles a CompleteAudienceActionResponse with action completed and opens a basic toast', async () => {
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action: 'TYPE_REGISTRATION_WALL',
         fallback: fallbackSpy,
@@ -168,7 +168,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       toastMessage: 'You have signed up before.',
     },
   ].forEach(({action, toastMessage}) => {
-    it('correctly handles a CompleteAudienceActionResponse with action not completed when returned from the flow', async () => {
+    it(`handles a CompleteAudienceActionResponse with action not completed and opens a custom toast indicating that the user has completed the ${action} action before`, async () => {
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
         fallback: fallbackSpy,
