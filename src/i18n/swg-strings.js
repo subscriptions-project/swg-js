@@ -89,7 +89,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '透過 Google 提供內容',
     'zh-tw': '透過 Google 捐款',
   },
-  'REGWALL_REGISTERED_BEFORE_LANG_MAP': {
+  'REGWALL_ALREADY_REGISTERED_LANG_MAP': {
     'en': 'You have registered before.',
     'ar': 'لقد سبق أن تسجّلت.',
     'de': 'Du bist bereits registriert.',
@@ -121,7 +121,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '您之前已註冊。',
     'zh-tw': '你已註冊這個出版品。',
   },
-  'NEWSLETTER_SIGNED_UP_BEFORE_LANG_MAP': {
+  'NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP': {
     'en': 'You have signed up before.',
     'ar': 'سبق أن اشتركت في النشرة الإخبارية.',
     'de': 'Du hast dich bereits angemeldet.',

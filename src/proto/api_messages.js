@@ -16,7 +16,7 @@
 /**
  * @interface
  */
- class Message {
+class Message {
   /**
    * @return {string}
    */
@@ -176,6 +176,7 @@ const EntitlementSource = {
   UNKNOWN_ENTITLEMENT_SOURCE: 0,
   GOOGLE_SUBSCRIBER_ENTITLEMENT: 1001,
   GOOGLE_SHOWCASE_METERING_SERVICE: 2001,
+  SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE: 2002,
   PUBLISHER_ENTITLEMENT: 3001,
 };
 /** @enum {number} */

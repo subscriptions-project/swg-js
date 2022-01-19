@@ -190,6 +190,7 @@ export class AudienceActionFlow {
     this.entitlementsManager_.getEntitlements();
   }
 
+  /** @private */
   showSignedInToast_() {
     // Show 'Signed in as abc@gmail.com' toast on the pub page.
     new Toast(
@@ -200,17 +201,18 @@ export class AudienceActionFlow {
     ).open();
   }
 
+  /** @private */
   showAlreadyOptedInToast_() {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     if (this.params_.action === 'TYPE_REGISTRATION_WALL') {
       customText = msg(
-        SWG_I18N_STRINGS.REGWALL_REGISTERED_BEFORE_LANG_MAP,
+        SWG_I18N_STRINGS.REGWALL_ALREADY_REGISTERED_LANG_MAP,
         lang
       );
     } else if (this.params_.action === 'TYPE_NEWSLETTER_SIGNUP') {
       customText = msg(
-        SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_BEFORE_LANG_MAP,
+        SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
         lang
       );
     }
