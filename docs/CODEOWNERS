@@ -1,3 +1,4 @@
 * @jpettitt @ChrisAntaki @adolgachev @mmmicedcoffee
 src/api/ @jpettitt
 src/runtime/pay*.js @alin04 @younmi-park @jpettitt
+docs/CODEOWNERS @alin04 @jpettitt @adolgachev
