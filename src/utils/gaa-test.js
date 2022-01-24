@@ -982,7 +982,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       };
 
       // Mock JWT decoding function.
-      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((_) => {
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
         return jwtDecoded.credential;
       });
 
@@ -1059,7 +1059,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       };
 
       // Mock JWT decoding function.
-      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((_) => {
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
         return jwtDecoded.credential;
       });
 
