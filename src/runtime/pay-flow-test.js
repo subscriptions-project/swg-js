@@ -1797,6 +1797,15 @@ describes.realWin('parseSubscriptionResponse', {}, (env) => {
     expect(sr.oldSku).to.equal('sku_to_replace');
   });
 
+  it('parses productType when paymentRequest is not present', () => {
+    const data = Object.assign({}, INTEGR_DATA_OBJ);
+    data['productType'] = ProductType.VIRTUAL_GIFT;
+
+    const response = parseSubscriptionResponse(runtime, data);
+
+    expect(response.productType).to.equal(ProductType.VIRTUAL_GIFT);
+  });
+
   it('should throw error', () => {
     let err = null;
     try {

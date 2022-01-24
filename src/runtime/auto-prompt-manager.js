@@ -41,6 +41,8 @@ const dismissEvents = [
   AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
   AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+  AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE,
+  AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE,
 ];
 
 /**
@@ -81,6 +83,9 @@ export class AutoPromptManager {
 
     /** @private {boolean} */
     this.autoPromptDisplayed_ = false;
+
+    /** @private {?AudienceActionFlow} */
+    this.lastAudienceActionFlow_ = null;
   }
 
   /**
@@ -295,9 +300,22 @@ export class AutoPromptManager {
           autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
             ? fallback
             : undefined,
+        autoPromptType,
       };
-      new AudienceActionFlow(this.deps_, params).start();
+      const lastAudienceActionFlow = new AudienceActionFlow(this.deps_, params);
+      this.setLastAudienceActionFlow(lastAudienceActionFlow);
+      lastAudienceActionFlow.start();
     };
+  }
+
+  /** @param {!AudienceActionFlow} flow */
+  setLastAudienceActionFlow(flow) {
+    this.lastAudienceActionFlow_ = flow;
+  }
+
+  /** @return {?AudienceActionFlow} */
+  getLastAudienceActionFlow() {
+    return this.lastAudienceActionFlow_;
   }
 
   /**

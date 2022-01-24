@@ -15,11 +15,18 @@
  */
 
 import {ActivityPort} from '../components/activities';
+import {
+  AlreadySubscribedResponse,
+  CompleteAudienceActionResponse,
+  EntitlementsResponse,
+} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
+import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
-import {EntitlementsResponse} from '../proto/api_messages';
 import {PageConfig} from '../model/page-config';
+import {ProductType} from '../api/subscriptions';
+import {Toast} from '../ui/toast';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 
@@ -31,6 +38,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let storageMock;
   let pageConfig;
   let port;
+  let messageCallback;
   let messageMap;
   let fallbackSpy;
 
@@ -66,6 +74,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
         fallback: fallbackSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
       activitiesMock
         .expects('openIframe')
@@ -76,7 +85,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           )}`,
           {
             _client: 'SwG $internalRuntimeVersion$',
-            isClosable: true,
+            productType: ProductType.SUBSCRIPTION,
             supportsEventManager: true,
           }
         )
@@ -111,10 +120,11 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     {userToken: 'testUserToken', timesStoreSetCalled: 1},
     {userToken: undefined, timesStoreSetCalled: 0},
   ].forEach(({userToken, timesStoreSetCalled}) => {
-    it('correctly handles an EntitlementsResponse when returned from the flow', async () => {
+    it('handles a CompleteAudienceActionResponse with action completed and opens a basic toast', async () => {
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action: 'TYPE_REGISTRATION_WALL',
         fallback: fallbackSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
       activitiesMock.expects('openIframe').resolves(port);
       entitlementsManagerMock.expects('clear').once();
@@ -124,14 +134,118 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         .withExactArgs(Constants.USER_TOKEN, userToken, true)
         .exactly(timesStoreSetCalled);
 
+      let toast;
+      const toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
+
       await audienceActionFlow.start();
-      const entitlementsResponse = new EntitlementsResponse();
-      entitlementsResponse.setSwgUserToken(userToken);
-      const messageCallback = messageMap[entitlementsResponse.label()];
-      messageCallback(entitlementsResponse);
+      const completeAudienceActionResponse =
+        new CompleteAudienceActionResponse();
+      completeAudienceActionResponse.setActionCompleted(true);
+      completeAudienceActionResponse.setSwgUserToken(userToken);
+      const messageCallback =
+        messageMap[completeAudienceActionResponse.label()];
+      messageCallback(completeAudienceActionResponse);
 
       entitlementsManagerMock.verify();
       storageMock.verify();
+      expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
+      expect(toast.src_).to.contain('flavor=basic');
     });
+  });
+
+  [
+    {
+      action: 'TYPE_REGISTRATION_WALL',
+      toastMessage: 'You have registered before.',
+    },
+    {
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+      toastMessage: 'You have signed up before.',
+    },
+  ].forEach(({action, toastMessage}) => {
+    it(`handles a CompleteAudienceActionResponse with action not completed and opens a custom toast indicating that the user has completed the ${action} action before`, async () => {
+      const audienceActionFlow = new AudienceActionFlow(runtime, {
+        action,
+        fallback: fallbackSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+      });
+      activitiesMock.expects('openIframe').resolves(port);
+      entitlementsManagerMock.expects('clear').once();
+      entitlementsManagerMock.expects('getEntitlements').once();
+      storageMock
+        .expects('set')
+        .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+        .exactly(1);
+
+      let toast;
+      const toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
+
+      await audienceActionFlow.start();
+      const completeAudienceActionResponse =
+        new CompleteAudienceActionResponse();
+      completeAudienceActionResponse.setActionCompleted(false);
+      completeAudienceActionResponse.setSwgUserToken('fake user token');
+      const messageCallback =
+        messageMap[completeAudienceActionResponse.label()];
+      messageCallback(completeAudienceActionResponse);
+
+      entitlementsManagerMock.verify();
+      storageMock.verify();
+      expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
+      expect(toast.src_).to.contain('flavor=custom');
+      expect(decodeURI(toast.src_)).to.contain(toastMessage);
+    });
+  });
+
+  it('should trigger login flow for a registered user', async () => {
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      fallback: fallbackSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+    const response = new AlreadySubscribedResponse();
+    response.setSubscriberOrMember(true);
+    messageCallback = messageMap['AlreadySubscribedResponse'];
+    messageCallback(response);
+    expect(loginStub).to.be.calledOnce.calledWithExactly({
+      linkRequested: false,
+    });
+  });
+
+  it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      fallback: fallbackSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(new EntitlementsResponse())
+      .once();
+
+    await audienceActionFlow.showNoEntitlementFoundToast();
+
+    activityIframeViewMock.verify();
   });
 });

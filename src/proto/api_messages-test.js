@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, deserialize, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, getLabel, LinkingInfoResponse, LinkSaveTokenRequest, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -421,46 +421,97 @@ describe('AnalyticsRequest', () => {
 
 describe('AudienceActivityClientLogsRequest', () => {
   it('should deserialize correctly', () => {
-    const /** !AudienceActivityClientLogsRequest  */
-        audienceactivityclientlogsrequest =
-            new AudienceActivityClientLogsRequest();
+    const /** !AudienceActivityClientLogsRequest  */ audienceactivityclientlogsrequest = new AudienceActivityClientLogsRequest();
     audienceactivityclientlogsrequest.setEvent(AnalyticsEvent.UNKNOWN);
 
     let audienceactivityclientlogsrequestDeserialized;
 
     // Verify includeLabel undefined
     // Verify serialized arrays.
-    audienceactivityclientlogsrequestDeserialized =
-        deserialize(audienceactivityclientlogsrequest.toArray(undefined));
-    expect(audienceactivityclientlogsrequestDeserialized.toArray(undefined))
-        .to.deep.equal(audienceactivityclientlogsrequest.toArray(undefined));
+    audienceactivityclientlogsrequestDeserialized = deserialize(
+        audienceactivityclientlogsrequest.toArray(undefined));
+    expect(audienceactivityclientlogsrequestDeserialized.toArray(undefined)).to.deep.equal(
+        audienceactivityclientlogsrequest.toArray(undefined));
 
     // Verify fields.
-    expect(audienceactivityclientlogsrequestDeserialized.getEvent())
-        .to.deep.equal(audienceactivityclientlogsrequest.getEvent());
+    expect(audienceactivityclientlogsrequestDeserialized.getEvent()).to.deep.equal(
+        audienceactivityclientlogsrequest.getEvent());
 
     // Verify includeLabel true
     // Verify serialized arrays.
-    audienceactivityclientlogsrequestDeserialized =
-        deserialize(audienceactivityclientlogsrequest.toArray(true));
-    expect(audienceactivityclientlogsrequestDeserialized.toArray(true))
-        .to.deep.equal(audienceactivityclientlogsrequest.toArray(true));
+    audienceactivityclientlogsrequestDeserialized = deserialize(
+        audienceactivityclientlogsrequest.toArray(true));
+    expect(audienceactivityclientlogsrequestDeserialized.toArray(true)).to.deep.equal(
+        audienceactivityclientlogsrequest.toArray(true));
 
     // Verify fields.
-    expect(audienceactivityclientlogsrequestDeserialized.getEvent())
-        .to.deep.equal(audienceactivityclientlogsrequest.getEvent());
+    expect(audienceactivityclientlogsrequestDeserialized.getEvent()).to.deep.equal(
+        audienceactivityclientlogsrequest.getEvent());
 
     // Verify includeLabel false
     // Verify serialized arrays.
-    audienceactivityclientlogsrequestDeserialized =
-        new AudienceActivityClientLogsRequest(
-            audienceactivityclientlogsrequest.toArray(false), false);
-    expect(audienceactivityclientlogsrequestDeserialized.toArray(false))
-        .to.deep.equal(audienceactivityclientlogsrequest.toArray(false));
+    audienceactivityclientlogsrequestDeserialized = new AudienceActivityClientLogsRequest(audienceactivityclientlogsrequest.toArray(false), false);
+    expect(audienceactivityclientlogsrequestDeserialized.toArray(false)).to.deep.equal(
+        audienceactivityclientlogsrequest.toArray(false));
 
     // Verify fields.
-    expect(audienceactivityclientlogsrequestDeserialized.getEvent())
-        .to.deep.equal(audienceactivityclientlogsrequest.getEvent());
+    expect(audienceactivityclientlogsrequestDeserialized.getEvent()).to.deep.equal(
+        audienceactivityclientlogsrequest.getEvent());
+  });
+});
+
+describe('CompleteAudienceActionResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !CompleteAudienceActionResponse  */ completeaudienceactionresponse = new CompleteAudienceActionResponse();
+    completeaudienceactionresponse.setSwgUserToken('');
+    completeaudienceactionresponse.setActionCompleted(false);
+    completeaudienceactionresponse.setUserEmail('');
+
+    let completeaudienceactionresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    completeaudienceactionresponseDeserialized = deserialize(
+        completeaudienceactionresponse.toArray(undefined));
+    expect(completeaudienceactionresponseDeserialized.toArray(undefined)).to.deep.equal(
+        completeaudienceactionresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(completeaudienceactionresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        completeaudienceactionresponse.getSwgUserToken());
+    expect(completeaudienceactionresponseDeserialized.getActionCompleted()).to.deep.equal(
+        completeaudienceactionresponse.getActionCompleted());
+    expect(completeaudienceactionresponseDeserialized.getUserEmail()).to.deep.equal(
+        completeaudienceactionresponse.getUserEmail());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    completeaudienceactionresponseDeserialized = deserialize(
+        completeaudienceactionresponse.toArray(true));
+    expect(completeaudienceactionresponseDeserialized.toArray(true)).to.deep.equal(
+        completeaudienceactionresponse.toArray(true));
+
+    // Verify fields.
+    expect(completeaudienceactionresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        completeaudienceactionresponse.getSwgUserToken());
+    expect(completeaudienceactionresponseDeserialized.getActionCompleted()).to.deep.equal(
+        completeaudienceactionresponse.getActionCompleted());
+    expect(completeaudienceactionresponseDeserialized.getUserEmail()).to.deep.equal(
+        completeaudienceactionresponse.getUserEmail());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    completeaudienceactionresponseDeserialized = new CompleteAudienceActionResponse(completeaudienceactionresponse.toArray(false), false);
+    expect(completeaudienceactionresponseDeserialized.toArray(false)).to.deep.equal(
+        completeaudienceactionresponse.toArray(false));
+
+    // Verify fields.
+    expect(completeaudienceactionresponseDeserialized.getSwgUserToken()).to.deep.equal(
+        completeaudienceactionresponse.getSwgUserToken());
+    expect(completeaudienceactionresponseDeserialized.getActionCompleted()).to.deep.equal(
+        completeaudienceactionresponse.getActionCompleted());
+    expect(completeaudienceactionresponseDeserialized.getUserEmail()).to.deep.equal(
+        completeaudienceactionresponse.getUserEmail());
   });
 });
 

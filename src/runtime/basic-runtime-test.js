@@ -19,6 +19,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AudienceActionFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {
   AutoPromptType,
@@ -859,6 +860,43 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .once();
       await configuredBasicRuntime.entitlementsResponseHandler(port);
       contributionsFlowMock.verify();
+    });
+
+    it('should handle an empty EntitlementsResponse from audience action flow', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const audienceActionFlow = new AudienceActionFlow(
+        configuredBasicRuntime,
+        {
+          action: 'TYPE_REGISTRATION_WALL',
+          fallback: undefined,
+          autoPromptType: AutoPromptType.CONTRIBUTION,
+        }
+      );
+      const autoPromptManagerMock = sandbox.mock(
+        configuredBasicRuntime.autoPromptManager_
+      );
+      autoPromptManagerMock
+        .expects('getLastAudienceActionFlow')
+        .withExactArgs()
+        .returns(audienceActionFlow)
+        .once();
+
+      const audienceActionFlowMock = sandbox.mock(audienceActionFlow);
+      audienceActionFlowMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      audienceActionFlowMock.verify();
     });
 
     it('should pass getEntitlemnts to fetchClientConfig if useArticleEndpoint is enabled', () => {
