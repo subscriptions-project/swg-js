@@ -845,8 +845,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
         fallback: alternatePromptSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
       expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
 
     it('should not include the fallback for CONTRIBUTION prompts', async () => {
@@ -860,6 +862,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
         fallback: undefined,
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
       });
       expect(alternatePromptSpy).to.not.have.been.called;
     });
@@ -880,6 +883,28 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(alternatePromptSpy).to.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+    });
+
+    it('should return the last AudienceActionFlow', async () => {
+      const lastAudienceActionFlow = new audienceActionFlow.AudienceActionFlow(
+        deps,
+        {
+          action: 'TYPE_REGISTRATION_WALL',
+          fallback: undefined,
+          autoPromptType: AutoPromptType.CONTRIBUTION,
+        }
+      );
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      autoPromptManager.setLastAudienceActionFlow(lastAudienceActionFlow);
+
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(
+        lastAudienceActionFlow
+      );
     });
   });
 });

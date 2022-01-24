@@ -45,6 +45,21 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock.verify();
   });
 
+  it('getClientConfig should return default empty config', async () => {
+    const clientConfig = await clientConfigManager.getClientConfig();
+    expect(clientConfig).to.deep.equal(new ClientConfig());
+  });
+
+  it('getClientConfig should include skipAccountCreation override if specified', async () => {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
+      skipAccountCreationScreen: true,
+    });
+    const clientConfig = await clientConfigManager.getClientConfig();
+    expect(clientConfig).to.deep.equal(
+      new ClientConfig({skipAccountCreationScreen: true})
+    );
+  });
+
   it('fetchClientConfig should fetch the client config', async () => {
     const expectedUrl =
       '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
@@ -58,6 +73,30 @@ describes.realWin('ClientConfigManager', {}, () => {
     const expectedAutoPromptConfig = new AutoPromptConfig(1);
     const expectedClientConfig = new ClientConfig({
       autoPromptConfig: expectedAutoPromptConfig,
+    });
+    expect(clientConfig).to.deep.equal(expectedClientConfig);
+
+    clientConfig = await clientConfigManager.getClientConfig();
+    expect(clientConfig).to.deep.equal(expectedClientConfig);
+  });
+
+  it('fetchClientConfig should include skipAccountCreationScreen override', async () => {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
+      skipAccountCreationScreen: true,
+    });
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 1}})
+      .once();
+
+    let clientConfig = await clientConfigManager.fetchClientConfig();
+    const expectedAutoPromptConfig = new AutoPromptConfig(1);
+    const expectedClientConfig = new ClientConfig({
+      autoPromptConfig: expectedAutoPromptConfig,
+      skipAccountCreationScreen: true,
     });
     expect(clientConfig).to.deep.equal(expectedClientConfig);
 
