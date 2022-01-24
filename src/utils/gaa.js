@@ -984,18 +984,18 @@ export class GaaSignInWithGoogleButton {
       });
     })
       .then((jwt) => {
-        let returnedJwt = jwt;
-        if (!rawJwt) {
-          returnedJwt = /** @type {!GoogleIdentityV1} */ (
-            new JwtHelper().decode(jwt.credential)
-          );
-        }
+        const jwtPayload = /** @type {!GoogleIdentityV1} */ (
+          new JwtHelper().decode(jwt.credential)
+        );
+        const returnedJwt = rawJwt ? jwt : jwtPayload;
 
         // Send GAA user to parent frame.
         sendMessageToParentFnPromise.then((sendMessageToParent) => {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
+            // Note: jwtPayload is deprecated in favor of returnedJwt.
+            jwtPayload,
             returnedJwt,
           });
         });
