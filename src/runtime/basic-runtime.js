@@ -99,6 +99,13 @@ export function installBasicRuntime(win) {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
+
+  // Set the default entitlements response handler to consume a valid metering entitlement.
+  basicRuntime.setOnEntitlementsResponse((entitlements) => {
+    if (entitlements.enablesThisWithGoogleMetering()) {
+      entitlements.consume();
+    }
+  });
 }
 
 /**
