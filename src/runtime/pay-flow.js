@@ -554,6 +554,11 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
           (data['paymentRequest']['i'] || {})['productType'] ||
           ProductType.SUBSCRIPTION;
       }
+      // Set productType if paymentRequest is not present, which happens
+      // if the pay flow was opened in redirect mode.
+      else if ('productType' in data) {
+        productType = data['productType'];
+      }
     }
   }
   if (raw && !swgData) {
