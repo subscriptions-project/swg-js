@@ -199,7 +199,6 @@ describes.realWin('installBasicRuntime', {}, (env) => {
         });
       entitlements = {
         consume: sandbox.stub(),
-        clone: () => entitlements,
       };
     });
 
