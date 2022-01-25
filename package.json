@@ -41,7 +41,7 @@
     "body-parser": "1.19.1",
     "browserify": "17.0.0",
     "browserstack-local": "1.4.8",
-    "chai": "4.3.4",
+    "chai": "4.3.5",
     "chai-as-promised": "7.1.1",
     "cheerio": "1.0.0-rc.10",
     "chromedriver": "97.0.0",
