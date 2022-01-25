@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="sk">
+<messages>
+
+
+
+
+<msg name="SHOWCASE_REGWALL_TITLE">Získajte viac s Googlom</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Tento obsah je obvykle platený, ale ak sa do publikácie <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> zaregistrujete účtom Google, získate od Googlu zdarma prístup k tomuto článku a ďalšie výhody.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Už máte účet?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Prihlásiť sa účtom Google</msg>
+<msg name="SHOWCASE_REGWALL_CASL">Prečítajte si <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>podmienky CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> publikácie <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
+
+
+
+</messages>
+</localizationbundle>
