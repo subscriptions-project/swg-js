@@ -186,6 +186,49 @@ describes.realWin('installBasicRuntime', {}, (env) => {
       expect(basicSubscriptions).to.have.property(name);
     }
   });
+
+  describe('default onEntitlementsResponse', () => {
+    let entitlements;
+    let configuredCallback;
+
+    beforeEach(() => {
+      sandbox
+        .stub(BasicRuntime.prototype, 'setOnEntitlementsResponse')
+        .callsFake((callback) => {
+          configuredCallback = callback;
+        });
+      entitlements = {
+        consume: sandbox.stub(),
+        clone: () => entitlements,
+      };
+    });
+
+    it('should consume if entitlement enables with metering', async () => {
+      entitlements.enablesThisWithGoogleMetering = sandbox.stub().returns(true);
+
+      installBasicRuntime(win);
+      const entitlementsResponse = Promise.resolve(entitlements);
+      configuredCallback(entitlementsResponse);
+      await entitlementsResponse;
+
+      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
+      expect(entitlements.consume).to.be.calledOnce;
+    });
+
+    it('should not consume if entitlement is not for metering', async () => {
+      entitlements.enablesThisWithGoogleMetering = sandbox
+        .stub()
+        .returns(false);
+
+      installBasicRuntime(win);
+      const entitlementsResponse = Promise.resolve(entitlements);
+      configuredCallback(entitlementsResponse);
+      await entitlementsResponse;
+
+      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
+      expect(entitlements.consume).to.not.be.called;
+    });
+  });
 });
 
 describes.realWin('BasicRuntime', {}, (env) => {

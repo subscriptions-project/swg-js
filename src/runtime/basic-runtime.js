@@ -101,10 +101,12 @@ export function installBasicRuntime(win) {
   basicRuntime.setupButtons();
 
   // Set the default entitlements response handler to consume a valid metering entitlement.
-  basicRuntime.setOnEntitlementsResponse((entitlements) => {
-    if (entitlements.enablesThisWithGoogleMetering()) {
-      entitlements.consume();
-    }
+  basicRuntime.setOnEntitlementsResponse((entitlementsPromise) => {
+    entitlementsPromise.then((entitlements) => {
+      if (entitlements.enablesThisWithGoogleMetering()) {
+        entitlements.consume();
+      }
+    });
   });
 }
 
