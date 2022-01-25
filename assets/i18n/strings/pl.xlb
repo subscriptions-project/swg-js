@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="pl">
+<messages>
+
+
+
+
+<msg name="SHOWCASE_REGWALL_TITLE">Z Google dostajesz więcej</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Te treści zazwyczaj wymagają opłaty, ale dzięki Google możesz bezpłatnie przeczytać ten artykuł i korzystać z innych materiałów po zarejestrowaniu się w publikacji <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> za pomocą konta Google.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Masz już konto?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Zaloguj się przez Google</msg>
+<msg name="SHOWCASE_REGWALL_CASL">Zapoznaj się z <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>warunkami CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> publikacji <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
+
+
+
+</messages>
+</localizationbundle>
