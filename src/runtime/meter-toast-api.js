@@ -117,7 +117,7 @@ export class MeterToastApi {
             this.meterClientType_ ?? MeterClientTypes.LICENSED_BY_GOOGLE
           ];
         const iframeUrlParams = {
-          'publication_id': this.deps_.pageConfig().getPublicationId(),
+          'publicationId': this.deps_.pageConfig().getPublicationId(),
           'origin': parseUrl(this.win_.location.href).origin,
         };
         if (swgUserToken) {
