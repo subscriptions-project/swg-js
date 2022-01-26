@@ -1094,6 +1094,7 @@ const GOOGLE_3P_SIGN_IN_BUTTON_HTML = `
 export class GaaGoogle3pSignInButton {
   /**
    * Renders the third party Google Sign-In button for external authentication.
+   * Storybook uses this method to show UI.
    * @param {string} authorizationUrl URL for an authorization flow.
    */
   static render(authorizationUrl) {
