@@ -23,7 +23,9 @@
     "build": "gulp build",
     "build-i18n": "node assets/i18n/strings/compile.js && gulp lint --fix --files='src/i18n/strings.js'",
     "dist": "gulp dist",
-    "export-to-amp": "gulp export-to-amp"
+    "export-to-amp": "gulp export-to-amp",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "dependencies": {
     "web-activities": "1.24.0"
@@ -33,8 +35,13 @@
     "@babel/core": "7.16.12",
     "@babel/eslint-parser": "7.16.5",
     "@babel/preset-env": "7.16.11",
+    "@storybook/addon-actions": "^6.4.14",
+    "@storybook/addon-essentials": "^6.4.14",
+    "@storybook/addon-links": "^6.4.14",
+    "@storybook/html": "^6.4.14",
     "ansi-colors": "4.1.1",
     "autoprefixer": "10.4.2",
+    "babel-loader": "^8.2.3",
     "babel-plugin-istanbul": "6.1.1",
     "babelify": "10.0.0",
     "bluebird": "3.7.2",
