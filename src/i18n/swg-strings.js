@@ -79,7 +79,7 @@ export const SWG_I18N_STRINGS = {
     'no': 'Bidra med Google',
     'pl': 'Wesprzyj publikację przez Google',
     'pt': 'Contribuir com o Google',
-    'pt-br': 'Contribua com o Google',
+    'pt-br': 'Contribua usando o Google',
     'ru': 'Внести средства через Google',
     'se': 'Bidra med Google',
     'th': 'มีส่วนร่วมผ่าน Google',
