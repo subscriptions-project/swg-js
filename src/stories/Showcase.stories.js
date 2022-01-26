@@ -4,5 +4,5 @@ export default {
   title: 'Showcase',
 };
 
-export const Google3pSignInButton = () =>
-  GaaGoogle3pSignInButton.render('https://www.google.com/');
+export const ThirdPartySignInButton = () =>
+  GaaGoogle3pSignInButton.render('https://example.com/login');
