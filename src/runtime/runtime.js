@@ -621,7 +621,6 @@ export class ConfiguredRuntime {
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this, this.fetcher_);
-    this.analyticsService_.start();
 
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
@@ -852,6 +851,8 @@ export class ConfiguredRuntime {
     return this.entitlementsManager_
       .getEntitlements(params)
       .then((entitlements) => {
+        this.analyticsService_.setReadyForLogging();
+        this.analyticsService_.start();
         // Auto update internal things tracking the user's current SKU.
         if (entitlements) {
           try {

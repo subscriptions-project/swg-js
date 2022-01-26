@@ -24,6 +24,7 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {XhrFetcher} from './fetcher';
@@ -45,6 +46,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
   let pretendPortWorks;
   let loggedErrors;
   let eventsLoggedToService;
+  let storageMock;
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
@@ -103,6 +105,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       };
     });
     analyticsService = new AnalyticsService(runtime, runtime.fetcher_);
+    analyticsService.setReadyForLogging();
+    storageMock = sandbox.mock(runtime.storage());
     activityIframePort = new ActivityIframePort(
       analyticsService.getElement(),
       feUrl(src),
@@ -202,8 +206,13 @@ describes.realWin('AnalyticsService', {}, (env) => {
       return activityIframePort.whenReady();
     });
 
-    it('should call openIframe with swg user token url param if specified', () => {
-      analyticsService.start('swgUserToken');
+    it('should call openIframe with swg user token url param if in storage', () => {
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN)
+        .returns(Promise.resolve('swgUserToken'))
+        .once();
+      analyticsService.start();
       expectOpenIframe = true;
       expectSwgUserToken = true;
       return activityIframePort.whenReady();
