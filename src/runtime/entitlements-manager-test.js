@@ -444,51 +444,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(ents.enablesThis()).to.be.false;
     });
 
-    it('should accept swgUserToken from getEntitlements param', async () => {
-      xhrMock
-        .expects('fetch')
-        .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
-            encodeURIComponent(encryptedDocumentKey) +
-            '&sut=' +
-            encodeURIComponent('abc') +
-            `&encodedParams=${defaultEncodedParams}`,
-          {
-            method: 'GET',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-          }
-        )
-        .returns(
-          Promise.resolve({
-            text: () => Promise.resolve('{}'),
-          })
-        );
-
-      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
-
-      // Do not check locally stored SwgUserToken if getEntitlements param has it.
-      storageMock
-        .expects('get')
-        .withExactArgs(Constants.USER_TOKEN, true)
-        .atLeast(0);
-
-      const ents = await manager.getEntitlements({
-        encryption: {
-          encryptedDocumentKey:
-            '{"accessRequirements": ' +
-            '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}',
-          swgUserToken: 'abc',
-        },
-      });
-      expect(ents.service).to.equal('subscribe.google.com');
-      expect(ents.raw).to.equal('');
-      expect(ents.entitlements).to.deep.equal([]);
-      expect(ents.product_).to.equal('pub1:label1');
-      expect(ents.enablesThis()).to.be.false;
-    });
-
     it('should accept swgUserToken from local storage', async () => {
       xhrMock
         .expects('fetch')

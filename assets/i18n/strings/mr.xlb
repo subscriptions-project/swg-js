@@ -9,7 +9,7 @@
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>या आशयासाठी सामान्यतः पेमेंट आवश्यक असते पण तुम्ही तुमचे Google खाते वापरून <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> मध्ये नोंदणी करता तेव्हा, Google तुम्हाला या लेखाचा आणि आणखी बऱ्याच आशयाचा विनामूल्य ॲक्सेस देते.</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">आधीपासून खाते आहे?</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Google वापरून साइन इन करा</msg>
-<msg name="SHOWCASE_REGWALL_CASL">Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL terms<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
+<msg name="SHOWCASE_REGWALL_CASL"><ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> च्या <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL अटी<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> यांचे पुनरावलोकन करा</msg>
 
 
 
