@@ -21,6 +21,9 @@ export default {
 };
 
 export const Regwall = (args) => {
+  // Set language.
+  self.document.body.lang = args['Language'] || 'en';
+
   // Add publisher metadata.
   self.document.body.insertAdjacentHTML(
     'beforeend',
@@ -64,5 +67,6 @@ export const Regwall = (args) => {
   });
 };
 Regwall.args = {
+  'Language': 'en',
   'Show CASL terms': false,
 };
