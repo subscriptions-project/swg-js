@@ -485,12 +485,11 @@ export class GaaMeteringRegwall {
 
   /**
    * Renders the Regwall.
-   *
-   * Storybook uses this method for UI development.
+   * @private
    * @nocollapse
    * @param {{ iframeUrl: string, caslUrl: string }} params
    */
-  static render({iframeUrl, caslUrl}) {
+  static render_({iframeUrl, caslUrl}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
     const placeholderPatternForPublication = /<ph name="PUBLICATION".+?\/ph>/g;
