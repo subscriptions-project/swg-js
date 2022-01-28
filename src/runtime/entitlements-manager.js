@@ -823,25 +823,21 @@ export class EntitlementsManager {
             typeof meteringStateId === 'string' &&
             meteringStateId.length > 0
           ) {
-            encodableParams = encodableParams || {
+            encodableParams = {
               metering: {
-                clientTypes: [],
+                clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
                 owner: this.publicationId_,
                 resource: {
                   hashedCanonicalUrl,
                 },
+                // Add publisher provided state and additional fields.
+                state: {
+                  id: meteringStateId,
+                  attributes: [],
+                },
+                token: this.getGaaToken_(),
               },
             };
-
-            // Add publisher provided state and additional fields.
-            encodableParams.metering.state = {
-              id: meteringStateId,
-              attributes: [],
-            };
-            encodableParams.metering.clientTypes.push(
-              MeterClientTypes.LICENSED_BY_GOOGLE
-            );
-            encodableParams.metering.token = this.getGaaToken_();
 
             // Collect attributes.
             function collectAttributes({attributes, category}) {
