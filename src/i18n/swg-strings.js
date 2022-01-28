@@ -78,7 +78,7 @@ export const SWG_I18N_STRINGS = {
     'nl': 'Bijdragen met Google',
     'no': 'Bidra med Google',
     'pl': 'Wesprzyj publikację przez Google',
-    'pt': 'Contribuir com o Google',
+    'pt': 'Contribuir utilizando o Google',
     'pt-br': 'Contribua usando o Google',
     'ru': 'Внести средства через Google',
     'se': 'Bidra med Google',
