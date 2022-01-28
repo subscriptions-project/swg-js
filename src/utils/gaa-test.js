@@ -576,7 +576,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogleSignInButton.show.
-    for (const style of [...self.document.querySelectorAll('style')]) {
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
       style.remove();
     }
 
@@ -838,7 +838,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaSignInWithGoogleButton.show.
-    for (const style of [...self.document.querySelectorAll('style')]) {
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
       style.remove();
     }
 
@@ -1192,7 +1192,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogle3pSignInButton.show.
-    for (const style of [...self.document.querySelectorAll('style')]) {
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
       style.remove();
     }
 
