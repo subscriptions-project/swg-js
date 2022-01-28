@@ -146,7 +146,7 @@ export class EntitlementsManager {
     this.article_ = null;
 
     /** @private {boolean} */
-    this.enableGoogleControlledMetering_ = false;
+    this.enableMeteredByGoogle_ = false;
 
     this.deps_
       .eventManager()
@@ -509,8 +509,8 @@ export class EntitlementsManager {
   /**
    * Allow Google to handle metering for the given page.
    */
-  enableGoogleControlledMetering() {
-    this.enableGoogleControlledMetering_ = true;
+  enableMeteredByGoogle() {
+    this.enableMeteredByGoogle_ = true;
   }
 
   /**
@@ -800,7 +800,7 @@ export class EntitlementsManager {
         }
 
         /** @type {!GetEntitlementsParamsInternalDef|undefined} */
-        let encodableParams = this.enableGoogleControlledMetering_
+        let encodableParams = this.enableMeteredByGoogle_
           ? {
               metering: {
                 clientTypes: [MeterClientTypes.METERED_BY_GOOGLE],

@@ -1142,7 +1142,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             })
           );
 
-        manager.enableGoogleControlledMetering();
+        manager.enableMeteredByGoogle();
         const ents = await manager.getEntitlements({
           metering: {
             state: {
@@ -1709,7 +1709,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             text: () => Promise.resolve('{}'),
           })
         );
-      manager.enableGoogleControlledMetering();
+      manager.enableMeteredByGoogle();
 
       await manager.getEntitlements();
     });

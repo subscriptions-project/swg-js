@@ -977,10 +977,10 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .be.false;
     });
 
-    it('should enable Google controlled metering on configuration', () => {
+    it('should enable METERED_BY_GOOGLE on the entitlements manager', () => {
       const entitlementsStub = sandbox.stub(
         EntitlementsManager.prototype,
-        'enableGoogleControlledMetering'
+        'enableMeteredByGoogle'
       );
 
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);

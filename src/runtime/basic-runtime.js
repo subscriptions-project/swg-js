@@ -315,7 +315,7 @@ export class ConfiguredBasicRuntime {
     this.entitlementsManager().blockNextToast();
 
     // Enable Google metering in basic runtime by default;
-    this.entitlementsManager().enableGoogleControlledMetering();
+    this.entitlementsManager().enableMeteredByGoogle();
 
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();
