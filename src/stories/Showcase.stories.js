@@ -1,15 +1,7 @@
-import {GaaGoogle3pSignInButton, GaaMeteringRegwall} from '../utils/gaa';
+import {GaaMeteringRegwall} from '../utils/gaa';
 
 export default {
   title: 'Showcase Regwall',
-};
-
-export const ThirdPartySignInButton = (args) => {
-  document.body.style.padding = '0';
-  return GaaGoogle3pSignInButton.render(args.authorizationUrl);
-};
-ThirdPartySignInButton.args = {
-  authorizationUrl: 'https://example.com/login',
 };
 
 export const Regwall = (args) => {
@@ -51,12 +43,10 @@ export const Regwall = (args) => {
   );
 
   return GaaMeteringRegwall.render({
-    iframeUrl: args.signInButtomIframeUrl,
-    caslUrl: args.caslUrl,
+    iframeUrl: '/sign-in-button.html',
+    caslUrl: args['Show CASL disclaimer'] ? '#' : '',
   });
 };
 Regwall.args = {
-  signInButtomIframeUrl:
-    '/iframe.html?id=showcase-regwall--third-party-sign-in-button&viewMode=story',
-  caslUrl: '',
+  'Show CASL disclaimer': false,
 };

@@ -1097,10 +1097,10 @@ const GOOGLE_3P_SIGN_IN_BUTTON_HTML = `
 export class GaaGoogle3pSignInButton {
   /**
    * Renders the third party Google Sign-In button for external authentication.
-   * Storybook uses this method to show UI.
-   * @param {string} authorizationUrl URL for an authorization flow.
+   * @nocollapse
+   * @param {{ allowedOrigins: !Array<string>, authorizationUrl: string }} params
    */
-  static render(authorizationUrl) {
+  static show({allowedOrigins, authorizationUrl}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -1112,6 +1112,7 @@ export class GaaGoogle3pSignInButton {
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
       msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
     );
+    self.document.head.appendChild(styleEl);
 
     // Render the third party Google Sign-In button.
     const buttonEl = self.document.createElement('div');
@@ -1121,21 +1122,7 @@ export class GaaGoogle3pSignInButton {
     buttonEl.onclick = () => {
       self.open(authorizationUrl);
     };
-
-    const fragment = new DocumentFragment();
-    fragment.append(styleEl, buttonEl);
-    return fragment;
-  }
-
-  /**
-   * Renders and sets up the third party Google Sign-In button for external authentication.
-   * @nocollapse
-   * @param {{ allowedOrigins: !Array<string>, authorizationUrl: string }} params
-   */
-  static show({allowedOrigins, authorizationUrl}) {
-    // Render.
-    const elements = GaaGoogle3pSignInButton.render(authorizationUrl);
-    self.document.body.append(elements);
+    self.document.body.appendChild(buttonEl);
 
     // Promise a function that sends messages to the parent frame.
     // Note: A function is preferable to a reference to the parent frame
