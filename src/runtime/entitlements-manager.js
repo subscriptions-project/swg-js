@@ -799,7 +799,7 @@ export class EntitlementsManager {
           url = addQueryParam(url, 'sut', swgUserToken);
         }
 
-        /** @type {!GetEntitlementsParamsInternalDef} */
+        /** @type {!GetEntitlementsParamsInternalDef|undefined} */
         let encodableParams = this.enableGoogleControlledMetering_
           ? {
               metering: {
