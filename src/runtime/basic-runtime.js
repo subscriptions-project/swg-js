@@ -314,6 +314,9 @@ export class ConfiguredBasicRuntime {
     // Do not show toast in swgz.
     this.entitlementsManager().blockNextToast();
 
+    // Enable Google metering in basic runtime by default;
+    this.entitlementsManager().enableMeteredByGoogle();
+
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();
 
