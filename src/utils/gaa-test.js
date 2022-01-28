@@ -1291,6 +1291,31 @@ describes.realWin('GaaMetering', {}, () => {
 
   // let clock;
 
+  /**
+   * The simplest possible implementation of showPaywall, unlockArticle, openLoginPage
+   * and handleSwGEntitlement. A more sophisticated implementation could fetch more data,
+   * or set cookies and refresh the whole page.
+   */
+  function showPaywall() {
+    self.console.log('show paywall');
+    self.document.documentElement.classList.remove('open-paywall');
+  }
+
+  function unlockArticle() {
+    self.console.log('unlock article');
+    self.document.documentElement.classList.add('open-paywall');
+  }
+
+  function handleLogin() {
+    self.console.log('open login page');
+    self.document.documentElement.classList.add('open-paywall');
+  }
+
+  function handleSwGEntitlement() {
+    self.console.log('handle swg entitlement');
+    unlockArticle();
+  }
+
   beforeEach(() => {
     // Mock clock.
     // clock = sandbox.useFakeTimers();
@@ -1326,6 +1351,33 @@ describes.realWin('GaaMetering', {}, () => {
         '[Subscriptions]',
         '[gaa.js:GaaMetering.init]: Invalid params.'
       );
+    });
+  });
+
+  describe('validateParameters', () => {
+    it('succeeds for valid params', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          productId: 'examplenews.com:showcase', // (optional override for publishers, otherwise take from markup)
+          googleSignInClientId:
+            '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+          registrationEndpoint: 'https://www.examplenews.com/api/registration', // promise from partner
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            publisherEntitlement: {
+              granted: false,
+            },
+          },
+          unlockArticle,
+          showPaywall,
+          handleLogin,
+          handleSwGEntitlement,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+        })
+      ).to.be.true;
     });
   });
 });

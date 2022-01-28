@@ -108,16 +108,23 @@
         console.log('unlock article');
         document.documentElement.classList.add('open-paywall');
       };
-
-      function handleLogin() {
-        console.log('open login page');
-        document.documentElement.classList.add('open-paywall');
-      };
       
       function handleSwGEntitlement() {
         console.log('handle swg entitlement');
         unlockArticle();
       }
+
+      registerUserPromise = new Promise ((resolve, reject) => {
+        const gaaUser = GaaMetering.getGaaUser(); // This is our function (credentials)
+        // Call registrationEndpoint to get userState
+        userState = getUserState();
+        resolve(userState);
+      });
+
+
+      const publisherEntitlementPromise = new Promise(...);
+      const handleLoginPromise = new Promise(...);
+
 
       function getUserState() {
         /*
@@ -125,16 +132,12 @@
           id: 'user1235',
           registrationTimestamp: 1602763054,
           subscriptionTimestamp: 1602763094,
-          publisherEntitlement: {
-            granted: false,
-          }
+          granted: false,
         };
         // */
        /* ANONYMOUS */
         return {
-          publisherEntitlement: {
-            granted: false
-          }
+          granted: false
         };
         // */
       };
@@ -149,15 +152,17 @@
           params: {
           productId: 'examplenews.com:showcase', // (optional override for publishers, otherwise take from markup)
           googleSignInClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
-          registrationEndpoint: 'https://www.examplenews.com/api/registration', // promise from partner
           userState: getUserState(),
           unlockArticle: unlockArticle,
           showPaywall: showPaywall,
-          handleLogin: handleLogin,
+          handleLoginPromise: handleLoginPromise,
           handleSwGEntitlement: handleSwGEntitlement,
           allowedReferrers: ["example.com","test.com","localhost"],
+          registerUserPromise: registerUserPromise,
+          publisherEntitlementPromise: publisherEntitlementPromise
         }});
       });
+      
     </script>
 
     <div class="main-body">
