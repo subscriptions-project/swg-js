@@ -976,5 +976,16 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
         .be.false;
     });
+
+    it('should enable Google controlled metering on configuration', () => {
+      const entitlementsStub = sandbox.stub(
+        EntitlementsManager.prototype,
+        'enableGoogleControlledMetering'
+      );
+
+      configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
+
+      expect(entitlementsStub).to.be.calledOnce;
+    });
   });
 });

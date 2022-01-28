@@ -145,6 +145,9 @@ export class EntitlementsManager {
     /** @private {?Article} */
     this.article_ = null;
 
+    /** @private {boolean} */
+    this.enableGoogleControlledMetering_ = false;
+
     this.deps_
       .eventManager()
       .registerEventListener(this.possiblyPingbackOnClientEvent_.bind(this));
@@ -504,6 +507,13 @@ export class EntitlementsManager {
   }
 
   /**
+   * Allow Google to handle metering for the given page.
+   */
+  enableGoogleControlledMetering() {
+    this.enableGoogleControlledMetering_ = true;
+  }
+
+  /**
    * The JSON must either contain a "signedEntitlements" with JWT, or
    * "entitlements" field with plain JSON object.
    * @param {!Object} json
@@ -790,15 +800,17 @@ export class EntitlementsManager {
         }
 
         /** @type {!GetEntitlementsParamsInternalDef} */
-        const encodableParams = {
-          metering: {
-            clientTypes: [MeterClientTypes.METERED_BY_GOOGLE],
-            owner: this.publicationId_,
-            resource: {
-              hashedCanonicalUrl,
-            },
-          },
-        };
+        let encodableParams = this.enableGoogleControlledMetering_
+          ? {
+              metering: {
+                clientTypes: [MeterClientTypes.METERED_BY_GOOGLE],
+                owner: this.publicationId_,
+                resource: {
+                  hashedCanonicalUrl,
+                },
+              },
+            }
+          : undefined;
 
         // Add metering params.
         if (
@@ -811,6 +823,16 @@ export class EntitlementsManager {
             typeof meteringStateId === 'string' &&
             meteringStateId.length > 0
           ) {
+            encodableParams = encodableParams || {
+              metering: {
+                clientTypes: [],
+                owner: this.publicationId_,
+                resource: {
+                  hashedCanonicalUrl,
+                },
+              },
+            };
+
             // Add publisher provided state and additional fields.
             encodableParams.metering.state = {
               id: meteringStateId,
@@ -863,11 +885,13 @@ export class EntitlementsManager {
           }
         }
 
-        // Encode params.
-        this.encodedParams_ = base64UrlEncodeFromBytes(
-          utf8EncodeSync(JSON.stringify(encodableParams))
-        );
-        url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
+        if (encodableParams) {
+          // Encode params.
+          this.encodedParams_ = base64UrlEncodeFromBytes(
+            utf8EncodeSync(JSON.stringify(encodableParams))
+          );
+          url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
+        }
 
         // Build URL.
         return serviceUrl(url);

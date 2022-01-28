@@ -73,7 +73,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let dialogManagerMock;
   let eventManager;
   let eventManagerMock;
-  let defaultEncodedParams;
+  let defaultGoogleMeteringEncodedParams;
   let noClientTypeParams;
 
   beforeEach(() => {
@@ -129,7 +129,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     sandbox.stub(self.console, 'warn');
     nowStub = sandbox.stub(Date, 'now').returns(1600389016959);
-    defaultEncodedParams = base64UrlEncodeFromBytes(
+    defaultGoogleMeteringEncodedParams = base64UrlEncodeFromBytes(
       utf8EncodeSync(
         '{"metering":{"clientTypes":[2],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
       )
@@ -301,7 +301,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   ) {
     const encodedParams = base64UrlEncodeFromBytes(
       utf8EncodeSync(
-        '{"metering":{"clientTypes":[2],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
+        '{"metering":{"resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
       )
     );
     const url =
@@ -358,7 +358,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${defaultEncodedParams}`,
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -391,8 +391,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?devEnt=' +
             encodeURIComponent(scenario) +
             '&crypt=' +
-            encodeURIComponent(encryptedDocumentKey) +
-            `&encodedParams=${defaultEncodedParams}`,
+            encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -416,8 +415,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
-            encodeURIComponent(encryptedDocumentKey) +
-            `&encodedParams=${defaultEncodedParams}`,
+            encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -451,8 +449,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
             '&sut=' +
-            encodeURIComponent('abc') +
-            `&encodedParams=${defaultEncodedParams}`,
+            encodeURIComponent('abc'),
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -513,8 +510,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
-            encodeURIComponent(encryptedDocumentKey) +
-            `&encodedParams=${defaultEncodedParams}`,
+            encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -569,8 +565,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
-            encodeURIComponent(encryptedDocumentKey) +
-            `&encodedParams=${defaultEncodedParams}`,
+            encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -688,8 +683,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
-            encodeURIComponent(encryptedDocumentKey) +
-            `&encodedParams=${defaultEncodedParams}`,
+            encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -738,8 +732,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements' +
-            `?encodedParams=${defaultEncodedParams}`,
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -799,8 +792,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements' +
-            `?encodedParams=${defaultEncodedParams}`,
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1040,81 +1032,138 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(manager.responsePromise_).to.be.null;
     });
 
-    it('should fetch metering entitlements', async () => {
-      jwtHelperMock
-        .expects('decode')
-        .withExactArgs('SIGNED_DATA')
-        .returns({
-          entitlements: {
-            products: ['pub1:label1'],
-            subscriptionToken: 'token1',
-            source: 'google:metering',
+    describe('fetching metering entitlements', () => {
+      let testSubscriptionTokenContents;
+
+      beforeEach(() => {
+        jwtHelperMock
+          .expects('decode')
+          .withExactArgs('SIGNED_DATA')
+          .returns({
+            entitlements: {
+              products: ['pub1:label1'],
+              subscriptionToken: 'token1',
+              source: 'google:metering',
+            },
+          });
+        testSubscriptionTokenContents = {
+          metering: {
+            ownerId: 'scenic-2017.appspot.com',
+            action: 'READ',
+            clientUserAttribute: 'standard_registered_user',
+          },
+        };
+        jwtHelperMock
+          .expects('decode')
+          .withExactArgs('token1')
+          .returns(testSubscriptionTokenContents);
+
+        // Toast shouldn't open.
+        storageMock.expects('get').withExactArgs('toast').never();
+        expectGetSwgUserTokenToBeCalled();
+
+        expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+        expectLog(AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS, false);
+      });
+
+      it('should fetch metering entitlements', async () => {
+        const encodedParams = base64UrlEncodeFromBytes(
+          utf8EncodeSync(
+            '{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]},"token":"token"}}'
+          )
+        );
+        xhrMock
+          .expects('fetch')
+          .withExactArgs(
+            `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${encodedParams}`,
+            {
+              method: 'GET',
+              headers: {'Accept': 'text/plain, application/json'},
+              credentials: 'include',
+            }
+          )
+          .returns(
+            Promise.resolve({
+              text: () =>
+                Promise.resolve(
+                  JSON.stringify({
+                    signedEntitlements: 'SIGNED_DATA',
+                  })
+                ),
+            })
+          );
+
+        const ents = await manager.getEntitlements({
+          metering: {
+            state: {
+              id: 'u1',
+              standardAttributes: {'att1': {timestamp: 1234567}},
+              customAttributes: {'att2': {timestamp: 1234567}},
+            },
           },
         });
-      const testSubscriptionTokenContents = {
-        metering: {
-          ownerId: 'scenic-2017.appspot.com',
-          action: 'READ',
-          clientUserAttribute: 'standard_registered_user',
-        },
-      };
-      jwtHelperMock
-        .expects('decode')
-        .withExactArgs('token1')
-        .returns(testSubscriptionTokenContents);
-      const encodedParams = base64UrlEncodeFromBytes(
-        utf8EncodeSync(
-          '{"metering":{"clientTypes":[2,1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]},"token":"token"}}'
-        )
-      );
-      xhrMock
-        .expects('fetch')
-        .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${encodedParams}`,
+        expect(ents.service).to.equal('subscribe.google.com');
+        expect(ents.raw).to.equal('SIGNED_DATA');
+        expect(ents.entitlements).to.deep.equal([
           {
-            method: 'GET',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-          }
-        )
-        .returns(
-          Promise.resolve({
-            text: () =>
-              Promise.resolve(
-                JSON.stringify({
-                  signedEntitlements: 'SIGNED_DATA',
-                })
-              ),
-          })
-        );
-
-      // Toast shouldn't open.
-      storageMock.expects('get').withExactArgs('toast').never();
-      expectGetSwgUserTokenToBeCalled();
-
-      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS, false);
-
-      const ents = await manager.getEntitlements({
-        metering: {
-          state: {
-            id: 'u1',
-            standardAttributes: {'att1': {timestamp: 1234567}},
-            customAttributes: {'att2': {timestamp: 1234567}},
+            source: 'google:metering',
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+            subscriptionTokenContents: testSubscriptionTokenContents,
           },
-        },
+        ]);
+        expect(ents.enablesThis()).to.be.true;
       });
-      expect(ents.service).to.equal('subscribe.google.com');
-      expect(ents.raw).to.equal('SIGNED_DATA');
-      expect(ents.entitlements).to.deep.equal([
-        {
-          source: 'google:metering',
-          products: ['pub1:label1'],
-          subscriptionToken: 'token1',
-          subscriptionTokenContents: testSubscriptionTokenContents,
-        },
-      ]);
-      expect(ents.enablesThis()).to.be.true;
+
+      it('should fetch metering entitlements with METERED_BY_GOOGLE if enabled', async () => {
+        const encodedParams = base64UrlEncodeFromBytes(
+          utf8EncodeSync(
+            '{"metering":{"clientTypes":[2,1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]},"token":"token"}}'
+          )
+        );
+        xhrMock
+          .expects('fetch')
+          .withExactArgs(
+            `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${encodedParams}`,
+            {
+              method: 'GET',
+              headers: {'Accept': 'text/plain, application/json'},
+              credentials: 'include',
+            }
+          )
+          .returns(
+            Promise.resolve({
+              text: () =>
+                Promise.resolve(
+                  JSON.stringify({
+                    signedEntitlements: 'SIGNED_DATA',
+                  })
+                ),
+            })
+          );
+
+        manager.enableGoogleControlledMetering();
+        const ents = await manager.getEntitlements({
+          metering: {
+            state: {
+              id: 'u1',
+              standardAttributes: {'att1': {timestamp: 1234567}},
+              customAttributes: {'att2': {timestamp: 1234567}},
+            },
+          },
+        });
+        expect(ents.service).to.equal('subscribe.google.com');
+        expect(ents.raw).to.equal('SIGNED_DATA');
+        expect(ents.entitlements).to.deep.equal([
+          {
+            source: 'google:metering',
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+            subscriptionTokenContents: testSubscriptionTokenContents,
+          },
+        ]);
+        expect(ents.enablesThis()).to.be.true;
+      });
     });
 
     it('should warn about invalid attribute timestamps', async () => {
@@ -1513,8 +1562,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements' +
-            `?encodedParams=${defaultEncodedParams}`,
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1542,8 +1590,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=deprecated' +
-            `&encodedParams=${defaultEncodedParams}`,
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=deprecated',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1602,7 +1649,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       };
       const encodedParams = base64UrlEncodeFromBytes(
         utf8EncodeSync(
-          '{"metering":{"clientTypes":[2,1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[]},"token":"token"}}'
+          '{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[]},"token":"token"}}'
         )
       );
       xhrMock
@@ -1643,6 +1690,28 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         article,
         'getArticle should return the article endpoint response'
       );
+    });
+
+    it('should only include METERED_BY_GOOGLE client type if explicitly enabled', async () => {
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${defaultGoogleMeteringEncodedParams}`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+      manager.enableGoogleControlledMetering();
+
+      await manager.getEntitlements();
     });
   });
 
