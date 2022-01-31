@@ -117,14 +117,33 @@
       registerUserPromise = new Promise ((resolve, reject) => {
         const gaaUser = GaaMetering.getGaaUser(); // This is our function (credentials)
         // Call registrationEndpoint to get userState
-        userState = getUserState();
+        userState = {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          granted: false,
+        };
         resolve(userState);
       });
 
 
-      const publisherEntitlementPromise = new Promise(...);
-      const handleLoginPromise = new Promise(...);
-
+      publisherEntitlementPromise = new Promise ((resolve, reject) => {
+        publlisherEntitlement = {
+          granted: true,
+          grantReason: 'SUBSCRIBER',
+        };
+        resolve(publisherEntitlement);
+      });
+      
+      handleLoginPromise = new Promise ((resolve, reject) => {
+        userState = {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          granted: false,
+        };
+        resolve(userState);
+      });
 
       function getUserState() {
         /*
@@ -135,7 +154,7 @@
           granted: false,
         };
         // */
-       /* ANONYMOUS */
+       /* ANONYMOUS 
         return {
           granted: false
         };
