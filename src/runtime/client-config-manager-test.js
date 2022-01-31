@@ -18,22 +18,46 @@ import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientTheme} from '../api/basic-subscriptions';
+import {DepsDef} from './deps';
 import {Fetcher} from './fetcher';
 
 describes.realWin('ClientConfigManager', {}, () => {
   let clientConfigManager;
   let fetcher;
   let fetcherMock;
+  let deps;
+  let depsMock;
+  let entitlementsManagerMock;
 
   beforeEach(() => {
+    deps = new DepsDef();
     fetcher = new Fetcher();
     fetcherMock = sandbox.mock(fetcher);
-    clientConfigManager = new ClientConfigManager('pubId', fetcher);
+    depsMock = sandbox.mock(deps);
+    entitlementsManagerMock = depsMock.expects('entitlementsManager').returns({
+      getArticle: () => Promise.resolve(),
+    });
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher);
     sandbox.stub(self.console, 'warn');
   });
 
   afterEach(() => {
     fetcherMock.verify();
+  });
+
+  it('getClientConfig should return default empty config', async () => {
+    const clientConfig = await clientConfigManager.getClientConfig();
+    expect(clientConfig).to.deep.equal(new ClientConfig());
+  });
+
+  it('getClientConfig should include skipAccountCreation override if specified', async () => {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
+      skipAccountCreationScreen: true,
+    });
+    const clientConfig = await clientConfigManager.getClientConfig();
+    expect(clientConfig).to.deep.equal(
+      new ClientConfig({skipAccountCreationScreen: true})
+    );
   });
 
   it('fetchClientConfig should fetch the client config', async () => {
@@ -56,8 +80,72 @@ describes.realWin('ClientConfigManager', {}, () => {
     expect(clientConfig).to.deep.equal(expectedClientConfig);
   });
 
+  it('fetchClientConfig should include skipAccountCreationScreen override', async () => {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
+      skipAccountCreationScreen: true,
+    });
+    const expectedUrl =
+      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 1}})
+      .once();
+
+    let clientConfig = await clientConfigManager.fetchClientConfig();
+    const expectedAutoPromptConfig = new AutoPromptConfig(1);
+    const expectedClientConfig = new ClientConfig({
+      autoPromptConfig: expectedAutoPromptConfig,
+      skipAccountCreationScreen: true,
+    });
+    expect(clientConfig).to.deep.equal(expectedClientConfig);
+
+    clientConfig = await clientConfigManager.getClientConfig();
+    expect(clientConfig).to.deep.equal(expectedClientConfig);
+  });
+
+  it('fetchClientConfig should use article from entitlementsManager if provided', async () => {
+    const article = {
+      clientConfig: new ClientConfig({
+        autoPromptConfig: new AutoPromptConfig(1),
+      }),
+    };
+    entitlementsManagerMock.returns({
+      getArticle: () => Promise.resolve(article),
+    });
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+
+    expect(clientConfig).to.deep.equal(article.clientConfig);
+  });
+
+  it('fetchClientConfig should wait on the readyPromise before fetching if provided', async () => {
+    let sequence = 0;
+    const readyPromise = Promise.resolve().then(() => sequence++);
+    entitlementsManagerMock.returns({
+      getArticle: () =>
+        new Promise((resolve) => {
+          sequence++;
+          resolve({
+            clientConfig: new ClientConfig(),
+          });
+        }),
+    });
+
+    await clientConfigManager.fetchClientConfig(readyPromise);
+
+    expect(sequence).to.equal(
+      2,
+      '2 sequenced promises should have been called'
+    );
+    expect(await readyPromise).to.equal(
+      0,
+      'readyPromise should have been called first'
+    );
+  });
+
   it('fetchClientConfig should throw an error for undefined publication ID', async () => {
-    clientConfigManager = new ClientConfigManager(undefined, fetcher);
+    clientConfigManager = new ClientConfigManager(deps, undefined, fetcher);
     fetcherMock.expects('fetchCredentialedJson').never();
 
     expect(() => {
@@ -155,7 +243,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('should return the language set in the constructor', () => {
-    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
       lang: 'fr',
     });
     expect(clientConfigManager.getLanguage()).to.equal('fr');
@@ -163,7 +251,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('should return the theme set in the constructor', () => {
-    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
       theme: ClientTheme.DARK,
     });
     expect(clientConfigManager.getTheme()).to.equal(ClientTheme.DARK);
@@ -207,6 +295,7 @@ describes.realWin('ClientConfigManager', {}, () => {
     for (const testCase of testCases) {
       it(`returns ${testCase.expected} when ${testCase.description}`, () => {
         clientConfigManager = new ClientConfigManager(
+          deps,
           'pubId',
           fetcher,
           testCase.clientOptions
@@ -219,7 +308,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('shouldEnableButton should return false if disableButton is set to be true in ClientOptions', async () => {
-    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
       disableButton: true,
     });
 
@@ -228,7 +317,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   });
 
   it('shouldEnableButton should return true if ClientConfig has UI predicate canDisplayButton set to be true', async () => {
-    clientConfigManager = new ClientConfigManager('pubId', fetcher, {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
       disableButton: false, // this will be ignored
     });
 

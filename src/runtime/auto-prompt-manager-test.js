@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as audienceActionFlow from './audience-action-flow';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AutoPromptConfig, UiPredicates} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
@@ -83,7 +84,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     entitlementsManagerMock = sandbox.mock(entitlementsManager);
     sandbox.stub(deps, 'entitlementsManager').returns(entitlementsManager);
 
-    clientConfigManager = new ClientConfigManager(pubId, fetcher);
+    clientConfigManager = new ClientConfigManager(deps, pubId, fetcher);
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 
@@ -798,5 +799,112 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayLargePromptFn: alternatePromptSpy,
     });
     expect(alternatePromptSpy).to.not.be.called;
+  });
+
+  describe('AudienceActionFlow', () => {
+    let actionFlowSpy;
+    let startSpy;
+    let articleExpectation;
+
+    beforeEach(() => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      const entitlements = new Entitlements();
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .returns(Promise.resolve(entitlements))
+        .once();
+      const clientConfig = new ClientConfig();
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .returns(Promise.resolve(clientConfig))
+        .once();
+      articleExpectation = entitlementsManagerMock.expects('getArticle');
+      articleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [{type: 'TYPE_REGISTRATION_WALL'}],
+            engineId: '123',
+          },
+        })
+        .once();
+      actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionFlow');
+      startSpy = sandbox.spy(
+        audienceActionFlow.AudienceActionFlow.prototype,
+        'start'
+      );
+    });
+
+    it('should display an AudienceActionFlow if there are any actions provided in the article response', async () => {
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        fallback: alternatePromptSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+    });
+
+    it('should not include the fallback for CONTRIBUTION prompts', async () => {
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        fallback: undefined,
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+    });
+
+    it('should call the original prompt for no article actions', async () => {
+      articleExpectation
+        .resolves({
+          audienceActions: {},
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+    });
+
+    it('should return the last AudienceActionFlow', async () => {
+      const lastAudienceActionFlow = new audienceActionFlow.AudienceActionFlow(
+        deps,
+        {
+          action: 'TYPE_REGISTRATION_WALL',
+          fallback: undefined,
+          autoPromptType: AutoPromptType.CONTRIBUTION,
+        }
+      );
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      autoPromptManager.setLastAudienceActionFlow(lastAudienceActionFlow);
+
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(
+        lastAudienceActionFlow
+      );
+    });
   });
 });

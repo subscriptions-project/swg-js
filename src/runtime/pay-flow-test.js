@@ -20,6 +20,7 @@ import {
   EntitlementsResponse,
   EventParams,
 } from '../proto/api_messages';
+import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPort} from '../components/activities';
 import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
@@ -648,6 +649,39 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
   });
+
+  it(
+    'triggers the payConfirmedOpened callback when dialog opens after flow' +
+      'start',
+    async () => {
+      const response = createDefaultSubscribeResponse();
+      entitlementsManagerMock
+        .expects('pushNextEntitlements')
+        .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+        .once();
+      port = new ActivityPort();
+      port.onResizeRequest = () => {};
+      port.whenReady = () => Promise.resolve();
+
+      callbacksMock
+        .expects('triggerPayConfirmOpened')
+        .withExactArgs(
+          sandbox.match((arg) => {
+            expect(arg instanceof ActivityIframeView).to.be.true;
+            return true;
+          })
+        )
+        .once();
+
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(sandbox.match.any, sandbox.match.any, sandbox.match.any)
+        .returns(Promise.resolve(port));
+
+      await flow.start(response);
+      await flow.readyPromise_;
+    }
+  );
 
   it('should have valid flow constructed w/o entitlements', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
@@ -1761,6 +1795,15 @@ describes.realWin('parseSubscriptionResponse', {}, (env) => {
     const sr = parseSubscriptionResponse(runtime, data);
     expect(sr.productType).to.equal(ProductType.UI_CONTRIBUTION);
     expect(sr.oldSku).to.equal('sku_to_replace');
+  });
+
+  it('parses productType when paymentRequest is not present', () => {
+    const data = Object.assign({}, INTEGR_DATA_OBJ);
+    data['productType'] = ProductType.VIRTUAL_GIFT;
+
+    const response = parseSubscriptionResponse(runtime, data);
+
+    expect(response.productType).to.equal(ProductType.VIRTUAL_GIFT);
   });
 
   it('should throw error', () => {

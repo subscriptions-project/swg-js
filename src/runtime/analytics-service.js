@@ -24,6 +24,7 @@ import {
   FinishedLoggingResponse,
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
+import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
@@ -137,6 +138,24 @@ export class AnalyticsService {
     this.getTimestamp_ = () => {
       return toTimestamp(Date.now());
     };
+
+    // While false, we will buffer logs instead of sending them to the analytics service.
+    /** @private {boolean} */
+    this.readyForLogging_ = false;
+
+    // Stores log events while we wait to be ready for logging.
+    /** @private {Array<!../api/client-event-manager-api.ClientEvent>}*/
+    this.logs_ = [];
+  }
+
+  /**
+   * Sets ready for logging to true and logs all the client events that were previously buffered.
+   */
+  setReadyForLogging() {
+    this.readyForLogging_ = true;
+    this.logs_.forEach((event) => {
+      this.handleClientEvent_(event);
+    });
   }
 
   /**
@@ -191,11 +210,11 @@ export class AnalyticsService {
   addLabels(labels) {
     if (labels && labels.length > 0) {
       const newLabels = [].concat(this.context_.getLabelList());
-      labels.forEach((label) => {
+      for (const label of labels) {
         if (newLabels.indexOf(label) == -1) {
           newLabels.push(label);
         }
-      });
+      }
       this.context_.setLabelList(newLabels);
     }
   }
@@ -267,8 +286,18 @@ export class AnalyticsService {
       // context and that it may not contain experiments activated late during
       // the publishers code lifecycle.
       this.addLabels(getOnExperiments(this.doc_.getWin()));
-      this.serviceReady_ = this.activityPorts_
-        .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
+      this.serviceReady_ = this.deps_
+        .storage()
+        .get(Constants.USER_TOKEN)
+        .then((swgUserToken) => {
+          const urlParams = swgUserToken ? {sut: swgUserToken} : {};
+          return this.activityPorts_.openIframe(
+            this.iframe_,
+            feUrl('/serviceiframe', urlParams),
+            null,
+            true
+          );
+        })
         .then(
           (port) => {
             // Register a listener for the logging to code indicate it is
@@ -384,15 +413,23 @@ export class AnalyticsService {
     ) {
       return;
     }
-    // Register we sent a log, the port will call this.afterLogging_ when done.
-    this.unfinishedLogs_++;
-    this.lastAction_ = this.start().then((port) => {
-      const analyticsRequest = this.createLogRequest_(event);
-      port.execute(analyticsRequest);
-      if (isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)) {
-        this.sendBeacon_(analyticsRequest);
-      }
-    });
+
+    if (this.readyForLogging_) {
+      // Register we sent a log, the port will call this.afterLogging_ when done.
+      this.unfinishedLogs_++;
+      this.lastAction_ = this.start().then((port) => {
+        const analyticsRequest = this.createLogRequest_(event);
+        port.execute(analyticsRequest);
+        if (
+          isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)
+        ) {
+          this.sendBeacon_(analyticsRequest);
+        }
+      });
+    } else {
+      // If we're not ready to log events yet, store the event so we can log it later.
+      this.logs_.push(event);
+    }
   }
 
   /**
