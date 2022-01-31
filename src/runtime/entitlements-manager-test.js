@@ -1562,6 +1562,25 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
     });
 
+    it('should be able to fetch experiment flags in the article endpoint if specified', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {
+        experimentConfig: {
+          experimentFlags: ['flag1', 'flag2'],
+        },
+      };
+      sandbox.stub(manager, 'getArticle').returns(Promise.resolve(article));
+      const expFlags = await manager.getExperimentConfigFlags();
+      expect(expFlags[0]).to.equal('flag1');
+      expect(expFlags[1]).to.equal('flag2');
+    });
+
     it('should use the article endpoint and correct parameters if configured', async () => {
       manager = new EntitlementsManager(
         win,
