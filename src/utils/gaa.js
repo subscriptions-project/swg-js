@@ -584,6 +584,8 @@ export class GaaMeteringRegwall {
       const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
       titleEl.focus();
     });
+
+    return containerEl;
   }
 
   /**

@@ -1,0 +1,14 @@
+<body>
+  <script src="https://news.google.com/swg/js/v1/swg-gaa.js"></script>
+
+  <script>
+    GaaGoogle3pSignInButton.show({
+      allowedOrigins: [
+        'http://localhost:8000', // Local server, for development
+        'http://localhost:8080', // Local server, for development
+        'http://localhost:6006', // Local server, for development
+      ],
+      authorizationUrl: 'https://google.com',
+    });
+  </script>
+</body>
