@@ -2185,7 +2185,7 @@
   resolved "https://registry.yarnpkg.com/@sinonjs/text-encoding/-/text-encoding-0.7.1.tgz#8da5c6530915653f3a1f38fd5f101d8c3f8079c5"
   integrity sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==
 
-"@storybook/addon-actions@6.4.14", "@storybook/addon-actions@^6.4.14":
+"@storybook/addon-actions@6.4.14":
   version "6.4.14"
   resolved "https://registry.yarnpkg.com/@storybook/addon-actions/-/addon-actions-6.4.14.tgz#be5590438943487b4243b2fe16619557cb9ca0ce"
   integrity sha512-EBraATDCKCbb1IpT+bTIV+noFIoK5ykXj8Nt0qmQGD2OC1cZovIyH3DigyD0/3D55znGzxqRruTK8lm0nc1jbg==
@@ -2298,7 +2298,7 @@
     ts-dedent "^2.0.0"
     util-deprecate "^1.0.2"
 
-"@storybook/addon-essentials@^6.4.14":
+"@storybook/addon-essentials@6.4.14":
   version "6.4.14"
   resolved "https://registry.yarnpkg.com/@storybook/addon-essentials/-/addon-essentials-6.4.14.tgz#25eea7f148d7decac59565631afa3c755631c169"
   integrity sha512-ndjVkGRBkCI6Tw/lAHoeD8GmnhRUUpTl2Iv9oiD0AEIpetYl0osfHLqHpMtrgem1Mq6uGiGWNdVhwFnPixkWPg==
@@ -2318,7 +2318,7 @@
     regenerator-runtime "^0.13.7"
     ts-dedent "^2.0.0"
 
-"@storybook/addon-links@^6.4.14":
+"@storybook/addon-links@6.4.14":
   version "6.4.14"
   resolved "https://registry.yarnpkg.com/@storybook/addon-links/-/addon-links-6.4.14.tgz#7dedd5502cf1fecdcfc845e59a10769cb32ec175"
   integrity sha512-Y+5tdmAdkFzk0OC9wJnHdpVfhq3uqqlrAUFE3QYeof4uL6wLNSr2pl0BzCGQtnTfLs0i0bExXaTP5pZhwSnQoA==
@@ -2781,7 +2781,7 @@
   dependencies:
     lodash "^4.17.15"
 
-"@storybook/html@^6.4.14":
+"@storybook/html@6.4.14":
   version "6.4.14"
   resolved "https://registry.yarnpkg.com/@storybook/html/-/html-6.4.14.tgz#76a9bf35073998469579a4f18896546869536b4a"
   integrity sha512-DlFsnorCQjtioQTvzFxNumpewyOGiRr2/0maJTn7h44CMr1/fLfi0/AnM8ILjMMNftlSqpNAnBDoyvtfcGTezA==
@@ -4273,7 +4273,7 @@ axios@^0.24.0:
   dependencies:
     follow-redirects "^1.14.4"
 
-babel-loader@^8.0.0, babel-loader@^8.2.3:
+babel-loader@8.2.3, babel-loader@^8.0.0:
   version "8.2.3"
   resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-8.2.3.tgz#8986b40f1a64cacfcb4b8429320085ef68b1342d"
   integrity sha512-n4Zeta8NC3QAsuyiizu0GkmRcQ6clkV9WFUnUf1iXP//IeSKbWjofW3UHyZVwlOB4y039YQKefawyTn64Zwbuw==
