@@ -1324,7 +1324,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl: ENTITLEMENTS_URL + `?sut=abc&encodedParams=${noClientTypeParams}`,
+        pingbackUrl:
+          ENTITLEMENTS_URL + `?sut=abc&encodedParams=${noClientTypeParams}`,
         userToken: 'abc',
       });
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
@@ -1353,7 +1354,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl: ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
+        pingbackUrl:
+          ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
         gaaToken: '',
         userToken: 'abc',
       });
@@ -1490,7 +1492,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl: ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
+        pingbackUrl:
+          ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
         gaaToken: '',
         userToken: 'abc',
       });
