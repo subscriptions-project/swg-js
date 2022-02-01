@@ -1345,7 +1345,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     });
   });
 
-  describe('gaaNotifySignIn', {}, () => {
+  describe('gaaNotifySignIn', () => {
     it('posts message when passed a user', () => {
       self.opener = self;
       sandbox.stub(self, 'postMessage');
@@ -1367,7 +1367,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
           /* eslint-enable google-camelcase/google-camelcase */
         },
       };
-      gaaNotifySignIn.bind(self, {gaaUser})();
+      GaaGoogle3pSignInButton.gaaNotifySignIn({gaaUser});
 
       expect(self.postMessage).to.have.been.calledWithExactly({
         stamp: POST_MESSAGE_STAMP,
