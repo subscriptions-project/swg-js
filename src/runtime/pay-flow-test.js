@@ -978,6 +978,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       [],
       null
     );
+
+    const expectedCanonicalUrl = 'canonical-url';
+    const expectedContentTitle = 'content-title';
     const response = new SubscribeResponse(
       RAW_ENTITLEMENTS,
       purchaseData,
@@ -988,7 +991,11 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       null,
       'swgUserToken',
       null,
-      {contentId: 'url', anonymous: true}
+      {
+        contentId: expectedCanonicalUrl,
+        contentTitle: expectedContentTitle,
+        anonymous: true,
+      }
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
@@ -1014,7 +1021,10 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
-          '&canonicalUrl=url&isAnonymous=true',
+          '&isPaid=true&checkOrderStatus=true' +
+          '&canonicalUrl=' +
+          expectedCanonicalUrl +
+          '&isAnonymous=true',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
@@ -1022,6 +1032,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.VIRTUAL_GIFT,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          contentTitle: expectedContentTitle,
           swgUserToken: 'swgUserToken',
           orderId: 'ORDER',
           useUpdatedConfirmUi: false,
@@ -1795,6 +1806,15 @@ describes.realWin('parseSubscriptionResponse', {}, (env) => {
     const sr = parseSubscriptionResponse(runtime, data);
     expect(sr.productType).to.equal(ProductType.UI_CONTRIBUTION);
     expect(sr.oldSku).to.equal('sku_to_replace');
+  });
+
+  it('parses productType when paymentRequest is not present', () => {
+    const data = Object.assign({}, INTEGR_DATA_OBJ);
+    data['productType'] = ProductType.VIRTUAL_GIFT;
+
+    const response = parseSubscriptionResponse(runtime, data);
+
+    expect(response.productType).to.equal(ProductType.VIRTUAL_GIFT);
   });
 
   it('should throw error', () => {

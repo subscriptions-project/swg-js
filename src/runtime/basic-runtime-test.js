@@ -186,6 +186,48 @@ describes.realWin('installBasicRuntime', {}, (env) => {
       expect(basicSubscriptions).to.have.property(name);
     }
   });
+
+  describe('default onEntitlementsResponse', () => {
+    let entitlements;
+    let configuredCallback;
+
+    beforeEach(() => {
+      sandbox
+        .stub(BasicRuntime.prototype, 'setOnEntitlementsResponse')
+        .callsFake((callback) => {
+          configuredCallback = callback;
+        });
+      entitlements = {
+        consume: sandbox.stub(),
+      };
+    });
+
+    it('should consume if entitlement enables with metering', async () => {
+      entitlements.enablesThisWithGoogleMetering = sandbox.stub().returns(true);
+
+      installBasicRuntime(win);
+      const entitlementsResponse = Promise.resolve(entitlements);
+      configuredCallback(entitlementsResponse);
+      await entitlementsResponse;
+
+      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
+      expect(entitlements.consume).to.be.calledOnce;
+    });
+
+    it('should not consume if entitlement is not for metering', async () => {
+      entitlements.enablesThisWithGoogleMetering = sandbox
+        .stub()
+        .returns(false);
+
+      installBasicRuntime(win);
+      const entitlementsResponse = Promise.resolve(entitlements);
+      configuredCallback(entitlementsResponse);
+      await entitlementsResponse;
+
+      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
+      expect(entitlements.consume).to.not.be.called;
+    });
+  });
 });
 
 describes.realWin('BasicRuntime', {}, (env) => {
@@ -933,6 +975,17 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, false);
       expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
         .be.false;
+    });
+
+    it('should enable METERED_BY_GOOGLE on the entitlements manager', () => {
+      const entitlementsStub = sandbox.stub(
+        EntitlementsManager.prototype,
+        'enableMeteredByGoogle'
+      );
+
+      configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
+
+      expect(entitlementsStub).to.be.calledOnce;
     });
   });
 });

@@ -24,6 +24,7 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {XhrFetcher} from './fetcher';
@@ -45,6 +46,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
   let pretendPortWorks;
   let loggedErrors;
   let eventsLoggedToService;
+  let storageMock;
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
@@ -103,6 +105,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       };
     });
     analyticsService = new AnalyticsService(runtime, runtime.fetcher_);
+    storageMock = sandbox.mock(runtime.storage());
     activityIframePort = new ActivityIframePort(
       analyticsService.getElement(),
       feUrl(src),
@@ -196,20 +199,38 @@ describes.realWin('AnalyticsService', {}, (env) => {
     });
 
     it('should call openIframe after client event', () => {
+      analyticsService.setReadyForLogging();
       analyticsService.handleClientEvent_(event);
       expectOpenIframe = true;
       expectSwgUserToken = false;
       return activityIframePort.whenReady();
     });
 
-    it('should call openIframe with swg user token url param if specified', () => {
-      analyticsService.start('swgUserToken');
+    it('should call openIframe with swg user token url param if in storage', () => {
+      analyticsService.setReadyForLogging();
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN)
+        .returns(Promise.resolve('swgUserToken'))
+        .once();
+      analyticsService.start();
       expectOpenIframe = true;
       expectSwgUserToken = true;
       return activityIframePort.whenReady();
     });
 
+    it('should not call openIframe until ready for logging', () => {
+      analyticsService.handleClientEvent_(event);
+      expect(iframeCallback).to.be.null;
+      analyticsService.setReadyForLogging();
+      expectOpenIframe = true;
+      expectSwgUserToken = false;
+      return activityIframePort.whenReady();
+    });
+
     it('should send message on port and openIframe called only once', async () => {
+      analyticsService.setReadyForLogging();
+
       // This ensures nothing gets sent to the server.
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
 
@@ -280,6 +301,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
     describe('SwG Clearcut Service Experiment', () => {
       beforeEach(() => {
+        analyticsService.setReadyForLogging();
+
         // This ensures nothing gets sent to the server.
         sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       });
@@ -332,6 +355,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
     beforeEach(() => {
       // This ensure nothing gets sent to the server.
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      analyticsService.setReadyForLogging();
 
       iframeCallback = null;
       sandbox
@@ -424,6 +448,10 @@ describes.realWin('AnalyticsService', {}, (env) => {
   });
 
   describe('Context, experiments & labels', () => {
+    beforeEach(() => {
+      analyticsService.setReadyForLogging();
+    });
+
     it('should create correct context for logging', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       analyticsService.setReadyToPay(true);
@@ -572,6 +600,10 @@ describes.realWin('AnalyticsService', {}, (env) => {
   });
 
   describe('Publisher Events', () => {
+    beforeEach(() => {
+      analyticsService.setReadyForLogging();
+    });
+
     /**
      * Ensure that analytics service is only logging events from the passed
      * originator if shouldLog is true.

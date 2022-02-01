@@ -73,6 +73,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let dialogManagerMock;
   let eventManager;
   let eventManagerMock;
+  let defaultGoogleMeteringEncodedParams;
+  let noClientTypeParams;
 
   beforeEach(() => {
     // Work around `location.search` being non-configurable,
@@ -127,6 +129,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     sandbox.stub(self.console, 'warn');
     nowStub = sandbox.stub(Date, 'now').returns(1600389016959);
+    defaultGoogleMeteringEncodedParams = base64UrlEncodeFromBytes(
+      utf8EncodeSync(
+        '{"metering":{"clientTypes":[2],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
+      )
+    );
+    noClientTypeParams = base64UrlEncodeFromBytes(
+      utf8EncodeSync(
+        '{"metering":{"resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
+      )
+    );
   });
 
   afterEach(async () => {
@@ -346,7 +358,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -422,50 +434,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       const ents = await manager.getEntitlements({
         encryption: {encryptedDocumentKey},
-      });
-      expect(ents.service).to.equal('subscribe.google.com');
-      expect(ents.raw).to.equal('');
-      expect(ents.entitlements).to.deep.equal([]);
-      expect(ents.product_).to.equal('pub1:label1');
-      expect(ents.enablesThis()).to.be.false;
-    });
-
-    it('should accept swgUserToken from getEntitlements param', async () => {
-      xhrMock
-        .expects('fetch')
-        .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
-            encodeURIComponent(encryptedDocumentKey) +
-            '&sut=' +
-            encodeURIComponent('abc'),
-          {
-            method: 'GET',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-          }
-        )
-        .returns(
-          Promise.resolve({
-            text: () => Promise.resolve('{}'),
-          })
-        );
-
-      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
-
-      // Do not check locally stored SwgUserToken if getEntitlements param has it.
-      storageMock
-        .expects('get')
-        .withExactArgs(Constants.USER_TOKEN, true)
-        .atLeast(0);
-
-      const ents = await manager.getEntitlements({
-        encryption: {
-          encryptedDocumentKey:
-            '{"accessRequirements": ' +
-            '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}',
-          swgUserToken: 'abc',
-        },
       });
       expect(ents.service).to.equal('subscribe.google.com');
       expect(ents.raw).to.equal('');
@@ -665,6 +633,30 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       const entitlements = await manager.getEntitlements();
       expect(entitlements.entitlements[0].subscriptionToken).to.equal('s1');
+    });
+
+    it('should handle and store swgUserToken if no entitlements', async () => {
+      xhrMock.expects('fetch').returns(
+        Promise.resolve({
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                swgUserToken: 'abc',
+              })
+            ),
+        })
+      );
+
+      expectLog(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+      expectLog(AnalyticsEvent.EVENT_NO_ENTITLEMENTS, false);
+
+      expectGetSwgUserTokenToBeCalled();
+
+      storageMock
+        .expects('set')
+        .withExactArgs(Constants.USER_TOKEN, 'abc', true);
+
+      await manager.getEntitlements();
     });
 
     it('should handle missing decrypted document key', async () => {
@@ -1332,7 +1324,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
         EntitlementResult.UNLOCKED_METER,
         'token1',
-        GOOGLE_METERING_SOURCE
+        GOOGLE_METERING_SOURCE,
+        /* isUserRegistered */ null,
+        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
       );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
@@ -1418,7 +1412,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         'token1',
         GOOGLE_METERING_SOURCE,
         /* isUserRegistered */ null,
-        /* pingbackUrl */ '',
+        ENTITLEMENTS_URL +
+          `?devEnt=${scenario}&encodedParams=${noClientTypeParams}`,
         scenario
       );
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
@@ -1639,6 +1634,28 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         'getArticle should return the article endpoint response'
       );
     });
+
+    it('should only include METERED_BY_GOOGLE client type if explicitly enabled', async () => {
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${defaultGoogleMeteringEncodedParams}`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+      manager.enableMeteredByGoogle();
+
+      await manager.getEntitlements();
+    });
   });
 
   describe('event listening', () => {
@@ -1670,7 +1687,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         result,
         /* jwtString */ null,
         /* jwtSource */ null,
-        params.getIsUserRegistered()
+        params.getIsUserRegistered(),
+        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
       );
       eventManager.logEvent({
         eventType: event,
@@ -2208,7 +2226,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         EntitlementResult.UNLOCKED_SUBSCRIBER,
         /* jwtString */ null,
         /* jwtSource */ null,
-        /* isUserRegistered */ true
+        /* isUserRegistered */ true,
+        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
       );
       manager.reset(true);
 
@@ -2238,7 +2257,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         EntitlementResult.UNLOCKED_SUBSCRIBER,
         /* jwtString */ null,
         /* jwtSource */ null,
-        /* isUserRegistered */ true
+        /* isUserRegistered */ true,
+        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
       );
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(true);
@@ -2265,7 +2285,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         EntitlementResult.UNLOCKED_SUBSCRIBER,
         /* jwtString */ null,
         /* jwtSource */ null,
-        /* isUserRegistered */ true
+        /* isUserRegistered */ true,
+        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
       );
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(false);
@@ -2292,7 +2313,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         EntitlementResult.UNLOCKED_SUBSCRIBER,
         /* jwtString */ null,
         /* jwtSource */ null,
-        /* isUserRegistered */ true
+        /* isUserRegistered */ true,
+        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
       );
       manager.reset(true);
 

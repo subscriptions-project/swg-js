@@ -99,6 +99,15 @@ export function installBasicRuntime(win) {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
+
+  // Set the default entitlements response handler to consume a valid metering entitlement.
+  basicRuntime.setOnEntitlementsResponse((entitlementsPromise) => {
+    entitlementsPromise.then((entitlements) => {
+      if (entitlements.enablesThisWithGoogleMetering()) {
+        entitlements.consume();
+      }
+    });
+  });
 }
 
 /**
@@ -304,6 +313,9 @@ export class ConfiguredBasicRuntime {
 
     // Do not show toast in swgz.
     this.entitlementsManager().blockNextToast();
+
+    // Enable Google metering in basic runtime by default;
+    this.entitlementsManager().enableMeteredByGoogle();
 
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();
