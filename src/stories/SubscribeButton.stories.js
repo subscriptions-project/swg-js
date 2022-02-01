@@ -28,7 +28,7 @@ export const Enabled = (args) => {
   self.document.body.insertAdjacentHTML('beforeend', cssHtml);
 
   // Render button.
-  const buttonEl = document.createElement('div');
+  const buttonEl = self.document.createElement('div');
   buttonApi.attachSubscribeButton(buttonEl, {
     enable: true,
     lang: args['Language'],
@@ -45,7 +45,7 @@ export const Disabled = (args) => {
   self.document.body.insertAdjacentHTML('beforeend', cssHtml);
 
   // Render button.
-  const buttonEl = document.createElement('div');
+  const buttonEl = self.document.createElement('div');
   buttonApi.attachSubscribeButton(buttonEl, {
     enable: false,
     lang: args['Language'],
