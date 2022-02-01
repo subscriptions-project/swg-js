@@ -355,10 +355,13 @@ export class PayCompleteFlow {
         publicationId: args.publicationId,
         offerId: this.sku_,
         origin: parseUrl(this.win_.location.href).origin,
+        isPaid: true,
+        checkOrderStatus: true,
       });
       if (response.requestMetadata) {
         urlParams.canonicalUrl = response.requestMetadata.contentId;
         urlParams.isAnonymous = response.requestMetadata.anonymous;
+        args['contentTitle'] = response.requestMetadata.contentTitle;
       }
 
       // Add feArgs to be passed via activities.
