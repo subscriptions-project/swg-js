@@ -33,7 +33,6 @@ import {
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-  gaaNotifySignIn,
   queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
