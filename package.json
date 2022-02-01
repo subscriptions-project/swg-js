@@ -25,7 +25,7 @@
     "dist": "gulp dist",
     "export-to-amp": "gulp export-to-amp",
     "site": "cd site && hugo server -D --port=800",
-    "build-site": "cd site && hugo",
+    "build-site": "gulp dist && cd site && hugo",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },
