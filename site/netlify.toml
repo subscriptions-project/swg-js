@@ -1,5 +1,5 @@
 [build]
-  command = "hugo"
+  command = "gulp build && hugo"
   publish = "public"
 
 [build.environment]
