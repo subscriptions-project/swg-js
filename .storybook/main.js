@@ -5,5 +5,5 @@ module.exports = {
   ],
   'addons': ['@storybook/addon-links', '@storybook/addon-essentials'],
   'framework': '@storybook/html',
-  'staticDirs': ['../src/stories/static'],
+  'staticDirs': ['../src/stories/static', '../assets'],
 };
