@@ -1181,18 +1181,17 @@ export class GaaGoogle3pSignInButton {
       }
     });
   }
-}
-
-/**
- * Notify Google Intervention of a complete sign-in event.
- * @param {{ gaaUser: GaaUserDef}} params
- */
-export function gaaNotifySignIn({gaaUser}) {
-  self.opener.postMessage({
-    stamp: POST_MESSAGE_STAMP,
-    command: POST_MESSAGE_COMMAND_USER,
-    gaaUser,
-  });
+  /**
+   * Notify Google Intervention of a complete sign-in event.
+   * @param {{ gaaUser: GaaUserDef}} params
+   */
+  static gaaNotifySignIn({gaaUser}) {
+    self.opener.postMessage({
+      stamp: POST_MESSAGE_STAMP,
+      command: POST_MESSAGE_COMMAND_USER,
+      gaaUser,
+    });
+  }
 }
 
 /**
