@@ -382,7 +382,16 @@ export class EntitlementsManager {
           );
         });
 
-    this.entitlementsPostPromise = encodedParamsPromise.then(() => {
+    // Get swgUserToken from local storage
+    const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
+    this.entitlementsPostPromise = Promise.all([
+      swgUserTokenPromise,
+      encodedParamsPromise,
+    ]).then((values) => {
+      const swgUserToken = values[0];
+      if (swgUserToken) {
+        url = addQueryParam(url, 'sut', swgUserToken);
+      }
       url = addQueryParam(
         url,
         this.encodedParamName_,
