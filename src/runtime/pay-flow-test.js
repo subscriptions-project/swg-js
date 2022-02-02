@@ -978,6 +978,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       [],
       null
     );
+
+    const expectedCanonicalUrl = 'canonical-url';
+    const expectedContentTitle = 'content-title';
     const response = new SubscribeResponse(
       RAW_ENTITLEMENTS,
       purchaseData,
@@ -988,7 +991,11 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       null,
       'swgUserToken',
       null,
-      {contentId: 'url', anonymous: true}
+      {
+        contentId: expectedCanonicalUrl,
+        contentTitle: expectedContentTitle,
+        anonymous: true,
+      }
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
@@ -1014,7 +1021,10 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
-          '&canonicalUrl=url&isAnonymous=true',
+          '&isPaid=true&checkOrderStatus=true' +
+          '&canonicalUrl=' +
+          expectedCanonicalUrl +
+          '&isAnonymous=true',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
@@ -1022,6 +1032,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.VIRTUAL_GIFT,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          contentTitle: expectedContentTitle,
           swgUserToken: 'swgUserToken',
           orderId: 'ORDER',
           useUpdatedConfirmUi: false,
