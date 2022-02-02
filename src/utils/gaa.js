@@ -1378,7 +1378,7 @@ export class GaaMetering {
     const publisherEntitlementPromise = params.publisherEntitlementPromise;
     const registerUserPromise = params.registerUserPromise;
 
-    const credentials;
+    let credentials;
 
     // Validate gaa parameters and referrer
     if (!GaaMetering.isGaa(allowedReferrers)) {
@@ -1422,10 +1422,10 @@ export class GaaMetering {
           // Return a userState object to represent the
           // newly-registered user.
 
-          credentials = credentials;
+          GaaMetering.credentials = credentials;
           registerUserPromise.then((registerUserUserState) => {
             checkShowcaseEntitlement(registerUserUserState);
-          })
+          });
         });
       }
 
@@ -1434,7 +1434,7 @@ export class GaaMetering {
       }
 
       function getGaaUser() {
-        return credentials;
+        return GaaMetering.credentials;
       }
 
       if (!('granted' in params.userState)) {
@@ -1454,7 +1454,14 @@ export class GaaMetering {
           const googleEntitlement = entitlements[0];
           const publisherEntitlement = entitlements[1];
 
-          if (publisherEntitlement.granted) {
+          userState.grantReason = publisherEntitlement.grantReason;
+          userState.granted = publisherEntitlement.granted;
+
+          if (!GaaMetering.validateUserState(userState)) {
+            debugLog('invalid userState object');
+
+            return false;
+          } else if (publisherEntitlement.granted) {
             // B.1b) User has access from publisher so unlock article
             unlockArticle();
             // At the same time, share information about the entitlement with Google.
@@ -1465,7 +1472,7 @@ export class GaaMetering {
                 entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
                 isUserRegistered: isUserRegistered(),
               });
-            } else if (publisherEntitlement.grantReason === 'FREE') {
+            } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
               // TODO: Get from markup?
               subscriptions.setShowcaseEntitlement({
                 entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
@@ -1545,14 +1552,6 @@ export class GaaMetering {
     // Check userState is an 'object'
     if (!('userState' in params && typeof params.userState === 'object')) {
       debugLog(`Missing userState or it is not an object`);
-      return false;
-    }
-
-    if (
-      !('id' in params.userState) ||
-      !('registrationTimestamp' in params.userState)
-    ) {
-      debugLog('Missing user ID or registrationTimestamp in userState object');
       return false;
     }
 
@@ -1701,6 +1700,69 @@ export class GaaMetering {
     }
   }
 
+  static isArticleFreeFromPageConfig_() {
+    const jsonLdPageConfig = GaaMetering.isArticleFreeFromJsonLdPageConfig_();
+    if (jsonLdPageConfig) {
+      return jsonLdPageConfig;
+    }
+
+    const microdataPageConfig =
+      GaaMetering.isArticleFreeFromMicrodataPageConfig_();
+    if (microdataPageConfig) {
+      return microdataPageConfig;
+    }
+  }
+
+  /**
+   * Gets publisher name from JSON-LD page config.
+   * @private
+   * @nocollapse
+   * @return {string|undefined}
+   */
+  static isArticleFreeFromJsonLdPageConfig_() {
+    const ldJsonElements = self.document.querySelectorAll(
+      'script[type="application/ld+json"]'
+    );
+
+    for (let i = 0; i < ldJsonElements.length; i++) {
+      const ldJsonElement = ldJsonElements[i];
+      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+
+      if (!Array.isArray(ldJson)) {
+        ldJson = [ldJson];
+      }
+
+      const accessibleForFree = findInArray(
+        ldJson,
+        (entry) => entry?.isAccessibleForFree
+      )?.isAccessibleForFree;
+
+      if (accessibleForFree) {
+        return accessibleForFree;
+      }
+    }
+  }
+
+  /**
+   * Gets publisher name from Microdata page config.
+   * @private
+   * @nocollapse
+   * @return {string|undefined}
+   */
+  static isArticleFreeFromMicrodataPageConfig_() {
+    const accessibleForFreeElements = self.document.querySelectorAll(
+      '[itemscope][itemtype][itemprop="isAccessibleForFree"]'
+    );
+
+    for (let i = 0; i < accessibleForFreeElements.length; i++) {
+      const accessibleForFreeElement = accessibleForFreeElements[i];
+      const accessibleForFree = accessibleForFreeElement.content;
+      if (accessibleForFree) {
+        return accessibleForFree;
+      }
+    }
+  }
+
   static newUserStateToUserState(newUserState) {
     const userState = {
       'metering': {
@@ -1716,6 +1778,89 @@ export class GaaMetering {
     };
 
     return userState;
+  }
+
+  static validateUserState(newUserState) {
+    if (!('id' in newUserState) || !('registrationTimestamp' in newUserState)) {
+      debugLog('Missing user ID or registrationTimestamp in userState object');
+      return false;
+    }
+
+    if (
+      !(
+        typeof newUserState.registrationTimestamp === 'number' &&
+        newUserState.registrationTimestamp % 1 === 0
+      )
+    ) {
+      debugLog(
+        'userState.registrationTimestamp invalid, userState.registrationTimestamp needs to be an integer and in seconds'
+      );
+
+      return false;
+    }
+
+    if (newUserState.registrationTimestamp > new Date().getTime()) {
+      debugLog('userState.registrationTimestamp is in the future');
+
+      return false;
+    }
+
+    if (
+      (newUserState.grantReason =
+        'SUBSCRIBER' && !('subscriptionTimestamp' in newUserState))
+    ) {
+      debugLog(
+        'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
+      );
+
+      return false;
+    }
+
+    if (
+      'subscriptionTimestamp' in newUserState &&
+      !(
+        typeof newUserState.registrationTimestamp === 'number' &&
+        newUserState.registrationTimestamp % 1 === 0
+      )
+    ) {
+      debugLog(
+        'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
+      );
+
+      return false;
+    }
+
+    if (
+      'subscriptionTimestamp' in newUserState &&
+      newUserState.subscriptionTimestamp > new Date().getTime()
+    ) {
+      debugLog('userState.subscriptionTimestamp is in the future');
+
+      return false;
+    }
+
+    if (
+      !('granted' in newUserState && typeof newUserState.granted === 'boolean')
+    ) {
+      debugLog(
+        'userState.granted is missing or invalid (must be true or false)'
+      );
+
+      return false;
+    }
+
+    if (
+      newUserState.granted === true &&
+      !['FREE', 'METERING', 'SUBSCRIBER'].includes(newUserState.grantReason)
+    ) {
+      debugLog(
+        'if userState.granted is true then userState.grantReason has to be either FREE, METERING, or SUBSCRIBER '
+      );
+
+      return false;
+    }
+
+    return true;
   }
 }
 
