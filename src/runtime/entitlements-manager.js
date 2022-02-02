@@ -64,6 +64,11 @@ const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
  *      type: (string)
  *    }>,
  *    engineId: (string)
+ *  }),
+ *  experimentConfig: ({
+ *    experimentFlags: Array<{
+ *      type: (string)
+ *    }>
  *  })
  * }}
  */
@@ -463,6 +468,23 @@ export class EntitlementsManager {
       return Promise.resolve();
     }
     return this.responsePromise_.then(() => Promise.resolve(this.article_));
+  }
+
+  /**
+   * The experiment flags that are returned by the article endpoint should be accessible from here.
+   * @returns {Promise<Array<string>>}
+   */
+  getExperimentConfigFlags() {
+    return this.getArticle().then((article) => {
+      const expConfig = article['experimentConfig'];
+      if (expConfig != null) {
+        const expFlags = expConfig['experimentFlags'];
+        if (expFlags != null) {
+          return expFlags;
+        }
+      }
+      return [];
+    });
   }
 
   /**
