@@ -187,12 +187,10 @@ describes.realWin('AnalyticsService', {}, (env) => {
         expect(activityPorts.openIframe).to.have.been.calledOnce;
         const args = activityPorts.openIframe.getCall(0).args;
         expect(args[0].nodeName).to.equal('IFRAME');
-        if (expectSwgUserToken) {
-          const urlParams = {sut: 'swgUserToken'};
-          expect(args[1]).to.equal(feUrl(src, urlParams));
-        } else {
-          expect(args[1]).to.equal(feUrl(src));
-        }
+        const urlParams = expectSwgUserToken
+          ? {sut: 'swgUserToken', publicationId: 'pub1'}
+          : {publicationId: 'pub1'};
+        expect(args[1]).to.equal(feUrl(src, urlParams));
         expect(args[2]).to.be.null;
         expect(args[3]).to.be.true;
       }

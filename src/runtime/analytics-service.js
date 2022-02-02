@@ -290,7 +290,10 @@ export class AnalyticsService {
         .storage()
         .get(Constants.USER_TOKEN)
         .then((swgUserToken) => {
-          const urlParams = swgUserToken ? {sut: swgUserToken} : {};
+          const pubId = this.deps_.pageConfig().getPublicationId();
+          const urlParams = swgUserToken
+            ? {sut: swgUserToken, publicationId: pubId}
+            : {publicationId: pubId};
           return this.activityPorts_.openIframe(
             this.iframe_,
             feUrl('/serviceiframe', urlParams),
