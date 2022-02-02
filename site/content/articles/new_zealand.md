@@ -9,7 +9,7 @@ kicker: "This majestic land is offers everything from volcanic terrain to lush p
 autoPromptType: "subscription"
 isFree: false
 productId: "news"
-publicationId: "scenic-2017.appspot.com"
+publicationId: "CAowmLOrCw"
 type: "NewsArticle"
 draft: false
 ---
