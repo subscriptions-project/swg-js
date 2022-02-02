@@ -1,6 +1,0 @@
-[build]
-  command = "gulp build && hugo"
-  publish = "public"
-
-[build.environment]
-  HUGO_VERSION = "0.89.0"
