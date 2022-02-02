@@ -482,8 +482,8 @@ export class EntitlementsManager {
         if (expFlags != null) {
           return expFlags;
         }
-        return [];
       }
+      return [];
     });
   }
 

@@ -1588,6 +1588,20 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(expFlags).to.be.empty;
     });
 
+    it('should fetch empty experiment list if no experiment config specified in article endpoint', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {};
+      sandbox.stub(manager, 'getArticle').returns(Promise.resolve(article));
+      const expFlags = await manager.getExperimentConfigFlags();
+      expect(expFlags).to.be.empty;
+    });
+
     it('should use the article endpoint and correct parameters if configured', async () => {
       manager = new EntitlementsManager(
         win,
