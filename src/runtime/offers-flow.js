@@ -130,7 +130,7 @@ export class OffersFlow {
           ? new ActivityIframeView(
               this.win_,
               this.activityPorts_,
-              this.getUrl_(clientConfig),
+              this.getUrl_(clientConfig, deps.pageConfig()),
               feArgsObj,
               /* shouldFadeBody */ true
             )
@@ -270,9 +270,10 @@ export class OffersFlow {
   /**
    * Returns the full URL that should be used for the activity iFrame view.
    * @param {!../model/client-config.ClientConfig} clientConfig
+   * @param {!../model/page-config.PageConfig} pageConfig
    * @return {string}
    */
-  getUrl_(clientConfig) {
+  getUrl_(clientConfig, pageConfig) {
     if (!clientConfig.useUpdatedOfferFlows) {
       return feUrl('/offersiframe');
     }
@@ -280,10 +281,13 @@ export class OffersFlow {
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       return feUrl('/subscriptionoffersiframe', {
         'hl': this.clientConfigManager_.getLanguage(),
+        'publicationId': pageConfig.getPublicationId(),
       });
     }
 
-    return feUrl('/subscriptionoffersiframe');
+    return feUrl('/subscriptionoffersiframe', {
+      'publicationId': pageConfig.getPublicationId(),
+    });
   }
 
   /**
