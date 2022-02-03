@@ -783,6 +783,10 @@ export class EntitlementsManager {
         const meterToastApi = new MeterToastApi(this.deps_, {
           meterClientType:
             entitlement.subscriptionTokenContents['metering']['clientType'],
+          meterClientUserAttribute:
+            entitlement.subscriptionTokenContents['metering'][
+              'clientUserAttribute'
+            ],
         });
         meterToastApi.setOnConsumeCallback(onConsumeCallback);
         return meterToastApi.start();

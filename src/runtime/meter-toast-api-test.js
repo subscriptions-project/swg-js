@@ -166,27 +166,34 @@ describes.realWin('MeterToastApi', {}, (env) => {
     await meterToastApi.start();
   });
 
-  it('should start the flow correctly with METERED_BY_GOOGLE client type', async () => {
-    expectGetSwgUserTokenToBeCalledAndReturnBlank();
-    const meterToastApiWithParams = new MeterToastApi(runtime, {
-      meterClientType: MeterClientTypes.METERED_BY_GOOGLE,
+  [
+    {userAttribute: 'anonymous_user', meterType: 'UNKNOWN'},
+    {userAttribute: 'known_user', meterType: 'KNOWN'},
+  ].forEach(({userAttribute, meterType}) => {
+    it(`should start the flow correctly with METERED_BY_GOOGLE client type with client user attribute ${userAttribute}`, async () => {
+      expectGetSwgUserTokenToBeCalledAndReturnBlank();
+      const meterToastApiWithParams = new MeterToastApi(runtime, {
+        meterClientType: MeterClientTypes.METERED_BY_GOOGLE,
+        meterClientUserAttribute: userAttribute,
+      });
+      callbacksMock.expects('triggerFlowStarted').once();
+      const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+        isClosable: true,
+        hasSubscriptionCallback: runtime
+          .callbacks()
+          .hasSubscribeRequestCallback(),
+        meterType,
+      });
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(
+          sandbox.match((arg) => arg.tagName == 'IFRAME'),
+          '$frontend$/swg/_/ui/v1/meteriframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+          iframeArgs
+        )
+        .returns(Promise.resolve(port));
+      await meterToastApiWithParams.start();
     });
-    callbacksMock.expects('triggerFlowStarted').once();
-    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
-      isClosable: true,
-      hasSubscriptionCallback: runtime
-        .callbacks()
-        .hasSubscribeRequestCallback(),
-    });
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/meteriframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
-        iframeArgs
-      )
-      .returns(Promise.resolve(port));
-    await meterToastApiWithParams.start();
   });
 
   it('should send stored SUT', async () => {
