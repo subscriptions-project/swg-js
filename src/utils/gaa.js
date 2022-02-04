@@ -1344,18 +1344,16 @@ export class GaaUtils {
 }
 
 export class GaaMetering {
-  /**
-   * Returns a promise for a Google user object.
-   * The user object will be a:
-   * - GaaUserDef, if you use the GaaGoogleSignInButton
-   * - GoogleIdentityV1, if you use the GaaSignInWithGoogleButton
-   * - Custom object, if you use the GaaGoogle3pSignInButton
-   *
-   * This method opens a metering regwall dialog,
-   * where users can sign in with Google.
-   * @nocollapse
-   * @param {!GaaMeteringParams} params
-   */
+  credentials;
+
+  static setGaaUser(credentials) {
+    GaaMetering.credentials = credentials;
+  }
+
+  static getGaaUser() {
+    return GaaMetering.credentials;
+  }
+
   static init({params}) {
     // Validate GaaMetering parameters
     if (!params || !GaaMetering.validateParameters(params)) {
@@ -1367,18 +1365,16 @@ export class GaaMetering {
     const showPaywall = params.showPaywall;
     const userState = params.userState;
     const unlockArticle = params.unlockArticle;
-    // Optional
+
     const handleSwGEntitlement = params.handleSwGEntitlement;
     const googleSignInClientId = params.googleSignInClientId;
 
-    const productId = GaaMetering.getProductIDFromPageConfig_(); //'gtech-demo.appspot.com:basic';
+    const productId = GaaMetering.getProductIDFromPageConfig_();
     const allowedReferrers = params.allowedReferrers;
 
     const handleLoginPromise = params.handleLoginPromise;
     const publisherEntitlementPromise = params.publisherEntitlementPromise;
     const registerUserPromise = params.registerUserPromise;
-
-    let credentials;
 
     // Validate gaa parameters and referrer
     if (!GaaMetering.isGaa(allowedReferrers)) {
@@ -1395,7 +1391,6 @@ export class GaaMetering {
         });
       });
 
-      // Handle the case when users click "Subscribe"
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
       function checkShowcaseEntitlement(userState) {
@@ -1412,17 +1407,13 @@ export class GaaMetering {
 
       // Show the Google registration intervention.
       function showGoogleRegwall() {
-        // TODO: Ask cfa how to render our reg wall using partner's Google Client ID
-        // Ed's suggestion: create a new version of show() which doesn't render the iframe but directly the button via JavaScript (line 88)
         GaaMeteringRegwall.showWithNativeRegistrationButton({
           clientId: googleSignInClientId,
         }).then((credentials) => {
-          // A.5biii) Handle registration for new users
-          // Send the googleSignInDetails object to your Registration endpoint.
-          // Return a userState object to represent the
-          // newly-registered user.
+          // Handle registration for new users
+          // Save credentials object so that registerUserPromise can use it using getGaaUser.
 
-          GaaMetering.credentials = credentials;
+          GaaMetering.setGaaUser(credentials);
           registerUserPromise.then((registerUserUserState) => {
             checkShowcaseEntitlement(registerUserUserState);
           });
@@ -1433,15 +1424,50 @@ export class GaaMetering {
         return userState.id !== undefined && userState.id != '';
       }
 
-      function getGaaUser() {
-        return GaaMetering.credentials;
-      }
-
       if (!('granted' in params.userState)) {
         publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
           userState.granted = fetchedPublisherEntitlements.granted;
           userState.grantReason = fetchedPublisherEntitlements.grantReason;
         });
+      }
+
+      /*
+      if granted true
+        no need to check with Google and just process it
+
+      else checkShowcaseEntitlement
+      
+      */
+      if (!GaaMetering.validateUserState(userState)) {
+        debugLog('invalid userState object');
+
+        return false;
+      } else if (userState.granted === true) {
+        if (userState.granted) {
+          // User has access from publisher so unlock article
+          unlockArticle();
+
+          if (userState.grantReason === 'SUBSCRIBER') {
+            // The user has access because they have a subscription
+            subscriptions.setShowcaseEntitlement({
+              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+              isUserRegistered: isUserRegistered(),
+            });
+          } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
+            subscriptions.setShowcaseEntitlement({
+              entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+              isUserRegistered: isUserRegistered(),
+            });
+          } else if (userState.grantReason === 'METERING') {
+            // The user has access from the publisher's meter
+            subscriptions.setShowcaseEntitlement({
+              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+              isUserRegistered: isUserRegistered(),
+            });
+          }
+        }
+      } else {
+        GaaMetering.checkShowcaseEntitlements(userState);
       }
 
       subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) => {
@@ -1452,41 +1478,10 @@ export class GaaMetering {
         ]).then((entitlements) => {
           // Determine Google response from publisher response.
           const googleEntitlement = entitlements[0];
-          const publisherEntitlement = entitlements[1];
+          // const publisherEntitlement = entitlements[1];
 
-          userState.grantReason = publisherEntitlement.grantReason;
-          userState.granted = publisherEntitlement.granted;
-
-          if (!GaaMetering.validateUserState(userState)) {
-            debugLog('invalid userState object');
-
-            return false;
-          } else if (publisherEntitlement.granted) {
-            // B.1b) User has access from publisher so unlock article
-            unlockArticle();
-            // At the same time, share information about the entitlement with Google.
-            // See here for the specification of PublisherEntitlement: https://git.io/Jk1SW
-            if (publisherEntitlement.grantReason === 'SUBSCRIBER') {
-              // B.1ai) The user has access because they have a subscription
-              subscriptions.setShowcaseEntitlement({
-                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
-                isUserRegistered: isUserRegistered(),
-              });
-            } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
-              // TODO: Get from markup?
-              subscriptions.setShowcaseEntitlement({
-                entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
-                isUserRegistered: isUserRegistered(),
-              });
-            } else if (publisherEntitlement.grantReason === 'METERING') {
-              // B.1aii) The user has access from the publisher's meter
-              subscriptions.setShowcaseEntitlement({
-                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
-                isUserRegistered: isUserRegistered(),
-              });
-            }
-          } else if (googleEntitlement.enablesThisWithGoogleMetering()) {
-            // B.2a) Google returned metering entitlement so grant access
+          if (googleEntitlement.enablesThisWithGoogleMetering()) {
+            // Google returned metering entitlement so grant access
             googleEntitlement.consume(() => {
               // Consume the entitlement and trigger a dialog that lets the user
               // know Google provided them with a free read.
@@ -1494,19 +1489,19 @@ export class GaaMetering {
               unlockArticle();
             });
           } else if (googleEntitlement.enablesThis()) {
-            // B.2b) Google returned a non-metering entitlement
+            // Google returned a non-metering entitlement
             // This is only relevant for publishers doing SwG
             handleSwGEntitlement();
           } else if (!isUserRegistered() && GaaMetering.isGaa()) {
             // This is an anonymous user so show the Google registration intervention
             showGoogleRegwall();
           } else {
-            // B.3a) User does not any access from publisher or Google so show the standard paywall
+            // User does not any access from publisher or Google so show the standard paywall
             subscriptions.setShowcaseEntitlement({
               entitlement: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',
               isUserRegistered: isUserRegistered(),
             });
-            // B.3b) Show the paywall
+            // Show the paywall
             showPaywall();
           }
         });
@@ -1534,19 +1529,6 @@ export class GaaMetering {
         debugLog(`Missing ${reqFunc[reqFuncNo]} or it is not a function`);
         return false;
       }
-    }
-
-    // Check that apps.googleusercontent.com in googleSignInClientId
-    if (
-      !(
-        'googleSignInClientId' in params &&
-        params['googleSignInClientId'].endsWith('.apps.googleusercontent.com')
-      )
-    ) {
-      debugLog(
-        `Missing googleSignInClientId or it is not a valid Google Sign In Client ID`
-      );
-      return false;
     }
 
     // Check userState is an 'object'
@@ -1581,15 +1563,9 @@ export class GaaMetering {
     return url.protocol === 'http:' || url.protocol === 'https:';
   }
 
-  // TODO: implement logic which accepts no gaa parameters and publisher's domain as referer
   static isGaa(publisherReferrers) {
     // Validate GAA params.
-    if (
-      !queryStringHasFreshGaaParams(
-        self.location.search,
-        /*allowAllAccessTypes=*/ true
-      )
-    ) {
+    if (!queryStringHasFreshGaaParams(self.location.search, true)) {
       return false;
     }
 
@@ -1599,7 +1575,6 @@ export class GaaMetering {
       /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
     const referrer = GaaMetering.getAnchorFromUrl(self.document.referrer);
     if (
-      //referrer.protocol !== 'https:' ||
       !GOOGLE_DOMAIN_RE.test(referrer.hostname) &&
       !publisherReferrers.includes(referrer.hostname)
     ) {
@@ -1714,7 +1689,6 @@ export class GaaMetering {
   }
 
   /**
-   * Gets publisher name from JSON-LD page config.
    * @private
    * @nocollapse
    * @return {string|undefined}
@@ -1744,7 +1718,6 @@ export class GaaMetering {
   }
 
   /**
-   * Gets publisher name from Microdata page config.
    * @private
    * @nocollapse
    * @return {string|undefined}
@@ -1863,35 +1836,3 @@ export class GaaMetering {
     return true;
   }
 }
-
-/**
- * Properties:
- * - sku: Required. Sku to add to the user's subscriptions.
- * - oldSku: Optional. This is if you want to replace one sku with another. For
- *  example, if a user wants to upgrade or downgrade their current subscription.
- * - prorationMode: Optional. When replacing a subscription you can decide on a
- *  specific proration mode to charge the user.
- *  The default is IMMEDIATE_WITH_TIME_PRORATION.
- * - oneTime: Optional. When a user chooses a contribution, they have the option
- *  to make it non-recurring.
- * googleSignInClientId: string,
- *    registrationEndpoint: string,
- *    userState: object,
- *    onExtendedAccessGrant: function,
- *    onNoAccess: function,
- *    onLoginRequest: function,
- *    onSwGEntitlement: function,
- *    onNativeSubscribeRequest: function,
- *
- *  @typedef {{
- *    googleSignInClientId: string,
- *    registrationEndpoint: string,
- *    userState: object, - define userState and how does it look
- *    onExtendedAccessGrant: function,
- *    onNoAccess: function,
- *    onLoginRequest: function,
- *    onSwGEntitlement: function,
- *    onNativeSubscribeRequest: function,
- * }}
- */
-export let GaaMeteringParams;
