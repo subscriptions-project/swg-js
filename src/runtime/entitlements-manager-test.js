@@ -209,13 +209,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         })
       )
       .once();
-    expectEntitlementPingback(
-      EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-      EntitlementResult.UNLOCKED_SUBSCRIBER,
-      /* jwtString */ null,
-      /* jwtSource */ null,
-      /* isUserRegistered */ true
-    );
+    expectEntitlementPingback({
+      entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+      entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
+      isUserRegistered: true,
+    });
     return resp;
   }
 
@@ -242,13 +240,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         })
       )
       .once();
-    expectEntitlementPingback(
-      EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-      EntitlementResult.UNLOCKED_SUBSCRIBER,
-      /* jwtString */ null,
-      /* jwtSource */ null,
-      /* isUserRegistered */ true
-    );
+    expectEntitlementPingback({
+      entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+      entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
+      isUserRegistered: true,
+    });
     return resp;
   }
 
@@ -288,17 +284,19 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .returns(Promise.resolve());
   }
 
-  function expectEntitlementPingback(
-    entitlementSource,
-    entitlementResult,
-    jwtString,
-    jwtSource,
+  function expectEntitlementPingback({
+    entitlementSource = '',
+    entitlementResult = 0,
+    jwtString = null,
+    jwtSource = null,
     isUserRegistered = null,
     pingbackUrl = '',
     devModeParams = '',
     gaaToken = 'token',
-    mockTimeArray = MOCK_TIME_ARRAY
-  ) {
+    mockTimeArray = MOCK_TIME_ARRAY,
+    userToken = null,
+  } = {}) {
+    expectGetSwgUserTokenToBeCalled(userToken);
     const encodedParams = base64UrlEncodeFromBytes(
       utf8EncodeSync(
         '{"metering":{"resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
@@ -308,6 +306,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       pingbackUrl ||
       ENTITLEMENTS_URL +
         '?' +
+        (userToken ? `sut=${userToken}&` : '') +
         (devModeParams ? `devEnt=${devModeParams}&` : '') +
         `encodedParams=${encodedParams}`;
     expectPost(
@@ -327,11 +326,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   }
 
   // Clear locally stored SwgUserToken.
-  function expectGetSwgUserTokenToBeCalled() {
+  function expectGetSwgUserTokenToBeCalled(userToken = null) {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
-      .returns(Promise.resolve(null));
+      .returns(Promise.resolve(userToken));
   }
 
   describe('fetching', () => {
@@ -940,13 +939,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER,
-        /* jwtString */ null,
-        /* jwtSource */ null,
-        /* isUserRegistered */ true
-      );
+      expectEntitlementPingback({
+        entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
+        isUserRegistered: true,
+      });
       expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
@@ -1168,6 +1165,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     it('should not open metering dialog when metering entitlements are consumed and showToast is not provided', () => {
       sandbox.stub(fetcher.xhr_, 'fetch').resolves();
       dialogManagerMock.expects('openDialog').never();
+      expectGetSwgUserTokenToBeCalled();
 
       const ents = new Entitlements(
         'service1',
@@ -1268,6 +1266,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should not open metering dialog when metering entitlements are consumed and showToast is false', () => {
       sandbox.stub(fetcher.xhr_, 'fetch').resolves();
+      expectGetSwgUserTokenToBeCalled();
       const ents = new Entitlements(
         'service1',
         'RaW',
@@ -1320,14 +1319,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         }
       );
 
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
-        EntitlementResult.UNLOCKED_METER,
-        'token1',
-        GOOGLE_METERING_SOURCE,
-        /* isUserRegistered */ null,
-        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
-      );
+      expectEntitlementPingback({
+        entitlementSource: EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+        entitlementResult: EntitlementResult.UNLOCKED_METER,
+        jwtString: 'token1',
+        jwtSource: GOOGLE_METERING_SOURCE,
+        pingbackUrl:
+          ENTITLEMENTS_URL + `?sut=abc&encodedParams=${noClientTypeParams}`,
+        userToken: 'abc',
+      });
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
       await manager.consumeMeter_(ent);
@@ -1348,16 +1348,17 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         }
       );
 
-      expectEntitlementPingback(
-        EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
-        EntitlementResult.UNLOCKED_METER,
-        'token1',
-        GOOGLE_METERING_SOURCE,
-        /* isUserRegistered */ null,
-        ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams',
-        '',
-        ''
-      );
+      expectEntitlementPingback({
+        entitlementSource:
+          EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
+        entitlementResult: EntitlementResult.UNLOCKED_METER,
+        jwtString: 'token1',
+        jwtSource: GOOGLE_METERING_SOURCE,
+        pingbackUrl:
+          ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
+        gaaToken: '',
+        userToken: 'abc',
+      });
       manager.encodedParams_ = '3ncod3dM3t3ringParams';
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
       await manager.consumeMeter_(ent);
@@ -1378,14 +1379,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         }
       );
 
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
-        EntitlementResult.UNLOCKED_METER,
-        'token1',
-        GOOGLE_METERING_SOURCE,
-        /* isUserRegistered */ null,
-        ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams'
-      );
+      expectEntitlementPingback({
+        entitlementSource: EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+        entitlementResult: EntitlementResult.UNLOCKED_METER,
+        jwtString: 'token1',
+        jwtSource: GOOGLE_METERING_SOURCE,
+        pingbackUrl: ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams',
+      });
       manager.encodedParams_ = '3ncod3dM3t3ringParams';
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
       await manager.consumeMeter_(ent);
@@ -1406,16 +1406,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       );
       const scenario = 'TEST_SCENARIO';
       win.location.hash = `#swg.debug=1&swg.deventitlement=${scenario}`;
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
-        EntitlementResult.UNLOCKED_METER,
-        'token1',
-        GOOGLE_METERING_SOURCE,
-        /* isUserRegistered */ null,
-        ENTITLEMENTS_URL +
+      expectEntitlementPingback({
+        entitlementSource: EntitlementSource.GOOGLE_SHOWCASE_METERING_SERVICE,
+        entitlementResult: EntitlementResult.UNLOCKED_METER,
+        jwtString: 'token1',
+        jwtSource: GOOGLE_METERING_SOURCE,
+        pingbackUrl:
+          ENTITLEMENTS_URL +
           `?devEnt=${scenario}&encodedParams=${noClientTypeParams}`,
-        scenario
-      );
+        devModeParams: scenario,
+      });
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
 
       await manager.consumeMeter_(ent);
@@ -1486,16 +1486,17 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           },
         }
       );
-      expectEntitlementPingback(
-        EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
-        EntitlementResult.UNLOCKED_METER,
-        'token1',
-        GOOGLE_METERING_SOURCE,
-        /* isUserRegistered */ null,
-        ENTITLEMENTS_URL + '?encodedParams=3ncod3dM3t3ringParams',
-        /* devModeParams */ '',
-        /* gaaToken */ ''
-      );
+      expectEntitlementPingback({
+        entitlementSource:
+          EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
+        entitlementResult: EntitlementResult.UNLOCKED_METER,
+        jwtString: 'token1',
+        jwtSource: GOOGLE_METERING_SOURCE,
+        pingbackUrl:
+          ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
+        gaaToken: '',
+        userToken: 'abc',
+      });
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
       manager.encodedParams_ = '3ncod3dM3t3ringParams';
       await manager.consumeMeter_(ent);
@@ -1550,6 +1551,55 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg.js:getEntitlements]: If present, the first param of getEntitlements() should be an object of type GetEntitlementsParamsExternalDef.'
       );
+    });
+
+    it('should be able to fetch experiment flags in the article endpoint if specified', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {
+        experimentConfig: {
+          experimentFlags: ['flag1', 'flag2'],
+        },
+      };
+      sandbox.stub(manager, 'getArticle').returns(Promise.resolve(article));
+      const expFlags = await manager.getExperimentConfigFlags();
+      expect(expFlags[0]).to.equal('flag1');
+      expect(expFlags[1]).to.equal('flag2');
+    });
+
+    it('should fetch empty experiment list if no experiment flags specified in article endpoint', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {
+        experimentConfig: {},
+      };
+      sandbox.stub(manager, 'getArticle').returns(Promise.resolve(article));
+      const expFlags = await manager.getExperimentConfigFlags();
+      expect(expFlags).to.be.empty;
+    });
+
+    it('should fetch empty experiment list if no experiment config specified in article endpoint', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {};
+      sandbox.stub(manager, 'getArticle').returns(Promise.resolve(article));
+      const expFlags = await manager.getExperimentConfigFlags();
+      expect(expFlags).to.be.empty;
     });
 
     it('should use the article endpoint and correct parameters if configured', async () => {
@@ -1682,14 +1732,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       params = getEventParams(null)
     ) {
       const result = analyticsEventToEntitlementResult(event);
-      expectEntitlementPingback(
-        expectedSource,
-        result,
-        /* jwtString */ null,
-        /* jwtSource */ null,
-        params.getIsUserRegistered(),
-        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
-      );
+      expectEntitlementPingback({
+        entitlementSource: expectedSource,
+        entitlementResult: result,
+        isUserRegistered: params.getIsUserRegistered(),
+        pingbackUrl: ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`,
+      });
       eventManager.logEvent({
         eventType: event,
         eventOriginator: originator,
@@ -2221,14 +2269,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER,
-        /* jwtString */ null,
-        /* jwtSource */ null,
-        /* isUserRegistered */ true,
-        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
-      );
+      expectEntitlementPingback({
+        entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
+        isUserRegistered: true,
+        pingbackUrl: ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`,
+      });
       manager.reset(true);
 
       const entitlements = await manager.getEntitlements();
@@ -2252,14 +2298,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER,
-        /* jwtString */ null,
-        /* jwtSource */ null,
-        /* isUserRegistered */ true,
-        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
-      );
+      expectEntitlementPingback({
+        entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
+        isUserRegistered: true,
+        pingbackUrl: ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`,
+      });
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(true);
 
@@ -2280,14 +2324,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER,
-        /* jwtString */ null,
-        /* jwtSource */ null,
-        /* isUserRegistered */ true,
-        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
-      );
+      expectEntitlementPingback({
+        entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
+        isUserRegistered: true,
+        pingbackUrl: ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`,
+      });
       manager.reset(true);
       analyticsMock.expects('setReadyToPay').withExactArgs(false);
 
@@ -2308,14 +2350,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve(raw))
         .once();
       storageMock.expects('set').withArgs('ents').never();
-      expectEntitlementPingback(
-        EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
-        EntitlementResult.UNLOCKED_SUBSCRIBER,
-        /* jwtString */ null,
-        /* jwtSource */ null,
-        /* isUserRegistered */ true,
-        ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`
-      );
+      expectEntitlementPingback({
+        entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
+        entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
+        isUserRegistered: true,
+        pingbackUrl: ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`,
+      });
       manager.reset(true);
 
       const entitlements = await manager.getEntitlements();

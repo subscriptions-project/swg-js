@@ -117,7 +117,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_',
+        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -147,7 +147,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&hl=fr-CA',
+        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
