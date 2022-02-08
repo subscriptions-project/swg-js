@@ -64,6 +64,11 @@ const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
  *      type: (string)
  *    }>,
  *    engineId: (string)
+ *  }),
+ *  experimentConfig: ({
+ *    experimentFlags: Array<{
+ *      type: (string)
+ *    }>
  *  })
  * }}
  */
@@ -382,7 +387,16 @@ export class EntitlementsManager {
           );
         });
 
-    this.entitlementsPostPromise = encodedParamsPromise.then(() => {
+    // Get swgUserToken from local storage
+    const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
+    this.entitlementsPostPromise = Promise.all([
+      swgUserTokenPromise,
+      encodedParamsPromise,
+    ]).then((values) => {
+      const swgUserToken = values[0];
+      if (swgUserToken) {
+        url = addQueryParam(url, 'sut', swgUserToken);
+      }
       url = addQueryParam(
         url,
         this.encodedParamName_,
@@ -454,6 +468,23 @@ export class EntitlementsManager {
       return Promise.resolve();
     }
     return this.responsePromise_.then(() => Promise.resolve(this.article_));
+  }
+
+  /**
+   * The experiment flags that are returned by the article endpoint should be accessible from here.
+   * @returns {Promise<Array<string>>}
+   */
+  getExperimentConfigFlags() {
+    return this.getArticle().then((article) => {
+      const expConfig = article['experimentConfig'];
+      if (expConfig != null) {
+        const expFlags = expConfig['experimentFlags'];
+        if (expFlags != null) {
+          return expFlags;
+        }
+      }
+      return [];
+    });
   }
 
   /**
@@ -752,6 +783,10 @@ export class EntitlementsManager {
         const meterToastApi = new MeterToastApi(this.deps_, {
           meterClientType:
             entitlement.subscriptionTokenContents['metering']['clientType'],
+          meterClientUserAttribute:
+            entitlement.subscriptionTokenContents['metering'][
+              'clientUserAttribute'
+            ],
         });
         meterToastApi.setOnConsumeCallback(onConsumeCallback);
         return meterToastApi.start();

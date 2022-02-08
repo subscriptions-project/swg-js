@@ -33,6 +33,7 @@ export const IFRAME_BOX_SHADOW =
   'rgba(60, 64, 67, 0.3) 0px -2px 5px, rgba(60, 64, 67, 0.15) 0px -5px 5px';
 export const MINIMIZED_IFRAME_SIZE = '420px';
 export const DEFAULT_IFRAME_URL = '/metertoastiframe';
+export const ANONYMOUS_USER_ATTRIBUTE = 'anonymous_user';
 /**
  * The iframe URLs to be used per MeterClientType
  * @type {Object.<MeterClientTypes, string>}
@@ -40,6 +41,11 @@ export const DEFAULT_IFRAME_URL = '/metertoastiframe';
 export const IframeUrlByMeterClientType = {
   [MeterClientTypes.LICENSED_BY_GOOGLE]: '/metertoastiframe',
   [MeterClientTypes.METERED_BY_GOOGLE]: '/meteriframe',
+};
+/** @enum {string} */
+const MeterType = {
+  UNKNOWN: 'UNKNOWN',
+  KNOWN: 'KNOWN',
 };
 
 /**
@@ -60,7 +66,10 @@ export class MeterToastApi {
    */
   constructor(
     deps,
-    {meterClientType = MeterClientTypes.LICENSED_BY_GOOGLE} = {}
+    {
+      meterClientType = MeterClientTypes.LICENSED_BY_GOOGLE,
+      meterClientUserAttribute = ANONYMOUS_USER_ATTRIBUTE,
+    } = {}
   ) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
@@ -76,6 +85,9 @@ export class MeterToastApi {
 
     /** @private @const {!MeterClientTypes} */
     this.meterClientType_ = meterClientType;
+
+    /** @private @const {string} */
+    this.meterClientUserAttribute_ = meterClientUserAttribute;
 
     /**
      * Function this class calls when a user dismisses the toast to consume a
@@ -101,16 +113,24 @@ export class MeterToastApi {
    * @return {!Promise}
    */
   start() {
+    const additionalArguments = {
+      isClosable: true,
+      hasSubscriptionCallback: this.deps_
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    };
+    if (this.meterClientType_ === MeterClientTypes.METERED_BY_GOOGLE) {
+      additionalArguments['meterType'] =
+        this.meterClientUserAttribute_ === ANONYMOUS_USER_ATTRIBUTE
+          ? MeterType.UNKNOWN
+          : MeterType.KNOWN;
+    }
     return this.deps_
       .storage()
       .get(Constants.USER_TOKEN, true)
       .then((swgUserToken) => {
-        const iframeArgs = this.activityPorts_.addDefaultArguments({
-          isClosable: true,
-          hasSubscriptionCallback: this.deps_
-            .callbacks()
-            .hasSubscribeRequestCallback(),
-        });
+        const iframeArgs =
+          this.activityPorts_.addDefaultArguments(additionalArguments);
 
         const iframeUrl =
           IframeUrlByMeterClientType[

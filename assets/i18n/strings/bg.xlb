@@ -6,7 +6,7 @@
 
 
 <msg name="SHOWCASE_REGWALL_TITLE">Получавайте повече с Google</msg>
-<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>За съдържанието обикновено се изисква плащане, но Google ви дава безплатен достъп до тази и други статии, когато се регистрирате за <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> с профила си в Google.</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>За съдържанието обикновено се изисква плащане, но Google ви дава достъп без парично заплащане до тази и други статии, когато се регистрирате за <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> с профила си в Google.</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Вече имате профил?</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Вход с Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Прегледайте <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Общите условия за канадското законодателство за борба със спама<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> на <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
