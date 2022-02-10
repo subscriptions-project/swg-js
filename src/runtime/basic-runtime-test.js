@@ -987,5 +987,13 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
 
       expect(entitlementsStub).to.be.calledOnce;
     });
+
+    it('should set onNativeSubscribeRequest to handle clicks on the Metering Toast "Subscribe" button', async () => {
+      expect(configuredBasicRuntime.configuredClassicRuntime()).to.exist;
+      expect(
+        configuredBasicRuntime.configuredClassicRuntime().callbacks()
+          .hasSubscribeRequestCallback()
+      ).to.be.true;
+    });
   });
 });
