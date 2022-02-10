@@ -1386,7 +1386,18 @@ export class GaaMetering {
       subscriptions.init(productId);
 
       subscriptions.setOnLoginRequest(() => {
-        handleLoginPromise.then((userState) => {
+        handleLoginPromise.then((handleLoginUserState) => {
+          userState.id = handleLoginUserState.id;
+          userState.registrationTimestamp =
+            handleLoginUserState.registrationTimestamp;
+          userState.subscriptionTimestamp =
+            handleLoginUserState.subscriptionTimestamp;
+          if ('granted' in handleLoginUserState) {
+            userState.granted = handleLoginUserState.granted;
+          }
+          if ('grantReason' in handleLoginUserState) {
+            userState.grantReason = handleLoginUserState.grantReason;
+          }
           checkShowcaseEntitlement(userState);
         });
       });
@@ -1394,7 +1405,7 @@ export class GaaMetering {
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
       function checkShowcaseEntitlement(userState) {
-        if (userState) {
+        if (userState.registrationTimestamp) {
           // Send userState to Google
           subscriptions.getEntitlements(userState);
         } else {
@@ -1415,7 +1426,19 @@ export class GaaMetering {
 
           GaaMetering.setGaaUser(credentials);
           registerUserPromise.then((registerUserUserState) => {
-            checkShowcaseEntitlement(registerUserUserState);
+            userState.id = registerUserUserState.id;
+            userState.registrationTimestamp =
+              registerUserUserState.registrationTimestamp;
+            userState.subscriptionTimestamp =
+              registerUserUserState.subscriptionTimestamp;
+            if ('granted' in registerUserUserState) {
+              userState.granted = registerUserUserState.granted;
+            }
+            if ('grantReason' in registerUserUserState) {
+              userState.grantReason = registerUserUserState.grantReason;
+            }
+
+            checkShowcaseEntitlement(userState);
           });
         });
       }
@@ -1424,20 +1447,22 @@ export class GaaMetering {
         return userState.id !== undefined && userState.id != '';
       }
 
-      if (!('granted' in params.userState)) {
-        publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
-          userState.granted = fetchedPublisherEntitlements.granted;
-          userState.grantReason = fetchedPublisherEntitlements.grantReason;
-        });
+      if (
+        !('granted' in params.userState) ||
+        !('grantReason' in params.userState)
+      ) {
+        if (GaaMetering.isArticleFreeFromPageConfig_() === 'True') {
+          userState.grantReason = 'FREE';
+          userState.granted = true;
+        } else {
+          publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
+            debugLog(fetchedPublisherEntitlements);
+            userState.granted = fetchedPublisherEntitlements.granted;
+            userState.grantReason = fetchedPublisherEntitlements.grantReason;
+          });
+        }
       }
 
-      /*
-      if granted true
-        no need to check with Google and just process it
-
-      else checkShowcaseEntitlement
-      
-      */
       if (!GaaMetering.validateUserState(userState)) {
         debugLog('invalid userState object');
 
@@ -1453,7 +1478,7 @@ export class GaaMetering {
               entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
               isUserRegistered: isUserRegistered(),
             });
-          } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
+          } else if (userState.grantReason === 'FREE') {
             subscriptions.setShowcaseEntitlement({
               entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
               isUserRegistered: isUserRegistered(),
@@ -1467,7 +1492,7 @@ export class GaaMetering {
           }
         }
       } else {
-        GaaMetering.checkShowcaseEntitlements(userState);
+        checkShowcaseEntitlement(userState);
       }
 
       subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) => {
@@ -1510,11 +1535,10 @@ export class GaaMetering {
   }
 
   static validateParameters(params) {
-    const reqFunc = [
-      'unlockArticle',
-      'showPaywall',
+    const reqFunc = ['unlockArticle', 'showPaywall', 'handleSwGEntitlement'];
+
+    const reqPromise = [
       'handleLoginPromise',
-      'handleSwGEntitlement',
       'registerUserPromise',
       'publisherEntitlementPromise',
     ];
@@ -1531,9 +1555,29 @@ export class GaaMetering {
       }
     }
 
+    for (const reqPromiseNo in reqPromise) {
+      if (
+        !(
+          reqPromise[reqPromiseNo] in params &&
+          GaaMetering.isPromise(params[reqPromise[reqPromiseNo]])
+        )
+      ) {
+        debugLog(`Missing ${reqPromise[reqPromiseNo]} or it is not a promise`);
+        return false;
+      }
+    }
+
     // Check userState is an 'object'
-    if (!('userState' in params && typeof params.userState === 'object')) {
-      debugLog(`Missing userState or it is not an object`);
+    if (
+      !('userState' in params) &&
+      !('publisherEntitlementPromise' in params)
+    ) {
+      debugLog(`userState or publisherEntitlementPromise needs to be provided`);
+      return false;
+    }
+
+    if ('userState' in params && typeof params.userState != 'object') {
+      debugLog(`userState is not an object`);
       return false;
     }
 
@@ -1736,6 +1780,10 @@ export class GaaMetering {
     }
   }
 
+  static isPromise(p) {
+    return p && Object.prototype.toString.call(p) === '[object Promise]';
+  }
+
   static newUserStateToUserState(newUserState) {
     const userState = {
       'metering': {
@@ -1754,64 +1802,6 @@ export class GaaMetering {
   }
 
   static validateUserState(newUserState) {
-    if (!('id' in newUserState) || !('registrationTimestamp' in newUserState)) {
-      debugLog('Missing user ID or registrationTimestamp in userState object');
-      return false;
-    }
-
-    if (
-      !(
-        typeof newUserState.registrationTimestamp === 'number' &&
-        newUserState.registrationTimestamp % 1 === 0
-      )
-    ) {
-      debugLog(
-        'userState.registrationTimestamp invalid, userState.registrationTimestamp needs to be an integer and in seconds'
-      );
-
-      return false;
-    }
-
-    if (newUserState.registrationTimestamp > new Date().getTime()) {
-      debugLog('userState.registrationTimestamp is in the future');
-
-      return false;
-    }
-
-    if (
-      (newUserState.grantReason =
-        'SUBSCRIBER' && !('subscriptionTimestamp' in newUserState))
-    ) {
-      debugLog(
-        'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
-      );
-
-      return false;
-    }
-
-    if (
-      'subscriptionTimestamp' in newUserState &&
-      !(
-        typeof newUserState.registrationTimestamp === 'number' &&
-        newUserState.registrationTimestamp % 1 === 0
-      )
-    ) {
-      debugLog(
-        'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
-      );
-
-      return false;
-    }
-
-    if (
-      'subscriptionTimestamp' in newUserState &&
-      newUserState.subscriptionTimestamp > new Date().getTime()
-    ) {
-      debugLog('userState.subscriptionTimestamp is in the future');
-
-      return false;
-    }
-
     if (
       !('granted' in newUserState && typeof newUserState.granted === 'boolean')
     ) {
@@ -1831,6 +1821,74 @@ export class GaaMetering {
       );
 
       return false;
+    }
+
+    if (
+      newUserState.granted === true &&
+      newUserState.grantReason === 'SUBSCRIBER'
+    ) {
+      if (
+        !('id' in newUserState) ||
+        !('registrationTimestamp' in newUserState)
+      ) {
+        debugLog(
+          'Missing user ID or registrationTimestamp in userState object'
+        );
+        return false;
+      } else {
+        if (
+          !(
+            typeof newUserState.registrationTimestamp === 'number' &&
+            newUserState.registrationTimestamp % 1 === 0
+          )
+        ) {
+          debugLog(
+            'userState.registrationTimestamp invalid, userState.registrationTimestamp needs to be an integer and in seconds'
+          );
+
+          return false;
+        }
+
+        if (newUserState.registrationTimestamp > new Date().getTime()) {
+          debugLog('userState.registrationTimestamp is in the future');
+
+          return false;
+        }
+
+        if (
+          (newUserState.grantReason =
+            'SUBSCRIBER' && !('subscriptionTimestamp' in newUserState))
+        ) {
+          debugLog(
+            'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
+          );
+
+          return false;
+        }
+
+        if (
+          'subscriptionTimestamp' in newUserState &&
+          !(
+            typeof newUserState.registrationTimestamp === 'number' &&
+            newUserState.registrationTimestamp % 1 === 0
+          )
+        ) {
+          debugLog(
+            'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
+          );
+
+          return false;
+        }
+
+        if (
+          'subscriptionTimestamp' in newUserState &&
+          newUserState.subscriptionTimestamp > new Date().getTime()
+        ) {
+          debugLog('userState.subscriptionTimestamp is in the future');
+
+          return false;
+        }
+      }
     }
 
     return true;

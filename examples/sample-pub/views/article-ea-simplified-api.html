@@ -115,24 +115,26 @@
       }
 
       registerUserPromise = new Promise ((resolve, reject) => {
-        const gaaUser = GaaMetering.getGaaUser(); // This is our function (credentials)
+        const gaaUser = GaaMetering.getGaaUser();
         // Call registrationEndpoint to get userState
         userState = {
           id: 'user1235',
           registrationTimestamp: 1602763054,
           subscriptionTimestamp: 1602763094,
-          granted: false,
+          granted: true,
+          grantReason: 'METERING'
         };
-        resolve(userState);
+        
+        return userState;
       });
-
 
       publisherEntitlementPromise = new Promise ((resolve, reject) => {
         publlisherEntitlement = {
           granted: true,
           grantReason: 'SUBSCRIBER',
         };
-        resolve(publisherEntitlement);
+
+        return publlisherEntitlement;
       });
       
       handleLoginPromise = new Promise ((resolve, reject) => {
@@ -141,16 +143,18 @@
           registrationTimestamp: 1602763054,
           subscriptionTimestamp: 1602763094,
           granted: false,
+          //grantReason: 'SUBSCRIBER',
         };
-        resolve(userState);
+
+        return userState;
       });
 
       function getUserState() {
-        /*
+        /* */
         return {
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-          subscriptionTimestamp: 1602763094,
+          //id: 'user1235',
+          //registrationTimestamp: 1602763054,
+          //subscriptionTimestamp: 1602763094,
           granted: false,
         };
         // */
