@@ -997,5 +997,14 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
           .hasSubscribeRequestCallback()
       ).to.be.true;
     });
+
+    it('should call showOffer when subscribe request is triggered', async () => {
+      const showOffersStub = sandbox.stub(
+        configuredBasicRuntime.configuredClassicRuntime(),
+        'showOffers'
+      );
+      await configuredBasicRuntime.callbacks().triggerSubscribeRequest();
+      expect(showOffersStub).to.be.calledOnce;
+    });
   });
 });
