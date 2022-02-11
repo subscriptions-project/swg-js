@@ -714,6 +714,16 @@ describes.realWin('Runtime', {}, (env) => {
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
 
+    it('should delegate "showContributionOptions"', async () => {
+      configuredRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs(undefined)
+        .once();
+
+      await runtime.showContributionOptions();
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
     it('should delegate "subscribe"', async () => {
       configuredRuntimeMock.expects('subscribe').withExactArgs('sku1').once();
 
@@ -728,6 +738,72 @@ describes.realWin('Runtime', {}, (env) => {
         .once();
 
       await runtime.updateSubscription({skuId: 'sku1', oldSku: 'sku2'});
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "setOnContributionResponse"', async () => {
+      const callback = sandbox.fake();
+      configuredRuntimeMock
+        .expects('setOnContributionResponse')
+        .withExactArgs(callback)
+        .once();
+
+      await runtime.setOnContributionResponse(callback);
+      expect(configureStub).to.be.calledOnce.calledWith(false);
+    });
+
+    it('should delegate "setOnPaymentResponse"', async () => {
+      const request = {};
+      configuredRuntimeMock
+        .expects('setOnPaymentResponse')
+        .withExactArgs(request)
+        .once();
+
+      await runtime.setOnPaymentResponse(request);
+      expect(configureStub).to.be.calledOnce.calledWith(false);
+    });
+
+    it('should delegate "contribute"', async () => {
+      const request = {};
+      configuredRuntimeMock.expects('contribute').withExactArgs(request).once();
+
+      await runtime.contribute(request);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "linkAccount"', async () => {
+      const params = {};
+      configuredRuntimeMock.expects('linkAccount').withExactArgs(params).once();
+
+      await runtime.linkAccount(params);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "showLoginNotification"', async () => {
+      configuredRuntimeMock
+        .expects('showLoginNotification')
+        .withExactArgs()
+        .once();
+
+      await runtime.showLoginNotification();
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "attachSmartButton"', async () => {
+      const args = [{}, {}, () => {}];
+      configuredRuntimeMock
+        .expects('attachSmartButton')
+        .withExactArgs(...args)
+        .once();
+
+      await runtime.attachSmartButton(...args);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "getEventManager"', async () => {
+      configuredRuntimeMock.expects('getEventManager').withExactArgs().once();
+
+      await runtime.getEventManager();
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
 
