@@ -71,5 +71,9 @@ describes.realWin('FriendlyIframe', {}, (env) => {
       expect(getStyle(iframe, 'position')).to.equal('fixed');
       expect(getStyle(iframe, 'bottom')).to.equal('0px');
     });
+
+    it('throws if doc is missing', () => {
+      expect(() => friendlyIframe.getDocument()).to.throw('not loaded');
+    });
   });
 });
