@@ -43,7 +43,6 @@ describes.realWin('Dialog', {}, (env) => {
       init: (dialog) => Promise.resolve(dialog),
       resized: () => {},
       shouldFadeBody: () => true,
-      hasLoadingIndicator: () => false,
     };
   });
 
@@ -410,10 +409,8 @@ describes.realWin('Dialog', {}, (env) => {
       await openedDialog.openView(view);
       const view2 = {
         getElement: () => element,
-        init: (dialog) => Promise.resolve(dialog),
         resized: () => {},
         shouldFadeBody: () => true,
-        hasLoadingIndicator: () => false,
       };
       let styleDuringInit;
       view2.init = () => {
