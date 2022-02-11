@@ -39,7 +39,15 @@ Now that you have all of the files copied locally you can actually build the cod
   npx yarn global remove gulp
   ```
 
-- In your local repository directory (e.g. `~/projects/swg-js`), install the packages that SWG uses by running
+- Install Swgjs with the following bash commands, instead of simply cloning the repo. These commands install Swgjs in a standardized location and they also install helpful bash scripts, like `swgjs_start_server`.
+
+  ```
+  curl https://raw.githubusercontent.com/subscriptions-project/swg-js/main/shortcuts.sh -o /tmp/swgjs-shortcuts.sh
+  source /tmp/swgjs-shortcuts.sh
+  swgjs_install && swgjs_add_shortcuts_to_bashrc
+  ```
+
+- In your local repository directory (e.g. `~/projects/swgjs`), install the packages that SWG uses by running
   ```
   npx yarn
   ```
