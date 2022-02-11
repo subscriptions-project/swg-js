@@ -260,7 +260,7 @@ describes.realWin('ButtonApi', {}, (env) => {
       await verifyBasicClicksAndEvents();
     });
 
-    it('work set with default theme when invalid value', () => {
+    it('work set with default theme when invalid value', async () => {
       expectOpenIframe(activitiesMock, port, args);
       buttonApi.attachSmartButton(runtime, button, {theme: 'INVALID'}, handler);
 
