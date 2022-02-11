@@ -217,7 +217,11 @@ describes.realWin('ButtonApi', {}, (env) => {
         .addDefaultArguments({theme: 'light', lang: 'en'});
     });
 
-    afterEach(async () => {
+    /**
+     * Verifies clicks on button element (not via web-activities)
+     * and the resulting events.
+     */
+    async function verifyBasicClicksAndEvents() {
       expect(handler).to.not.be.called;
       await button.click();
       expect(handler).to.be.calledOnce;
@@ -228,19 +232,23 @@ describes.realWin('ButtonApi', {}, (env) => {
         isFromUserAction: true,
         params: undefined,
       });
-    });
+    }
 
-    it('work with no options', () => {
+    it('work with no options', async () => {
       expectOpenIframe(activitiesMock, port, args);
       buttonApi.attachSmartButton(runtime, button, {}, handler);
+
+      await verifyBasicClicksAndEvents();
     });
 
-    it('work without options parameter', () => {
+    it('work without options parameter', async () => {
       expectOpenIframe(activitiesMock, port, args);
       buttonApi.attachSmartButton(runtime, button, handler);
+
+      await verifyBasicClicksAndEvents();
     });
 
-    it('work with options and lang', () => {
+    it('work with options and lang', async () => {
       const myArgs = {
         theme: 'dark',
         lang: 'fr',
@@ -248,11 +256,30 @@ describes.realWin('ButtonApi', {}, (env) => {
       };
       expectOpenIframe(activitiesMock, port, Object.assign(args, myArgs));
       buttonApi.attachSmartButton(runtime, button, myArgs, handler);
+
+      await verifyBasicClicksAndEvents();
     });
 
     it('work set with default theme when invalid value', () => {
       expectOpenIframe(activitiesMock, port, args);
       buttonApi.attachSmartButton(runtime, button, {theme: 'INVALID'}, handler);
+
+      await verifyBasicClicksAndEvents();
+    });
+
+    it('handles click events from web-activities', async () => {
+      expectOpenIframe(
+        activitiesMock,
+        {
+          // Mock click message.
+          on: (_, callback) => callback({getIsClicked: () => true}),
+        },
+        args
+      );
+
+      expect(handler).to.not.be.called;
+      await buttonApi.attachSmartButton(runtime, button, handler);
+      expect(handler).to.be.calledOnce;
     });
   });
 
