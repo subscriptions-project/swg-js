@@ -998,7 +998,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       ).to.be.true;
     });
 
-    it('should call showOffer when subscribe request is triggered', async () => {
+    it('should call showOffers when subscribe request is triggered', async () => {
       const showOffersStub = sandbox.stub(
         configuredBasicRuntime.configuredClassicRuntime(),
         'showOffers'
