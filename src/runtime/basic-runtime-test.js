@@ -991,7 +991,9 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     it('should set onNativeSubscribeRequest to handle clicks on the Metering Toast "Subscribe" button', async () => {
       expect(configuredBasicRuntime.configuredClassicRuntime()).to.exist;
       expect(
-        configuredBasicRuntime.configuredClassicRuntime().callbacks()
+        configuredBasicRuntime
+          .configuredClassicRuntime()
+          .callbacks()
           .hasSubscribeRequestCallback()
       ).to.be.true;
     });
