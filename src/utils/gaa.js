@@ -1386,7 +1386,7 @@ export class GaaMetering {
       subscriptions.init(productId);
 
       subscriptions.setOnLoginRequest(() => {
-        handleLoginPromise.then((handleLoginUserState) => {
+        handleLoginPromise().then((handleLoginUserState) => {
           userState.id = handleLoginUserState.id;
           userState.registrationTimestamp =
             handleLoginUserState.registrationTimestamp;
@@ -1404,49 +1404,6 @@ export class GaaMetering {
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
-      function checkShowcaseEntitlement(userState) {
-        if (userState.registrationTimestamp) {
-          // Send userState to Google
-          subscriptions.getEntitlements(userState);
-        } else {
-          // If userState is undefined, it’s likely the user isn’t
-          // logged in. Do not send an empty userState to Google in
-          // this case.
-          showGoogleRegwall();
-        }
-      }
-
-      // Show the Google registration intervention.
-      function showGoogleRegwall() {
-        GaaMeteringRegwall.showWithNativeRegistrationButton({
-          clientId: googleSignInClientId,
-        }).then((credentials) => {
-          // Handle registration for new users
-          // Save credentials object so that registerUserPromise can use it using getGaaUser.
-
-          GaaMetering.setGaaUser(credentials);
-          registerUserPromise.then((registerUserUserState) => {
-            userState.id = registerUserUserState.id;
-            userState.registrationTimestamp =
-              registerUserUserState.registrationTimestamp;
-            userState.subscriptionTimestamp =
-              registerUserUserState.subscriptionTimestamp;
-            if ('granted' in registerUserUserState) {
-              userState.granted = registerUserUserState.granted;
-            }
-            if ('grantReason' in registerUserUserState) {
-              userState.grantReason = registerUserUserState.grantReason;
-            }
-
-            checkShowcaseEntitlement(userState);
-          });
-        });
-      }
-
-      function isUserRegistered() {
-        return userState.id !== undefined && userState.id != '';
-      }
-
       if (
         !('granted' in params.userState) ||
         !('grantReason' in params.userState)
@@ -1454,45 +1411,17 @@ export class GaaMetering {
         if (GaaMetering.isArticleFreeFromPageConfig_() === 'True') {
           userState.grantReason = 'FREE';
           userState.granted = true;
+
+          ifGranted();
         } else {
-          publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
+          publisherEntitlementPromise().then((fetchedPublisherEntitlements) => {
             debugLog(fetchedPublisherEntitlements);
             userState.granted = fetchedPublisherEntitlements.granted;
             userState.grantReason = fetchedPublisherEntitlements.grantReason;
+
+            ifGranted();
           });
         }
-      }
-
-      if (!GaaMetering.validateUserState(userState)) {
-        debugLog('invalid userState object');
-
-        return false;
-      } else if (userState.granted === true) {
-        if (userState.granted) {
-          // User has access from publisher so unlock article
-          unlockArticle();
-
-          if (userState.grantReason === 'SUBSCRIBER') {
-            // The user has access because they have a subscription
-            subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
-              isUserRegistered: isUserRegistered(),
-            });
-          } else if (userState.grantReason === 'FREE') {
-            subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
-              isUserRegistered: isUserRegistered(),
-            });
-          } else if (userState.grantReason === 'METERING') {
-            // The user has access from the publisher's meter
-            subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
-              isUserRegistered: isUserRegistered(),
-            });
-          }
-        }
-      } else {
-        checkShowcaseEntitlement(userState);
       }
 
       subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) => {
@@ -1531,17 +1460,106 @@ export class GaaMetering {
           }
         });
       });
+
+      function checkShowcaseEntitlement(userState) {
+        if (userState.registrationTimestamp) {
+          // Send userState to Google
+          subscriptions.getEntitlements(userState);
+        } else {
+          // If userState is undefined, it’s likely the user isn’t
+          // logged in. Do not send an empty userState to Google in
+          // this case.
+          showGoogleRegwall();
+        }
+      }
+
+      // Show the Google registration intervention.
+      function showGoogleRegwall() {
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          clientId: googleSignInClientId,
+        }).then((credentials) => {
+          // Handle registration for new users
+          // Save credentials object so that registerUserPromise can use it using getGaaUser.
+
+          GaaMetering.setGaaUser(credentials);
+          //const fulfilledRegisterUserPromise = registerUserPromise();
+          registerUserPromise().then((registerUserUserState) => {
+            debugLog(registerUserUserState);
+            userState.id = registerUserUserState.id;
+            userState.registrationTimestamp =
+              registerUserUserState.registrationTimestamp;
+            userState.subscriptionTimestamp =
+              registerUserUserState.subscriptionTimestamp;
+            if ('granted' in registerUserUserState) {
+              userState.granted = registerUserUserState.granted;
+            }
+            if ('grantReason' in registerUserUserState) {
+              userState.grantReason = registerUserUserState.grantReason;
+            }
+
+            ifGranted();
+            //checkShowcaseEntitlement(userState);
+          });
+        });
+      }
+
+      function isUserRegistered() {
+        return userState.id !== undefined && userState.id != '';
+      }
+
+      function ifGranted() {
+        if (!GaaMetering.validateUserState(userState)) {
+          debugLog('invalid userState object');
+
+          return false;
+        } else if (userState.granted === true) {
+          if (userState.granted) {
+            // User has access from publisher so unlock article
+            unlockArticle();
+
+            if (userState.grantReason === 'SUBSCRIBER') {
+              // The user has access because they have a subscription
+              subscriptions.setShowcaseEntitlement({
+                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+                isUserRegistered: isUserRegistered(),
+              });
+            } else if (userState.grantReason === 'FREE') {
+              subscriptions.setShowcaseEntitlement({
+                entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+                isUserRegistered: isUserRegistered(),
+              });
+            } else if (userState.grantReason === 'METERING') {
+              // The user has access from the publisher's meter
+              subscriptions.setShowcaseEntitlement({
+                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+                isUserRegistered: isUserRegistered(),
+              });
+            }
+          }
+        } else {
+          checkShowcaseEntitlement(userState);
+        }
+      }
     });
   }
 
   static validateParameters(params) {
-    const reqFunc = ['unlockArticle', 'showPaywall', 'handleSwGEntitlement'];
-
-    const reqPromise = [
+    const reqFunc = [
+      'unlockArticle',
+      'showPaywall',
+      'handleSwGEntitlement',
       'handleLoginPromise',
       'registerUserPromise',
       'publisherEntitlementPromise',
     ];
+
+    /*
+    const reqPromise = [
+      'handleLoginPromise',
+      //'registerUserPromise',
+      'publisherEntitlementPromise',
+    ];
+    */
 
     for (const reqFuncNo in reqFunc) {
       if (
@@ -1555,6 +1573,7 @@ export class GaaMetering {
       }
     }
 
+    /*
     for (const reqPromiseNo in reqPromise) {
       if (
         !(
@@ -1566,6 +1585,7 @@ export class GaaMetering {
         return false;
       }
     }
+    */
 
     // Check userState is an 'object'
     if (

@@ -73,10 +73,11 @@
       "isPartOf": {
         "@type": ["CreativeWork", "Product"],
         "name" : "Scenic News",
-        "productID": "<% publicationId %>:news"
+        "productID": "scenic-2017.appspot.com:news"
       }
     }
     </script>
+    <!-- UPDATE product ID -->
 
     <script src="<% swgGaaJsUrl %>"></script>
     <script async subscriptions-control="manual" src="<% swgJsUrl %>"></script>
@@ -114,48 +115,55 @@
         unlockArticle();
       }
 
-      registerUserPromise = new Promise ((resolve, reject) => {
-        const gaaUser = GaaMetering.getGaaUser();
-        // Call registrationEndpoint to get userState
-        userState = {
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-          subscriptionTimestamp: 1602763094,
-          granted: true,
-          grantReason: 'METERING'
-        };
-        
-        return userState;
-      });
+      function registerUserPromise() {
+        return new Promise ((resolve, reject) => {
+          const gaaUser = GaaMetering.getGaaUser();
+          // Call registrationEndpoint to get userState
+          const userState = {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            //granted: true,
+            //grantReason: 'METERING'
+          };
+          
+          resolve(userState);
+        });
+      } 
 
-      publisherEntitlementPromise = new Promise ((resolve, reject) => {
-        publlisherEntitlement = {
-          granted: true,
-          grantReason: 'SUBSCRIBER',
-        };
 
-        return publlisherEntitlement;
-      });
+      function publisherEntitlementPromise() {
+        return new Promise ((resolve, reject) => {
+          publlisherEntitlement = {
+            granted: false,
+          };
+
+          resolve(publlisherEntitlement);
+        });
+      }
       
-      handleLoginPromise = new Promise ((resolve, reject) => {
-        userState = {
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-          subscriptionTimestamp: 1602763094,
-          granted: false,
-          //grantReason: 'SUBSCRIBER',
-        };
+      function handleLoginPromise() {
+        return new Promise ((resolve, reject) => {
+          userState = {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+            //grantReason: 'SUBSCRIBER',
+          };
 
-        return userState;
-      });
+          resolve(userState);
+        });
+      }
+      
 
       function getUserState() {
         /* */
         return {
-          //id: 'user1235',
-          //registrationTimestamp: 1602763054,
-          //subscriptionTimestamp: 1602763094,
-          granted: false,
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          //granted: false,
         };
         // */
        /* ANONYMOUS 
