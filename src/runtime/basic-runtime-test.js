@@ -987,5 +987,24 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
 
       expect(entitlementsStub).to.be.calledOnce;
     });
+
+    it('should set onNativeSubscribeRequest to handle clicks on the Metering Toast "Subscribe" button', async () => {
+      expect(configuredBasicRuntime.configuredClassicRuntime()).to.exist;
+      expect(
+        configuredBasicRuntime
+          .configuredClassicRuntime()
+          .callbacks()
+          .hasSubscribeRequestCallback()
+      ).to.be.true;
+    });
+
+    it('should call showOffers when subscribe request is triggered', async () => {
+      const showOffersStub = sandbox.stub(
+        configuredBasicRuntime.configuredClassicRuntime(),
+        'showOffers'
+      );
+      await configuredBasicRuntime.callbacks().triggerSubscribeRequest();
+      expect(showOffersStub).to.be.calledOnce;
+    });
   });
 });
