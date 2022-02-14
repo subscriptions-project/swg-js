@@ -943,7 +943,6 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
   it('should trigger subscribe request and complete view', async () => {
     const options = {list: 'other'};
     const optionFlow = new AbbrvOfferFlow(runtime, options);
-    let offersFlow;
     sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
       offersFlow = this;
       return Promise.resolve();
