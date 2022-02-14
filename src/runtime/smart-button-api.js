@@ -93,12 +93,7 @@ export class SmartSubscriptionButtonApi {
    */
   handleSmartBoxClick_(smartBoxMessage) {
     if (smartBoxMessage && smartBoxMessage.getIsClicked()) {
-      if (!this.callback_) {
-        throw new Error('No callback!');
-      }
       this.callback_();
-
-      return;
     }
   }
 

@@ -96,4 +96,10 @@ describes.realWin('Graypane', {}, (env) => {
     expect(getStyle(element, 'display')).to.equal('none');
     expect(getStyle(element, 'opacity')).to.equal('0');
   });
+
+  it('communicates whether it is attached to the DOM', async () => {
+    expect(graypane.isAttached()).to.be.false;
+    graypane.attach();
+    expect(graypane.isAttached()).to.be.true;
+  });
 });
