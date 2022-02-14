@@ -1228,22 +1228,3 @@ function createPublicRuntime(runtime) {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
   });
 }
-
-/**
- * @protected
- */
-export function getSubscriptionsClassForTesting() {
-  return Subscriptions;
-}
-
-/**
- * @protected
- */
-export function getFetcherClassForTesting() {
-  return Fetcher;
-}
-
-/** @package Visible for testing only. */
-export function getDocClassForTesting() {
-  return Doc;
-}

@@ -1398,6 +1398,11 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         expect(runtime.config().analyticsMode).to.equal(AnalyticsMode.DEFAULT);
       });
 
+      it('throws on unknown analytics modes', () => {
+        const mistake = () => runtime.configure({analyticsMode: -1});
+        expect(mistake).to.throw('Unknown analytics mode');
+      });
+
       it('should disallow unknown windowOpenMode values', () => {
         expect(() => {
           runtime.configure({windowOpenMode: 'unknown'});
@@ -2049,6 +2054,11 @@ subscribe() method'
       expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
     });
 
+    it('should return events manager promise', async () => {
+      const eventManager = await runtime.getEventManager();
+      expect(eventManager instanceof ClientEventManager).to.be.true;
+    });
+
     it('should let event manager send events without a promise', () => {
       const event = {
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -2113,6 +2123,43 @@ subscribe() method'
       expect(runtime.getLastContributionsFlow()).to.equal(
         runtime.lastContributionsFlow_
       );
+    });
+
+    it('attaches smart button', async () => {
+      setExperiment(win, ExperimentFlags.SMARTBOX, true);
+
+      const stub = sandbox.stub(runtime.buttonApi_, 'attachSmartButton');
+
+      const args = [1, 2, 3];
+      runtime.attachSmartButton(...args);
+      expect(stub).to.be.calledWithExactly(runtime, ...args);
+    });
+
+    it('sets response for contribution', async () => {
+      const stub = sandbox.stub(
+        runtime.callbacks_,
+        'setOnContributionResponse'
+      );
+
+      const callback = sandbox.fake();
+      runtime.setOnContributionResponse(callback);
+      expect(stub).to.be.calledWithExactly(callback);
+    });
+
+    it('sets response for payment', async () => {
+      const stub = sandbox.stub(runtime.callbacks_, 'setOnPaymentResponse');
+
+      const callback = sandbox.fake();
+      runtime.setOnPaymentResponse(callback);
+      expect(stub).to.be.calledWithExactly(callback);
+    });
+
+    it('triggers login request', async () => {
+      const stub = sandbox.stub(runtime.callbacks_, 'triggerLoginRequest');
+
+      const request = {};
+      runtime.triggerLoginRequest(request);
+      expect(stub).to.be.calledWithExactly(request);
     });
 
     describe('setShowcaseEntitlement', () => {
