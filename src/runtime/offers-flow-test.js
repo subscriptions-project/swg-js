@@ -77,6 +77,7 @@ describes.realWin('OffersFlow', {}, (env) => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    dialogManagerMock.verify();
     eventManagerMock.verify();
   });
 
@@ -682,8 +683,8 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
-    eventManagerMock.verify();
     dialogManagerMock.verify();
+    eventManagerMock.verify();
   });
 
   it('should have valid AbbrvOfferFlow constructed', async () => {
