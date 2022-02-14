@@ -714,6 +714,16 @@ describes.realWin('Runtime', {}, (env) => {
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
 
+    it('should delegate "showContributionOptions"', async () => {
+      configuredRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs(undefined)
+        .once();
+
+      await runtime.showContributionOptions();
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
     it('should delegate "subscribe"', async () => {
       configuredRuntimeMock.expects('subscribe').withExactArgs('sku1').once();
 
@@ -728,6 +738,72 @@ describes.realWin('Runtime', {}, (env) => {
         .once();
 
       await runtime.updateSubscription({skuId: 'sku1', oldSku: 'sku2'});
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "setOnContributionResponse"', async () => {
+      const callback = sandbox.fake();
+      configuredRuntimeMock
+        .expects('setOnContributionResponse')
+        .withExactArgs(callback)
+        .once();
+
+      await runtime.setOnContributionResponse(callback);
+      expect(configureStub).to.be.calledOnce.calledWith(false);
+    });
+
+    it('should delegate "setOnPaymentResponse"', async () => {
+      const request = {};
+      configuredRuntimeMock
+        .expects('setOnPaymentResponse')
+        .withExactArgs(request)
+        .once();
+
+      await runtime.setOnPaymentResponse(request);
+      expect(configureStub).to.be.calledOnce.calledWith(false);
+    });
+
+    it('should delegate "contribute"', async () => {
+      const request = {};
+      configuredRuntimeMock.expects('contribute').withExactArgs(request).once();
+
+      await runtime.contribute(request);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "linkAccount"', async () => {
+      const params = {};
+      configuredRuntimeMock.expects('linkAccount').withExactArgs(params).once();
+
+      await runtime.linkAccount(params);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "showLoginNotification"', async () => {
+      configuredRuntimeMock
+        .expects('showLoginNotification')
+        .withExactArgs()
+        .once();
+
+      await runtime.showLoginNotification();
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "attachSmartButton"', async () => {
+      const args = [{}, {}, () => {}];
+      configuredRuntimeMock
+        .expects('attachSmartButton')
+        .withExactArgs(...args)
+        .once();
+
+      await runtime.attachSmartButton(...args);
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "getEventManager"', async () => {
+      configuredRuntimeMock.expects('getEventManager').withExactArgs().once();
+
+      await runtime.getEventManager();
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
 
@@ -1320,6 +1396,11 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         );
         runtime.configure({analyticsMode: AnalyticsMode.DEFAULT});
         expect(runtime.config().analyticsMode).to.equal(AnalyticsMode.DEFAULT);
+      });
+
+      it('throws on unknown analytics modes', () => {
+        const mistake = () => runtime.configure({analyticsMode: -1});
+        expect(mistake).to.throw('Unknown analytics mode');
       });
 
       it('should disallow unknown windowOpenMode values', () => {
@@ -1973,6 +2054,11 @@ subscribe() method'
       expect(runtime.eventManager() instanceof ClientEventManager).to.be.true;
     });
 
+    it('should return events manager promise', async () => {
+      const eventManager = await runtime.getEventManager();
+      expect(eventManager instanceof ClientEventManager).to.be.true;
+    });
+
     it('should let event manager send events without a promise', () => {
       const event = {
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -2037,6 +2123,43 @@ subscribe() method'
       expect(runtime.getLastContributionsFlow()).to.equal(
         runtime.lastContributionsFlow_
       );
+    });
+
+    it('attaches smart button', async () => {
+      setExperiment(win, ExperimentFlags.SMARTBOX, true);
+
+      const stub = sandbox.stub(runtime.buttonApi_, 'attachSmartButton');
+
+      const args = [1, 2, 3];
+      runtime.attachSmartButton(...args);
+      expect(stub).to.be.calledWithExactly(runtime, ...args);
+    });
+
+    it('sets response for contribution', async () => {
+      const stub = sandbox.stub(
+        runtime.callbacks_,
+        'setOnContributionResponse'
+      );
+
+      const callback = sandbox.fake();
+      runtime.setOnContributionResponse(callback);
+      expect(stub).to.be.calledWithExactly(callback);
+    });
+
+    it('sets response for payment', async () => {
+      const stub = sandbox.stub(runtime.callbacks_, 'setOnPaymentResponse');
+
+      const callback = sandbox.fake();
+      runtime.setOnPaymentResponse(callback);
+      expect(stub).to.be.calledWithExactly(callback);
+    });
+
+    it('triggers login request', async () => {
+      const stub = sandbox.stub(runtime.callbacks_, 'triggerLoginRequest');
+
+      const request = {};
+      runtime.triggerLoginRequest(request);
+      expect(stub).to.be.calledWithExactly(request);
     });
 
     describe('setShowcaseEntitlement', () => {
