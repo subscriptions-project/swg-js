@@ -626,6 +626,11 @@ export class GaaMeteringRegwall {
     for (const ldJsonElement of ldJsonElements) {
       let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
 
+      // Support @graph construct.
+      if (ldJson['@graph']) {
+        ldJson = ldJson['@graph'];
+      }
+
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];
       }
