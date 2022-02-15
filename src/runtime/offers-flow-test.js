@@ -77,6 +77,7 @@ describes.realWin('OffersFlow', {}, (env) => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    dialogManagerMock.verify();
     eventManagerMock.verify();
   });
 
@@ -654,6 +655,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
   let messageMap;
   let messageCallback;
   let eventManagerMock;
+  let dialogManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -665,6 +667,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
@@ -680,6 +683,7 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    dialogManagerMock.verify();
     eventManagerMock.verify();
   });
 
@@ -934,5 +938,29 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
     await resultPromise;
     const activityIframeView = await offersFlow.activityIframeViewPromise_;
     expect(activityIframeView.args_['list']).to.equal('other');
+  });
+
+  it('should trigger subscribe request and complete view', async () => {
+    const options = {list: 'other'};
+    const optionFlow = new AbbrvOfferFlow(runtime, options);
+    activitiesMock.expects('openIframe').resolves(port);
+    const result = new ActivityResult(
+      'OK',
+      {'native': true},
+      'MODE',
+      'https://example.com',
+      true,
+      true
+    );
+    result.data = {'native': true};
+    const resultPromise = Promise.resolve(result);
+    sandbox.stub(port, 'acceptResult').callsFake(() => resultPromise);
+    callbacksMock.expects('triggerSubscribeRequest').withExactArgs().once();
+    dialogManagerMock
+      .expects('completeView')
+      .withExactArgs(optionFlow.activityIframeView_)
+      .once();
+
+    await optionFlow.start();
   });
 });
