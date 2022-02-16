@@ -618,12 +618,12 @@ export class GaaMeteringRegwall {
    * @return {string|undefined}
    */
   static getPublisherNameFromJsonLdPageConfig_() {
+    // Get JSON from ld+json scripts.
+    const ldJsonScripts = Array.prototype.slice.call(
+      self.document.querySelectorAll('script[type="application/ld+json"]')
+    );
     const jsonQueue = /** @type {!Array<*>} */ (
-      Array.prototype.slice
-        .call(
-          self.document.querySelectorAll('script[type="application/ld+json"]')
-        )
-        .map((object) => parseJson(object.textContent))
+      ldJsonScripts.map((script) => parseJson(script.textContent))
     );
 
     // Search for publisher name, breadth-first.
