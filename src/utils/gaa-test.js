@@ -535,6 +535,21 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         PUBLISHER_NAME
       );
     });
+
+    it('gets the publisher name from graph construct', () => {
+      self.document.head.innerHTML = `
+        <script type="application/ld+json">
+          [{
+            "@context": "http://schema.org",
+            "@graph": [${ARTICLE_LD_JSON_METADATA}]
+          }]
+        </script>
+      `;
+
+      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
+        PUBLISHER_NAME
+      );
+    });
   });
 });
 
