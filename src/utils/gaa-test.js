@@ -539,10 +539,10 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('gets the publisher name from graph construct', () => {
       self.document.head.innerHTML = `
         <script type="application/ld+json">
-          {
+          [{
             "@context": "http://schema.org",
-            "@graph": ${ARTICLE_LD_JSON_METADATA}
-          }
+            "@graph": [${ARTICLE_LD_JSON_METADATA}]
+          }]
         </script>
       `;
 
