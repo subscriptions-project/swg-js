@@ -183,7 +183,7 @@ export class AudienceActionFlow {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
     if (response.getActionCompleted()) {
-      this.showSignedInToast_(response.getUserEmail());
+      this.showSignedInToast_(response.getUserEmail() ?? '');
     } else {
       this.showAlreadyOptedInToast_();
     }
