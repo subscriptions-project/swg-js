@@ -62,6 +62,8 @@ const autopromptTypeToProductTypeMapping = {
 
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
+const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
+
 /**
  * The flow to initiate and manage handling an audience action.
  */
@@ -181,38 +183,30 @@ export class AudienceActionFlow {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
     if (response.getActionCompleted()) {
-      this.showSignedInToast_();
+      this.showSignedInToast_(response.getUserEmail());
     } else {
       this.showAlreadyOptedInToast_();
     }
     this.entitlementsManager_.getEntitlements();
   }
 
-  /** @private */
-  showSignedInToast_() {
-    // Show 'Signed in as abc@gmail.com' toast on the pub page.
-    new Toast(
-      this.deps_,
-      feUrl('/toastiframe', {
-        flavor: 'basic',
-      })
-    ).open();
-  }
-
-  /** @private */
-  showAlreadyOptedInToast_() {
+  /**
+   * @param {string} userEmail
+   * @private
+   */
+  showSignedInToast_(userEmail) {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     if (this.params_.action === 'TYPE_REGISTRATION_WALL') {
       customText = msg(
-        SWG_I18N_STRINGS.REGWALL_ALREADY_REGISTERED_LANG_MAP,
+        SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED_LANG_MAP,
         lang
-      );
+      ).replace(placeholderPatternForEmail, userEmail);
     } else if (this.params_.action === 'TYPE_NEWSLETTER_SIGNUP') {
       customText = msg(
-        SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
+        SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_LANG_MAP,
         lang
-      );
+      ).replace(placeholderPatternForEmail, userEmail);
     }
     new Toast(
       this.deps_,
@@ -221,6 +215,32 @@ export class AudienceActionFlow {
         customText,
       })
     ).open();
+  }
+
+  /** @private */
+  showAlreadyOptedInToast_() {
+    if (this.params_.action === 'TYPE_REGISTRATION_WALL') {
+      // Show 'Signed in as abc@gmail.com' toast on the pub page.
+      new Toast(
+        this.deps_,
+        feUrl('/toastiframe', {
+          flavor: 'basic',
+        })
+      ).open();
+    } else if (this.params_.action === 'TYPE_NEWSLETTER_SIGNUP') {
+      const lang = this.clientConfigManager_.getLanguage();
+      const customText = msg(
+        SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
+        lang
+      );
+      new Toast(
+        this.deps_,
+        feUrl('/toastiframe', {
+          flavor: 'custom',
+          customText,
+        })
+      ).open();
+    }
   }
 
   /**
