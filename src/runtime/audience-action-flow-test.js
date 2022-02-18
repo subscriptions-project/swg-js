@@ -153,95 +153,155 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     expect(fallbackSpy).to.be.calledOnce;
   });
 
-  [
-    {userToken: 'testUserToken', timesStoreSetCalled: 1},
-    {userToken: undefined, timesStoreSetCalled: 0},
-  ].forEach(({userToken, timesStoreSetCalled}) => {
-    it('handles a CompleteAudienceActionResponse with action completed and opens a basic toast', async () => {
-      const audienceActionFlow = new AudienceActionFlow(runtime, {
-        action: 'TYPE_REGISTRATION_WALL',
-        fallback: fallbackSpy,
-        autoPromptType: AutoPromptType.SUBSCRIPTION,
-      });
-      activitiesMock.expects('openIframe').resolves(port);
-      entitlementsManagerMock.expects('clear').once();
-      entitlementsManagerMock.expects('getEntitlements').once();
-      storageMock
-        .expects('set')
-        .withExactArgs(Constants.USER_TOKEN, userToken, true)
-        .exactly(timesStoreSetCalled);
-
-      let toast;
-      const toastOpenStub = sandbox
-        .stub(Toast.prototype, 'open')
-        .callsFake(function () {
-          toast = this;
-        });
-
-      await audienceActionFlow.start();
-      const completeAudienceActionResponse =
-        new CompleteAudienceActionResponse();
-      completeAudienceActionResponse.setActionCompleted(true);
-      completeAudienceActionResponse.setSwgUserToken(userToken);
-      const messageCallback =
-        messageMap[completeAudienceActionResponse.label()];
-      messageCallback(completeAudienceActionResponse);
-
-      entitlementsManagerMock.verify();
-      storageMock.verify();
-      expect(toastOpenStub).to.be.called;
-      expect(toast).not.to.be.null;
-      expect(toast.src_).to.contain('flavor=basic');
+  it('handles a CompleteAudienceActionResponse with regwall completed and opens a custom toast', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      fallback: fallbackSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+
+    let toast;
+    const toastOpenStub = sandbox
+      .stub(Toast.prototype, 'open')
+      .callsFake(function () {
+        toast = this;
+      });
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(true);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).to.be.called;
+    expect(toast).not.to.be.null;
+    expect(toast.src_).to.contain('flavor=custom');
+    expect(decodeURIComponent(toast.src_)).to.contain(
+      'Created an account with xxx@gmail.com'
+    );
   });
 
-  [
-    {
-      action: 'TYPE_REGISTRATION_WALL',
-      toastMessage: 'You have registered before.',
-    },
-    {
+  it('handles a CompleteAudienceActionResponse with newsletter completed and opens a custom toast', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
-      toastMessage: 'You have signed up before.',
-    },
-  ].forEach(({action, toastMessage}) => {
-    it(`handles a CompleteAudienceActionResponse with action not completed and opens a custom toast indicating that the user has completed the ${action} action before`, async () => {
-      const audienceActionFlow = new AudienceActionFlow(runtime, {
-        action,
-        fallback: fallbackSpy,
-        autoPromptType: AutoPromptType.SUBSCRIPTION,
-      });
-      activitiesMock.expects('openIframe').resolves(port);
-      entitlementsManagerMock.expects('clear').once();
-      entitlementsManagerMock.expects('getEntitlements').once();
-      storageMock
-        .expects('set')
-        .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
-        .exactly(1);
-
-      let toast;
-      const toastOpenStub = sandbox
-        .stub(Toast.prototype, 'open')
-        .callsFake(function () {
-          toast = this;
-        });
-
-      await audienceActionFlow.start();
-      const completeAudienceActionResponse =
-        new CompleteAudienceActionResponse();
-      completeAudienceActionResponse.setActionCompleted(false);
-      completeAudienceActionResponse.setSwgUserToken('fake user token');
-      const messageCallback =
-        messageMap[completeAudienceActionResponse.label()];
-      messageCallback(completeAudienceActionResponse);
-
-      entitlementsManagerMock.verify();
-      storageMock.verify();
-      expect(toastOpenStub).to.be.called;
-      expect(toast).not.to.be.null;
-      expect(toast.src_).to.contain('flavor=custom');
-      expect(decodeURI(toast.src_)).to.contain(toastMessage);
+      fallback: fallbackSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+
+    let toast;
+    const toastOpenStub = sandbox
+      .stub(Toast.prototype, 'open')
+      .callsFake(function () {
+        toast = this;
+      });
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(true);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).to.be.called;
+    expect(toast).not.to.be.null;
+    expect(toast.src_).to.contain('flavor=custom');
+    expect(decodeURIComponent(toast.src_)).to.contain(
+      'Signed up with xxx@gmail.com for the newsletter'
+    );
+  });
+
+  it('handles a CompleteAudienceActionResponse with regwall completed before and opens a basic toast', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      fallback: fallbackSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+
+    let toast;
+    const toastOpenStub = sandbox
+      .stub(Toast.prototype, 'open')
+      .callsFake(function () {
+        toast = this;
+      });
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).to.be.called;
+    expect(toast).not.to.be.null;
+    expect(toast.src_).to.contain('flavor=basic');
+  });
+
+  it(`handles a CompleteAudienceActionResponse with newsletter not completed and opens a custom toast indicating that the user has completed the newsletter before`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+      fallback: fallbackSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+
+    let toast;
+    const toastOpenStub = sandbox
+      .stub(Toast.prototype, 'open')
+      .callsFake(function () {
+        toast = this;
+      });
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).to.be.called;
+    expect(toast).not.to.be.null;
+    expect(toast.src_).to.contain('flavor=custom');
+    expect(decodeURI(toast.src_)).to.contain('You have signed up before.');
   });
 
   it('should trigger login flow for a registered user', async () => {

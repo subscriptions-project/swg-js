@@ -153,4 +153,10 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '您之前已訂閱。',
     'zh-tw': '你已經訂閱了。',
   },
+  'REGWALL_ACCOUNT_CREATED_LANG_MAP': {
+    'en': 'Created an account with <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph>',
+  },
+  'NEWSLETTER_SIGNED_UP_LANG_MAP': {
+    'en': 'Signed up with <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph> for the newsletter',
+  },
 };
