@@ -5,11 +5,11 @@
 
 
 
-<msg name="SHOWCASE_REGWALL_TITLE">Get more with Google</msg>
-<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Already have an account?</msg>
-<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Sign in with Google</msg>
-<msg name="SHOWCASE_REGWALL_CASL">Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL terms<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
+<msg name="SHOWCASE_REGWALL_TITLE">Iegūstiet vairāk ar Google</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Parasti šis ir maksas saturs, taču Google piešķirs jums bezmaksas piekļuvi šim un citiem rakstiem, ja reģistrēsieties izdevumam <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> ar savu Google kontu.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Vai jums jau ir konts?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Pierakstīšanās ar Google kontu</msg>
+<msg name="SHOWCASE_REGWALL_CASL">Pārskatīt izdevuma <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL noteikumus<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
 
 
 

@@ -31,10 +31,10 @@ import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
-import {Doc, resolveDoc} from '../model/doc';
+import {Doc as DocInterface, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
-import {Fetcher, XhrFetcher} from './fetcher';
+import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
@@ -56,7 +56,7 @@ import {PayCompleteFlow, PayStartFlow} from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
 import {
   ProductType,
-  Subscriptions,
+  Subscriptions as SubscriptionsInterface,
   WindowOpenMode,
   defaultConfig,
 } from '../api/subscriptions';
@@ -121,7 +121,7 @@ export function installRuntime(win) {
 
   /**
    * Executes a callback when SwG runtime is ready.
-   * @param {function(!Subscriptions)} callback
+   * @param {function(!SubscriptionsInterface)} callback
    */
   function callWhenRuntimeIsReady(callback) {
     if (!callback) {
@@ -156,7 +156,7 @@ export function installRuntime(win) {
 }
 
 /**
- * @implements {Subscriptions}
+ * @implements {SubscriptionsInterface}
  */
 export class Runtime {
   /**
@@ -166,7 +166,7 @@ export class Runtime {
     /** @private @const {!Window} */
     this.win_ = win;
 
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(win);
 
     /** @private @const {!Promise} */
@@ -535,14 +535,14 @@ export class Runtime {
 
 /**
  * @implements {DepsDef}
- * @implements {Subscriptions}
+ * @implements {SubscriptionsInterface}
  */
 export class ConfiguredRuntime {
   /**
-   * @param {!Window|!Document|!Doc} winOrDoc
+   * @param {!Window|!Document|!DocInterface} winOrDoc
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
-   *     fetcher: (!Fetcher|undefined),
+   *     fetcher: (!FetcherInterface|undefined),
    *     configPromise: (!Promise|undefined),
    *     enableGoogleAnalytics: (boolean|undefined),
    *     useArticleEndpoint: (boolean|undefined)
@@ -560,7 +560,7 @@ export class ConfiguredRuntime {
     /** @private @const {!ClientEventManager} */
     this.eventManager_ = new ClientEventManager(integr.configPromise);
 
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(winOrDoc);
 
     /** @private @const {!Window} */
@@ -587,7 +587,7 @@ export class ConfiguredRuntime {
     /** @private @const {!JsError} */
     this.jserror_ = new JsError(this.doc_);
 
-    /** @private @const {!Fetcher} */
+    /** @private @const {!FetcherInterface} */
     this.fetcher_ = integr.fetcher || new XhrFetcher(this.win_);
 
     /** @private @const {!Storage} */
@@ -1179,10 +1179,10 @@ export class ConfiguredRuntime {
 
 /**
  * @param {!Runtime} runtime
- * @return {!Subscriptions}
+ * @return {!SubscriptionsInterface}
  */
 function createPublicRuntime(runtime) {
-  return /** @type {!Subscriptions} */ ({
+  return /** @type {!SubscriptionsInterface} */ ({
     init: runtime.init.bind(runtime),
     configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),
@@ -1227,23 +1227,4 @@ function createPublicRuntime(runtime) {
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
   });
-}
-
-/**
- * @protected
- */
-export function getSubscriptionsClassForTesting() {
-  return Subscriptions;
-}
-
-/**
- * @protected
- */
-export function getFetcherClassForTesting() {
-  return Fetcher;
-}
-
-/** @package Visible for testing only. */
-export function getDocClassForTesting() {
-  return Doc;
 }

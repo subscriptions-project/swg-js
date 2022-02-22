@@ -28,7 +28,6 @@ import {
   Subscriptions as SubscriptionsDef,
 } from '../api/subscriptions';
 import {addQueryParam, parseQueryString} from './url';
-import {findInArray} from './object';
 import {getLanguageCodeFromElement, msg} from './i18n';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
@@ -619,24 +618,27 @@ export class GaaMeteringRegwall {
    * @return {string|undefined}
    */
   static getPublisherNameFromJsonLdPageConfig_() {
-    const ldJsonElements = self.document.querySelectorAll(
-      'script[type="application/ld+json"]'
+    // Get JSON from ld+json scripts.
+    const ldJsonScripts = Array.prototype.slice.call(
+      self.document.querySelectorAll('script[type="application/ld+json"]')
+    );
+    const jsonQueue = /** @type {!Array<*>} */ (
+      ldJsonScripts.map((script) => parseJson(script.textContent))
     );
 
-    for (const ldJsonElement of ldJsonElements) {
-      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+    // Search for publisher name, breadth-first.
+    for (let i = 0; i < jsonQueue.length; i++) {
+      const json = /** @type {!Object<?,?>} */ (jsonQueue[i]);
 
-      if (!Array.isArray(ldJson)) {
-        ldJson = [ldJson];
-      }
-
-      const publisherName = findInArray(
-        ldJson,
-        (entry) => entry?.publisher?.name
-      )?.publisher.name;
-
+      // Return publisher name, if possible.
+      const publisherName = json?.publisher?.name;
       if (publisherName) {
         return publisherName;
+      }
+
+      // Explore JSON.
+      if (json && typeof json === 'object') {
+        jsonQueue.push(...Object.values(json));
       }
     }
   }
@@ -1181,18 +1183,17 @@ export class GaaGoogle3pSignInButton {
       }
     });
   }
-}
-
-/**
- * Notify Google Intervention of a complete sign-in event.
- * @param {{ gaaUser: GaaUserDef}} params
- */
-export function gaaNotifySignIn({gaaUser}) {
-  self.opener.postMessage({
-    stamp: POST_MESSAGE_STAMP,
-    command: POST_MESSAGE_COMMAND_USER,
-    gaaUser,
-  });
+  /**
+   * Notify Google Intervention of a complete sign-in event.
+   * @param {{ gaaUser: GaaUserDef}} params
+   */
+  static gaaNotifySignIn({gaaUser}) {
+    self.opener.postMessage({
+      stamp: POST_MESSAGE_STAMP,
+      command: POST_MESSAGE_COMMAND_USER,
+      gaaUser,
+    });
+  }
 }
 
 /**

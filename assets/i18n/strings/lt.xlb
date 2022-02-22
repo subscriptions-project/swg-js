@@ -5,11 +5,11 @@
 
 
 
-<msg name="SHOWCASE_REGWALL_TITLE">Get more with Google</msg>
-<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>This content usually requires payment, but Google is giving you free access to this article and more when you register with <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> using your Google Account.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Already have an account?</msg>
-<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Sign in with Google</msg>
-<msg name="SHOWCASE_REGWALL_CASL">Review <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>'s <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL terms<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
+<msg name="SHOWCASE_REGWALL_TITLE">Gaukite daugiau su „Google“</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Šis turinys paprastai yra mokamas, tačiau „Google“ suteikia jums prieigą prie šio straipsnio ir kt. be papildomo mokesčio, kai užsiregistruojate „<ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>“ naudodami savo „Google“ paskyrą.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Jau turite paskyrą?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Prisijungimas naudojant „Google“</msg>
+<msg name="SHOWCASE_REGWALL_CASL">Peržiūrėkite „<ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>“ <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL sąlygas<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
 
 
 

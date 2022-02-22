@@ -33,7 +33,6 @@ import {
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-  gaaNotifySignIn,
   queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
@@ -529,6 +528,21 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       self.document.head.innerHTML = `
         <script type="application/ld+json">
           [${ARTICLE_LD_JSON_METADATA}]
+        </script>
+      `;
+
+      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
+        PUBLISHER_NAME
+      );
+    });
+
+    it('gets the publisher name from graph construct', () => {
+      self.document.head.innerHTML = `
+        <script type="application/ld+json">
+          [{
+            "@context": "http://schema.org",
+            "@graph": [${ARTICLE_LD_JSON_METADATA}]
+          }]
         </script>
       `;
 
@@ -1344,36 +1358,36 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       }
     });
   });
-});
 
-describes.realWin('gaaNotifySignIn', {}, () => {
-  it('posts message when passed a user', () => {
-    self.opener = self;
-    sandbox.stub(self, 'postMessage');
-    const gaaUser = {
-      email: 'email',
-      familyName: 'familyName',
-      givenName: 'givenName',
-      idToken: 'idToken',
-      imageUrl: 'imageUrl',
-      name: 'name',
-      authorizationData: {
-        /* eslint-disable google-camelcase/google-camelcase */
-        access_token: 'accessToken',
-        id_token: 'idToken',
-        scope: 'scope',
-        expires_in: 0,
-        first_issued_at: 0,
-        expires_at: 0,
-        /* eslint-enable google-camelcase/google-camelcase */
-      },
-    };
-    gaaNotifySignIn.bind(self, {gaaUser})();
+  describe('gaaNotifySignIn', () => {
+    it('posts message when passed a user', () => {
+      self.opener = self;
+      sandbox.stub(self, 'postMessage');
+      const gaaUser = {
+        email: 'email',
+        familyName: 'familyName',
+        givenName: 'givenName',
+        idToken: 'idToken',
+        imageUrl: 'imageUrl',
+        name: 'name',
+        authorizationData: {
+          /* eslint-disable google-camelcase/google-camelcase */
+          access_token: 'accessToken',
+          id_token: 'idToken',
+          scope: 'scope',
+          expires_in: 0,
+          first_issued_at: 0,
+          expires_at: 0,
+          /* eslint-enable google-camelcase/google-camelcase */
+        },
+      };
+      GaaGoogle3pSignInButton.gaaNotifySignIn({gaaUser});
 
-    expect(self.postMessage).to.have.been.calledWithExactly({
-      stamp: POST_MESSAGE_STAMP,
-      command: POST_MESSAGE_COMMAND_USER,
-      gaaUser,
+      expect(self.postMessage).to.have.been.calledWithExactly({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser,
+      });
     });
   });
 });
