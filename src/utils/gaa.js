@@ -1185,6 +1185,7 @@ export class GaaGoogle3pSignInButton {
   }
   /**
    * Notify Google Intervention of a complete sign-in event.
+   * @nocollapse
    * @param {{ gaaUser: GaaUserDef}} params
    */
   static gaaNotifySignIn({gaaUser}) {
