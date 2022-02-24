@@ -1,3 +1,6 @@
+src/ @alin04 @jpettitt @adolgachev
+third_party/ @alin04 @jpettitt @adolgachev
+exports/ @alin04 @jpettitt @adolgachev
 src/api/ @jpettitt
 src/runtime/pay*.js @alin04 @younmi-park @jpettitt
 docs/CODEOWNERS @alin04 @jpettitt @adolgachev
