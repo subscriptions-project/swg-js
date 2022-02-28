@@ -4968,10 +4968,10 @@ browserslist@^4.17.5:
     node-releases "^2.0.1"
     picocolors "^1.0.0"
 
-browserstack-local@1.4.8:
-  version "1.4.8"
-  resolved "https://registry.yarnpkg.com/browserstack-local/-/browserstack-local-1.4.8.tgz#07f74a19b324cf2de69ffe65f9c2baa3a2dd9a0e"
-  integrity sha512-s+mc3gTOJwELdLWi4qFVKtGwMbb5JWsR+JxKlMaJkRJxoZ0gg3WREgPxAN0bm6iU5+S4Bi0sz0oxBRZT8BiNsQ==
+browserstack-local@1.4.9:
+  version "1.4.9"
+  resolved "https://registry.yarnpkg.com/browserstack-local/-/browserstack-local-1.4.9.tgz#5d3e405d425ee5a3ec5cba853c9a078242d944db"
+  integrity sha512-V+q8HQwRQFr9nd32xR66ZZ3VDWa3Kct4IMMudhKgcuD7cWrvvFARZOibx71II+Rf7P5nMQpWWxl9z/3p927nbg==
   dependencies:
     https-proxy-agent "^4.0.0"
     is-running "^2.1.0"
