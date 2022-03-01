@@ -185,6 +185,7 @@
 
       // Get userState by passing the gaaUser object to your registration endpoint server
       // Resolves with the current user’s entitlements from the publisher
+      // Optional - required only if your userState object doesn't contain the publisherEntitlement already
       publisherEntitlementPromise = new Promise ((resolve) => {
         // Example body of the promise returning a publisherEntitlement object
         publlisherEntitlement = {
@@ -202,14 +203,14 @@
           params: {
             googleSignInClientId: googleApiClientId,
             allowedReferrers: allowedReferrers,
-            showcaseEntitlement: showcaseEntitlement,
+            showcaseEntitlement: showcaseEntitlement, // Optional - server-side only
             userState: getUserState(),
             unlockArticle: unlockArticle,
             showPaywall: showPaywall,
-            handleSwGEntitlement: handleSwGEntitlement,
+            handleSwGEntitlement: handleSwGEntitlement, // Optional - only if SwG is implemented
             registerUserPromise: registerUserPromise,
             handleLoginPromise: handleLoginPromise,
-            publisherEntitlementPromise: publisherEntitlementPromise,
+            publisherEntitlementPromise: publisherEntitlementPromise, // Optional
           }
         });
       });
