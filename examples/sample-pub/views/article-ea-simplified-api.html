@@ -95,103 +95,123 @@
         location.search = newSearch;
       }
 
+      // Your Google API Client ID and can be found at:
+      // https://support.google.com/news/publisher-center/answer/11601854#API_client_ID
+      // A Client ID looks like the following example:
+      const googleApiClientId = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com'
+      
+      // Array with all allowed hosts that can refer users to your article pages.
+      // This is used if you redirect users or refresh the page during the Handle registration
+      // for new users or Handle login for existing users flows.
+      const allowedReferrers = ["example.com","test.com","localhost"]
+
+      // User's Showcase entitlement determined on your server
+      // Optional - server side only
+      const showcaseEntitlement = urlParams.get("showcaseEntitlement");
+
+      // The userState object for the current user.
+      function getUserState() {
+        return {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+        };
+      };
+
       /**
+       * Publisher-defined callbacks.
+       * 
        * The simplest possible implementation of showPaywall, unlockArticle, openLoginPage 
        * and handleSwGEntitlement. A more sophisticated implementation could fetch more data, 
        * or set cookies and refresh the whole page.
        */
+
+      // Callback that must ensure the publisher’s standard paywall is shown to the user.
+      // This is used when Extended Access is not granted to the user or if the user
+      // clicks “Subscribe” on the Extended Access prompt.
       function showPaywall() {
         console.log('show paywall');
         document.documentElement.classList.remove('open-paywall');
       };
 
+      // Callback that must unlock the current article which is called when Google is
+      // granting Extended Access to the user.
       function unlockArticle() {
         console.log('unlock article');
         document.documentElement.classList.add('open-paywall');
       };
       
+      // Only relevant for publishers doing Subscribe with Google. 
+      // Callback that will be triggered if the user is a Subscribe with Google subscriber.
       function handleSwGEntitlement() {
         console.log('handle swg entitlement');
         unlockArticle();
       }
 
-      function registerUserPromise() {
-        return new Promise ((resolve, reject) => {
-          const gaaUser = GaaMetering.getGaaUser();
-          // Call registrationEndpoint to get userState
-          const userState = {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-            subscriptionTimestamp: 1602763094,
-            //granted: true,
-            //grantReason: 'METERING'
-          };
-          
-          resolve(userState);
-        });
-      } 
+      /*
+       * Publisher-defined promises.
+       *
+       * The simplest implementation of registerUserPromise, handleLoginPromise,
+       * and publisherEntitlementPromise.
+       */
 
-
-      function publisherEntitlementPromise() {
-        return new Promise ((resolve, reject) => {
-          publlisherEntitlement = {
-            granted: false,
-          };
-
-          resolve(publlisherEntitlement);
-        });
-      }
-      
-      function handleLoginPromise() {
-        return new Promise ((resolve, reject) => {
-          userState = {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-            subscriptionTimestamp: 1602763094,
-            granted: false,
-            //grantReason: 'SUBSCRIBER',
-          };
-
-          resolve(userState);
-        });
-      }
-      
-
-      function getUserState() {
-        /* */
-        return {
+      // Get userState by passing the gaaUser object to your registration endpoint server
+      // Takes the registration JWT and returns an updated userState object for the newly registered user.
+      registerUserPromise = new Promise ((resolve) => {
+        // gaaUser - registration JWT that is returned by Sign In with Google
+        // https://developers.google.com/identity/gsi/web/reference/js-reference?hl=en#credential
+        const gaaUser = GaaMetering.getGaaUser();
+        // Example body of the promise returning a userState object
+        const userState = {
           id: 'user1235',
           registrationTimestamp: 1602763054,
           subscriptionTimestamp: 1602763094,
-          //granted: false,
         };
-        // */
-       /* ANONYMOUS 
-        return {
-          granted: false
+        resolve(userState);
+      }) 
+
+      // Allows the user to login to an existing publisher account and must resolve
+      // with an updated userState object for the newly logged-in user.
+      handleLoginPromise = new Promise ((resolve) => {
+        // Example body of the promise returning a userState object
+        userState = {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          granted: false,
         };
-        // */
-      };
+        resolve(userState);
+      });
+
+      // Get userState by passing the gaaUser object to your registration endpoint server
+      // Resolves with the current user’s entitlements from the publisher
+      publisherEntitlementPromise = new Promise ((resolve) => {
+        // Example body of the promise returning a publisherEntitlement object
+        publlisherEntitlement = {
+          granted: true,
+          grantReason: 'SUBSCRIBER',
+        };
+        resolve(publlisherEntitlement);
+      });
         
       (self.SWG = self.SWG || []).push(function (subscriptions) {
-        // Set up metering demo controls.
         MeteringDemo.setupControls();
-        // Set up language.
         MeteringDemo.setupLanguage();
 
         GaaMetering.init({
           params: {
-          productId: 'examplenews.com:showcase',
-          googleSignInClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
-          userState: getUserState(),
-          unlockArticle: unlockArticle,
-          showPaywall: showPaywall,
-          handleLoginPromise: handleLoginPromise,
-          handleSwGEntitlement: handleSwGEntitlement,
-          allowedReferrers: ["example.com","test.com","localhost"],
-          registerUserPromise: registerUserPromise,
-          publisherEntitlementPromise: publisherEntitlementPromise
-        }});
+            googleSignInClientId: googleApiClientId,
+            allowedReferrers: allowedReferrers,
+            showcaseEntitlement: showcaseEntitlement,
+            userState: getUserState(),
+            unlockArticle: unlockArticle,
+            showPaywall: showPaywall,
+            handleSwGEntitlement: handleSwGEntitlement,
+            registerUserPromise: registerUserPromise,
+            handleLoginPromise: handleLoginPromise,
+            publisherEntitlementPromise: publisherEntitlementPromise,
+          }
+        });
       });
       
     </script>

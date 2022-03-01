@@ -1361,20 +1361,20 @@ export class GaaMetering {
       return false;
     }
 
-    // Register publisher's callbacks and parameters
+    // Register publisher's callbacks, promises, and parameters
+    const productId = GaaMetering.getProductIDFromPageConfig_();
+    const googleSignInClientId = params.googleSignInClientId;
+    const allowedReferrers = params.allowedReferrers;
+    const showcaseEntitlement = params.showcaseEntitlement;
+
     const showPaywall = params.showPaywall;
     const userState = params.userState;
     const unlockArticle = params.unlockArticle;
-
     const handleSwGEntitlement = params.handleSwGEntitlement;
-    const googleSignInClientId = params.googleSignInClientId;
 
-    const productId = GaaMetering.getProductIDFromPageConfig_();
-    const allowedReferrers = params.allowedReferrers;
-
+    const registerUserPromise = params.registerUserPromise;
     const handleLoginPromise = params.handleLoginPromise;
     const publisherEntitlementPromise = params.publisherEntitlementPromise;
-    const registerUserPromise = params.registerUserPromise;
 
     // Validate gaa parameters and referrer
     if (!GaaMetering.isGaa(allowedReferrers)) {
@@ -1413,6 +1413,8 @@ export class GaaMetering {
           userState.granted = true;
 
           ifGranted();
+        } else if (showcaseEntitlement) {
+          subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
         } else {
           publisherEntitlementPromise().then((fetchedPublisherEntitlements) => {
             debugLog(fetchedPublisherEntitlements);
@@ -1544,22 +1546,13 @@ export class GaaMetering {
   }
 
   static validateParameters(params) {
-    const reqFunc = [
-      'unlockArticle',
-      'showPaywall',
-      'handleSwGEntitlement',
+    const reqFunc = ['unlockArticle', 'showPaywall', 'handleSwGEntitlement'];
+
+    const reqPromise = [
       'handleLoginPromise',
       'registerUserPromise',
       'publisherEntitlementPromise',
     ];
-
-    /*
-    const reqPromise = [
-      'handleLoginPromise',
-      //'registerUserPromise',
-      'publisherEntitlementPromise',
-    ];
-    */
 
     for (const reqFuncNo in reqFunc) {
       if (
@@ -1573,7 +1566,6 @@ export class GaaMetering {
       }
     }
 
-    /*
     for (const reqPromiseNo in reqPromise) {
       if (
         !(
@@ -1585,7 +1577,6 @@ export class GaaMetering {
         return false;
       }
     }
-    */
 
     // Check userState is an 'object'
     if (
