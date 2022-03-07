@@ -1287,35 +1287,6 @@ describes.realWin('gaaNotifySignIn', {}, () => {
 });
 
 describes.realWin('GaaMetering', {}, () => {
-  //const allowedOrigins = [location.origin];
-
-  // let clock;
-
-  /**
-   * The simplest possible implementation of showPaywall, unlockArticle, openLoginPage
-   * and handleSwGEntitlement. A more sophisticated implementation could fetch more data,
-   * or set cookies and refresh the whole page.
-   */
-  function showPaywall() {
-    self.console.log('show paywall');
-    self.document.documentElement.classList.remove('open-paywall');
-  }
-
-  function unlockArticle() {
-    self.console.log('unlock article');
-    self.document.documentElement.classList.add('open-paywall');
-  }
-
-  function handleLogin() {
-    self.console.log('open login page');
-    self.document.documentElement.classList.add('open-paywall');
-  }
-
-  function handleSwGEntitlement() {
-    self.console.log('handle swg entitlement');
-    unlockArticle();
-  }
-
   beforeEach(() => {
     // Mock clock.
     // clock = sandbox.useFakeTimers();

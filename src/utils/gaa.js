@@ -1546,13 +1546,22 @@ export class GaaMetering {
   }
 
   static validateParameters(params) {
-    const reqFunc = ['unlockArticle', 'showPaywall', 'handleSwGEntitlement'];
+    if (
+      !('googleSignInClientId' in params) ||
+      !(typeof params.googleSignInClientId === 'string') ||
+      !params.googleSignInClientId.includes('.apps.googleusercontent.com')
+    ) {
+      debugLog(
+        'Missing googleSignInClientId, or it is not a string, or it is not in a correct format'
+      );
+      return false;
+    }
 
-    const reqPromise = [
-      'handleLoginPromise',
-      'registerUserPromise',
-      'publisherEntitlementPromise',
-    ];
+    if (!('allowedReferrers' in params)) {
+      debugLog('Missing allowedReferrers or it is not an array');
+    }
+
+    const reqFunc = ['unlockArticle', 'showPaywall'];
 
     for (const reqFuncNo in reqFunc) {
       if (
@@ -1566,6 +1575,17 @@ export class GaaMetering {
       }
     }
 
+    if (
+      !(
+        'handleSwGEntitlement' in params &&
+        typeof params.handleSwGEntitlement != 'function'
+      )
+    ) {
+      debugLog('handleSwGEntitlement is proided but it is not a function');
+    }
+
+    const reqPromise = ['handleLoginPromise', 'registerUserPromise'];
+
     for (const reqPromiseNo in reqPromise) {
       if (
         !(
@@ -1576,6 +1596,17 @@ export class GaaMetering {
         debugLog(`Missing ${reqPromise[reqPromiseNo]} or it is not a promise`);
         return false;
       }
+    }
+
+    if (
+      !(
+        'publisherEntitlementPromise' in params &&
+        GaaMetering.isPromise(params.publisherEntitlementPromise)
+      )
+    ) {
+      debugLog(
+        'publisherEntitlementPromise is proided but it is not a promise'
+      );
     }
 
     // Check userState is an 'object'
