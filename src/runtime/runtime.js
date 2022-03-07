@@ -272,8 +272,12 @@ export class Runtime {
     assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
 
-    // Process the page's config.
-    this.configured_(true);
+    // Process the page's config. Then start logging events in the
+    // analytics service.
+    this.configured_(true).then((configuredRuntime) => {
+      configuredRuntime.analytics().setReadyForLogging();
+      configuredRuntime.analytics().start();
+    });
   }
 
   /** @override */
