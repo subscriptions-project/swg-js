@@ -89,9 +89,18 @@ export class XhrFetcher {
       credentials: 'include',
       body: 'f.req=' + serializeProtoMessageForUrl(message),
     });
-    return this.fetch(url, init).then(
-      (response) => (response && response.json()) || {}
-    );
+    return this.fetch(url, init).then((response) => {
+      if (!response) {
+        return {};
+      }
+      return response.text().then((text) => {
+        try {
+          return parseJson(text);
+        } catch (e) {
+          return {};
+        }
+      });
+    });
   }
 
   /** @override */
