@@ -15,6 +15,7 @@
  */
 
 import {Xhr} from '../utils/xhr';
+import {log} from '../utils/log';
 import {parseJson} from '../utils/json';
 import {serializeProtoMessageForUrl} from '../utils/url';
 
@@ -97,6 +98,7 @@ export class XhrFetcher {
         try {
           return parseJson(text);
         } catch (e) {
+          log(`Error when parsing JSON response from ${url}:${e}`);
           return {};
         }
       });
