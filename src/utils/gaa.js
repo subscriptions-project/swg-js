@@ -1557,8 +1557,11 @@ export class GaaMetering {
       return false;
     }
 
-    if (!('allowedReferrers' in params)) {
+    if (
+      !('allowedReferrers' in params && Array.isArray(params.allowedReferrers))
+    ) {
       debugLog('Missing allowedReferrers or it is not an array');
+      return false;
     }
 
     const reqFunc = ['unlockArticle', 'showPaywall'];
@@ -1857,10 +1860,10 @@ export class GaaMetering {
 
     if (
       newUserState.granted === true &&
-      !['FREE', 'METERING', 'SUBSCRIBER'].includes(newUserState.grantReason)
+      !['METERING', 'SUBSCRIBER'].includes(newUserState.grantReason)
     ) {
       debugLog(
-        'if userState.granted is true then userState.grantReason has to be either FREE, METERING, or SUBSCRIBER '
+        'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
       );
 
       return false;
@@ -1912,8 +1915,8 @@ export class GaaMetering {
         if (
           'subscriptionTimestamp' in newUserState &&
           !(
-            typeof newUserState.registrationTimestamp === 'number' &&
-            newUserState.registrationTimestamp % 1 === 0
+            typeof newUserState.subscriptionTimestamp === 'number' &&
+            newUserState.subscriptionTimestamp % 1 === 0
           )
         ) {
           debugLog(

@@ -1349,6 +1349,90 @@ describes.realWin('GaaMetering', {}, () => {
         })
       ).to.be.true;
     });
+
+    it('fails for invalid googleSignInClientId', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          googleSignInClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4',
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Missing googleSignInClientId, or it is not a string, or it is not in a correct format'
+      );
+    });
+
+    it('fails for invalid allowedReferrers', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          googleSignInClientId:
+            '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Missing allowedReferrers or it is not an array'
+      );
+    });
+
+    it('fails for missing required function unlockArticle', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          googleSignInClientId:
+            '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Missing unlockArticle or it is not a function'
+      );
+    });
   });
 
   describe('newUserStateToUserState', () => {
@@ -1384,6 +1468,155 @@ describes.realWin('GaaMetering', {}, () => {
           grantReason: 'SUBSCRIBER',
         })
       ).to.be.true;
+    });
+
+    it('fails with a warning in debug mode for missing or invalid userState.granted', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          grantReason: 'SUBSCRIBER',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState.granted is missing or invalid (must be true or false)'
+      );
+    });
+
+    it('fails with a warning in debug mode for missing registrationTimestamp', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          subscriptionTimestamp: 1602763094,
+          granted: true,
+          grantReason: 'SUBSCRIBER',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Missing user ID or registrationTimestamp in userState object'
+      );
+    });
+
+    it('fails with a warning in debug mode for invalid params', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          granted: true,
+          grantReason: 'WRONG VALUE',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
+      );
+    });
+
+    it('fails with a warning in debug mode for invalid registrationTimestamp', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          registrationTimestamp: '1602763054a',
+          subscriptionTimestamp: 1602763094,
+          granted: true,
+          grantReason: 'SUBSCRIBER',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState.registrationTimestamp invalid, userState.registrationTimestamp needs to be an integer and in seconds'
+      );
+    });
+
+    it('fails with a warning in debug mode for registrationTimestamp in the future', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          registrationTimestamp: new Date().getTime() + 100000000,
+          subscriptionTimestamp: 1602763094,
+          granted: true,
+          grantReason: 'SUBSCRIBER',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState.registrationTimestamp is in the future'
+      );
+    });
+
+    it('fails with a warning in debug mode for missing subscriptionTimestamp for subscriber', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          granted: true,
+          grantReason: 'SUBSCRIBER',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
+      );
+    });
+
+    it('fails with a warning in debug mode for invalid subscriptionTimestamp', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: '1602763094a',
+          granted: true,
+          grantReason: 'SUBSCRIBER',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
+      );
+    });
+
+    it('fails with a warning in debug mode for subscriptionTimestamp in the future', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: new Date().getTime() + 100000000,
+          granted: true,
+          grantReason: 'SUBSCRIBER',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState.subscriptionTimestamp is in the future'
+      );
+    });
+  });
+
+  describe('setGaaUser', () => {
+    it('GaaMetering.credentials equal to input', () => {
+      GaaMetering.setGaaUser('setting credentials test');
+
+      expect(GaaMetering.credentials).to.equal('setting credentials test');
+    });
+  });
+
+  describe('getGaaUser', () => {
+    it('GaaMetering.getGaaUser returning GaaMetering.credentials', () => {
+      GaaMetering.credentials = 'test credentials';
+
+      expect(GaaMetering.getGaaUser()).to.equal('test credentials');
     });
   });
 });
