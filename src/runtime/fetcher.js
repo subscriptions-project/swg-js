@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ErrorUtils} from '../utils/errors';
 import {Xhr} from '../utils/xhr';
 import {parseJson} from '../utils/json';
 import {serializeProtoMessageForUrl} from '../utils/url';
@@ -97,6 +98,8 @@ export class XhrFetcher {
         try {
           return parseJson(text);
         } catch (e) {
+          // Ignore: prsing should not block runtime otherwise paywalls don't work.
+          ErrorUtils.throwAsync(e);
           return {};
         }
       });
