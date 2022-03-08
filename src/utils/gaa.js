@@ -1416,7 +1416,7 @@ export class GaaMetering {
         } else if (showcaseEntitlement) {
           subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
         } else {
-          publisherEntitlementPromise().then((fetchedPublisherEntitlements) => {
+          publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
             debugLog(fetchedPublisherEntitlements);
             userState.granted = fetchedPublisherEntitlements.granted;
             userState.grantReason = fetchedPublisherEntitlements.grantReason;
@@ -1840,6 +1840,7 @@ export class GaaMetering {
       },
     };
 
+    debugLog('New userState successfully converted to userState.');
     return userState;
   }
 

@@ -1330,23 +1330,58 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          productId: 'examplenews.com:showcase', // (optional override for publishers, otherwise take from markup)
           googleSignInClientId:
             '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
-          registrationEndpoint: 'https://www.examplenews.com/api/registration', // promise from partner
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
             registrationTimestamp: 1602763054,
             subscriptionTimestamp: 1602763094,
-            publisherEntitlement: {
-              granted: false,
-            },
+            granted: false,
           },
-          unlockArticle,
-          showPaywall,
-          handleLogin,
-          handleSwGEntitlement,
-          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.true;
+    });
+  });
+
+  describe('newUserStateToUserState', () => {
+    it('succeeds for valid new userState', () => {
+      location.hash = `#swg.debug=1`;
+
+      GaaMetering.newUserStateToUserState({
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          granted: false,
+        },
+      });
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'New userState successfully converted to userState.'
+      );
+    });
+  });
+
+  describe('validateUserState', () => {
+    it('succeeds for valid userState', () => {
+      location.hash = `#swg.debug=1`;
+
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          granted: true,
+          grantReason: 'SUBSCRIBER',
         })
       ).to.be.true;
     });
