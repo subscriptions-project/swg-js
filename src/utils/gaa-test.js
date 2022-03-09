@@ -42,9 +42,11 @@ import {JwtHelper} from './jwt';
 import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
-const PRODUCT_ID =  'scenic-2017.appspot.com:news';
+const PRODUCT_ID = 'scenic-2017.appspot.com:news';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
 const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
+const GOOGLE_API_CLIENT_ID =
+  '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
 
 /** Article metadata in ld+json form. */
 const ARTICLE_LD_JSON_METADATA = `
@@ -88,6 +90,32 @@ const ARTICLE_MICRODATA_METADATA = `
     <meta itemprop="productID" content="${PRODUCT_ID}"/>
   </div>
 </div>`;
+
+const SIGN_IN_WITH_GOOGLE_JWT = {
+  credential: {
+    /* eslint-disable google-camelcase/google-camelcase */
+    payload: {
+      iss: 'https://accounts.google.com', // The JWT's issuer
+      nbf: 161803398874,
+      aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
+      sub: '3141592653589793238', // The unique ID of the user's Google Account
+      hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
+      email: 'elisa.g.beckett@gmail.com', // The user's email address
+      email_verified: true, // true, if Google has verified the email address
+      azp: '314159265-pi.apps.googleusercontent.com',
+      name: 'Elisa Beckett',
+      // If present, a URL to user's profile picture
+      picture:
+        'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
+      given_name: 'Elisa',
+      family_name: 'Beckett',
+      iat: 1596474000, // Unix timestamp of the assertion's creation time
+      exp: 1596477600, // Unix timestamp of the assertion's expiration time
+      jti: 'abc161803398874def',
+    },
+    /* eslint-enable google-camelcase/google-camelcase */
+  },
+};
 
 describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   let clock;
@@ -171,6 +199,16 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       },
     };
 
+    // Mock Sign In with Google API.
+    self.google = {
+      accounts: {
+        id: {
+          initialize: sandbox.fake(),
+          renderButton: sandbox.fake(),
+        },
+      },
+    };
+
     // Mock SwG API.
     logEvent = sandbox.fake();
     subscriptionsMock = {
@@ -187,8 +225,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
     );
 
-    // Mock console.warn method.
+    // Mock console.warn & log methods.
     sandbox.stub(self.console, 'warn');
+    sandbox.stub(self.console, 'log');
 
     // Add JSON-LD with a publisher name.
     script = self.document.createElement('script');
@@ -206,7 +245,13 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     microdata.remove();
     GaaMeteringRegwall.remove();
     self.document.documentElement.lang = '';
+    // Remove the injected style from GaaMeteringRegwall.createNativeRegistrationButton.
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
+
     self.console.warn.restore();
+    self.console.log.restore();
   });
 
   /**
@@ -445,6 +490,341 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
           isFromUserAction: false,
         },
       ]);
+    });
+  });
+
+  describe('showWithNativeRegistrationButton', () => {
+    it('shows regwall with publisher name', () => {
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+
+      const descriptionEl = self.document.querySelector(
+        '.gaa-metering-regwall--description'
+      );
+      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+    });
+
+    it('does not render CASL blurb by default', () => {
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+
+      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
+      expect(caslEl).to.be.null;
+    });
+
+    it('optionally renders CASL blurb', () => {
+      const caslUrl = 'https://example.com';
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+        caslUrl,
+      });
+
+      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
+      expect(caslEl.textContent).contains("Review The Scenic's CASL terms");
+
+      const caslLinkEl = caslEl.querySelector('a');
+      expect(caslLinkEl.href).contains(caslUrl);
+    });
+
+    it('focuses on modal title after the animation completes', () => {
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+
+      // Mock animation ending.
+      const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
+      dialogEl.dispatchEvent(new Event('animationend'));
+
+      const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
+      expect(self.document.activeElement).to.equal(titleEl);
+    });
+
+    it('handles clicks on publisher sign in link', async () => {
+      // Show Regwall.
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+      await tick();
+      logEvent.resetHistory();
+
+      // Click publisher link to trigger a login request.
+      const publisherSignInButtonEl = self.document.querySelector(
+        '#swg-publisher-sign-in-button'
+      );
+      publisherSignInButtonEl.click();
+      expect(subscriptionsMock.triggerLoginRequest).to.be.calledWithExactly({
+        linkRequested: false,
+      });
+      await tick();
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
+
+    it('parses publisher name from microdata', () => {
+      // Remove JSON-LD.
+      script.text = '{}';
+
+      // Add Microdata.
+      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
+
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+
+      const descriptionEl = self.document.querySelector(
+        '.gaa-metering-regwall--description'
+      );
+      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+    });
+
+    it('throws if article metadata lacks a publisher name', () => {
+      // Remove JSON-LD.
+      script.text = '{}';
+
+      const showingRegwall = () =>
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          clientId: GOOGLE_API_CLIENT_ID,
+        });
+
+      expect(showingRegwall).throws(
+        'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
+      );
+    });
+
+    it('resolves with a gaaUser removes Regwall from DOM on click', async () => {
+      const gaaUserPromise =
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          clientId: GOOGLE_API_CLIENT_ID,
+        });
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+
+      // Mock JWT decoding function.
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((credential) => {
+        return credential;
+      });
+
+      // Simulate the click resolving
+      const args = self.google.accounts.id.initialize.args;
+      args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
+
+      expect(await gaaUserPromise).to.deep.equal(
+        SIGN_IN_WITH_GOOGLE_JWT.credential
+      );
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+    });
+
+    it('renders supported i18n languages', () => {
+      self.document.documentElement.lang = 'pt-br';
+
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+
+      const titleEl = self.document.querySelector(
+        '.gaa-metering-regwall--title'
+      );
+      expect(titleEl.textContent).to.equal(
+        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['pt-br']
+      );
+    });
+
+    it('renders "en" for non-supported i18n languages', () => {
+      self.document.documentElement.lang = 'non-supported';
+
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+
+      const titleEl = self.document.querySelector(
+        '.gaa-metering-regwall--title'
+      );
+      expect(titleEl.textContent).to.equal(
+        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['en']
+      );
+    });
+
+    it('handles Sign In with Google errors', async () => {
+      self.google.accounts.id.initialize = sandbox.fake.throws(
+        'Function not loaded'
+      );
+
+      const gaaUserPromise =
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          clientId: GOOGLE_API_CLIENT_ID,
+        });
+      clock.tick(100);
+      await tick(10);
+
+      // Reject promise.
+      await gaaUserPromise;
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+    });
+
+    it('logs Sign In with Google errors when in debug mode', async () => {
+      location.hash = '#swg.debug=1';
+
+      self.google.accounts.id.initialize = sandbox.fake.throws(
+        'Function not loaded'
+      );
+
+      const gaaUserPromise =
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          clientId: GOOGLE_API_CLIENT_ID,
+        });
+      clock.tick(100);
+      await tick(10);
+
+      // Reject promise.
+      await gaaUserPromise;
+      expect(self.console.log).to.calledWithExactly(
+        '[Subscriptions]',
+        'Regwall failed: Error: Function not loaded'
+      );
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+    });
+
+    it('logs Showcase impression events', async () => {
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+      await tick();
+
+      // Verify analytics events.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.IMPRESSION_REGWALL,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL,
+          isFromUserAction: false,
+        },
+      ]);
+    });
+  });
+
+  describe('createNativeRegistrationButton', () => {
+    it('fails if regwall is not present', async () => {
+      expect(
+        GaaMeteringRegwall.createNativeRegistrationButton({
+          clientId: GOOGLE_API_CLIENT_ID,
+        })
+      ).to.be.false;
+    });
+
+    it('renders Google Sign-In button', async () => {
+      GaaMeteringRegwall.render_({useNativeMode: true});
+      clock.tick(100);
+      await tick(10);
+
+      GaaMeteringRegwall.createNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      const argsInit = self.google.accounts.id.initialize.args;
+      expect(typeof argsInit[0][0].callback).to.equal('function');
+      expect(argsInit).to.deep.equal([
+        [
+          {
+            /* eslint-disable google-camelcase/google-camelcase */
+            client_id: GOOGLE_API_CLIENT_ID,
+            callback: argsInit[0][0].callback,
+            /* eslint-enable google-camelcase/google-camelcase */
+          },
+        ],
+      ]);
+
+      const argsRender = self.google.accounts.id.renderButton.args;
+      expect(argsRender).to.deep.equal([
+        [
+          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+          {
+            'type': 'standard',
+            'theme': 'outline',
+            'text': 'continue_with',
+            'logo_alignment': 'center',
+          },
+        ],
+      ]);
+    });
+
+    it('renders supported i18n languages', async () => {
+      self.document.documentElement.lang = 'pt-br';
+
+      GaaMeteringRegwall.render_({useNativeMode: true});
+      clock.tick(100);
+      await tick(10);
+
+      GaaMeteringRegwall.createNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
+      );
+    });
+
+    it('renders "en" for non-supported i18n languages', async () => {
+      self.document.documentElement.lang = 'non-supported';
+
+      GaaMeteringRegwall.render_({useNativeMode: true});
+      clock.tick(100);
+      await tick(10);
+
+      GaaMeteringRegwall.createNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
+      );
+    });
+
+    it('resolves with GAA user', async () => {
+      GaaMeteringRegwall.render_({useNativeMode: true});
+      clock.tick(100);
+      await tick(10);
+
+      // Show button.
+      const gaaUserPromise = GaaMeteringRegwall.createNativeRegistrationButton({
+        clientId: GOOGLE_API_CLIENT_ID,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+
+      const args = self.google.accounts.id.initialize.args;
+      args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
+
+      // Send JWT.
+      expect(await gaaUserPromise).to.deep.equal(SIGN_IN_WITH_GOOGLE_JWT);
     });
   });
 
@@ -946,33 +1326,6 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     });
 
     it('sends post message with GAA user', async () => {
-      // Mock GIS response with JWT object.
-      const jwt = {
-        credential: {
-          /* eslint-disable google-camelcase/google-camelcase */
-          payload: {
-            iss: 'https://accounts.google.com', // The JWT's issuer
-            nbf: 161803398874,
-            aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
-            sub: '3141592653589793238', // The unique ID of the user's Google Account
-            hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
-            email: 'elisa.g.beckett@gmail.com', // The user's email address
-            email_verified: true, // true, if Google has verified the email address
-            azp: '314159265-pi.apps.googleusercontent.com',
-            name: 'Elisa Beckett',
-            // If present, a URL to user's profile picture
-            picture:
-              'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
-            given_name: 'Elisa',
-            family_name: 'Beckett',
-            iat: 1596474000, // Unix timestamp of the assertion's creation time
-            exp: 1596477600, // Unix timestamp of the assertion's expiration time
-            jti: 'abc161803398874def',
-          },
-          /* eslint-enable google-camelcase/google-camelcase */
-        },
-      };
-
       // Mock JWT decoding function.
       sandbox.stub(JwtHelper.prototype, 'decode').callsFake((credential) => {
         return credential;
@@ -994,7 +1347,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       clock.tick(100);
       await tick(10);
       // Send JWT.
-      args[0][0].callback(jwt);
+      args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
       // Wait for post message.
       await new Promise((resolve) => {
@@ -1006,7 +1359,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       expect(self.postMessage).to.be.calledWithExactly(
         {
           command: POST_MESSAGE_COMMAND_USER,
-          jwtPayload: jwt.credential,
+          jwtPayload: SIGN_IN_WITH_GOOGLE_JWT.credential,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin
@@ -1303,7 +1656,7 @@ describes.realWin('GaaMetering', {}, () => {
     sandbox.stub(GaaUtils, 'getQueryString');
     GaaUtils.getQueryString.returns('?lang=en');
 
-    // Mock console.warn method.
+    // Mock console.log method.
     sandbox.stub(self.console, 'log');
 
     // Add JSON-LD with a publisher name.
@@ -1315,6 +1668,12 @@ describes.realWin('GaaMetering', {}, () => {
     // Add container for Microdata.
     microdata = self.document.createElement('div');
     self.document.head.appendChild(microdata);
+
+    // Allow document.referrer to be overriden
+    Object.defineProperty(self.document, 'referrer', {
+      writable: true,
+      value: self.document.referrer,
+    });
   });
 
   afterEach(() => {
@@ -1350,8 +1709,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId:
-            '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -1402,8 +1760,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId:
-            '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
           userState: {
             id: 'user1235',
             registrationTimestamp: 1602763054,
@@ -1430,8 +1787,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId:
-            '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com',
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -1455,53 +1811,31 @@ describes.realWin('GaaMetering', {}, () => {
     });
   });
 
-  describe('isValidHttpUrl', () => {
-    it('returns true for a valid url', () => {
-      let url = 'https://www.google.com/1234/5678/article.html';
-      expect(GaaMetering.isValidHttpUrl(url)).to.be.true;
-    });
-
-    it('returns false for a invalid url', () => {
-      let url = 'google/1234/5678/article.html';
-      expect(GaaMetering.isValidHttpUrl(url)).to.be.false;
-    });
-
-    it('returns false for an empty string', () => {
-      let url = '';
-      expect(GaaMetering.isValidHttpUrl(url)).to.be.false;
-    });
-
-    it('returns false for a number', () => {
-      let url = 12345;
-      expect(GaaMetering.isValidHttpUrl(url)).to.be.false;
-    });
-  });
-
   describe('getAnchorFromUrl', () => {
     it('returns the expected anchor from url', () => {
-      let url = 'https://www.google.com/1234/5678/article.html';
-      let anchor = GaaMetering.getAnchorFromUrl(url);
+      const url = 'https://www.google.com/1234/5678/article.html';
+      const anchor = GaaMetering.getAnchorFromUrl(url);
       expect(anchor.protocol).to.equal('https:');
       expect(anchor.hostname).to.equal('www.google.com');
     });
 
     it('succeeds for an empty url', () => {
-      let url = '';
-      let anchor = GaaMetering.getAnchorFromUrl(url);
+      const url = '';
+      const anchor = GaaMetering.getAnchorFromUrl(url);
       expect(anchor.protocol).to.not.equal('https:');
       expect(anchor.hostname).to.not.equal('www.google.com');
     });
 
     it('succeeds for any string', () => {
-      let url = 'abc12345';
-      let anchor = GaaMetering.getAnchorFromUrl(url);
+      const url = 'abc12345';
+      const anchor = GaaMetering.getAnchorFromUrl(url);
       expect(anchor.protocol).to.not.equal('https:');
       expect(anchor.hostname).to.not.equal('www.google.com');
     });
 
     it('succeeds if it is not a string', () => {
-      let url = 12345;
-      let anchor = GaaMetering.getAnchorFromUrl(url);
+      const url = 12345;
+      const anchor = GaaMetering.getAnchorFromUrl(url);
       expect(anchor.protocol).to.not.equal('https:');
       expect(anchor.hostname).to.not.equal('www.google.com');
     });
@@ -1509,9 +1843,7 @@ describes.realWin('GaaMetering', {}, () => {
 
   describe('getProductIDFromPageConfig_', () => {
     it('gets the publisher ID from object page config', () => {
-      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(
-        PRODUCT_ID
-      );
+      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
     it('gets the publisher ID from array page config', () => {
@@ -1521,31 +1853,29 @@ describes.realWin('GaaMetering', {}, () => {
         </script>
       `;
 
-      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(
-        PRODUCT_ID
-      );
+      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
     it('gets publisher ID from microdata', () => {
       // Remove JSON-LD
-      self.document.querySelectorAll('script[type="application/ld+json"]').
-        forEach(e => e.remove());
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
 
       // Add Microdata.
       microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
-      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(
-        PRODUCT_ID
-      );
+      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
     it('throws if article metadata lacks a publisher id', () => {
       // Remove JSON-LD
-      self.document.querySelectorAll('script[type="application/ld+json"]').
-        forEach(e => e.remove());
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
       // Remove microdata
       microdata.innerHTML = '';
 
-      let meteringError = () => GaaMetering.getProductIDFromPageConfig_();
+      const meteringError = () => GaaMetering.getProductIDFromPageConfig_();
       expect(meteringError).throws(
         'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
       );
@@ -1559,8 +1889,9 @@ describes.realWin('GaaMetering', {}, () => {
 
     it('gets isAccessibleForFree from array page config', () => {
       // Remove JSON-LD
-      self.document.querySelectorAll('script[type="application/ld+json"]').
-        forEach(e => e.remove());
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
         <script type="application/ld+json">
@@ -1573,8 +1904,9 @@ describes.realWin('GaaMetering', {}, () => {
 
     it('gets isAccessibleForFree from microdata', () => {
       // Remove JSON-LD
-      self.document.querySelectorAll('script[type="application/ld+json"]').
-        forEach(e => e.remove());
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
 
       // Add Microdata.
       microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
@@ -1583,8 +1915,9 @@ describes.realWin('GaaMetering', {}, () => {
 
     it('if article metadata lacks a isAccessibleForFree value', () => {
       // Remove JSON-LD
-      self.document.querySelectorAll('script[type="application/ld+json"]').
-        forEach(e => e.remove());
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
       // Remove microdata
       microdata.innerHTML = '';
 
@@ -1774,6 +2107,47 @@ describes.realWin('GaaMetering', {}, () => {
       GaaMetering.credentials = 'test credentials';
 
       expect(GaaMetering.getGaaUser()).to.equal('test credentials');
+    });
+  });
+
+  describe('isGaa', () => {
+    it('fails when gaa parameters are not present in URL', () => {
+      expect(GaaMetering.isGaa()).to.be.false;
+    });
+
+    it('fails when the referer is not Google or the publisher', () => {
+      self.document.referrer = 'https://badreferrer.com';
+      expect(GaaMetering.isGaa()).to.be.false;
+    });
+
+    it('fails with a warning in debug mode for an invalid referrer', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      location.hash = `#swg.debug=1`;
+      const badReferrer = 'https://www.badreferrer.com';
+      self.document.referrer = badReferrer;
+      expect(GaaMetering.isGaa()).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        `This page's referrer ("${badReferrer}") can't grant Google Article Access.`
+      );
+    });
+
+    it('succeeds when the gaa parameters are present and the referer is Google', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      expect(GaaMetering.isGaa()).to.be.true;
+    });
+
+    it("succeeds when the gaa parameters are present and the referer is in partner's list", () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.examplenews.com';
+      expect(GaaMetering.isGaa(['www.examplenews.com'])).to.be.true;
     });
   });
 });

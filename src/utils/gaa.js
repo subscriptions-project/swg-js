@@ -98,6 +98,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--description,
   .gaa-metering-regwall--description strong,
   .gaa-metering-regwall--iframe,
+  .gaa-metering-regwall--registration-button-container,
   .gaa-metering-regwall--casl {
     all: initial !important;
     box-sizing: border-box !important;
@@ -159,6 +160,14 @@ const REGWALL_HTML = `
   }
 
   .gaa-metering-regwall--iframe {
+    border: none !important;
+    display: block !important;
+    height: 44px !important;
+    margin: 0 0 30px !important;
+    width: 100% !important;
+  }
+
+  .gaa-metering-regwall--registration-button-container {
     border: none !important;
     display: block !important;
     height: 44px !important;
@@ -271,11 +280,7 @@ const CASL_HTML = `
 `;
 
 /** Base styles for both the Google and Google 3p Sign-In button iframes. */
-const GOOGLE_SIGN_IN_IFRAME_STYLES = `
-  body {
-    margin: 0;
-    overflow: hidden;
-  }
+const GOOGLE_SIGN_IN_BUTTON_STYLES = `
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID},
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID},
   #${GOOGLE_SIGN_IN_BUTTON_ID} {
@@ -326,6 +331,12 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
     font-size: 15px;
   }`;
+const GOOGLE_SIGN_IN_IFRAME_STYLES = `
+  body {
+    margin: 0;
+    overflow: hidden;
+  }${GOOGLE_SIGN_IN_BUTTON_STYLES}
+`;
 
 /**
  * User object that Publisher JS receives after users sign in.
@@ -822,9 +833,12 @@ export class GaaMeteringRegwall {
     const parentElement = self.document.getElementById(
       REGISTRATION_BUTTON_CONTAINER_ID
     );
+    if (!parentElement) {
+      return false;
+    }
     // Apply iframe styles.
     const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
+    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_BUTTON_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
       msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
     );
@@ -845,20 +859,18 @@ export class GaaMeteringRegwall {
     });
 
     return new Promise((resolve) => {
-      self.onload = () => {
-        self.google.accounts.id.initialize({
-          /* eslint-disable google-camelcase/google-camelcase */
-          client_id: clientId,
-          callback: resolve,
-          /* eslint-enable google-camelcase/google-camelcase */
-        });
-        self.google.accounts.id.renderButton(buttonEl, {
-          'type': 'standard',
-          'theme': 'outline',
-          'text': 'continue_with',
-          'logo_alignment': 'center',
-        });
-      };
+      self.google.accounts.id.initialize({
+        /* eslint-disable google-camelcase/google-camelcase */
+        client_id: clientId,
+        callback: resolve,
+        /* eslint-enable google-camelcase/google-camelcase */
+      });
+      self.google.accounts.id.renderButton(buttonEl, {
+        'type': 'standard',
+        'theme': 'outline',
+        'text': 'continue_with',
+        'logo_alignment': 'center',
+      });
     });
   }
 }
@@ -1448,7 +1460,10 @@ export class GaaMetering {
             // Google returned a non-metering entitlement
             // This is only relevant for publishers doing SwG
             handleSwGEntitlement();
-          } else if (!isUserRegistered() && GaaMetering.isGaa()) {
+          } else if (
+            !isUserRegistered() &&
+            GaaMetering.isGaa(allowedReferrers)
+          ) {
             // This is an anonymous user so show the Google registration intervention
             showGoogleRegwall();
           } else {
@@ -1477,30 +1492,33 @@ export class GaaMetering {
 
       // Show the Google registration intervention.
       function showGoogleRegwall() {
-        GaaMeteringRegwall.showWithNativeRegistrationButton({
-          clientId: googleSignInClientId,
-        }).then((credentials) => {
-          // Handle registration for new users
-          // Save credentials object so that registerUserPromise can use it using getGaaUser.
+        // Don't render the regwall until the window has loaded.
+        self.addEventListener('load', () => {
+          GaaMeteringRegwall.showWithNativeRegistrationButton({
+            clientId: googleSignInClientId,
+          }).then((credentials) => {
+            // Handle registration for new users
+            // Save credentials object so that registerUserPromise can use it using getGaaUser.
 
-          GaaMetering.setGaaUser(credentials);
-          //const fulfilledRegisterUserPromise = registerUserPromise();
-          registerUserPromise().then((registerUserUserState) => {
-            debugLog(registerUserUserState);
-            userState.id = registerUserUserState.id;
-            userState.registrationTimestamp =
-              registerUserUserState.registrationTimestamp;
-            userState.subscriptionTimestamp =
-              registerUserUserState.subscriptionTimestamp;
-            if ('granted' in registerUserUserState) {
-              userState.granted = registerUserUserState.granted;
-            }
-            if ('grantReason' in registerUserUserState) {
-              userState.grantReason = registerUserUserState.grantReason;
-            }
+            GaaMetering.setGaaUser(credentials);
+            //const fulfilledRegisterUserPromise = registerUserPromise();
+            registerUserPromise.then((registerUserUserState) => {
+              debugLog(registerUserUserState);
+              userState.id = registerUserUserState.id;
+              userState.registrationTimestamp =
+                registerUserUserState.registrationTimestamp;
+              userState.subscriptionTimestamp =
+                registerUserUserState.subscriptionTimestamp;
+              if ('granted' in registerUserUserState) {
+                userState.granted = registerUserUserState.granted;
+              }
+              if ('grantReason' in registerUserUserState) {
+                userState.grantReason = registerUserUserState.grantReason;
+              }
 
-            ifGranted();
-            //checkShowcaseEntitlement(userState);
+              ifGranted();
+              //checkShowcaseEntitlement(userState);
+            });
           });
         });
       }
@@ -1640,21 +1658,10 @@ export class GaaMetering {
     return true;
   }
 
-  static isValidHttpUrl(string) {
-    let url;
-
-    try {
-      url = new URL(string);
-    } catch (_) {
-      return false;
-    }
-
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  }
-
-  static isGaa(publisherReferrers) {
+  static isGaa(publisherReferrers = []) {
     // Validate GAA params.
-    if (!queryStringHasFreshGaaParams(self.location.search, true)) {
+    const queryString = GaaUtils.getQueryString();
+    if (!queryStringHasFreshGaaParams(queryString, true)) {
       return false;
     }
 
@@ -1670,7 +1677,7 @@ export class GaaMetering {
       // Real publications should bail if this referrer check fails.
       // This script is only logging a warning for metering demo purposes.
       debugLog(
-        `SwG Entitlements: This page's referrer ("${referrer.origin}") can't grant Google Article Access. Real publications should bail if this referrer check fails.`
+        `This page's referrer ("${referrer.origin}") can't grant Google Article Access.`
       );
 
       return false;
