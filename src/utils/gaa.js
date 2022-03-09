@@ -1679,18 +1679,6 @@ export class GaaMetering {
     return true;
   }
 
-  static getQueryParams() {
-    const queryParams = {};
-    location.search
-      .substring(1)
-      .split('&')
-      .forEach((pair) => {
-        const parts = pair.split('=');
-        queryParams[parts[0]] = parts[1];
-      });
-    return queryParams;
-  }
-
   static getAnchorFromUrl(url) {
     const a = self.document.createElement('a');
     a.href = url;
