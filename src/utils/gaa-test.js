@@ -83,7 +83,7 @@ const ARTICLE_MICRODATA_METADATA = `
   <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
     <meta itemprop="name" content="${PUBLISHER_NAME}"/>
   </span>
-  <meta itemprop="isAccessibleForFree" content="false"/>
+  <meta itemprop="isAccessibleForFree" content="False"/>
   <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
     <meta itemprop="productID" content="${PRODUCT_ID}"/>
   </div>
@@ -1549,6 +1549,46 @@ describes.realWin('GaaMetering', {}, () => {
       expect(meteringError).throws(
         'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
       );
+    });
+  });
+
+  describe('isArticleFreeFromPageConfig_', () => {
+    it('gets isAccessibleForFree from object page config', () => {
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.equal('False');
+    });
+
+    it('gets isAccessibleForFree from array page config', () => {
+      // Remove JSON-LD
+      self.document.querySelectorAll('script[type="application/ld+json"]').
+        forEach(e => e.remove());
+
+      self.document.head.innerHTML = `
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA}]
+        </script>
+      `;
+
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.equal('False');
+    });
+
+    it('gets isAccessibleForFree from microdata', () => {
+      // Remove JSON-LD
+      self.document.querySelectorAll('script[type="application/ld+json"]').
+        forEach(e => e.remove());
+
+      // Add Microdata.
+      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.equal('False');
+    });
+
+    it('if article metadata lacks a isAccessibleForFree value', () => {
+      // Remove JSON-LD
+      self.document.querySelectorAll('script[type="application/ld+json"]').
+        forEach(e => e.remove());
+      // Remove microdata
+      microdata.innerHTML = '';
+
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.equal('False');
     });
   });
 

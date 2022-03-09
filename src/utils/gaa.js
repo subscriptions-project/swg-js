@@ -1775,7 +1775,7 @@ export class GaaMetering {
     if (microdataPageConfig) {
       return microdataPageConfig;
     }
-    return false;
+    return 'False';
   }
 
   /**
@@ -1814,7 +1814,7 @@ export class GaaMetering {
    */
   static isArticleFreeFromMicrodataPageConfig_() {
     const accessibleForFreeElements = self.document.querySelectorAll(
-      '[itemscope][itemtype][itemprop="isAccessibleForFree"]'
+      '[itemscope][itemtype] [itemprop="isAccessibleForFree"]'
     );
 
     for (let i = 0; i < accessibleForFreeElements.length; i++) {
