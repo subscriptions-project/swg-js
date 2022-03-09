@@ -1775,6 +1775,7 @@ export class GaaMetering {
     if (microdataPageConfig) {
       return microdataPageConfig;
     }
+    return false;
   }
 
   /**
