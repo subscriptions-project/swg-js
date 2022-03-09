@@ -1435,6 +1435,28 @@ describes.realWin('GaaMetering', {}, () => {
     });
   });
 
+  describe('isValidHttpUrl', () => {
+    it('returns true for a valid url', () => {
+      let url = 'https://www.google.com/1234/5678/article.html';
+      expect(GaaMetering.isValidHttpUrl(url)).to.be.true;
+    });
+
+    it('returns false for a invalid url', () => {
+      let url = 'google/1234/5678/article.html';
+      expect(GaaMetering.isValidHttpUrl(url)).to.be.false;
+    });
+
+    it('returns false for an empty string', () => {
+      let url = '';
+      expect(GaaMetering.isValidHttpUrl(url)).to.be.false;
+    });
+
+    it('returns false for a number', () => {
+      let url = 12345;
+      expect(GaaMetering.isValidHttpUrl(url)).to.be.false;
+    });
+  });
+
   describe('getAnchorFromUrl', () => {
     it('returns the expected anchor from url', () => {
       let url = 'https://www.google.com/1234/5678/article.html';
