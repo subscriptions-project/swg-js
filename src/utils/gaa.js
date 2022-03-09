@@ -1710,12 +1710,12 @@ export class GaaMetering {
     }
 
     throw new Error(
-      'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
+      'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
     );
   }
 
   /**
-   * Gets publisher name from JSON-LD page config.
+   * Gets publisher ID from JSON-LD page config.
    * @private
    * @nocollapse
    * @return {string|undefined}
@@ -1745,7 +1745,7 @@ export class GaaMetering {
   }
 
   /**
-   * Gets publisher name from Microdata page config.
+   * Gets product ID from Microdata page config.
    * @private
    * @nocollapse
    * @return {string|undefined}

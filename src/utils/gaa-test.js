@@ -42,6 +42,7 @@ import {JwtHelper} from './jwt';
 import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
+const PRODUCT_ID =  'scenic-2017.appspot.com:news';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
 const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
 
@@ -72,16 +73,20 @@ const ARTICLE_LD_JSON_METADATA = `
   "isPartOf": {
     "@type": ["CreativeWork", "Product"],
     "name" : "Scenic News",
-    "productID": "scenic-2017.appspot.com:news"
+    "productID": "${PRODUCT_ID}"
   }
 }`;
 
 /** Article metadata in microdata form. */
 const ARTICLE_MICRODATA_METADATA = `
-<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other">
+<div itemscope itemtype="http://schema.org/NewsArticle">
   <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
     <meta itemprop="name" content="${PUBLISHER_NAME}"/>
   </span>
+  <meta itemprop="isAccessibleForFree" content="false"/>
+  <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+    <meta itemprop="productID" content="${PRODUCT_ID}"/>
+  </div>
 </div>`;
 
 describes.realWin('queryStringHasFreshGaaParams', {}, () => {
@@ -1287,6 +1292,9 @@ describes.realWin('gaaNotifySignIn', {}, () => {
 });
 
 describes.realWin('GaaMetering', {}, () => {
+  let microdata;
+  let script;
+
   beforeEach(() => {
     // Mock clock.
     // clock = sandbox.useFakeTimers();
@@ -1297,9 +1305,21 @@ describes.realWin('GaaMetering', {}, () => {
 
     // Mock console.warn method.
     sandbox.stub(self.console, 'log');
+
+    // Add JSON-LD with a publisher name.
+    script = self.document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = ARTICLE_LD_JSON_METADATA;
+    self.document.head.appendChild(script);
+
+    // Add container for Microdata.
+    microdata = self.document.createElement('div');
+    self.document.head.appendChild(microdata);
   });
 
   afterEach(() => {
+    script.remove();
+    microdata.remove();
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogleSignInButton.show.
@@ -1484,6 +1504,51 @@ describes.realWin('GaaMetering', {}, () => {
       let anchor = GaaMetering.getAnchorFromUrl(url);
       expect(anchor.protocol).to.not.equal('https:');
       expect(anchor.hostname).to.not.equal('www.google.com');
+    });
+  });
+
+  describe('getProductIDFromPageConfig_', () => {
+    it('gets the publisher ID from object page config', () => {
+      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(
+        PRODUCT_ID
+      );
+    });
+
+    it('gets the publisher ID from array page config', () => {
+      self.document.head.innerHTML = `
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA}]
+        </script>
+      `;
+
+      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(
+        PRODUCT_ID
+      );
+    });
+
+    it('gets publisher ID from microdata', () => {
+      // Remove JSON-LD
+      self.document.querySelectorAll('script[type="application/ld+json"]').
+        forEach(e => e.remove());
+
+      // Add Microdata.
+      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
+      expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(
+        PRODUCT_ID
+      );
+    });
+
+    it('throws if article metadata lacks a publisher id', () => {
+      // Remove JSON-LD
+      self.document.querySelectorAll('script[type="application/ld+json"]').
+        forEach(e => e.remove());
+      // Remove microdata
+      microdata.innerHTML = '';
+
+      let meteringError = () => GaaMetering.getProductIDFromPageConfig_();
+      expect(meteringError).throws(
+        'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
+      );
     });
   });
 
