@@ -1435,6 +1435,36 @@ describes.realWin('GaaMetering', {}, () => {
     });
   });
 
+  describe('getAnchorFromUrl', () => {
+    it('returns the expected anchor from url', () => {
+      let url = 'https://www.google.com/1234/5678/article.html';
+      let anchor = GaaMetering.getAnchorFromUrl(url);
+      expect(anchor.protocol).to.equal('https:');
+      expect(anchor.hostname).to.equal('www.google.com');
+    });
+
+    it('succeeds for an empty url', () => {
+      let url = '';
+      let anchor = GaaMetering.getAnchorFromUrl(url);
+      expect(anchor.protocol).to.not.equal('https:');
+      expect(anchor.hostname).to.not.equal('www.google.com');
+    });
+
+    it('succeeds for any string', () => {
+      let url = 'abc12345';
+      let anchor = GaaMetering.getAnchorFromUrl(url);
+      expect(anchor.protocol).to.not.equal('https:');
+      expect(anchor.hostname).to.not.equal('www.google.com');
+    });
+
+    it('succeeds if it is not a string', () => {
+      let url = 12345;
+      let anchor = GaaMetering.getAnchorFromUrl(url);
+      expect(anchor.protocol).to.not.equal('https:');
+      expect(anchor.hostname).to.not.equal('www.google.com');
+    });
+  });
+
   describe('newUserStateToUserState', () => {
     it('succeeds for valid new userState', () => {
       location.hash = `#swg.debug=1`;
