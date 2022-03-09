@@ -611,17 +611,12 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Click button.
       self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
 
-      // Mock JWT decoding function.
-      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((credential) => {
-        return credential;
-      });
-
       // Simulate the click resolving
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
       expect(await gaaUserPromise).to.deep.equal(
-        SIGN_IN_WITH_GOOGLE_JWT.credential
+        SIGN_IN_WITH_GOOGLE_JWT
       );
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
@@ -2095,18 +2090,18 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('setGaaUser', () => {
-    it('GaaMetering.credentials equal to input', () => {
-      GaaMetering.setGaaUser('setting credentials test');
+    it('GaaMetering.gaaUser equal to input', () => {
+      GaaMetering.setGaaUser('setting gaaUser test');
 
-      expect(GaaMetering.credentials).to.equal('setting credentials test');
+      expect(GaaMetering.gaaUser).to.equal('setting gaaUser test');
     });
   });
 
   describe('getGaaUser', () => {
-    it('GaaMetering.getGaaUser returning GaaMetering.credentials', () => {
-      GaaMetering.credentials = 'test credentials';
+    it('GaaMetering.getGaaUser returning GaaMetering.gaaUser', () => {
+      GaaMetering.gaaUser = 'test gaaUser';
 
-      expect(GaaMetering.getGaaUser()).to.equal('test credentials');
+      expect(GaaMetering.getGaaUser()).to.equal('test gaaUser');
     });
   });
 

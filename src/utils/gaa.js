@@ -512,11 +512,7 @@ export class GaaMeteringRegwall {
     return GaaMeteringRegwall.createNativeRegistrationButton({clientId})
       .then((jwt) => {
         GaaMeteringRegwall.remove();
-        const credentials = /** @type {!GoogleIdentityV1} */ (
-          new JwtHelper().decode(jwt.credential)
-        );
-
-        return credentials;
+        return jwt;
       })
       .catch((err) => {
         // Close the Regwall, since the flow failed.
@@ -1356,14 +1352,14 @@ export class GaaUtils {
 }
 
 export class GaaMetering {
-  credentials;
+  gaaUser;
 
-  static setGaaUser(credentials) {
-    GaaMetering.credentials = credentials;
+  static setGaaUser(jwt) {
+    GaaMetering.gaaUser = jwt;
   }
 
   static getGaaUser() {
-    return GaaMetering.credentials;
+    return GaaMetering.gaaUser;
   }
 
   static init({params}) {
@@ -1496,14 +1492,12 @@ export class GaaMetering {
         self.addEventListener('load', () => {
           GaaMeteringRegwall.showWithNativeRegistrationButton({
             clientId: googleSignInClientId,
-          }).then((credentials) => {
+          }).then((jwt) => {
             // Handle registration for new users
             // Save credentials object so that registerUserPromise can use it using getGaaUser.
-
-            GaaMetering.setGaaUser(credentials);
+            GaaMetering.setGaaUser(jwt);
             //const fulfilledRegisterUserPromise = registerUserPromise();
             registerUserPromise.then((registerUserUserState) => {
-              debugLog(registerUserUserState);
               userState.id = registerUserUserState.id;
               userState.registrationTimestamp =
                 registerUserUserState.registrationTimestamp;
@@ -1517,7 +1511,6 @@ export class GaaMetering {
               }
 
               ifGranted();
-              //checkShowcaseEntitlement(userState);
             });
           });
         });
