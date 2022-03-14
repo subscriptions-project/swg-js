@@ -79,6 +79,36 @@ const ARTICLE_LD_JSON_METADATA = `
   }
 }`;
 
+const ARTICLE_LD_JSON_METADATA_TRUE = `
+{
+  "@context": "http://schema.org",
+  "@type": "NewsArticle",
+  "headline": "16 Top Spots for Hiking",
+  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
+  "datePublished": "2025-02-05T08:00:00+08:00",
+  "dateModified": "2025-02-05T09:20:00+08:00",
+  "author": {
+    "@type": "Person",
+    "name": "John Doe"
+  },
+  "publisher": {
+      "name": "${PUBLISHER_NAME}",
+      "@type": "Organization",
+      "@id": "scenic-2017.appspot.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
+      }
+  },
+  "description": "A most wonderful article",
+  "isAccessibleForFree": "True",
+  "isPartOf": {
+    "@type": ["CreativeWork", "Product"],
+    "name" : "Scenic News",
+    "productID": "${PRODUCT_ID}"
+  }
+}`;
+
 /** Article metadata in microdata form. */
 const ARTICLE_MICRODATA_METADATA = `
 <div itemscope itemtype="http://schema.org/NewsArticle">
@@ -615,9 +645,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
-      expect(await gaaUserPromise).to.deep.equal(
-        SIGN_IN_WITH_GOOGLE_JWT
-      );
+      expect(await gaaUserPromise).to.deep.equal(SIGN_IN_WITH_GOOGLE_JWT);
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
 
@@ -1642,6 +1670,8 @@ describes.realWin('gaaNotifySignIn', {}, () => {
 describes.realWin('GaaMetering', {}, () => {
   let microdata;
   let script;
+  let logEvent;
+  let subscriptionsMock;
 
   beforeEach(() => {
     // Mock clock.
@@ -1669,6 +1699,21 @@ describes.realWin('GaaMetering', {}, () => {
       writable: true,
       value: self.document.referrer,
     });
+
+    // Mock SwG API.
+    logEvent = sandbox.fake();
+    subscriptionsMock = {
+      triggerLoginRequest: sandbox.fake(),
+      init: sandbox.fake(),
+      setOnLoginRequest: sandbox.fake(),
+      setOnNativeSubscribeRequest: sandbox.fake(),
+      setOnEntitlementsResponse: sandbox.fake(),
+      consumeShowcaseEntitlementJwt: sandbox.fake(),
+      getEventManager: () => Promise.resolve({logEvent}),
+    };
+    self.SWG = {
+      push: sandbox.fake((callback) => void callback(subscriptionsMock)),
+    };
   });
 
   afterEach(() => {
@@ -1682,21 +1727,6 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     self.console.log.restore();
-  });
-
-  describe('init', () => {
-    it('fails for invalid params', () => {
-      expect(GaaMetering.init({})).to.be.false;
-    });
-
-    it('fails with a warning in debug mode for invalid params', () => {
-      location.hash = `#swg.debug=1`;
-      expect(GaaMetering.init({})).to.be.false;
-      expect(self.console.log).to.have.been.calledWithExactly(
-        '[Subscriptions]',
-        '[gaa.js:GaaMetering.init]: Invalid params.'
-      );
-    });
   });
 
   describe('validateParameters', () => {
@@ -1802,6 +1832,131 @@ describes.realWin('GaaMetering', {}, () => {
       expect(self.console.log).to.have.been.calledWithExactly(
         '[Subscriptions]',
         'Missing unlockArticle or it is not a function'
+      );
+    });
+
+    it('fails for handleSwgEntitlement not a function', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: 'test string',
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'handleSwGEntitlement is provided but it is not a function'
+      );
+    });
+
+    it('fails for missing required promise registerUserPromise', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Missing registerUserPromise or it is not a promise'
+      );
+    });
+
+    it('fails for invalid userState', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: 'test userState',
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState is not an object'
+      );
+    });
+
+    it('fails for missing publisherEntitlements or publisherEntitlementsPromise', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Either granted and grantReason have to be supplied or you have to provide pubisherEntitlementPromise'
+      );
+    });
+
+    it('fails for missing userState or publisherEntitlementsPromise', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateParameters({
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState or publisherEntitlementPromise needs to be provided'
       );
     });
   });
@@ -2143,6 +2298,277 @@ describes.realWin('GaaMetering', {}, () => {
       );
       self.document.referrer = 'https://www.examplenews.com';
       expect(GaaMetering.isGaa(['www.examplenews.com'])).to.be.true;
+    });
+  });
+
+  describe('init', () => {
+    it('fails with a warning in debug mode for invalid params', () => {
+      location.hash = `#swg.debug=1`;
+      expect(GaaMetering.init({})).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        '[gaa.js:GaaMetering.init]: Invalid params.'
+      );
+    });
+
+    it('GaaMetering.init fails the isGaa', () => {
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: true,
+            grantReason: 'SUBSCRIBER',
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Extended Access - Invalid gaa parameters or referrer.'
+      );
+    });
+
+    it('succeeds for a subscriber', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      expect(
+        GaaMetering.init({
+          params: {
+            googleSignInClientId: GOOGLE_API_CLIENT_ID,
+            allowedReferrers: [
+              'example.com',
+              'test.com',
+              'localhost',
+              'google.com',
+            ],
+            userState: {
+              id: 'user1235',
+              registrationTimestamp: 1602763054,
+              subscriptionTimestamp: 1602763094,
+              granted: true,
+              grantReason: 'SUBSCRIBER',
+            },
+            unlockArticle: function () {},
+            showPaywall: function () {},
+            handleLogin: function () {},
+            handleSwGEntitlement: function () {},
+            registerUserPromise: new Promise(() => {}),
+            handleLoginPromise: new Promise(() => {}),
+            publisherEntitlementPromise: new Promise(() => {}),
+          },
+        })
+      ).to.be.true;
+      /*expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'unlocked for subscriber'
+      );
+      */
+    });
+
+    it('succeeds for metering', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            granted: true,
+            grantReason: 'METERING',
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'unlocked for metering'
+      );
+    });
+
+    it('succeeds for free', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            granted: true,
+            grantReason: 'FREE',
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'unlocked for free'
+      );
+    });
+
+    it('succeeds for free from markup', () => {
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_TRUE}]
+      </script>
+      `;
+
+      const params = {
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+        },
+      };
+
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Article free from markup.'
+      );
+    });
+
+    it('has showcaseEntitlements', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+          },
+          showcaseEntitlement: 'test showcaseEntitlement',
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'test showcaseEntitlement'
+      );
+    });
+
+    it('has publisherEntitlements', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'resolving publisherEntitlement'
+      );
+    });
+  });
+
+  describe('isUserRegistered', () => {
+    it('returns true for a registered user', () => {
+      GaaMetering.userState = {
+        id: 'user1235',
+        registrationTimestamp: 1602763054,
+        subscriptionTimestamp: 1602763094,
+      };
+
+      expect(GaaMetering.isUserRegistered()).to.be.true;
     });
   });
 });
