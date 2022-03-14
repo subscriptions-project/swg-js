@@ -79,7 +79,7 @@ const ARTICLE_LD_JSON_METADATA = `
   }
 }`;
 
-const ARTICLE_LD_JSON_METADATA_TRUE = `
+const ARTICLE_LD_JSON_METADATA_FREE_ARTICLE = `
 {
   "@context": "http://schema.org",
   "@type": "NewsArticle",
@@ -101,7 +101,7 @@ const ARTICLE_LD_JSON_METADATA_TRUE = `
       }
   },
   "description": "A most wonderful article",
-  "isAccessibleForFree": "True",
+  "isAccessibleForFree": "true",
   "isPartOf": {
     "@type": ["CreativeWork", "Product"],
     "name" : "Scenic News",
@@ -2039,7 +2039,7 @@ describes.realWin('GaaMetering', {}, () => {
 
   describe('isArticleFreeFromPageConfig_', () => {
     it('gets isAccessibleForFree from object page config', () => {
-      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.equal('False');
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;;
     });
 
     it('gets isAccessibleForFree from array page config', () => {
@@ -2054,7 +2054,22 @@ describes.realWin('GaaMetering', {}, () => {
         </script>
       `;
 
-      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.equal('False');
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;
+    });
+
+    it('gets isAccessibleForFree (true) from array page config', () => {
+      // Remove JSON-LD
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+        </script>
+      `;
+
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.true;
     });
 
     it('gets isAccessibleForFree from microdata', () => {
@@ -2065,7 +2080,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       // Add Microdata.
       microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
-      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.equal('False');
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;
     });
 
     it('if article metadata lacks a isAccessibleForFree value', () => {
@@ -2076,7 +2091,7 @@ describes.realWin('GaaMetering', {}, () => {
       // Remove microdata
       microdata.innerHTML = '';
 
-      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.equal('False');
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;;
     });
   });
 
@@ -2461,7 +2476,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_TRUE}]
+        [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
       </script>
       `;
 
@@ -2498,7 +2513,7 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.have.been.calledWithExactly(
+      expect(self.console.log).to.calledWithExactly(
         '[Subscriptions]',
         'Article free from markup.'
       );
@@ -2532,7 +2547,7 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.have.been.calledWithExactly(
+      expect(self.console.log).to.calledWithExactly(
         '[Subscriptions]',
         'test showcaseEntitlement'
       );
@@ -2565,7 +2580,7 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.have.been.calledWithExactly(
+      expect(self.console.log).to.calledWithExactly(
         '[Subscriptions]',
         'resolving publisherEntitlement'
       );

@@ -1398,8 +1398,7 @@ export class GaaMetering {
         !('grantReason' in params.userState)
       ) {
         if (
-          GaaMetering.isArticleFreeFromPageConfig_() === 'True' ||
-          GaaMetering.isArticleFreeFromPageConfig_() === true
+          GaaMetering.isArticleFreeFromPageConfig_()
         ) {
           userState.grantReason = 'FREE';
           userState.granted = true;
@@ -1772,13 +1771,13 @@ export class GaaMetering {
     if (microdataPageConfig) {
       return microdataPageConfig;
     }
-    return 'False';
+    return false;
   }
 
   /**
    * @private
    * @nocollapse
-   * @return {string|undefined}
+   * @return {boolean}
    */
   static isArticleFreeFromJsonLdPageConfig_() {
     const ldJsonElements = self.document.querySelectorAll(
@@ -1798,16 +1797,25 @@ export class GaaMetering {
         (entry) => entry?.isAccessibleForFree
       )?.isAccessibleForFree;
 
-      if (accessibleForFree) {
+      if (accessibleForFree == null || accessibleForFree === '') {
+        return false;
+      }
+      if (typeof accessibleForFree == 'boolean') {
         return accessibleForFree;
       }
+      if (typeof accessibleForFree == 'string') {
+        const lowercase = accessibleForFree.toLowerCase();
+        return lowercase == 'true';
+      }
     }
+
+    return false;
   }
 
   /**
    * @private
    * @nocollapse
-   * @return {string|undefined}
+   * @return {boolean}
    */
   static isArticleFreeFromMicrodataPageConfig_() {
     const accessibleForFreeElements = self.document.querySelectorAll(
@@ -1818,9 +1826,17 @@ export class GaaMetering {
       const accessibleForFreeElement = accessibleForFreeElements[i];
       const accessibleForFree = accessibleForFreeElement.content;
       if (accessibleForFree) {
-        return accessibleForFree;
+        if (typeof accessibleForFree == 'boolean') {
+          return accessibleForFree;
+        }
+        else { // string 
+          const lowercase = accessibleForFree.toLowerCase();
+          return lowercase == 'true';
+        }
       }
     }
+
+    return false;
   }
 
   static isPromise(p) {
