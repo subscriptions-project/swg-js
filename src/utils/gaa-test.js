@@ -1672,6 +1672,7 @@ describes.realWin('GaaMetering', {}, () => {
   let script;
   let logEvent;
   let subscriptionsMock;
+  let currentReferrer;
 
   beforeEach(() => {
     // Mock clock.
@@ -1694,11 +1695,14 @@ describes.realWin('GaaMetering', {}, () => {
     microdata = self.document.createElement('div');
     self.document.head.appendChild(microdata);
 
-    // Allow document.referrer to be overriden
+    // Allow document.referrer to be overriden and save the current value
     Object.defineProperty(self.document, 'referrer', {
       writable: true,
+      configurable: true,
       value: self.document.referrer,
     });
+
+    currentReferrer = self.document.referrer;
 
     // Mock SwG API.
     logEvent = sandbox.fake();
@@ -1726,6 +1730,7 @@ describes.realWin('GaaMetering', {}, () => {
       e.remove();
     });
 
+    self.document.currentReferrer = currentReferrer;
     self.console.log.restore();
   });
 
@@ -2343,6 +2348,7 @@ describes.realWin('GaaMetering', {}, () => {
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
+
       expect(
         GaaMetering.init({
           params: {
@@ -2382,6 +2388,8 @@ describes.realWin('GaaMetering', {}, () => {
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
+      location.hash = `#swg.debug=1`;
+
       GaaMetering.init({
         params: {
           googleSignInClientId: GOOGLE_API_CLIENT_ID,
@@ -2401,7 +2409,8 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.have.been.calledWithExactly(
+
+      expect(self.console.log).to.calledWithExactly(
         '[Subscriptions]',
         'unlocked for metering'
       );
@@ -2412,6 +2421,8 @@ describes.realWin('GaaMetering', {}, () => {
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
+      location.hash = `#swg.debug=1`;
+
       GaaMetering.init({
         params: {
           googleSignInClientId: GOOGLE_API_CLIENT_ID,
@@ -2436,7 +2447,8 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.have.been.calledWithExactly(
+
+      expect(self.console.log).to.calledWithExactly(
         '[Subscriptions]',
         'unlocked for free'
       );

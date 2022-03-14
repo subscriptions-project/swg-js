@@ -1539,7 +1539,7 @@ export class GaaMetering {
               entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
               isUserRegistered: GaaMetering.isUserRegistered(),
             });
-            debugLog('unlocked for meter');
+            debugLog('unlocked for metering');
           }
         }
       } else {
@@ -1846,6 +1846,9 @@ export class GaaMetering {
   }
 
   static validateUserState(newUserState) {
+    if(!newUserState)
+      return false;
+
     if (
       !('granted' in newUserState && typeof newUserState.granted === 'boolean')
     ) {
