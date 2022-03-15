@@ -1393,15 +1393,9 @@ export class GaaMetering {
     callSwg((subscriptions) => {
       subscriptions.init(productId);
 
-      if (
-        ('granted' in userState) &&
-        ('grantReason' in userState)
-      ) {
+      if ('granted' in userState && 'grantReason' in userState) {
         unlockArticleIfGranted();
-      }
-      else if (
-        GaaMetering.isArticleFreeFromPageConfig_()
-      ) {
+      } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
         userState.grantReason = 'FREE';
         userState.granted = true;
         debugLog('Article free from markup.');
@@ -1412,12 +1406,11 @@ export class GaaMetering {
       } else {
         publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
           debugLog('resolving publisherEntitlement');
-          if(GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
+          if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
             userState.granted = fetchedPublisherEntitlements.granted;
             userState.grantReason = fetchedPublisherEntitlements.grantReason;
             unlockArticleIfGranted();
-          }
-          else {
+          } else {
             debugLog("Publisher entitlement isn't valid");
           }
         });
@@ -1569,9 +1562,7 @@ export class GaaMetering {
   }
 
   static isUserRegistered(userState) {
-    return (
-      userState.id !== undefined && userState.id != ''
-    );
+    return userState.id !== undefined && userState.id != '';
   }
 
   static validateParameters(params) {
@@ -1780,6 +1771,7 @@ export class GaaMetering {
     if (microdataPageConfig) {
       return microdataPageConfig;
     }
+
     return false;
   }
 
@@ -1834,14 +1826,10 @@ export class GaaMetering {
     for (let i = 0; i < accessibleForFreeElements.length; i++) {
       const accessibleForFreeElement = accessibleForFreeElements[i];
       const accessibleForFree = accessibleForFreeElement.content;
+      debugLog(typeof accessibleForFree);
       if (accessibleForFree) {
-        if (typeof accessibleForFree == 'boolean') {
-          return accessibleForFree;
-        }
-        else { // string 
-          const lowercase = accessibleForFree.toLowerCase();
-          return lowercase == 'true';
-        }
+        const lowercase = accessibleForFree.toLowerCase();
+        return lowercase == 'true';
       }
     }
 
@@ -1871,8 +1859,9 @@ export class GaaMetering {
   }
 
   static validateUserState(newUserState) {
-    if(!newUserState)
+    if (!newUserState) {
       return false;
+    }
 
     if (
       !('granted' in newUserState && typeof newUserState.granted === 'boolean')
@@ -1886,7 +1875,7 @@ export class GaaMetering {
 
     if (
       newUserState.granted === true &&
-      !['METERING', 'SUBSCRIBER','FREE'].includes(newUserState.grantReason)
+      !['METERING', 'SUBSCRIBER', 'FREE'].includes(newUserState.grantReason)
     ) {
       debugLog(
         'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
@@ -1928,8 +1917,8 @@ export class GaaMetering {
         }
 
         if (
-          (newUserState.grantReason ===
-            'SUBSCRIBER' && !('subscriptionTimestamp' in newUserState))
+          newUserState.grantReason === 'SUBSCRIBER' &&
+          !('subscriptionTimestamp' in newUserState)
         ) {
           debugLog(
             'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'

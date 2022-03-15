@@ -18,6 +18,15 @@
     <meta name="msapplication-TileColor" content="#37dc8c">
     <meta name="google-signin-client_id" content="520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com">
 
+    <div itemscope itemtype="http://schema.org/NewsArticle">
+      <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
+        <meta itemprop="name" content="${PUBLISHER_NAME}"/>
+      </span>
+      <meta itemprop="isAccessibleForFree" content=true />
+      <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+        <meta itemprop="productID" content="${PRODUCT_ID}"/>
+      </div>
+    </div>
 
     <style>
       .paywalled-section {
@@ -69,7 +78,7 @@
          }
       },
       "description": "A most wonderful article",
-      "isAccessibleForFree": "true",
+      "isAccessibleForFree": "false",
       "isPartOf": {
         "@type": ["CreativeWork", "Product"],
         "name" : "Scenic News",
@@ -201,6 +210,7 @@
         MeteringDemo.setupControls();
         MeteringDemo.setupLanguage();
 
+        /*
         GaaMetering.init({
           params: {
             googleSignInClientId: googleApiClientId,
@@ -215,6 +225,7 @@
             publisherEntitlementPromise: publisherEntitlementPromise, // Optional
           }
         });
+        */
       });
       
     </script>

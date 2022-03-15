@@ -40,6 +40,7 @@ import {
 import {I18N_STRINGS} from '../i18n/strings';
 import {JwtHelper} from './jwt';
 import {tick} from '../../test/tick';
+import {resolve} from 'bluebird';
 
 const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
@@ -116,6 +117,17 @@ const ARTICLE_MICRODATA_METADATA = `
     <meta itemprop="name" content="${PUBLISHER_NAME}"/>
   </span>
   <meta itemprop="isAccessibleForFree" content="False"/>
+  <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+    <meta itemprop="productID" content="${PRODUCT_ID}"/>
+  </div>
+</div>`;
+
+const ARTICLE_MICRODATA_METADATA_TRUE = `
+<div itemscope itemtype="http://schema.org/NewsArticle">
+  <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
+    <meta itemprop="name" content="${PUBLISHER_NAME}"/>
+  </span>
+  <meta itemprop="isAccessibleForFree" content=true />
   <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
     <meta itemprop="productID" content="${PRODUCT_ID}"/>
   </div>
@@ -1714,7 +1726,6 @@ describes.realWin('GaaMetering', {}, () => {
       setOnEntitlementsResponse: sandbox.fake(),
       consumeShowcaseEntitlementJwt: sandbox.fake(),
       setShowcaseEntitlement: sandbox.fake(),
-      consumeShowcaseEntitlementJwt: sandbox.fake(),
       getEventManager: () => Promise.resolve({logEvent}),
     };
     self.SWG = {
@@ -2041,10 +2052,12 @@ describes.realWin('GaaMetering', {}, () => {
 
   describe('isArticleFreeFromPageConfig_', () => {
     it('gets isAccessibleForFree from object page config', () => {
-      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;;
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;
     });
 
     it('gets isAccessibleForFree from array page config', () => {
+      location.hash = `#swg.debug=1`;
+
       // Remove JSON-LD
       self.document
         .querySelectorAll('script[type="application/ld+json"]')
@@ -2074,7 +2087,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.true;
     });
 
-    it('gets isAccessibleForFree from microdata', () => {
+    it('gets isAccessibleForFree from microdata false', () => {
       // Remove JSON-LD
       self.document
         .querySelectorAll('script[type="application/ld+json"]')
@@ -2085,6 +2098,17 @@ describes.realWin('GaaMetering', {}, () => {
       expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;
     });
 
+    it('gets isAccessibleForFree from microdata', () => {
+      // Remove JSON-LD
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      // Add Microdata.
+      microdata.innerHTML = ARTICLE_MICRODATA_METADATA_TRUE;
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.true;
+    });
+
     it('if article metadata lacks a isAccessibleForFree value', () => {
       // Remove JSON-LD
       self.document
@@ -2093,7 +2117,7 @@ describes.realWin('GaaMetering', {}, () => {
       // Remove microdata
       microdata.innerHTML = '';
 
-      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;;
+      expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;
     });
   });
 
@@ -2118,6 +2142,10 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('validateUserState', () => {
+    it('fails for missing userState', () => {
+      expect(GaaMetering.validateUserState()).to.be.false;
+    });
+
     it('succeeds for valid userState', () => {
       location.hash = `#swg.debug=1`;
 
@@ -2393,7 +2421,7 @@ describes.realWin('GaaMetering', {}, () => {
           },
         })
       );
-      
+
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'unlocked for subscriber'
@@ -2401,7 +2429,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
-        isUserRegistered: true
+        isUserRegistered: true,
       });
     });
 
@@ -2439,7 +2467,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
-        isUserRegistered: true
+        isUserRegistered: true,
       });
     });
 
@@ -2482,7 +2510,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
-        isUserRegistered: true
+        isUserRegistered: true,
       });
     });
 
@@ -2496,13 +2524,6 @@ describes.realWin('GaaMetering', {}, () => {
         [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
       </script>
       `;
-
-      const params = {
-        userState: {
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-        },
-      };
 
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
@@ -2538,7 +2559,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
-        isUserRegistered: true
+        isUserRegistered: true,
       });
     });
 
@@ -2596,6 +2617,17 @@ describes.realWin('GaaMetering', {}, () => {
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
+      location.hash = `#swg.debug=1`;
+
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>
+      `;
 
       GaaMetering.init({
         params: {
@@ -2616,20 +2648,61 @@ describes.realWin('GaaMetering', {}, () => {
           handleSwGEntitlement: function () {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise((resolve) => {
+            const publisherEntitlement = {
+              granted: true,
+              grantReason: 'METERING',
+            };
+            resolve(publisherEntitlement);
+          }),
         },
       });
-      
+
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'resolving publisherEntitlement'
+      );
+    });
+
+    it('unlocked for metering but invalid userState', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            granted: true,
+            grantReason: 'METERING',
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'invalid userState object'
       );
     });
   });
 
   describe('isUserRegistered', () => {
     it('returns true for a registered user', () => {
-      let userState = {
+      const userState = {
         id: 'user1235',
         registrationTimestamp: 1602763054,
         subscriptionTimestamp: 1602763094,
