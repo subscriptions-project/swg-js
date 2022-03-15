@@ -1555,7 +1555,10 @@ export class GaaMetering {
     function checkShowcaseEntitlement(userState) {
       if (userState.registrationTimestamp) {
         // Send userState to Google
-        subscriptions.getEntitlements(userState);
+        callSwg((subscriptions) => {
+          debugLog('getting entitlements from Google');
+          subscriptions.getEntitlements(userState);
+        });
       } else {
         // If userState is undefined, it’s likely the user isn’t
         // logged in. Do not send an empty userState to Google in
