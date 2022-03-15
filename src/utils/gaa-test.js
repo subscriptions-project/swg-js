@@ -1713,6 +1713,8 @@ describes.realWin('GaaMetering', {}, () => {
       setOnNativeSubscribeRequest: sandbox.fake(),
       setOnEntitlementsResponse: sandbox.fake(),
       consumeShowcaseEntitlementJwt: sandbox.fake(),
+      setShowcaseEntitlement: sandbox.fake(),
+      consumeShowcaseEntitlementJwt: sandbox.fake(),
       getEventManager: () => Promise.resolve({logEvent}),
     };
     self.SWG = {
@@ -2352,7 +2354,7 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.have.been.calledWithExactly(
+      expect(self.console.log).to.have.been.calledWith(
         '[Subscriptions]',
         'Extended Access - Invalid gaa parameters or referrer.'
       );
@@ -2390,12 +2392,17 @@ describes.realWin('GaaMetering', {}, () => {
             publisherEntitlementPromise: new Promise(() => {}),
           },
         })
-      ).to.be.true;
-      /*expect(self.console.log).to.have.been.calledWithExactly(
+      );
+      
+      expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'unlocked for subscriber'
       );
-      */
+
+      expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
+        entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+        isUserRegistered: true
+      });
     });
 
     it('succeeds for metering', () => {
@@ -2425,10 +2432,15 @@ describes.realWin('GaaMetering', {}, () => {
         },
       });
 
-      expect(self.console.log).to.calledWithExactly(
+      expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'unlocked for metering'
       );
+
+      expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
+        entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+        isUserRegistered: true
+      });
     });
 
     it('succeeds for free', () => {
@@ -2463,10 +2475,15 @@ describes.realWin('GaaMetering', {}, () => {
         },
       });
 
-      expect(self.console.log).to.calledWithExactly(
+      expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'unlocked for free'
       );
+
+      expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
+        entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+        isUserRegistered: true
+      });
     });
 
     it('succeeds for free from markup', () => {
@@ -2513,13 +2530,29 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.calledWithExactly(
+
+      expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'Article free from markup.'
       );
+
+      expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
+        entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+        isUserRegistered: true
+      });
     });
 
     it('has showcaseEntitlements', () => {
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>
+      `;
+
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
@@ -2547,8 +2580,13 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.calledWithExactly(
+
+      expect(self.console.log).to.calledWith(
         '[Subscriptions]',
+        'test showcaseEntitlement'
+      );
+
+      expect(subscriptionsMock.consumeShowcaseEntitlementJwt).to.calledWith(
         'test showcaseEntitlement'
       );
     });
@@ -2558,6 +2596,7 @@ describes.realWin('GaaMetering', {}, () => {
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
+
       GaaMetering.init({
         params: {
           googleSignInClientId: GOOGLE_API_CLIENT_ID,
@@ -2580,7 +2619,8 @@ describes.realWin('GaaMetering', {}, () => {
           publisherEntitlementPromise: new Promise(() => {}),
         },
       });
-      expect(self.console.log).to.calledWithExactly(
+      
+      expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'resolving publisherEntitlement'
       );
@@ -2589,13 +2629,16 @@ describes.realWin('GaaMetering', {}, () => {
 
   describe('isUserRegistered', () => {
     it('returns true for a registered user', () => {
-      GaaMetering.userState = {
+      let userState = {
         id: 'user1235',
         registrationTimestamp: 1602763054,
         subscriptionTimestamp: 1602763094,
       };
+      expect(GaaMetering.isUserRegistered(userState)).to.be.true;
+    });
 
-      expect(GaaMetering.isUserRegistered()).to.be.true;
+    it('returns false for an anonymous user', () => {
+      expect(GaaMetering.isUserRegistered({})).to.be.false;
     });
   });
 });

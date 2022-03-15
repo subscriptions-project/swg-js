@@ -69,7 +69,7 @@
          }
       },
       "description": "A most wonderful article",
-      "isAccessibleForFree": "False",
+      "isAccessibleForFree": "true",
       "isPartOf": {
         "@type": ["CreativeWork", "Product"],
         "name" : "Scenic News",
@@ -116,7 +116,7 @@
           registrationTimestamp: 1602763054,
           subscriptionTimestamp: 1602763094,
           granted: true,
-          grantReason: 'METERING'
+          grantReason: 'SUBSCRIBER'
         };
       };
 
@@ -132,21 +132,21 @@
       // This is used when Extended Access is not granted to the user or if the user
       // clicks “Subscribe” on the Extended Access prompt.
       function showPaywall() {
-        console.log('show paywall');
+        console.log('Example: show paywall');
         document.documentElement.classList.remove('open-paywall');
       };
 
       // Callback that must unlock the current article which is called when Google is
       // granting Extended Access to the user.
       function unlockArticle() {
-        console.log('unlock article');
+        console.log('Example: unlock article');
         document.documentElement.classList.add('open-paywall');
       };
       
       // Only relevant for publishers doing Subscribe with Google. 
       // Callback that will be triggered if the user is a Subscribe with Google subscriber.
       function handleSwGEntitlement() {
-        console.log('handle swg entitlement');
+        console.log('Example: handle swg entitlement');
         unlockArticle();
       }
 
@@ -190,11 +190,11 @@
       // Optional - required only if your userState object doesn't contain the publisherEntitlement already
       publisherEntitlementPromise = new Promise ((resolve) => {
         // Example body of the promise returning a publisherEntitlement object
-        publlisherEntitlement = {
+        publisherEntitlement = {
           granted: true,
           grantReason: 'SUBSCRIBER',
         };
-        resolve(publlisherEntitlement);
+        resolve(publisherEntitlement);
       });
         
       (self.SWG = self.SWG || []).push(function (subscriptions) {

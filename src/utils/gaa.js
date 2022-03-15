@@ -1394,28 +1394,33 @@ export class GaaMetering {
       subscriptions.init(productId);
 
       if (
-        !('granted' in params.userState) ||
-        !('grantReason' in params.userState)
+        ('granted' in userState) &&
+        ('grantReason' in userState)
       ) {
-        if (
-          GaaMetering.isArticleFreeFromPageConfig_()
-        ) {
-          userState.grantReason = 'FREE';
-          userState.granted = true;
-          debugLog('Article free from markup.');
-          ifGranted();
-        } else if (showcaseEntitlement) {
-          debugLog(showcaseEntitlement);
-          subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
-        } else {
-          publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
-            debugLog('resolving publisherEntitlement');
+        unlockArticleIfGranted();
+      }
+      else if (
+        GaaMetering.isArticleFreeFromPageConfig_()
+      ) {
+        userState.grantReason = 'FREE';
+        userState.granted = true;
+        debugLog('Article free from markup.');
+        unlockArticleIfGranted();
+      } else if (showcaseEntitlement) {
+        debugLog(showcaseEntitlement);
+        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
+      } else {
+        publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
+          debugLog('resolving publisherEntitlement');
+          if(GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
             userState.granted = fetchedPublisherEntitlements.granted;
             userState.grantReason = fetchedPublisherEntitlements.grantReason;
-
-            ifGranted();
-          });
-        }
+            unlockArticleIfGranted();
+          }
+          else {
+            debugLog("Publisher entitlement isn't valid");
+          }
+        });
       }
 
       subscriptions.setOnLoginRequest(() => {
@@ -1460,7 +1465,7 @@ export class GaaMetering {
             // This is only relevant for publishers doing SwG
             handleSwGEntitlement();
           } else if (
-            !GaaMetering.isUserRegistered() &&
+            !GaaMetering.isUserRegistered(userState) &&
             GaaMetering.isGaa(allowedReferrers)
           ) {
             // This is an anonymous user so show the Google registration intervention
@@ -1469,7 +1474,7 @@ export class GaaMetering {
             // User does not any access from publisher or Google so show the standard paywall
             subscriptions.setShowcaseEntitlement({
               entitlement: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',
-              isUserRegistered: GaaMetering.isUserRegistered(),
+              isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             // Show the paywall
             showPaywall();
@@ -1501,55 +1506,56 @@ export class GaaMetering {
                 userState.grantReason = registerUserUserState.grantReason;
               }
 
-              ifGranted();
+              unlockArticleIfGranted();
             });
           });
         });
       }
     });
 
-    function ifGranted() {
-      if (!GaaMetering.validateUserState(GaaMetering.userState)) {
+    function unlockArticleIfGranted() {
+      if (!GaaMetering.validateUserState(userState)) {
         debugLog('invalid userState object');
-
         return false;
-      } else if (GaaMetering.userState.granted === true) {
-        if (GaaMetering.userState.granted) {
+      } else if (userState.granted === true) {
+        if (userState.granted) {
           // User has access from publisher so unlock article
-          GaaMetering.unlockArticle();
+          unlockArticle();
 
-          if (GaaMetering.userState.grantReason === 'SUBSCRIBER') {
-            // The user has access because they have a subscription
-            GaaMetering.subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
-              isUserRegistered: GaaMetering.isUserRegistered(),
-            });
+          callSwg((subscriptions) => {
+            if (userState.grantReason === 'SUBSCRIBER') {
+              // The user has access because they have a subscription
+              subscriptions.setShowcaseEntitlement({
+                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+                isUserRegistered: GaaMetering.isUserRegistered(userState),
+              });
+              debugLog('unlocked for subscriber');
+            } else if (userState.grantReason === 'FREE') {
+              subscriptions.setShowcaseEntitlement({
+                entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+                isUserRegistered: GaaMetering.isUserRegistered(userState),
+              });
+              debugLog('unlocked for free');
+            } else if (userState.grantReason === 'METERING') {
+              // The user has access from the publisher's meter
+              subscriptions.setShowcaseEntitlement({
+                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+                isUserRegistered: GaaMetering.isUserRegistered(userState),
+              });
+              debugLog('unlocked for metering');
+            }
             return true;
-            // debugLog('unlocked for subscriber');
-          } else if (GaaMetering.userState.grantReason === 'FREE') {
-            GaaMetering.subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
-              isUserRegistered: GaaMetering.isUserRegistered(),
-            });
-            debugLog('unlocked for free');
-          } else if (GaaMetering.userState.grantReason === 'METERING') {
-            // The user has access from the publisher's meter
-            GaaMetering.subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
-              isUserRegistered: GaaMetering.isUserRegistered(),
-            });
-            debugLog('unlocked for metering');
-          }
+          });
         }
       } else {
-        checkShowcaseEntitlement(GaaMetering.userState);
+        checkShowcaseEntitlement(userState);
       }
     }
 
     function checkShowcaseEntitlement(userState) {
       if (userState.registrationTimestamp) {
         // Send userState to Google
-        GaaMetering.subscriptions.getEntitlements(userState);
+        subscriptions.getEntitlements(userState);
       } else {
         // If userState is undefined, it’s likely the user isn’t
         // logged in. Do not send an empty userState to Google in
@@ -1559,9 +1565,9 @@ export class GaaMetering {
     }
   }
 
-  static isUserRegistered() {
+  static isUserRegistered(userState) {
     return (
-      GaaMetering.userState.id !== undefined && GaaMetering.userState.id != ''
+      userState.id !== undefined && userState.id != ''
     );
   }
 
@@ -1877,7 +1883,7 @@ export class GaaMetering {
 
     if (
       newUserState.granted === true &&
-      !['METERING', 'SUBSCRIBER'].includes(newUserState.grantReason)
+      !['METERING', 'SUBSCRIBER','FREE'].includes(newUserState.grantReason)
     ) {
       debugLog(
         'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
@@ -1919,7 +1925,7 @@ export class GaaMetering {
         }
 
         if (
-          (newUserState.grantReason =
+          (newUserState.grantReason ===
             'SUBSCRIBER' && !('subscriptionTimestamp' in newUserState))
         ) {
           debugLog(
