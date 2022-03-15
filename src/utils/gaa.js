@@ -1479,37 +1479,36 @@ export class GaaMetering {
           }
         });
       });
+    });
 
-      // Show the Google registration intervention.
-      function showGoogleRegwall() {
-        // Don't render the regwall until the window has loaded.
-        self.addEventListener('load', () => {
-          GaaMeteringRegwall.showWithNativeRegistrationButton({
-            clientId: googleSignInClientId,
-          }).then((jwt) => {
-            // Handle registration for new users
-            // Save credentials object so that registerUserPromise can use it using getGaaUser.
-            GaaMetering.setGaaUser(jwt);
-            //const fulfilledRegisterUserPromise = registerUserPromise();
-            registerUserPromise.then((registerUserUserState) => {
-              userState.id = registerUserUserState.id;
-              userState.registrationTimestamp =
-                registerUserUserState.registrationTimestamp;
-              userState.subscriptionTimestamp =
-                registerUserUserState.subscriptionTimestamp;
-              if ('granted' in registerUserUserState) {
-                userState.granted = registerUserUserState.granted;
-              }
-              if ('grantReason' in registerUserUserState) {
-                userState.grantReason = registerUserUserState.grantReason;
-              }
-
-              unlockArticleIfGranted();
-            });
+    // Show the Google registration intervention.
+    function showGoogleRegwall() {
+      // Don't render the regwall until the window has loaded.
+      self.addEventListener('load', () => {
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          clientId: googleSignInClientId,
+        }).then((jwt) => {
+          // Handle registration for new users
+          // Save credentials object so that registerUserPromise can use it using getGaaUser.
+          GaaMetering.setGaaUser(jwt);
+          //const fulfilledRegisterUserPromise = registerUserPromise();
+          registerUserPromise.then((registerUserUserState) => {
+            userState.id = registerUserUserState.id;
+            userState.registrationTimestamp =
+              registerUserUserState.registrationTimestamp;
+            userState.subscriptionTimestamp =
+              registerUserUserState.subscriptionTimestamp;
+            if ('granted' in registerUserUserState) {
+              userState.granted = registerUserUserState.granted;
+            }
+            if ('grantReason' in registerUserUserState) {
+              userState.grantReason = registerUserUserState.grantReason;
+            }
+            unlockArticleIfGranted();
           });
         });
-      }
-    });
+      });
+    }
 
     function unlockArticleIfGranted() {
       if (!GaaMetering.validateUserState(userState)) {
@@ -1563,7 +1562,7 @@ export class GaaMetering {
         // If userState is undefined, it’s likely the user isn’t
         // logged in. Do not send an empty userState to Google in
         // this case.
-        GaaMetering.showGoogleRegwall();
+        showGoogleRegwall();
       }
     }
   }
