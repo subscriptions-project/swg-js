@@ -1418,18 +1418,23 @@ export class GaaMetering {
 
       subscriptions.setOnLoginRequest(() => {
         handleLoginPromise().then((handleLoginUserState) => {
-          userState.id = handleLoginUserState.id;
-          userState.registrationTimestamp =
-            handleLoginUserState.registrationTimestamp;
-          userState.subscriptionTimestamp =
-            handleLoginUserState.subscriptionTimestamp;
-          if ('granted' in handleLoginUserState) {
-            userState.granted = handleLoginUserState.granted;
+          if (GaaMetering.validateUserState(handleLoginUserState)) {
+            userState.id = handleLoginUserState.id;
+            userState.registrationTimestamp =
+              handleLoginUserState.registrationTimestamp;
+            userState.subscriptionTimestamp =
+              handleLoginUserState.subscriptionTimestamp;
+            if ('granted' in handleLoginUserState) {
+              userState.granted = handleLoginUserState.granted;
+            }
+            if ('grantReason' in handleLoginUserState) {
+              userState.grantReason = handleLoginUserState.grantReason;
+            }
+            checkShowcaseEntitlement(userState);
           }
-          if ('grantReason' in handleLoginUserState) {
-            userState.grantReason = handleLoginUserState.grantReason;
+          else {
+            debugLog("Publisher entitlement isn't valid");
           }
-          checkShowcaseEntitlement(userState);
         });
       });
 
@@ -1550,7 +1555,9 @@ export class GaaMetering {
         // Send userState to Google
         callSwg((subscriptions) => {
           debugLog('getting entitlements from Google');
-          subscriptions.getEntitlements(userState);
+          subscriptions.getEntitlements(
+            GaaMetering.newUserStateToUserState(userState)
+          );
         });
       } else {
         // If userState is undefined, it’s likely the user isn’t
@@ -1853,8 +1860,6 @@ export class GaaMetering {
         },
       },
     };
-
-    debugLog('New userState successfully converted to userState.');
     return userState;
   }
 

@@ -2154,19 +2154,15 @@ describes.realWin('GaaMetering', {}, () => {
     it('succeeds for valid new userState', () => {
       location.hash = `#swg.debug=1`;
 
-      GaaMetering.newUserStateToUserState({
-        userState: {
+      let newUserState = GaaMetering.newUserStateToUserState({
           id: 'user1235',
           registrationTimestamp: 1602763054,
           subscriptionTimestamp: 1602763094,
           granted: false,
-        },
       });
 
-      expect(self.console.log).to.have.been.calledWithExactly(
-        '[Subscriptions]',
-        'New userState successfully converted to userState.'
-      );
+      expect(newUserState.metering.state.id).to.equal('user1235');
+      expect(newUserState.metering.state.standardAttributes.registered_user.timestamp).to.equal(1602763054);
     });
   });
 
