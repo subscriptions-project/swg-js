@@ -40,7 +40,6 @@ import {
 import {I18N_STRINGS} from '../i18n/strings';
 import {JwtHelper} from './jwt';
 import {tick} from '../../test/tick';
-import {resolve} from 'bluebird';
 
 const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
@@ -2542,6 +2541,44 @@ describes.realWin('GaaMetering', {}, () => {
         entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
         isUserRegistered: true,
       });
+    });
+
+    it('fails for invalid userState', () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      location.hash = `#swg.debug=1`;
+
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            granted: true,
+            grantReason: 'TEST REASON',
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'invalid userState object'
+      );
     });
 
     it('succeeds for free from markup', () => {
