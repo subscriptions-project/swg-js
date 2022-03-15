@@ -2679,12 +2679,13 @@ describes.realWin('GaaMetering', {}, () => {
       );
     });
 
-    it('has publisherEntitlements', () => {
+    it('has publisherEntitlements', async () => {
+      location.hash = `#swg.debug=1`;
+      self.document.referrer = 'https://www.google.com';
+
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
-      self.document.referrer = 'https://www.google.com';
-      location.hash = `#swg.debug=1`;
 
       self.document
         .querySelectorAll('script[type="application/ld+json"]')
@@ -2725,13 +2726,14 @@ describes.realWin('GaaMetering', {}, () => {
         },
       });
 
+      await tick();
+
       expect(self.console.log).to.calledWith(
-        '[Subscriptions]',
-        'resolving publisherEntitlement'
+        '[Subscriptions]', 'resolving publisherEntitlement'
       );
     });
 
-    it('has invalid publisherEntitlements', () => {
+    it('has invalid publisherEntitlements', async () => {
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
@@ -2777,9 +2779,16 @@ describes.realWin('GaaMetering', {}, () => {
         },
       });
 
+      await tick();
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]', 
+        'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
+      );
+
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
-        `Publisher entitlement isn't valid`
+        "Publisher entitlement isn't valid"
       );
     });
   });
