@@ -111,11 +111,11 @@
       // The userState object for the current user.
       function getUserState() {
         return {
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-          subscriptionTimestamp: 1602763094,
-          granted: true,
-          grantReason: 'SUBSCRIBER'
+          // id: 'user123456789',
+          // registrationTimestamp: 1647311022,
+          // subscriptionTimestamp: 1647311062,
+          // granted: true,
+          // grantReason: 'SUBSCRIBER'
         };
       };
 
@@ -162,11 +162,11 @@
         // gaaUser - registration JWT that is returned by Sign In with Google
         // https://developers.google.com/identity/gsi/web/reference/js-reference?hl=en#credential
         const gaaUser = GaaMetering.getGaaUser();
+        console.log(gaaUser);
         // Example body of the promise returning a userState object
         const userState = {
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-          subscriptionTimestamp: 1602763094,
+          id: 'user123456789',
+          registrationTimestamp: Date.now() / 1000
         };
         resolve(userState);
       }) 
@@ -176,9 +176,9 @@
       handleLoginPromise = new Promise ((resolve) => {
         // Example body of the promise returning a userState object
         userState = {
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-          subscriptionTimestamp: 1602763094,
+          id: 'user123456789',
+          registrationTimestamp: 1647311022,
+          subscriptionTimestamp: 1647311062,
           granted: false,
         };
         resolve(userState);
@@ -190,8 +190,8 @@
       publisherEntitlementPromise = new Promise ((resolve) => {
         // Example body of the promise returning a publisherEntitlement object
         publisherEntitlement = {
-          granted: true,
-          grantReason: 'SUBSCRIBER',
+          granted: false,
+          grantReason: 'METERING',
         };
         resolve(publisherEntitlement);
       });
@@ -200,7 +200,6 @@
         MeteringDemo.setupControls();
         MeteringDemo.setupLanguage();
 
-        /*
         GaaMetering.init({
           params: {
             googleSignInClientId: googleApiClientId,
@@ -215,7 +214,6 @@
             publisherEntitlementPromise: publisherEntitlementPromise, // Optional
           }
         });
-        */
       });
       
     </script>

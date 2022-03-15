@@ -1417,13 +1417,15 @@ export class GaaMetering {
       }
 
       subscriptions.setOnLoginRequest(() => {
-        handleLoginPromise().then((handleLoginUserState) => {
+        handleLoginPromise.then((handleLoginUserState) => {
           if (GaaMetering.validateUserState(handleLoginUserState)) {
             userState.id = handleLoginUserState.id;
             userState.registrationTimestamp =
               handleLoginUserState.registrationTimestamp;
-            userState.subscriptionTimestamp =
-              handleLoginUserState.subscriptionTimestamp;
+            if ('subscriptionTimestamp' in handleLoginUserState) {
+              userState.subscriptionTimestamp =
+                handleLoginUserState.subscriptionTimestamp;
+            }
             if ('granted' in handleLoginUserState) {
               userState.granted = handleLoginUserState.granted;
             }
