@@ -102,7 +102,37 @@ const ARTICLE_LD_JSON_METADATA_FREE_ARTICLE = `
       }
   },
   "description": "A most wonderful article",
-  "isAccessibleForFree": "true",
+  "isAccessibleForFree": true,
+  "isPartOf": {
+    "@type": ["CreativeWork", "Product"],
+    "name" : "Scenic News",
+    "productID": "${PRODUCT_ID}"
+  }
+}`;
+
+const ARTICLE_LD_JSON_METADATA_NULL = `
+{
+  "@context": "http://schema.org",
+  "@type": "NewsArticle",
+  "headline": "16 Top Spots for Hiking",
+  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
+  "datePublished": "2025-02-05T08:00:00+08:00",
+  "dateModified": "2025-02-05T09:20:00+08:00",
+  "author": {
+    "@type": "Person",
+    "name": "John Doe"
+  },
+  "publisher": {
+      "name": "${PUBLISHER_NAME}",
+      "@type": "Organization",
+      "@id": "scenic-2017.appspot.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
+      }
+  },
+  "description": "A most wonderful article",
+  "isAccessibleForFree": null,
   "isPartOf": {
     "@type": ["CreativeWork", "Product"],
     "name" : "Scenic News",
@@ -2664,11 +2694,22 @@ describes.realWin('GaaMetering', {}, () => {
       );
     });
 
-    it('unlocked for metering but invalid userState', () => {
+    it('has invalid publisherEntitlements', () => {
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
+      location.hash = `#swg.debug=1`;
+
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>
+      `;
 
       GaaMetering.init({
         params: {
@@ -2680,8 +2721,8 @@ describes.realWin('GaaMetering', {}, () => {
             'google.com',
           ],
           userState: {
-            granted: true,
-            grantReason: 'METERING',
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
           },
           unlockArticle: function () {},
           showPaywall: function () {},
@@ -2689,13 +2730,19 @@ describes.realWin('GaaMetering', {}, () => {
           handleSwGEntitlement: function () {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise((resolve) => {
+            const publisherEntitlement = {
+              granted: true,
+              grantReason: 'TEST REASON',
+            };
+            resolve(publisherEntitlement);
+          }),
         },
       });
 
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
-        'invalid userState object'
+        `Publisher entitlement isn't valid`
       );
     });
   });
@@ -2712,6 +2759,36 @@ describes.realWin('GaaMetering', {}, () => {
 
     it('returns false for an anonymous user', () => {
       expect(GaaMetering.isUserRegistered({})).to.be.false;
+    });
+  });
+
+  describe('isArticleFreeFromJsonLdPageConfig_', () => {
+    it('returns true for a JSON isAccessibleFree true', () => {
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+      </script>
+      `;
+
+      expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.true;
+    });
+
+    it('returns false for a JSON isAccessibleFree null', () => {
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_NULL}]
+      </script>
+      `;
+
+      expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
     });
   });
 });
