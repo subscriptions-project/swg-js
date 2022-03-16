@@ -2154,15 +2154,17 @@ describes.realWin('GaaMetering', {}, () => {
     it('succeeds for valid new userState', () => {
       location.hash = `#swg.debug=1`;
 
-      let newUserState = GaaMetering.newUserStateToUserState({
-          id: 'user1235',
-          registrationTimestamp: 1602763054,
-          subscriptionTimestamp: 1602763094,
-          granted: false,
+      const newUserState = GaaMetering.newUserStateToUserState({
+        id: 'user1235',
+        registrationTimestamp: 1602763054,
+        subscriptionTimestamp: 1602763094,
+        granted: false,
       });
 
       expect(newUserState.metering.state.id).to.equal('user1235');
-      expect(newUserState.metering.state.standardAttributes.registered_user.timestamp).to.equal(1602763054);
+      expect(
+        newUserState.metering.state.standardAttributes.registered_user.timestamp
+      ).to.equal(1602763054);
     });
   });
 
@@ -2539,6 +2541,69 @@ describes.realWin('GaaMetering', {}, () => {
       });
     });
 
+    it('setOnLoginRequest has invalid userState', async () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      location.hash = `#swg.debug=1`;
+
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>
+      `;
+
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise((resolve) => {
+            const publisherEntitlement = {
+              id: 'user1235',
+              registrationTimestamp: 1602763054,
+              granted: true,
+              grantReason: 'TEST REASON',
+            };
+            resolve(publisherEntitlement);
+          }),
+          publisherEntitlementPromise: new Promise(() => {}),
+        },
+      });
+
+      await tick();
+
+      subscriptionsMock.setOnLoginRequest;
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
+      );
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        "Publisher entitlement isn't valid"
+      );
+    });
+
     it('fails for invalid userState', () => {
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
@@ -2725,7 +2790,8 @@ describes.realWin('GaaMetering', {}, () => {
       await tick();
 
       expect(self.console.log).to.calledWith(
-        '[Subscriptions]', 'resolving publisherEntitlement'
+        '[Subscriptions]',
+        'resolving publisherEntitlement'
       );
     });
 
@@ -2778,7 +2844,7 @@ describes.realWin('GaaMetering', {}, () => {
       await tick();
 
       expect(self.console.log).to.calledWith(
-        '[Subscriptions]', 
+        '[Subscriptions]',
         'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
       );
 
