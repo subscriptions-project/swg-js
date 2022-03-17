@@ -1519,9 +1519,6 @@ export class GaaMetering {
         return false;
       } else if (userState.granted === true) {
         if (userState.granted) {
-          // User has access from publisher so unlock article
-          unlockArticle();
-
           callSwg((subscriptions) => {
             if (userState.grantReason === 'SUBSCRIBER') {
               // The user has access because they have a subscription
@@ -1544,8 +1541,10 @@ export class GaaMetering {
               });
               debugLog('unlocked for metering');
             }
-            return true;
           });
+
+          // User has access from publisher so unlock article
+          unlockArticle();
         }
       } else {
         checkShowcaseEntitlement(userState);
