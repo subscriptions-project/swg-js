@@ -2522,7 +2522,6 @@ describes.realWin('GaaMetering', {}, () => {
           },
           unlockArticle: function () {},
           showPaywall: function () {},
-          handleLogin: function () {},
           handleSwGEntitlement: function () {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
@@ -2542,21 +2541,13 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('setOnLoginRequest has invalid userState', async () => {
+      let clock = sandbox.useFakeTimers();
+      location.hash = `#swg.debug=1`;
+      self.document.referrer = 'https://www.google.com';
+
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
-      self.document.referrer = 'https://www.google.com';
-      location.hash = `#swg.debug=1`;
-
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
-
-      self.document.head.innerHTML = `
-      <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA}]
-      </script>
-      `;
 
       GaaMetering.init({
         params: {
@@ -2568,12 +2559,10 @@ describes.realWin('GaaMetering', {}, () => {
             'google.com',
           ],
           userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
+            granted: false
           },
           unlockArticle: function () {},
           showPaywall: function () {},
-          handleLogin: function () {},
           handleSwGEntitlement: function () {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise((resolve) => {
@@ -2585,13 +2574,23 @@ describes.realWin('GaaMetering', {}, () => {
             };
             resolve(publisherEntitlement);
           }),
-          publisherEntitlementPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise ((resolve) => {
+            publisherEntitlement = {
+              granted: false,
+            };
+            resolve(publisherEntitlement);
+          })
         },
       });
 
-      await tick();
+      clock.tick(5000);
+      await tick(1000);
 
-      subscriptionsMock.setOnLoginRequest;
+      // Click publisher link to trigger a login request.
+      const publisherSignInButtonEl = self.document.querySelector(
+        '#swg-publisher-sign-in-button'
+      );
+      publisherSignInButtonEl.click();
 
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
