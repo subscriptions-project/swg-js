@@ -1404,8 +1404,8 @@ export class GaaMetering {
         debugLog(showcaseEntitlement);
         subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
       } else {
+        debugLog('resolving publisherEntitlement');
         publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
-          debugLog('resolving publisherEntitlement');
           if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
             userState.granted = fetchedPublisherEntitlements.granted;
             userState.grantReason = fetchedPublisherEntitlements.grantReason;
@@ -1485,6 +1485,7 @@ export class GaaMetering {
 
     // Show the Google registration intervention.
     function showGoogleRegwall() {
+      debugLog('show Google Regwall');
       // Don't render the regwall until the window has loaded.
       self.addEventListener('load', () => {
         GaaMeteringRegwall.showWithNativeRegistrationButton({

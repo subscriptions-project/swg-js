@@ -1755,6 +1755,7 @@ describes.realWin('GaaMetering', {}, () => {
       setOnEntitlementsResponse: sandbox.fake(),
       consumeShowcaseEntitlementJwt: sandbox.fake(),
       setShowcaseEntitlement: sandbox.fake(),
+      getEntitlements: sandbox.fake(),
       getEventManager: () => Promise.resolve({logEvent}),
     };
     self.SWG = {
@@ -2850,6 +2851,88 @@ describes.realWin('GaaMetering', {}, () => {
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         "Publisher entitlement isn't valid"
+      );
+    });
+  });
+
+  describe('checkShowcaseEntitlement', () => {
+    it('checkShowcaseEntitlement for registered users', async () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      location.hash = `#swg.debug=1`;
+
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            granted: false
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise ((resolve) => {
+            let publisherEntitlement = {
+              id: 'user1235',
+              registrationTimestamp: 1602763054,
+              granted: false
+            };
+            resolve(publisherEntitlement);
+          })
+        }
+      });
+
+      await tick();
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'getting entitlements from Google'
+      );
+
+      expect(subscriptionsMock.getEntitlements).to.calledOnce;
+    });
+
+    it('shows GoogleRegwall', async () => {
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            granted: false
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise ((resolve) => {
+            resolve({ granted: false });
+          })
+        }
+      });
+
+      await tick();
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'show Google Regwall'
       );
     });
   });
