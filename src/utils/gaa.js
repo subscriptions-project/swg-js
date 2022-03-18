@@ -1524,36 +1524,36 @@ export class GaaMetering {
       if (!GaaMetering.validateUserState(userState)) {
         debugLog('Invalid userState object');
         return false;
-      } else if (userState.granted === true) {
-        if (userState.granted) {
-          callSwg((subscriptions) => {
-            if (userState.grantReason === 'SUBSCRIBER') {
-              // The user has access because they have a subscription
-              subscriptions.setShowcaseEntitlement({
-                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
-                isUserRegistered: GaaMetering.isUserRegistered(userState),
-              });
-              debugLog('unlocked for subscriber');
-            } else if (userState.grantReason === 'FREE') {
-              subscriptions.setShowcaseEntitlement({
-                entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
-                isUserRegistered: GaaMetering.isUserRegistered(userState),
-              });
-              debugLog('unlocked for free');
-            } else if (userState.grantReason === 'METERING') {
-              // The user has access from the publisher's meter
-              subscriptions.setShowcaseEntitlement({
-                entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
-                isUserRegistered: GaaMetering.isUserRegistered(userState),
-              });
-              debugLog('unlocked for metering');
-            }
-          });
+      } 
+      else if (userState.granted === true) {
+        callSwg((subscriptions) => {
+          if (userState.grantReason === 'SUBSCRIBER') {
+            // The user has access because they have a subscription
+            subscriptions.setShowcaseEntitlement({
+              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+              isUserRegistered: GaaMetering.isUserRegistered(userState),
+            });
+            debugLog('unlocked for subscriber');
+          } else if (userState.grantReason === 'FREE') {
+            subscriptions.setShowcaseEntitlement({
+              entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+              isUserRegistered: GaaMetering.isUserRegistered(userState),
+            });
+            debugLog('unlocked for free');
+          } else if (userState.grantReason === 'METERING') {
+            // The user has access from the publisher's meter
+            subscriptions.setShowcaseEntitlement({
+              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+              isUserRegistered: GaaMetering.isUserRegistered(userState),
+            });
+            debugLog('unlocked for metering');
+          }
+        });
 
-          // User has access from publisher so unlock article
-          unlockArticle();
-        }
-      } else {
+        // User has access from publisher so unlock article
+        unlockArticle();
+      } 
+      else {
         checkShowcaseEntitlement(userState);
       }
     }
