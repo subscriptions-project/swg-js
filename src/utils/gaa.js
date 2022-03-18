@@ -1965,6 +1965,23 @@ export class GaaMetering {
       }
     }
 
+    if (
+      ('id' in newUserState) ||
+      ('registrationTimestamp' in newUserState)
+    ) {
+        if (!('id' in newUserState)) {
+          debugLog('Missing user ID in userState object');
+          return false;
+        }
+
+        if (!('registrationTimestamp' in newUserState)) {
+          debugLog(
+            'Missing registrationTimestamp in userState object'
+          );
+          return false;
+        }
+    }
+
     return true;
   }
 }

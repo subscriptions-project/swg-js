@@ -2304,6 +2304,34 @@ describes.realWin('GaaMetering', {}, () => {
       );
     });
 
+    it('fails if userstate does not have id but has registrationTimestamp', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          registrationTimestamp: 1602763054,
+          granted: false,
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Missing user ID in userState object'
+      );
+    });
+
+    it('fails if userstate does not have registrationTimestamp but has id', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          id: 'user12345',
+          granted: false,
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Missing registrationTimestamp in userState object'
+      );
+    });
+
     it('fails with a warning in debug mode for subscriptionTimestamp in the future', () => {
       location.hash = `#swg.debug=1`;
       expect(
