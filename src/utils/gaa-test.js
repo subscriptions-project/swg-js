@@ -1907,7 +1907,7 @@ describes.realWin('GaaMetering', {}, () => {
       e.remove();
     });
 
-    self.document.currentReferrer = currentReferrer;
+    self.document.referrer = currentReferrer;
     self.console.log.restore();
   });
 
