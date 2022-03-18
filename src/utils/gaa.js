@@ -1443,6 +1443,7 @@ export class GaaMetering {
             userState.granted = handleLoginUserState.granted;
             userState.grantReason = handleLoginUserState.grantReason;
 
+            GaaMeteringRegwall.remove();
             unlockArticleIfGranted();
           }
         });
@@ -1563,6 +1564,7 @@ export class GaaMetering {
         // Send userState to Google
         callSwg((subscriptions) => {
           debugLog('getting entitlements from Google');
+          debugLog(GaaMetering.newUserStateToUserState(userState));
           subscriptions.getEntitlements(
             GaaMetering.newUserStateToUserState(userState)
           );
@@ -1856,7 +1858,7 @@ export class GaaMetering {
   }
 
   static newUserStateToUserState(newUserState) {
-    const userState = {
+    return {
       'metering': {
         'state': {
           'id': newUserState.id,
@@ -1868,7 +1870,6 @@ export class GaaMetering {
         },
       },
     };
-    return userState;
   }
 
   static validateUserState(newUserState) {
@@ -1923,7 +1924,7 @@ export class GaaMetering {
           return false;
         }
 
-        if (newUserState.registrationTimestamp > new Date().getTime()) {
+        if (newUserState.registrationTimestamp > (new Date().getTime() / 1000)) {
           debugLog('userState.registrationTimestamp is in the future');
 
           return false;
@@ -1956,7 +1957,7 @@ export class GaaMetering {
 
         if (
           'subscriptionTimestamp' in newUserState &&
-          newUserState.subscriptionTimestamp > new Date().getTime()
+          newUserState.subscriptionTimestamp > (new Date().getTime() / 1000)
         ) {
           debugLog('userState.subscriptionTimestamp is in the future');
 

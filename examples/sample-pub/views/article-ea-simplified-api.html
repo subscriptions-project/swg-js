@@ -76,14 +76,10 @@
       }
     }
     </script>
-    <!-- UPDATE product ID -->
-
     <script src="<% swgGaaJsUrl %>"></script>
     <script async subscriptions-control="manual" src="<% swgJsUrl %>"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/examples/sample-pub/metering.js"></script>
-    <!-- script async src="/examples/sample-pub/publisher.js"></script -->
-    <!-- script async src="/examples/sample-pub/demo.js"></script -->
   </head>
   <body>
     <script>
@@ -93,6 +89,11 @@
         let newSearch = 'gaa_at=g&gaa_ts=99999999&gaa_n=n0nc3&gaa_sig=51g';        
         location.search = newSearch;
       }
+
+      (self.SWG = self.SWG || []).push(function (subscriptions) {
+        MeteringDemo.setupControls();
+        MeteringDemo.setupLanguage();
+      });
 
       // Your Google API Client ID and can be found at:
       // https://support.google.com/news/publisher-center/answer/11601854#API_client_ID
@@ -156,17 +157,33 @@
        * and publisherEntitlementPromise.
        */
 
+      function decodeJwtResponse(payload) {
+        // decodeJwtResponse() is a custom function defined by you
+        // to decode the credential response.
+
+        //You can validate and decode the JWT credential by using a 
+        //JWT-decoding library for your language - https://jwt.io/
+
+        let payloadDecoded = {
+          sub: "123456789"
+        }
+        return payloadDecoded;
+      }
+
       // Get userState by passing the gaaUser object to your registration endpoint server
       // Takes the registration JWT and returns an updated userState object for the newly registered user.
-      registerUserPromise = new Promise ((resolve) => {
+      registerUserPromise = new Promise (async (resolve) => {
         // gaaUser - registration JWT that is returned by Sign In with Google
         // https://developers.google.com/identity/gsi/web/reference/js-reference?hl=en#credential
         const gaaUser = await GaaMetering.getGaaUser();
         console.log(gaaUser);
+        const gaaUserDecoded = decodeJwtResponse(gaaUser.credential);
+
         // Example body of the promise returning a userState object
         const userState = {
-          id: 'user123456789',
-          registrationTimestamp: Date.now() / 1000
+          id: btoa(gaaUserDecoded.sub),
+          registrationTimestamp: Math.round(Date.now() / 1000),
+          granted: false
         };
         resolve(userState);
       });
@@ -178,7 +195,6 @@
         userState = {
           id: 'user123456789',
           registrationTimestamp: 1647311022,
-          subscriptionTimestamp: 1647311062,
           granted: false,
         };
         resolve(userState);
@@ -191,32 +207,24 @@
         // Example body of the promise returning a publisherEntitlement object
         publisherEntitlement = {
           granted: false,
-          grantReason: 'METERING',
         };
         resolve(publisherEntitlement);
       });
         
-      (self.SWG = self.SWG || []).push(function (subscriptions) {
-        MeteringDemo.setupControls();
-        MeteringDemo.setupLanguage();
-        /*
-        GaaMetering.init({
-          params: {
-            googleSignInClientId: googleApiClientId,
-            allowedReferrers: allowedReferrers,
-            showcaseEntitlement: showcaseEntitlement, // Optional - server-side only
-            userState: getUserState(),
-            unlockArticle: unlockArticle,
-            showPaywall: showPaywall,
-            handleSwGEntitlement: handleSwGEntitlement, // Optional - only if SwG is implemented
-            registerUserPromise: registerUserPromise,
-            handleLoginPromise: handleLoginPromise,
-            publisherEntitlementPromise: publisherEntitlementPromise, // Optional
-          }
-        });
-        */
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: googleApiClientId,
+          allowedReferrers: allowedReferrers,
+          showcaseEntitlement: showcaseEntitlement, // Optional - server-side only
+          userState: getUserState(),
+          unlockArticle: unlockArticle,
+          showPaywall: showPaywall,
+          handleSwGEntitlement: handleSwGEntitlement, // Optional - only if SwG is implemented
+          registerUserPromise: registerUserPromise,
+          handleLoginPromise: handleLoginPromise,
+          publisherEntitlementPromise: publisherEntitlementPromise, // Optional
+        }
       });
-      
     </script>
 
     <div class="main-body">
