@@ -2937,6 +2937,88 @@ describes.realWin('GaaMetering', {}, () => {
         'show Google Regwall'
       );
     });
+
+    it('showGoogleRegwall - registerUserPromise', async () => {
+      location.hash = `#swg.debug=1`;
+      self.document.referrer = 'https://www.google.com';
+
+      GaaUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+
+      // Mock showWithNativeRegistrationButton to return jwt
+      sandbox.stub(GaaMeteringRegwall, 'showWithNativeRegistrationButton');
+      GaaMeteringRegwall.showWithNativeRegistrationButton.returns(
+        new Promise((resolve) => {
+          let jwt = {
+            "iss": "https://accounts.google.com",
+            "nbf": 12345678,
+            "aud": GOOGLE_API_CLIENT_ID,
+            "sub": "1234567890",
+            "hd": "google.com",
+            "email": "test@google.com",
+            "email_verified": true,
+            "azp": GOOGLE_API_CLIENT_ID,
+            "name": "John Doe",
+            "picture": "https://lh3.googleusercontent.com/a-/abcdefghij",
+            "given_name": "John",
+            "family_name": "Doe",
+            "iat": 12345678,
+            "exp": 23456789,
+            "jti": "09b26e0c719e14870fe4bcf1ec42ce21b098b419"
+          };
+          resolve(jwt);
+        })
+      );
+      await GaaMeteringRegwall.showWithNativeRegistrationButton();
+
+      GaaMetering.init({
+        params: {
+          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com','test.com','localhost'],
+          userState: {
+            granted: false
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise (async (resolve) => {
+            let gaaUser = await GaaMetering.getGaaUser();
+            let userState = {
+              id: gaaUser.email,
+              registrationTimestamp: Date.now() / 1000,
+              granted: false
+            };
+            resolve(userState);
+          }),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise ((resolve) => {
+            let publisherEntitlement = {
+              granted: false,
+            };
+            resolve(publisherEntitlement);
+          })
+        },
+      });
+
+      await tick(10);
+
+      //ensure that showGoogleRegwall will receive the load event
+      self.window.dispatchEvent(new Event('load'));
+      await tick(10);
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'registerUserPromise resolved'
+      );
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'getting entitlements from Google'
+      );
+
+      expect(subscriptionsMock.getEntitlements).to.calledOnce;
+    });
   });
 
   describe('isUserRegistered', () => {

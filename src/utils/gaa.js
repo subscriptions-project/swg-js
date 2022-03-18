@@ -1499,12 +1499,11 @@ export class GaaMetering {
         GaaMeteringRegwall.showWithNativeRegistrationButton({
           clientId: googleSignInClientId,
         }).then((jwt) => {
-          debugLog('jwt received');
           // Handle registration for new users
           // Save credentials object so that registerUserPromise can use it using getGaaUser.
           GaaMetering.setGaaUser(jwt);
-          //const fulfilledRegisterUserPromise = registerUserPromise();
           registerUserPromise.then((registerUserUserState) => {
+            debugLog('registerUserPromise resolved');
             if (GaaMetering.validateUserState(registerUserUserState)) {
               userState.id = registerUserUserState.id;
               userState.registrationTimestamp =
