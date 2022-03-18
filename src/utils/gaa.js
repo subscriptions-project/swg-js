@@ -1353,13 +1353,23 @@ export class GaaUtils {
 
 export class GaaMetering {
   gaaUser;
+  gaaUserPromise_;
+  gaaUserPromiseResolve_;
 
   static setGaaUser(jwt) {
     GaaMetering.gaaUser = jwt;
+    //ensure that gaaUserPromiseResolve_ is defined
+    GaaMetering.getGaaUser();
+    GaaMetering.gaaUserPromiseResolve_(GaaMetering.gaaUser);
   }
 
   static getGaaUser() {
-    return GaaMetering.gaaUser;
+    if(GaaMetering.gaaUserPromise_ === undefined) {
+      GaaMetering.gaaUserPromise_ = new Promise(function(resolve){
+        GaaMetering.gaaUserPromiseResolve_ = resolve;
+      });
+    }
+    return GaaMetering.gaaUserPromise_;
   }
 
   static init({params}) {

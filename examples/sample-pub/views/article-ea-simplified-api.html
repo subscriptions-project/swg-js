@@ -161,7 +161,7 @@
       registerUserPromise = new Promise ((resolve) => {
         // gaaUser - registration JWT that is returned by Sign In with Google
         // https://developers.google.com/identity/gsi/web/reference/js-reference?hl=en#credential
-        const gaaUser = GaaMetering.getGaaUser();
+        const gaaUser = await GaaMetering.getGaaUser();
         console.log(gaaUser);
         // Example body of the promise returning a userState object
         const userState = {
@@ -169,7 +169,7 @@
           registrationTimestamp: Date.now() / 1000
         };
         resolve(userState);
-      }) 
+      });
 
       // Allows the user to login to an existing publisher account and must resolve
       // with an updated userState object for the newly logged-in user.

@@ -2322,19 +2322,21 @@ describes.realWin('GaaMetering', {}, () => {
     });
   });
 
-  describe('setGaaUser', () => {
-    it('GaaMetering.gaaUser equal to input', () => {
-      GaaMetering.setGaaUser('setting gaaUser test');
-
-      expect(GaaMetering.gaaUser).to.equal('setting gaaUser test');
+  describe('setGaaUser and getGaaUser', () => {
+    beforeEach(() => {
+      GaaMetering.gaaUserPromise_ = undefined;
     });
-  });
 
-  describe('getGaaUser', () => {
-    it('GaaMetering.getGaaUser returning GaaMetering.gaaUser', () => {
-      GaaMetering.gaaUser = 'test gaaUser';
+    it('GaaMetering.gaaUser equal to input', async () => {
+      GaaMetering.setGaaUser('setting gaaUser test');
+      let gaaUser = await GaaMetering.getGaaUser();
+      expect(gaaUser).to.equal('setting gaaUser test');
+    });
 
-      expect(GaaMetering.getGaaUser()).to.equal('test gaaUser');
+    it('GaaMetering.getGaaUser returning GaaMetering.gaaUser', async () => {
+      GaaMetering.setGaaUser('test gaaUser');
+      let gaaUser = await GaaMetering.getGaaUser();
+      expect(gaaUser).to.equal('test gaaUser');
     });
   });
 
@@ -2638,7 +2640,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
-        'invalid userState object'
+        'Invalid userState object'
       );
     });
 
