@@ -1407,8 +1407,14 @@ export class GaaMetering {
         debugLog('resolving publisherEntitlement');
         publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
           if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
+            userState.id = fetchedPublisherEntitlements.id;
+            userState.registrationTimestamp =
+              fetchedPublisherEntitlements.registrationTimestamp;
+            userState.subscriptionTimestamp =
+              fetchedPublisherEntitlements.subscriptionTimestamp;
             userState.granted = fetchedPublisherEntitlements.granted;
             userState.grantReason = fetchedPublisherEntitlements.grantReason;
+
             unlockArticleIfGranted();
           } else {
             debugLog("Publisher entitlement isn't valid");
@@ -1422,20 +1428,12 @@ export class GaaMetering {
             userState.id = handleLoginUserState.id;
             userState.registrationTimestamp =
               handleLoginUserState.registrationTimestamp;
-            if ('subscriptionTimestamp' in handleLoginUserState) {
-              userState.subscriptionTimestamp =
-                handleLoginUserState.subscriptionTimestamp;
-            }
-            if ('granted' in handleLoginUserState) {
-              userState.granted = handleLoginUserState.granted;
-            }
-            if ('grantReason' in handleLoginUserState) {
-              userState.grantReason = handleLoginUserState.grantReason;
-            }
-            checkShowcaseEntitlement(userState);
-          }
-          else {
-            debugLog("Publisher entitlement isn't valid");
+            userState.subscriptionTimestamp =
+              handleLoginUserState.subscriptionTimestamp;
+            userState.granted = handleLoginUserState.granted;
+            userState.grantReason = handleLoginUserState.grantReason;
+
+            unlockArticleIfGranted();
           }
         });
       });
@@ -1491,23 +1489,23 @@ export class GaaMetering {
         GaaMeteringRegwall.showWithNativeRegistrationButton({
           clientId: googleSignInClientId,
         }).then((jwt) => {
+          debugLog('jwt received');
           // Handle registration for new users
           // Save credentials object so that registerUserPromise can use it using getGaaUser.
           GaaMetering.setGaaUser(jwt);
           //const fulfilledRegisterUserPromise = registerUserPromise();
           registerUserPromise.then((registerUserUserState) => {
-            userState.id = registerUserUserState.id;
-            userState.registrationTimestamp =
-              registerUserUserState.registrationTimestamp;
-            userState.subscriptionTimestamp =
-              registerUserUserState.subscriptionTimestamp;
-            if ('granted' in registerUserUserState) {
+            if (GaaMetering.validateUserState(registerUserUserState)) {
+              userState.id = registerUserUserState.id;
+              userState.registrationTimestamp =
+                registerUserUserState.registrationTimestamp;
+              userState.subscriptionTimestamp =
+                registerUserUserState.subscriptionTimestamp;
               userState.granted = registerUserUserState.granted;
-            }
-            if ('grantReason' in registerUserUserState) {
               userState.grantReason = registerUserUserState.grantReason;
+
+              unlockArticleIfGranted();
             }
-            unlockArticleIfGranted();
           });
         });
       });
@@ -1515,7 +1513,7 @@ export class GaaMetering {
 
     function unlockArticleIfGranted() {
       if (!GaaMetering.validateUserState(userState)) {
-        debugLog('invalid userState object');
+        debugLog('Invalid userState object');
         return false;
       } else if (userState.granted === true) {
         if (userState.granted) {
