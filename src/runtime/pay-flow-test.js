@@ -20,6 +20,7 @@ import {
   EntitlementsResponse,
   EventParams,
 } from '../proto/api_messages';
+import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPort} from '../components/activities';
 import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
@@ -649,6 +650,39 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
   });
 
+  it(
+    'triggers the payConfirmedOpened callback when dialog opens after flow' +
+      'start',
+    async () => {
+      const response = createDefaultSubscribeResponse();
+      entitlementsManagerMock
+        .expects('pushNextEntitlements')
+        .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+        .once();
+      port = new ActivityPort();
+      port.onResizeRequest = () => {};
+      port.whenReady = () => Promise.resolve();
+
+      callbacksMock
+        .expects('triggerPayConfirmOpened')
+        .withExactArgs(
+          sandbox.match((arg) => {
+            expect(arg instanceof ActivityIframeView).to.be.true;
+            return true;
+          })
+        )
+        .once();
+
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(sandbox.match.any, sandbox.match.any, sandbox.match.any)
+        .returns(Promise.resolve(port));
+
+      await flow.start(response);
+      await flow.readyPromise_;
+    }
+  );
+
   it('should have valid flow constructed w/o entitlements', async () => {
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
     const purchaseData = new PurchaseData();
@@ -944,6 +978,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       [],
       null
     );
+
+    const expectedCanonicalUrl = 'canonical-url';
+    const expectedContentTitle = 'content-title';
     const response = new SubscribeResponse(
       RAW_ENTITLEMENTS,
       purchaseData,
@@ -954,7 +991,11 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       null,
       'swgUserToken',
       null,
-      {contentId: 'url', anonymous: true}
+      {
+        contentId: expectedCanonicalUrl,
+        contentTitle: expectedContentTitle,
+        anonymous: true,
+      }
     );
     entitlementsManagerMock
       .expects('pushNextEntitlements')
@@ -980,7 +1021,10 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
-          '&canonicalUrl=url&isAnonymous=true',
+          '&isPaid=true&checkOrderStatus=true' +
+          '&canonicalUrl=' +
+          expectedCanonicalUrl +
+          '&isAnonymous=true',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
@@ -988,6 +1032,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           productType: ProductType.VIRTUAL_GIFT,
           isSubscriptionUpdate: false,
           isOneTime: false,
+          contentTitle: expectedContentTitle,
           swgUserToken: 'swgUserToken',
           orderId: 'ORDER',
           useUpdatedConfirmUi: false,
@@ -1761,6 +1806,15 @@ describes.realWin('parseSubscriptionResponse', {}, (env) => {
     const sr = parseSubscriptionResponse(runtime, data);
     expect(sr.productType).to.equal(ProductType.UI_CONTRIBUTION);
     expect(sr.oldSku).to.equal('sku_to_replace');
+  });
+
+  it('parses productType when paymentRequest is not present', () => {
+    const data = Object.assign({}, INTEGR_DATA_OBJ);
+    data['productType'] = ProductType.VIRTUAL_GIFT;
+
+    const response = parseSubscriptionResponse(runtime, data);
+
+    expect(response.productType).to.equal(ProductType.VIRTUAL_GIFT);
   });
 
   it('should throw error', () => {

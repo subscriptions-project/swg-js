@@ -94,18 +94,18 @@ function getExperiments(win) {
 
     // Format:
     // - experimentString = (experimentSpec,)*
-    combinedExperimentString.split(',').forEach((s) => {
-      s = s.trim();
-      if (!s) {
-        return;
+    for (let experimentString of combinedExperimentString.split(',')) {
+      experimentString = experimentString.trim();
+      if (!experimentString) {
+        continue;
       }
       try {
-        parseSetExperiment(win, experimentMap, s);
+        parseSetExperiment(win, experimentMap, experimentString);
       } catch (e) {
         // Ignore: experiment parsing cannot block runtime.
         ErrorUtils.throwAsync(e);
       }
-    });
+    }
   }
   return experimentMap;
 }

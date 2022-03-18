@@ -19,6 +19,8 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AudienceActionFlow} from './audience-action-flow';
+import {AudienceActivityEventListener} from './audience-activity-listener';
 import {
   AutoPromptType,
   BasicSubscriptions,
@@ -30,8 +32,11 @@ import {
   getBasicRuntime,
   installBasicRuntime,
 } from './basic-runtime';
+import {ClientConfigManager} from './client-config-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
+import {EntitlementsManager} from './entitlements-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
@@ -40,6 +45,11 @@ import {Toast} from '../ui/toast';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
+import {
+  isExperimentOn,
+  setExperiment,
+  setExperimentsStringForTesting,
+} from './experiments';
 
 describes.realWin('installBasicRuntime', {}, (env) => {
   let win;
@@ -176,6 +186,48 @@ describes.realWin('installBasicRuntime', {}, (env) => {
       expect(basicSubscriptions).to.have.property(name);
     }
   });
+
+  describe('default onEntitlementsResponse', () => {
+    let entitlements;
+    let configuredCallback;
+
+    beforeEach(() => {
+      sandbox
+        .stub(BasicRuntime.prototype, 'setOnEntitlementsResponse')
+        .callsFake((callback) => {
+          configuredCallback = callback;
+        });
+      entitlements = {
+        consume: sandbox.stub(),
+      };
+    });
+
+    it('should consume if entitlement enables with metering', async () => {
+      entitlements.enablesThisWithGoogleMetering = sandbox.stub().returns(true);
+
+      installBasicRuntime(win);
+      const entitlementsResponse = Promise.resolve(entitlements);
+      configuredCallback(entitlementsResponse);
+      await entitlementsResponse;
+
+      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
+      expect(entitlements.consume).to.be.calledOnce;
+    });
+
+    it('should not consume if entitlement is not for metering', async () => {
+      entitlements.enablesThisWithGoogleMetering = sandbox
+        .stub()
+        .returns(false);
+
+      installBasicRuntime(win);
+      const entitlementsResponse = Promise.resolve(entitlements);
+      configuredCallback(entitlementsResponse);
+      await entitlementsResponse;
+
+      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
+      expect(entitlements.consume).to.not.be.called;
+    });
+  });
 });
 
 describes.realWin('BasicRuntime', {}, (env) => {
@@ -187,6 +239,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     win = env.win;
     doc = new GlobalDoc(win);
     basicRuntime = new BasicRuntime(win);
+    setExperimentsStringForTesting('');
   });
 
   describe('initialization', () => {
@@ -558,6 +611,8 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
     let winMock;
+    let audienceActivityEventListener;
+    let audienceActivityEventListenerMock;
 
     beforeEach(() => {
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
@@ -571,6 +626,13 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         configuredBasicRuntime.configuredClassicRuntime_
       );
       winMock = sandbox.mock(win);
+      audienceActivityEventListener = new AudienceActivityEventListener(
+        configuredBasicRuntime,
+        configuredBasicRuntime.fetcher_
+      );
+      audienceActivityEventListenerMock = sandbox.mock(
+        audienceActivityEventListener
+      );
     });
 
     afterEach(() => {
@@ -840,6 +902,109 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .once();
       await configuredBasicRuntime.entitlementsResponseHandler(port);
       contributionsFlowMock.verify();
+    });
+
+    it('should handle an empty EntitlementsResponse from audience action flow', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const audienceActionFlow = new AudienceActionFlow(
+        configuredBasicRuntime,
+        {
+          action: 'TYPE_REGISTRATION_WALL',
+          fallback: undefined,
+          autoPromptType: AutoPromptType.CONTRIBUTION,
+        }
+      );
+      const autoPromptManagerMock = sandbox.mock(
+        configuredBasicRuntime.autoPromptManager_
+      );
+      autoPromptManagerMock
+        .expects('getLastAudienceActionFlow')
+        .withExactArgs()
+        .returns(audienceActionFlow)
+        .once();
+
+      const audienceActionFlowMock = sandbox.mock(audienceActionFlow);
+      audienceActionFlowMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      audienceActionFlowMock.verify();
+    });
+
+    it('should pass getEntitlemnts to fetchClientConfig if useArticleEndpoint is enabled', () => {
+      setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT, true);
+      const entitlements = new Entitlements('foo.service');
+      const entitlementsStub = sandbox.stub(
+        EntitlementsManager.prototype,
+        'getEntitlements'
+      );
+      entitlementsStub.returns(Promise.resolve(entitlements));
+      const clientConfigManagerStub = sandbox.stub(
+        ClientConfigManager.prototype,
+        'fetchClientConfig'
+      );
+
+      configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
+
+      expect(isExperimentOn(win, ExperimentFlags.USE_ARTICLE_ENDPOINT)).to.be
+        .true;
+      expect(clientConfigManagerStub).to.be.calledOnce;
+      expect(clientConfigManagerStub.args[0][0]).to.eventually.be.equal(
+        entitlements
+      );
+    });
+
+    it('should set up Audience Activity event listener and listen to events on startup when told to', async () => {
+      setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, true);
+      expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
+        .be.true;
+      audienceActivityEventListenerMock.expects('start').once();
+    });
+
+    it('should not set up Audience Activity event listener when the experiment is not turned on', async () => {
+      setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, false);
+      expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
+        .be.false;
+    });
+
+    it('should enable METERED_BY_GOOGLE on the entitlements manager', () => {
+      const entitlementsStub = sandbox.stub(
+        EntitlementsManager.prototype,
+        'enableMeteredByGoogle'
+      );
+
+      configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
+
+      expect(entitlementsStub).to.be.calledOnce;
+    });
+
+    it('should set onNativeSubscribeRequest to handle clicks on the Metering Toast "Subscribe" button', async () => {
+      expect(configuredBasicRuntime.configuredClassicRuntime()).to.exist;
+      expect(
+        configuredBasicRuntime
+          .configuredClassicRuntime()
+          .callbacks()
+          .hasSubscribeRequestCallback()
+      ).to.be.true;
+    });
+
+    it('should call showOffers when subscribe request is triggered', async () => {
+      const showOffersStub = sandbox.stub(
+        configuredBasicRuntime.configuredClassicRuntime(),
+        'showOffers'
+      );
+      await configuredBasicRuntime.callbacks().triggerSubscribeRequest();
+      expect(showOffersStub).to.be.calledOnce;
     });
   });
 });

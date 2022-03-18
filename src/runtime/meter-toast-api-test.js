@@ -18,11 +18,13 @@ import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {
   IFRAME_BOX_SHADOW,
   MINIMIZED_IFRAME_SIZE,
   MeterToastApi,
 } from './meter-toast-api';
+import {MeterClientTypes} from '../api/metering';
 import {PageConfig} from '../model/page-config';
 import {
   ToastCloseRequest,
@@ -40,6 +42,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   let activitiesMock;
   let callbacksMock;
   let eventManagerMock;
+  let storageMock;
   let pageConfig;
   let messageMap;
   let meterToastApi;
@@ -48,6 +51,14 @@ describes.realWin('MeterToastApi', {}, (env) => {
   let onConsumeCallbackFake;
   let isMobile;
   const productId = 'pub1:label1';
+
+  // Clear locally stored SwgUserToken.
+  function expectGetSwgUserTokenToBeCalledAndReturnBlank() {
+    storageMock
+      .expects('get')
+      .withExactArgs(Constants.USER_TOKEN, true)
+      .returns(Promise.resolve(null));
+  }
 
   beforeEach(() => {
     win = env.win;
@@ -64,7 +75,9 @@ describes.realWin('MeterToastApi', {}, (env) => {
     const eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
-    meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
+    const storage = runtime.storage();
+    storageMock = sandbox.mock(storage);
+    meterToastApi = new MeterToastApi(runtime);
     isMobile = true;
     sandbox.stub(meterToastApi, 'isMobile_').returns(isMobile);
     onConsumeCallbackFake = sandbox.fake();
@@ -87,11 +100,13 @@ describes.realWin('MeterToastApi', {}, (env) => {
     callbacksMock.verify();
     dialogManagerMock.verify();
     eventManagerMock.verify();
+    storageMock.verify();
     self.console.warn.restore();
     self.console.error.restore();
   });
 
   it('should start the flow correctly without native subscribe request', async () => {
+    expectGetSwgUserTokenToBeCalledAndReturnBlank();
     callbacksMock.expects('triggerFlowStarted').once();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
@@ -103,7 +118,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -124,6 +139,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   });
 
   it('should start the flow correctly with native subscribe request', async () => {
+    expectGetSwgUserTokenToBeCalledAndReturnBlank();
     runtime.callbacks().setOnSubscribeRequest(() => {});
     callbacksMock.expects('triggerFlowStarted').once();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
@@ -136,11 +152,11 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
-    meterToastApi = new MeterToastApi(runtime, {'isClosable': true});
+    meterToastApi = new MeterToastApi(runtime);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
@@ -150,7 +166,63 @@ describes.realWin('MeterToastApi', {}, (env) => {
     await meterToastApi.start();
   });
 
+  [
+    {userAttribute: 'anonymous_user', meterType: 'UNKNOWN'},
+    {userAttribute: 'known_user', meterType: 'KNOWN'},
+  ].forEach(({userAttribute, meterType}) => {
+    it(`should start the flow correctly with METERED_BY_GOOGLE client type with client user attribute ${userAttribute}`, async () => {
+      expectGetSwgUserTokenToBeCalledAndReturnBlank();
+      const meterToastApiWithParams = new MeterToastApi(runtime, {
+        meterClientType: MeterClientTypes.METERED_BY_GOOGLE,
+        meterClientUserAttribute: userAttribute,
+      });
+      callbacksMock.expects('triggerFlowStarted').once();
+      const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+        isClosable: true,
+        hasSubscriptionCallback: runtime
+          .callbacks()
+          .hasSubscribeRequestCallback(),
+        meterType,
+      });
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(
+          sandbox.match((arg) => arg.tagName == 'IFRAME'),
+          '$frontend$/swg/_/ui/v1/meteriframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+          iframeArgs
+        )
+        .returns(Promise.resolve(port));
+      await meterToastApiWithParams.start();
+    });
+  });
+
+  it('should send stored SUT', async () => {
+    // Simulate SwgUserToken presence in local storage.
+    storageMock
+      .expects('get')
+      .withExactArgs(Constants.USER_TOKEN, true)
+      .returns(Promise.resolve('abc')).once;
+    const meterToastApiWithParams = new MeterToastApi(runtime);
+    callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc&sut=abc',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    await meterToastApiWithParams.start();
+  });
+
   it('should activate native subscribe request', async () => {
+    expectGetSwgUserTokenToBeCalledAndReturnBlank();
     const nativeStub = sandbox.stub(
       runtime.callbacks(),
       'triggerSubscribeRequest'
@@ -335,6 +407,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   });
 
   it('should update desktop UI for loading screen', async () => {
+    expectGetSwgUserTokenToBeCalledAndReturnBlank();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
       hasSubscriptionCallback: runtime
@@ -345,7 +418,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -361,6 +434,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   });
 
   it('should update box shadow for iframe on mobile', async () => {
+    expectGetSwgUserTokenToBeCalledAndReturnBlank();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
       hasSubscriptionCallback: runtime
@@ -371,7 +445,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));

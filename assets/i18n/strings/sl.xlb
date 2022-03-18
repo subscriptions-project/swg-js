@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localizationbundle locale="sl">
+<messages>
+
+
+
+
+<msg name="SHOWCASE_REGWALL_TITLE">Izkoristite več z Googlom</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Za to vsebino je običajno zahtevano plačilo, vendar vam Google omogoča dostop do tega članka in drugega brez stroškov, če se z računom Google registrirate pri publikaciji <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>.</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Že imate račun?</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Prijavite se z Googlom</msg>
+<msg name="SHOWCASE_REGWALL_CASL">Preglejte <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>pogoje CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> za publikacijo <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
+
+
+
+</messages>
+</localizationbundle>

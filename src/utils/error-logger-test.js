@@ -56,6 +56,12 @@ describe('error logger', () => {
       const error = log.createError('Uh-oh!');
       expect(error.message).to.match(/TEST_SUFFIX$/);
     });
+
+    it('defaults to suffix if error message is missing', () => {
+      log = new ErrorLogger('TEST_SUFFIX');
+      const error = log.createError('');
+      expect(error.message).to.match(/TEST_SUFFIX$/);
+    });
   });
 
   describe('createExpectedError', () => {

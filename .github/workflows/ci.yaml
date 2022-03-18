@@ -9,10 +9,12 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install the right version of Nodejs
-        run: sudo npx n 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
 
       - name: Install dependencies
         run: yarn
@@ -26,10 +28,12 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install the right version of Nodejs
-        run: sudo npx n 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
 
       - name: Install dependencies
         run: yarn
@@ -43,10 +47,12 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install the right version of Nodejs
-        run: sudo npx n 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
 
       - name: Install dependencies
         run: yarn

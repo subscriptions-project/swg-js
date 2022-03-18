@@ -657,6 +657,8 @@ export class GaaMeteringRegwall {
       const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
       titleEl.focus();
     });
+
+    return containerEl;
   }
 
   /**
@@ -690,25 +692,27 @@ export class GaaMeteringRegwall {
    * @return {string|undefined}
    */
   static getPublisherNameFromJsonLdPageConfig_() {
-    const ldJsonElements = self.document.querySelectorAll(
-      'script[type="application/ld+json"]'
+    // Get JSON from ld+json scripts.
+    const ldJsonScripts = Array.prototype.slice.call(
+      self.document.querySelectorAll('script[type="application/ld+json"]')
+    );
+    const jsonQueue = /** @type {!Array<*>} */ (
+      ldJsonScripts.map((script) => parseJson(script.textContent))
     );
 
-    for (let i = 0; i < ldJsonElements.length; i++) {
-      const ldJsonElement = ldJsonElements[i];
-      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+    // Search for publisher name, breadth-first.
+    for (let i = 0; i < jsonQueue.length; i++) {
+      const json = /** @type {!Object<?,?>} */ (jsonQueue[i]);
 
-      if (!Array.isArray(ldJson)) {
-        ldJson = [ldJson];
-      }
-
-      const publisherName = findInArray(
-        ldJson,
-        (entry) => entry?.publisher?.name
-      )?.publisher.name;
-
+      // Return publisher name, if possible.
+      const publisherName = json?.publisher?.name;
       if (publisherName) {
         return publisherName;
+      }
+
+      // Explore JSON.
+      if (json && typeof json === 'object') {
+        jsonQueue.push(...Object.values(json));
       }
     }
   }
@@ -724,8 +728,7 @@ export class GaaMeteringRegwall {
       '[itemscope][itemtype][itemprop="publisher"] [itemprop="name"]'
     );
 
-    for (let i = 0; i < publisherNameElements.length; i++) {
-      const publisherNameElement = publisherNameElements[i];
+    for (const publisherNameElement of publisherNameElements) {
       const publisherName = publisherNameElement.content;
       if (publisherName) {
         return publisherName;
@@ -767,7 +770,7 @@ export class GaaMeteringRegwall {
         if (e.data.stamp === POST_MESSAGE_STAMP) {
           if (e.data.command === POST_MESSAGE_COMMAND_USER) {
             // Pass along user details.
-            resolve(e.data.gaaUser || e.data.jwtPayload);
+            resolve(e.data.gaaUser || e.data.returnedJwt);
           }
 
           if (e.data.command === POST_MESSAGE_COMMAND_ERROR) {
@@ -920,8 +923,7 @@ export class GaaGoogleSignInButton {
     }
 
     // Validate origins.
-    for (let i = 0; i < allowedOrigins.length; i++) {
-      const allowedOrigin = allowedOrigins[i];
+    for (const allowedOrigin of allowedOrigins) {
       const url = new URL(allowedOrigin);
 
       const isOrigin = url.origin === allowedOrigin;
@@ -1006,9 +1008,9 @@ export class GaaSignInWithGoogleButton {
   /**
    * Renders the Google Sign-In button.
    * @nocollapse
-   * @param {{ clientId: string, allowedOrigins: !Array<string> }} params
+   * @param {{ clientId: string, allowedOrigins: !Array<string>, rawJwt: boolean }} params
    */
-  static show({clientId, allowedOrigins}) {
+  static show({clientId, allowedOrigins, rawJwt = false}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -1089,6 +1091,8 @@ export class GaaSignInWithGoogleButton {
           'theme': 'outline',
           'text': 'continue_with',
           'logo_alignment': 'center',
+          'width': buttonEl.offsetWidth,
+          'height': buttonEl.offsetHeight,
         }
       );
 
@@ -1107,13 +1111,16 @@ export class GaaSignInWithGoogleButton {
         const jwtPayload = /** @type {!GoogleIdentityV1} */ (
           new JwtHelper().decode(jwt.credential)
         );
+        const returnedJwt = rawJwt ? jwt : jwtPayload;
 
         // Send GAA user to parent frame.
         sendMessageToParentFnPromise.then((sendMessageToParent) => {
           sendMessageToParent({
             stamp: POST_MESSAGE_STAMP,
             command: POST_MESSAGE_COMMAND_USER,
+            // Note: jwtPayload is deprecated in favor of returnedJwt.
             jwtPayload,
+            returnedJwt,
           });
         });
       })
@@ -1296,18 +1303,18 @@ export class GaaGoogle3pSignInButton {
       }
     });
   }
-}
-
-/**
- * Notify Google Intervention of a complete sign-in event.
- * @param {{ gaaUser: GaaUserDef}} params
- */
-export function gaaNotifySignIn({gaaUser}) {
-  self.opener.postMessage({
-    stamp: POST_MESSAGE_STAMP,
-    command: POST_MESSAGE_COMMAND_USER,
-    gaaUser,
-  });
+  /**
+   * Notify Google Intervention of a complete sign-in event.
+   * @nocollapse
+   * @param {{ gaaUser: GaaUserDef}} params
+   */
+  static gaaNotifySignIn({gaaUser}) {
+    self.opener.postMessage({
+      stamp: POST_MESSAGE_STAMP,
+      command: POST_MESSAGE_COMMAND_USER,
+      gaaUser,
+    });
+  }
 }
 
 /**
@@ -1328,14 +1335,14 @@ function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
         : [analyticsEvent];
 
       // Log each analytics event.
-      eventTypes.forEach((eventType) => {
+      for (const eventType of eventTypes) {
         eventManager.logEvent({
           eventType,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction,
           additionalParameters: null,
         });
-      });
+      }
     });
   });
 }

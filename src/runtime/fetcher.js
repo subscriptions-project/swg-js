@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+import {ErrorUtils} from '../utils/errors';
 import {Xhr} from '../utils/xhr';
 import {parseJson} from '../utils/json';
 import {serializeProtoMessageForUrl} from '../utils/url';
+
+const jsonSaftyPrefix = /^(\)\]\}'\n)/;
 
 /**
  * @interface
@@ -73,7 +76,7 @@ export class XhrFetcher {
     return this.fetch(url, init).then((response) => {
       return response.text().then((text) => {
         // Remove "")]}'\n" XSSI prevention prefix in safe responses.
-        const cleanedText = text.replace(/^(\)\]\}'\n)/, '');
+        const cleanedText = text.replace(jsonSaftyPrefix, '');
         return parseJson(cleanedText);
       });
     });
@@ -89,9 +92,21 @@ export class XhrFetcher {
       credentials: 'include',
       body: 'f.req=' + serializeProtoMessageForUrl(message),
     });
-    return this.fetch(url, init).then(
-      (response) => (response && response.json()) || {}
-    );
+    return this.fetch(url, init).then((response) => {
+      if (!response) {
+        return {};
+      }
+      return response.text().then((text) => {
+        try {
+          // Remove "")]}'\n" XSSI prevention prefix in safe responses.
+          const cleanedText = text.replace(jsonSaftyPrefix, '');
+          return parseJson(cleanedText);
+        } catch (e) {
+          ErrorUtils.throwAsync(e);
+          return {};
+        }
+      });
+    });
   }
 
   /** @override */

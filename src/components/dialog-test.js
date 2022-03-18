@@ -43,7 +43,6 @@ describes.realWin('Dialog', {}, (env) => {
       init: (dialog) => Promise.resolve(dialog),
       resized: () => {},
       shouldFadeBody: () => true,
-      hasLoadingIndicator: () => false,
     };
   });
 
@@ -332,14 +331,25 @@ describes.realWin('Dialog', {}, (env) => {
 
     it('should remove the dialog with animation', async () => {
       immediate();
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
       await dialog.open();
       await dialog.close(ANIMATE);
+
       expect(win.document.documentElement.contains(dialog.getElement())).to.be
         .false;
       // Check if document padding was removed.
       expect(win.document.documentElement.style.paddingBottom).to.equal('');
       expect(graypaneStubs.destroy).to.be.calledOnce;
       expect(graypaneStubs.hide).to.be.calledOnce.calledWith(ANIMATE);
+
+      expect(setStylePropertySpy).to.have.been.calledWith(
+        'transform',
+        'translateY(100%)'
+      );
     });
 
     it('should throw if iframe already connected', async () => {
@@ -399,10 +409,8 @@ describes.realWin('Dialog', {}, (env) => {
       await openedDialog.openView(view);
       const view2 = {
         getElement: () => element,
-        init: (dialog) => Promise.resolve(dialog),
         resized: () => {},
         shouldFadeBody: () => true,
-        hasLoadingIndicator: () => false,
       };
       let styleDuringInit;
       view2.init = () => {
@@ -683,6 +691,19 @@ describes.realWin('Dialog', {}, (env) => {
       await dialog.resizeView(view, newHeight, ANIMATE);
 
       expect(win.document.documentElement.style.paddingBottom).to.equal('');
+    });
+
+    it('closes the dialog with a fade out animation', async () => {
+      immediate();
+
+      const setStylePropertySpy = sandbox
+        .stub(dialog.getElement().style, 'setProperty')
+        .callThrough();
+
+      await dialog.open();
+      await dialog.close(ANIMATE);
+
+      expect(setStylePropertySpy).to.have.been.calledWith('opacity', '0');
     });
   });
 });

@@ -31,10 +31,10 @@ import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
-import {Doc, resolveDoc} from '../model/doc';
+import {Doc as DocInterface, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
-import {Fetcher, XhrFetcher} from './fetcher';
+import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
@@ -56,7 +56,7 @@ import {PayCompleteFlow, PayStartFlow} from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
 import {
   ProductType,
-  Subscriptions,
+  Subscriptions as SubscriptionsInterface,
   WindowOpenMode,
   defaultConfig,
 } from '../api/subscriptions';
@@ -121,7 +121,7 @@ export function installRuntime(win) {
 
   /**
    * Executes a callback when SwG runtime is ready.
-   * @param {function(!Subscriptions)} callback
+   * @param {function(!SubscriptionsInterface)} callback
    */
   function callWhenRuntimeIsReady(callback) {
     if (!callback) {
@@ -138,7 +138,9 @@ export function installRuntime(win) {
     win[RUNTIME_PROP],
     win[RUNTIME_LEGACY_PROP]
   );
-  waitingCallbacks.forEach(callWhenRuntimeIsReady);
+  for (const waitingCallback of waitingCallbacks) {
+    callWhenRuntimeIsReady(waitingCallback);
+  }
 
   // If any more callbacks are `push`ed to the global SwG variables,
   // they'll be queued up to receive the SwG runtime when it's ready.
@@ -154,7 +156,7 @@ export function installRuntime(win) {
 }
 
 /**
- * @implements {Subscriptions}
+ * @implements {SubscriptionsInterface}
  */
 export class Runtime {
   /**
@@ -164,7 +166,7 @@ export class Runtime {
     /** @private @const {!Window} */
     this.win_ = win;
 
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(win);
 
     /** @private @const {!Promise} */
@@ -270,8 +272,12 @@ export class Runtime {
     assert(!this.committed_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
 
-    // Process the page's config.
-    this.configured_(true);
+    // Process the page's config. Then start logging events in the
+    // analytics service.
+    this.configured_(true).then((configuredRuntime) => {
+      configuredRuntime.analytics().setReadyForLogging();
+      configuredRuntime.analytics().start();
+    });
   }
 
   /** @override */
@@ -533,16 +539,17 @@ export class Runtime {
 
 /**
  * @implements {DepsDef}
- * @implements {Subscriptions}
+ * @implements {SubscriptionsInterface}
  */
 export class ConfiguredRuntime {
   /**
-   * @param {!Window|!Document|!Doc} winOrDoc
+   * @param {!Window|!Document|!DocInterface} winOrDoc
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {{
-   *     fetcher: (!Fetcher|undefined),
+   *     fetcher: (!FetcherInterface|undefined),
    *     configPromise: (!Promise|undefined),
    *     enableGoogleAnalytics: (boolean|undefined),
+   *     useArticleEndpoint: (boolean|undefined)
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    * @param {!{
@@ -557,7 +564,7 @@ export class ConfiguredRuntime {
     /** @private @const {!ClientEventManager} */
     this.eventManager_ = new ClientEventManager(integr.configPromise);
 
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(winOrDoc);
 
     /** @private @const {!Window} */
@@ -584,7 +591,7 @@ export class ConfiguredRuntime {
     /** @private @const {!JsError} */
     this.jserror_ = new JsError(this.doc_);
 
-    /** @private @const {!Fetcher} */
+    /** @private @const {!FetcherInterface} */
     this.fetcher_ = integr.fetcher || new XhrFetcher(this.win_);
 
     /** @private @const {!Storage} */
@@ -618,7 +625,6 @@ export class ConfiguredRuntime {
 
     /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this, this.fetcher_);
-    this.analyticsService_.start();
 
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
@@ -631,11 +637,13 @@ export class ConfiguredRuntime {
       this.win_,
       this.pageConfig_,
       this.fetcher_,
-      this // See note about 'this' above
+      this, // See note about 'this' above
+      integr.useArticleEndpoint || false
     );
 
     /** @private @const {!ClientConfigManager} */
     this.clientConfigManager_ = new ClientConfigManager(
+      this, // See note about 'this' above
       pageConfig.getPublicationId(),
       this.fetcher_,
       clientOptions
@@ -757,44 +765,52 @@ export class ConfiguredRuntime {
   configure_(config) {
     // Validate first.
     let error = '';
-    for (const k in config) {
-      const v = config[k];
-      switch (k) {
+    for (const key in config) {
+      const value = config[key];
+      switch (key) {
         case 'windowOpenMode':
-          if (v != WindowOpenMode.AUTO && v != WindowOpenMode.REDIRECT) {
-            error = 'Unknown windowOpenMode: ' + v;
+          if (
+            value != WindowOpenMode.AUTO &&
+            value != WindowOpenMode.REDIRECT
+          ) {
+            error = 'Unknown windowOpenMode: ' + value;
           }
           break;
         case 'experiments':
-          v.forEach((experiment) => setExperiment(this.win_, experiment, true));
+          for (const experiment of value) {
+            setExperiment(this.win_, experiment, true);
+          }
           if (this.analytics()) {
             // If analytics service isn't set up yet, then it will get the
             // experiments later.
-            this.analytics().addLabels(v);
+            this.analytics().addLabels(value);
           }
           break;
         case 'analyticsMode':
-          if (v != AnalyticsMode.DEFAULT && v != AnalyticsMode.IMPRESSIONS) {
-            error = 'Unknown analytics mode: ' + v;
+          if (
+            value != AnalyticsMode.DEFAULT &&
+            value != AnalyticsMode.IMPRESSIONS
+          ) {
+            error = 'Unknown analytics mode: ' + value;
           }
           break;
         case 'enableSwgAnalytics':
-          if (!isBoolean(v)) {
-            error = 'Unknown enableSwgAnalytics value: ' + v;
+          if (!isBoolean(value)) {
+            error = 'Unknown enableSwgAnalytics value: ' + value;
           }
           break;
         case 'enablePropensity':
-          if (!isBoolean(v)) {
-            error = 'Unknown enablePropensity value: ' + v;
+          if (!isBoolean(value)) {
+            error = 'Unknown enablePropensity value: ' + value;
           }
           break;
         case 'skipAccountCreationScreen':
-          if (!isBoolean(v)) {
-            error = 'Unknown skipAccountCreationScreen value: ' + v;
+          if (!isBoolean(value)) {
+            error = 'Unknown skipAccountCreationScreen value: ' + value;
           }
           break;
         default:
-          error = 'Unknown config property: ' + k;
+          error = 'Unknown config property: ' + key;
       }
     }
     // Throw error string if it's not null
@@ -839,6 +855,9 @@ export class ConfiguredRuntime {
     return this.entitlementsManager_
       .getEntitlements(params)
       .then((entitlements) => {
+        // The swg user token is stored in the entitlements flow, so the analytics service is ready for logging.
+        this.analyticsService_.setReadyForLogging();
+        this.analyticsService_.start();
         // Auto update internal things tracking the user's current SKU.
         if (entitlements) {
           try {
@@ -1164,10 +1183,10 @@ export class ConfiguredRuntime {
 
 /**
  * @param {!Runtime} runtime
- * @return {!Subscriptions}
+ * @return {!SubscriptionsInterface}
  */
 function createPublicRuntime(runtime) {
-  return /** @type {!Subscriptions} */ ({
+  return /** @type {!SubscriptionsInterface} */ ({
     init: runtime.init.bind(runtime),
     configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),
@@ -1212,23 +1231,4 @@ function createPublicRuntime(runtime) {
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
   });
-}
-
-/**
- * @protected
- */
-export function getSubscriptionsClassForTesting() {
-  return Subscriptions;
-}
-
-/**
- * @protected
- */
-export function getFetcherClassForTesting() {
-  return Fetcher;
-}
-
-/** @package Visible for testing only. */
-export function getDocClassForTesting() {
-  return Doc;
 }

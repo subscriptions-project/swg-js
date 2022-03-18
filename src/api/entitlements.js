@@ -19,6 +19,9 @@ import {findInArray} from '../utils/object';
 import {getPropertyFromJsonString} from '../utils/json';
 import {warn} from '../utils/log';
 
+/** Source for Google-provided non-metering entitlements. */
+export const GOOGLE_SOURCE = 'google';
+
 /** Source for Google-provided metering entitlements. */
 export const GOOGLE_METERING_SOURCE = 'google:metering';
 
@@ -27,6 +30,9 @@ export const PRIVILEGED_SOURCE = 'privileged';
 
 /** Subscription token for dev mode entitlements. */
 export const DEV_MODE_TOKEN = 'GOOGLE_DEV_MODE_TOKEN';
+
+/** Order ID returned for dev mode entitlements. */
+export const DEV_MODE_ORDER = 'GOOGLE_DEV_MODE_ORDER';
 
 /**
  * The holder of the entitlements for a service.
@@ -110,21 +116,40 @@ export class Entitlements {
     const entitlement = this.getEntitlementForThis();
     return (
       !!entitlement &&
-      entitlement.source !== GOOGLE_METERING_SOURCE &&
-      entitlement.subscriptionToken !== DEV_MODE_TOKEN
+      !this.enablesThisWithGoogleMetering() &&
+      !this.enablesThisWithGoogleDevMode()
     );
   }
 
   /**
    * Returns true if the current article is unlocked by a
-   * Google metering entitlement. These entitlements come
+   * Google metering entitlement. These entitlements may come
    * from Google News Intiative's licensing program to support news.
    * https://www.blog.google/outreach-initiatives/google-news-initiative/licensing-program-support-news-industry-/
+   * They may also come from Google's Subscribe With Google Metering
+   * functionality.
    * @return {boolean}
    */
   enablesThisWithGoogleMetering() {
     const entitlement = this.getEntitlementForThis();
     return !!entitlement && entitlement.source === GOOGLE_METERING_SOURCE;
+  }
+
+  /**
+   * Returns true if the current article is unlocked by a Google dev mode
+   * entitlement.
+   * @return {boolean}
+   */
+  enablesThisWithGoogleDevMode() {
+    const entitlement = this.getEntitlementForThis();
+    if (!entitlement) {
+      return false;
+    }
+    const isFirstPartyToken =
+      entitlement.source === GOOGLE_SOURCE &&
+      entitlement.subscriptionToken.indexOf(DEV_MODE_ORDER) !== -1;
+    const isThirdPartyToken = entitlement.subscriptionToken === DEV_MODE_TOKEN;
+    return isFirstPartyToken || isThirdPartyToken;
   }
 
   /**
@@ -268,14 +293,17 @@ export class Entitlement {
    * @param {string} source
    * @param {!Array<string>} products
    * @param {string} subscriptionToken
+   * @param {JsonObject|null|undefined} subscriptionTokenContents
    */
-  constructor(source, products, subscriptionToken) {
+  constructor(source, products, subscriptionToken, subscriptionTokenContents) {
     /** @const {string} */
     this.source = source;
     /** @const {!Array<string>} */
     this.products = products;
     /** @const {string} */
     this.subscriptionToken = subscriptionToken;
+    /** @const {JsonObject|null|undefined} */
+    this.subscriptionTokenContents = subscriptionTokenContents;
   }
 
   /**
@@ -285,7 +313,8 @@ export class Entitlement {
     return new Entitlement(
       this.source,
       this.products.slice(0),
-      this.subscriptionToken
+      this.subscriptionToken,
+      this.subscriptionTokenContents
     );
   }
 
@@ -333,16 +362,30 @@ export class Entitlement {
 
   /**
    * @param {?Object} json
+   * @param {!../utils/jwt.JwtHelper} jwtHelper
    * @return {!Entitlement}
    */
-  static parseFromJson(json) {
+  static parseFromJson(json, jwtHelper) {
     if (!json) {
       json = {};
     }
     const source = json['source'] || '';
     const products = json['products'] || [];
     const subscriptionToken = json['subscriptionToken'];
-    return new Entitlement(source, products, subscriptionToken);
+    let subscriptionTokenContents;
+    try {
+      subscriptionTokenContents = subscriptionToken
+        ? jwtHelper.decode(subscriptionToken)
+        : null;
+    } catch (e) {
+      subscriptionTokenContents = null;
+    }
+    return new Entitlement(
+      source,
+      products,
+      subscriptionToken,
+      subscriptionTokenContents
+    );
   }
 
   /**
@@ -350,13 +393,14 @@ export class Entitlement {
    * - Single entitlement: `{products: [], ...}`.
    * - A list of entitlements: `[{products: [], ...}, {...}]`.
    * @param {!Object|!Array<!Object>} json
+   * @param {!../utils/jwt.JwtHelper} jwtHelper
    * @return {!Array<!Entitlement>}
    */
-  static parseListFromJson(json) {
+  static parseListFromJson(json, jwtHelper) {
     const jsonList = Array.isArray(json)
       ? /** @type {!Array<Object>} */ (json)
       : [json];
-    return jsonList.map((json) => Entitlement.parseFromJson(json));
+    return jsonList.map((json) => Entitlement.parseFromJson(json, jwtHelper));
   }
 
   /**

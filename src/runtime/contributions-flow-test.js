@@ -180,7 +180,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_',
+        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&publicationId=pub1',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',
@@ -208,7 +208,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA',
+        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
         {
           _client: 'SwG $internalRuntimeVersion$',
           publicationId: 'pub1',

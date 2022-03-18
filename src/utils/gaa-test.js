@@ -34,7 +34,6 @@ import {
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-  gaaNotifySignIn,
   queryStringHasFreshGaaParams,
 } from './gaa';
 import {I18N_STRINGS} from '../i18n/strings';
@@ -986,6 +985,21 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         PUBLISHER_NAME
       );
     });
+
+    it('gets the publisher name from graph construct', () => {
+      self.document.head.innerHTML = `
+        <script type="application/ld+json">
+          [{
+            "@context": "http://schema.org",
+            "@graph": [${ARTICLE_LD_JSON_METADATA}]
+          }]
+        </script>
+      `;
+
+      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
+        PUBLISHER_NAME
+      );
+    });
   });
 });
 
@@ -1026,9 +1040,9 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogleSignInButton.show.
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
+      style.remove();
+    }
 
     self.console.warn.restore();
   });
@@ -1288,9 +1302,9 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaSignInWithGoogleButton.show.
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
+      style.remove();
+    }
 
     self.console.warn.restore();
   });
@@ -1316,14 +1330,20 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       ]);
 
       const argsRender = self.google.accounts.id.renderButton.args;
+      const buttonEl = self.document.getElementById(
+        SIGN_IN_WITH_GOOGLE_BUTTON_ID
+      );
+
       expect(argsRender).to.deep.equal([
         [
-          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+          buttonEl,
           {
             'type': 'standard',
             'theme': 'outline',
             'text': 'continue_with',
             'logo_alignment': 'center',
+            'width': buttonEl.offsetWidth,
+            'height': buttonEl.offsetHeight,
           },
         ],
       ]);
@@ -1390,9 +1410,44 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
     });
 
     it('sends post message with GAA user', async () => {
+      // Mock encrypted GIS response with JWT object.
+      const jwtRaw = {
+        credential: {
+          payload:
+            'eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2NDE5OTU5MzgsImF1ZCI6IjQ3MzExNjQ0Mzk1OC12ajkwaDJrbW92cm9zZXUydWhrdnVxNGNjZ3ZldW43My5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExNzE5ODI3Njk2NjYyOTcxNjg0MSIsImhkIjoiZ29vZ2xlLmNvbSIsImVtYWlsIjoiZWRiaXJkQGdvb2dsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXpwIjoiNDczMTE2NDQzOTU4LXZqOTBoMmttb3Zyb3NldTJ1aGt2dXE0Y2NndmV1bjczLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiaWF0IjoxNjQxOTk2MjM4LCJleHAiOjE2NDE5OTk4MzgsImp0aSI6IjA4MGQ3Y2FiNzAyZDEyYWU1MzJjYzc3YTExNDk3NGI4OThjNmFjNTYifQ',
+        },
+      };
+
+      // Mock decrypted GIS response with JWT object.
+      const jwtDecoded = {
+        credential: {
+          /* eslint-disable google-camelcase/google-camelcase */
+          payload: {
+            iss: 'https://accounts.google.com', // The JWT's issuer
+            nbf: 161803398874,
+            aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
+            sub: '3141592653589793238', // The unique ID of the user's Google Account
+            hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
+            email: 'elisa.g.beckett@gmail.com', // The user's email address
+            email_verified: true, // true, if Google has verified the email address
+            azp: '314159265-pi.apps.googleusercontent.com',
+            name: 'Elisa Beckett',
+            // If present, a URL to user's profile picture
+            picture:
+              'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
+            given_name: 'Elisa',
+            family_name: 'Beckett',
+            iat: 1596474000, // Unix timestamp of the assertion's creation time
+            exp: 1596477600, // Unix timestamp of the assertion's expiration time
+            jti: 'abc161803398874def',
+          },
+          /* eslint-enable google-camelcase/google-camelcase */
+        },
+      };
+	  
       // Mock JWT decoding function.
-      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((credential) => {
-        return credential;
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
+        return jwtDecoded.credential;
       });
 
       GaaSignInWithGoogleButton.show({
@@ -1411,8 +1466,8 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       clock.tick(100);
       await tick(10);
       // Send JWT.
-      args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
-
+      args[0][0].callback(jwtRaw);
+	  
       // Wait for post message.
       await new Promise((resolve) => {
         sandbox.stub(self, 'postMessage').callsFake(() => {
@@ -1420,15 +1475,94 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
         });
       });
 
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
-          command: POST_MESSAGE_COMMAND_USER,
-          jwtPayload: SIGN_IN_WITH_GOOGLE_JWT.credential,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
+	  expect(self.postMessage).to.be.calledWithExactly(
+	         {
+	           command: POST_MESSAGE_COMMAND_USER,
+	           jwtPayload: jwtDecoded.credential,
+	           returnedJwt: jwtDecoded.credential,
+	           stamp: POST_MESSAGE_STAMP,
+	         },
+	         location.origin
+	       );
+	     });
+
+	     it('sends post message with GAA user while requesting raw JWT', async () => {
+	       // Mock encrypted GIS response with JWT object.
+	       const jwtRaw = {
+	         credential: {
+	           payload:
+	             'eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2NDE5OTU5MzgsImF1ZCI6IjQ3MzExNjQ0Mzk1OC12ajkwaDJrbW92cm9zZXUydWhrdnVxNGNjZ3ZldW43My5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExNzE5ODI3Njk2NjYyOTcxNjg0MSIsImhkIjoiZ29vZ2xlLmNvbSIsImVtYWlsIjoiZWRiaXJkQGdvb2dsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXpwIjoiNDczMTE2NDQzOTU4LXZqOTBoMmttb3Zyb3NldTJ1aGt2dXE0Y2NndmV1bjczLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiaWF0IjoxNjQxOTk2MjM4LCJleHAiOjE2NDE5OTk4MzgsImp0aSI6IjA4MGQ3Y2FiNzAyZDEyYWU1MzJjYzc3YTExNDk3NGI4OThjNmFjNTYifQ',
+	         },
+	       };
+
+	       // Mock decrypted GIS response with JWT object.
+	       const jwtDecoded = {
+	         credential: {
+	           /* eslint-disable google-camelcase/google-camelcase */
+	           payload: {
+	             iss: 'https://accounts.google.com', // The JWT's issuer
+	             nbf: 161803398874,
+	             aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
+	             sub: '3141592653589793238', // The unique ID of the user's Google Account
+	             hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
+	             email: 'elisa.g.beckett@gmail.com', // The user's email address
+	             email_verified: true, // true, if Google has verified the email address
+	             azp: '314159265-pi.apps.googleusercontent.com',
+	             name: 'Elisa Beckett',
+	             // If present, a URL to user's profile picture
+	             picture:
+	               'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
+	             given_name: 'Elisa',
+	             family_name: 'Beckett',
+	             iat: 1596474000, // Unix timestamp of the assertion's creation time
+	             exp: 1596477600, // Unix timestamp of the assertion's expiration time
+	             jti: 'abc161803398874def',
+	           },
+	           /* eslint-enable google-camelcase/google-camelcase */
+	         },
+	       };
+
+	       // Mock JWT decoding function.
+	       sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
+	         return jwtDecoded.credential;
+	       });
+
+	       GaaSignInWithGoogleButton.show({
+	         clientId,
+	         allowedOrigins,
+	         rawJwt: true,
+	       });
+
+	       // Send intro post message.
+	       postMessage({
+	         stamp: POST_MESSAGE_STAMP,
+	         command: POST_MESSAGE_COMMAND_INTRODUCTION,
+	       });
+
+	       const args = self.google.accounts.id.initialize.args;
+	       // Wait for promises and intervals to resolve.
+	       clock.tick(100);
+	       await tick(10);
+	       // Send JWT.
+	       args[0][0].callback(jwtRaw);
+
+	       // Wait for post message.
+	       await new Promise((resolve) => {
+	         sandbox.stub(self, 'postMessage').callsFake(() => {
+	           resolve();
+	         });
+	       });
+
+	       expect(self.postMessage).to.be.calledWithExactly(
+	         {
+	           command: POST_MESSAGE_COMMAND_USER,
+	           jwtPayload: jwtDecoded.credential,
+	           returnedJwt: jwtRaw,
+	           stamp: POST_MESSAGE_STAMP,
+	         },
+	         location.origin
+	       );
+	     });
 
     it('sends errors to parent', async () => {
       self.google.accounts.id.initialize = sandbox.fake.throws(
@@ -1522,9 +1656,9 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     GaaUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogle3pSignInButton.show.
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
+    for (const style of [...self.document.head.querySelectorAll('style')]) {
+      style.remove();
+    }
 
     self.console.warn.restore();
   });
@@ -1674,36 +1808,36 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       }
     });
   });
-});
 
-describes.realWin('gaaNotifySignIn', {}, () => {
-  it('posts message when passed a user', () => {
-    self.opener = self;
-    sandbox.stub(self, 'postMessage');
-    const gaaUser = {
-      email: 'email',
-      familyName: 'familyName',
-      givenName: 'givenName',
-      idToken: 'idToken',
-      imageUrl: 'imageUrl',
-      name: 'name',
-      authorizationData: {
-        /* eslint-disable google-camelcase/google-camelcase */
-        access_token: 'accessToken',
-        id_token: 'idToken',
-        scope: 'scope',
-        expires_in: 0,
-        first_issued_at: 0,
-        expires_at: 0,
-        /* eslint-enable google-camelcase/google-camelcase */
-      },
-    };
-    gaaNotifySignIn.bind(self, {gaaUser})();
+  describe('gaaNotifySignIn', () => {
+    it('posts message when passed a user', () => {
+      self.opener = self;
+      sandbox.stub(self, 'postMessage');
+      const gaaUser = {
+        email: 'email',
+        familyName: 'familyName',
+        givenName: 'givenName',
+        idToken: 'idToken',
+        imageUrl: 'imageUrl',
+        name: 'name',
+        authorizationData: {
+          /* eslint-disable google-camelcase/google-camelcase */
+          access_token: 'accessToken',
+          id_token: 'idToken',
+          scope: 'scope',
+          expires_in: 0,
+          first_issued_at: 0,
+          expires_at: 0,
+          /* eslint-enable google-camelcase/google-camelcase */
+        },
+      };
+      GaaGoogle3pSignInButton.gaaNotifySignIn({gaaUser});
 
-    expect(self.postMessage).to.have.been.calledWithExactly({
-      stamp: POST_MESSAGE_STAMP,
-      command: POST_MESSAGE_COMMAND_USER,
-      gaaUser,
+      expect(self.postMessage).to.have.been.calledWithExactly({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser,
+      });
     });
   });
 });

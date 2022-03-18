@@ -355,10 +355,13 @@ export class PayCompleteFlow {
         publicationId: args.publicationId,
         offerId: this.sku_,
         origin: parseUrl(this.win_.location.href).origin,
+        isPaid: true,
+        checkOrderStatus: true,
       });
       if (response.requestMetadata) {
         urlParams.canonicalUrl = response.requestMetadata.contentId;
         urlParams.isAnonymous = response.requestMetadata.anonymous;
+        args['contentTitle'] = response.requestMetadata.contentTitle;
       }
 
       // Add feArgs to be passed via activities.
@@ -401,6 +404,11 @@ export class PayCompleteFlow {
         });
 
         this.readyPromise_ = this.dialogManager_.openView(activityIframeView);
+
+        this.readyPromise_.then(() => {
+          this.deps_.callbacks().triggerPayConfirmOpened(activityIframeView);
+        });
+
         return activityIframeView;
       }));
   }
@@ -548,6 +556,11 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
         productType =
           (data['paymentRequest']['i'] || {})['productType'] ||
           ProductType.SUBSCRIPTION;
+      }
+      // Set productType if paymentRequest is not present, which happens
+      // if the pay flow was opened in redirect mode.
+      else if ('productType' in data) {
+        productType = data['productType'];
       }
     }
   }

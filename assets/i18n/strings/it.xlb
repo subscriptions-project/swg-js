@@ -6,7 +6,7 @@
 
 
 <msg name="SHOWCASE_REGWALL_TITLE">Con Google puoi avere di più</msg>
-<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Generalmente questi contenuti sono a pagamento, ma Google ti offre accesso gratuito a questo articolo e ad altri articoli se ti registri a <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando il tuo Account Google.</msg>
+<msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Generalmente questi contenuti sono a pagamento, ma Google ti offre accesso gratuito a questo e ad altri articoli se ti registri a <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando il tuo Account Google.</msg>
 <msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Hai già un account?</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Accedi con Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Rileggi i <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>termini della legge CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> di <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>

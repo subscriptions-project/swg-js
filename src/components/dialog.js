@@ -281,16 +281,13 @@ export class Dialog {
   close(animated = true) {
     let animating;
     if (animated) {
+      const transitionStyles = this.shouldPositionCenter_()
+        ? {'opacity': 0}
+        : {'transform': 'translateY(100%)'};
+
       animating = this.animate_(() => {
         this.graypane_.hide(/* animate */ true);
-        return transition(
-          this.getElement(),
-          {
-            'transform': 'translateY(100%)',
-          },
-          300,
-          'ease-out'
-        );
+        return transition(this.getElement(), transitionStyles, 300, 'ease-out');
       });
     } else {
       animating = Promise.resolve();

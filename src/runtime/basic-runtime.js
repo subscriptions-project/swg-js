@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
+import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
+import {isExperimentOn} from './experiments';
 import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
@@ -81,7 +84,9 @@ export function installBasicRuntime(win) {
 
   // Queue up any callbacks the publication might have provided.
   const waitingCallbacks = [].concat(win[BASIC_RUNTIME_PROP]);
-  waitingCallbacks.forEach(callWhenRuntimeIsReady);
+  for (const waitingCallback of waitingCallbacks) {
+    callWhenRuntimeIsReady(waitingCallback);
+  }
 
   // If any more callbacks are `push`ed to the global SwG Basic variables,
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
@@ -94,6 +99,15 @@ export function installBasicRuntime(win) {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
+
+  // Set the default entitlements response handler to consume a valid metering entitlement.
+  basicRuntime.setOnEntitlementsResponse((entitlementsPromise) => {
+    entitlementsPromise.then((entitlements) => {
+      if (entitlements.enablesThisWithGoogleMetering()) {
+        entitlements.consume();
+      }
+    });
+  });
 }
 
 /**
@@ -280,6 +294,10 @@ export class ConfiguredBasicRuntime {
     integr.configPromise = integr.configPromise || Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
     integr.enableGoogleAnalytics = true;
+    integr.useArticleEndpoint = isExperimentOn(
+      this.win_,
+      ExperimentFlags.USE_ARTICLE_ENDPOINT
+    );
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = integr.fetcher;
@@ -296,11 +314,39 @@ export class ConfiguredBasicRuntime {
     // Do not show toast in swgz.
     this.entitlementsManager().blockNextToast();
 
+    // Enable Google metering in basic runtime by default;
+    this.entitlementsManager().enableMeteredByGoogle();
+
+    // Handle clicks on the Metering Toast's "Subscribe" button.
+    this.configuredClassicRuntime_.setOnNativeSubscribeRequest(() => {
+      this.configuredClassicRuntime_.showOffers();
+    });
+
     // Fetches entitlements.
     this.configuredClassicRuntime_.start();
 
     // Fetch the client config.
-    this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig();
+    this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig(
+      integr.useArticleEndpoint
+        ? // Wait on the entitlements to resolve before accessing the clientConfig
+          this.configuredClassicRuntime_.getEntitlements()
+        : Promise.resolve()
+    );
+
+    // Start listening to Audience Activity events.
+    if (
+      isExperimentOn(
+        this.doc_.getWin(),
+        ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY
+      )
+    ) {
+      /** @private @const {!AudienceActivityEventListener} */
+      this.audienceActivityEventListener_ = new AudienceActivityEventListener(
+        this,
+        this.fetcher_
+      );
+      this.audienceActivityEventListener_.start();
+    }
 
     /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(this);
@@ -463,8 +509,8 @@ export class ConfiguredBasicRuntime {
           })
         ).open();
       } else {
-        // If no entitlements are returned, subscription/contribution offers iframe will show
-        // a toast with label "no subscription/contribution found"
+        // If no entitlements are returned, subscription/contribution offers or audience
+        // action iframe will show a toast with label "no subscription/contribution found"
         const lastOffersFlow =
           this.configuredClassicRuntime_.getLastOffersFlow();
         if (lastOffersFlow) {
@@ -476,6 +522,13 @@ export class ConfiguredBasicRuntime {
           this.configuredClassicRuntime_.getLastContributionsFlow();
         if (lastContributionsFlow) {
           lastContributionsFlow.showNoEntitlementFoundToast();
+          return;
+        }
+
+        const lastAudienceActionFlow =
+          this.autoPromptManager_.getLastAudienceActionFlow();
+        if (lastAudienceActionFlow) {
+          lastAudienceActionFlow.showNoEntitlementFoundToast();
           return;
         }
       }

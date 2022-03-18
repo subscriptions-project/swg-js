@@ -24,6 +24,7 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {XhrFetcher} from './fetcher';
@@ -45,6 +46,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
   let pretendPortWorks;
   let loggedErrors;
   let eventsLoggedToService;
+  let storageMock;
 
   const productId = 'pub1:label1';
   const defEventType = AnalyticsEvent.IMPRESSION_PAYWALL;
@@ -103,6 +105,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       };
     });
     analyticsService = new AnalyticsService(runtime, runtime.fetcher_);
+    storageMock = sandbox.mock(runtime.storage());
     activityIframePort = new ActivityIframePort(
       analyticsService.getElement(),
       feUrl(src),
@@ -162,6 +165,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
   describe('Communications', () => {
     let iframeCallback;
     let expectOpenIframe;
+    let expectSwgUserToken;
 
     beforeEach(() => {
       iframeCallback = null;
@@ -173,6 +177,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
           }
         });
       expectOpenIframe = false;
+      expectSwgUserToken = false;
     });
     afterEach(async () => {
       // Ensure that analytics service registers a callback to listen for when
@@ -182,19 +187,48 @@ describes.realWin('AnalyticsService', {}, (env) => {
         expect(activityPorts.openIframe).to.have.been.calledOnce;
         const args = activityPorts.openIframe.getCall(0).args;
         expect(args[0].nodeName).to.equal('IFRAME');
-        expect(args[1]).to.equal(feUrl(src));
+        const urlParams = expectSwgUserToken
+          ? {sut: 'swgUserToken', publicationId: 'pub1'}
+          : {publicationId: 'pub1'};
+        expect(args[1]).to.equal(feUrl(src, urlParams));
         expect(args[2]).to.be.null;
         expect(args[3]).to.be.true;
       }
     });
 
     it('should call openIframe after client event', () => {
+      analyticsService.setReadyForLogging();
       analyticsService.handleClientEvent_(event);
       expectOpenIframe = true;
+      expectSwgUserToken = false;
+      return activityIframePort.whenReady();
+    });
+
+    it('should call openIframe with swg user token url param if in storage', () => {
+      analyticsService.setReadyForLogging();
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN)
+        .returns(Promise.resolve('swgUserToken'))
+        .once();
+      analyticsService.start();
+      expectOpenIframe = true;
+      expectSwgUserToken = true;
+      return activityIframePort.whenReady();
+    });
+
+    it('should not call openIframe until ready for logging', () => {
+      analyticsService.handleClientEvent_(event);
+      expect(iframeCallback).to.be.null;
+      analyticsService.setReadyForLogging();
+      expectOpenIframe = true;
+      expectSwgUserToken = false;
       return activityIframePort.whenReady();
     });
 
     it('should send message on port and openIframe called only once', async () => {
+      analyticsService.setReadyForLogging();
+
       // This ensures nothing gets sent to the server.
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
 
@@ -213,6 +247,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
       // These ensure the right event was communicated.
       expectOpenIframe = true;
+      expectSwgUserToken = false;
       const call1 = activityIframePort.execute.getCall(0);
       const /* {?AnalyticsRequest} */ request1 = call1.args[0];
       expect(request1.getEvent()).to.equal(AnalyticsEvent.UNKNOWN);
@@ -264,6 +299,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
     describe('SwG Clearcut Service Experiment', () => {
       beforeEach(() => {
+        analyticsService.setReadyForLogging();
+
         // This ensures nothing gets sent to the server.
         sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       });
@@ -283,6 +320,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
         await activityIframePort.whenReady();
 
         expectOpenIframe = true;
+        expectSwgUserToken = false;
         expect(eventsLoggedToService.length).to.equal(0);
       });
 
@@ -303,6 +341,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
         await activityIframePort.whenReady();
 
         expectOpenIframe = true;
+        expectSwgUserToken = false;
         expect(eventsLoggedToService.length).to.equal(1);
       });
     });
@@ -314,6 +353,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
     beforeEach(() => {
       // This ensure nothing gets sent to the server.
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+      analyticsService.setReadyForLogging();
 
       iframeCallback = null;
       sandbox
@@ -406,6 +446,10 @@ describes.realWin('AnalyticsService', {}, (env) => {
   });
 
   describe('Context, experiments & labels', () => {
+    beforeEach(() => {
+      analyticsService.setReadyForLogging();
+    });
+
     it('should create correct context for logging', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       analyticsService.setReadyToPay(true);
@@ -554,6 +598,10 @@ describes.realWin('AnalyticsService', {}, (env) => {
   });
 
   describe('Publisher Events', () => {
+    beforeEach(() => {
+      analyticsService.setReadyForLogging();
+    });
+
     /**
      * Ensure that analytics service is only logging events from the passed
      * originator if shouldLog is true.
