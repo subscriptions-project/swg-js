@@ -2705,69 +2705,6 @@ describes.realWin('GaaMetering', {}, () => {
       });
     });
 
-    it('setOnLoginRequest has invalid userState', async () => {
-      const clock = sandbox.useFakeTimers();
-      location.hash = `#swg.debug=1`;
-      self.document.referrer = 'https://www.google.com';
-
-      GaaUtils.getQueryString.returns(
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
-      );
-
-      GaaMetering.init({
-        params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: [
-            'example.com',
-            'test.com',
-            'localhost',
-            'google.com',
-          ],
-          userState: {
-            granted: false,
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise((resolve) => {
-            const publisherEntitlement = {
-              id: 'user1235',
-              registrationTimestamp: 1602763054,
-              granted: true,
-              grantReason: 'TEST REASON',
-            };
-            resolve(publisherEntitlement);
-          }),
-          publisherEntitlementPromise: new Promise((resolve) => {
-            publisherEntitlement = {
-              granted: false,
-            };
-            resolve(publisherEntitlement);
-          }),
-        },
-      });
-
-      clock.tick(5000);
-      await tick(1000);
-
-      // Click publisher link to trigger a login request.
-      const publisherSignInButtonEl = self.document.querySelector(
-        '#swg-publisher-sign-in-button'
-      );
-      publisherSignInButtonEl.click();
-
-      expect(self.console.log).to.calledWith(
-        '[Subscriptions]',
-        'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
-      );
-
-      expect(self.console.log).to.calledWith(
-        '[Subscriptions]',
-        "Publisher entitlement isn't valid"
-      );
-    });
-
     it('fails for invalid userState', () => {
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
