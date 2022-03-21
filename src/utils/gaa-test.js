@@ -1444,7 +1444,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
           /* eslint-enable google-camelcase/google-camelcase */
         },
       };
-	  
+
       // Mock JWT decoding function.
       sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
         return jwtDecoded.credential;
@@ -1467,7 +1467,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       await tick(10);
       // Send JWT.
       args[0][0].callback(jwtRaw);
-	  
+
       // Wait for post message.
       await new Promise((resolve) => {
         sandbox.stub(self, 'postMessage').callsFake(() => {
@@ -1475,94 +1475,94 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
         });
       });
 
-	  expect(self.postMessage).to.be.calledWithExactly(
-	         {
-	           command: POST_MESSAGE_COMMAND_USER,
-	           jwtPayload: jwtDecoded.credential,
-	           returnedJwt: jwtDecoded.credential,
-	           stamp: POST_MESSAGE_STAMP,
-	         },
-	         location.origin
-	       );
-	     });
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_USER,
+          jwtPayload: jwtDecoded.credential,
+          returnedJwt: jwtDecoded.credential,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
 
-	     it('sends post message with GAA user while requesting raw JWT', async () => {
-	       // Mock encrypted GIS response with JWT object.
-	       const jwtRaw = {
-	         credential: {
-	           payload:
-	             'eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2NDE5OTU5MzgsImF1ZCI6IjQ3MzExNjQ0Mzk1OC12ajkwaDJrbW92cm9zZXUydWhrdnVxNGNjZ3ZldW43My5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExNzE5ODI3Njk2NjYyOTcxNjg0MSIsImhkIjoiZ29vZ2xlLmNvbSIsImVtYWlsIjoiZWRiaXJkQGdvb2dsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXpwIjoiNDczMTE2NDQzOTU4LXZqOTBoMmttb3Zyb3NldTJ1aGt2dXE0Y2NndmV1bjczLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiaWF0IjoxNjQxOTk2MjM4LCJleHAiOjE2NDE5OTk4MzgsImp0aSI6IjA4MGQ3Y2FiNzAyZDEyYWU1MzJjYzc3YTExNDk3NGI4OThjNmFjNTYifQ',
-	         },
-	       };
+    it('sends post message with GAA user while requesting raw JWT', async () => {
+      // Mock encrypted GIS response with JWT object.
+      const jwtRaw = {
+        credential: {
+          payload:
+            'eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2NDE5OTU5MzgsImF1ZCI6IjQ3MzExNjQ0Mzk1OC12ajkwaDJrbW92cm9zZXUydWhrdnVxNGNjZ3ZldW43My5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExNzE5ODI3Njk2NjYyOTcxNjg0MSIsImhkIjoiZ29vZ2xlLmNvbSIsImVtYWlsIjoiZWRiaXJkQGdvb2dsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXpwIjoiNDczMTE2NDQzOTU4LXZqOTBoMmttb3Zyb3NldTJ1aGt2dXE0Y2NndmV1bjczLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiaWF0IjoxNjQxOTk2MjM4LCJleHAiOjE2NDE5OTk4MzgsImp0aSI6IjA4MGQ3Y2FiNzAyZDEyYWU1MzJjYzc3YTExNDk3NGI4OThjNmFjNTYifQ',
+        },
+      };
 
-	       // Mock decrypted GIS response with JWT object.
-	       const jwtDecoded = {
-	         credential: {
-	           /* eslint-disable google-camelcase/google-camelcase */
-	           payload: {
-	             iss: 'https://accounts.google.com', // The JWT's issuer
-	             nbf: 161803398874,
-	             aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
-	             sub: '3141592653589793238', // The unique ID of the user's Google Account
-	             hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
-	             email: 'elisa.g.beckett@gmail.com', // The user's email address
-	             email_verified: true, // true, if Google has verified the email address
-	             azp: '314159265-pi.apps.googleusercontent.com',
-	             name: 'Elisa Beckett',
-	             // If present, a URL to user's profile picture
-	             picture:
-	               'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
-	             given_name: 'Elisa',
-	             family_name: 'Beckett',
-	             iat: 1596474000, // Unix timestamp of the assertion's creation time
-	             exp: 1596477600, // Unix timestamp of the assertion's expiration time
-	             jti: 'abc161803398874def',
-	           },
-	           /* eslint-enable google-camelcase/google-camelcase */
-	         },
-	       };
+      // Mock decrypted GIS response with JWT object.
+      const jwtDecoded = {
+        credential: {
+          /* eslint-disable google-camelcase/google-camelcase */
+          payload: {
+            iss: 'https://accounts.google.com', // The JWT's issuer
+            nbf: 161803398874,
+            aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
+            sub: '3141592653589793238', // The unique ID of the user's Google Account
+            hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
+            email: 'elisa.g.beckett@gmail.com', // The user's email address
+            email_verified: true, // true, if Google has verified the email address
+            azp: '314159265-pi.apps.googleusercontent.com',
+            name: 'Elisa Beckett',
+            // If present, a URL to user's profile picture
+            picture:
+              'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
+            given_name: 'Elisa',
+            family_name: 'Beckett',
+            iat: 1596474000, // Unix timestamp of the assertion's creation time
+            exp: 1596477600, // Unix timestamp of the assertion's expiration time
+            jti: 'abc161803398874def',
+          },
+          /* eslint-enable google-camelcase/google-camelcase */
+        },
+      };
 
-	       // Mock JWT decoding function.
-	       sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
-	         return jwtDecoded.credential;
-	       });
+      // Mock JWT decoding function.
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
+        return jwtDecoded.credential;
+      });
 
-	       GaaSignInWithGoogleButton.show({
-	         clientId,
-	         allowedOrigins,
-	         rawJwt: true,
-	       });
+      GaaSignInWithGoogleButton.show({
+        clientId,
+        allowedOrigins,
+        rawJwt: true,
+      });
 
-	       // Send intro post message.
-	       postMessage({
-	         stamp: POST_MESSAGE_STAMP,
-	         command: POST_MESSAGE_COMMAND_INTRODUCTION,
-	       });
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
 
-	       const args = self.google.accounts.id.initialize.args;
-	       // Wait for promises and intervals to resolve.
-	       clock.tick(100);
-	       await tick(10);
-	       // Send JWT.
-	       args[0][0].callback(jwtRaw);
+      const args = self.google.accounts.id.initialize.args;
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+      // Send JWT.
+      args[0][0].callback(jwtRaw);
 
-	       // Wait for post message.
-	       await new Promise((resolve) => {
-	         sandbox.stub(self, 'postMessage').callsFake(() => {
-	           resolve();
-	         });
-	       });
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
 
-	       expect(self.postMessage).to.be.calledWithExactly(
-	         {
-	           command: POST_MESSAGE_COMMAND_USER,
-	           jwtPayload: jwtDecoded.credential,
-	           returnedJwt: jwtRaw,
-	           stamp: POST_MESSAGE_STAMP,
-	         },
-	         location.origin
-	       );
-	     });
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_USER,
+          jwtPayload: jwtDecoded.credential,
+          returnedJwt: jwtRaw,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
 
     it('sends errors to parent', async () => {
       self.google.accounts.id.initialize = sandbox.fake.throws(
@@ -2491,13 +2491,13 @@ describes.realWin('GaaMetering', {}, () => {
 
     it('GaaMetering.gaaUser equal to input', async () => {
       GaaMetering.setGaaUser('setting gaaUser test');
-      let gaaUser = await GaaMetering.getGaaUser();
+      const gaaUser = await GaaMetering.getGaaUser();
       expect(gaaUser).to.equal('setting gaaUser test');
     });
 
     it('GaaMetering.getGaaUser returning GaaMetering.gaaUser', async () => {
       GaaMetering.setGaaUser('test gaaUser');
-      let gaaUser = await GaaMetering.getGaaUser();
+      const gaaUser = await GaaMetering.getGaaUser();
       expect(gaaUser).to.equal('test gaaUser');
     });
   });
@@ -2706,7 +2706,7 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('setOnLoginRequest has invalid userState', async () => {
-      let clock = sandbox.useFakeTimers();
+      const clock = sandbox.useFakeTimers();
       location.hash = `#swg.debug=1`;
       self.document.referrer = 'https://www.google.com';
 
@@ -2724,7 +2724,7 @@ describes.realWin('GaaMetering', {}, () => {
             'google.com',
           ],
           userState: {
-            granted: false
+            granted: false,
           },
           unlockArticle: function () {},
           showPaywall: function () {},
@@ -2739,12 +2739,12 @@ describes.realWin('GaaMetering', {}, () => {
             };
             resolve(publisherEntitlement);
           }),
-          publisherEntitlementPromise: new Promise ((resolve) => {
+          publisherEntitlementPromise: new Promise((resolve) => {
             publisherEntitlement = {
               granted: false,
             };
             resolve(publisherEntitlement);
-          })
+          }),
         },
       });
 
@@ -3034,22 +3034,22 @@ describes.realWin('GaaMetering', {}, () => {
           userState: {
             id: 'user1235',
             registrationTimestamp: 1602763054,
-            granted: false
+            granted: false,
           },
           unlockArticle: function () {},
           showPaywall: function () {},
           handleSwGEntitlement: function () {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise ((resolve) => {
-            let publisherEntitlement = {
+          publisherEntitlementPromise: new Promise((resolve) => {
+            const publisherEntitlement = {
               id: 'user1235',
               registrationTimestamp: 1602763054,
-              granted: false
+              granted: false,
             };
             resolve(publisherEntitlement);
-          })
-        }
+          }),
+        },
       });
 
       await tick();
@@ -3078,7 +3078,7 @@ describes.realWin('GaaMetering', {}, () => {
             'google.com',
           ],
           userState: {
-            granted: false
+            granted: false,
           },
           unlockArticle: function () {},
           showPaywall: function () {},
@@ -3086,10 +3086,10 @@ describes.realWin('GaaMetering', {}, () => {
           handleSwGEntitlement: function () {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise ((resolve) => {
-            resolve({ granted: false });
-          })
-        }
+          publisherEntitlementPromise: new Promise((resolve) => {
+            resolve({granted: false});
+          }),
+        },
       });
 
       await tick();
@@ -3112,22 +3112,22 @@ describes.realWin('GaaMetering', {}, () => {
       sandbox.stub(GaaMeteringRegwall, 'showWithNativeRegistrationButton');
       GaaMeteringRegwall.showWithNativeRegistrationButton.returns(
         new Promise((resolve) => {
-          let jwt = {
-            "iss": "https://accounts.google.com",
-            "nbf": 12345678,
-            "aud": GOOGLE_API_CLIENT_ID,
-            "sub": "1234567890",
-            "hd": "google.com",
-            "email": "test@google.com",
-            "email_verified": true,
-            "azp": GOOGLE_API_CLIENT_ID,
-            "name": "John Doe",
-            "picture": "https://lh3.googleusercontent.com/a-/abcdefghij",
-            "given_name": "John",
-            "family_name": "Doe",
-            "iat": 12345678,
-            "exp": 23456789,
-            "jti": "09b26e0c719e14870fe4bcf1ec42ce21b098b419"
+          const jwt = {
+            'iss': 'https://accounts.google.com',
+            'nbf': 12345678,
+            'aud': GOOGLE_API_CLIENT_ID,
+            'sub': '1234567890',
+            'hd': 'google.com',
+            'email': 'test@google.com',
+            'email_verified': true,
+            'azp': GOOGLE_API_CLIENT_ID,
+            'name': 'John Doe',
+            'picture': 'https://lh3.googleusercontent.com/a-/abcdefghij',
+            'given_name': 'John',
+            'family_name': 'Doe',
+            'iat': 12345678,
+            'exp': 23456789,
+            'jti': '09b26e0c719e14870fe4bcf1ec42ce21b098b419',
           };
           resolve(jwt);
         })
@@ -3137,29 +3137,29 @@ describes.realWin('GaaMetering', {}, () => {
       GaaMetering.init({
         params: {
           googleSignInClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: ['example.com','test.com','localhost'],
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
-            granted: false
+            granted: false,
           },
           unlockArticle: function () {},
           showPaywall: function () {},
           handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise (async (resolve) => {
-            let gaaUser = await GaaMetering.getGaaUser();
-            let userState = {
+          registerUserPromise: new Promise(async (resolve) => {
+            const gaaUser = await GaaMetering.getGaaUser();
+            const userState = {
               id: gaaUser.email,
               registrationTimestamp: Date.now() / 1000,
-              granted: false
+              granted: false,
             };
             resolve(userState);
           }),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise ((resolve) => {
-            let publisherEntitlement = {
+          publisherEntitlementPromise: new Promise((resolve) => {
+            const publisherEntitlement = {
               granted: false,
             };
             resolve(publisherEntitlement);
-          })
+          }),
         },
       });
 

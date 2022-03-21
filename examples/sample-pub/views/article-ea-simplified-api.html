@@ -15,8 +15,7 @@
     <meta name="theme-color" content="#37dc8c">
     <link rel="apple-touch-icon" href="./icons/icon-2x.png">
     <meta name="msapplication-TileImage" content="./icons/icon-2x.png">
-    <meta name="msapplication-TileColor" content="#37dc8c">
-    <meta name="google-signin-client_id" content="520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com">
+    <meta name="msapplication-TileColor" content="#37dc8c">ßß
 
     <style>
       .paywalled-section {
@@ -46,6 +45,11 @@
       }
     </style>
 
+
+    <!--
+      Do not copy the structured data below.
+      See more at https://developers.google.com/news/subscribe/guides/structured-data-markup?hl=en
+    -->
     <script type="application/ld+json">
     {
       "@context": "http://schema.org",
@@ -84,6 +88,8 @@
   <body>
     <script>
       // Provide a shortcut to metering params.
+      // Do not copy the constant and see documentation at:
+      // https://developers.google.com/news/subscribe/extended-access/reference/google-article-access-parameters
       const urlParams = new URLSearchParams(location.search);
       if (urlParams.has('metering')) {
         let newSearch = 'gaa_at=g&gaa_ts=99999999&gaa_n=n0nc3&gaa_sig=51g';        
@@ -95,7 +101,7 @@
         MeteringDemo.setupLanguage();
       });
 
-      // Your Google API Client ID and can be found at:
+      // Do not copy the constant and see documentation at:
       // https://support.google.com/news/publisher-center/answer/11601854#API_client_ID
       // A Client ID looks like the following example:
       const googleApiClientId = '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com'
@@ -103,13 +109,19 @@
       // Array with all allowed hosts that can refer users to your article pages.
       // This is used if you redirect users or refresh the page during the Handle registration
       // for new users or Handle login for existing users flows.
+      // Do not copy the constant and see documentation at:
+      // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#initialize-the-extended-access-library
       const allowedReferrers = ["example.com","test.com","localhost"]
 
       // User's Showcase entitlement determined on your server
       // Optional - server side only
+      // Do not copy the constant and see documentation at:
+      // https://developers.google.com/news/subscribe/guides/check-for-entitlements-on-web
       const showcaseEntitlement = urlParams.get("showcaseEntitlement");
 
       // The userState object for the current user.
+      // Do not copy the implementation for the callback and see documentation for your own implementation at:
+      // https://developers.google.com/news/subscribe/extended-access/reference/user-state-object
       function getUserState() {
         return {
           // id: 'user123456789',
@@ -131,6 +143,8 @@
       // Callback that must ensure the publisher’s standard paywall is shown to the user.
       // This is used when Extended Access is not granted to the user or if the user
       // clicks “Subscribe” on the Extended Access prompt.
+      // Do not copy the implementation for the callback and see documentation for your own implementation at:
+      // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#handle-extended-access-grants
       function showPaywall() {
         console.log('Example: show paywall');
         document.documentElement.classList.remove('open-paywall');
@@ -138,6 +152,8 @@
 
       // Callback that must unlock the current article which is called when Google is
       // granting Extended Access to the user.
+      // Do not copy the implementation for the callback and see documentation for your own implementation at:
+      // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#handle-extended-access-grants
       function unlockArticle() {
         console.log('Example: unlock article');
         document.documentElement.classList.add('open-paywall');
@@ -145,17 +161,12 @@
       
       // Only relevant for publishers doing Subscribe with Google. 
       // Callback that will be triggered if the user is a Subscribe with Google subscriber.
+      // Do not copy the implementation for the callback and see documentation for your own implementation at:
+      // https://developers.google.com/news/subscribe/guides/check-for-entitlements-on-web
       function handleSwGEntitlement() {
         console.log('Example: handle swg entitlement');
         unlockArticle();
       }
-
-      /*
-       * Publisher-defined promises.
-       *
-       * The simplest implementation of registerUserPromise, handleLoginPromise,
-       * and publisherEntitlementPromise.
-       */
 
       function decodeJwtResponse(payload) {
         // decodeJwtResponse() is a custom function defined by you
@@ -170,8 +181,17 @@
         return payloadDecoded;
       }
 
+      /*
+       * Publisher-defined promises.
+       *
+       * The simplest implementation of registerUserPromise, handleLoginPromise,
+       * and publisherEntitlementPromise.
+       */
+
       // Get userState by passing the gaaUser object to your registration endpoint server
       // Takes the registration JWT and returns an updated userState object for the newly registered user.
+      // Do not copy the implementation for the promise and see documentation for your own implementation at:
+      // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#handle-registration-for-new-users
       registerUserPromise = new Promise (async (resolve) => {
         // gaaUser - registration JWT that is returned by Sign In with Google
         // https://developers.google.com/identity/gsi/web/reference/js-reference?hl=en#credential
@@ -190,6 +210,8 @@
 
       // Allows the user to login to an existing publisher account and must resolve
       // with an updated userState object for the newly logged-in user.
+      // Do not copy the implementation for the promise and see documentation for your own implementation at:
+      // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#handle-login-for-existing-users
       handleLoginPromise = new Promise ((resolve) => {
         // Example body of the promise returning a userState object
         userState = {
@@ -203,6 +225,8 @@
       // Get userState by passing the gaaUser object to your registration endpoint server
       // Resolves with the current user’s entitlements from the publisher
       // Optional - required only if your userState object doesn't contain the publisherEntitlement already
+      // Do not copy the implementation for the promise and see documentation for your own implementation at:
+      // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#creating-the-users-entitlement-state
       publisherEntitlementPromise = new Promise ((resolve) => {
         // Example body of the promise returning a publisherEntitlement object
         publisherEntitlement = {
@@ -211,6 +235,8 @@
         resolve(publisherEntitlement);
       });
         
+      // Do not copy the parameters bellow. See documentation at:
+      // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#initialize-the-extended-access-library
       GaaMetering.init({
         params: {
           googleSignInClientId: googleApiClientId,

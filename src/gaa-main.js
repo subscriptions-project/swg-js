@@ -22,9 +22,9 @@
 import {
   GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
+  GaaMetering,
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
-  GaaMetering,
 } from './utils/gaa';
 import {log} from './utils/log';
 

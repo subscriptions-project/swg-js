@@ -1371,8 +1371,8 @@ export class GaaMetering {
   }
 
   static getGaaUser() {
-    if(GaaMetering.gaaUserPromise_ === undefined) {
-      GaaMetering.gaaUserPromise_ = new Promise(function(resolve){
+    if (GaaMetering.gaaUserPromise_ === undefined) {
+      GaaMetering.gaaUserPromise_ = new Promise(function (resolve) {
         GaaMetering.gaaUserPromiseResolve_ = resolve;
       });
     }
@@ -1532,8 +1532,7 @@ export class GaaMetering {
       if (!GaaMetering.validateUserState(userState)) {
         debugLog('Invalid userState object');
         return false;
-      } 
-      else if (userState.granted === true) {
+      } else if (userState.granted === true) {
         callSwg((subscriptions) => {
           if (userState.grantReason === 'SUBSCRIBER') {
             // The user has access because they have a subscription
@@ -1560,8 +1559,7 @@ export class GaaMetering {
 
         // User has access from publisher so unlock article
         unlockArticle();
-      } 
-      else {
+      } else {
         checkShowcaseEntitlement(userState);
       }
     }
@@ -1931,7 +1929,7 @@ export class GaaMetering {
           return false;
         }
 
-        if (newUserState.registrationTimestamp > (new Date().getTime() / 1000)) {
+        if (newUserState.registrationTimestamp > new Date().getTime() / 1000) {
           debugLog('userState.registrationTimestamp is in the future');
 
           return false;
@@ -1964,7 +1962,7 @@ export class GaaMetering {
 
         if (
           'subscriptionTimestamp' in newUserState &&
-          newUserState.subscriptionTimestamp > (new Date().getTime() / 1000)
+          newUserState.subscriptionTimestamp > new Date().getTime() / 1000
         ) {
           debugLog('userState.subscriptionTimestamp is in the future');
 
@@ -1973,21 +1971,16 @@ export class GaaMetering {
       }
     }
 
-    if (
-      ('id' in newUserState) ||
-      ('registrationTimestamp' in newUserState)
-    ) {
-        if (!('id' in newUserState)) {
-          debugLog('Missing user ID in userState object');
-          return false;
-        }
+    if ('id' in newUserState || 'registrationTimestamp' in newUserState) {
+      if (!('id' in newUserState)) {
+        debugLog('Missing user ID in userState object');
+        return false;
+      }
 
-        if (!('registrationTimestamp' in newUserState)) {
-          debugLog(
-            'Missing registrationTimestamp in userState object'
-          );
-          return false;
-        }
+      if (!('registrationTimestamp' in newUserState)) {
+        debugLog('Missing registrationTimestamp in userState object');
+        return false;
+      }
     }
 
     return true;
