@@ -41,7 +41,7 @@
     "@storybook/html": "6.4.19",
     "ansi-colors": "4.1.1",
     "autoprefixer": "10.4.4",
-    "babel-loader": "8.2.3",
+    "babel-loader": "8.2.4",
     "babel-plugin-istanbul": "6.1.1",
     "babelify": "10.0.0",
     "bluebird": "3.7.2",
