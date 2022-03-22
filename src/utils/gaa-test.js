@@ -167,12 +167,12 @@ const SIGN_IN_WITH_GOOGLE_JWT = {
     payload: {
       iss: 'https://accounts.google.com', // The JWT's issuer
       nbf: 161803398874,
-      aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
+      aud: GOOGLE_API_CLIENT_ID, // Your server's client ID
       sub: '3141592653589793238', // The unique ID of the user's Google Account
       hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
       email: 'elisa.g.beckett@gmail.com', // The user's email address
       email_verified: true, // true, if Google has verified the email address
-      azp: '314159265-pi.apps.googleusercontent.com',
+      azp: GOOGLE_API_CLIENT_ID,
       name: 'Elisa Beckett',
       // If present, a URL to user's profile picture
       picture:
@@ -2484,21 +2484,15 @@ describes.realWin('GaaMetering', {}, () => {
     });
   });
 
-  describe('setGaaUser and getGaaUser', () => {
+  describe('getGaaUserPromise', () => {
     beforeEach(() => {
-      GaaMetering.gaaUserPromise_ = undefined;
+      GaaMetering.gaaUserPromiseResolve_ = undefined;
     });
-
-    it('GaaMetering.gaaUser equal to input', async () => {
-      GaaMetering.setGaaUser('setting gaaUser test');
-      const gaaUser = await GaaMetering.getGaaUser();
-      expect(gaaUser).to.equal('setting gaaUser test');
-    });
-
-    it('GaaMetering.getGaaUser returning GaaMetering.gaaUser', async () => {
+    it('sets up the promise to return the gaaUser', () => {
+      GaaMetering.getGaaUserPromise().then((gaaUser) => {
+        expect(gaaUser).to.equal('test gaaUser');
+      });
       GaaMetering.setGaaUser('test gaaUser');
-      const gaaUser = await GaaMetering.getGaaUser();
-      expect(gaaUser).to.equal('test gaaUser');
     });
   });
 
@@ -3049,27 +3043,9 @@ describes.realWin('GaaMetering', {}, () => {
       sandbox.stub(GaaMeteringRegwall, 'showWithNativeRegistrationButton');
       GaaMeteringRegwall.showWithNativeRegistrationButton.returns(
         new Promise((resolve) => {
-          const jwt = {
-            'iss': 'https://accounts.google.com',
-            'nbf': 12345678,
-            'aud': GOOGLE_API_CLIENT_ID,
-            'sub': '1234567890',
-            'hd': 'google.com',
-            'email': 'test@google.com',
-            'email_verified': true,
-            'azp': GOOGLE_API_CLIENT_ID,
-            'name': 'John Doe',
-            'picture': 'https://lh3.googleusercontent.com/a-/abcdefghij',
-            'given_name': 'John',
-            'family_name': 'Doe',
-            'iat': 12345678,
-            'exp': 23456789,
-            'jti': '09b26e0c719e14870fe4bcf1ec42ce21b098b419',
-          };
-          resolve(jwt);
+          resolve(SIGN_IN_WITH_GOOGLE_JWT);
         })
       );
-      await GaaMeteringRegwall.showWithNativeRegistrationButton();
 
       GaaMetering.init({
         params: {
@@ -3081,14 +3057,15 @@ describes.realWin('GaaMetering', {}, () => {
           unlockArticle: function () {},
           showPaywall: function () {},
           handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(async (resolve) => {
-            const gaaUser = await GaaMetering.getGaaUser();
-            const userState = {
-              id: gaaUser.email,
-              registrationTimestamp: Date.now() / 1000,
-              granted: false,
-            };
-            resolve(userState);
+          registerUserPromise: new Promise ((resolve) => {
+            GaaMetering.getGaaUserPromise().then((gaaUser) => {
+              let userState = {
+                id: gaaUser.email,
+                registrationTimestamp: Date.now() / 1000,
+                granted: false
+              };
+              resolve(userState);
+            });
           }),
           handleLoginPromise: new Promise(() => {}),
           publisherEntitlementPromise: new Promise((resolve) => {

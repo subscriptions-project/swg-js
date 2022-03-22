@@ -192,20 +192,20 @@
       // Takes the registration JWT and returns an updated userState object for the newly registered user.
       // Do not copy the implementation for the promise and see documentation for your own implementation at:
       // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#handle-registration-for-new-users
-      registerUserPromise = new Promise (async (resolve) => {
-        // gaaUser - registration JWT that is returned by Sign In with Google
-        // https://developers.google.com/identity/gsi/web/reference/js-reference?hl=en#credential
-        const gaaUser = await GaaMetering.getGaaUser();
-        console.log(gaaUser);
-        const gaaUserDecoded = decodeJwtResponse(gaaUser.credential);
+      registerUserPromise = new Promise ((resolve) => {
+        GaaMetering.getGaaUserPromise().then((gaaUser) => {
 
-        // Example body of the promise returning a userState object
-        const userState = {
-          id: btoa(gaaUserDecoded.sub),
-          registrationTimestamp: Math.round(Date.now() / 1000),
-          granted: false
-        };
-        resolve(userState);
+          // gaaUser - registration JWT that is returned by Sign In with Google
+          // https://developers.google.com/identity/gsi/web/reference/js-reference?hl=en#credential
+          const gaaUserDecoded = decodeJwtResponse(gaaUser.credential);
+          // Example body of the promise returning a userState object
+          const userState = {
+            id: btoa(gaaUserDecoded.sub),
+            registrationTimestamp: Math.round(Date.now() / 1000),
+            granted: false
+          };
+          resolve(userState);
+        });
       });
 
       // Allows the user to login to an existing publisher account and must resolve
