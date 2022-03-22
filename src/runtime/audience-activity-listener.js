@@ -89,7 +89,7 @@ export class AudienceActivityEventListener {
           pubId +
           '/audienceactivitylogs' +
           '&sut=' +
-          Constants.USER_TOKEN
+          this.storage_.get(Constants.USER_TOKEN)
       );
       this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
     }
