@@ -3057,12 +3057,12 @@ describes.realWin('GaaMetering', {}, () => {
           unlockArticle: function () {},
           showPaywall: function () {},
           handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise ((resolve) => {
+          registerUserPromise: new Promise((resolve) => {
             GaaMetering.getGaaUserPromise().then((gaaUser) => {
-              let userState = {
+              const userState = {
                 id: gaaUser.email,
                 registrationTimestamp: Date.now() / 1000,
-                granted: false
+                granted: false,
               };
               resolve(userState);
             });
