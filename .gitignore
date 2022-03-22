@@ -19,4 +19,3 @@ typings.json
 build-system/runner/TESTS-TestSuites.xml
 test/coverage
 package-lock.json
-yarn.lock
