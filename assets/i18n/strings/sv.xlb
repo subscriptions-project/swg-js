@@ -7,7 +7,7 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Få mer med Google</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Det krävs vanligtvis betalning för det här innehållet, men Google ger dig gratis åtkomst till artikeln och annat innehåll när du registrerar dig hos <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> med ditt Google-konto.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Har du redan ett konto?</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Har du redan registrerat dig? Logga in</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Logga in med Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Läs <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>villkoren i lagstiftningen CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> för <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
 

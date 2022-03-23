@@ -7,7 +7,7 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Mai multe beneficii cu Google</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Acest conținut este de obicei cu plată, dar Google vă oferă acces fără costuri la acest articol și la altele când vă înregistrați la <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> folosind Contul Google.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Aveți deja un cont?</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">V-ați înregistrat deja? Conectați-vă</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Conectați-vă cu Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Examinați <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Termenii CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> ai <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
 

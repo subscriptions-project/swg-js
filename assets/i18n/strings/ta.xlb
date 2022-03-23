@@ -7,7 +7,7 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Google மூலம் மேலும் பல கட்டுரைகளைப் படியுங்கள்</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>வழக்கமாக இந்த உள்ளடக்கத்தை வாசிக்க கட்டணம் செலுத்த வேண்டியிருக்கும். ஆனால் <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> இல் உங்கள் Google கணக்கைப் பயன்படுத்திப் பதிவுசெய்யும்போது இந்தக் கட்டுரைக்கும் மேலும் பலவற்றுக்கும் Google இலவச அணுகலை வழங்குகிறது.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">ஏற்கெனவே கணக்கு உள்ளதா?</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">ஏற்கெனவே பதிவுசெய்துள்ளீர்களா? உள்நுழைக</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Google மூலம் உள்நுழைக</msg>
 <msg name="SHOWCASE_REGWALL_CASL"><ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> இன் <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL விதிமுறைகளைப்<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> பாருங்கள்</msg>
 
