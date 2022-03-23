@@ -522,7 +522,7 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ caslUrl: string, clientId: string }} params
+   * @param {{ caslUrl: (string|unified), clientId: string }} params
    * @return {!Promise<!GoogleIdentityV1>}
    */
   static showWithNativeRegistrationButton({caslUrl, clientId}) {
@@ -533,7 +533,7 @@ export class GaaMeteringRegwall {
 
     GaaMeteringRegwall.render_({
       iframeUrl: '',
-      caslUrl: '',
+      caslUrl,
       useNativeMode: true,
     });
 
@@ -1626,7 +1626,7 @@ export class GaaMetering {
     if (
       !('googleSignInClientId' in params) ||
       !(typeof params.googleSignInClientId === 'string') ||
-      params.googleSignInClientId.indexOf('.apps.googleusercontent.com') != -1
+      params.googleSignInClientId.indexOf('.apps.googleusercontent.com') == -1
     ) {
       debugLog(
         'Missing googleSignInClientId, or it is not a string, or it is not in a correct format'
@@ -1747,7 +1747,7 @@ export class GaaMetering {
     const referrer = GaaMetering.getAnchorFromUrl(self.document.referrer);
     if (
       !GOOGLE_DOMAIN_RE.test(referrer.hostname) &&
-      publisherReferrers.indexOf(referrer.hostname) != -1
+      publisherReferrers.indexOf(referrer.hostname) == -1
     ) {
       // Real publications should bail if this referrer check fails.
       // This script is only logging a warning for metering demo purposes.
