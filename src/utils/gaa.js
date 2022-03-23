@@ -386,7 +386,7 @@ export let GoogleIdentityV1;
  * GoogleUser object that Google Sign-In returns after users sign in.
  * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
- *   getAuthResponse: function(boolean): {
+ * getAuthResponse: function(boolean): {
  *     access_token: string,
  *     id_token: string,
  *     scope: string,
@@ -404,6 +404,30 @@ export let GoogleIdentityV1;
  * }} GoogleUserDef
  */
 export let GoogleUserDef;
+
+/**
+ * InitParams object that GaaMetering.init accepts
+ * https://developers.google.com/news/subscribe/extended-access/overview
+ * @typedef {{
+ * allowedReferrers: (Array<string>|null),
+ * googleSignInClientId: string,
+ * handleLoginPromise: (Promise|null),
+ * handleSwGEntitlement: function(): ?,
+ * publisherEntitlementPromise: (Promise|null),
+ * registerUserPromise: (Promise|null),
+ * showPaywall: function(): ?,
+ * showcaseEntitlement: string,
+ * unlockArticle: function(): ?,
+ * userState: {
+ *   grantReason: string,
+ *   granted: boolean,
+ *   id: string,
+ *   registrationTimestamp: number,
+ *   subscriptionTimestamp: number
+ * }
+ * }} InitParams
+ */
+export let InitParams;
 
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
@@ -474,7 +498,7 @@ export class GaaMeteringRegwall {
       isFromUserAction: false,
     });
 
-    GaaMeteringRegwall.render_({iframeUrl, caslUrl});
+    GaaMeteringRegwall.render_({iframeUrl, caslUrl, useNativeMode: false});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     GaaMeteringRegwall.logButtonClickEvents_();
     return GaaMeteringRegwall.getGaaUser_()
@@ -507,7 +531,11 @@ export class GaaMeteringRegwall {
       isFromUserAction: false,
     });
 
-    GaaMeteringRegwall.render_({caslUrl, useNativeMode: true});
+    GaaMeteringRegwall.render_({
+      iframeUrl: '',
+      caslUrl,
+      useNativeMode: true,
+    });
 
     return GaaMeteringRegwall.createNativeRegistrationButton({clientId})
       .then((jwt) => {
@@ -551,7 +579,7 @@ export class GaaMeteringRegwall {
    * Renders the Regwall.
    * @private
    * @nocollapse
-   * @param {{ iframeUrl: string, caslUrl: string, useNativeMode: boolean }} params
+   * @param {{ iframeUrl: string, caslUrl: string, useNativeMode: boolean}} params
    */
   static render_({iframeUrl, caslUrl, useNativeMode}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
@@ -1359,7 +1387,7 @@ export class GaaUtils {
 }
 
 export class GaaMetering {
-  gaaUserPromiseResolve_;
+  gaaUserPromiseResolve_() {}
 
   static setGaaUser(jwt) {
     GaaMetering.gaaUserPromiseResolve_(jwt);
@@ -1376,6 +1404,11 @@ export class GaaMetering {
     });
   }
 
+  /**
+   * Initialize GaaMetering flow
+   * @nocollapse
+   * @param {{ params: InitParams}} params
+   */
   static init({params}) {
     // Validate GaaMetering parameters
     if (!params || !GaaMetering.validateParameters(params)) {
@@ -1584,11 +1617,16 @@ export class GaaMetering {
     return userState.id !== undefined && userState.id != '';
   }
 
+  /**
+   * Validates parameters for GaaMetering.init flow
+   * @nocollapse
+   * @param {{ params: InitParams}} params
+   */
   static validateParameters(params) {
     if (
       !('googleSignInClientId' in params) ||
       !(typeof params.googleSignInClientId === 'string') ||
-      !params.googleSignInClientId.includes('.apps.googleusercontent.com')
+      params.googleSignInClientId.indexOf('.apps.googleusercontent.com') != -1
     ) {
       debugLog(
         'Missing googleSignInClientId, or it is not a string, or it is not in a correct format'
@@ -1664,9 +1702,22 @@ export class GaaMetering {
       return false;
     }
 
+    const userState = params.userState;
+    /*
     if (
       (!('granted' in params.userState) ||
         (params.userState.granted && !('grantReason' in params.userState))) &&
+      !('publisherEntitlementPromise' in params)
+    ) {
+      debugLog(
+        'Either granted and grantReason have to be supplied or you have to provide pubisherEntitlementPromise'
+      );
+      return false;
+    }
+    */
+    if (
+      (!('granted' in userState) ||
+        (userState.granted && !('grantReason' in userState))) &&
       !('publisherEntitlementPromise' in params)
     ) {
       debugLog(
@@ -1692,7 +1743,7 @@ export class GaaMetering {
     const referrer = GaaMetering.getAnchorFromUrl(self.document.referrer);
     if (
       !GOOGLE_DOMAIN_RE.test(referrer.hostname) &&
-      !publisherReferrers.includes(referrer.hostname)
+      publisherReferrers.indexOf(referrer.hostname) != -1
     ) {
       // Real publications should bail if this referrer check fails.
       // This script is only logging a warning for metering demo purposes.
