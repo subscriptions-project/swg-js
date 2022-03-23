@@ -533,7 +533,7 @@ export class GaaMeteringRegwall {
 
     GaaMeteringRegwall.render_({
       iframeUrl: '',
-      caslUrl,
+      caslUrl: '',
       useNativeMode: true,
     });
 
@@ -1643,7 +1643,7 @@ export class GaaMetering {
 
     const reqFunc = ['unlockArticle', 'showPaywall'];
 
-    for (const reqFuncNo in reqFunc) {
+    for (let reqFuncNo = 0; reqFuncNo < reqFunc.length; reqFuncNo++) {
       if (
         !(
           reqFunc[reqFuncNo] in params &&
@@ -1665,7 +1665,11 @@ export class GaaMetering {
 
     const reqPromise = ['handleLoginPromise', 'registerUserPromise'];
 
-    for (const reqPromiseNo in reqPromise) {
+    for (
+      let reqPromiseNo = 0;
+      reqPromiseNo < reqPromise.length;
+      reqPromiseNo++
+    ) {
       if (
         !(
           reqPromise[reqPromiseNo] in params &&
