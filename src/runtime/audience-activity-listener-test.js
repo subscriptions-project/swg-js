@@ -18,6 +18,7 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {XhrFetcher} from './fetcher';
@@ -30,6 +31,7 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
   let eventsLoggedToService;
   let pageConfig;
   let runtime;
+  let storageMock;
 
   const productId = 'pub1:label1';
 
@@ -47,6 +49,7 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
       .callsFake((callback) => (eventManagerCallback = callback));
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(env.win, pageConfig);
+    storageMock = sandbox.mock(runtime.storage());
     audienceActivityEventListener = new AudienceActivityEventListener(
       runtime,
       runtime.fetcher_
@@ -67,7 +70,12 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
 
   it('should log audience activity events if experiment is turned on', async () => {
     setExperimentsStringForTesting(ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY);
+    storageMock
+      .expects('get')
+      .withExactArgs(Constants.USER_TOKEN, true)
+      .returns(Promise.resolve('abc')).once;
     audienceActivityEventListener.start();
+
     // This triggers an event.
     eventManagerCallback({
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -75,14 +83,13 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
       isFromUserAction: null,
       additionalParameters: null,
     });
-
     expect(eventsLoggedToService.length).to.equal(1);
     expect(eventsLoggedToService[0].getEvent()).to.equal(
       AnalyticsEvent.IMPRESSION_PAYWALL
     );
     const path = new URL(capturedUrl);
     expect(path.pathname).to.equal(
-      '/swg/_/api/v1/publication/pub1/audienceactivitylogs&sut=[object%20Promise]'
+      '/swg/_/api/v1/publication/pub1/audienceactivitylogs&sut=abc'
     );
   });
 

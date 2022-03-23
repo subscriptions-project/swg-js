@@ -19,7 +19,7 @@ import {
   AudienceActivityClientLogsRequest,
 } from '../proto/api_messages';
 import {Constants} from '../utils/constants';
-import {Storage} from './storage';
+// import {Storage} from './storage';
 import {serviceUrl} from './services';
 
 /** @const {!Set<!AnalyticsEvent>} */
@@ -57,7 +57,8 @@ export class AudienceActivityEventListener {
     this.fetcher_ = fetcher;
 
     /** @private @const {!Storage} */
-    this.storage_ = new Storage(this.win_);
+    // this.storage_ = new Storage(this.win_);
+    this.storage_ = deps.storage();
   }
   /**
    * Start listening to client events.
@@ -75,8 +76,9 @@ export class AudienceActivityEventListener {
    * @private
    */
   handleClientEvent_(event) {
+    const swgUserToken = this.storage_.get(Constants.USER_TOKEN, true);
     if (
-      this.storage_.get(Constants.USER_TOKEN) &&
+      swgUserToken &&
       event.eventType &&
       audienceActivityLoggingEvents.has(event.eventType)
     ) {
@@ -89,7 +91,7 @@ export class AudienceActivityEventListener {
           pubId +
           '/audienceactivitylogs' +
           '&sut=' +
-          this.storage_.get(Constants.USER_TOKEN)
+          swgUserToken
       );
       this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
     }
