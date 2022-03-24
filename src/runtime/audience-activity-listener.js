@@ -76,25 +76,29 @@ export class AudienceActivityEventListener {
    * @private
    */
   handleClientEvent_(event) {
-    const swgUserToken = this.storage_.get(Constants.USER_TOKEN, true);
-    if (
-      swgUserToken &&
-      event.eventType &&
-      audienceActivityLoggingEvents.has(event.eventType)
-    ) {
-      const pubId = encodeURIComponent(
-        this.deps_.pageConfig().getPublicationId()
-      );
-      const audienceActivityClientLogsRequest = this.createLogRequest_(event);
-      const url = serviceUrl(
-        '/publication/' +
-          pubId +
-          '/audienceactivitylogs' +
-          '&sut=' +
-          swgUserToken
-      );
-      this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
-    }
+    console.log('handleClientEvent_ ###');
+    this.storage_.get(Constants.USER_TOKEN, true).then((swgUserToken) => {
+      if (
+        swgUserToken &&
+        event.eventType &&
+        audienceActivityLoggingEvents.has(event.eventType)
+      ) {
+        console.log(swgUserToken);
+        const pubId = encodeURIComponent(
+          this.deps_.pageConfig().getPublicationId()
+        );
+        const audienceActivityClientLogsRequest = this.createLogRequest_(event);
+        const url = serviceUrl(
+          '/publication/' +
+            pubId +
+            '/audienceactivitylogs' +
+            '&sut=' +
+            swgUserToken
+        );
+        // const url = serviceUrl(swgUserToken);
+        this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
+      }
+    });
   }
 
   /**

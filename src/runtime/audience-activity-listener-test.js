@@ -19,8 +19,10 @@ import {AudienceActivityEventListener} from './audience-activity-listener';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
+import {DepsDef} from './deps';
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
+import {Storage} from './storage';
 import {XhrFetcher} from './fetcher';
 import {setExperimentsStringForTesting} from './experiments';
 
@@ -32,6 +34,7 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
   let pageConfig;
   let runtime;
   let storageMock;
+  let deps;
 
   const productId = 'pub1:label1';
 
@@ -48,7 +51,12 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake((callback) => (eventManagerCallback = callback));
     pageConfig = new PageConfig(productId);
+    // deps = new DepsDef();
+    // sandbox.stub(deps, 'win').returns(env.win);
+    // sandbox.stub(deps, 'pageConfig').returns(pageConfig);
+    // sandbox.stub(deps, 'storage').returns(storage);
     runtime = new ConfiguredRuntime(env.win, pageConfig);
+    // const storage = new Storage(env.win);
     storageMock = sandbox.mock(runtime.storage());
     audienceActivityEventListener = new AudienceActivityEventListener(
       runtime,
