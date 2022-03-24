@@ -2549,24 +2549,22 @@ describes.realWin('GaaMetering', {}, () => {
 
     it('GaaMetering.init fails the isGaa', () => {
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: ['example.com', 'test.com', 'localhost'],
-          userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-            subscriptionTimestamp: 1602763094,
-            granted: true,
-            grantReason: 'SUBSCRIBER',
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleLogin: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: ['example.com', 'test.com', 'localhost'],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          subscriptionTimestamp: 1602763094,
+          granted: true,
+          grantReason: 'SUBSCRIBER',
         },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
       });
       expect(self.console.log).to.have.been.calledWith(
         '[Subscriptions]',
@@ -2582,29 +2580,27 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(
         GaaMetering.init({
-          params: {
-            googleApiClientId: GOOGLE_API_CLIENT_ID,
-            allowedReferrers: [
-              'example.com',
-              'test.com',
-              'localhost',
-              'google.com',
-            ],
-            userState: {
-              id: 'user1235',
-              registrationTimestamp: 1602763054,
-              subscriptionTimestamp: 1602763094,
-              granted: true,
-              grantReason: 'SUBSCRIBER',
-            },
-            unlockArticle: function () {},
-            showPaywall: function () {},
-            handleLogin: function () {},
-            handleSwGEntitlement: function () {},
-            registerUserPromise: new Promise(() => {}),
-            handleLoginPromise: new Promise(() => {}),
-            publisherEntitlementPromise: new Promise(() => {}),
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: [
+            'example.com',
+            'test.com',
+            'localhost',
+            'google.com',
+          ],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: true,
+            grantReason: 'SUBSCRIBER',
           },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
         })
       );
 
@@ -2627,23 +2623,21 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
 
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: ['example.com', 'test.com', 'localhost'],
-          userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-            granted: true,
-            grantReason: 'METERING',
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleLogin: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: ['example.com', 'test.com', 'localhost'],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          granted: true,
+          grantReason: 'METERING',
         },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
       });
 
       expect(self.console.log).to.calledWith(
@@ -2665,27 +2659,25 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
 
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: [
-            'example.com',
-            'test.com',
-            'localhost',
-            'google.com',
-          ],
-          userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-            granted: true,
-            grantReason: 'FREE',
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          granted: true,
+          grantReason: 'FREE',
         },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
       });
 
       expect(self.console.log).to.calledWith(
@@ -2707,28 +2699,26 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
 
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: [
-            'example.com',
-            'test.com',
-            'localhost',
-            'google.com',
-          ],
-          userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-            granted: true,
-            grantReason: 'TEST REASON',
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleLogin: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          granted: true,
+          grantReason: 'TEST REASON',
         },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
       });
 
       expect(self.console.log).to.calledWith(
@@ -2753,26 +2743,24 @@ describes.realWin('GaaMetering', {}, () => {
       );
       self.document.referrer = 'https://www.google.com';
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: [
-            'example.com',
-            'test.com',
-            'localhost',
-            'google.com',
-          ],
-          userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleLogin: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
         },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
       });
 
       expect(self.console.log).to.calledWith(
@@ -2802,27 +2790,25 @@ describes.realWin('GaaMetering', {}, () => {
       );
       self.document.referrer = 'https://www.google.com';
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: [
-            'example.com',
-            'test.com',
-            'localhost',
-            'google.com',
-          ],
-          userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-          },
-          showcaseEntitlement: 'test showcaseEntitlement',
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleLogin: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
         },
+        showcaseEntitlement: 'test showcaseEntitlement',
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
       });
 
       expect(self.console.log).to.calledWith(
@@ -2854,32 +2840,30 @@ describes.realWin('GaaMetering', {}, () => {
       `;
 
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: [
-            'example.com',
-            'test.com',
-            'localhost',
-            'google.com',
-          ],
-          userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleLogin: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise((resolve) => {
-            const publisherEntitlement = {
-              granted: true,
-              grantReason: 'METERING',
-            };
-            resolve(publisherEntitlement);
-          }),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
         },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          const publisherEntitlement = {
+            granted: true,
+            grantReason: 'METERING',
+          };
+          resolve(publisherEntitlement);
+        }),
       });
 
       await tick();
@@ -2908,32 +2892,30 @@ describes.realWin('GaaMetering', {}, () => {
       `;
 
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: [
-            'example.com',
-            'test.com',
-            'localhost',
-            'google.com',
-          ],
-          userState: {
-            id: 'user1235',
-            registrationTimestamp: 1602763054,
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleLogin: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise((resolve) => {
-            const publisherEntitlement = {
-              granted: true,
-              grantReason: 'TEST REASON',
-            };
-            resolve(publisherEntitlement);
-          }),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
         },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          const publisherEntitlement = {
+            granted: true,
+            grantReason: 'TEST REASON',
+          };
+          resolve(publisherEntitlement);
+        }),
       });
 
       await tick();
@@ -2959,28 +2941,26 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
 
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: ['example.com', 'test.com', 'localhost'],
-          userState: {
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: ['example.com', 'test.com', 'localhost'],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          granted: false,
+        },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          const publisherEntitlement = {
             id: 'user1235',
             registrationTimestamp: 1602763054,
             granted: false,
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise((resolve) => {
-            const publisherEntitlement = {
-              id: 'user1235',
-              registrationTimestamp: 1602763054,
-              granted: false,
-            };
-            resolve(publisherEntitlement);
-          }),
-        },
+          };
+          resolve(publisherEntitlement);
+        }),
       });
 
       await tick();
@@ -3000,27 +2980,25 @@ describes.realWin('GaaMetering', {}, () => {
       self.document.referrer = 'https://www.google.com';
 
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: [
-            'example.com',
-            'test.com',
-            'localhost',
-            'google.com',
-          ],
-          userState: {
-            granted: false,
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleLogin: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise((resolve) => {
-            resolve({granted: false});
-          }),
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          granted: false,
         },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          resolve({granted: false});
+        }),
       });
 
       await tick();
@@ -3048,33 +3026,31 @@ describes.realWin('GaaMetering', {}, () => {
       );
 
       GaaMetering.init({
-        params: {
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          allowedReferrers: ['example.com', 'test.com', 'localhost'],
-          userState: {
-            granted: false,
-          },
-          unlockArticle: function () {},
-          showPaywall: function () {},
-          handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise((resolve) => {
-            GaaMetering.getGaaUserPromise().then((gaaUser) => {
-              const userState = {
-                id: gaaUser.email,
-                registrationTimestamp: Date.now() / 1000,
-                granted: false,
-              };
-              resolve(userState);
-            });
-          }),
-          handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise((resolve) => {
-            const publisherEntitlement = {
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: ['example.com', 'test.com', 'localhost'],
+        userState: {
+          granted: false,
+        },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise((resolve) => {
+          GaaMetering.getGaaUserPromise().then((gaaUser) => {
+            const userState = {
+              id: gaaUser.email,
+              registrationTimestamp: Date.now() / 1000,
               granted: false,
             };
-            resolve(publisherEntitlement);
-          }),
-        },
+            resolve(userState);
+          });
+        }),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          const publisherEntitlement = {
+            granted: false,
+          };
+          resolve(publisherEntitlement);
+        }),
       });
 
       await tick(10);

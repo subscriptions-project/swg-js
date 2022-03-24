@@ -1408,9 +1408,9 @@ export class GaaMetering {
   /**
    * Initialize GaaMetering flow
    * @nocollapse
-   * @param {{ params: InitParams}} params
+   * @param {InitParams} params
    */
-  static init({params}) {
+  static init(params) {
     // Validate GaaMetering parameters
     if (!params || !GaaMetering.validateParameters(params)) {
       debugLog('[gaa.js:GaaMetering.init]: Invalid params.');
@@ -1624,7 +1624,7 @@ export class GaaMetering {
   /**
    * Validates parameters for GaaMetering.init flow
    * @nocollapse
-   * @param {{ params: InitParams}} params
+   * @param {InitParams} params
    */
   static validateParameters(params) {
     if (
