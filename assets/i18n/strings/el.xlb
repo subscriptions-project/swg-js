@@ -7,7 +7,7 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Αποκτήστε περισσότερα με την Google</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Συνήθως απαιτείται πληρωμή για αυτό το περιεχόμενο, αλλά η Google σας προσφέρει πρόσβαση χωρίς χρέωση σε αυτό το άρθρο και σε πολλά ακόμη, εάν εγγραφείτε στην έκδοση <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> με χρήση του Λογαριασμού σας Google.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Διαθέτετε ήδη λογαριασμό;</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Έχετε εγγραφεί ήδη; Σύνδεση</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Σύνδεση μέσω Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Ελέγξτε αν τηρούνται στη δημοσίευση <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> οι <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>Όροι CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
 

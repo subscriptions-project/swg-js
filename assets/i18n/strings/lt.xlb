@@ -7,8 +7,8 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Gaukite daugiau su „Google“</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Šis turinys paprastai yra mokamas, tačiau „Google“ suteikia jums prieigą prie šio straipsnio ir kt. be papildomo mokesčio, kai užsiregistruojate „<ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>“ naudodami savo „Google“ paskyrą.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Jau turite paskyrą?</msg>
-<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Prisijungimas naudojant „Google“</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Jau užsiregistravote? Prisijungti</msg>
+<msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Prisijunkite su „Google“</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Peržiūrėkite „<ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph>“ <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL sąlygas<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph></msg>
 
 
