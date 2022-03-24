@@ -55,8 +55,8 @@ export class AudienceActivityEventListener {
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
-    /** @private @const {!Storage} */
-    this.storage_ = deps.storage();
+    /** @private @const {!../runtime/storage.Storage} */
+    this.storage_ = this.deps_.storage();
   }
   /**
    * Start listening to client events.
