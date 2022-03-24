@@ -19,7 +19,6 @@ import {
   AudienceActivityClientLogsRequest,
 } from '../proto/api_messages';
 import {Constants} from '../utils/constants';
-// import {Storage} from './storage';
 import {serviceUrl} from './services';
 
 /** @const {!Set<!AnalyticsEvent>} */
@@ -57,7 +56,6 @@ export class AudienceActivityEventListener {
     this.fetcher_ = fetcher;
 
     /** @private @const {!Storage} */
-    // this.storage_ = new Storage(this.win_);
     this.storage_ = deps.storage();
   }
   /**
@@ -76,14 +74,12 @@ export class AudienceActivityEventListener {
    * @private
    */
   handleClientEvent_(event) {
-    console.log('handleClientEvent_ ###');
     this.storage_.get(Constants.USER_TOKEN, true).then((swgUserToken) => {
       if (
         swgUserToken &&
         event.eventType &&
         audienceActivityLoggingEvents.has(event.eventType)
       ) {
-        console.log(swgUserToken);
         const pubId = encodeURIComponent(
           this.deps_.pageConfig().getPublicationId()
         );
@@ -95,7 +91,6 @@ export class AudienceActivityEventListener {
             '&sut=' +
             swgUserToken
         );
-        // const url = serviceUrl(swgUserToken);
         this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
       }
     });
