@@ -1916,7 +1916,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -1935,11 +1935,11 @@ describes.realWin('GaaMetering', {}, () => {
       ).to.be.true;
     });
 
-    it('fails for invalid googleSignInClientId', () => {
+    it('fails for invalid googleApiClientId', () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4',
+          googleApiClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4',
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -1959,7 +1959,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(self.console.log).to.have.been.calledWithExactly(
         '[Subscriptions]',
-        'Missing googleSignInClientId, or it is not a string, or it is not in a correct format'
+        'Missing googleApiClientId, or it is not a string, or it is not in a correct format'
       );
     });
 
@@ -1967,7 +1967,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           userState: {
             id: 'user1235',
             registrationTimestamp: 1602763054,
@@ -1994,7 +1994,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -2021,7 +2021,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -2049,7 +2049,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -2076,7 +2076,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: 'test userState',
           unlockArticle: function () {},
@@ -2099,7 +2099,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -2125,7 +2125,7 @@ describes.realWin('GaaMetering', {}, () => {
       location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           unlockArticle: function () {},
           showPaywall: function () {},
@@ -2550,7 +2550,7 @@ describes.realWin('GaaMetering', {}, () => {
     it('GaaMetering.init fails the isGaa', () => {
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -2583,7 +2583,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(
         GaaMetering.init({
           params: {
-            googleSignInClientId: GOOGLE_API_CLIENT_ID,
+            googleApiClientId: GOOGLE_API_CLIENT_ID,
             allowedReferrers: [
               'example.com',
               'test.com',
@@ -2628,7 +2628,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -2666,7 +2666,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: [
             'example.com',
             'test.com',
@@ -2708,7 +2708,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: [
             'example.com',
             'test.com',
@@ -2754,7 +2754,7 @@ describes.realWin('GaaMetering', {}, () => {
       self.document.referrer = 'https://www.google.com';
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: [
             'example.com',
             'test.com',
@@ -2803,7 +2803,7 @@ describes.realWin('GaaMetering', {}, () => {
       self.document.referrer = 'https://www.google.com';
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: [
             'example.com',
             'test.com',
@@ -2855,7 +2855,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: [
             'example.com',
             'test.com',
@@ -2909,7 +2909,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: [
             'example.com',
             'test.com',
@@ -2960,7 +2960,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             id: 'user1235',
@@ -3001,7 +3001,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: [
             'example.com',
             'test.com',
@@ -3049,7 +3049,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       GaaMetering.init({
         params: {
-          googleSignInClientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
             granted: false,

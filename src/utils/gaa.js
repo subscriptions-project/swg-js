@@ -410,8 +410,9 @@ export let GoogleUserDef;
  * https://developers.google.com/news/subscribe/extended-access/overview
  * @typedef {{
  * allowedReferrers: (Array<string>|null),
- * googleSignInClientId: string,
+ * googleApiClientId: string,
  * handleLoginPromise: (Promise|null),
+ * caslUrl: string,
  * handleSwGEntitlement: function(): ?,
  * publisherEntitlementPromise: (Promise|null),
  * registerUserPromise: (Promise|null),
@@ -522,7 +523,7 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ caslUrl: (string|unified), clientId: string }} params
+   * @param {{ caslUrl: string, clientId: string }} params
    * @return {!Promise<!GoogleIdentityV1>}
    */
   static showWithNativeRegistrationButton({caslUrl, clientId}) {
@@ -1418,9 +1419,10 @@ export class GaaMetering {
 
     // Register publisher's callbacks, promises, and parameters
     const productId = GaaMetering.getProductIDFromPageConfig_();
-    const googleSignInClientId = params.googleSignInClientId;
+    const googleApiClientId = params.googleApiClientId;
     const allowedReferrers = params.allowedReferrers;
     const showcaseEntitlement = params.showcaseEntitlement;
+    const caslUrl = params.caslUrl;
 
     const showPaywall = params.showPaywall;
     const userState = params.userState;
@@ -1519,7 +1521,7 @@ export class GaaMetering {
           } else {
             // User does not any access from publisher or Google so show the standard paywall
             subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',
+              entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
               isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             // Show the paywall
@@ -1535,7 +1537,8 @@ export class GaaMetering {
       // Don't render the regwall until the window has loaded.
       self.addEventListener('load', () => {
         GaaMeteringRegwall.showWithNativeRegistrationButton({
-          clientId: googleSignInClientId,
+          caslUrl,
+          clientId: googleApiClientId,
         }).then((jwt) => {
           // Handle registration for new users
           // Save credentials object so that registerUserPromise can use it using getGaaUser.
@@ -1567,20 +1570,21 @@ export class GaaMetering {
           if (userState.grantReason === 'SUBSCRIBER') {
             // The user has access because they have a subscription
             subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+              entitlement:
+                ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
               isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             debugLog('unlocked for subscriber');
           } else if (userState.grantReason === 'FREE') {
             subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+              entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
               isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             debugLog('unlocked for free');
           } else if (userState.grantReason === 'METERING') {
             // The user has access from the publisher's meter
             subscriptions.setShowcaseEntitlement({
-              entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+              entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
               isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             debugLog('unlocked for metering');
@@ -1624,12 +1628,12 @@ export class GaaMetering {
    */
   static validateParameters(params) {
     if (
-      !('googleSignInClientId' in params) ||
-      !(typeof params.googleSignInClientId === 'string') ||
-      params.googleSignInClientId.indexOf('.apps.googleusercontent.com') == -1
+      !('googleApiClientId' in params) ||
+      !(typeof params.googleApiClientId === 'string') ||
+      params.googleApiClientId.indexOf('.apps.googleusercontent.com') == -1
     ) {
       debugLog(
-        'Missing googleSignInClientId, or it is not a string, or it is not in a correct format'
+        'Missing googleApiClientId, or it is not a string, or it is not in a correct format'
       );
       return false;
     }
