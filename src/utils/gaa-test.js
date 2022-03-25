@@ -1257,7 +1257,10 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     it('sends post message with button click event', async () => {
       // Show button.
       GaaGoogle3pSignInButton.show({
-        allowedOrigins, GOOGLE_3P_AUTH_URL, redirectMode: false});
+        allowedOrigins,
+        GOOGLE_3P_AUTH_URL,
+        redirectMode: false
+      });
       clock.tick(100);
       await tick(10);
 
