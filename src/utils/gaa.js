@@ -1985,7 +1985,7 @@ export class GaaMetering {
           return false;
         }
 
-        if (newUserState.registrationTimestamp > new Date().getTime() / 1000) {
+        if (newUserState.registrationTimestamp > Date.now() / 1000) {
           debugLog('userState.registrationTimestamp is in the future');
 
           return false;
@@ -2018,7 +2018,7 @@ export class GaaMetering {
 
         if (
           'subscriptionTimestamp' in newUserState &&
-          newUserState.subscriptionTimestamp > new Date().getTime() / 1000
+          newUserState.subscriptionTimestamp > Date.now() / 1000
         ) {
           debugLog('userState.subscriptionTimestamp is in the future');
 
