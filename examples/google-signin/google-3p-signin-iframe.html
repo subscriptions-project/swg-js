@@ -12,7 +12,7 @@
   <!--
     NOTE: Replace `src` with https://news.google.com/swg/js/v1/swg-gaa.js in production.
     -->
-  <script src="/dist/subscriptions-gaa.max.js"></script>
+  <script src="<% swgGaaJsUrl %>"></script>
 
   <script>
     GaaGoogle3pSignInButton.show({
@@ -21,8 +21,7 @@
       // This should also include your AMP cache origin(s), if you're using AMP.
       allowedOrigins: ['http://localhost:8000', 'http://localhost:8080'],
       // Include the third party authorization URL.
-      authorizationUrl: 'https://gaa-3p-signin-demo.glitch.me/auth?redirect_uri=' + encodeURIComponent(window.parent.location.href),
-      redirectMode: false
+      autorizationUrl: 'https://fascinated-clear-barracuda.glitch.me/auth',
     });
   </script>
 </body>
