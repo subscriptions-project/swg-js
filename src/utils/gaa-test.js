@@ -1210,6 +1210,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       style.remove();
     }
 
+    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).remove();
     self.console.warn.restore();
   });
 
@@ -1255,7 +1256,8 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
 
     it('sends post message with button click event', async () => {
       // Show button.
-      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins, GOOGLE_3P_AUTH_URL, redirectMode: false});
       clock.tick(100);
       await tick(10);
 
