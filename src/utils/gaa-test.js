@@ -78,7 +78,7 @@ const ARTICLE_LD_JSON_METADATA = `
 const ARTICLE_MICRODATA_METADATA = `
 <div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other">
   <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
-   <meta itemprop="name" content="${PUBLISHER_NAME}"/>
+    <meta itemprop="name" content="${PUBLISHER_NAME}"/>
   </span>
 </div>`;
 
