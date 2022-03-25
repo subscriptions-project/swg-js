@@ -45,42 +45,42 @@ const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
 
 /** Article metadata in ld+json form. */
 const ARTICLE_LD_JSON_METADATA = `
- {
-   "@context": "http://schema.org",
-   "@type": "NewsArticle",
-   "headline": "16 Top Spots for Hiking",
-   "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
-   "datePublished": "2025-02-05T08:00:00+08:00",
-   "dateModified": "2025-02-05T09:20:00+08:00",
-   "author": {
-     "@type": "Person",
-     "name": "John Doe"
-   },
-   "publisher": {
-       "name": "${PUBLISHER_NAME}",
-       "@type": "Organization",
-       "@id": "scenic-2017.appspot.com",
-       "logo": {
-         "@type": "ImageObject",
-         "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
-       }
-   },
-   "description": "A most wonderful article",
-   "isAccessibleForFree": "False",
-   "isPartOf": {
-     "@type": ["CreativeWork", "Product"],
-     "name" : "Scenic News",
-     "productID": "scenic-2017.appspot.com:news"
-   }
- }`;
+{
+  "@context": "http://schema.org",
+  "@type": "NewsArticle",
+  "headline": "16 Top Spots for Hiking",
+  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
+  "datePublished": "2025-02-05T08:00:00+08:00",
+  "dateModified": "2025-02-05T09:20:00+08:00",
+  "author": {
+    "@type": "Person",
+    "name": "John Doe"
+  },
+  "publisher": {
+      "name": "${PUBLISHER_NAME}",
+      "@type": "Organization",
+      "@id": "scenic-2017.appspot.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
+      }
+  },
+  "description": "A most wonderful article",
+  "isAccessibleForFree": "False",
+  "isPartOf": {
+    "@type": ["CreativeWork", "Product"],
+    "name" : "Scenic News",
+    "productID": "scenic-2017.appspot.com:news"
+  }
+}`;
 
 /** Article metadata in microdata form. */
 const ARTICLE_MICRODATA_METADATA = `
- <div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other">
-   <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
-     <meta itemprop="name" content="${PUBLISHER_NAME}"/>
-   </span>
- </div>`;
+<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other">
+  <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
+   <meta itemprop="name" content="${PUBLISHER_NAME}"/>
+  </span>
+</div>`;
 
 describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   let clock;
@@ -526,10 +526,10 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('gets the publisher name from array page config', () => {
       self.document.head.innerHTML = `
-         <script type="application/ld+json">
-           [${ARTICLE_LD_JSON_METADATA}]
-         </script>
-       `;
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA}]
+        </script>
+      `;
 
       expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
         PUBLISHER_NAME
@@ -538,13 +538,13 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('gets the publisher name from graph construct', () => {
       self.document.head.innerHTML = `
-         <script type="application/ld+json">
-           [{
-             "@context": "http://schema.org",
-             "@graph": [${ARTICLE_LD_JSON_METADATA}]
-           }]
-         </script>
-       `;
+        <script type="application/ld+json">
+          [{
+            "@context": "http://schema.org",
+            "@graph": [${ARTICLE_LD_JSON_METADATA}]
+          }]
+        </script>
+      `;
 
       expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
         PUBLISHER_NAME
