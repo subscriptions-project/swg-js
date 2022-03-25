@@ -74,12 +74,14 @@ export class AudienceActivityEventListener {
    * @private
    */
   handleClientEvent_(event) {
+    if (
+      !event.eventType ||
+      !audienceActivityLoggingEvents.has(event.eventType)
+    ) {
+      return;
+    }
     this.storage_.get(Constants.USER_TOKEN, true).then((swgUserToken) => {
-      if (
-        swgUserToken &&
-        event.eventType &&
-        audienceActivityLoggingEvents.has(event.eventType)
-      ) {
+      if (swgUserToken) {
         const pubId = encodeURIComponent(
           this.deps_.pageConfig().getPublicationId()
         );
