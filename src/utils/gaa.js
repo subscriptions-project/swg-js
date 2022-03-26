@@ -1122,7 +1122,7 @@ export class GaaGoogle3pSignInButton {
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
       if (redirectMode) {
-        self.parent.document.location.href = authorizationUrl;
+        self.open(authorizationUrl, '_parent');
       } else {
         self.open(authorizationUrl);
       }
@@ -1230,6 +1230,8 @@ function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
     });
   });
 }
+
+
 
 export class GaaUtils {
   /**
