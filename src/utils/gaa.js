@@ -1231,8 +1231,6 @@ function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
   });
 }
 
-
-
 export class GaaUtils {
   /**
    * Returns query string from current URL.
