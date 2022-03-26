@@ -1256,11 +1256,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
 
     it('sends post message with button click event', async () => {
       // Show button.
-      GaaGoogle3pSignInButton.show({
-        allowedOrigins,
-        GOOGLE_3P_AUTH_URL,
-        redirectMode: false,
-      });
+      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
       clock.tick(100);
       await tick(10);
 
@@ -1293,6 +1289,41 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         },
         location.origin
       );
+    });
+
+    it('should open an authorizationUrl in the same window when redirectMode is true', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        redirectMode: true,
+      });
+      clock.tick(100);
+      await tick(10);
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+      clock.tick(100);
+      await tick(10);
+      expect(self.open).to.have.been.calledWithExactly(
+        GOOGLE_3P_AUTH_URL,
+        '_parent'
+      );
+    });
+
+    it('should open an authorizationUrl in a new window when redirectMode is false', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        redirectMode: false,
+      });
+      clock.tick(100);
+      await tick(10);
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+      clock.tick(100);
+      await tick(10);
+      expect(self.open).to.have.been.calledWithExactly(GOOGLE_3P_AUTH_URL);
     });
 
     it('sends errors to parent', async () => {
