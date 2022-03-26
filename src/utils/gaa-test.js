@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2020 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,1416 +14,1230 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent} from '../proto/api_messages';
-import {
-  GOOGLE_3P_SIGN_IN_BUTTON_ID,
-  GOOGLE_SIGN_IN_BUTTON_ID,
-  GOOGLE_SIGN_IN_IFRAME_ID,
-  GaaGoogle3pSignInButton,
-  GaaGoogleSignInButton,
-  GaaMeteringRegwall,
-  GaaSignInWithGoogleButton,
-  GaaUtils,
-  POST_MESSAGE_COMMAND_BUTTON_CLICK,
-  POST_MESSAGE_COMMAND_ERROR,
-  POST_MESSAGE_COMMAND_INTRODUCTION,
-  POST_MESSAGE_COMMAND_USER,
-  POST_MESSAGE_STAMP,
-  REGWALL_CONTAINER_ID,
-  REGWALL_DIALOG_ID,
-  REGWALL_TITLE_ID,
-  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-  queryStringHasFreshGaaParams,
-} from './gaa';
+// PLEASE DO NOT HOST THIS FILE YOURSELF. DOING SO WILL BREAK THINGS.
+//
+// Publishers should load this file from:
+// https://news.google.com/swg/js/v1/swg-gaa.js
+//
+// Thanks!
+
 import {I18N_STRINGS} from '../i18n/strings';
 import {JwtHelper} from './jwt';
-import {tick} from '../../test/tick';
+import {
+  ShowcaseEvent,
+  Subscriptions as SubscriptionsDef,
+} from '../api/subscriptions';
+import {addQueryParam, parseQueryString} from './url';
+import {getLanguageCodeFromElement, msg} from './i18n';
+import {parseJson} from './json';
+import {setImportantStyles} from './style';
+import {warn} from './log';
 
-const PUBLISHER_NAME = 'The Scenic';
-const IFRAME_URL = 'https://localhost/gsi-iframe';
-const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
+// Load types for Closure compiler.
+import '../model/doc';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
 
-/** Article metadata in ld+json form. */
-const ARTICLE_LD_JSON_METADATA = `
-{
-  "@context": "http://schema.org",
-  "@type": "NewsArticle",
-  "headline": "16 Top Spots for Hiking",
-  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
-  "datePublished": "2025-02-05T08:00:00+08:00",
-  "dateModified": "2025-02-05T09:20:00+08:00",
-  "author": {
-    "@type": "Person",
-    "name": "John Doe"
-  },
-  "publisher": {
-      "name": "${PUBLISHER_NAME}",
-      "@type": "Organization",
-      "@id": "scenic-2017.appspot.com",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
-      }
-  },
-  "description": "A most wonderful article",
-  "isAccessibleForFree": "False",
-  "isPartOf": {
-    "@type": ["CreativeWork", "Product"],
-    "name" : "Scenic News",
-    "productID": "scenic-2017.appspot.com:news"
+/** Stamp for post messages. */
+export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
+
+/** Introduction command for post messages. */
+export const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
+
+/** User command for post messages. */
+export const POST_MESSAGE_COMMAND_USER = 'user';
+
+/** Error command for post messages. */
+export const POST_MESSAGE_COMMAND_ERROR = 'error';
+
+/** Button click command for post messages. */
+export const POST_MESSAGE_COMMAND_BUTTON_CLICK = 'button-click';
+
+/** ID for the Google Sign-In iframe element. */
+export const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
+
+/** ID for the Google Sign-In button element. */
+export const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';
+
+/** ID for the third party Google Sign-In button element.  */
+export const GOOGLE_3P_SIGN_IN_BUTTON_ID = 'swg-google-3p-sign-in-button';
+
+/** ID for the Google Sign-In button element. */
+export const SIGN_IN_WITH_GOOGLE_BUTTON_ID = 'swg-sign-in-with-google-button';
+
+/** ID for the Publisher sign-in button element. */
+const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
+
+/** ID for the Regwall container element. */
+export const REGWALL_CONTAINER_ID = 'swg-regwall-container';
+
+/** ID for the Regwall dialog element. */
+export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
+
+/** ID for the Regwall title element. */
+export const REGWALL_TITLE_ID = 'swg-regwall-title';
+
+/**
+ * HTML for the metering regwall dialog, where users can sign in with Google.
+ * The script creates a dialog based on this HTML.
+ *
+ * The HTML includes an iframe that loads the Google Sign-In button.
+ * This iframe can live on a different origin.
+ */
+const REGWALL_HTML = `
+<style>
+  .gaa-metering-regwall--dialog-spacer,
+  .gaa-metering-regwall--dialog,
+  .gaa-metering-regwall--logo,
+  .gaa-metering-regwall--title,
+  .gaa-metering-regwall--description,
+  .gaa-metering-regwall--description strong,
+  .gaa-metering-regwall--iframe,
+  .gaa-metering-regwall--casl {
+    all: initial !important;
+    box-sizing: border-box !important;
+    font-family: Roboto, arial, sans-serif !important;
   }
-}`;
 
-/** Article metadata in microdata form. */
-const ARTICLE_MICRODATA_METADATA = `
-<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other">
-  <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
-    <meta itemprop="name" content="${PUBLISHER_NAME}"/>
-  </span>
-</div>`;
+  .gaa-metering-regwall--dialog-spacer {
+    background: linear-gradient(0, #808080, transparent) !important;
+    bottom: 0 !important;
+    display: block !important;
+    position: fixed !important;
+    width: 100% !important;
+  }
 
-describes.realWin('queryStringHasFreshGaaParams', {}, () => {
-  let clock;
+  @keyframes slideUp {
+    from {transform: translate(0, 200px) !important;}
+    to {transform: translate(0, 0) !important;}
+  }
 
-  beforeEach(() => {
-    clock = sandbox.useFakeTimers();
-  });
+  .gaa-metering-regwall--dialog {
+    animation: slideUp 0.5s !important;
+    background: white !important;
+    border-radius: 12px 12px 0 0 !important;
+    box-shadow: 0px -2px 6px rgba(0, 0, 0, 0.3) !important;
+    display: block !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    padding: 24px 20px !important;
+    pointer-events: auto !important;
+    width: 410px !important;
+  }
 
-  it('succeeeds for valid params', () => {
-    const queryString = '?gaa_at=at&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
-    expect(queryStringHasFreshGaaParams(queryString)).to.be.true;
-  });
+  .gaa-metering-regwall--logo {
+    display: block !important;
+    margin: 0 auto 24px !important;
+  }
 
-  it('fails without gaa_at', () => {
-    const queryString = '?gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999';
-    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
-  });
+  .gaa-metering-regwall--title {
+    color: #000 !important;
+    display: block !important;
+    font-size: 16px !important;
+    margin: 0 0 8px !important;
+    outline: none !important !important;
+  }
 
-  it('fails without gaa_n', () => {
-    const queryString = '?gaa_at=gaa&gaa_sig=s1gn4tur3&gaa_ts=99999';
-    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
-  });
+  .gaa-metering-regwall--description {
+    color: #646464 !important;
+    display: block !important;
+    font-size: 14px !important;
+    line-height: 19px !important;
+    margin: 0 0 30px !important;
+  }
 
-  it('fails without gaa_sig', () => {
-    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_ts=99999';
-    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
-  });
+  .gaa-metering-regwall--description strong {
+    color: #646464 !important;
+    font-size: 14px !important;
+    line-height: 19px !important;
+    font-weight: bold !important;
+  }
 
-  it('fails without gaa_ts', () => {
-    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3';
-    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
-  });
+  .gaa-metering-regwall--iframe {
+    border: none !important;
+    display: block !important;
+    height: 44px !important;
+    margin: 0 0 30px !important;
+    width: 100% !important;
+  }
 
-  it('fails if GAA URL params are expired', () => {
-    // Add GAA URL params with expiration of 7 seconds.
-    const queryString = '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7';
-    clock.tick(7001);
-    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
-  });
+  .gaa-metering-regwall--casl {
+    color: #646464 !important;
+    display: block !important;
+    font-size: 12px !important;
+    text-align: center !important;
+    margin: -16px auto 32px !important;
+  }
 
-  it('fails if gaa_at param specifies "no access"', () => {
-    const queryString = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
-    expect(queryStringHasFreshGaaParams(queryString)).to.be.false;
-  });
+  .gaa-metering-regwall--casl a {
+    color: #1967d2 !important;
+  }
 
-  it('succeeds if gaa_at param specifies "no access" but allowAllAccessTypes is true', () => {
-    const queryString = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
-    expect(queryStringHasFreshGaaParams(queryString, true)).to.be.true;
-  });
-});
+  .gaa-metering-regwall--line {
+    background-color: #ddd !important;
+    display: block !important;
+    height: 1px !important;
+    margin: 0 0 24px !important;
+  }
 
-describes.realWin('GaaMeteringRegwall', {}, () => {
-  let clock;
-  let logEvent;
-  let microdata;
-  let script;
-  let signOutFake;
-  let subscriptionsMock;
+  .gaa-metering-regwall--publisher-sign-in-button {
+    color: #1967d2 !important;
+    cursor: pointer !important;
+    display: block !important;
+    font-size: 12px !important;
+    text-decoration: underline !important;
+  }
 
-  beforeEach(() => {
-    // Mock clock.
-    clock = sandbox.useFakeTimers();
+  .gaa-metering-regwall--google-sign-in-button {
+    height: 36px !important;
+    margin: 0 auto 30px !important;
+  }
 
-    // Mock Google Sign-In API.
-    signOutFake = sandbox.fake.resolves();
-    let authInstance;
-    self.gapi = {
-      load: sandbox.fake((name, callback) => {
-        callback();
-      }),
-      auth2: {
-        init: sandbox.fake(() => {
-          authInstance = {
-            signOut: signOutFake,
-          };
-        }),
-        getAuthInstance: sandbox.fake(() => authInstance),
-      },
-      signin2: {
-        render: sandbox.fake(),
-      },
-    };
+  .gaa-metering-regwall--google-sign-in-button > div {
+    animation: swgGoogleSignInButtonfadeIn 0.32s !important;
+  }
 
-    // Mock SwG API.
-    logEvent = sandbox.fake();
-    subscriptionsMock = {
-      triggerLoginRequest: sandbox.fake(),
-      getEventManager: () => Promise.resolve({logEvent}),
-    };
-    self.SWG = {
-      push: sandbox.fake((callback) => void callback(subscriptionsMock)),
-    };
+  @keyframes swgGoogleSignInButtonfadeIn {
+    from {
+      opacity: 0 !important;
+    }
+    to {
+      opacity: 1 !important;
+    }
+  }
+</style>
 
-    // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns(
-      '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
-    );
+<div class="gaa-metering-regwall--dialog-spacer">
+  <div role="dialog" aria-modal="true" class="gaa-metering-regwall--dialog" id="${REGWALL_DIALOG_ID}" aria-labelledby="${REGWALL_TITLE_ID}">
+    <img alt="Google" class="gaa-metering-regwall--logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDc0IDI0Ij48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNOS4yNCA4LjE5djIuNDZoNS44OGMtLjE4IDEuMzgtLjY0IDIuMzktMS4zNCAzLjEtLjg2Ljg2LTIuMiAxLjgtNC41NCAxLjgtMy42MiAwLTYuNDUtMi45Mi02LjQ1LTYuNTRzMi44My02LjU0IDYuNDUtNi41NGMxLjk1IDAgMy4zOC43NyA0LjQzIDEuNzZMMTUuNCAyLjVDMTMuOTQgMS4wOCAxMS45OCAwIDkuMjQgMCA0LjI4IDAgLjExIDQuMDQuMTEgOXM0LjE3IDkgOS4xMyA5YzIuNjggMCA0LjctLjg4IDYuMjgtMi41MiAxLjYyLTEuNjIgMi4xMy0zLjkxIDIuMTMtNS43NSAwLS41Ny0uMDQtMS4xLS4xMy0xLjU0SDkuMjR6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTI1IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNNTMuNTggNy40OWgtLjA5Yy0uNTctLjY4LTEuNjctMS4zLTMuMDYtMS4zQzQ3LjUzIDYuMTkgNDUgOC43MiA0NSAxMmMwIDMuMjYgMi41MyA1LjgxIDUuNDMgNS44MSAxLjM5IDAgMi40OS0uNjIgMy4wNi0xLjMyaC4wOXYuODFjMCAyLjIyLTEuMTkgMy40MS0zLjEgMy40MS0xLjU2IDAtMi41My0xLjEyLTIuOTMtMi4wN2wtMi4yMi45MmMuNjQgMS41NCAyLjMzIDMuNDMgNS4xNSAzLjQzIDIuOTkgMCA1LjUyLTEuNzYgNS41Mi02LjA1VjYuNDloLTIuNDJ2MXptLTIuOTMgOC4wM2MtMS43NiAwLTMuMS0xLjUtMy4xLTMuNTIgMC0yLjA1IDEuMzQtMy41MiAzLjEtMy41MiAxLjc0IDAgMy4xIDEuNSAzLjEgMy41NC4wMSAyLjAzLTEuMzYgMy41LTMuMSAzLjV6Ii8+PHBhdGggZmlsbD0iI0ZCQkMwNSIgZD0iTTM4IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNNTggLjI0aDIuNTF2MTcuNTdINTh6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTY4LjI2IDE1LjUyYy0xLjMgMC0yLjIyLS41OS0yLjgyLTEuNzZsNy43Ny0zLjIxLS4yNi0uNjZjLS40OC0xLjMtMS45Ni0zLjctNC45Ny0zLjctMi45OSAwLTUuNDggMi4zNS01LjQ4IDUuODEgMCAzLjI2IDIuNDYgNS44MSA1Ljc2IDUuODEgMi42NiAwIDQuMi0xLjYzIDQuODQtMi41N2wtMS45OC0xLjMyYy0uNjYuOTYtMS41NiAxLjYtMi44NiAxLjZ6bS0uMTgtNy4xNWMxLjAzIDAgMS45MS41MyAyLjIgMS4yOGwtNS4yNSAyLjE3YzAtMi40NCAxLjczLTMuNDUgMy4wNS0zLjQ1eiIvPjwvc3ZnPg==" />
 
-    // Mock console.warn method.
-    sandbox.stub(self.console, 'warn');
+    <div class="gaa-metering-regwall--title" id="${REGWALL_TITLE_ID}" tabindex="0">$SHOWCASE_REGWALL_TITLE$</div>
 
-    // Add JSON-LD with a publisher name.
-    script = self.document.createElement('script');
-    script.type = 'application/ld+json';
-    script.text = ARTICLE_LD_JSON_METADATA;
-    self.document.head.appendChild(script);
+    <div class="gaa-metering-regwall--description">
+      $SHOWCASE_REGWALL_DESCRIPTION$
+    </div>
 
-    // Add container for Microdata.
-    microdata = self.document.createElement('div');
-    self.document.head.appendChild(microdata);
-  });
+    <iframe
+        id="${GOOGLE_SIGN_IN_IFRAME_ID}"
+        class="gaa-metering-regwall--iframe"
+        src="$iframeUrl$">
+    </iframe>
 
-  afterEach(() => {
-    script.remove();
-    microdata.remove();
-    GaaMeteringRegwall.remove();
-    self.document.documentElement.lang = '';
-    self.console.warn.restore();
-  });
+    $SHOWCASE_REGWALL_CASL$
 
-  /**
-   * Expects a list of Analytics events.
-   * @param {!Array<{
-   *   analyticsEvent: !ShowcaseEvent,
-   *   isFromUserAction: boolean,
-   * }>} events
-   */
-  function expectAnalyticsEvents(events) {
-    expect(logEvent).to.have.callCount(events.length);
-    for (let i = 0; i < events.length; i++) {
-      const {analyticsEvent, isFromUserAction} = events[i];
-      expect(logEvent.getCall(i)).to.be.calledWithExactly({
-        eventType: analyticsEvent,
-        eventOriginator: 1,
-        isFromUserAction,
-        additionalParameters: null,
-      });
+    <div class="gaa-metering-regwall--line"></div>
+
+    <a
+        id="${PUBLISHER_SIGN_IN_BUTTON_ID}"
+        class="gaa-metering-regwall--publisher-sign-in-button"
+        tabindex="0"
+        href="#">
+      $SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$
+    </a>
+  </div>
+</div>
+`;
+
+/**
+ * HTML for the CASL blurb.
+ * CASL stands for Canadian Anti-Spam Law.
+ */
+const CASL_HTML = `
+<div class="gaa-metering-regwall--casl">
+  $SHOWCASE_REGWALL_CASL$
+</div>
+`;
+
+/** Base styles for both the Google and Google 3p Sign-In button iframes. */
+const GOOGLE_SIGN_IN_IFRAME_STYLES = `
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID},
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID},
+  #${GOOGLE_SIGN_IN_BUTTON_ID} {
+    margin: 0 auto;
+  }
+
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID}{
+    width: 220px;
+  }
+
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} > div,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} > div,
+  #${GOOGLE_SIGN_IN_BUTTON_ID} > div {
+    animation: fadeIn 0.32s;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue,
+  #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue {
+    background-color: #1A73E8;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    border-radius: 4px;
+    width: 100% !important;
+  }
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon,
+  #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonIcon {
+    display: none;
+  }
+  /** Hides default "Sign in with Google" text. */
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID}  .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_],
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID}  .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_],
+  #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_] {
+    font-size: 0 !important;
+  }
+  /** Renders localized "Sign in with Google" text instead. */
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before,
+  #${SIGN_IN_WITH_GOOGLE_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before,
+  #${GOOGLE_SIGN_IN_BUTTON_ID} .abcRioButton.abcRioButtonBlue .abcRioButtonContents span[id^=not_signed_]::before {
+    content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
+    font-size: 15px;
+  }`;
+
+/**
+ * User object that Publisher JS receives after users sign in.
+ * @typedef {{
+ *   idToken: string,
+ *   name: string,
+ *   givenName: string,
+ *   familyName: string,
+ *   imageUrl: string,
+ *   email: string,
+ *   authorizationData: {
+ *     access_token: string,
+ *     id_token: string,
+ *     scope: string,
+ *     expires_in: number,
+ *     first_issued_at: number,
+ *     expires_at: number,
+ *   },
+ * }} GaaUserDef
+ */
+export let GaaUserDef;
+
+/**
+ * Google Identity (V1) that Google Identity Services returns after someone signs in.
+ * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
+ * @typedef {{
+ *   iss: string,
+ *   nbf: number,
+ *   aud: string,
+ *   sub: string,
+ *   hd: string,
+ *   email: string,
+ *   email_verified: boolean,
+ *   azp: string,
+ *   name: string,
+ *   picture: string,
+ *   given_name: string,
+ *   family_name: string,
+ *   iat: number,
+ *   exp: number,
+ *   jti: string,
+ * }} GoogleIdentityV1
+ */
+export let GoogleIdentityV1;
+
+/**
+ * GoogleUser object that Google Sign-In returns after users sign in.
+ * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
+ * @typedef {{
+ *   getAuthResponse: function(boolean): {
+ *     access_token: string,
+ *     id_token: string,
+ *     scope: string,
+ *     expires_in: number,
+ *     first_issued_at: number,
+ *     expires_at: number,
+ *   },
+ *   getBasicProfile: function(): {
+ *     getName: function(): string,
+ *     getGivenName: function(): string,
+ *     getFamilyName: function(): string,
+ *     getImageUrl: function(): string,
+ *     getEmail: function(): string,
+ *   },
+ * }} GoogleUserDef
+ */
+export let GoogleUserDef;
+
+/**
+ * Returns true if the query string contains fresh Google Article Access (GAA) params.
+ * @param {string} queryString
+ * @param {boolean} allowAllAccessTypes
+ * @return {boolean}
+ */
+export function queryStringHasFreshGaaParams(
+  queryString,
+  allowAllAccessTypes = false
+) {
+  const params = parseQueryString(queryString);
+
+  // Verify GAA params exist.
+  if (
+    !params['gaa_at'] ||
+    !params['gaa_n'] ||
+    !params['gaa_sig'] ||
+    !params['gaa_ts']
+  ) {
+    return false;
+  }
+
+  if (!allowAllAccessTypes) {
+    // Verify access type.
+    const noAccess = params['gaa_at'] === 'na';
+    if (noAccess) {
+      return false;
     }
   }
 
-  describe('show', () => {
-    it('shows regwall with publisher name', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+  // Verify timestamp isn't stale.
+  const expirationTimestamp = parseInt(params['gaa_ts'], 16);
+  const currentTimestamp = Date.now() / 1000;
+  if (expirationTimestamp < currentTimestamp) {
+    return false;
+  }
 
-      const descriptionEl = self.document.querySelector(
-        '.gaa-metering-regwall--description'
-      );
-      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+  return true;
+}
+
+/** Renders Google Article Access (GAA) Metering Regwall. */
+export class GaaMeteringRegwall {
+  /**
+   * Returns a promise for a Google user object.
+   * The user object will be a:
+   * - GaaUserDef, if you use the GaaGoogleSignInButton
+   * - GoogleIdentityV1, if you use the GaaSignInWithGoogleButton
+   * - Custom object, if you use the GaaGoogle3pSignInButton
+   *
+   * This method opens a metering regwall dialog,
+   * where users can sign in with Google.
+   * @nocollapse
+   * @param {{ iframeUrl: string, caslUrl: string }} params
+   * @return {!Promise<!GaaUserDef|!GoogleIdentityV1|!Object>}
+   */
+  static show({iframeUrl, caslUrl}) {
+    const queryString = GaaUtils.getQueryString();
+    if (!queryStringHasFreshGaaParams(queryString)) {
+      const errorMessage =
+        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
+      warn(errorMessage);
+      return Promise.reject(errorMessage);
+    }
+
+    logEvent({
+      showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
+      isFromUserAction: false,
     });
 
-    it('does not render CASL blurb by default', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+    GaaMeteringRegwall.render_({iframeUrl, caslUrl});
+    GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
+    GaaMeteringRegwall.logButtonClickEvents_();
+    return GaaMeteringRegwall.getGaaUser_()
+      .then((gaaUser) => {
+        GaaMeteringRegwall.remove();
+        return gaaUser;
+      })
+      .catch((err) => {
+        // Close the Regwall, since the flow failed.
+        GaaMeteringRegwall.remove();
 
-      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
-      expect(caslEl).to.be.null;
-    });
-
-    it('optionally renders CASL blurb', () => {
-      const caslUrl = 'https://example.com';
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL, caslUrl});
-
-      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
-      expect(caslEl.textContent).contains("Review The Scenic's CASL terms");
-
-      const caslLinkEl = caslEl.querySelector('a');
-      expect(caslLinkEl.href).contains(caslUrl);
-    });
-
-    it('focuses on modal title after the animation completes', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      // Mock animation ending.
-      const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
-      dialogEl.dispatchEvent(new Event('animationend'));
-
-      const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
-      expect(self.document.activeElement).to.equal(titleEl);
-    });
-
-    it('handles clicks on publisher sign in link', async () => {
-      // Show Regwall.
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-      await tick();
-      logEvent.resetHistory();
-
-      // Click publisher link to trigger a login request.
-      const publisherSignInButtonEl = self.document.querySelector(
-        '#swg-publisher-sign-in-button'
-      );
-      publisherSignInButtonEl.click();
-      expect(subscriptionsMock.triggerLoginRequest).to.be.calledWithExactly({
-        linkRequested: false,
+        // Rethrow error.
+        throw err;
       });
-      await tick();
+  }
 
-      // Verify analytics event.
-      expectAnalyticsEvents([
-        {
+  /**
+   * Removes the Regwall.
+   * @nocollapse
+   */
+  static remove() {
+    const regwallContainer = self.document.getElementById(REGWALL_CONTAINER_ID);
+    if (regwallContainer) {
+      regwallContainer.remove();
+    }
+  }
+
+  /**
+   * Signs out of Google Sign-In.
+   * This is useful for developers who are testing their
+   * SwG integrations.
+   * @nocollapse
+   * @return {!Promise}
+   */
+  static signOut() {
+    return configureGoogleSignIn().then(() =>
+      self.gapi.auth2.getAuthInstance().signOut()
+    );
+  }
+
+  /**
+   * Renders the Regwall.
+   * @private
+   * @nocollapse
+   * @param {{ iframeUrl: string, caslUrl: string }} params
+   */
+  static render_({iframeUrl, caslUrl}) {
+    const languageCode = getLanguageCodeFromElement(self.document.body);
+    const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
+    const placeholderPatternForPublication = /<ph name="PUBLICATION".+?\/ph>/g;
+    const placeholderPatternForLinkStart = /<ph name="LINK_START".+?\/ph>/g;
+    const placeholderPatternForLinkEnd = /<ph name="LINK_END".+?\/ph>/g;
+
+    // Tell the iframe which language to render.
+    iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
+
+    // Create and style container element.
+    // TODO: Consider using a FriendlyIframe here, to avoid CSS conflicts.
+    const containerEl = /** @type {!HTMLDivElement} */ (
+      self.document.createElement('div')
+    );
+    containerEl.id = REGWALL_CONTAINER_ID;
+    setImportantStyles(containerEl, {
+      'all': 'unset',
+      'background-color': 'rgba(32, 33, 36, 0.6)',
+      'border': 'none',
+      'bottom': '0',
+      'height': '100%',
+      'left': '0',
+      'opacity': '0',
+      'pointer-events': 'none',
+      'position': 'fixed',
+      'right': '0',
+      'transition': 'opacity 0.5s',
+      'top': '0',
+      'width': '100%',
+      'z-index': 2147483646,
+    });
+
+    // Optionally include CASL HTML.
+    let caslHtml = '';
+    if (caslUrl) {
+      caslHtml = CASL_HTML.replace(
+        '$SHOWCASE_REGWALL_CASL$',
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)
+      )
+        // Update link.
+        .replace(
+          placeholderPatternForLinkStart,
+          `<a href="${encodeURI(caslUrl)}" target="_blank">`
+        )
+        .replace(placeholderPatternForLinkEnd, '</a>')
+        // Update publisher name.
+        .replace(
+          placeholderPatternForPublication,
+          `<strong>${publisherName}</strong>`
+        );
+    }
+
+    // Prepare HTML.
+    containerEl./*OK*/ innerHTML = REGWALL_HTML.replace(
+      '$iframeUrl$',
+      iframeUrl
+    )
+      .replace(
+        '$SHOWCASE_REGWALL_TITLE$',
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_TITLE'], languageCode)
+      )
+      .replace(
+        '$SHOWCASE_REGWALL_DESCRIPTION$',
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)
+          // Update publisher name.
+          .replace(placeholderPatternForPublication, publisherName)
+      )
+      .replace(
+        '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
+        msg(
+          I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],
+          languageCode
+        )
+      )
+      .replace('$SHOWCASE_REGWALL_CASL$', caslHtml);
+
+    // Add container to DOM.
+    self.document.body.appendChild(containerEl);
+
+    // Trigger a fade-in transition.
+    /** @suppress {suspiciousCode} */
+    containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
+    setImportantStyles(containerEl, {'opacity': 1});
+
+    // Listen for clicks.
+    GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
+
+    // Focus on the title after the dialog animates in.
+    // This helps people using screenreaders.
+    const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
+    dialogEl.addEventListener('animationend', () => {
+      const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
+      titleEl.focus();
+    });
+
+    return containerEl;
+  }
+
+  /**
+   * Gets publisher name from page config.
+   * @private
+   * @nocollapse
+   * @return {string}
+   */
+  static getPublisherNameFromPageConfig_() {
+    const jsonLdPageConfig =
+      GaaMeteringRegwall.getPublisherNameFromJsonLdPageConfig_();
+    if (jsonLdPageConfig) {
+      return jsonLdPageConfig;
+    }
+
+    const microdataPageConfig =
+      GaaMeteringRegwall.getPublisherNameFromMicrodataPageConfig_();
+    if (microdataPageConfig) {
+      return microdataPageConfig;
+    }
+
+    throw new Error(
+      'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
+    );
+  }
+
+  /**
+   * Gets publisher name from JSON-LD page config.
+   * @private
+   * @nocollapse
+   * @return {string|undefined}
+   */
+  static getPublisherNameFromJsonLdPageConfig_() {
+    // Get JSON from ld+json scripts.
+    const ldJsonScripts = Array.prototype.slice.call(
+      self.document.querySelectorAll('script[type="application/ld+json"]')
+    );
+    const jsonQueue = /** @type {!Array<*>} */ (
+      ldJsonScripts.map((script) => parseJson(script.textContent))
+    );
+
+    // Search for publisher name, breadth-first.
+    for (let i = 0; i < jsonQueue.length; i++) {
+      const json = /** @type {!Object<?,?>} */ (jsonQueue[i]);
+
+      // Return publisher name, if possible.
+      const publisherName = json?.publisher?.name;
+      if (publisherName) {
+        return publisherName;
+      }
+
+      // Explore JSON.
+      if (json && typeof json === 'object') {
+        jsonQueue.push(...Object.values(json));
+      }
+    }
+  }
+
+  /**
+   * Gets publisher name from Microdata page config.
+   * @private
+   * @nocollapse
+   * @return {string|undefined}
+   */
+  static getPublisherNameFromMicrodataPageConfig_() {
+    const publisherNameElements = self.document.querySelectorAll(
+      '[itemscope][itemtype][itemprop="publisher"] [itemprop="name"]'
+    );
+
+    for (const publisherNameElement of publisherNameElements) {
+      const publisherName = publisherNameElement.content;
+      if (publisherName) {
+        return publisherName;
+      }
+    }
+  }
+
+  /**
+   * Adds a click listener on the publisher sign-in button.
+   * @private
+   * @nocollapse
+   */
+  static addClickListenerOnPublisherSignInButton_() {
+    self.document
+      .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
+      .addEventListener('click', (e) => {
+        e.preventDefault();
+
+        logEvent({
           analyticsEvent:
             AnalyticsEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
           isFromUserAction: true,
-        },
-      ]);
-    });
+        });
 
-    it('parses publisher name from microdata', () => {
-      // Remove JSON-LD.
-      script.text = '{}';
-
-      // Add Microdata.
-      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      const descriptionEl = self.document.querySelector(
-        '.gaa-metering-regwall--description'
-      );
-      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
-    });
-
-    it('throws if article metadata lacks a publisher name', () => {
-      // Remove JSON-LD.
-      script.text = '{}';
-
-      const showingRegwall = () =>
-        GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      expect(showingRegwall).throws(
-        'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
-      );
-    });
-
-    it('returns GAA User', async () => {
-      const gaaUser = {name: 'Hello'};
-      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_USER,
-        gaaUser,
+        callSwg((swg) => swg.triggerLoginRequest({linkRequested: false}));
       });
+  }
 
-      expect(await gaaUserPromise).to.deep.equal(gaaUser);
-    });
+  /**
+   * Returns the GAA user, after the user signs in.
+   * @private
+   * @nocollapse
+   * @return {!Promise<!GoogleUserDef>}
+   */
+  static getGaaUser_() {
+    // Listen for GAA user.
+    return new Promise((resolve, reject) => {
+      self.addEventListener('message', (e) => {
+        if (e.data.stamp === POST_MESSAGE_STAMP) {
+          if (e.data.command === POST_MESSAGE_COMMAND_USER) {
+            // Pass along user details.
+            resolve(e.data.gaaUser || e.data.returnedJwt);
+          }
 
-    it('removes Regwall from DOM', async () => {
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_USER,
-        gaaUser: {},
+          if (e.data.command === POST_MESSAGE_COMMAND_ERROR) {
+            // Reject promise due to Google Sign-In error.
+            reject('Google Sign-In could not render');
+          }
+        }
       });
-
-      await GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
+  }
 
-    it('renders supported i18n languages', () => {
-      self.document.documentElement.lang = 'pt-br';
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      const titleEl = self.document.querySelector(
-        '.gaa-metering-regwall--title'
-      );
-      expect(titleEl.textContent).to.equal(
-        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['pt-br']
-      );
-    });
-
-    it('renders "en" for non-supported i18n languages', () => {
-      self.document.documentElement.lang = 'non-supported';
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      const titleEl = self.document.querySelector(
-        '.gaa-metering-regwall--title'
-      );
-      expect(titleEl.textContent).to.equal(
-        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['en']
-      );
-    });
-
-    it('adds "lang" URL param to iframe URL', () => {
-      self.document.documentElement.lang = 'pt-br';
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      const iframeEl = self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID);
-      expect(iframeEl.src).to.contain('?lang=pt-br');
-    });
-
-    it('fails if GAA URL params are missing', () => {
-      // Remove GAA URL params.
-      GaaUtils.getQueryString.restore();
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      expect(self.console.warn).to.have.been.calledWithExactly(
-        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
-      );
-    });
-
-    it('fails if GAA URL params are expired', () => {
-      // Add GAA URL params with expiration of 7 seconds.
-      GaaUtils.getQueryString.returns(
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7'
-      );
-
-      // Move clock a little past 7 seconds.
-      clock.tick(7001);
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      expect(self.console.warn).to.have.been.calledWithExactly(
-        '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
-      );
-    });
-
-    it('handles GSI error', async () => {
-      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_ERROR,
-      });
-
-      // Reject promise.
-      await expect(gaaUserPromise).to.eventually.be.rejectedWith(
-        'Google Sign-In could not render'
-      );
-
-      // Remove Regwall from DOM.
-      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
-    });
-
-    it('logs Showcase impression events', async () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-      await tick();
-
-      // Verify analytics events.
-      expectAnalyticsEvents([
-        {
-          analyticsEvent: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
-          isFromUserAction: false,
-        },
-        {
-          analyticsEvent: AnalyticsEvent.IMPRESSION_REGWALL,
-          isFromUserAction: false,
-        },
-        {
-          analyticsEvent: AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL,
-          isFromUserAction: false,
-        },
-      ]);
-    });
-  });
-
-  describe('remove', () => {
-    it('removes regwall', () => {
-      function findRegwallInDocument() {
-        return self.document.querySelector('.gaa-metering-regwall--dialog');
-      }
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-      expect(findRegwallInDocument()).to.not.be.null;
-
-      GaaMeteringRegwall.remove();
-      expect(findRegwallInDocument()).to.be.null;
-    });
-  });
-
-  describe('signOut', () => {
-    it('tells GSI to sign user out', async () => {
-      const promise = GaaMeteringRegwall.signOut();
-      clock.tick(100);
-      await promise;
-
-      expect(signOutFake).to.be.called;
-    });
-  });
-
-  describe('getGaaUser_', () => {
-    it('sends intro postMessage to iframe', async () => {
-      // Mock an iframe (as a div to avoid browser security restrictions).
-      const mockIframeEl = self.document.createElement('div');
-      mockIframeEl.id = GOOGLE_SIGN_IN_IFRAME_ID;
-      mockIframeEl.contentWindow = {
-        postMessage: sandbox.fake(),
-      };
-      self.document.body.appendChild(mockIframeEl);
-
-      // Send intro message then trigger mock iframe's onload callback.
-      GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl: IFRAME_URL});
-      mockIframeEl.onload();
-
-      expect(mockIframeEl.contentWindow.postMessage).to.be.calledWithExactly(
-        {
-          command: POST_MESSAGE_COMMAND_INTRODUCTION,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        'https://localhost'
-      );
-    });
-  });
-
-  describe('logButtonClickEvents_', () => {
-    it('sends button click event', async () => {
-      // Show Regwall.
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-      await tick();
-      logEvent.resetHistory();
-
-      // Send button click post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
-      });
-
-      // Wait for logging.
-      await new Promise((resolve) => {
-        logEvent = sandbox.fake(resolve);
-      });
-
-      // Verify analytics event.
-      expectAnalyticsEvents([
-        {
+  /**
+   * Logs button click events.
+   * @private
+   * @nocollapse
+   */
+  static logButtonClickEvents_() {
+    // Listen for button event messages.
+    self.addEventListener('message', (e) => {
+      if (
+        e.data.stamp === POST_MESSAGE_STAMP &&
+        e.data.command === POST_MESSAGE_COMMAND_BUTTON_CLICK
+      ) {
+        // Log button click event.
+        logEvent({
           analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
           isFromUserAction: true,
+        });
+      }
+    });
+  }
+
+  /**
+   * Sends intro post message to Google Sign-In iframe.
+   * @private
+   * @nocollapse
+   * @param {{ iframeUrl: string }} params
+   */
+  static sendIntroMessageToGsiIframe_({iframeUrl}) {
+    // Introduce this window to the publisher's Google Sign-In iframe.
+    // This lets the iframe send post messages back to this window.
+    // Without the introduction, the iframe wouldn't have a reference to this window.
+    const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (
+      self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID)
+    );
+    googleSignInIframe.onload = () => {
+      googleSignInIframe.contentWindow.postMessage(
+        {
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
         },
-      ]);
-    });
-  });
-
-  describe('getPublisherNameFromPageConfig_', () => {
-    it('gets the publisher name from object page config', () => {
-      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
-        PUBLISHER_NAME
+        new URL(iframeUrl).origin
       );
-    });
-
-    it('gets the publisher name from array page config', () => {
-      self.document.head.innerHTML = `
-        <script type="application/ld+json">
-          [${ARTICLE_LD_JSON_METADATA}]
-        </script>
-      `;
-
-      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
-        PUBLISHER_NAME
-      );
-    });
-
-    it('gets the publisher name from graph construct', () => {
-      self.document.head.innerHTML = `
-        <script type="application/ld+json">
-          [{
-            "@context": "http://schema.org",
-            "@graph": [${ARTICLE_LD_JSON_METADATA}]
-          }]
-        </script>
-      `;
-
-      expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
-        PUBLISHER_NAME
-      );
-    });
-  });
-});
-
-describes.realWin('GaaGoogleSignInButton', {}, () => {
-  const allowedOrigins = [location.origin];
-
-  let clock;
-
-  beforeEach(() => {
-    // Mock clock.
-    clock = sandbox.useFakeTimers();
-
-    self.gapi = {
-      load: sandbox.fake((name, callback) => {
-        callback();
-      }),
-      auth2: {
-        init: sandbox.fake(),
-        getAuthInstance: sandbox.fake(),
-      },
-      signin2: {
-        render: sandbox.fake(),
-      },
     };
+  }
+}
 
-    // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns('?lang=en');
+export class GaaGoogleSignInButton {
+  /**
+   * Renders the Google Sign-In button.
+   * @nocollapse
+   * @param {{ allowedOrigins: !Array<string> }} params
+   */
+  static show({allowedOrigins}) {
+    // Optionally grab language code from URL.
+    const queryString = GaaUtils.getQueryString();
+    const queryParams = parseQueryString(queryString);
+    const languageCode = queryParams['lang'] || 'en';
 
-    // Mock console.warn method.
-    sandbox.stub(self.console, 'warn');
-  });
+    // Apply iframe styles.
+    const styleEl = self.document.createElement('style');
+    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+    );
+    self.document.head.appendChild(styleEl);
 
-  afterEach(() => {
-    if (self.postMessage.restore) {
-      self.postMessage.restore();
-    }
-    GaaUtils.getQueryString.restore();
-
-    // Remove the injected style from GaaGoogleSignInButton.show.
-    for (const style of [...self.document.head.querySelectorAll('style')]) {
-      style.remove();
-    }
-
-    self.console.warn.restore();
-  });
-
-  describe('show', () => {
-    it('renders Google Sign-In button', async () => {
-      GaaGoogleSignInButton.show({allowedOrigins});
-      clock.tick(100);
-      await tick(10);
-
-      const args = self.gapi.signin2.render.args;
-      expect(typeof args[0][1].onsuccess).to.equal('function');
-      expect(args).to.deep.equal([
-        [
-          'swg-google-sign-in-button',
-          {
-            longtitle: true,
-            onsuccess: args[0][1].onsuccess,
-            prompt: 'select_account',
-            scope: 'profile email',
-            theme: 'dark',
-          },
-        ],
-      ]);
-    });
-
-    it('renders supported i18n languages', async () => {
-      GaaUtils.getQueryString.returns('?lang=pt-br');
-
-      GaaGoogleSignInButton.show({allowedOrigins});
-      clock.tick(100);
-      await tick(10);
-
-      const styleEl = self.document.querySelector('style');
-      expect(styleEl.textContent).to.contain(
-        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
-      );
-    });
-
-    it('renders English by default, if "lang" URL param is missing', async () => {
-      GaaUtils.getQueryString.returns('?');
-
-      GaaGoogleSignInButton.show({allowedOrigins});
-      clock.tick(100);
-      await tick(10);
-
-      const styleEl = self.document.querySelector('style');
-      expect(styleEl.textContent).to.contain(
-        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
-      );
-    });
-
-    it('sends post message with button click event', async () => {
-      // Show button.
-      GaaGoogleSignInButton.show({allowedOrigins});
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+    // Promise a function that sends messages to the parent frame.
+    // Note: A function is preferable to a reference to the parent frame
+    // because referencing the parent frame outside of the 'message' event
+    // handler throws an Error. A function defined within the handler can
+    // effectively save a reference to the parent frame though.
+    const sendMessageToParentFnPromise = new Promise((resolve) => {
+      self.addEventListener('message', (e) => {
+        if (
+          allowedOrigins.indexOf(e.origin) !== -1 &&
+          e.data.stamp === POST_MESSAGE_STAMP &&
+          e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
+        ) {
+          resolve((message) => {
+            e.source.postMessage(message, e.origin);
+          });
+        }
       });
+    });
 
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      // Click button.
-      self.document.getElementById(GOOGLE_SIGN_IN_BUTTON_ID).click();
-
-      // Wait for button click post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      // Expect button click post message.
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
-          command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+    function sendErrorMessageToParent() {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
           stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('sends post message with GAA user', async () => {
-      GaaGoogleSignInButton.show({allowedOrigins});
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      // Mock Google Sign-In response with GoogleUser object.
-      const gaaUser = {
-        idToken: 'idToken',
-        name: 'name',
-        givenName: 'givenName',
-        familyName: 'familyName',
-        imageUrl: 'imageUrl',
-        email: 'email',
-        authorizationData: {
-          /* eslint-disable google-camelcase/google-camelcase */
-          access_token: 'accessToken',
-          id_token: 'idToken',
-          scope: 'scope',
-          expires_in: 0,
-          first_issued_at: 0,
-          expires_at: 0,
-          /* eslint-enable google-camelcase/google-camelcase */
-        },
-      };
-      const googleUser = {
-        getBasicProfile: () => ({
-          getName: () => gaaUser.name,
-          getGivenName: () => gaaUser.givenName,
-          getFamilyName: () => gaaUser.familyName,
-          getImageUrl: () => gaaUser.imageUrl,
-          getEmail: () => gaaUser.email,
-        }),
-        getAuthResponse: () => gaaUser.authorizationData,
-      };
-      const args = self.gapi.signin2.render.args;
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-      // Send GoogleUser.
-      args[0][1].onsuccess(googleUser);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
-          command: POST_MESSAGE_COMMAND_USER,
-          gaaUser: {
-            email: 'email',
-            familyName: 'familyName',
-            givenName: 'givenName',
-            idToken: 'idToken',
-            imageUrl: 'imageUrl',
-            name: 'name',
-            authorizationData: {
-              /* eslint-disable google-camelcase/google-camelcase */
-              access_token: 'accessToken',
-              id_token: 'idToken',
-              scope: 'scope',
-              expires_in: 0,
-              first_issued_at: 0,
-              expires_at: 0,
-              /* eslint-enable google-camelcase/google-camelcase */
-            },
-          },
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('sends errors to parent', async () => {
-      self.gapi.signin2.render = sandbox.fake.throws('I need cookies');
-
-      GaaGoogleSignInButton.show({allowedOrigins});
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
           command: POST_MESSAGE_COMMAND_ERROR,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('fails and warns when passed invalid origins', async () => {
-      const invalidOrigins = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        // Includes path.
-        'http://localhost:8080/',
-      ];
-
-      for (const invalidOrigin of invalidOrigins) {
-        GaaGoogleSignInButton.show({allowedOrigins: [invalidOrigin]});
-
-        // Send intro post message.
-        postMessage({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_INTRODUCTION,
         });
+      });
+    }
 
-        // Wait for promises and intervals to resolve.
-        clock.tick(100);
-        await tick(10);
+    // Validate origins.
+    for (const allowedOrigin of allowedOrigins) {
+      const url = new URL(allowedOrigin);
 
-        expect(self.console.warn).to.have.been.calledWithExactly(
-          `[swg-gaa.js:GaaGoogleSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
+      const isOrigin = url.origin === allowedOrigin;
+      const protocolIsValid =
+        url.protocol === 'http:' || url.protocol === 'https:';
+      const isValidOrigin = isOrigin && protocolIsValid;
+
+      if (!isValidOrigin) {
+        warn(
+          `[swg-gaa.js:GaaGoogleSignInButton.show]: You specified an invalid origin: ${allowedOrigin}`
         );
+        sendErrorMessageToParent();
+        return;
       }
+    }
+
+    // Render the Google Sign-In button.
+    configureGoogleSignIn()
+      .then(
+        // Promise credentials.
+        () =>
+          new Promise((resolve) => {
+            // Render the Google Sign-In button.
+            const buttonEl = self.document.createElement('div');
+            buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
+            buttonEl.tabIndex = 0;
+            self.document.body.appendChild(buttonEl);
+            self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
+              'longtitle': true,
+              'onsuccess': resolve,
+              'prompt': 'select_account',
+              'scope': 'profile email',
+              'theme': 'dark',
+            });
+
+            // Track button clicks.
+            buttonEl.addEventListener('click', () => {
+              // Tell parent frame about button click.
+              sendMessageToParentFnPromise.then((sendMessageToParent) => {
+                sendMessageToParent({
+                  stamp: POST_MESSAGE_STAMP,
+                  command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+                });
+              });
+            });
+          })
+      )
+      .then((googleUser) => {
+        // Gather GAA user details.
+        const basicProfile = /** @type {!GoogleUserDef} */ (
+          googleUser
+        ).getBasicProfile();
+        // Gather authorization response.
+        const authorizationData = /** @type {!GoogleUserDef} */ (
+          googleUser
+        ).getAuthResponse(true);
+        /** @type {!GaaUserDef} */
+        const gaaUser = {
+          idToken: authorizationData.id_token,
+          name: basicProfile.getName(),
+          givenName: basicProfile.getGivenName(),
+          familyName: basicProfile.getFamilyName(),
+          imageUrl: basicProfile.getImageUrl(),
+          email: basicProfile.getEmail(),
+          authorizationData,
+        };
+
+        // Send GAA user to parent frame.
+        sendMessageToParentFnPromise.then((sendMessageToParent) => {
+          sendMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_USER,
+            gaaUser,
+          });
+        });
+      })
+      .catch(sendErrorMessageToParent);
+  }
+}
+
+export class GaaSignInWithGoogleButton {
+  /**
+   * Renders the Google Sign-In button.
+   * @nocollapse
+   * @param {{ clientId: string, allowedOrigins: !Array<string>, rawJwt: boolean }} params
+   */
+  static show({clientId, allowedOrigins, rawJwt = false}) {
+    // Optionally grab language code from URL.
+    const queryString = GaaUtils.getQueryString();
+    const queryParams = parseQueryString(queryString);
+    const languageCode = queryParams['lang'] || 'en';
+
+    // Apply iframe styles.
+    const styleEl = self.document.createElement('style');
+    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+    );
+    self.document.head.appendChild(styleEl);
+
+    // Promise a function that sends messages to the parent frame.
+    // Note: A function is preferable to a reference to the parent frame
+    // because referencing the parent frame outside of the 'message' event
+    // handler throws an Error. A function defined within the handler can
+    // effectively save a reference to the parent frame though.
+    const sendMessageToParentFnPromise = new Promise((resolve) => {
+      self.addEventListener('message', (e) => {
+        if (
+          allowedOrigins.indexOf(e.origin) !== -1 &&
+          e.data.stamp === POST_MESSAGE_STAMP &&
+          e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
+        ) {
+          resolve((message) => {
+            e.source.postMessage(message, e.origin);
+          });
+        }
+      });
     });
-  });
-});
 
-describes.realWin('GaaSignInWithGoogleButton', {}, () => {
-  const allowedOrigins = [location.origin];
-  const clientId = 'client_id';
+    function sendErrorMessageToParent() {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_ERROR,
+        });
+      });
+    }
 
-  let clock;
+    // Validate origins.
+    for (let i = 0; i < allowedOrigins.length; i++) {
+      const allowedOrigin = allowedOrigins[i];
+      const url = new URL(allowedOrigin);
 
-  beforeEach(() => {
-    // Mock clock.
-    clock = sandbox.useFakeTimers();
+      const isOrigin = url.origin === allowedOrigin;
+      const protocolIsValid =
+        url.protocol === 'http:' || url.protocol === 'https:';
+      const isValidOrigin = isOrigin && protocolIsValid;
 
-    self.google = {
-      accounts: {
-        id: {
-          initialize: sandbox.fake(),
-          renderButton: sandbox.fake(),
-        },
-      },
+      if (!isValidOrigin) {
+        warn(
+          `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${allowedOrigin}`
+        );
+        sendErrorMessageToParent();
+        return;
+      }
+    }
+
+    new Promise((resolve) => {
+      const buttonEl = self.document.createElement('div');
+      buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
+      buttonEl.tabIndex = 0;
+      self.document.body.appendChild(buttonEl);
+
+      self.google.accounts.id.initialize({
+        /* eslint-disable google-camelcase/google-camelcase */
+        client_id: clientId,
+        callback: resolve,
+        allowed_parent_origin: allowedOrigins,
+        /* eslint-enable google-camelcase/google-camelcase */
+      });
+      self.google.accounts.id.renderButton(
+        self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+        {
+          'type': 'standard',
+          'theme': 'outline',
+          'text': 'continue_with',
+          'logo_alignment': 'center',
+          'width': buttonEl.offsetWidth,
+          'height': buttonEl.offsetHeight,
+        }
+      );
+
+      // Track button clicks.
+      buttonEl.addEventListener('click', () => {
+        // Tell parent frame about button click.
+        sendMessageToParentFnPromise.then((sendMessageToParent) => {
+          sendMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          });
+        });
+      });
+    })
+      .then((jwt) => {
+        const jwtPayload = /** @type {!GoogleIdentityV1} */ (
+          new JwtHelper().decode(jwt.credential)
+        );
+        const returnedJwt = rawJwt ? jwt : jwtPayload;
+
+        // Send GAA user to parent frame.
+        sendMessageToParentFnPromise.then((sendMessageToParent) => {
+          sendMessageToParent({
+            stamp: POST_MESSAGE_STAMP,
+            command: POST_MESSAGE_COMMAND_USER,
+            // Note: jwtPayload is deprecated in favor of returnedJwt.
+            jwtPayload,
+            returnedJwt,
+          });
+        });
+      })
+      .catch(sendErrorMessageToParent);
+  }
+}
+
+/**
+ * Loads the Google Sign-In API.
+ *
+ * This function is used in two places.
+ * 1. The publisher's Google Sign-In iframe.
+ * 2. (Optional) Demos that allow users to sign out.
+ *
+ * @return {!Promise}
+ */
+function configureGoogleSignIn() {
+  // Wait for Google Sign-In API.
+  return (
+    new Promise((resolve) => {
+      const apiCheckInterval = setInterval(() => {
+        if (!!self.gapi) {
+          clearInterval(apiCheckInterval);
+          resolve();
+        }
+      }, 50);
+    })
+      // Load Auth2 module.
+      .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
+      // Specify "redirect" mode. It plays nicer with webviews.
+      .then(
+        () =>
+          // Only initialize Google Sign-In once.
+          self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
+      )
+  );
+}
+
+/**
+ * Calls Swgjs.
+ * @param { function(!SubscriptionsDef) } callback
+ */
+function callSwg(callback) {
+  (self.SWG = self.SWG || []).push(callback);
+}
+
+/** Styles for the third party Google Sign-In button iframe. */
+const GOOGLE_3P_SIGN_IN_IFRAME_STYLES =
+  GOOGLE_SIGN_IN_IFRAME_STYLES +
+  `
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButtonContents {
+    font-family: Roboto,arial,sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .21px;
+    margin-left: 6px;
+    margin-right: 6px;
+    vertical-align: top;
+  }
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton {
+    border-radius: 1px;
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 25%);
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-transition: background-color .218s,border-color .218s,box-shadow .218s;
+    transition: background-color .218s,border-color .218s,box-shadow .218s;
+    -webkit-user-select: none;
+    -webkit-appearance: none;
+    background-color: #fff;
+    background-image: none;
+    color: #262626;
+    cursor: pointer;
+    outline: none;
+    overflow: hidden;
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: auto;
+  }
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButtonBlue {
+    border: none;
+    color: #fff;
+  }
+  `;
+
+const GOOGLE_3P_SIGN_IN_BUTTON_HTML = `
+<div style="height:36px;width:180px;" class="abcRioButton abcRioButtonBlue">
+  <span style="font-size:15px;line-height:34px;" class="abcRioButtonContents">
+    <span id="not_signed_in">Sign in with Google</span>
+  </span>
+</div>
+`;
+
+export class GaaGoogle3pSignInButton {
+  /**
+   * Renders the third party Google Sign-In button for external authentication.
+   * @nocollapse
+   * @param {{ allowedOrigins: !Array<string>, authorizationUrl: string, redirectMode: boolean }} params
+   */
+  static show({allowedOrigins, authorizationUrl, redirectMode = true}) {
+    // Optionally grab language code from URL.
+    const queryString = GaaUtils.getQueryString();
+    const queryParams = parseQueryString(queryString);
+    const languageCode = queryParams['lang'] || 'en';
+
+    // Apply iframe styles.
+    const styleEl = self.document.createElement('style');
+    styleEl./*OK*/ innerText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+    );
+    self.document.head.appendChild(styleEl);
+
+    // Render the third party Google Sign-In button.
+    const buttonEl = self.document.createElement('div');
+    buttonEl.id = GOOGLE_3P_SIGN_IN_BUTTON_ID;
+    buttonEl.tabIndex = 0;
+    buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
+    buttonEl.onclick = () => {
+      if (redirectMode) {
+        self.open(authorizationUrl, '_parent');
+      } else {
+        self.open(authorizationUrl);
+      }
     };
+    self.document.body.appendChild(buttonEl);
 
-    // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns('?lang=en');
-
-    // Mock console.warn method.
-    sandbox.stub(self.console, 'warn');
-  });
-
-  afterEach(() => {
-    if (self.postMessage.restore) {
-      self.postMessage.restore();
-    }
-    GaaUtils.getQueryString.restore();
-
-    // Remove the injected style from GaaSignInWithGoogleButton.show.
-    for (const style of [...self.document.head.querySelectorAll('style')]) {
-      style.remove();
-    }
-
-    self.console.warn.restore();
-  });
-
-  describe('show', () => {
-    it('renders Google Sign-In button', async () => {
-      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
-      clock.tick(100);
-      await tick(10);
-
-      const argsInit = self.google.accounts.id.initialize.args;
-      expect(typeof argsInit[0][0].callback).to.equal('function');
-      expect(argsInit).to.deep.equal([
-        [
-          {
-            /* eslint-disable google-camelcase/google-camelcase */
-            client_id: clientId,
-            callback: argsInit[0][0].callback,
-            allowed_parent_origin: allowedOrigins,
-            /* eslint-enable google-camelcase/google-camelcase */
-          },
-        ],
-      ]);
-
-      const argsRender = self.google.accounts.id.renderButton.args;
-      const buttonEl = self.document.getElementById(
-        SIGN_IN_WITH_GOOGLE_BUTTON_ID
-      );
-
-      expect(argsRender).to.deep.equal([
-        [
-          buttonEl,
-          {
-            'type': 'standard',
-            'theme': 'outline',
-            'text': 'continue_with',
-            'logo_alignment': 'center',
-            'width': buttonEl.offsetWidth,
-            'height': buttonEl.offsetHeight,
-          },
-        ],
-      ]);
-    });
-
-    it('renders supported i18n languages', async () => {
-      GaaUtils.getQueryString.returns('?lang=pt-br');
-
-      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
-      clock.tick(100);
-      await tick(10);
-
-      const styleEl = self.document.querySelector('style');
-      expect(styleEl.textContent).to.contain(
-        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
-      );
-    });
-
-    it('renders English by default, if "lang" URL param is missing', async () => {
-      GaaUtils.getQueryString.returns('?');
-
-      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
-      clock.tick(100);
-      await tick(10);
-
-      const styleEl = self.document.querySelector('style');
-      expect(styleEl.textContent).to.contain(
-        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
-      );
-    });
-
-    it('sends post message with button click event', async () => {
-      // Show button.
-      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+    // Promise a function that sends messages to the parent frame.
+    // Note: A function is preferable to a reference to the parent frame
+    // because referencing the parent frame outside of the 'message' event
+    // handler throws an Error. A function defined within the handler can
+    // effectively save a reference to the parent frame though.
+    const sendMessageToParentFnPromise = new Promise((resolve) => {
+      self.addEventListener('message', (e) => {
+        if (
+          allowedOrigins.indexOf(e.origin) !== -1 &&
+          e.data.stamp === POST_MESSAGE_STAMP &&
+          e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
+        ) {
+          resolve((message) => {
+            e.source.postMessage(message, e.origin);
+          });
+        }
       });
+    });
 
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      // Click button.
-      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
-
-      // Wait for button click post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      // Expect button click post message.
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
-          command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+    function sendErrorMessageToParent() {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
           stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('sends post message with GAA user', async () => {
-      // Mock encrypted GIS response with JWT object.
-      const jwtRaw = {
-        credential: {
-          payload:
-            'eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2NDE5OTU5MzgsImF1ZCI6IjQ3MzExNjQ0Mzk1OC12ajkwaDJrbW92cm9zZXUydWhrdnVxNGNjZ3ZldW43My5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExNzE5ODI3Njk2NjYyOTcxNjg0MSIsImhkIjoiZ29vZ2xlLmNvbSIsImVtYWlsIjoiZWRiaXJkQGdvb2dsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXpwIjoiNDczMTE2NDQzOTU4LXZqOTBoMmttb3Zyb3NldTJ1aGt2dXE0Y2NndmV1bjczLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiaWF0IjoxNjQxOTk2MjM4LCJleHAiOjE2NDE5OTk4MzgsImp0aSI6IjA4MGQ3Y2FiNzAyZDEyYWU1MzJjYzc3YTExNDk3NGI4OThjNmFjNTYifQ',
-        },
-      };
-
-      // Mock decrypted GIS response with JWT object.
-      const jwtDecoded = {
-        credential: {
-          /* eslint-disable google-camelcase/google-camelcase */
-          payload: {
-            iss: 'https://accounts.google.com', // The JWT's issuer
-            nbf: 161803398874,
-            aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
-            sub: '3141592653589793238', // The unique ID of the user's Google Account
-            hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
-            email: 'elisa.g.beckett@gmail.com', // The user's email address
-            email_verified: true, // true, if Google has verified the email address
-            azp: '314159265-pi.apps.googleusercontent.com',
-            name: 'Elisa Beckett',
-            // If present, a URL to user's profile picture
-            picture:
-              'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
-            given_name: 'Elisa',
-            family_name: 'Beckett',
-            iat: 1596474000, // Unix timestamp of the assertion's creation time
-            exp: 1596477600, // Unix timestamp of the assertion's expiration time
-            jti: 'abc161803398874def',
-          },
-          /* eslint-enable google-camelcase/google-camelcase */
-        },
-      };
-
-      // Mock JWT decoding function.
-      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
-        return jwtDecoded.credential;
-      });
-
-      GaaSignInWithGoogleButton.show({
-        clientId,
-        allowedOrigins,
-      });
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      const args = self.google.accounts.id.initialize.args;
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-      // Send JWT.
-      args[0][0].callback(jwtRaw);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
-          command: POST_MESSAGE_COMMAND_USER,
-          jwtPayload: jwtDecoded.credential,
-          returnedJwt: jwtDecoded.credential,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('sends post message with GAA user while requesting raw JWT', async () => {
-      // Mock encrypted GIS response with JWT object.
-      const jwtRaw = {
-        credential: {
-          payload:
-            'eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2NDE5OTU5MzgsImF1ZCI6IjQ3MzExNjQ0Mzk1OC12ajkwaDJrbW92cm9zZXUydWhrdnVxNGNjZ3ZldW43My5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExNzE5ODI3Njk2NjYyOTcxNjg0MSIsImhkIjoiZ29vZ2xlLmNvbSIsImVtYWlsIjoiZWRiaXJkQGdvb2dsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXpwIjoiNDczMTE2NDQzOTU4LXZqOTBoMmttb3Zyb3NldTJ1aGt2dXE0Y2NndmV1bjczLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiaWF0IjoxNjQxOTk2MjM4LCJleHAiOjE2NDE5OTk4MzgsImp0aSI6IjA4MGQ3Y2FiNzAyZDEyYWU1MzJjYzc3YTExNDk3NGI4OThjNmFjNTYifQ',
-        },
-      };
-
-      // Mock decrypted GIS response with JWT object.
-      const jwtDecoded = {
-        credential: {
-          /* eslint-disable google-camelcase/google-camelcase */
-          payload: {
-            iss: 'https://accounts.google.com', // The JWT's issuer
-            nbf: 161803398874,
-            aud: '314159265-pi.apps.googleusercontent.com', // Your server's client ID
-            sub: '3141592653589793238', // The unique ID of the user's Google Account
-            hd: 'gmail.com', // If present, the host domain of the user's GSuite email address
-            email: 'elisa.g.beckett@gmail.com', // The user's email address
-            email_verified: true, // true, if Google has verified the email address
-            azp: '314159265-pi.apps.googleusercontent.com',
-            name: 'Elisa Beckett',
-            // If present, a URL to user's profile picture
-            picture:
-              'https://lh3.googleusercontent.com/a-/e2718281828459045235360uler',
-            given_name: 'Elisa',
-            family_name: 'Beckett',
-            iat: 1596474000, // Unix timestamp of the assertion's creation time
-            exp: 1596477600, // Unix timestamp of the assertion's expiration time
-            jti: 'abc161803398874def',
-          },
-          /* eslint-enable google-camelcase/google-camelcase */
-        },
-      };
-
-      // Mock JWT decoding function.
-      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
-        return jwtDecoded.credential;
-      });
-
-      GaaSignInWithGoogleButton.show({
-        clientId,
-        allowedOrigins,
-        rawJwt: true,
-      });
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      const args = self.google.accounts.id.initialize.args;
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-      // Send JWT.
-      args[0][0].callback(jwtRaw);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
-          command: POST_MESSAGE_COMMAND_USER,
-          jwtPayload: jwtDecoded.credential,
-          returnedJwt: jwtRaw,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('sends errors to parent', async () => {
-      self.google.accounts.id.initialize = sandbox.fake.throws(
-        'Function not loaded'
-      );
-
-      GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWithExactly(
-        {
           command: POST_MESSAGE_COMMAND_ERROR,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('fails and warns when passed invalid origins', async () => {
-      const invalidOrigins = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        // Includes path.
-        'http://localhost:8080/',
-      ];
-
-      for (const invalidOrigin of invalidOrigins) {
-        GaaSignInWithGoogleButton.show({
-          clientId,
-          allowedOrigins: [invalidOrigin],
         });
+      });
+    }
 
-        // Send intro post message.
-        postMessage({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_INTRODUCTION,
-        });
+    // Validate origins.
+    for (let i = 0; i < allowedOrigins.length; i++) {
+      const allowedOrigin = allowedOrigins[i];
+      const url = new URL(allowedOrigin);
 
-        // Wait for promises and intervals to resolve.
-        clock.tick(100);
-        await tick(10);
+      const isOrigin = url.origin === allowedOrigin;
+      const protocolIsValid =
+        url.protocol === 'http:' || url.protocol === 'https:';
+      const isValidOrigin = isOrigin && protocolIsValid;
 
-        expect(self.console.warn).to.have.been.calledWithExactly(
-          `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${invalidOrigin}`
+      if (!isValidOrigin) {
+        warn(
+          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${allowedOrigin}`
         );
+        sendErrorMessageToParent();
+        return;
+      }
+    }
+
+    // Relay message to the parent frame (GAA Intervention).
+    self.addEventListener('message', (e) => {
+      if (
+        allowedOrigins.indexOf(e.origin) !== -1 &&
+        e.data.stamp === POST_MESSAGE_STAMP &&
+        e.data.command === POST_MESSAGE_COMMAND_USER
+      ) {
+        self.parent.postMessage(e.data, e.origin);
+      }
+    });
+  }
+  /**
+   * Notify Google Intervention of a complete sign-in event.
+   * @nocollapse
+   * @param {{ gaaUser: GaaUserDef}} params
+   */
+  static gaaNotifySignIn({gaaUser}) {
+    self.opener.postMessage({
+      stamp: POST_MESSAGE_STAMP,
+      command: POST_MESSAGE_COMMAND_USER,
+      gaaUser,
+    });
+  }
+}
+
+/**
+ * Logs Showcase events.
+ * @param {{
+ *   analyticsEvent: (AnalyticsEvent|undefined),
+ *   showcaseEvent: (ShowcaseEvent|undefined),
+ *   isFromUserAction: boolean,
+ * }} params
+ */
+function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
+  callSwg((swg) => {
+    // Get reference to event manager.
+    swg.getEventManager().then((eventManager) => {
+      // Get list of analytics events.
+      const eventTypes = showcaseEvent
+        ? showcaseEventToAnalyticsEvents(showcaseEvent)
+        : [analyticsEvent];
+
+      // Log each analytics event.
+      for (const eventType of eventTypes) {
+        eventManager.logEvent({
+          eventType,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction,
+          additionalParameters: null,
+        });
       }
     });
   });
-});
+}
 
-describes.realWin('GaaGoogle3pSignInButton', {}, () => {
-  const allowedOrigins = [location.origin];
-
-  let clock;
-
-  beforeEach(() => {
-    // Mock clock.
-    clock = sandbox.useFakeTimers();
-
-    // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns('?lang=en');
-
-    // Mock console.warn method.
-    sandbox.stub(self.console, 'warn');
-
-    sandbox.stub(self, 'open');
-  });
-
-  afterEach(() => {
-    if (self.postMessage.restore) {
-      self.postMessage.restore();
-    }
-
-    GaaUtils.getQueryString.restore();
-
-    // Remove the injected style from GaaGoogle3pSignInButton.show.
-    for (const style of [...self.document.head.querySelectorAll('style')]) {
-      style.remove();
-    }
-
-    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).remove();
-    self.console.warn.restore();
-  });
-
-  describe('show', () => {
-    it('renders third party Google Sign-In button', async () => {
-      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
-      clock.tick(100);
-      await tick(10);
-
-      const buttonDiv = self.document.querySelector(
-        '#' + GOOGLE_3P_SIGN_IN_BUTTON_ID
-      );
-      assert(buttonDiv);
-      expect(buttonDiv.tabIndex).to.equal(0);
-      expect(typeof buttonDiv.onclick).to.equal('function');
-    });
-
-    it('renders supported i18n languages', async () => {
-      GaaUtils.getQueryString.returns('?lang=pt-br');
-
-      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
-      clock.tick(100);
-      await tick(10);
-
-      const styleEl = self.document.querySelector('style');
-      expect(styleEl.textContent).to.contain(
-        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
-      );
-    });
-
-    it('renders English by default, if "lang" URL param is missing', async () => {
-      GaaUtils.getQueryString.returns('?');
-
-      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
-      clock.tick(100);
-      await tick(10);
-
-      const styleEl = self.document.querySelector('style');
-      expect(styleEl.textContent).to.contain(
-        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
-      );
-    });
-
-    it('sends post message with button click event', async () => {
-      // Show button.
-      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
-      clock.tick(100);
-      await tick(10);
-
-      // Click button.
-      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
-      clock.tick(100);
-      await tick(10);
-
-      expect(self.open).to.have.been.calledOnce;
-
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_USER,
-      });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      await new Promise((resolve) => {
-        sandbox.stub(self.parent, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.parent.postMessage).to.be.calledWithExactly(
-        {
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_USER,
-        },
-        location.origin
-      );
-    });
-
-    it('should open an authorizationUrl in the same window when redirectMode is true', async () => {
-      // Show button.
-      GaaGoogle3pSignInButton.show({
-        allowedOrigins,
-        authorizationUrl: GOOGLE_3P_AUTH_URL,
-        redirectMode: true,
-      });
-      clock.tick(100);
-      await tick(10);
-      // Click button.
-      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
-      clock.tick(100);
-      await tick(10);
-      expect(self.open).to.have.been.calledWithExactly(
-        GOOGLE_3P_AUTH_URL,
-        '_parent'
-      );
-    });
-
-    it('should open an authorizationUrl in a new window when redirectMode is false', async () => {
-      // Show button.
-      GaaGoogle3pSignInButton.show({
-        allowedOrigins,
-        authorizationUrl: GOOGLE_3P_AUTH_URL,
-        redirectMode: false,
-      });
-      clock.tick(100);
-      await tick(10);
-      // Click button.
-      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
-      clock.tick(100);
-      await tick(10);
-      expect(self.open).to.have.been.calledWithExactly(GOOGLE_3P_AUTH_URL);
-    });
-
-    it('sends errors to parent', async () => {
-      const invalidOrigin = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        location.origin,
-      ];
-
-      GaaGoogle3pSignInButton.show(
-        {allowedOrigins: invalidOrigin},
-        GOOGLE_3P_AUTH_URL
-      );
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWith(
-        {
-          command: POST_MESSAGE_COMMAND_ERROR,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('fails and warns when passed invalid origins', async () => {
-      const invalidOrigins = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        // Includes path.
-        'http://localhost:8080/',
-      ];
-
-      for (const invalidOrigin of invalidOrigins) {
-        GaaGoogle3pSignInButton.show(
-          {allowedOrigins: [invalidOrigin]},
-          GOOGLE_3P_AUTH_URL
-        );
-
-        // Send intro post message.
-        postMessage({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_INTRODUCTION,
-        });
-
-        // Wait for promises and intervals to resolve.
-        clock.tick(100);
-        await tick(10);
-
-        expect(self.console.warn).to.have.been.calledWithExactly(
-          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
-        );
-      }
-    });
-  });
-
-  describe('gaaNotifySignIn', () => {
-    it('posts message when passed a user', () => {
-      self.opener = self;
-      sandbox.stub(self, 'postMessage');
-      const gaaUser = {
-        email: 'email',
-        familyName: 'familyName',
-        givenName: 'givenName',
-        idToken: 'idToken',
-        imageUrl: 'imageUrl',
-        name: 'name',
-        authorizationData: {
-          /* eslint-disable google-camelcase/google-camelcase */
-          access_token: 'accessToken',
-          id_token: 'idToken',
-          scope: 'scope',
-          expires_in: 0,
-          first_issued_at: 0,
-          expires_at: 0,
-          /* eslint-enable google-camelcase/google-camelcase */
-        },
-      };
-      GaaGoogle3pSignInButton.gaaNotifySignIn({gaaUser});
-
-      expect(self.postMessage).to.have.been.calledWithExactly({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_USER,
-        gaaUser,
-      });
-    });
-  });
-});
+export class GaaUtils {
+  /**
+   * Returns query string from current URL.
+   * Tests can override this method to return different URLs.
+   * @return {string}
+   */
+  static getQueryString() {
+    return self.location.search;
+  }
+}
