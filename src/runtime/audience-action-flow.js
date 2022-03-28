@@ -42,7 +42,7 @@ import {parseUrl} from '../utils/url';
 /**
  * @typedef {{
  *  action: (string|undefined),
- *  fallback: (function()|undefined),
+ *  onCancel: (function()|undefined),
  *  autoPromptType: (AutoPromptType|undefined)
  * }}
  */
@@ -134,14 +134,9 @@ export class AudienceActionFlow {
         this.handleLinkRequest_.bind(this)
       );
 
-      const {fallback} = this.params_;
-      if (fallback) {
-        /**
-         * For a subscription publication, we need to show
-         * what would have been the original prompt if the
-         * user indicated they do not want to complete an action.
-         */
-        activityIframeView.onCancel(fallback);
+      const {onCancel} = this.params_;
+      if (onCancel) {
+        activityIframeView.onCancel(onCancel);
       }
 
       this.activityIframeView_ = activityIframeView;
