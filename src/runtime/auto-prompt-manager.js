@@ -84,7 +84,7 @@ export class AutoPromptManager {
     /** @private {?AudienceActionFlow} */
     this.lastAudienceActionFlow_ = null;
 
-    /** @private {string|null} */
+    /** @private {?string} */
     this.promptDisplayed_ = null;
   }
 
@@ -319,9 +319,9 @@ export class AutoPromptManager {
    * after the initial Contribution prompt. We also always default to showing the Contribution
    * prompt if the reader is currently inside of the frequency window, indicated by shouldShowAutoPrompt.
    * @param {{
-   *   article: (./entitlements-manager.Article|undefined),
+   *   article: (?./entitlements-manager.Article|undefined),
    *   autoPromptType: (AutoPromptType|undefined),
-   *   dismissedPrompts: (string|undefined),
+   *   dismissedPrompts: (?string|undefined),
    *   shouldShowAutoPrompt: (boolean|undefined),
    * }} params
    * @return {!string|undefined}
@@ -483,11 +483,10 @@ export class AutoPromptManager {
       ? this.storage_
           .get(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
           .then((value) => {
+            const prompt = /** @type {string} */ (this.promptDisplayed_);
             this.storage_.set(
               STORAGE_KEY_DISMISSED_PROMPTS,
-              value
-                ? value + ',' + this.promptDisplayed_
-                : this.promptDisplayed_,
+              value ? value + ',' + prompt : prompt,
               /* useLocalStorage */ true
             );
           })
