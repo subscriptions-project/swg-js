@@ -22,7 +22,7 @@ import {assert} from '../utils/log';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
-const STORAGE_KEY_LAST_DISMISSAL = 'lastdismissal';
+const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
 const STORAGE_DELIMITER = ',';
 const WEEK_IN_MILLIS = 604800000;
 const SECOND_IN_MILLIS = 1000;
@@ -128,13 +128,16 @@ export class AutoPromptManager {
       this.clientConfigManager_.getClientConfig(),
       this.entitlementsManager_.getEntitlements(),
       this.entitlementsManager_.getArticle(),
-      this.storage_.get(STORAGE_KEY_LAST_DISMISSAL, /* useLocalStorage */ true),
-    ]).then(([clientConfig, entitlements, article, lastDismissal]) => {
+      this.storage_.get(
+        STORAGE_KEY_DISMISSED_PROMPTS,
+        /* useLocalStorage */ true
+      ),
+    ]).then(([clientConfig, entitlements, article, dismissedPrompts]) => {
       this.showAutoPrompt_(
         clientConfig,
         entitlements,
         article,
-        lastDismissal,
+        dismissedPrompts,
         params
       );
     });
@@ -146,7 +149,7 @@ export class AutoPromptManager {
    * @param {!../model/client-config.ClientConfig|undefined} clientConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {?./entitlements-manager.Article} article
-   * @param {?string|undefined} lastDismissal
+   * @param {?string|undefined} dismissedPrompts
    * @param {{
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
@@ -154,7 +157,13 @@ export class AutoPromptManager {
    * }} params
    * @return {!Promise}
    */
-  showAutoPrompt_(clientConfig, entitlements, article, lastDismissal, params) {
+  showAutoPrompt_(
+    clientConfig,
+    entitlements,
+    article,
+    dismissedPrompts,
+    params
+  ) {
     return this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
@@ -163,7 +172,8 @@ export class AutoPromptManager {
       const potentialActionPromptType = this.getAudienceActionPromptType_({
         article,
         autoPromptType: params.autoPromptType,
-        lastDismissal,
+        dismissedPrompts,
+        shouldShowAutoPrompt,
       });
       const promptFn = potentialActionPromptType
         ? this.audienceActionPrompt_({
@@ -300,8 +310,29 @@ export class AutoPromptManager {
     );
   }
 
-  getAudienceActionPromptType_({article, autoPromptType, lastDismissal}) {
-    const potentialActions = article?.audienceActions?.actions || [];
+  /**
+   * Determines what Audience Action prompt should be shown.
+   *
+   * In the case of Subscription models, we always show the first available prompt.
+   *
+   * In the case of Contribution models, we only show non-previously dismissed actions
+   * after the initial Contribution prompt. We also always default to showing the Contribution
+   * prompt if the reader is currently inside of the frequency window, indicated by shouldShowAutoPrompt.
+   * @param {{
+   *   article: (./entitlements-manager.Article|undefined),
+   *   autoPromptType: (AutoPromptType|undefined),
+   *   dismissedPrompts: (string|undefined),
+   *   shouldShowAutoPrompt: (boolean|undefined),
+   * }} params
+   * @return {!string|undefined}
+   */
+  getAudienceActionPromptType_({
+    article,
+    autoPromptType,
+    dismissedPrompts,
+    shouldShowAutoPrompt,
+  }) {
+    let potentialActions = article?.audienceActions?.actions || [];
 
     // No audience actions means use the default prompt.
     if (potentialActions.length === 0) {
@@ -317,23 +348,25 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      let actionIndex = -1;
-      potentialActions.forEach((action, index) => {
-        if (action.type === lastDismissal) {
-          actionIndex = index;
-        }
-      });
-
-      // If they have not dismissed a contribution prompt or have already dismissed the last
-      // action, show the contribution prompt.
-      if (!lastDismissal || actionIndex + 1 === potentialActions.length) {
+      if (!dismissedPrompts) {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+        return undefined;
+      }
+      const previousPrompts = dismissedPrompts.split(',');
+      potentialActions = potentialActions.filter(
+        (action) => !previousPrompts.includes(action.type)
+      );
+
+      // If all actions have been dismissed or the frequency indicates that we
+      // should show the Contribution prompt again regardless of previous dismissals,
+      // we don't want to record the Contribution dismissal
+      if (potentialActions.length === 0 || shouldShowAutoPrompt) {
         return undefined;
       }
 
       // Otherwise, set to the next recommended action. If the last dismissal was the
       // Contribution prompt, this will resolve to the first recommended action.
-      actionToUse = potentialActions[actionIndex + 1].type;
+      actionToUse = potentialActions[0].type;
       this.promptDisplayed_ = actionToUse;
     }
 
@@ -441,13 +474,23 @@ export class AutoPromptManager {
     return Promise.resolve();
   }
 
+  /**
+   * Adds the current prompt displayed to the array of all dismissed prompts.
+   * @returns {!Promise}
+   */
   storeLastDismissal_() {
     return this.promptDisplayed_
-      ? this.storage_.set(
-          STORAGE_KEY_LAST_DISMISSAL,
-          this.promptDisplayed_,
-          /* useLocalStorage */ true
-        )
+      ? this.storage_
+          .get(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+          .then((value) => {
+            this.storage_.set(
+              STORAGE_KEY_DISMISSED_PROMPTS,
+              value
+                ? value + ',' + this.promptDisplayed_
+                : this.promptDisplayed_,
+              /* useLocalStorage */ true
+            );
+          })
       : Promise.resolve();
   }
 
