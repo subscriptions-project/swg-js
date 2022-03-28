@@ -74,28 +74,26 @@ export class AudienceActivityEventListener {
    * @private
    */
   handleClientEvent_(event) {
-    if (
-      !event.eventType ||
-      !audienceActivityLoggingEvents.has(event.eventType)
-    ) {
-      return;
+    // Checking to see if event classifies as an Audience Activity event before proceeding to promise statement.
+    if (event.eventType && audienceActivityLoggingEvents.has(event.eventType)) {
+      this.storage_.get(Constants.USER_TOKEN, true).then((swgUserToken) => {
+        if (swgUserToken) {
+          const pubId = encodeURIComponent(
+            this.deps_.pageConfig().getPublicationId()
+          );
+          const audienceActivityClientLogsRequest =
+            this.createLogRequest_(event);
+          const url = serviceUrl(
+            '/publication/' +
+              pubId +
+              '/audienceactivitylogs' +
+              '&sut=' +
+              swgUserToken
+          );
+          this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
+        }
+      });
     }
-    this.storage_.get(Constants.USER_TOKEN, true).then((swgUserToken) => {
-      if (swgUserToken) {
-        const pubId = encodeURIComponent(
-          this.deps_.pageConfig().getPublicationId()
-        );
-        const audienceActivityClientLogsRequest = this.createLogRequest_(event);
-        const url = serviceUrl(
-          '/publication/' +
-            pubId +
-            '/audienceactivitylogs' +
-            '&sut=' +
-            swgUserToken
-        );
-        this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
-      }
-    });
   }
 
   /**

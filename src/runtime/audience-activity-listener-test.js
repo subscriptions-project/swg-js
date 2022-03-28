@@ -56,6 +56,11 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
     );
   });
 
+  afterEach(() => {
+    storageMock.verify();
+    sandbox.restore();
+  });
+
   it('should not log audience activity events if experiment is off', async () => {
     // This triggers an event.
     await eventManagerCallback({
@@ -87,6 +92,7 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
     expect(eventsLoggedToService[0].getEvent()).to.equal(
       AnalyticsEvent.IMPRESSION_PAYWALL
     );
+
     const path = new URL(capturedUrl);
     expect(path.pathname).to.equal(
       '/swg/_/api/v1/publication/pub1/audienceactivitylogs&sut=abc'
@@ -96,6 +102,8 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
   it('should not log an event that is not classified as an audience activity event', async () => {
     setExperimentsStringForTesting(ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY);
     audienceActivityEventListener.start();
+    storageMock.expects('get').never();
+
     // This triggers an event.
     await eventManagerCallback({
       eventType: AnalyticsEvent.IMPRESSION_AD,
