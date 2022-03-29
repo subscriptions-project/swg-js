@@ -1102,9 +1102,17 @@ export class GaaGoogle3pSignInButton {
   /**
    * Renders the third party Google Sign-In button for external authentication.
    * @nocollapse
-   * @param {{ allowedOrigins: !Array<string>, authorizationUrl: string, redirectMode: boolean }} params
+   * @param {{
+   *    allowedOrigins: !Array<string>,
+   *    authorizationUrl: string,
+   *    redirectMode: boolean,
+   * }} params GaaGoogle3pSignInButton operates in two modes: redirect and
+   * popup. The default mode is pop-up mode which opens the authorizationUrl
+   * in a new window. To use a redirect mode and open the authorizationUrl in
+   * the same window, set redirectMode to true. For webview applications
+   * redirectMode is recommended.
    */
-  static show({allowedOrigins, authorizationUrl, redirectMode = true}) {
+  static show({allowedOrigins, authorizationUrl, redirectMode = false}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
