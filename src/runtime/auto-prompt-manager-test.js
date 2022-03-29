@@ -1021,7 +1021,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should show the Contribution prompt before any actions', async () => {
-      setupPreviousImpressionAndDismissals(null, null, null);
+      setupPreviousImpressionAndDismissals(null, null, null, 1);
       miniPromptApiMock.expects('create').once();
 
       await autoPromptManager.showAutoPrompt({
@@ -1045,7 +1045,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
-        AutoPromptType.CONTRIBUTION
+        AutoPromptType.CONTRIBUTION,
+        2
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1066,6 +1067,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
+      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
     });
 
     it('should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
@@ -1074,7 +1076,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
-        'contribution,TYPE_REGISTRATION_WALL'
+        'contribution,TYPE_REGISTRATION_WALL',
+        2
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1095,6 +1098,9 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_NEWSLETTER_SIGNUP'
       );
+      await verifyOnCancelStores(
+        'contribution,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP'
+      );
     });
 
     it('should show nothing if the the last Audience Action was previously dismissed and is not in the next Contribution prompt time', async () => {
@@ -1103,7 +1109,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
-        'contribution,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP'
+        'contribution,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP',
+        1
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1127,7 +1134,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
-        'contribution,TYPE_REGISTRATION_WALL'
+        'contribution,TYPE_REGISTRATION_WALL',
+        1
       );
       miniPromptApiMock.expects('create').once();
 
@@ -1144,10 +1152,26 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
 
+    async function verifyOnCancelStores(setValue) {
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          STORAGE_KEY_DISMISSED_PROMPTS,
+          setValue,
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+      const {onCancel} = actionFlowSpy.firstCall.args[1];
+      onCancel();
+      await tick(2);
+    }
+
     function setupPreviousImpressionAndDismissals(
       storedImpressions,
       storedDismissals,
-      dismissedPrompts
+      dismissedPrompts,
+      dismissedPromptGetCallCount
     ) {
       storageMock
         .expects('get')
@@ -1165,8 +1189,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
           STORAGE_KEY_DISMISSED_PROMPTS,
           /* useLocalStorage */ true
         )
-        .returns(Promise.resolve(dismissedPrompts))
-        .once();
+        .resolves(dismissedPrompts)
+        .exactly(dismissedPromptGetCallCount);
       storageMock
         .expects('get')
         .withExactArgs(Constants.USER_TOKEN, /* useLocalStorage */ true)
