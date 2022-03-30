@@ -22,6 +22,7 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
+import {Constants} from '../utils/constants';
 import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
@@ -33,6 +34,7 @@ import {tick} from '../../test/tick';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
+const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 
 describes.realWin('AutoPromptManager', {}, (env) => {
@@ -50,6 +52,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   let storageMock;
   let alternatePromptSpy;
   let miniPromptApiMock;
+  let actionFlowSpy;
+  let startSpy;
   const productId = 'pub1:label1';
   const pubId = 'pub1';
 
@@ -94,6 +98,12 @@ describes.realWin('AutoPromptManager', {}, (env) => {
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
     alternatePromptSpy = sandbox.spy();
+
+    actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionFlow');
+    startSpy = sandbox.spy(
+      audienceActionFlow.AudienceActionFlow.prototype,
+      'start'
+    );
   });
 
   afterEach(() => {
@@ -197,6 +207,46 @@ describes.realWin('AutoPromptManager', {}, (env) => {
 
     await eventManagerCallback({
       eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it('should record the last dismissed flow if one was setup', async () => {
+    autoPromptManager.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
+
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        STORAGE_KEY_DISMISSALS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .returns(Promise.resolve())
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        STORAGE_KEY_DISMISSED_PROMPTS,
+        AutoPromptType.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .returns(Promise.resolve())
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
@@ -393,6 +443,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
       .returns(Promise.resolve(null))
       .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -427,6 +482,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
       .returns(Promise.resolve(null))
       .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -457,6 +517,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
       .returns(Promise.resolve(null))
       .once();
     miniPromptApiMock.expects('create').never();
@@ -495,6 +560,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
       .returns(Promise.resolve(null))
       .once();
     miniPromptApiMock.expects('create').once();
@@ -538,6 +608,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
       .returns(Promise.resolve(storedDismissals))
       .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -578,6 +653,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('get')
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
       .returns(Promise.resolve(storedDismissals))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
       .once();
     miniPromptApiMock.expects('create').once();
 
@@ -620,6 +700,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
       .returns(Promise.resolve(storedDismissals))
       .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
+      .once();
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -660,6 +745,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('get')
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
       .returns(Promise.resolve(storedDismissals))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .returns(Promise.resolve(null))
       .once();
     miniPromptApiMock.expects('create').once();
 
@@ -802,8 +892,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   });
 
   describe('AudienceActionFlow', () => {
-    let actionFlowSpy;
-    let startSpy;
     let articleExpectation;
 
     beforeEach(() => {
@@ -827,11 +915,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
           },
         })
         .once();
-      actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionFlow');
-      startSpy = sandbox.spy(
-        audienceActionFlow.AudienceActionFlow.prototype,
-        'start'
-      );
     });
 
     it('should display an AudienceActionFlow if there are any actions provided in the article response', async () => {
@@ -844,27 +927,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
-        fallback: alternatePromptSpy,
+        onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
       expect(alternatePromptSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
-    });
-
-    it('should not include the fallback for CONTRIBUTION prompts', async () => {
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-        alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
-      });
-
-      expect(startSpy).to.have.been.calledOnce;
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REGISTRATION_WALL',
-        fallback: undefined,
-        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-      });
-      expect(alternatePromptSpy).to.not.have.been.called;
     });
 
     it('should call the original prompt for no article actions', async () => {
@@ -891,7 +958,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         deps,
         {
           action: 'TYPE_REGISTRATION_WALL',
-          fallback: undefined,
+          onCancel: undefined,
           autoPromptType: AutoPromptType.CONTRIBUTION,
         }
       );
@@ -906,5 +973,229 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         lastAudienceActionFlow
       );
     });
+  });
+
+  describe('Contribution Flows with Audience Actions', () => {
+    let articleExpectation;
+
+    beforeEach(() => {
+      const autoPromptConfig = new AutoPromptConfig(
+        /* maxImpressionsPerWeek */ 2,
+        /* displayDelaySeconds */ 0,
+        /* backoffSeconds */ 5,
+        /* maxDismissalsPerWeek */ 2,
+        /* maxDismissalsResultingHideSeconds */ 10
+      );
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .returns(Promise.resolve(clientConfig))
+        .once();
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(false);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .returns(Promise.resolve(entitlements))
+        .once();
+      articleExpectation = entitlementsManagerMock.expects('getArticle');
+      articleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_REGISTRATION_WALL'},
+              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+    });
+
+    it('should show the Contribution prompt before any actions', async () => {
+      setupPreviousImpressionAndDismissals(null, null, null, 1);
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        AutoPromptType.CONTRIBUTION
+      );
+    });
+
+    it('should show the first Audience Action flow if a Contribution was previously dismissed and is not the next Contribution prompt time', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(
+        storedImpressions,
+        storedDismissals,
+        AutoPromptType.CONTRIBUTION,
+        2
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
+    });
+
+    it('should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(
+        storedImpressions,
+        storedDismissals,
+        'contribution,TYPE_REGISTRATION_WALL',
+        2
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_NEWSLETTER_SIGNUP'
+      );
+      await verifyOnCancelStores(
+        'contribution,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP'
+      );
+    });
+
+    it('should show nothing if the the last Audience Action was previously dismissed and is not in the next Contribution prompt time', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(
+        storedImpressions,
+        storedDismissals,
+        'contribution,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP',
+        1
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+    });
+
+    it('should show the Contribution Flow even if there is an available Audience Action that was previously dismissed and is in the next Contribution prompt time', async () => {
+      // One stored impression from 20s ago and one dismissal from 6s ago.
+      const storedImpressions = (CURRENT_TIME - 20000).toString();
+      const storedDismissals = (CURRENT_TIME - 6000).toString();
+      setupPreviousImpressionAndDismissals(
+        storedImpressions,
+        storedDismissals,
+        'contribution,TYPE_REGISTRATION_WALL',
+        1
+      );
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+    });
+
+    async function verifyOnCancelStores(setValue) {
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          STORAGE_KEY_DISMISSED_PROMPTS,
+          setValue,
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+      const {onCancel} = actionFlowSpy.firstCall.args[1];
+      onCancel();
+      await tick(2);
+    }
+
+    function setupPreviousImpressionAndDismissals(
+      storedImpressions,
+      storedDismissals,
+      dismissedPrompts,
+      dismissedPromptGetCallCount
+    ) {
+      storageMock
+        .expects('get')
+        .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
+        .returns(Promise.resolve(storedImpressions))
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+        .returns(Promise.resolve(storedDismissals))
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          STORAGE_KEY_DISMISSED_PROMPTS,
+          /* useLocalStorage */ true
+        )
+        .resolves(dismissedPrompts)
+        .exactly(dismissedPromptGetCallCount);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, /* useLocalStorage */ true)
+        .returns(Promise.resolve('token'))
+        .atMost(1);
+    }
   });
 });
