@@ -41,7 +41,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let port;
   let messageCallback;
   let messageMap;
-  let fallbackSpy;
+  let onCancelSpy;
 
   beforeEach(() => {
     win = env.win;
@@ -64,7 +64,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
       document: win.document,
     });
-    fallbackSpy = sandbox.spy();
+    onCancelSpy = sandbox.spy();
   });
 
   [
@@ -77,7 +77,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         .returns(Promise.resolve(EXISTING_USER_TOKEN));
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
-        fallback: fallbackSpy,
+        onCancel: onCancelSpy,
         autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
       activitiesMock
@@ -98,7 +98,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       await audienceActionFlow.start();
 
       activitiesMock.verify();
-      expect(fallbackSpy).to.not.be.called;
+      expect(onCancelSpy).to.not.be.called;
     });
   });
 
@@ -110,7 +110,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
-        fallback: fallbackSpy,
+        onCancel: onCancelSpy,
         autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
       activitiesMock
@@ -131,14 +131,14 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       await audienceActionFlow.start();
 
       activitiesMock.verify();
-      expect(fallbackSpy).to.not.be.called;
+      expect(onCancelSpy).to.not.be.called;
     });
   });
 
-  it('calls the fallback when an AudienceActionFlow is cancelled and one it provided', async () => {
+  it('calls the onCancel when an AudienceActionFlow is cancelled and one it provided', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
     });
     activitiesMock.expects('openIframe').resolves(port);
     sandbox
@@ -150,13 +150,13 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.start();
 
     activitiesMock.verify();
-    expect(fallbackSpy).to.be.calledOnce;
+    expect(onCancelSpy).to.be.calledOnce;
   });
 
   it('handles a CompleteAudienceActionResponse with regwall completed and opens a custom toast', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -195,7 +195,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   it('handles a CompleteAudienceActionResponse with newsletter completed and opens a custom toast', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -234,7 +234,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   it('handles a CompleteAudienceActionResponse with regwall completed before and opens a basic toast', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -270,7 +270,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   it(`handles a CompleteAudienceActionResponse with newsletter not completed and opens a custom toast indicating that the user has completed the newsletter before`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -308,7 +308,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -326,7 +326,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
