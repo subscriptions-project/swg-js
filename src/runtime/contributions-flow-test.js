@@ -36,6 +36,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   let pageConfig;
   let port;
   let messageMap;
+  let dialogManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -45,6 +46,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     contributionsFlow = new ContributionsFlow(runtime, {'isClosable': true});
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -59,6 +61,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   afterEach(() => {
     activitiesMock.verify();
     callbacksMock.verify();
+    dialogManagerMock.verify();
   });
 
   it('has valid ContributionsFlow constructed with a list', async () => {
@@ -249,6 +252,40 @@ describes.realWin('ContributionsFlow', {}, (env) => {
 
     activitiesMock.expects('openIframe').resolves(port);
 
+    await contributionsFlow.start();
+  });
+
+  it('opens dialog without dialog config when useUpdatedOfferFlows=false', async () => {
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: false,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
+      .once();
+    await contributionsFlow.start();
+  });
+
+  it('opens dialog with scrolling disabled when useUpdatedOfferFlows=true', async () => {
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({shouldDisableBodyScrolling: true})
+      )
+      .once();
     await contributionsFlow.start();
   });
 

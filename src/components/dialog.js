@@ -75,11 +75,14 @@ const resetViewStyles = {
  *       viewport height.
  * - iframeCssClassOverride: The CSS class to use for the iframe, overriding
  *       default classes such as swg-dialog.
+ * - shouldDisableBodyScrolling: Whether to disable scrolling on the content page
+ *       when the dialog is visible.
  *
  * @typedef {{
  *   desktopConfig: (DesktopDialogConfig|undefined),
  *   maxAllowedHeightRatio: (number|undefined),
  *   iframeCssClassOverride: (string|undefined),
+ *   shouldDisableBodyScrolling: (boolean|undefined),
  * }}
  */
 export let DialogConfig;
@@ -174,6 +177,10 @@ export class Dialog {
 
     /** @const @private {boolean} */
     this.positionCenterOnDesktop_ = !!desktopDialogConfig.isCenterPositioned;
+
+    /** @const @private {boolean} */
+    this.shouldDisableBodyScrolling_ =
+      !!dialogConfig.shouldDisableBodyScrolling;
 
     /** @const @private {!MediaQueryList} */
     this.desktopMediaQuery_ = this.doc_
@@ -292,6 +299,9 @@ export class Dialog {
     } else {
       animating = Promise.resolve();
     }
+
+    this.doc_.getBody().classList.remove('swg-disable-scroll');
+
     return animating.then(() => {
       const iframeEl = this.iframe_.getElement();
       iframeEl.parentNode.removeChild(iframeEl);
@@ -402,6 +412,10 @@ export class Dialog {
 
     this.view_ = view;
     this.getContainer().appendChild(view.getElement());
+
+    if (this.shouldDisableBodyScrolling_) {
+      this.doc_.getBody().classList.add('swg-disable-scroll');
+    }
 
     // If the current view should fade the parent document.
     if (view.shouldFadeBody() && !this.hidden_) {
