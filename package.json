@@ -109,7 +109,7 @@
     "plugin-error": "1.0.1",
     "postcss": "8.4.12",
     "postcss-import": "14.1.0",
-    "prettier": "2.6.1",
+    "prettier": "2.6.2",
     "pumpify": "2.0.1",
     "regenerator-runtime": "0.13.9",
     "request": "2.88.2",
