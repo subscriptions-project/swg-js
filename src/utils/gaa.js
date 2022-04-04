@@ -1387,6 +1387,17 @@ export class GaaUtils {
   }
 }
 
+/**
+ * Types of grantReason that can be specified by the user as part of
+ * the userState object
+ * @enum {string}
+ */
+export const GrantReasonType = {
+  FREE: 'FREE',
+  SUBSCRIBER: 'SUBSCRIBER',
+  METERING: 'METERING'
+};
+
 export class GaaMetering {
   gaaUserPromiseResolve_() {}
 
@@ -1445,7 +1456,7 @@ export class GaaMetering {
       if ('granted' in userState && 'grantReason' in userState) {
         unlockArticleIfGranted();
       } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
-        userState.grantReason = 'FREE';
+        userState.grantReason = GrantReasonType.FREE;
         userState.granted = true;
         debugLog('Article free from markup.');
         unlockArticleIfGranted();
@@ -1567,7 +1578,7 @@ export class GaaMetering {
         return false;
       } else if (userState.granted === true) {
         callSwg((subscriptions) => {
-          if (userState.grantReason === 'SUBSCRIBER') {
+          if (userState.grantReason === GrantReasonType.SUBSCRIBER) {
             // The user has access because they have a subscription
             subscriptions.setShowcaseEntitlement({
               entitlement:
@@ -1575,13 +1586,13 @@ export class GaaMetering {
               isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             debugLog('unlocked for subscriber');
-          } else if (userState.grantReason === 'FREE') {
+          } else if (userState.grantReason === GrantReasonType.FREE) {
             subscriptions.setShowcaseEntitlement({
               entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
               isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             debugLog('unlocked for free');
-          } else if (userState.grantReason === 'METERING') {
+          } else if (userState.grantReason === GrantReasonType.METERING) {
             // The user has access from the publisher's meter
             subscriptions.setShowcaseEntitlement({
               entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
@@ -1929,7 +1940,7 @@ export class GaaMetering {
 
     if (
       newUserState.granted === true &&
-      !['METERING', 'SUBSCRIBER', 'FREE'].includes(newUserState.grantReason)
+      GrantReasonType[newUserState.grantReason] === undefined
     ) {
       debugLog(
         'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
@@ -1940,7 +1951,7 @@ export class GaaMetering {
 
     if (
       newUserState.granted === true &&
-      newUserState.grantReason === 'SUBSCRIBER'
+      newUserState.grantReason === GrantReasonType.SUBSCRIBER
     ) {
       if (
         !('id' in newUserState) ||
@@ -1971,7 +1982,7 @@ export class GaaMetering {
         }
 
         if (
-          newUserState.grantReason === 'SUBSCRIBER' &&
+          newUserState.grantReason === GrantReasonType.SUBSCRIBER &&
           !('subscriptionTimestamp' in newUserState)
         ) {
           debugLog(
