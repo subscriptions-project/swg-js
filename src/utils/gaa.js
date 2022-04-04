@@ -1577,31 +1577,21 @@ export class GaaMetering {
         debugLog('Invalid userState object');
         return false;
       } else if (userState.granted === true) {
-        callSwg((subscriptions) => {
-          if (userState.grantReason === GrantReasonType.SUBSCRIBER) {
-            // The user has access because they have a subscription
-            subscriptions.setShowcaseEntitlement({
-              entitlement:
-                ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
-              isUserRegistered: GaaMetering.isUserRegistered(userState),
-            });
-            debugLog('unlocked for subscriber');
-          } else if (userState.grantReason === GrantReasonType.FREE) {
-            subscriptions.setShowcaseEntitlement({
-              entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
-              isUserRegistered: GaaMetering.isUserRegistered(userState),
-            });
-            debugLog('unlocked for free');
-          } else if (userState.grantReason === GrantReasonType.METERING) {
-            // The user has access from the publisher's meter
-            subscriptions.setShowcaseEntitlement({
-              entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
-              isUserRegistered: GaaMetering.isUserRegistered(userState),
-            });
-            debugLog('unlocked for metering');
-          }
-        });
+        const grantReasonToShowCaseEventMap = new Map([
+          [GrantReasonType.SUBSCRIBER, ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION],
+          [GrantReasonType.FREE, ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE],
+          [GrantReasonType.METERING, ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER],
+        ]);
 
+        if(GrantReasonType[userState.grantReason] !== undefined) {
+          callSwg((subscriptions) => {
+            subscriptions.setShowcaseEntitlement({
+              entitlement: grantReasonToShowCaseEventMap.get(userState.grantReason),
+              isUserRegistered: GaaMetering.isUserRegistered(userState),
+            });
+            debugLog('unlocked for ' + userState.grantReason);
+          });
+        }
         // User has access from publisher so unlock article
         unlockArticle();
       } else {

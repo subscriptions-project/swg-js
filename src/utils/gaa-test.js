@@ -2606,7 +2606,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
-        'unlocked for subscriber'
+        'unlocked for SUBSCRIBER'
       );
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
@@ -2642,7 +2642,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
-        'unlocked for metering'
+        'unlocked for METERING'
       );
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
@@ -2682,7 +2682,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
-        'unlocked for free'
+        'unlocked for FREE'
       );
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
