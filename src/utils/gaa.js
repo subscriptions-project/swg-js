@@ -1395,7 +1395,7 @@ export class GaaUtils {
 export const GrantReasonType = {
   FREE: 'FREE',
   SUBSCRIBER: 'SUBSCRIBER',
-  METERING: 'METERING'
+  METERING: 'METERING',
 };
 
 export class GaaMetering {
@@ -1578,15 +1578,26 @@ export class GaaMetering {
         return false;
       } else if (userState.granted === true) {
         const grantReasonToShowCaseEventMap = new Map([
-          [GrantReasonType.SUBSCRIBER, ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION],
-          [GrantReasonType.FREE, ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE],
-          [GrantReasonType.METERING, ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER],
+          [
+            GrantReasonType.SUBSCRIBER,
+            ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+          ],
+          [
+            GrantReasonType.FREE,
+            ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
+          ],
+          [
+            GrantReasonType.METERING,
+            ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+          ],
         ]);
 
-        if(GrantReasonType[userState.grantReason] !== undefined) {
+        if (GrantReasonType[userState.grantReason] !== undefined) {
           callSwg((subscriptions) => {
             subscriptions.setShowcaseEntitlement({
-              entitlement: grantReasonToShowCaseEventMap.get(userState.grantReason),
+              entitlement: grantReasonToShowCaseEventMap.get(
+                userState.grantReason
+              ),
               isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             debugLog('unlocked for ' + userState.grantReason);
@@ -1828,9 +1839,11 @@ export class GaaMetering {
   }
 
   static isArticleFreeFromPageConfig_() {
-    return GaaMetering.isArticleFreeFromJsonLdPageConfig_() ||
-          GaaMetering.isArticleFreeFromMicrodataPageConfig_() ||
-          false;
+    return (
+      GaaMetering.isArticleFreeFromJsonLdPageConfig_() ||
+      GaaMetering.isArticleFreeFromMicrodataPageConfig_() ||
+      false
+    );
   }
 
   /**
