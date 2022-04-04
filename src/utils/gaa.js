@@ -386,7 +386,7 @@ export let GoogleIdentityV1;
  * GoogleUser object that Google Sign-In returns after users sign in.
  * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
- * getAuthResponse: function(boolean): {
+ *  getAuthResponse: function(boolean): {
  *     access_token: string,
  *     id_token: string,
  *     scope: string,
@@ -499,7 +499,7 @@ export class GaaMeteringRegwall {
       isFromUserAction: false,
     });
 
-    GaaMeteringRegwall.render_({iframeUrl, caslUrl, useNativeMode: false});
+    GaaMeteringRegwall.render_({iframeUrl, caslUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     GaaMeteringRegwall.logButtonClickEvents_();
     return GaaMeteringRegwall.getGaaUser_()
@@ -582,7 +582,7 @@ export class GaaMeteringRegwall {
    * @nocollapse
    * @param {{ iframeUrl: string, caslUrl: string, useNativeMode: boolean}} params
    */
-  static render_({iframeUrl, caslUrl, useNativeMode}) {
+  static render_({iframeUrl, caslUrl, useNativeMode = false}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
     const placeholderPatternForPublication = /<ph name="PUBLICATION".+?\/ph>/g;
@@ -1419,19 +1419,19 @@ export class GaaMetering {
 
     // Register publisher's callbacks, promises, and parameters
     const productId = GaaMetering.getProductIDFromPageConfig_();
-    const googleApiClientId = params.googleApiClientId;
-    const allowedReferrers = params.allowedReferrers;
-    const showcaseEntitlement = params.showcaseEntitlement;
-    const caslUrl = params.caslUrl;
-
-    const showPaywall = params.showPaywall;
-    const userState = params.userState;
-    const unlockArticle = params.unlockArticle;
-    const handleSwGEntitlement = params.handleSwGEntitlement;
-
-    const registerUserPromise = params.registerUserPromise;
-    const handleLoginPromise = params.handleLoginPromise;
-    const publisherEntitlementPromise = params.publisherEntitlementPromise;
+    const {
+      googleApiClientId,
+      allowedReferrers,
+      showcaseEntitlement,
+      caslUrl,
+      showPaywall,
+      userState,
+      unlockArticle,
+      handleSwGEntitlement,
+      registerUserPromise,
+      handleLoginPromise,
+      publisherEntitlementPromise,
+    } = params;
 
     // Validate gaa parameters and referrer
     if (!GaaMetering.isGaa(allowedReferrers)) {
@@ -1711,18 +1711,6 @@ export class GaaMetering {
     }
 
     const userState = params.userState;
-    /*
-    if (
-      (!('granted' in params.userState) ||
-        (params.userState.granted && !('grantReason' in params.userState))) &&
-      !('publisherEntitlementPromise' in params)
-    ) {
-      debugLog(
-        'Either granted and grantReason have to be supplied or you have to provide pubisherEntitlementPromise'
-      );
-      return false;
-    }
-    */
     if (
       (!('granted' in userState) ||
         (userState.granted && !('grantReason' in userState))) &&
