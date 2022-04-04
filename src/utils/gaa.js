@@ -1577,27 +1577,19 @@ export class GaaMetering {
         debugLog('Invalid userState object');
         return false;
       } else if (userState.granted === true) {
-        const grantReasonToShowCaseEventMap = new Map([
-          [
-            GrantReasonType.SUBSCRIBER,
+        const grantReasonToShowCaseEventMap = {
+          [GrantReasonType.SUBSCRIBER]:
             ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
-          ],
-          [
-            GrantReasonType.FREE,
+          [GrantReasonType.FREE]:
             ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
-          ],
-          [
-            GrantReasonType.METERING,
+          [GrantReasonType.METERING]:
             ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
-          ],
-        ]);
+        };
 
         if (GrantReasonType[userState.grantReason] !== undefined) {
           callSwg((subscriptions) => {
             subscriptions.setShowcaseEntitlement({
-              entitlement: grantReasonToShowCaseEventMap.get(
-                userState.grantReason
-              ),
+              entitlement: grantReasonToShowCaseEventMap[userState.grantReason],
               isUserRegistered: GaaMetering.isUserRegistered(userState),
             });
             debugLog('unlocked for ' + userState.grantReason);
