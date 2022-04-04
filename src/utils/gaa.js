@@ -1827,18 +1827,9 @@ export class GaaMetering {
   }
 
   static isArticleFreeFromPageConfig_() {
-    const jsonLdPageConfig = GaaMetering.isArticleFreeFromJsonLdPageConfig_();
-    if (jsonLdPageConfig) {
-      return jsonLdPageConfig;
-    }
-
-    const microdataPageConfig =
-      GaaMetering.isArticleFreeFromMicrodataPageConfig_();
-    if (microdataPageConfig) {
-      return microdataPageConfig;
-    }
-
-    return false;
+    return GaaMetering.isArticleFreeFromJsonLdPageConfig_() ||
+          GaaMetering.isArticleFreeFromMicrodataPageConfig_() ||
+          false;
   }
 
   /**
