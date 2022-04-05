@@ -25,14 +25,14 @@
  *   maxImpressionsResultingHideSeconds: (number|undefined),
  * }}
  */
-export let AutoPromptConfigparams;
+export let AutoPromptConfigParams;
 
 /**
  * Container for the auto prompt configuation details.
  */
 export class AutoPromptConfig {
   /**
-   * @param {!AutoPromptConfigparams=} params
+   * @param {!AutoPromptConfigParams=} params
    */
   constructor({
     displayDelaySeconds,
