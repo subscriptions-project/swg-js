@@ -258,7 +258,7 @@ export class AutoPromptManager {
     }
 
     // Fetched config returned no maximum cap.
-    if (autoPromptConfig.maxImpressionsPerWeek === undefined) {
+    if (autoPromptConfig.impressionConfig.maxImpressions === undefined) {
       return Promise.resolve(true);
     }
 
@@ -269,15 +269,17 @@ export class AutoPromptManager {
         const impressions = values[0];
         const dismissals = values[1];
 
+        const lastImpression = impressions[impressions.length - 1];
+        const lastDismissal = dismissals[dismissals.length - 1];
+
         // If the user has reached the maxDismissalsPerWeek, and
         // maxDismissalsResultingHideSeconds has not yet passed, don't show the
         // prompt.
         if (
-          autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek !==
-            undefined &&
+          autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek &&
           dismissals.length >=
             autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek &&
-          Date.now() - dismissals[dismissals.length - 1] <
+          Date.now() - lastDismissal <
             (autoPromptConfig.explicitDismissalConfig
               .maxDismissalsResultingHideSeconds || 0) *
               SECOND_IN_MILLIS
@@ -288,23 +290,42 @@ export class AutoPromptManager {
         // If the user has previously dismissed the prompt, and backoffSeconds has
         // not yet passed, don't show the prompt.
         if (
-          autoPromptConfig.explicitDismissalConfig.backoffSeconds !==
-            undefined &&
+          autoPromptConfig.explicitDismissalConfig.backoffSeconds &&
           dismissals.length > 0 &&
-          Date.now() - dismissals[dismissals.length - 1] <
+          Date.now() - lastDismissal <
             autoPromptConfig.explicitDismissalConfig.backoffSeconds *
               SECOND_IN_MILLIS
         ) {
           return false;
         }
 
-        // If the user has reached maxImpressionsPerWeek, don't show the prompt.
+        // If the user has reached the maxImpressions, and
+        // maxImpressionsResultingHideSeconds has not yet passed, don't show the
+        // prompt.
         if (
-          autoPromptConfig.maxImpressionsPerWeek !== undefined &&
-          impressions.length >= autoPromptConfig.maxImpressionsPerWeek
+          autoPromptConfig.impressionConfig.maxImpressions &&
+          impressions.length >=
+            autoPromptConfig.impressionConfig.maxImpressions &&
+          Date.now() - lastImpression <
+            (autoPromptConfig.impressionConfig
+              .maxImpressionsResultingHideSeconds || 0) *
+              SECOND_IN_MILLIS
         ) {
           return false;
         }
+
+        // If the user has seen the prompt, and backoffSeconds has
+        // not yet passed, don't show the prompt. This is to prevent the prompt
+        // from showing in consecutive visits.
+        if (
+          autoPromptConfig.impressionConfig.backoffSeconds &&
+          impressions.length > 0 &&
+          Date.now() - lastImpression <
+            autoPromptConfig.impressionConfig.backoffSeconds * SECOND_IN_MILLIS
+        ) {
+          return false;
+        }
+
         return true;
       }
     );
