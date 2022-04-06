@@ -15,30 +15,49 @@
  */
 
 /**
+ * @typedef {{
+ *   displayDelaySeconds: (number|undefined),
+ *   dismissalBackoffSeconds: (number|undefined),
+ *   maxDismissalsPerWeek: (number|undefined),
+ *   maxDismissalsResultingHideSeconds: (number|undefined),
+ *   impressionBackoffSeconds: (number|undefined),
+ *   maxImpressions: (number|undefined),
+ *   maxImpressionsResultingHideSeconds: (number|undefined),
+ * }}
+ */
+export let AutoPromptConfigParams;
+
+/**
  * Container for the auto prompt configuation details.
  */
 export class AutoPromptConfig {
   /**
-   * @param {number|undefined} maxImpressionsPerWeek
+   * @param {!AutoPromptConfigParams=} params
    */
-  constructor(
-    maxImpressionsPerWeek,
+  constructor({
     displayDelaySeconds,
-    backoffSeconds,
+    dismissalBackoffSeconds,
     maxDismissalsPerWeek,
-    maxDismissalsResultingHideSeconds
-  ) {
-    /** @const {number|undefined} */
-    this.maxImpressionsPerWeek = maxImpressionsPerWeek;
-
+    maxDismissalsResultingHideSeconds,
+    impressionBackoffSeconds,
+    maxImpressions,
+    maxImpressionsResultingHideSeconds,
+  } = {}) {
     /** @const {!ClientDisplayTrigger} */
     this.clientDisplayTrigger = new ClientDisplayTrigger(displayDelaySeconds);
 
     /** @const {!ExplicitDismissalConfig} */
     this.explicitDismissalConfig = new ExplicitDismissalConfig(
-      backoffSeconds,
+      dismissalBackoffSeconds,
       maxDismissalsPerWeek,
       maxDismissalsResultingHideSeconds
+    );
+
+    /** @const {!ImpressionConfig} */
+    this.impressionConfig = new ImpressionConfig(
+      impressionBackoffSeconds,
+      maxImpressions,
+      maxImpressionsResultingHideSeconds
     );
   }
 }
@@ -78,6 +97,32 @@ export class ExplicitDismissalConfig {
 
     /** @const {number|undefined} */
     this.maxDismissalsResultingHideSeconds = maxDismissalsResultingHideSeconds;
+  }
+}
+
+/**
+ * Configuration of impression behavior and its effects.
+ */
+export class ImpressionConfig {
+  /**
+   * @param {number|undefined} backoffSeconds
+   * @param {number|undefined} maxImpressions
+   * @param {number|undefined} maxImpressionsResultingHideSeconds
+   */
+  constructor(
+    backoffSeconds,
+    maxImpressions,
+    maxImpressionsResultingHideSeconds
+  ) {
+    /** @const {number|undefined} */
+    this.backoffSeconds = backoffSeconds;
+
+    /** @const {number|undefined} */
+    this.maxImpressions = maxImpressions;
+
+    /** @const {number|undefined} */
+    this.maxImpressionsResultingHideSeconds =
+      maxImpressionsResultingHideSeconds;
   }
 }
 
