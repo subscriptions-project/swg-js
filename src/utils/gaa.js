@@ -1401,6 +1401,8 @@ export const GrantReasonType = {
 export class GaaMetering {
   gaaUserPromiseResolve_() {}
 
+  userState;
+
   static setGaaUser(jwt) {
     GaaMetering.gaaUserPromiseResolve_(jwt);
   }
@@ -1444,6 +1446,8 @@ export class GaaMetering {
       publisherEntitlementPromise,
     } = params;
 
+    GaaMetering.userState = userState;
+
     // Validate gaa parameters and referrer
     if (!GaaMetering.isGaa(allowedReferrers)) {
       debugLog('Extended Access - Invalid gaa parameters or referrer.');
@@ -1456,8 +1460,8 @@ export class GaaMetering {
       if ('granted' in userState && 'grantReason' in userState) {
         unlockArticleIfGranted();
       } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
-        userState.grantReason = GrantReasonType.FREE;
-        userState.granted = true;
+        GaaMetering.userState.grantReason = GrantReasonType.FREE;
+        GaaMetering.userState.granted = true;
         debugLog('Article free from markup.');
         unlockArticleIfGranted();
       } else if (showcaseEntitlement) {
@@ -1467,13 +1471,7 @@ export class GaaMetering {
         debugLog('resolving publisherEntitlement');
         publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
           if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
-            userState.id = fetchedPublisherEntitlements.id;
-            userState.registrationTimestamp =
-              fetchedPublisherEntitlements.registrationTimestamp;
-            userState.subscriptionTimestamp =
-              fetchedPublisherEntitlements.subscriptionTimestamp;
-            userState.granted = fetchedPublisherEntitlements.granted;
-            userState.grantReason = fetchedPublisherEntitlements.grantReason;
+            GaaMetering.userState = fetchedPublisherEntitlements;
 
             unlockArticleIfGranted();
           } else {
@@ -1482,22 +1480,9 @@ export class GaaMetering {
         });
       }
 
-      subscriptions.setOnLoginRequest(() => {
-        handleLoginPromise.then((handleLoginUserState) => {
-          if (GaaMetering.validateUserState(handleLoginUserState)) {
-            userState.id = handleLoginUserState.id;
-            userState.registrationTimestamp =
-              handleLoginUserState.registrationTimestamp;
-            userState.subscriptionTimestamp =
-              handleLoginUserState.subscriptionTimestamp;
-            userState.granted = handleLoginUserState.granted;
-            userState.grantReason = handleLoginUserState.grantReason;
-
-            GaaMeteringRegwall.remove();
-            unlockArticleIfGranted();
-          }
-        });
-      });
+      subscriptions.setOnLoginRequest(() =>
+        handleLoginRequest(handleLoginPromise)
+      );
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
@@ -1524,7 +1509,7 @@ export class GaaMetering {
             // This is only relevant for publishers doing SwG
             handleSwGEntitlement();
           } else if (
-            !GaaMetering.isUserRegistered(userState) &&
+            !GaaMetering.isUserRegistered(GaaMetering.userState) &&
             GaaMetering.isGaa(allowedReferrers)
           ) {
             // This is an anonymous user so show the Google registration intervention
@@ -1533,7 +1518,9 @@ export class GaaMetering {
             // User does not any access from publisher or Google so show the standard paywall
             subscriptions.setShowcaseEntitlement({
               entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-              isUserRegistered: GaaMetering.isUserRegistered(userState),
+              isUserRegistered: GaaMetering.isUserRegistered(
+                GaaMetering.userState
+              ),
             });
             // Show the paywall
             showPaywall();
@@ -1541,6 +1528,17 @@ export class GaaMetering {
         });
       });
     });
+
+    function handleLoginRequest(handleLoginPromise) {
+      handleLoginPromise.then((handleLoginUserState) => {
+        if (GaaMetering.validateUserState(handleLoginUserState)) {
+          GaaMetering.userState = handleLoginUserState;
+
+          GaaMeteringRegwall.remove();
+          unlockArticleIfGranted();
+        }
+      });
+    }
 
     // Show the Google registration intervention.
     function showGoogleRegwall() {
@@ -1557,13 +1555,7 @@ export class GaaMetering {
           registerUserPromise.then((registerUserUserState) => {
             debugLog('registerUserPromise resolved');
             if (GaaMetering.validateUserState(registerUserUserState)) {
-              userState.id = registerUserUserState.id;
-              userState.registrationTimestamp =
-                registerUserUserState.registrationTimestamp;
-              userState.subscriptionTimestamp =
-                registerUserUserState.subscriptionTimestamp;
-              userState.granted = registerUserUserState.granted;
-              userState.grantReason = registerUserUserState.grantReason;
+              GaaMetering.userState = registerUserUserState;
 
               unlockArticleIfGranted();
             }
@@ -1573,10 +1565,10 @@ export class GaaMetering {
     }
 
     function unlockArticleIfGranted() {
-      if (!GaaMetering.validateUserState(userState)) {
+      if (!GaaMetering.validateUserState(GaaMetering.userState)) {
         debugLog('Invalid userState object');
         return false;
-      } else if (userState.granted === true) {
+      } else if (GaaMetering.userState.granted === true) {
         const grantReasonToShowCaseEventMap = {
           [GrantReasonType.SUBSCRIBER]:
             ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
@@ -1586,19 +1578,24 @@ export class GaaMetering {
             ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
         };
 
-        if (GrantReasonType[userState.grantReason] !== undefined) {
+        if (GrantReasonType[GaaMetering.userState.grantReason] !== undefined) {
           callSwg((subscriptions) => {
             subscriptions.setShowcaseEntitlement({
-              entitlement: grantReasonToShowCaseEventMap[userState.grantReason],
-              isUserRegistered: GaaMetering.isUserRegistered(userState),
+              entitlement:
+                grantReasonToShowCaseEventMap[
+                  GaaMetering.userState.grantReason
+                ],
+              isUserRegistered: GaaMetering.isUserRegistered(
+                GaaMetering.userState
+              ),
             });
-            debugLog('unlocked for ' + userState.grantReason);
+            debugLog('unlocked for ' + GaaMetering.userState.grantReason);
           });
         }
         // User has access from publisher so unlock article
         unlockArticle();
       } else {
-        checkShowcaseEntitlement(userState);
+        checkShowcaseEntitlement(GaaMetering.userState);
       }
     }
 
