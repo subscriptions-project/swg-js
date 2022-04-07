@@ -242,6 +242,27 @@ describes.realWin('MeterToastApi', {}, (env) => {
     expect(onConsumeCallbackFake).to.not.be.called;
   });
 
+  it('should activate offers flow request', async () => {
+    expectGetSwgUserTokenToBeCalledAndReturnBlank();
+    const nativeStub = sandbox.stub(
+      runtime.callbacks(),
+      'triggerOffersFlowRequest'
+    );
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    await meterToastApi.start();
+    // Native message.
+    const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
+    viewSubscriptionsResponse.setNative(false);
+    const messageCallback = messageMap[viewSubscriptionsResponse.label()];
+    messageCallback(viewSubscriptionsResponse);
+    expect(nativeStub).to.be.calledOnce.calledWithExactly();
+    // event listeners should be removed.
+    const messageStub = sandbox.stub(port, 'execute');
+    await win.dispatchEvent(new Event('click'));
+    expect(messageStub).to.not.be.called;
+    expect(onConsumeCallbackFake).to.not.be.called;
+  });
+
   it('should close iframe on click', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');

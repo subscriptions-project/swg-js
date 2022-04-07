@@ -266,6 +266,13 @@ export class BasicRuntime {
       runtime.processEntitlements()
     );
   }
+
+  /** Sets the callback when the offers flow is requested. */
+  setOnOffersFlowRequest(callback) {
+    return this.configured_(false).then((runtime) =>
+      runtime.setOnOffersFlowRequest(callback)
+    );
+  }
 }
 
 /**
@@ -318,7 +325,7 @@ export class ConfiguredBasicRuntime {
     this.entitlementsManager().enableMeteredByGoogle();
 
     // Handle clicks on the Metering Toast's "Subscribe" button.
-    this.configuredClassicRuntime_.setOnNativeSubscribeRequest(() => {
+    this.setOnOffersFlowRequest(() => {
       this.configuredClassicRuntime_.showOffers();
     });
 
@@ -475,6 +482,11 @@ export class ConfiguredBasicRuntime {
       CHECK_ENTITLEMENTS_REQUEST_ID,
       this.entitlementsResponseHandler.bind(this)
     );
+  }
+
+  /** Sets the callback when the offers flow is requested. */
+  setOnOffersFlowRequest(callback) {
+    this.callbacks().setOnOffersFlowRequest(callback);
   }
 
   /**
