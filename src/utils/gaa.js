@@ -1421,7 +1421,8 @@ export const GrantReasonType = {
 export class GaaMetering {
   gaaUserPromiseResolve_() {}
 
-  userState;
+  userState = undefined;
+  publisherEntitlementPromise = undefined;
 
   static setGaaUser(jwt) {
     GaaMetering.gaaUserPromiseResolve_(jwt);
@@ -1467,6 +1468,7 @@ export class GaaMetering {
     } = params;
 
     GaaMetering.userState = userState;
+    GaaMetering.publisherEntitlementPromise = publisherEntitlementPromise;
 
     // Validate gaa parameters and referrer
     if (!GaaMetering.isGaa(allowedReferrers)) {
@@ -1506,56 +1508,60 @@ export class GaaMetering {
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
-      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) => {
-        // Wait for Google check and publisher check to finish
-        Promise.all([
-          googleEntitlementsPromise,
-          publisherEntitlementPromise,
-        ]).then((entitlements) => {
-          // Determine Google response from publisher response.
-          const googleEntitlement = entitlements[0];
-          // const publisherEntitlement = entitlements[1];
-
-          if (googleEntitlement.enablesThisWithGoogleMetering()) {
-            // Google returned metering entitlement so grant access
-            googleEntitlement.consume(() => {
-              // Consume the entitlement and trigger a dialog that lets the user
-              // know Google provided them with a free read.
-              // Unlock the article AFTER the user consumes a free read.
-              unlockArticle();
-            });
-          } else if (googleEntitlement.enablesThis()) {
-            // Google returned a non-metering entitlement
-            // This is only relevant for publishers doing SwG
-            handleSwGEntitlement();
-          } else if (
-            !GaaMetering.isUserRegistered(GaaMetering.userState) &&
-            GaaMetering.isGaa(allowedReferrers)
-          ) {
-            // This is an anonymous user so show the Google registration intervention
-            showGoogleRegwall();
-          } else {
-            // User does not any access from publisher or Google so show the standard paywall
-            subscriptions.setShowcaseEntitlement({
-              entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-              isUserRegistered: GaaMetering.isUserRegistered(
-                GaaMetering.userState
-              ),
-            });
-            // Show the paywall
-            showPaywall();
-          }
-        });
-      });
+      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
+        setEntitlements(googleEntitlementsPromise, subscriptions)
+      );
     });
 
-    function handleLoginRequest(handleLoginPromise) {
+    function handleLoginRequest() {
       handleLoginPromise.then((handleLoginUserState) => {
         if (GaaMetering.validateUserState(handleLoginUserState)) {
           GaaMetering.userState = handleLoginUserState;
 
           GaaMeteringRegwall.remove();
           unlockArticleIfGranted();
+        }
+      });
+    }
+
+    function setEntitlements(googleEntitlementsPromise, subscriptionsObject) {
+      // Wait for Google check and publisher check to finish
+      Promise.all([
+        googleEntitlementsPromise,
+        publisherEntitlementPromise,
+      ]).then((entitlements) => {
+        // Determine Google response from publisher response.
+        const googleEntitlement = entitlements[0];
+        // const publisherEntitlement = entitlements[1];
+
+        if (googleEntitlement.enablesThisWithGoogleMetering()) {
+          // Google returned metering entitlement so grant access
+          googleEntitlement.consume(() => {
+            // Consume the entitlement and trigger a dialog that lets the user
+            // know Google provided them with a free read.
+            // Unlock the article AFTER the user consumes a free read.
+            unlockArticle();
+          });
+        } else if (googleEntitlement.enablesThis()) {
+          // Google returned a non-metering entitlement
+          // This is only relevant for publishers doing SwG
+          handleSwGEntitlement();
+        } else if (
+          !GaaMetering.isUserRegistered(GaaMetering.userState) &&
+          GaaMetering.isGaa(allowedReferrers)
+        ) {
+          // This is an anonymous user so show the Google registration intervention
+          showGoogleRegwall();
+        } else {
+          // User does not any access from publisher or Google so show the standard paywall
+          subscriptionsObject.setShowcaseEntitlement({
+            entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+            isUserRegistered: GaaMetering.isUserRegistered(
+              GaaMetering.userState
+            ),
+          });
+          // Show the paywall
+          showPaywall();
         }
       });
     }
