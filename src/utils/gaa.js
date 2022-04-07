@@ -1421,8 +1421,8 @@ export const GrantReasonType = {
 export class GaaMetering {
   gaaUserPromiseResolve_() {}
 
-  userState = undefined;
-  publisherEntitlementPromise = undefined;
+  userState;
+  publisherEntitlementPromise;
 
   static setGaaUser(jwt) {
     GaaMetering.gaaUserPromiseResolve_(jwt);
@@ -1513,13 +1513,17 @@ export class GaaMetering {
       );
     });
 
-    function handleLoginRequest() {
+    function handleLoginRequest(handleLoginPromise) {
       handleLoginPromise.then((handleLoginUserState) => {
         if (GaaMetering.validateUserState(handleLoginUserState)) {
           GaaMetering.userState = handleLoginUserState;
 
           GaaMeteringRegwall.remove();
+          debugLog('GaaMeteringRegwall removed');
           unlockArticleIfGranted();
+        } else {
+          debugLog('invalid handleLoginPromise resolve');
+          return false;
         }
       });
     }
