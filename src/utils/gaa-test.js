@@ -3173,4 +3173,45 @@ describes.realWin('GaaMetering', {}, () => {
       expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
     });
   });
+
+  describe('handleLoginRequest', () => {
+    it('calls unlockArticleIfGranted if handleLoginUserState is valid', async () => {
+      const unlockArticleIfGranted = function() {
+        console.log('unlockArticleIfGranted called');
+      };
+      const handleLoginPromise = new Promise((resolve) => {
+        const handleLoginUserState = {
+          id: 12345,
+          registrationTimestamp: Date.now() / 1000,
+          granted: false,
+        };
+        resolve(handleLoginUserState);
+      });
+
+      GaaMetering.handleLoginRequest(handleLoginPromise, unlockArticleIfGranted);
+      await tick(10);
+      expect(self.console.log).to.calledWith(
+        'unlockArticleIfGranted called'
+      );
+    });
+
+    it("doens't unlock article if handleLoginUserState is invalid", async () => {
+      const unlockArticleIfGranted = function() {
+        console.log('unlockArticleIfGranted called');
+      };
+      const handleLoginPromise = new Promise((resolve) => {
+        const userStateInvalid = {
+          id: 12345,
+        };
+        resolve(userStateInvalid);
+      });
+
+      GaaMetering.handleLoginRequest(handleLoginPromise, unlockArticleIfGranted);
+      await tick(10);
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'invalid handleLoginUserState'
+      );
+    });
+  });
 });

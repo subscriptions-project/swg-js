@@ -1644,7 +1644,7 @@ export class GaaMetering {
         debugLog('GaaMeteringRegwall removed');
         unlockArticleIfGranted();
       } else {
-        debugLog('invalid handleLoginPromise resolve');
+        debugLog('invalid handleLoginUserState');
         return false;
       }
     });
