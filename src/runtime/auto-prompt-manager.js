@@ -287,13 +287,13 @@ export class AutoPromptManager {
           return false;
         }
 
-        // If the user has previously dismissed the prompt, and backoffSeconds has
+        // If the user has previously dismissed the prompt, and backOffSeconds has
         // not yet passed, don't show the prompt.
         if (
-          autoPromptConfig.explicitDismissalConfig.backoffSeconds &&
+          autoPromptConfig.explicitDismissalConfig.backOffSeconds &&
           dismissals.length > 0 &&
           Date.now() - lastDismissal <
-            autoPromptConfig.explicitDismissalConfig.backoffSeconds *
+            autoPromptConfig.explicitDismissalConfig.backOffSeconds *
               SECOND_IN_MILLIS
         ) {
           return false;
@@ -314,14 +314,14 @@ export class AutoPromptManager {
           return false;
         }
 
-        // If the user has seen the prompt, and backoffSeconds has
+        // If the user has seen the prompt, and backOffSeconds has
         // not yet passed, don't show the prompt. This is to prevent the prompt
         // from showing in consecutive visits.
         if (
-          autoPromptConfig.impressionConfig.backoffSeconds &&
+          autoPromptConfig.impressionConfig.backOffSeconds &&
           impressions.length > 0 &&
           Date.now() - lastImpression <
-            autoPromptConfig.impressionConfig.backoffSeconds * SECOND_IN_MILLIS
+            autoPromptConfig.impressionConfig.backOffSeconds * SECOND_IN_MILLIS
         ) {
           return false;
         }
