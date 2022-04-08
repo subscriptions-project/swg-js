@@ -178,7 +178,7 @@ export class MeterToastApi {
           .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
         this.activityIframeView_.on(
           ViewSubscriptionsResponse,
-          this.startNativeFlow_.bind(this)
+          this.startSubscriptionFlow_.bind(this)
         );
         if (
           !this.deps_.callbacks().hasSubscribeRequestCallback() &&
@@ -329,7 +329,7 @@ export class MeterToastApi {
    * @param {ViewSubscriptionsResponse} response
    * @private
    */
-  startNativeFlow_(response) {
+  startSubscriptionFlow_(response) {
     this.removeCloseEventListener();
     // We shouldn't decrement the meter on redirects, so don't call onConsumeCallback.
     this.onConsumeCallbackHandled_ = true;

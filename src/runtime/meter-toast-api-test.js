@@ -105,7 +105,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     self.console.error.restore();
   });
 
-  it('should start the flow correctly without native subscribe request', async () => {
+  it('should start the flow correctly without native subscribe or offers flow request', async () => {
     expectGetSwgUserTokenToBeCalledAndReturnBlank();
     callbacksMock.expects('triggerFlowStarted').once();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
@@ -141,6 +141,34 @@ describes.realWin('MeterToastApi', {}, (env) => {
   it('should start the flow correctly with native subscribe request', async () => {
     expectGetSwgUserTokenToBeCalledAndReturnBlank();
     runtime.callbacks().setOnSubscribeRequest(() => {});
+    callbacksMock.expects('triggerFlowStarted').once();
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    meterToastApi = new MeterToastApi(runtime);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_OFFERED_METER);
+    await meterToastApi.start();
+  });
+
+  it('should start the flow correctly with offers flow request', async () => {
+    expectGetSwgUserTokenToBeCalledAndReturnBlank();
+    runtime.callbacks().setOnOffersFlowRequest(() => {});
     callbacksMock.expects('triggerFlowStarted').once();
     const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
       isClosable: true,
@@ -244,18 +272,17 @@ describes.realWin('MeterToastApi', {}, (env) => {
 
   it('should activate offers flow request', async () => {
     expectGetSwgUserTokenToBeCalledAndReturnBlank();
-    const nativeStub = sandbox.stub(
+    const callbackStub = sandbox.stub(
       runtime.callbacks(),
       'triggerOffersFlowRequest'
     );
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     await meterToastApi.start();
-    // Native message.
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
     viewSubscriptionsResponse.setNative(false);
     const messageCallback = messageMap[viewSubscriptionsResponse.label()];
     messageCallback(viewSubscriptionsResponse);
-    expect(nativeStub).to.be.calledOnce.calledWithExactly();
+    expect(callbackStub).to.be.calledOnce.calledWithExactly();
     // event listeners should be removed.
     const messageStub = sandbox.stub(port, 'execute');
     await win.dispatchEvent(new Event('click'));

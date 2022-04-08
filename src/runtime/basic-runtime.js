@@ -266,13 +266,6 @@ export class BasicRuntime {
       runtime.processEntitlements()
     );
   }
-
-  /** Sets the callback when the offers flow is requested. */
-  setOnOffersFlowRequest(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnOffersFlowRequest(callback)
-    );
-  }
 }
 
 /**
@@ -325,7 +318,7 @@ export class ConfiguredBasicRuntime {
     this.entitlementsManager().enableMeteredByGoogle();
 
     // Handle clicks on the Metering Toast's "Subscribe" button.
-    this.setOnOffersFlowRequest(() => {
+    this.setOnOffersFlowRequest_(() => {
       this.configuredClassicRuntime_.showOffers();
     });
 
@@ -484,11 +477,6 @@ export class ConfiguredBasicRuntime {
     );
   }
 
-  /** Sets the callback when the offers flow is requested. */
-  setOnOffersFlowRequest(callback) {
-    this.callbacks().setOnOffersFlowRequest(callback);
-  }
-
   /**
    * Handler function to process EntitlementsResponse.
    * @param {!../components/activities.ActivityPortDef} port
@@ -610,6 +598,15 @@ export class ConfiguredBasicRuntime {
           }
         );
       });
+  }
+
+  /**
+   * Sets the callback when the offers flow is requested.
+   * @param {function()} callback
+   * @private
+   */
+  setOnOffersFlowRequest_(callback) {
+    this.callbacks().setOnOffersFlowRequest(callback);
   }
 }
 

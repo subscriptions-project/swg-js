@@ -591,16 +591,6 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       await basicRuntime.processEntitlements();
     });
-
-    it('should delegate "setOnOffersFlowRequest"', async () => {
-      const callback = function () {};
-      configuredBasicRuntimeMock
-        .expects('setOnOffersFlowRequest')
-        .withExactArgs(callback)
-        .once();
-
-      await basicRuntime.setOnOffersFlowRequest(callback);
-    });
   });
 });
 
