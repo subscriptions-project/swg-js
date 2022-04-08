@@ -425,6 +425,53 @@ describes.realWin('Dialog', {}, (env) => {
       await openedDialog.openView(view2);
       expect(styleDuringInit).to.equal('display: none !important;');
     });
+
+    describe('body scrolling disabled', () => {
+      describe('openView', () => {
+        it('adds swg-disable-scroll class if config specifies scrolling should be disabled', async () => {
+          dialog = new Dialog(
+            globalDoc,
+            /* importantStyles */ {},
+            /* styles */ {},
+            {shouldDisableBodyScrolling: true}
+          );
+          await dialog.open();
+          view.shouldDisableBodyScrolling = () => true;
+          await dialog.openView(view);
+          expect(doc.body).to.have.class('swg-disable-scroll');
+        });
+
+        it('does not add swg-disable-scroll otherwise', async () => {
+          dialog = new Dialog(
+            globalDoc,
+            /* importantStyles */ {},
+            /* styles */ {},
+            {shouldDisableBodyScrolling: false}
+          );
+          await dialog.open();
+          view.shouldDisableBodyScrolling = () => false;
+          await dialog.openView(view);
+          expect(doc.body).not.to.have.class('swg-disable-scroll');
+        });
+      });
+
+      describe('close', () => {
+        it('removes swg-disable-scroll class', async () => {
+          dialog = new Dialog(
+            globalDoc,
+            /* importantStyles */ {},
+            /* styles */ {},
+            {shouldDisableBodyScrolling: true}
+          );
+          await dialog.open();
+          view.shouldDisableBodyScrolling = () => true;
+          await dialog.openView(view);
+          expect(doc.body).to.have.class('swg-disable-scroll');
+          await dialog.close();
+          expect(doc.body).not.to.have.class('swg-disable-scroll');
+        });
+      });
+    });
   });
 
   describe('dialog with maxAllowedHeightRatio', () => {

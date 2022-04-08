@@ -138,8 +138,30 @@ export class ContributionsFlow {
       );
       activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
       this.activityIframeView_ = activityIframeView;
-      return this.dialogManager_.openView(this.activityIframeView_);
+      return this.clientConfigManager_
+        .getClientConfig()
+        .then((clientConfig) => {
+          if (!this.activityIframeView_) {
+            return;
+          }
+          return this.dialogManager_.openView(
+            this.activityIframeView_,
+            /* hidden */ false,
+            this.getDialogConfig_(clientConfig)
+          );
+        });
     });
+  }
+
+  /**
+   *
+   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @return {!../components/dialog.DialogConfig}
+   */
+  getDialogConfig_(clientConfig) {
+    return clientConfig.useUpdatedOfferFlows
+      ? {shouldDisableBodyScrolling: true}
+      : {};
   }
 
   /**
