@@ -1511,7 +1511,6 @@ export class GaaMetering {
       subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
         setEntitlements(
           googleEntitlementsPromise,
-          subscriptions,
           allowedReferrers
         )
       );
@@ -1534,15 +1533,11 @@ export class GaaMetering {
 
     function setEntitlements(
       googleEntitlementsPromise,
-      subscriptionsObject,
       allowedReferrers
     ) {
-      // Wait for Google check and publisher check to finish
-      googleEntitlementsPromise.then((entitlements) => {
+      // Wait for Google check to finish
+      googleEntitlementsPromise.then((googleEntitlement) => {
         // Determine Google response from publisher response.
-        const googleEntitlement = entitlements;
-        // const publisherEntitlement = entitlements[1];
-
         if (googleEntitlement.enablesThisWithGoogleMetering()) {
           // Google returned metering entitlement so grant access
           googleEntitlement.consume(() => {
@@ -1563,11 +1558,14 @@ export class GaaMetering {
           showGoogleRegwall();
         } else {
           // User does not any access from publisher or Google so show the standard paywall
-          subscriptionsObject.setShowcaseEntitlement({
-            entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-            isUserRegistered: GaaMetering.isUserRegistered(
-              GaaMetering.userState
-            ),
+          callSwg((subscriptions) => {
+            console.log('aqui!!!');
+            subscriptions.setShowcaseEntitlement({
+              entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+              isUserRegistered: GaaMetering.isUserRegistered(
+                GaaMetering.userState
+              ),
+            });
           });
           // Show the paywall
           showPaywall();
