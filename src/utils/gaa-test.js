@@ -3176,9 +3176,7 @@ describes.realWin('GaaMetering', {}, () => {
 
   describe('handleLoginRequest', () => {
     it('calls unlockArticleIfGranted if handleLoginUserState is valid', async () => {
-      const unlockArticleIfGranted = function() {
-        console.log('unlockArticleIfGranted called');
-      };
+      const unlockArticleIfGranted = function () {};
       const handleLoginPromise = new Promise((resolve) => {
         const handleLoginUserState = {
           id: 12345,
@@ -3188,17 +3186,19 @@ describes.realWin('GaaMetering', {}, () => {
         resolve(handleLoginUserState);
       });
 
-      GaaMetering.handleLoginRequest(handleLoginPromise, unlockArticleIfGranted);
+      GaaMetering.handleLoginRequest(
+        handleLoginPromise,
+        unlockArticleIfGranted
+      );
       await tick(10);
       expect(self.console.log).to.calledWith(
-        'unlockArticleIfGranted called'
+        '[Subscriptions]',
+        'GaaMeteringRegwall removed'
       );
     });
 
     it("doens't unlock article if handleLoginUserState is invalid", async () => {
-      const unlockArticleIfGranted = function() {
-        console.log('unlockArticleIfGranted called');
-      };
+      const unlockArticleIfGranted = function () {};
       const handleLoginPromise = new Promise((resolve) => {
         const userStateInvalid = {
           id: 12345,
@@ -3206,7 +3206,10 @@ describes.realWin('GaaMetering', {}, () => {
         resolve(userStateInvalid);
       });
 
-      GaaMetering.handleLoginRequest(handleLoginPromise, unlockArticleIfGranted);
+      GaaMetering.handleLoginRequest(
+        handleLoginPromise,
+        unlockArticleIfGranted
+      );
       await tick(10);
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',

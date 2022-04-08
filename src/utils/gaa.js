@@ -1503,23 +1503,20 @@ export class GaaMetering {
       }
 
       subscriptions.setOnLoginRequest(() =>
-        GaaMetering.handleLoginRequest(handleLoginPromise, unlockArticleIfGranted)
+        GaaMetering.handleLoginRequest(
+          handleLoginPromise,
+          unlockArticleIfGranted
+        )
       );
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
       subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
-        setEntitlements(
-          googleEntitlementsPromise,
-          allowedReferrers
-        )
+        setEntitlements(googleEntitlementsPromise, allowedReferrers)
       );
     });
 
-    function setEntitlements(
-      googleEntitlementsPromise,
-      allowedReferrers
-    ) {
+    function setEntitlements(googleEntitlementsPromise, allowedReferrers) {
       // Wait for Google check to finish
       googleEntitlementsPromise.then((googleEntitlement) => {
         // Determine Google response from publisher response.
@@ -1544,7 +1541,6 @@ export class GaaMetering {
         } else {
           // User does not any access from publisher or Google so show the standard paywall
           callSwg((subscriptions) => {
-            console.log('aqui!!!');
             subscriptions.setShowcaseEntitlement({
               entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
               isUserRegistered: GaaMetering.isUserRegistered(
