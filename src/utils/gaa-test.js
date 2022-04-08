@@ -1955,6 +1955,18 @@ describes.realWin('GaaMetering', {}, () => {
     self.console.log.restore();
   });
 
+  describe('constructor', () => {
+    it('sets class variable', () => {
+      const gaaMeteringInstance = new GaaMetering();
+
+      expect(typeof gaaMeteringInstance.userState).to.equal('object');
+
+      expect(typeof gaaMeteringInstance.gaaUserPromiseResolve_).to.equal(
+        'function'
+      );
+    });
+  });
+
   describe('validateParameters', () => {
     it('succeeds for valid params', () => {
       location.hash = `#swg.debug=1`;

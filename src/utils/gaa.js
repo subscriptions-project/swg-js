@@ -1419,13 +1419,9 @@ export const GrantReasonType = {
 };
 
 export class GaaMetering {
-  gaaUserPromiseResolve_() {}
-
-  userState;
-  publisherEntitlementPromise;
-
-  static setGaaUser(jwt) {
-    GaaMetering.gaaUserPromiseResolve_(jwt);
+  constructor() {
+    this.userState = {};
+    this.gaaUserPromiseResolve_ = function () {};
   }
 
   /**
@@ -1437,6 +1433,10 @@ export class GaaMetering {
     return new Promise((resolve) => {
       GaaMetering.gaaUserPromiseResolve_ = resolve;
     });
+  }
+
+  static setGaaUser(jwt) {
+    GaaMetering.gaaUserPromiseResolve_(jwt);
   }
 
   /**
@@ -1509,7 +1509,11 @@ export class GaaMetering {
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
       subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
-        setEntitlements(googleEntitlementsPromise, subscriptions)
+        setEntitlements(
+          googleEntitlementsPromise,
+          subscriptions,
+          allowedReferrers
+        )
       );
     });
 
@@ -1528,14 +1532,15 @@ export class GaaMetering {
       });
     }
 
-    function setEntitlements(googleEntitlementsPromise, subscriptionsObject) {
+    function setEntitlements(
+      googleEntitlementsPromise,
+      subscriptionsObject,
+      allowedReferrers
+    ) {
       // Wait for Google check and publisher check to finish
-      Promise.all([
-        googleEntitlementsPromise,
-        publisherEntitlementPromise,
-      ]).then((entitlements) => {
+      googleEntitlementsPromise.then((entitlements) => {
         // Determine Google response from publisher response.
-        const googleEntitlement = entitlements[0];
+        const googleEntitlement = entitlements;
         // const publisherEntitlement = entitlements[1];
 
         if (googleEntitlement.enablesThisWithGoogleMetering()) {
