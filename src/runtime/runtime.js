@@ -1141,7 +1141,6 @@ export class ConfiguredRuntime {
     if (
       !entitlement ||
       !isSecure(this.win().location) ||
-      !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !queryStringHasFreshGaaParams(
         this.win().location.search,
         /*allowAllAccessTypes=*/ true
