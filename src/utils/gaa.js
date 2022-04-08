@@ -1503,7 +1503,7 @@ export class GaaMetering {
       }
 
       subscriptions.setOnLoginRequest(() =>
-        handleLoginRequest(handleLoginPromise)
+        GaaMetering.handleLoginRequest(handleLoginPromise, unlockArticleIfGranted)
       );
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
@@ -1515,21 +1515,6 @@ export class GaaMetering {
         )
       );
     });
-
-    function handleLoginRequest(handleLoginPromise) {
-      handleLoginPromise.then((handleLoginUserState) => {
-        if (GaaMetering.validateUserState(handleLoginUserState)) {
-          GaaMetering.userState = handleLoginUserState;
-
-          GaaMeteringRegwall.remove();
-          debugLog('GaaMeteringRegwall removed');
-          unlockArticleIfGranted();
-        } else {
-          debugLog('invalid handleLoginPromise resolve');
-          return false;
-        }
-      });
-    }
 
     function setEntitlements(
       googleEntitlementsPromise,
@@ -1649,6 +1634,20 @@ export class GaaMetering {
         showGoogleRegwall();
       }
     }
+  }
+
+  static handleLoginRequest(handleLoginPromise, unlockArticleIfGranted) {
+    handleLoginPromise.then((handleLoginUserState) => {
+      if (GaaMetering.validateUserState(handleLoginUserState)) {
+        GaaMetering.userState = handleLoginUserState;
+        GaaMeteringRegwall.remove();
+        debugLog('GaaMeteringRegwall removed');
+        unlockArticleIfGranted();
+      } else {
+        debugLog('invalid handleLoginPromise resolve');
+        return false;
+      }
+    });
   }
 
   static isUserRegistered(userState) {
