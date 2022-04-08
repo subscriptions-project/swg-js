@@ -17,10 +17,10 @@
 /**
  * @typedef {{
  *   displayDelaySeconds: (number|undefined),
- *   dismissalBackoffSeconds: (number|undefined),
+ *   dismissalBackOffSeconds: (number|undefined),
  *   maxDismissalsPerWeek: (number|undefined),
  *   maxDismissalsResultingHideSeconds: (number|undefined),
- *   impressionBackoffSeconds: (number|undefined),
+ *   impressionBackOffSeconds: (number|undefined),
  *   maxImpressions: (number|undefined),
  *   maxImpressionsResultingHideSeconds: (number|undefined),
  * }}
@@ -36,10 +36,10 @@ export class AutoPromptConfig {
    */
   constructor({
     displayDelaySeconds,
-    dismissalBackoffSeconds,
+    dismissalBackOffSeconds,
     maxDismissalsPerWeek,
     maxDismissalsResultingHideSeconds,
-    impressionBackoffSeconds,
+    impressionBackOffSeconds,
     maxImpressions,
     maxImpressionsResultingHideSeconds,
   } = {}) {
@@ -48,14 +48,14 @@ export class AutoPromptConfig {
 
     /** @const {!ExplicitDismissalConfig} */
     this.explicitDismissalConfig = new ExplicitDismissalConfig(
-      dismissalBackoffSeconds,
+      dismissalBackOffSeconds,
       maxDismissalsPerWeek,
       maxDismissalsResultingHideSeconds
     );
 
     /** @const {!ImpressionConfig} */
     this.impressionConfig = new ImpressionConfig(
-      impressionBackoffSeconds,
+      impressionBackOffSeconds,
       maxImpressions,
       maxImpressionsResultingHideSeconds
     );
@@ -80,17 +80,17 @@ export class ClientDisplayTrigger {
  */
 export class ExplicitDismissalConfig {
   /**
-   * @param {number|undefined} backoffSeconds
+   * @param {number|undefined} backOffSeconds
    * @param {number|undefined} maxDismissalsPerWeek
    * @param {number|undefined} maxDismissalsResultingHideSeconds
    */
   constructor(
-    backoffSeconds,
+    backOffSeconds,
     maxDismissalsPerWeek,
     maxDismissalsResultingHideSeconds
   ) {
     /** @const {number|undefined} */
-    this.backoffSeconds = backoffSeconds;
+    this.backOffSeconds = backOffSeconds;
 
     /** @const {number|undefined} */
     this.maxDismissalsPerWeek = maxDismissalsPerWeek;
@@ -105,17 +105,17 @@ export class ExplicitDismissalConfig {
  */
 export class ImpressionConfig {
   /**
-   * @param {number|undefined} backoffSeconds
+   * @param {number|undefined} backOffSeconds
    * @param {number|undefined} maxImpressions
    * @param {number|undefined} maxImpressionsResultingHideSeconds
    */
   constructor(
-    backoffSeconds,
+    backOffSeconds,
     maxImpressions,
     maxImpressionsResultingHideSeconds
   ) {
     /** @const {number|undefined} */
-    this.backoffSeconds = backoffSeconds;
+    this.backOffSeconds = backOffSeconds;
 
     /** @const {number|undefined} */
     this.maxImpressions = maxImpressions;
