@@ -191,12 +191,12 @@ describes.realWin('ClientConfigManager', {}, () => {
         autoPromptConfig: {
           clientDisplayTrigger: {displayDelaySeconds: 2},
           explicitDismissalConfig: {
-            backoffSeconds: 3,
+            backOffSeconds: 3,
             maxDismissalsPerWeek: 4,
             maxDismissalsResultingHideSeconds: 5,
           },
           impressionConfig: {
-            backoffSeconds: 6,
+            backOffSeconds: 6,
             maxImpressions: 7,
             maxImpressionsResultingHideSeconds: 8,
           },
@@ -208,14 +208,14 @@ describes.realWin('ClientConfigManager', {}, () => {
     expect(autoPromptConfig.clientDisplayTrigger.displayDelaySeconds).to.equal(
       2
     );
-    expect(autoPromptConfig.explicitDismissalConfig.backoffSeconds).to.equal(3);
+    expect(autoPromptConfig.explicitDismissalConfig.backOffSeconds).to.equal(3);
     expect(
       autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek
     ).to.equal(4);
     expect(
       autoPromptConfig.explicitDismissalConfig.maxDismissalsResultingHideSeconds
     ).to.equal(5);
-    expect(autoPromptConfig.impressionConfig.backoffSeconds).to.equal(6);
+    expect(autoPromptConfig.impressionConfig.backOffSeconds).to.equal(6);
     expect(autoPromptConfig.impressionConfig.maxImpressions).to.equal(7);
     expect(
       autoPromptConfig.impressionConfig.maxImpressionsResultingHideSeconds

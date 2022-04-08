@@ -318,7 +318,7 @@ export class ConfiguredBasicRuntime {
     this.entitlementsManager().enableMeteredByGoogle();
 
     // Handle clicks on the Metering Toast's "Subscribe" button.
-    this.configuredClassicRuntime_.setOnNativeSubscribeRequest(() => {
+    this.setOnOffersFlowRequest_(() => {
       this.configuredClassicRuntime_.showOffers();
     });
 
@@ -598,6 +598,15 @@ export class ConfiguredBasicRuntime {
           }
         );
       });
+  }
+
+  /**
+   * Sets the callback when the offers flow is requested.
+   * @param {function()} callback
+   * @private
+   */
+  setOnOffersFlowRequest_(callback) {
+    this.callbacks().setOnOffersFlowRequest(callback);
   }
 }
 
