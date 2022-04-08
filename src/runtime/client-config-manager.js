@@ -195,15 +195,15 @@ export class ClientConfigManager {
       autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds:
           autoPromptConfigJson.clientDisplayTrigger?.displayDelaySeconds,
-        dismissalBackoffSeconds:
-          autoPromptConfigJson.explicitDismissalConfig?.backoffSeconds,
+        dismissalBackOffSeconds:
+          autoPromptConfigJson.explicitDismissalConfig?.backOffSeconds,
         maxDismissalsPerWeek:
           autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsPerWeek,
         maxDismissalsResultingHideSeconds:
           autoPromptConfigJson.explicitDismissalConfig
             ?.maxDismissalsResultingHideSeconds,
-        impressionBackoffSeconds:
-          autoPromptConfigJson.impressionConfig?.backoffSeconds,
+        impressionBackOffSeconds:
+          autoPromptConfigJson.impressionConfig?.backOffSeconds,
         maxImpressions: autoPromptConfigJson.impressionConfig?.maxImpressions,
         maxImpressionsResultingHideSeconds:
           autoPromptConfigJson.impressionConfig

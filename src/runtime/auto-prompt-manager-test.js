@@ -555,7 +555,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(entitlements))
       .once();
     const autoPromptConfig = new AutoPromptConfig({
-      impressionBackoffSeconds: 10,
+      impressionBackOffSeconds: 10,
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 5,
     });
@@ -685,7 +685,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
-      dismissalBackoffSeconds: 0,
+      dismissalBackOffSeconds: 0,
       maxDismissalsPerWeek: 1,
       maxDismissalsResultingHideSeconds: 10,
       maxImpressions: 2,
@@ -732,7 +732,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
-      dismissalBackoffSeconds: 0,
+      dismissalBackOffSeconds: 0,
       maxDismissalsPerWeek: 1,
       maxDismissalsResultingHideSeconds: 10,
       maxImpressions: 2,
@@ -779,7 +779,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
-      dismissalBackoffSeconds: 10,
+      dismissalBackOffSeconds: 10,
       maxDismissalsPerWeek: 2,
       maxDismissalsResultingHideSeconds: 5,
       maxImpressions: 2,
@@ -826,7 +826,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
-      dismissalBackoffSeconds: 5,
+      dismissalBackOffSeconds: 5,
       maxDismissalsPerWeek: 2,
       maxDismissalsResultingHideSeconds: 10,
       maxImpressions: 2,
@@ -1085,7 +1085,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     beforeEach(() => {
       const autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
-        dismissalBackoffSeconds: 5,
+        dismissalBackOffSeconds: 5,
         maxDismissalsPerWeek: 2,
         maxDismissalsResultingHideSeconds: 10,
         maxImpressions: 2,
