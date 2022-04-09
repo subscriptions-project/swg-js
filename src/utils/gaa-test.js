@@ -3217,4 +3217,153 @@ describes.realWin('GaaMetering', {}, () => {
       );
     });
   });
+
+  describe('setEntitlements', () => {
+    const allowedReferrers = ['example.com'];
+    let unlockArticle = function () {};
+    let handleSwGEntitlement = function () {};
+    let showGoogleRegwall = function () {};
+    let showPaywall = function () {};
+
+    it('consumes google entitlement and unlock article', async () => {
+      unlockArticle = sandbox.fake();
+
+      sandbox.stub(GaaMetering, 'isUserRegistered');
+      GaaMetering.isUserRegistered.returns(true);
+
+      const googleEntitlementsPromise = new Promise((resolve) => {
+        function GoogleEntitlement() {
+          this.enablesThisWithGoogleMetering = function () {
+            return true;
+          };
+          this.consume = function () {
+            unlockArticle();
+          };
+          this.enablesThis = function () {
+            return false;
+          };
+        }
+        resolve(new GoogleEntitlement());
+      });
+
+      GaaMetering.setEntitlements(
+        googleEntitlementsPromise,
+        allowedReferrers,
+        unlockArticle,
+        handleSwGEntitlement,
+        showGoogleRegwall,
+        showPaywall
+      );
+
+      await tick(10);
+      expect(unlockArticle).to.be.called;
+    });
+
+    it('user is a SwG subscriber', async () => {
+      handleSwGEntitlement = sandbox.fake();
+
+      sandbox.stub(GaaMetering, 'isUserRegistered');
+      GaaMetering.isUserRegistered.returns(true);
+
+      const googleEntitlementsPromise = new Promise((resolve) => {
+        function GoogleEntitlement() {
+          this.enablesThisWithGoogleMetering = function () {
+            return false;
+          };
+          this.consume = function () {};
+          this.enablesThis = function () {
+            return true;
+          };
+        }
+        resolve(new GoogleEntitlement());
+      });
+
+      GaaMetering.setEntitlements(
+        googleEntitlementsPromise,
+        allowedReferrers,
+        unlockArticle,
+        handleSwGEntitlement,
+        showGoogleRegwall,
+        showPaywall
+      );
+
+      await tick(10);
+      expect(handleSwGEntitlement).to.be.called;
+    });
+
+    it("shows regWall if user isn't registered", async () => {
+      showGoogleRegwall = sandbox.fake();
+
+      GaaMetering.userState = {};
+      sandbox.stub(GaaMetering, 'isUserRegistered');
+      GaaMetering.isUserRegistered.returns(false);
+
+      sandbox.stub(GaaMetering, 'isGaa');
+      GaaMetering.isGaa.returns(true);
+
+      const googleEntitlementsPromise = new Promise((resolve) => {
+        function GoogleEntitlement() {
+          this.enablesThisWithGoogleMetering = function () {
+            return false;
+          };
+          this.consume = function () {};
+          this.enablesThis = function () {
+            return false;
+          };
+        }
+        resolve(new GoogleEntitlement());
+      });
+
+      GaaMetering.setEntitlements(
+        googleEntitlementsPromise,
+        allowedReferrers,
+        unlockArticle,
+        handleSwGEntitlement,
+        showGoogleRegwall,
+        showPaywall
+      );
+
+      await tick(10);
+      expect(showGoogleRegwall).to.be.called;
+    });
+
+    it('shows the paywall and call setShowcaseEntitlement', async () => {
+      showPaywall = sandbox.fake();
+      GaaMetering.userState = {};
+
+      sandbox.stub(GaaMetering, 'isUserRegistered');
+      GaaMetering.isUserRegistered.returns(true);
+
+      const googleEntitlementsPromise = new Promise((resolve) => {
+        function GoogleEntitlement() {
+          this.enablesThisWithGoogleMetering = function () {
+            return false;
+          };
+          this.consume = function () {};
+          this.enablesThis = function () {
+            return false;
+          };
+        }
+        resolve(new GoogleEntitlement());
+      });
+
+      GaaMetering.setEntitlements(
+        googleEntitlementsPromise,
+        allowedReferrers,
+        unlockArticle,
+        handleSwGEntitlement,
+        showGoogleRegwall,
+        showPaywall
+      );
+
+      await tick(10);
+
+      expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
+        entitlement: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',
+        isUserRegistered: true,
+      });
+
+      expect(showPaywall).to.be.called;
+    });
+  });
 });
