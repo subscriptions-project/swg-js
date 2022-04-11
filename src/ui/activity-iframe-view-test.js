@@ -81,6 +81,29 @@ describes.realWin('ActivityIframeView', {}, (env) => {
       expect(activityIframe.getAttribute('frameborder')).to.equal('0');
     });
 
+    it('returns shouldFadeBody specified in constructor', () => {
+      activityIframeView = new ActivityIframeView(
+        win,
+        activityPorts,
+        src,
+        activityArgs,
+        /* shouldFadeBody */ true
+      );
+      expect(activityIframeView.shouldFadeBody()).to.be.true;
+    });
+
+    it('returns hasLoadingIndicator specified in constructor', () => {
+      activityIframeView = new ActivityIframeView(
+        win,
+        activityPorts,
+        src,
+        activityArgs,
+        /* shouldFadeBody */ true,
+        /* hasLoadingIndicator */ true
+      );
+      expect(activityIframeView.hasLoadingIndicator()).to.be.true;
+    });
+
     it('should initialize and open an iframe', async () => {
       const openedDialog = await dialog.open();
 
