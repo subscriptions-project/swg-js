@@ -2177,8 +2177,6 @@ subscribe() method'
     describe('setShowcaseEntitlement', () => {
       const SECURE_PUB_URL = 'https://www.publisher.com';
       const UNSECURE_PUB_URL = 'http://www.publisher.com';
-      const SECURE_GOOGLE_URL = 'https://www.google.com';
-      const UNSECURE_GOOGLE_URL = 'http://www.google.com';
       const GAA_QUERY_STRING = '?gaa_at=gaa&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
       const GAA_NA_QUERY_STRING = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
       let logEventStub;
@@ -2191,9 +2189,6 @@ subscribe() method'
         // Returns custom window objects.
         win = {
           location: parseUrl(SECURE_PUB_URL + GAA_QUERY_STRING),
-          document: {
-            referrer: SECURE_GOOGLE_URL,
-          },
         };
         sandbox.stub(runtime, 'win').callsFake(() => win);
 
@@ -2250,30 +2245,6 @@ subscribe() method'
       it('should require https page', () => {
         // This page is http.
         win.location = parseUrl(UNSECURE_PUB_URL + GAA_QUERY_STRING);
-
-        runtime.setShowcaseEntitlement({
-          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
-          isUserRegistered: true,
-        });
-
-        expect(logEventStub).callCount(0);
-      });
-
-      it('should require secure Google referrer', () => {
-        // This referrer is not https.
-        win.document.referrer = parseUrl(UNSECURE_GOOGLE_URL);
-
-        runtime.setShowcaseEntitlement({
-          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
-          isUserRegistered: true,
-        });
-
-        expect(logEventStub).callCount(0);
-      });
-
-      it('should require Google referrer', () => {
-        // This referrer is not Google.
-        win.document.referrer = parseUrl(SECURE_PUB_URL);
 
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
