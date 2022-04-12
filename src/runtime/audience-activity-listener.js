@@ -87,7 +87,7 @@ export class AudienceActivityEventListener {
             '/publication/' +
               pubId +
               '/audienceactivitylogs' +
-              '&sut=' +
+              '?sut=' +
               swgUserToken
           );
           this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
