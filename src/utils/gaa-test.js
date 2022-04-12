@@ -29,6 +29,7 @@ import {
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
+  REDIRECT_SOURCE_URL_PARAM,
   REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
@@ -1210,6 +1211,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       style.remove();
     }
 
+    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).remove();
     self.console.warn.restore();
   });
 
@@ -1255,7 +1257,10 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
 
     it('sends post message with button click event', async () => {
       // Show button.
-      GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
       clock.tick(100);
       await tick(10);
 
@@ -1288,6 +1293,45 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         },
         location.origin
       );
+    });
+
+    it('should open an authorizationUrl in a new window by default', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+      clock.tick(100);
+      await tick(10);
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+      clock.tick(100);
+      await tick(10);
+      expect(self.open).to.have.been.calledWithExactly(GOOGLE_3P_AUTH_URL);
+    });
+
+    it('should open an authorizationUrl in the same window when redirectMode is true', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        redirectMode: true,
+      });
+      clock.tick(100);
+      await tick(10);
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+      clock.tick(100);
+      await tick(10);
+
+      expect(self.open.getCalls()[0].args[0].toString()).to.contain(
+        GOOGLE_3P_AUTH_URL +
+          '?' +
+          REDIRECT_SOURCE_URL_PARAM +
+          '=' +
+          encodeURIComponent(location.origin)
+      );
+      expect(self.open.getCalls()[0].args[1]).to.equal('_parent');
     });
 
     it('sends errors to parent', async () => {

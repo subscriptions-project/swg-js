@@ -66,11 +66,11 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 1}})
+      .resolves({autoPromptConfig: {impressionConfig: {maxImpressions: 1}}})
       .once();
 
     let clientConfig = await clientConfigManager.fetchClientConfig();
-    const expectedAutoPromptConfig = new AutoPromptConfig(1);
+    const expectedAutoPromptConfig = new AutoPromptConfig({maxImpressions: 1});
     const expectedClientConfig = new ClientConfig({
       autoPromptConfig: expectedAutoPromptConfig,
     });
@@ -89,11 +89,11 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 1}})
+      .resolves({autoPromptConfig: {impressionConfig: {maxImpressions: 1}}})
       .once();
 
     let clientConfig = await clientConfigManager.fetchClientConfig();
-    const expectedAutoPromptConfig = new AutoPromptConfig(1);
+    const expectedAutoPromptConfig = new AutoPromptConfig({maxImpressions: 1});
     const expectedClientConfig = new ClientConfig({
       autoPromptConfig: expectedAutoPromptConfig,
       skipAccountCreationScreen: true,
@@ -107,7 +107,7 @@ describes.realWin('ClientConfigManager', {}, () => {
   it('fetchClientConfig should use article from entitlementsManager if provided', async () => {
     const article = {
       clientConfig: new ClientConfig({
-        autoPromptConfig: new AutoPromptConfig(1),
+        autoPromptConfig: new AutoPromptConfig({maxImpressions: 1}),
       }),
     };
     entitlementsManagerMock.returns({
@@ -172,11 +172,11 @@ describes.realWin('ClientConfigManager', {}, () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .resolves({autoPromptConfig: {maxImpressionsPerWeek: 3}})
+      .resolves({autoPromptConfig: {impressionConfig: {maxImpressions: 3}}})
       .once();
 
     const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
-    expect(autoPromptConfig.maxImpressionsPerWeek).to.equal(3);
+    expect(autoPromptConfig.impressionConfig.maxImpressions).to.equal(3);
     expect(autoPromptConfig.clientDisplayTrigger).to.not.be.undefined;
     expect(autoPromptConfig.explicitDismissalConfig).to.not.be.undefined;
   });
@@ -189,29 +189,37 @@ describes.realWin('ClientConfigManager', {}, () => {
       .withExactArgs(expectedUrl)
       .resolves({
         autoPromptConfig: {
-          maxImpressionsPerWeek: 1,
           clientDisplayTrigger: {displayDelaySeconds: 2},
           explicitDismissalConfig: {
-            backoffSeconds: 3,
+            backOffSeconds: 3,
             maxDismissalsPerWeek: 4,
             maxDismissalsResultingHideSeconds: 5,
+          },
+          impressionConfig: {
+            backOffSeconds: 6,
+            maxImpressions: 7,
+            maxImpressionsResultingHideSeconds: 8,
           },
         },
       })
       .once();
 
     const autoPromptConfig = await clientConfigManager.getAutoPromptConfig();
-    expect(autoPromptConfig.maxImpressionsPerWeek).to.equal(1);
     expect(autoPromptConfig.clientDisplayTrigger.displayDelaySeconds).to.equal(
       2
     );
-    expect(autoPromptConfig.explicitDismissalConfig.backoffSeconds).to.equal(3);
+    expect(autoPromptConfig.explicitDismissalConfig.backOffSeconds).to.equal(3);
     expect(
       autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek
     ).to.equal(4);
     expect(
       autoPromptConfig.explicitDismissalConfig.maxDismissalsResultingHideSeconds
     ).to.equal(5);
+    expect(autoPromptConfig.impressionConfig.backOffSeconds).to.equal(6);
+    expect(autoPromptConfig.impressionConfig.maxImpressions).to.equal(7);
+    expect(
+      autoPromptConfig.impressionConfig.maxImpressionsResultingHideSeconds
+    ).to.equal(8);
   });
 
   it('fetchClientConfig should log errors from the response', async () => {

@@ -263,7 +263,10 @@ export class OffersFlow {
    */
   getDialogConfig_(clientConfig) {
     return clientConfig.useUpdatedOfferFlows
-      ? {desktopConfig: {isCenterPositioned: true, supportsWideScreen: true}}
+      ? {
+          desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+          shouldDisableBodyScrolling: true,
+        }
       : {};
   }
 

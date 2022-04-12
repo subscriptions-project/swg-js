@@ -15,30 +15,49 @@
  */
 
 /**
+ * @typedef {{
+ *   displayDelaySeconds: (number|undefined),
+ *   dismissalBackOffSeconds: (number|undefined),
+ *   maxDismissalsPerWeek: (number|undefined),
+ *   maxDismissalsResultingHideSeconds: (number|undefined),
+ *   impressionBackOffSeconds: (number|undefined),
+ *   maxImpressions: (number|undefined),
+ *   maxImpressionsResultingHideSeconds: (number|undefined),
+ * }}
+ */
+export let AutoPromptConfigParams;
+
+/**
  * Container for the auto prompt configuation details.
  */
 export class AutoPromptConfig {
   /**
-   * @param {number|undefined} maxImpressionsPerWeek
+   * @param {!AutoPromptConfigParams=} params
    */
-  constructor(
-    maxImpressionsPerWeek,
+  constructor({
     displayDelaySeconds,
-    backoffSeconds,
+    dismissalBackOffSeconds,
     maxDismissalsPerWeek,
-    maxDismissalsResultingHideSeconds
-  ) {
-    /** @const {number|undefined} */
-    this.maxImpressionsPerWeek = maxImpressionsPerWeek;
-
+    maxDismissalsResultingHideSeconds,
+    impressionBackOffSeconds,
+    maxImpressions,
+    maxImpressionsResultingHideSeconds,
+  } = {}) {
     /** @const {!ClientDisplayTrigger} */
     this.clientDisplayTrigger = new ClientDisplayTrigger(displayDelaySeconds);
 
     /** @const {!ExplicitDismissalConfig} */
     this.explicitDismissalConfig = new ExplicitDismissalConfig(
-      backoffSeconds,
+      dismissalBackOffSeconds,
       maxDismissalsPerWeek,
       maxDismissalsResultingHideSeconds
+    );
+
+    /** @const {!ImpressionConfig} */
+    this.impressionConfig = new ImpressionConfig(
+      impressionBackOffSeconds,
+      maxImpressions,
+      maxImpressionsResultingHideSeconds
     );
   }
 }
@@ -61,23 +80,49 @@ export class ClientDisplayTrigger {
  */
 export class ExplicitDismissalConfig {
   /**
-   * @param {number|undefined} backoffSeconds
+   * @param {number|undefined} backOffSeconds
    * @param {number|undefined} maxDismissalsPerWeek
    * @param {number|undefined} maxDismissalsResultingHideSeconds
    */
   constructor(
-    backoffSeconds,
+    backOffSeconds,
     maxDismissalsPerWeek,
     maxDismissalsResultingHideSeconds
   ) {
     /** @const {number|undefined} */
-    this.backoffSeconds = backoffSeconds;
+    this.backOffSeconds = backOffSeconds;
 
     /** @const {number|undefined} */
     this.maxDismissalsPerWeek = maxDismissalsPerWeek;
 
     /** @const {number|undefined} */
     this.maxDismissalsResultingHideSeconds = maxDismissalsResultingHideSeconds;
+  }
+}
+
+/**
+ * Configuration of impression behavior and its effects.
+ */
+export class ImpressionConfig {
+  /**
+   * @param {number|undefined} backOffSeconds
+   * @param {number|undefined} maxImpressions
+   * @param {number|undefined} maxImpressionsResultingHideSeconds
+   */
+  constructor(
+    backOffSeconds,
+    maxImpressions,
+    maxImpressionsResultingHideSeconds
+  ) {
+    /** @const {number|undefined} */
+    this.backOffSeconds = backOffSeconds;
+
+    /** @const {number|undefined} */
+    this.maxImpressions = maxImpressions;
+
+    /** @const {number|undefined} */
+    this.maxImpressionsResultingHideSeconds =
+      maxImpressionsResultingHideSeconds;
   }
 }
 
