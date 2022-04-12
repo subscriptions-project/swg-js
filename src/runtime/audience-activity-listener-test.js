@@ -92,10 +92,9 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
     expect(eventsLoggedToService[0].getEvent()).to.equal(
       AnalyticsEvent.IMPRESSION_PAYWALL
     );
-
     const path = new URL(capturedUrl);
     expect(path.pathname).to.equal(
-      '/swg/_/api/v1/publication/pub1/audienceactivitylogs?sut=abc'
+      '/swg/_/api/v1/publication/pub1/audienceactivitylogs'
     );
   });
 
