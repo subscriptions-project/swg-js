@@ -315,7 +315,9 @@ export class ConfiguredBasicRuntime {
     this.entitlementsManager().blockNextToast();
 
     // Enable Google metering in basic runtime by default;
-    this.entitlementsManager().enableMeteredByGoogle();
+    if (pageConfig.isLocked()) {
+      this.entitlementsManager().enableMeteredByGoogle();
+    }
 
     // Handle clicks on the Metering Toast's "Subscribe" button.
     this.setOnOffersFlowRequest_(() => {

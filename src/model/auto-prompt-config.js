@@ -127,18 +127,27 @@ export class ImpressionConfig {
 }
 
 /**
- * Predicates of whether or not to show button and prompt.
+ * Predicates to control UI elements.
  */
+// TODO(b/228856600): Move to a more general location.
 export class UiPredicates {
   /**
    * @param {boolean|undefined} canDisplayAutoPrompt
    * @param {boolean|undefined} canDisplayButton
+   * @param {boolean|undefined} purchaseUnavailableRegion
    */
-  constructor(canDisplayAutoPrompt, canDisplayButton) {
+  constructor(
+    canDisplayAutoPrompt,
+    canDisplayButton,
+    purchaseUnavailableRegion
+  ) {
     /** @const {boolean|undefined} */
     this.canDisplayAutoPrompt = canDisplayAutoPrompt;
 
     /** @const {boolean|undefined} */
     this.canDisplayButton = canDisplayButton;
+
+    /** @const {boolean|undefined} */
+    this.purchaseUnavailableRegion = purchaseUnavailableRegion;
   }
 }

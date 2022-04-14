@@ -28,10 +28,11 @@ import {
   Subscriptions as SubscriptionsDef,
 } from '../api/subscriptions';
 import {addQueryParam, parseQueryString} from './url';
+import {debugLog, warn} from './log';
+import {findInArray} from './object';
 import {getLanguageCodeFromElement, msg} from './i18n';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
-import {warn} from './log';
 
 // Load types for Closure compiler.
 import '../model/doc';
@@ -69,6 +70,10 @@ export const SIGN_IN_WITH_GOOGLE_BUTTON_ID = 'swg-sign-in-with-google-button';
 const PUBLISHER_SIGN_IN_BUTTON_ID = 'swg-publisher-sign-in-button';
 
 /** ID for the Regwall container element. */
+export const REGISTRATION_BUTTON_CONTAINER_ID =
+  'swg-registration-button-container';
+
+/** ID for the Regwall container element. */
 export const REGWALL_CONTAINER_ID = 'swg-regwall-container';
 
 /** ID for the Regwall dialog element. */
@@ -96,6 +101,7 @@ const REGWALL_HTML = `
   .gaa-metering-regwall--description,
   .gaa-metering-regwall--description strong,
   .gaa-metering-regwall--iframe,
+  .gaa-metering-regwall--registration-button-container,
   .gaa-metering-regwall--casl {
     all: initial !important;
     box-sizing: border-box !important;
@@ -164,6 +170,14 @@ const REGWALL_HTML = `
     width: 100% !important;
   }
 
+  .gaa-metering-regwall--registration-button-container {
+    border: none !important;
+    display: block !important;
+    height: 44px !important;
+    margin: 0 0 30px !important;
+    width: 100% !important;
+  }
+
   .gaa-metering-regwall--casl {
     color: #646464 !important;
     display: block !important;
@@ -220,11 +234,7 @@ const REGWALL_HTML = `
       $SHOWCASE_REGWALL_DESCRIPTION$
     </div>
 
-    <iframe
-        id="${GOOGLE_SIGN_IN_IFRAME_ID}"
-        class="gaa-metering-regwall--iframe"
-        src="$iframeUrl$">
-    </iframe>
+    $SHOWCASE_REGISTRATION_BUTTON$
 
     $SHOWCASE_REGWALL_CASL$
 
@@ -242,6 +252,27 @@ const REGWALL_HTML = `
 `;
 
 /**
+ * HTML for iFrame to render registration widget.
+ */
+const REGISTRATION_WIDGET_IFRAME_HTML = `
+  <iframe
+      id="${GOOGLE_SIGN_IN_IFRAME_ID}"
+      class="gaa-metering-regwall--iframe"
+      src="$iframeUrl$">
+  </iframe>
+`;
+
+/**
+ * HTML for container of the registration button.
+ */
+const REGISTRATION_BUTTON_HTML = `
+  <div
+      id="${REGISTRATION_BUTTON_CONTAINER_ID}"
+      class="gaa-metering-regwall--registration-button-container">
+  </div>
+`;
+
+/**
  * HTML for the CASL blurb.
  * CASL stands for Canadian Anti-Spam Law.
  */
@@ -252,11 +283,7 @@ const CASL_HTML = `
 `;
 
 /** Base styles for both the Google and Google 3p Sign-In button iframes. */
-const GOOGLE_SIGN_IN_IFRAME_STYLES = `
-  body {
-    margin: 0;
-    overflow: hidden;
-  }
+const GOOGLE_SIGN_IN_BUTTON_STYLES = `
   #${GOOGLE_3P_SIGN_IN_BUTTON_ID},
   #${SIGN_IN_WITH_GOOGLE_BUTTON_ID},
   #${GOOGLE_SIGN_IN_BUTTON_ID} {
@@ -307,6 +334,12 @@ const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     content: '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$';
     font-size: 15px;
   }`;
+const GOOGLE_SIGN_IN_IFRAME_STYLES = `
+  body {
+    margin: 0;
+    overflow: hidden;
+  }${GOOGLE_SIGN_IN_BUTTON_STYLES}
+`;
 
 /**
  * User object that Publisher JS receives after users sign in.
@@ -356,7 +389,7 @@ export let GoogleIdentityV1;
  * GoogleUser object that Google Sign-In returns after users sign in.
  * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
  * @typedef {{
- *   getAuthResponse: function(boolean): {
+ *  getAuthResponse: function(boolean): {
  *     access_token: string,
  *     id_token: string,
  *     scope: string,
@@ -374,6 +407,31 @@ export let GoogleIdentityV1;
  * }} GoogleUserDef
  */
 export let GoogleUserDef;
+
+/**
+ * InitParams object that GaaMetering.init accepts
+ * https://developers.google.com/news/subscribe/extended-access/overview
+ * @typedef {{
+ * allowedReferrers: (Array<string>|null),
+ * googleApiClientId: string,
+ * handleLoginPromise: (Promise|null),
+ * caslUrl: string,
+ * handleSwGEntitlement: function(): ?,
+ * publisherEntitlementPromise: (Promise|null),
+ * registerUserPromise: (Promise|null),
+ * showPaywall: function(): ?,
+ * showcaseEntitlement: string,
+ * unlockArticle: function(): ?,
+ * userState: {
+ *   grantReason: string,
+ *   granted: boolean,
+ *   id: string,
+ *   registrationTimestamp: number,
+ *   subscriptionTimestamp: number
+ * }
+ * }} InitParams
+ */
+export let InitParams;
 
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
@@ -462,6 +520,42 @@ export class GaaMeteringRegwall {
   }
 
   /**
+   * Returns a promise for a Google user object.
+   * The user object will be a GoogleIdentityV1
+   *
+   * This method opens a metering regwall dialog,
+   * where users can sign in with Google.
+   * @nocollapse
+   * @param {{ caslUrl: string, clientId: string }} params
+   * @return {!Promise<!GoogleIdentityV1>}
+   */
+  static showWithNativeRegistrationButton({caslUrl, clientId}) {
+    logEvent({
+      showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
+      isFromUserAction: false,
+    });
+
+    GaaMeteringRegwall.render_({
+      iframeUrl: '',
+      caslUrl,
+      useNativeMode: true,
+    });
+
+    return GaaMeteringRegwall.createNativeRegistrationButton({clientId})
+      .then((jwt) => {
+        GaaMeteringRegwall.remove();
+        return jwt;
+      })
+      .catch((err) => {
+        // Close the Regwall, since the flow failed.
+        GaaMeteringRegwall.remove();
+
+        // Rethrow error.
+        debugLog(`Regwall failed: ${err}`);
+      });
+  }
+
+  /**
    * Removes the Regwall.
    * @nocollapse
    */
@@ -489,17 +583,14 @@ export class GaaMeteringRegwall {
    * Renders the Regwall.
    * @private
    * @nocollapse
-   * @param {{ iframeUrl: string, caslUrl: string }} params
+   * @param {{ iframeUrl: string, caslUrl: string, useNativeMode: (boolean|undefined)}} params
    */
-  static render_({iframeUrl, caslUrl}) {
+  static render_({iframeUrl, caslUrl, useNativeMode = false}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
     const placeholderPatternForPublication = /<ph name="PUBLICATION".+?\/ph>/g;
     const placeholderPatternForLinkStart = /<ph name="LINK_START".+?\/ph>/g;
     const placeholderPatternForLinkEnd = /<ph name="LINK_END".+?\/ph>/g;
-
-    // Tell the iframe which language to render.
-    iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
 
     // Create and style container element.
     // TODO: Consider using a FriendlyIframe here, to avoid CSS conflicts.
@@ -544,10 +635,22 @@ export class GaaMeteringRegwall {
         );
     }
 
+    let registrationButtonHtml = '';
+    if (useNativeMode) {
+      registrationButtonHtml = REGISTRATION_BUTTON_HTML;
+    } else {
+      // Tell the iframe which language to render.
+      iframeUrl = addQueryParam(iframeUrl, 'lang', languageCode);
+      registrationButtonHtml = REGISTRATION_WIDGET_IFRAME_HTML.replace(
+        '$iframeUrl$',
+        iframeUrl
+      );
+    }
+
     // Prepare HTML.
     containerEl./*OK*/ innerHTML = REGWALL_HTML.replace(
-      '$iframeUrl$',
-      iframeUrl
+      '$SHOWCASE_REGISTRATION_BUTTON$',
+      registrationButtonHtml
     )
       .replace(
         '$SHOWCASE_REGWALL_TITLE$',
@@ -754,6 +857,52 @@ export class GaaMeteringRegwall {
         new URL(iframeUrl).origin
       );
     };
+  }
+
+  static createNativeRegistrationButton({clientId}) {
+    const languageCode = getLanguageCodeFromElement(self.document.body);
+    const parentElement = self.document.getElementById(
+      REGISTRATION_BUTTON_CONTAINER_ID
+    );
+    if (!parentElement) {
+      return false;
+    }
+    // Apply iframe styles.
+    const styleEl = self.document.createElement('style');
+    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_BUTTON_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+    );
+    self.document.head.appendChild(styleEl);
+
+    const buttonEl = self.document.createElement('div');
+    buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
+    buttonEl.tabIndex = 0;
+
+    parentElement.appendChild(buttonEl);
+
+    // Track button clicks.
+    buttonEl.addEventListener('click', () => {
+      logEvent({
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+        isFromUserAction: true,
+      });
+    });
+
+    return new Promise((resolve) => {
+      self.google.accounts.id.initialize({
+        /* eslint-disable google-camelcase/google-camelcase */
+        client_id: clientId,
+        callback: resolve,
+        /* eslint-enable google-camelcase/google-camelcase */
+      });
+      self.google.accounts.id.renderButton(buttonEl, {
+        'type': 'standard',
+        'theme': 'outline',
+        'text': 'continue_with',
+        'logo_alignment': 'center',
+      });
+    });
   }
 }
 
@@ -1255,5 +1404,664 @@ export class GaaUtils {
    */
   static getQueryString() {
     return self.location.search;
+  }
+}
+
+/**
+ * Types of grantReason that can be specified by the user as part of
+ * the userState object
+ * @enum {string}
+ */
+export const GrantReasonType = {
+  FREE: 'FREE',
+  SUBSCRIBER: 'SUBSCRIBER',
+  METERING: 'METERING',
+};
+
+export class GaaMetering {
+  constructor() {
+    this.userState = {};
+    this.gaaUserPromiseResolve_ = function () {};
+  }
+
+  /**
+   * Returns a promise that resolves with a gaaUser.
+   * @nocollapse
+   * @return {!Promise}
+   */
+  static getGaaUserPromise() {
+    return new Promise((resolve) => {
+      GaaMetering.gaaUserPromiseResolve_ = resolve;
+    });
+  }
+
+  static setGaaUser(jwt) {
+    GaaMetering.gaaUserPromiseResolve_(jwt);
+  }
+
+  /**
+   * Initialize GaaMetering flow
+   * @nocollapse
+   * @param {InitParams} params
+   */
+  static init(params) {
+    // Validate GaaMetering parameters
+    if (!params || !GaaMetering.validateParameters(params)) {
+      debugLog('[gaa.js:GaaMetering.init]: Invalid params.');
+      return false;
+    }
+
+    // Register publisher's callbacks, promises, and parameters
+    const productId = GaaMetering.getProductIDFromPageConfig_();
+    const {
+      googleApiClientId,
+      allowedReferrers,
+      showcaseEntitlement,
+      caslUrl,
+      showPaywall,
+      userState,
+      unlockArticle,
+      handleSwGEntitlement,
+      registerUserPromise,
+      handleLoginPromise,
+      publisherEntitlementPromise,
+    } = params;
+
+    GaaMetering.userState = userState;
+    GaaMetering.publisherEntitlementPromise = publisherEntitlementPromise;
+
+    // Validate gaa parameters and referrer
+    if (!GaaMetering.isGaa(allowedReferrers)) {
+      debugLog('Extended Access - Invalid gaa parameters or referrer.');
+      return false;
+    }
+
+    callSwg((subscriptions) => {
+      subscriptions.init(productId);
+
+      if ('granted' in userState && 'grantReason' in userState) {
+        unlockArticleIfGranted();
+      } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
+        GaaMetering.userState.grantReason = GrantReasonType.FREE;
+        GaaMetering.userState.granted = true;
+        debugLog('Article free from markup.');
+        unlockArticleIfGranted();
+      } else if (showcaseEntitlement) {
+        debugLog(showcaseEntitlement);
+        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
+      } else {
+        debugLog('resolving publisherEntitlement');
+        publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
+          if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
+            GaaMetering.userState = fetchedPublisherEntitlements;
+
+            unlockArticleIfGranted();
+          } else {
+            debugLog("Publisher entitlement isn't valid");
+          }
+        });
+      }
+
+      subscriptions.setOnLoginRequest(() =>
+        GaaMetering.handleLoginRequest(
+          handleLoginPromise,
+          unlockArticleIfGranted
+        )
+      );
+
+      subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
+
+      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
+        GaaMetering.setEntitlements(
+          googleEntitlementsPromise,
+          allowedReferrers,
+          unlockArticle,
+          handleSwGEntitlement,
+          showGoogleRegwall,
+          showPaywall
+        )
+      );
+    });
+
+    // Show the Google registration intervention.
+    function showGoogleRegwall() {
+      debugLog('show Google Regwall');
+      // Don't render the regwall until the window has loaded.
+      self.addEventListener('load', () => {
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          caslUrl,
+          clientId: googleApiClientId,
+        }).then((jwt) => {
+          // Handle registration for new users
+          // Save credentials object so that registerUserPromise can use it using getGaaUser.
+          GaaMetering.setGaaUser(jwt);
+          registerUserPromise.then((registerUserUserState) => {
+            debugLog('registerUserPromise resolved');
+            if (GaaMetering.validateUserState(registerUserUserState)) {
+              GaaMetering.userState = registerUserUserState;
+
+              unlockArticleIfGranted();
+            }
+          });
+        });
+      });
+    }
+
+    function unlockArticleIfGranted() {
+      if (!GaaMetering.validateUserState(GaaMetering.userState)) {
+        debugLog('Invalid userState object');
+        return false;
+      } else if (GaaMetering.userState.granted === true) {
+        const grantReasonToShowCaseEventMap = {
+          [GrantReasonType.SUBSCRIBER]:
+            ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+          [GrantReasonType.FREE]:
+            ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
+          [GrantReasonType.METERING]:
+            ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
+        };
+
+        if (GrantReasonType[GaaMetering.userState.grantReason] !== undefined) {
+          callSwg((subscriptions) => {
+            subscriptions.setShowcaseEntitlement({
+              entitlement:
+                grantReasonToShowCaseEventMap[
+                  GaaMetering.userState.grantReason
+                ],
+              isUserRegistered: GaaMetering.isUserRegistered(
+                GaaMetering.userState
+              ),
+            });
+            debugLog('unlocked for ' + GaaMetering.userState.grantReason);
+          });
+        }
+        // User has access from publisher so unlock article
+        unlockArticle();
+      } else {
+        checkShowcaseEntitlement(GaaMetering.userState);
+      }
+    }
+
+    function checkShowcaseEntitlement(userState) {
+      if (userState.registrationTimestamp) {
+        // Send userState to Google
+        callSwg((subscriptions) => {
+          debugLog('getting entitlements from Google');
+          debugLog(GaaMetering.newUserStateToUserState(userState));
+          subscriptions.getEntitlements(
+            GaaMetering.newUserStateToUserState(userState)
+          );
+        });
+      } else {
+        // If userState is undefined, it’s likely the user isn’t
+        // logged in. Do not send an empty userState to Google in
+        // this case.
+        showGoogleRegwall();
+      }
+    }
+  }
+
+  static handleLoginRequest(handleLoginPromise, unlockArticleIfGranted) {
+    handleLoginPromise.then((handleLoginUserState) => {
+      if (GaaMetering.validateUserState(handleLoginUserState)) {
+        GaaMetering.userState = handleLoginUserState;
+        GaaMeteringRegwall.remove();
+        debugLog('GaaMeteringRegwall removed');
+        unlockArticleIfGranted();
+      } else {
+        debugLog('invalid handleLoginUserState');
+        return false;
+      }
+    });
+  }
+
+  static setEntitlements(
+    googleEntitlementsPromise,
+    allowedReferrers,
+    unlockArticle,
+    handleSwGEntitlement,
+    showGoogleRegwall,
+    showPaywall
+  ) {
+    // Wait for Google check to finish
+    googleEntitlementsPromise.then((googleEntitlement) => {
+      // Determine Google response from publisher response.
+      if (googleEntitlement.enablesThisWithGoogleMetering()) {
+        // Google returned metering entitlement so grant access
+        googleEntitlement.consume(() => {
+          // Consume the entitlement and trigger a dialog that lets the user
+          // know Google provided them with a free read.
+          unlockArticle();
+        });
+      } else if (googleEntitlement.enablesThis()) {
+        // Google returned a non-metering entitlement
+        // This is only relevant for publishers doing SwG
+        handleSwGEntitlement();
+      } else if (
+        !GaaMetering.isUserRegistered(GaaMetering.userState) &&
+        GaaMetering.isGaa(allowedReferrers)
+      ) {
+        // This is an anonymous user so show the Google registration intervention
+        showGoogleRegwall();
+      } else {
+        // User does not any access from publisher or Google so show the standard paywall
+        callSwg((subscriptions) => {
+          subscriptions.setShowcaseEntitlement({
+            entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+            isUserRegistered: GaaMetering.isUserRegistered(
+              GaaMetering.userState
+            ),
+          });
+        });
+        // Show the paywall
+        showPaywall();
+      }
+    });
+  }
+
+  static isUserRegistered(userState) {
+    return userState.id !== undefined && userState.id != '';
+  }
+
+  /**
+   * Validates parameters for GaaMetering.init flow
+   * @nocollapse
+   * @param {InitParams} params
+   */
+  static validateParameters(params) {
+    if (
+      !('googleApiClientId' in params) ||
+      !(typeof params.googleApiClientId === 'string') ||
+      params.googleApiClientId.indexOf('.apps.googleusercontent.com') == -1
+    ) {
+      debugLog(
+        'Missing googleApiClientId, or it is not a string, or it is not in a correct format'
+      );
+      return false;
+    }
+
+    if (
+      !('allowedReferrers' in params && Array.isArray(params.allowedReferrers))
+    ) {
+      debugLog('Missing allowedReferrers or it is not an array');
+      return false;
+    }
+
+    const reqFunc = ['unlockArticle', 'showPaywall'];
+
+    for (let reqFuncNo = 0; reqFuncNo < reqFunc.length; reqFuncNo++) {
+      if (
+        !(
+          reqFunc[reqFuncNo] in params &&
+          typeof params[reqFunc[reqFuncNo]] === 'function'
+        )
+      ) {
+        debugLog(`Missing ${reqFunc[reqFuncNo]} or it is not a function`);
+        return false;
+      }
+    }
+
+    if (
+      'handleSwGEntitlement' in params &&
+      typeof params.handleSwGEntitlement != 'function'
+    ) {
+      debugLog('handleSwGEntitlement is provided but it is not a function');
+      return false;
+    }
+
+    const reqPromise = ['handleLoginPromise', 'registerUserPromise'];
+
+    for (
+      let reqPromiseNo = 0;
+      reqPromiseNo < reqPromise.length;
+      reqPromiseNo++
+    ) {
+      if (
+        !(
+          reqPromise[reqPromiseNo] in params &&
+          GaaMetering.isPromise(params[reqPromise[reqPromiseNo]])
+        )
+      ) {
+        debugLog(`Missing ${reqPromise[reqPromiseNo]} or it is not a promise`);
+        return false;
+      }
+    }
+
+    if (
+      !(
+        'publisherEntitlementPromise' in params &&
+        GaaMetering.isPromise(params.publisherEntitlementPromise)
+      )
+    ) {
+      debugLog(
+        'publisherEntitlementPromise is provided but it is not a promise'
+      );
+    }
+
+    // Check userState is an 'object'
+    if (
+      !('userState' in params) &&
+      !('publisherEntitlementPromise' in params)
+    ) {
+      debugLog(`userState or publisherEntitlementPromise needs to be provided`);
+      return false;
+    }
+
+    if ('userState' in params && typeof params.userState != 'object') {
+      debugLog(`userState is not an object`);
+      return false;
+    }
+
+    const userState = params.userState;
+    if (
+      (!('granted' in userState) ||
+        (userState.granted && !('grantReason' in userState))) &&
+      !('publisherEntitlementPromise' in params)
+    ) {
+      debugLog(
+        'Either granted and grantReason have to be supplied or you have to provide pubisherEntitlementPromise'
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  static isGaa(publisherReferrers = []) {
+    // Validate GAA params.
+    const queryString = GaaUtils.getQueryString();
+    if (!queryStringHasFreshGaaParams(queryString, true)) {
+      return false;
+    }
+
+    // Validate referrer.
+    // NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
+    const GOOGLE_DOMAIN_RE =
+      /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
+    const referrer = GaaMetering.getAnchorFromUrl(self.document.referrer);
+    if (
+      !GOOGLE_DOMAIN_RE.test(referrer.hostname) &&
+      publisherReferrers.indexOf(referrer.hostname) == -1
+    ) {
+      // Real publications should bail if this referrer check fails.
+      // This script is only logging a warning for metering demo purposes.
+      debugLog(
+        `This page's referrer ("${referrer.origin}") can't grant Google Article Access.`
+      );
+
+      return false;
+    }
+
+    return true;
+  }
+
+  static getAnchorFromUrl(url) {
+    const a = self.document.createElement('a');
+    a.href = url;
+    return a;
+  }
+
+  static getProductIDFromPageConfig_() {
+    const jsonLdPageConfig = GaaMetering.getProductIDFromJsonLdPageConfig_();
+    if (jsonLdPageConfig) {
+      return jsonLdPageConfig;
+    }
+
+    const microdataPageConfig =
+      GaaMetering.getProductIDFromMicrodataPageConfig_();
+    if (microdataPageConfig) {
+      return microdataPageConfig;
+    }
+
+    throw new Error(
+      'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
+    );
+  }
+
+  /**
+   * Gets publisher ID from JSON-LD page config.
+   * @private
+   * @nocollapse
+   * @return {string|undefined}
+   */
+  static getProductIDFromJsonLdPageConfig_() {
+    const ldJsonElements = self.document.querySelectorAll(
+      'script[type="application/ld+json"]'
+    );
+
+    for (let i = 0; i < ldJsonElements.length; i++) {
+      const ldJsonElement = ldJsonElements[i];
+      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+
+      if (!Array.isArray(ldJson)) {
+        ldJson = [ldJson];
+      }
+
+      const productId = findInArray(
+        ldJson,
+        (entry) => entry?.isPartOf?.productID
+      )?.isPartOf.productID;
+
+      if (productId) {
+        return productId;
+      }
+    }
+  }
+
+  /**
+   * Gets product ID from Microdata page config.
+   * @private
+   * @nocollapse
+   * @return {string|undefined}
+   */
+  static getProductIDFromMicrodataPageConfig_() {
+    const productIdElements = self.document.querySelectorAll(
+      '[itemscope][itemtype][itemprop="isPartOf"] [itemprop="productID"]'
+    );
+
+    for (let i = 0; i < productIdElements.length; i++) {
+      const productIdElement = productIdElements[i];
+      const productId = productIdElement.content;
+      if (productId) {
+        return productId;
+      }
+    }
+  }
+
+  static isArticleFreeFromPageConfig_() {
+    return (
+      GaaMetering.isArticleFreeFromJsonLdPageConfig_() ||
+      GaaMetering.isArticleFreeFromMicrodataPageConfig_() ||
+      false
+    );
+  }
+
+  /**
+   * @private
+   * @nocollapse
+   * @return {boolean}
+   */
+  static isArticleFreeFromJsonLdPageConfig_() {
+    const ldJsonElements = self.document.querySelectorAll(
+      'script[type="application/ld+json"]'
+    );
+
+    for (let i = 0; i < ldJsonElements.length; i++) {
+      const ldJsonElement = ldJsonElements[i];
+      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+
+      if (!Array.isArray(ldJson)) {
+        ldJson = [ldJson];
+      }
+
+      const accessibleForFree = findInArray(
+        ldJson,
+        (entry) => entry?.isAccessibleForFree
+      )?.isAccessibleForFree;
+
+      if (accessibleForFree == null || accessibleForFree === '') {
+        return false;
+      }
+      if (typeof accessibleForFree == 'boolean') {
+        return accessibleForFree;
+      }
+      if (typeof accessibleForFree == 'string') {
+        const lowercase = accessibleForFree.toLowerCase();
+        return lowercase == 'true';
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * @private
+   * @nocollapse
+   * @return {boolean}
+   */
+  static isArticleFreeFromMicrodataPageConfig_() {
+    const accessibleForFreeElements = self.document.querySelectorAll(
+      '[itemscope][itemtype] [itemprop="isAccessibleForFree"]'
+    );
+
+    for (let i = 0; i < accessibleForFreeElements.length; i++) {
+      const accessibleForFreeElement = accessibleForFreeElements[i];
+      const accessibleForFree = accessibleForFreeElement.content;
+      debugLog(typeof accessibleForFree);
+      if (accessibleForFree) {
+        const lowercase = accessibleForFree.toLowerCase();
+        return lowercase == 'true';
+      }
+    }
+
+    return false;
+  }
+
+  static isPromise(p) {
+    return p && Object.prototype.toString.call(p) === '[object Promise]';
+  }
+
+  static newUserStateToUserState(newUserState) {
+    return {
+      'metering': {
+        'state': {
+          'id': newUserState.id,
+          'standardAttributes': {
+            'registered_user': {
+              'timestamp': newUserState.registrationTimestamp,
+            },
+          },
+        },
+      },
+    };
+  }
+
+  static validateUserState(newUserState) {
+    if (!newUserState) {
+      return false;
+    }
+
+    if (
+      !('granted' in newUserState && typeof newUserState.granted === 'boolean')
+    ) {
+      debugLog(
+        'userState.granted is missing or invalid (must be true or false)'
+      );
+
+      return false;
+    }
+
+    if (
+      newUserState.granted === true &&
+      GrantReasonType[newUserState.grantReason] === undefined
+    ) {
+      debugLog(
+        'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
+      );
+
+      return false;
+    }
+
+    if (
+      newUserState.granted === true &&
+      newUserState.grantReason === GrantReasonType.SUBSCRIBER
+    ) {
+      if (
+        !('id' in newUserState) ||
+        !('registrationTimestamp' in newUserState)
+      ) {
+        debugLog(
+          'Missing user ID or registrationTimestamp in userState object'
+        );
+        return false;
+      } else {
+        if (
+          !(
+            typeof newUserState.registrationTimestamp === 'number' &&
+            newUserState.registrationTimestamp % 1 === 0
+          )
+        ) {
+          debugLog(
+            'userState.registrationTimestamp invalid, userState.registrationTimestamp needs to be an integer and in seconds'
+          );
+
+          return false;
+        }
+
+        if (newUserState.registrationTimestamp > Date.now() / 1000) {
+          debugLog('userState.registrationTimestamp is in the future');
+
+          return false;
+        }
+
+        if (
+          newUserState.grantReason === GrantReasonType.SUBSCRIBER &&
+          !('subscriptionTimestamp' in newUserState)
+        ) {
+          debugLog(
+            'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
+          );
+
+          return false;
+        }
+
+        if (
+          'subscriptionTimestamp' in newUserState &&
+          !(
+            typeof newUserState.subscriptionTimestamp === 'number' &&
+            newUserState.subscriptionTimestamp % 1 === 0
+          )
+        ) {
+          debugLog(
+            'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
+          );
+
+          return false;
+        }
+
+        if (
+          'subscriptionTimestamp' in newUserState &&
+          newUserState.subscriptionTimestamp > Date.now() / 1000
+        ) {
+          debugLog('userState.subscriptionTimestamp is in the future');
+
+          return false;
+        }
+      }
+    }
+
+    if ('id' in newUserState || 'registrationTimestamp' in newUserState) {
+      if (!('id' in newUserState)) {
+        debugLog('Missing user ID in userState object');
+        return false;
+      }
+
+      if (!('registrationTimestamp' in newUserState)) {
+        debugLog('Missing registrationTimestamp in userState object');
+        return false;
+      }
+    }
+
+    return true;
   }
 }

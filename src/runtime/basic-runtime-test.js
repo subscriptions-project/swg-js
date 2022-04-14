@@ -977,15 +977,28 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .be.false;
     });
 
-    it('should enable METERED_BY_GOOGLE on the entitlements manager', () => {
+    it('should enable METERED_BY_GOOGLE on the entitlements manager if the page is locked', () => {
       const entitlementsStub = sandbox.stub(
         EntitlementsManager.prototype,
         'enableMeteredByGoogle'
       );
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
 
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
 
       expect(entitlementsStub).to.be.calledOnce;
+    });
+
+    it('should not enable METERED_BY_GOOGLE on the entitlements manager if the page is unlocked', () => {
+      const entitlementsStub = sandbox.stub(
+        EntitlementsManager.prototype,
+        'enableMeteredByGoogle'
+      );
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+
+      configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
+
+      expect(entitlementsStub).to.not.be.called;
     });
 
     it('should set onOffersFlowRequest to handle clicks on the Metering Toast "Subscribe" button', async () => {
