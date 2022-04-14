@@ -1755,7 +1755,9 @@ export class GaaMetering {
     const userState = params.userState;
     if (
       (!('granted' in userState) ||
-        (userState.granted && !('grantReason' in userState))) &&
+        (userState.granted &&
+          !GaaMetering.isArticleFreeFromPageConfig_() &&
+          !('grantReason' in userState))) &&
       !('publisherEntitlementPromise' in params)
     ) {
       debugLog(
