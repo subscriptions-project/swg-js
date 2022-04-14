@@ -213,13 +213,15 @@
       // Do not copy the implementation for the promise and see documentation for your own implementation at:
       // https://developers.google.com/news/subscribe/extended-access/integration-steps/web-implementation#handle-login-for-existing-users
       handleLoginPromise = new Promise ((resolve) => {
-        // Example body of the promise returning a userState object
-        userState = {
-          id: 'user123456789',
-          registrationTimestamp: 1647311022,
-          granted: false,
-        };
-        resolve(userState);
+        GaaMetering.getLoginPromise().then(() => {
+          // Example body of the promise returning a userState object
+          userState = {
+            id: 'user123456789',
+            registrationTimestamp: 1647311022,
+            granted: false,
+          };
+          resolve(userState);
+        });
       });
 
       // Get userState by passing the gaaUser object to your registration endpoint server
