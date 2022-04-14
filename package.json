@@ -119,7 +119,7 @@
     "selenium-server": "3.141.59",
     "selenium-webdriver": "4.1.1",
     "shuffle-seed": "1.1.6",
-    "sinon": "13.0.1",
+    "sinon": "13.0.2",
     "sinon-chai": "3.7.0",
     "through2": "4.0.2",
     "touch": "3.1.0",
