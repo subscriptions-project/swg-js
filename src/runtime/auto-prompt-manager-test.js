@@ -16,10 +16,10 @@
 
 import * as audienceActionFlow from './audience-action-flow';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {AutoPromptConfig, UiPredicates} from '../model/auto-prompt-config';
+import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {ClientConfig} from '../model/client-config';
+import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
