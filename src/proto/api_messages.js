@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * @fileoverview Protos for SwG client/iframe messaging
+ * Auto generated, do not edit
+ */
+
 /**
  * @interface
  */
@@ -32,6 +38,7 @@ class Message {
 const ActionType = {
   ACTION_TYPE_UNKNOWN: 0,
   ACTION_TYPE_RELOAD_PAGE: 1,
+  ACTION_TYPE_UPDATE_COUNTER: 2,
 };
 /** @enum {number} */
 const AnalyticsEvent = {
