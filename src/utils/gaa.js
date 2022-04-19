@@ -1422,6 +1422,7 @@ export class GaaMetering {
   constructor() {
     this.userState = {};
     this.gaaUserPromiseResolve_ = function () {};
+    this.loginPromiseResolve_ = function () {};
   }
 
   /**
@@ -1437,6 +1438,21 @@ export class GaaMetering {
 
   static setGaaUser(jwt) {
     GaaMetering.gaaUserPromiseResolve_(jwt);
+  }
+
+  /**
+   * Returns a promise that resolves when the user clicks "Already registered? Sign in".
+   * @nocollapse
+   * @return {!Promise}
+   */
+  static getLoginPromise() {
+    return new Promise((resolve) => {
+      GaaMetering.loginPromiseResolve_ = resolve;
+    });
+  }
+
+  static resolveLogin() {
+    GaaMetering.loginPromiseResolve_();
   }
 
   /**
@@ -1602,6 +1618,7 @@ export class GaaMetering {
   }
 
   static handleLoginRequest(handleLoginPromise, unlockArticleIfGranted) {
+    GaaMetering.resolveLogin();
     handleLoginPromise.then((handleLoginUserState) => {
       if (GaaMetering.validateUserState(handleLoginUserState)) {
         GaaMetering.userState = handleLoginUserState;

@@ -16,9 +16,8 @@
 
 import {AttributionParams} from '../model/attribution-params';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
-import {ClientConfig} from '../model/client-config';
+import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientTheme} from '../api/basic-subscriptions';
-import {UiPredicates} from '../model/auto-prompt-config';
 import {serviceUrl} from './services';
 import {warn} from '../utils/log';
 

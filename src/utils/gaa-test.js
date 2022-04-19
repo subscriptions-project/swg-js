@@ -2575,6 +2575,18 @@ describes.realWin('GaaMetering', {}, () => {
     });
   });
 
+  describe('getLoginPromise', () => {
+    beforeEach(() => {
+      GaaMetering.loginPromiseResolve_ = undefined;
+    });
+    it('sets up the promise', () => {
+      GaaMetering.getLoginPromise().then(() => {
+        expect(GaaMetering.loginPromiseResolve_).to.have.been.called();
+      });
+      GaaMetering.resolveLogin();
+    });
+  });
+
   describe('isGaa', () => {
     it('fails when gaa parameters are not present in URL', () => {
       expect(GaaMetering.isGaa()).to.be.false;
@@ -3198,46 +3210,70 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('handleLoginRequest', () => {
-    it('calls unlockArticleIfGranted if handleLoginUserState is valid', async () => {
-      const unlockArticleIfGranted = function () {};
-      const handleLoginPromise = new Promise((resolve) => {
-        const handleLoginUserState = {
-          id: 12345,
-          registrationTimestamp: Date.now() / 1000,
-          granted: false,
-        };
-        resolve(handleLoginUserState);
-      });
+    beforeEach(() => {
+      GaaMetering.loginPromiseResolve_ = undefined;
+    });
 
+    it('resolves the loginPromise', () => {
+      const unlockArticleIfGranted = function () {};
+      const handleLoginPromise = new Promise(() => {
+        GaaMetering.getLoginPromise().then(() => {
+          expect(GaaMetering.resolveLogin).to.have.been.called();
+        });
+      });
       GaaMetering.handleLoginRequest(
         handleLoginPromise,
         unlockArticleIfGranted
-      );
-      await tick(10);
-      expect(self.console.log).to.calledWith(
-        '[Subscriptions]',
-        'GaaMeteringRegwall removed'
       );
     });
 
-    it("doens't unlock article if handleLoginUserState is invalid", async () => {
+    it('calls unlockArticleIfGranted if handleLoginUserState is valid', () => {
       const unlockArticleIfGranted = function () {};
       const handleLoginPromise = new Promise((resolve) => {
-        const userStateInvalid = {
-          id: 12345,
-        };
-        resolve(userStateInvalid);
+        GaaMetering.getLoginPromise().then(() => {
+          const handleLoginUserState = {
+            id: 12345,
+            registrationTimestamp: Date.now() / 1000,
+            granted: false,
+          };
+          resolve(handleLoginUserState);
+        });
+      });
+      GaaMetering.handleLoginRequest(
+        handleLoginPromise,
+        unlockArticleIfGranted
+      );
+      handleLoginPromise.then(() => {
+        expect(unlockArticleIfGranted).to.have.been.called();
+        expect(self.console.log).to.calledWith(
+          '[Subscriptions]',
+          'GaaMeteringRegwall removed'
+        );
+      });
+    });
+
+    it("doens't unlock article if handleLoginUserState is invalid", () => {
+      const unlockArticleIfGranted = function () {};
+      const handleLoginPromise = new Promise((resolve) => {
+        GaaMetering.getLoginPromise().then(() => {
+          const userStateInvalid = {
+            id: 12345,
+          };
+          resolve(userStateInvalid);
+        });
       });
 
       GaaMetering.handleLoginRequest(
         handleLoginPromise,
         unlockArticleIfGranted
       );
-      await tick(10);
-      expect(self.console.log).to.calledWith(
-        '[Subscriptions]',
-        'invalid handleLoginUserState'
-      );
+      handleLoginPromise.then(() => {
+        expect(unlockArticleIfGranted).to.not.have.been.called();
+        expect(self.console.log).to.calledWith(
+          '[Subscriptions]',
+          'invalid handleLoginUserState'
+        );
+      });
     });
   });
 

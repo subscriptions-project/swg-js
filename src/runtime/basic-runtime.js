@@ -321,6 +321,9 @@ export class ConfiguredBasicRuntime {
 
     // Handle clicks on the Metering Toast's "Subscribe" button.
     this.setOnOffersFlowRequest_(() => {
+      // Close the current dialog to allow a new one with potentially different configurations
+      // to take over the screen.
+      this.dismissSwgUI();
       this.configuredClassicRuntime_.showOffers();
     });
 
