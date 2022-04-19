@@ -333,9 +333,6 @@ export class MeterToastApi {
     this.removeCloseEventListener();
     // We shouldn't decrement the meter on redirects, so don't call onConsumeCallback.
     this.onConsumeCallbackHandled_ = true;
-    // Close the current dialog to allow a new one with potentially different configurations
-    // to take over the screen.
-    this.dialogManager_.completeAll();
     if (response.getNative()) {
       this.deps_.callbacks().triggerSubscribeRequest();
     } else {

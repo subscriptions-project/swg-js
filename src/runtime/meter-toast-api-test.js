@@ -256,7 +256,6 @@ describes.realWin('MeterToastApi', {}, (env) => {
       'triggerSubscribeRequest'
     );
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    dialogManagerMock.expects('completeAll').once();
     await meterToastApi.start();
     // Native message.
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
@@ -278,7 +277,6 @@ describes.realWin('MeterToastApi', {}, (env) => {
       'triggerOffersFlowRequest'
     );
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    dialogManagerMock.expects('completeAll').once();
     await meterToastApi.start();
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
     viewSubscriptionsResponse.setNative(false);
