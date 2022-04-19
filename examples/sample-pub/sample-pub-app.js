@@ -335,6 +335,21 @@ app.get('/redirect-to/swg-basic.js', (req, res) => {
 });
 
 /**
+ * Fixed 1st article for Simplified API demo
+ */
+app.get('/ea-simplified-api', (req, res) => {
+  const article = ARTICLES[0];
+  const setup = getSetup(req);
+  res.render('../examples/sample-pub/views/article-ea-simplified-api', {
+    swgJsUrl: SWG_JS_URLS[setup.script],
+    swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
+    setup,
+    publicationId: PUBLICATION_ID,
+    article,
+  });
+});
+
+/**
  * @param {!HttpRequest} req
  * @return {{
  *   script: string,
