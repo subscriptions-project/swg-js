@@ -1495,6 +1495,26 @@ export class GaaMetering {
     callSwg((subscriptions) => {
       subscriptions.init(productId);
 
+      subscriptions.setOnLoginRequest(() =>
+        GaaMetering.handleLoginRequest(
+          handleLoginPromise,
+          unlockArticleIfGranted
+        )
+      );
+
+      subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
+
+      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
+        GaaMetering.setEntitlements(
+          googleEntitlementsPromise,
+          allowedReferrers,
+          unlockArticle,
+          handleSwGEntitlement,
+          showGoogleRegwall,
+          showPaywall
+        )
+      );
+
       if ('granted' in userState && 'grantReason' in userState) {
         unlockArticleIfGranted();
       } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
@@ -1517,26 +1537,6 @@ export class GaaMetering {
           }
         });
       }
-
-      subscriptions.setOnLoginRequest(() =>
-        GaaMetering.handleLoginRequest(
-          handleLoginPromise,
-          unlockArticleIfGranted
-        )
-      );
-
-      subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
-
-      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
-        GaaMetering.setEntitlements(
-          googleEntitlementsPromise,
-          allowedReferrers,
-          unlockArticle,
-          handleSwGEntitlement,
-          showGoogleRegwall,
-          showPaywall
-        )
-      );
     });
 
     // Show the Google registration intervention.
@@ -1772,7 +1772,9 @@ export class GaaMetering {
     const userState = params.userState;
     if (
       (!('granted' in userState) ||
-        (userState.granted && !('grantReason' in userState))) &&
+        (userState.granted &&
+          !GaaMetering.isArticleFreeFromPageConfig_() &&
+          !('grantReason' in userState))) &&
       !('publisherEntitlementPromise' in params)
     ) {
       debugLog(

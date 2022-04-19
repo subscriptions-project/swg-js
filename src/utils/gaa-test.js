@@ -2197,6 +2197,29 @@ describes.realWin('GaaMetering', {}, () => {
         'userState or publisherEntitlementPromise needs to be provided'
       );
     });
+
+    it('succeeds for free articles where granted is true but grantedReason is not required', () => {
+      location.hash = `#swg.debug=1`;
+
+      sandbox.stub(GaaMetering, 'isArticleFreeFromPageConfig_');
+      GaaMetering.isArticleFreeFromPageConfig_.returns(true);
+
+      expect(
+        GaaMetering.validateParameters({
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            granted: true,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+        })
+      ).to.be.true;
+    });
   });
 
   describe('getAnchorFromUrl', () => {
