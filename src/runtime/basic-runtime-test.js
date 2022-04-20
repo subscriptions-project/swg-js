@@ -1011,13 +1011,18 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       ).to.be.true;
     });
 
-    it('should call showOffers when offers flow request is triggered', async () => {
+    it('should dismiss the active dialog and call showOffers when offers flow request is triggered', async () => {
       const showOffersStub = sandbox.stub(
         configuredBasicRuntime.configuredClassicRuntime(),
         'showOffers'
       );
+      const completeAllStub = sandbox.stub(
+        configuredBasicRuntime.dialogManager(),
+        'completeAll'
+      );
       await configuredBasicRuntime.callbacks().triggerOffersFlowRequest();
       expect(showOffersStub).to.be.calledOnce;
+      expect(completeAllStub).to.be.calledOnce;
     });
   });
 });
