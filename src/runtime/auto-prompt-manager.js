@@ -81,6 +81,9 @@ export class AutoPromptManager {
     /** @private {boolean} */
     this.autoPromptDisplayed_ = false;
 
+    /** @private {boolean} */
+    this.hasStoredImpression = false;
+
     /** @private {?AudienceActionFlow} */
     this.lastAudienceActionFlow_ = null;
 
@@ -479,7 +482,15 @@ export class AutoPromptManager {
       return Promise.resolve();
     }
 
-    if (impressionEvents.includes(event.eventType)) {
+    // Prompt impression should be stored if no previous one has been stored.
+    // This is to prevent the case that user clicks the mini prompt, and both
+    // impressions of the mini and large prompts would be counted towards the
+    // cap.
+    if (
+      !this.hasStoredImpression &&
+      impressionEvents.includes(event.eventType)
+    ) {
+      this.hasStoredImpression = true;
       return this.storeEvent_(STORAGE_KEY_IMPRESSIONS);
     }
 
