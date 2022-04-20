@@ -482,6 +482,10 @@ export class AutoPromptManager {
       return Promise.resolve();
     }
 
+    // Prompt impression should be stored if no previous one has been stored.
+    // This is to prevent the case that user clicks the mini prompt, and both
+    // impressions of the mini and large prompts would be counted towards the
+    // cap.
     if (
       !this.hasStoredImpression &&
       impressionEvents.includes(event.eventType)
