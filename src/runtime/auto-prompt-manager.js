@@ -479,6 +479,19 @@ export class AutoPromptManager {
       return Promise.resolve();
     }
 
+    // Last impressions (which should be the mini prompt impression) should be
+    // removed from the storage after the user clicks the mini prompt. This is
+    // to prevent the impressions of both the mini and large promprts from
+    // being conunted towards the cap.
+    if (
+      event.eventType ===
+        AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLICK ||
+      event.eventType ===
+        AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK
+    ) {
+      return this.removeLastImpression_();
+    }
+
     if (impressionEvents.includes(event.eventType)) {
       return this.storeEvent_(STORAGE_KEY_IMPRESSIONS);
     }
@@ -529,6 +542,30 @@ export class AutoPromptManager {
         dateValues.push(Date.now());
         const valueToStore = this.arrayToStoredValue_(dateValues);
         this.storage_.set(storageKey, valueToStore, /* useLocalStorage */ true);
+      });
+  }
+
+  /**
+   * Removes the last impression from the storage. This should be used after
+   * the user clicks the mini prompt. Otherwise, the impressions would be
+   * counted twice.
+   */
+  removeLastImpression_() {
+    return this.storage_
+      .get(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
+      .then((value) => {
+        const dateValues = this.filterOldValues_(
+          this.storedValueToDateArray_(value)
+        );
+        if (dateValues.length > 0) {
+          dateValues.splice(dateValues.length - 1, 1);
+        }
+        const valueToStore = this.arrayToStoredValue_(dateValues);
+        this.storage_.set(
+          STORAGE_KEY_IMPRESSIONS,
+          valueToStore,
+          /* useLocalStorage */ true
+        );
       });
   }
 

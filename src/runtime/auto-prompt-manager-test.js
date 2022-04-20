@@ -165,6 +165,43 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
   });
 
+  [
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLICK,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    },
+  ].forEach(({eventType, autoPromptType}) => {
+    it(`should remove the last impression from the storage when ${autoPromptType} mini prompt click event is fired`, async () => {
+      const storedImpressions =
+        (CURRENT_TIME - 1).toString() + ',' + CURRENT_TIME.toString();
+      storageMock
+        .expects('get')
+        .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
+        .returns(Promise.resolve(storedImpressions))
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          STORAGE_KEY_IMPRESSIONS,
+          (CURRENT_TIME - 1).toString(),
+          /* useLocalStorage */ true
+        )
+        .returns(Promise.resolve())
+        .once();
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
+
   it('should locally store contribution dismissals when contribution dismissal events are fired', async () => {
     storageMock
       .expects('get')
