@@ -82,9 +82,6 @@ export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
 /** ID for the Regwall title element. */
 export const REGWALL_TITLE_ID = 'swg-regwall-title';
 
-/** URL parameter to append in the redirect mode for 3P Sign-in.  */
-export const REDIRECT_SOURCE_URL_PARAM = 'source';
-
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
  * The script creates a dialog based on this HTML.
@@ -1282,12 +1279,7 @@ export class GaaGoogle3pSignInButton {
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
       if (redirectMode) {
-        const parameterizedAuthUrl = new URL(authorizationUrl);
-        parameterizedAuthUrl.searchParams.append(
-          REDIRECT_SOURCE_URL_PARAM,
-          self.parent.location.href
-        );
-        self.open(parameterizedAuthUrl, '_parent');
+        self.open(authorizationUrl, '_parent');
       } else {
         self.open(authorizationUrl);
       }
