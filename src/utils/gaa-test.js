@@ -30,7 +30,6 @@ import {
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
-  REDIRECT_SOURCE_URL_PARAM,
   REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
@@ -1774,14 +1773,10 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      expect(self.open.getCalls()[0].args[0].toString()).to.contain(
-        GOOGLE_3P_AUTH_URL +
-          '?' +
-          REDIRECT_SOURCE_URL_PARAM +
-          '=' +
-          encodeURIComponent(location.origin)
+      expect(self.open).to.have.been.calledWithExactly(
+        GOOGLE_3P_AUTH_URL,
+        '_parent'
       );
-      expect(self.open.getCalls()[0].args[1]).to.equal('_parent');
     });
 
     it('sends errors to parent', async () => {
@@ -2196,6 +2191,29 @@ describes.realWin('GaaMetering', {}, () => {
         '[Subscriptions]',
         'userState or publisherEntitlementPromise needs to be provided'
       );
+    });
+
+    it('succeeds for free articles where granted is true but grantedReason is not required', () => {
+      location.hash = `#swg.debug=1`;
+
+      sandbox.stub(GaaMetering, 'isArticleFreeFromPageConfig_');
+      GaaMetering.isArticleFreeFromPageConfig_.returns(true);
+
+      expect(
+        GaaMetering.validateParameters({
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            granted: true,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+        })
+      ).to.be.true;
     });
   });
 
