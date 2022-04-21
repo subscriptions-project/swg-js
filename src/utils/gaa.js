@@ -419,6 +419,7 @@ export let GoogleUserDef;
  * showPaywall: function(): ?,
  * showcaseEntitlement: string,
  * unlockArticle: function(): ?,
+ * rawJwt: (boolean|null),
  * userState: {
  *   grantReason: string,
  *   granted: boolean,
@@ -523,10 +524,10 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ caslUrl: string, clientId: string }} params
+   * @param {{ caslUrl: string, clientId: string, rawJwt: (boolean|null) }} params
    * @return {!Promise<!GoogleIdentityV1>}
    */
-  static showWithNativeRegistrationButton({caslUrl, clientId}) {
+  static showWithNativeRegistrationButton({caslUrl, clientId, rawJwt = true}) {
     logEvent({
       showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
       isFromUserAction: false,
@@ -541,7 +542,11 @@ export class GaaMeteringRegwall {
     return GaaMeteringRegwall.createNativeRegistrationButton({clientId})
       .then((jwt) => {
         GaaMeteringRegwall.remove();
-        return jwt;
+        if (rawJwt) {
+          return jwt;
+        } else {
+          return new JwtHelper().decode(jwt.credential);
+        }
       })
       .catch((err) => {
         // Close the Regwall, since the flow failed.
@@ -1473,8 +1478,10 @@ export class GaaMetering {
       registerUserPromise,
       handleLoginPromise,
       publisherEntitlementPromise,
+      rawJwt,
     } = params;
 
+    // Set class variables
     GaaMetering.userState = userState;
     GaaMetering.publisherEntitlementPromise = publisherEntitlementPromise;
 
@@ -1539,6 +1546,7 @@ export class GaaMetering {
         GaaMeteringRegwall.showWithNativeRegistrationButton({
           caslUrl,
           clientId: googleApiClientId,
+          rawJwt,
         }).then((jwt) => {
           // Handle registration for new users
           // Save credentials object so that registerUserPromise can use it using getGaaUser.
