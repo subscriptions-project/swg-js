@@ -161,7 +161,10 @@ const ARTICLE_MICRODATA_METADATA_TRUE = `
   </div>
 </div>`;
 
-const SIGN_IN_WITH_GOOGLE_JWT = {
+const SIGN_IN_WITH_GOOGLE_JWT =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2MTgwMzM5ODg3NCwiYXVkIjoiMzE0MTU5MjY1LXBpLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMzE0MTU5MjY1MzU4OTc5MzIzOCIsImhkIjoiZ21haWwuY29tIiwiZW1haWwiOiJlbGlzYS5nLmJlY2tldHRAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF6cCI6IjMxNDE1OTI2NS1waS5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsIm5hbWUiOiJFbGlzYSBCZWNrZXR0IiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hLS9lMjcxODI4MTgyODQ1OTA0NTIzNTM2MHVsZXIiLCJnaXZlbl9uYW1lIjoiRWxpc2EiLCJmYW1pbHlfbmFtZSI6IkJlY2tldHQiLCJpYXQiOjE1OTY0NzQwMDAsImV4cCI6MTU5NjQ3NzYwMCwianRpIjoiYWJjMTYxODAzMzk4ODc0ZGVmIn0.B2WPwt9X22Ql6EOLSolL3lkNkxPm-YLgzGyutnW7FRs';
+
+const SIGN_IN_WITH_GOOGLE_DECODED_JWT = {
   credential: {
     /* eslint-disable google-camelcase/google-camelcase */
     payload: {
@@ -670,13 +673,12 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       );
     });
 
-    it('resolves with a gaaUser removes Regwall from DOM on click', async () => {
+    it('resolves with a gaaUser removes Regwall from DOM on click', () => {
       const gaaUserPromise =
         GaaMeteringRegwall.showWithNativeRegistrationButton({
           clientId: GOOGLE_API_CLIENT_ID,
         });
       clock.tick(100);
-      await tick(10);
 
       // Click button.
       self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
@@ -685,8 +687,36 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
-      expect(await gaaUserPromise).to.deep.equal(SIGN_IN_WITH_GOOGLE_JWT);
-      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+      gaaUserPromise.then((gaaUser) => {
+        expect(gaaUser).to.deep.equal(SIGN_IN_WITH_GOOGLE_JWT);
+        expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+      });
+    });
+
+    it('resolves with a decoded jwt if rawJwt is false', () => {
+      const gaaUserPromise =
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          clientId: GOOGLE_API_CLIENT_ID,
+          rawJwt: false,
+        });
+      clock.tick(100);
+
+      // Mock JWT decoding function.
+      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
+        return SIGN_IN_WITH_GOOGLE_DECODED_JWT;
+      });
+
+      // Click button.
+      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+
+      // Simulate the click resolving
+      const args = self.google.accounts.id.initialize.args;
+      args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
+
+      gaaUserPromise.then((gaaUser) => {
+        expect(gaaUser).to.deep.equal(SIGN_IN_WITH_GOOGLE_DECODED_JWT);
+        expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
+      });
     });
 
     it('renders supported i18n languages', () => {
