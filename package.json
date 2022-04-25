@@ -61,7 +61,7 @@
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-sort-requires": "2.1.0",
     "eslint-plugin-swg-internal": "file:./build-system/eslint-rules",
-    "express": "4.17.3",
+    "express": "4.18.0",
     "fancy-log": "2.0.0",
     "fs-extra": "10.1.0",
     "geckodriver": "3.0.1",
