@@ -95,7 +95,7 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
 
     const path = new URL(capturedUrl);
     expect(path.pathname).to.equal(
-      '/swg/_/api/v1/publication/pub1/audienceactivity&sut=USER_TOKEN'
+      '/swg/_/api/v1/publication/pub1/audienceactivity'
     );
   });
 
