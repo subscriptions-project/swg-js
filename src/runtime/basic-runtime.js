@@ -315,10 +315,15 @@ export class ConfiguredBasicRuntime {
     this.entitlementsManager().blockNextToast();
 
     // Enable Google metering in basic runtime by default;
-    this.entitlementsManager().enableMeteredByGoogle();
+    if (pageConfig.isLocked()) {
+      this.entitlementsManager().enableMeteredByGoogle();
+    }
 
     // Handle clicks on the Metering Toast's "Subscribe" button.
-    this.configuredClassicRuntime_.setOnNativeSubscribeRequest(() => {
+    this.setOnOffersFlowRequest_(() => {
+      // Close the current dialog to allow a new one with potentially different configurations
+      // to take over the screen.
+      this.dismissSwgUI();
       this.configuredClassicRuntime_.showOffers();
     });
 
@@ -598,6 +603,15 @@ export class ConfiguredBasicRuntime {
           }
         );
       });
+  }
+
+  /**
+   * Sets the callback when the offers flow is requested.
+   * @param {function()} callback
+   * @private
+   */
+  setOnOffersFlowRequest_(callback) {
+    this.callbacks().setOnOffersFlowRequest(callback);
   }
 }
 

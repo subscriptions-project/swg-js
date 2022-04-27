@@ -33,7 +33,7 @@ export class ActivityIframeView extends View {
    * @param {!Window} win
    * @param {!../components/activities.ActivityPorts} activityPorts
    * @param {string} src
-   * @param {!Object<string, ?>=} args
+   * @param {!Object<string, ?>=} args Additional data to be passed to the iframe.
    * @param {boolean=} shouldFadeBody
    * @param {boolean=} hasLoadingIndicator
    */

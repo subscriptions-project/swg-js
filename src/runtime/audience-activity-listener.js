@@ -19,7 +19,6 @@ import {
   AudienceActivityClientLogsRequest,
 } from '../proto/api_messages';
 import {Constants} from '../utils/constants';
-import {Storage} from './storage';
 import {serviceUrl} from './services';
 
 /** @const {!Set<!AnalyticsEvent>} */
@@ -56,8 +55,8 @@ export class AudienceActivityEventListener {
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
-    /** @private @const {!Storage} */
-    this.storage_ = new Storage(this.win_);
+    /** @private @const {!../runtime/storage.Storage} */
+    this.storage_ = this.deps_.storage();
   }
   /**
    * Start listening to client events.

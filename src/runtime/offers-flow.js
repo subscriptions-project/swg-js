@@ -263,7 +263,10 @@ export class OffersFlow {
    */
   getDialogConfig_(clientConfig) {
     return clientConfig.useUpdatedOfferFlows
-      ? {desktopConfig: {isCenterPositioned: true, supportsWideScreen: true}}
+      ? {
+          desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+          shouldDisableBodyScrolling: true,
+        }
       : {};
   }
 
@@ -278,16 +281,17 @@ export class OffersFlow {
       return feUrl('/offersiframe');
     }
 
+    const params = {'publicationId': pageConfig.getPublicationId()};
+
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
-      return feUrl('/subscriptionoffersiframe', {
-        'hl': this.clientConfigManager_.getLanguage(),
-        'publicationId': pageConfig.getPublicationId(),
-      });
+      params['hl'] = this.clientConfigManager_.getLanguage();
     }
 
-    return feUrl('/subscriptionoffersiframe', {
-      'publicationId': pageConfig.getPublicationId(),
-    });
+    if (clientConfig.uiPredicates?.purchaseUnavailableRegion) {
+      params['purchaseUnavailableRegion'] = 'true';
+    }
+
+    return feUrl('/subscriptionoffersiframe', params);
   }
 
   /**

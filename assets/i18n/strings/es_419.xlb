@@ -7,7 +7,7 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Disfruta más artículos con Google</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Normalmente, es necesario pagar para ver este contenido, pero Google te ofrece acceso gratuito a este y otros artículos si te registras en <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> con tu Cuenta de Google.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">¿Ya tienes una cuenta?</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">¿Ya te registraste? Accede</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Acceder con Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Consulta las <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>condiciones de CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> de <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
 
