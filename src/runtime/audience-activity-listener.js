@@ -86,7 +86,7 @@ export class AudienceActivityEventListener {
           const url = serviceUrl(
             '/publication/' +
               pubId +
-              '/audienceactivitylogs' +
+              '/audienceactivity' +
               '?sut=' +
               swgUserToken
           );
