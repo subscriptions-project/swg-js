@@ -87,7 +87,7 @@ export class AudienceActivityEventListener {
       const url = serviceUrl(
         '/publication/' +
           pubId +
-          '/audienceactivitylogs' +
+          '/audienceactivity' +
           '&sut=' +
           Constants.USER_TOKEN
       );
