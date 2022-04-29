@@ -30,6 +30,7 @@ const audienceActivityLoggingEvents = new Set([
   AnalyticsEvent.IMPRESSION_OFFERS,
   AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
   AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+  AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
   AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED,
   AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
