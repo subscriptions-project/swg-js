@@ -7,7 +7,7 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Veja mais com o Google</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Normalmente, é preciso pagar por este conteúdo. Porém, basta você se registrar na publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> usando sua Conta do Google para ter acesso a esta matéria e muito mais sem custos financeiros.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Já tem uma conta?</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Já se inscreveu? Fazer login</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Fazer login com o Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Confira os <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>termos da CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> da publicação <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
 

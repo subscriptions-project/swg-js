@@ -19,7 +19,6 @@ import {
   AudienceActivityClientLogsRequest,
 } from '../proto/api_messages';
 import {Constants} from '../utils/constants';
-import {Storage} from './storage';
 import {serviceUrl} from './services';
 
 /** @const {!Set<!AnalyticsEvent>} */
@@ -59,8 +58,8 @@ export class AudienceActivityEventListener {
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
-    /** @private @const {!Storage} */
-    this.storage_ = new Storage(this.win_);
+    /** @private @const {!../runtime/storage.Storage} */
+    this.storage_ = this.deps_.storage();
   }
   /**
    * Start listening to client events.
@@ -78,23 +77,25 @@ export class AudienceActivityEventListener {
    * @private
    */
   handleClientEvent_(event) {
-    if (
-      this.storage_.get(Constants.USER_TOKEN) &&
-      event.eventType &&
-      audienceActivityLoggingEvents.has(event.eventType)
-    ) {
-      const pubId = encodeURIComponent(
-        this.deps_.pageConfig().getPublicationId()
-      );
-      const audienceActivityClientLogsRequest = this.createLogRequest_(event);
-      const url = serviceUrl(
-        '/publication/' +
-          pubId +
-          '/audienceactivitylogs' +
-          '&sut=' +
-          Constants.USER_TOKEN
-      );
-      this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
+    // Checking to see if event classifies as an Audience Activity event before proceeding to promise statement.
+    if (event.eventType && audienceActivityLoggingEvents.has(event.eventType)) {
+      this.storage_.get(Constants.USER_TOKEN, true).then((swgUserToken) => {
+        if (swgUserToken) {
+          const pubId = encodeURIComponent(
+            this.deps_.pageConfig().getPublicationId()
+          );
+          const audienceActivityClientLogsRequest =
+            this.createLogRequest_(event);
+          const url = serviceUrl(
+            '/publication/' +
+              pubId +
+              '/audienceactivity' +
+              '?sut=' +
+              swgUserToken
+          );
+          this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
+        }
+      });
     }
   }
 

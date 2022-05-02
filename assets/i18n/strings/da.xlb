@@ -7,7 +7,7 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Få adgang til mere med Google</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Du skal normalt betale for at få adgang til dette indhold, men hvis du tilmelder dig <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> med din Google-konto, giver Google dig gratis adgang til artiklen og andet indhold.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Har du allerede en konto?</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Er du allerede tilmeldt? Log ind</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Log ind med Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Gennemgå <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>CASL-vilkårene<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> (Canadian Anti-Spam Legislation, canadisk lovgivning vedrørende antispam) for <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
 

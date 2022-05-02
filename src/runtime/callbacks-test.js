@@ -121,6 +121,18 @@ describes.sandboxed('Callbacks', {}, () => {
     expect(callbacks.hasSubscribeRequestCallback()).to.be.true;
   });
 
+  it('should trigger and execute offersFlowRequest', async () => {
+    const spy = sandbox.spy();
+    expect(callbacks.hasOffersFlowRequestCallback()).to.be.false;
+    callbacks.setOnOffersFlowRequest(spy);
+    expect(callbacks.hasOffersFlowRequestCallback()).to.be.true;
+    expect(callbacks.triggerOffersFlowRequest()).to.be.true;
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWithExactly(true);
+    expect(callbacks.hasOffersFlowRequestCallback()).to.be.true;
+  });
+
   describe('paymentResponse triggering', () => {
     let spy;
     let resolver;

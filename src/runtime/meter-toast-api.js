@@ -178,9 +178,12 @@ export class MeterToastApi {
           .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
         this.activityIframeView_.on(
           ViewSubscriptionsResponse,
-          this.startNativeFlow_.bind(this)
+          this.startSubscriptionFlow_.bind(this)
         );
-        if (!this.deps_.callbacks().hasSubscribeRequestCallback()) {
+        if (
+          !this.deps_.callbacks().hasSubscribeRequestCallback() &&
+          !this.deps_.callbacks().hasOffersFlowRequestCallback()
+        ) {
           const errorMessage =
             '[swg.js]: `setOnNativeSubscribeRequest` has not been set ' +
             'before starting the metering flow, so users will not be able to ' +
@@ -326,12 +329,14 @@ export class MeterToastApi {
    * @param {ViewSubscriptionsResponse} response
    * @private
    */
-  startNativeFlow_(response) {
+  startSubscriptionFlow_(response) {
+    this.removeCloseEventListener();
+    // We shouldn't decrement the meter on redirects, so don't call onConsumeCallback.
+    this.onConsumeCallbackHandled_ = true;
     if (response.getNative()) {
-      this.removeCloseEventListener();
-      // We shouldn't decrement the meter on redirects, so don't call onConsumeCallback.
-      this.onConsumeCallbackHandled_ = true;
       this.deps_.callbacks().triggerSubscribeRequest();
+    } else {
+      this.deps_.callbacks().triggerOffersFlowRequest();
     }
   }
 

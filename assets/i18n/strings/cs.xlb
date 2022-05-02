@@ -7,7 +7,7 @@
 
 <msg name="SHOWCASE_REGWALL_TITLE">Získejte s Googlem víc</msg>
 <msg name="SHOWCASE_REGWALL_DESCRIPTION"><strong></strong>Tento obsah je obvykle zpoplatněn, ale pokud se do publikace <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> zaregistrujete pomocí účtu Google, získáte od Googlu přístup zdarma.</msg>
-<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Už máte účet?</msg>
+<msg name="SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON">Jste už zaregistrováni? Přihlásit se</msg>
 <msg name="SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON">Přihlásit se přes Google</msg>
 <msg name="SHOWCASE_REGWALL_CASL">Prostudujte si <ph name="LINK_START"><ex>&lt;a&gt;</ex></ph>podmínky CASL<ph name="LINK_END"><ex>&lt;/a&gt;</ex></ph> publikace <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph></msg>
 
