@@ -40,7 +40,7 @@
     "@storybook/addon-links": "6.4.22",
     "@storybook/html": "6.4.22",
     "ansi-colors": "4.1.1",
-    "autoprefixer": "10.4.5",
+    "autoprefixer": "10.4.6",
     "babel-loader": "8.2.5",
     "babel-plugin-istanbul": "6.1.1",
     "babelify": "10.0.0",
