@@ -1013,12 +1013,11 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
 
     it('should dismiss the active dialog and call showOffers when offers flow request is triggered', async () => {
       let offersOptions = null;
-      const showOffersStub = sandbox.stub(
-        configuredBasicRuntime.configuredClassicRuntime(),
-        'showOffers'
-      ).callsFake((options) => {
-        offersOptions = options;
-      });
+      const showOffersStub = sandbox
+        .stub(configuredBasicRuntime.configuredClassicRuntime(), 'showOffers')
+        .callsFake((options) => {
+          offersOptions = options;
+        });
       const completeAllStub = sandbox.stub(
         configuredBasicRuntime.dialogManager(),
         'completeAll'
