@@ -649,7 +649,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         });
 
       // Mock JWT decoding function.
-      sandbox.stub(JwtHelper.prototype, 'decode').returns(SIGN_IN_WITH_GOOGLE_DECODED_JWT);
+      sandbox
+        .stub(JwtHelper.prototype, 'decode')
+        .returns(SIGN_IN_WITH_GOOGLE_DECODED_JWT);
 
       // Click button.
       self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
@@ -659,7 +661,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
       await tick();
-      
+
       expect(await gaaUserPromise).to.equal(SIGN_IN_WITH_GOOGLE_DECODED_JWT);
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
@@ -3426,7 +3428,6 @@ describes.realWin('GaaMetering', {}, () => {
         'registerUserPromise resolved'
       );
       expect(validateUserStateSpy).to.be.calledWithExactly(returnedUserState);
-
     });
 
     it('shows GoogleRegwall with 3P button when authorizationUrl is supplied', async () => {
@@ -3759,5 +3760,5 @@ describes.realWin('GaaMetering', {}, () => {
       await tick();
       expect(onReadyPromise).to.be.fulfilled;
     });
-  })
+  });
 });
