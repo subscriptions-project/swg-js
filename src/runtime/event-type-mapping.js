@@ -171,6 +171,30 @@ export const AnalyticsEventToGoogleAnalyticsEvent = {
       '',
       true
     ),
+  [AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN]: createGoogleAnalyticsEvent(
+    'NTG newsletter',
+    'newsletter modal impression',
+    '',
+    true
+  ),
+  [AnalyticsEvent.EVENT_NEWSLETTER_OPTED_IN]: createGoogleAnalyticsEvent(
+    'NTG newsletter',
+    'newsletter signup',
+    'success',
+    false
+  ),
+  [AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN]: createGoogleAnalyticsEvent(
+    'NTG account',
+    'registration modal impression',
+    '',
+    true
+  ),
+  [AnalyticsEvent.EVENT_REGWALL_OPTED_IN]: createGoogleAnalyticsEvent(
+    'NTG account',
+    'registration',
+    'success',
+    false
+  ),
 };
 
 /** @const {!Object<?AnalyticsEvent,?Object>} */
