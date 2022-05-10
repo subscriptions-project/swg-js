@@ -22,6 +22,7 @@ import {
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
@@ -42,6 +43,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let messageCallback;
   let messageMap;
   let onCancelSpy;
+  let dialogManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -51,6 +53,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -344,5 +347,47 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.showNoEntitlementFoundToast();
 
     activityIframeViewMock.verify();
+  });
+
+  it('opens dialog without dialog config when useUpdatedOfferFlows=false', async () => {
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: false,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
+      .once();
+    await audienceActionFlow.start();
+  });
+
+  it('opens dialog with scrolling disabled when useUpdatedOfferFlows=true', async () => {
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({shouldDisableBodyScrolling: true})
+      )
+      .once();
+    await audienceActionFlow.start();
   });
 });

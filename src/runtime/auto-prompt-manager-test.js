@@ -1085,7 +1085,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       clientConfigManagerMock
         .expects('getClientConfig')
         .returns(Promise.resolve(clientConfig))
-        .once();
+        .atLeast(1);
       articleExpectation = entitlementsManagerMock.expects('getArticle');
       articleExpectation
         .resolves({
@@ -1179,7 +1179,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       clientConfigManagerMock
         .expects('getClientConfig')
         .returns(Promise.resolve(clientConfig))
-        .once();
+        .atLeast(1);
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       const entitlements = new Entitlements();
       sandbox.stub(entitlements, 'enablesThis').returns(false);
