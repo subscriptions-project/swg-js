@@ -27,7 +27,12 @@ import {
   ShowcaseEvent,
   Subscriptions as SubscriptionsDef,
 } from '../api/subscriptions';
-import {addQueryParam, parseQueryString} from './url';
+import {
+  addQueryParam,
+  parseQueryString,
+  parseUrl,
+  wasReferredByGoogle,
+} from './url';
 import {debugLog, warn} from './log';
 import {findInArray} from './object';
 import {getLanguageCodeFromElement, msg} from './i18n';
@@ -411,6 +416,7 @@ export let GoogleUserDef;
  * @typedef {{
  * allowedReferrers: (Array<string>|null),
  * googleApiClientId: string,
+ * authorizationUrl: string,
  * handleLoginPromise: (Promise|null),
  * caslUrl: string,
  * handleSwGEntitlement: function(): ?,
@@ -524,10 +530,14 @@ export class GaaMeteringRegwall {
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
-   * @param {{ caslUrl: string, clientId: string, rawJwt: (boolean|null) }} params
+   * @param {{ caslUrl: string, googleApiClientId: string, rawJwt: (boolean|null) }} params
    * @return {!Promise<!GoogleIdentityV1>}
    */
-  static showWithNativeRegistrationButton({caslUrl, clientId, rawJwt = true}) {
+  static showWithNativeRegistrationButton({
+    caslUrl,
+    googleApiClientId,
+    rawJwt = true,
+  }) {
     logEvent({
       showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
       isFromUserAction: false,
@@ -539,7 +549,9 @@ export class GaaMeteringRegwall {
       useNativeMode: true,
     });
 
-    return GaaMeteringRegwall.createNativeRegistrationButton({clientId})
+    return GaaMeteringRegwall.createNativeRegistrationButton({
+      googleApiClientId,
+    })
       .then((jwt) => {
         GaaMeteringRegwall.remove();
         if (rawJwt) {
@@ -555,6 +567,30 @@ export class GaaMeteringRegwall {
         // Rethrow error.
         debugLog(`Regwall failed: ${err}`);
       });
+  }
+
+  /**
+   * This method opens a metering regwall dialog,
+   * where users can sign in with Google.
+   *
+   * @nocollapse
+   * @param {{ caslUrl: string, authorizationUrl: string }} params
+   * @return {boolean}
+   */
+  static showWithNative3PRegistrationButton({caslUrl, authorizationUrl}) {
+    logEvent({
+      showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
+      isFromUserAction: false,
+    });
+
+    GaaMeteringRegwall.render_({
+      iframeUrl: '',
+      caslUrl,
+      useNativeMode: true,
+    });
+    return GaaMeteringRegwall.createNative3PRegistrationButton({
+      authorizationUrl,
+    });
   }
 
   /**
@@ -861,7 +897,7 @@ export class GaaMeteringRegwall {
     };
   }
 
-  static createNativeRegistrationButton({clientId}) {
+  static createNativeRegistrationButton({googleApiClientId}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const parentElement = self.document.getElementById(
       REGISTRATION_BUTTON_CONTAINER_ID
@@ -894,7 +930,7 @@ export class GaaMeteringRegwall {
     return new Promise((resolve) => {
       self.google.accounts.id.initialize({
         /* eslint-disable google-camelcase/google-camelcase */
-        client_id: clientId,
+        client_id: googleApiClientId,
         callback: resolve,
         /* eslint-enable google-camelcase/google-camelcase */
       });
@@ -905,6 +941,42 @@ export class GaaMeteringRegwall {
         'logo_alignment': 'center',
       });
     });
+  }
+
+  static createNative3PRegistrationButton({authorizationUrl}) {
+    const languageCode = getLanguageCodeFromElement(self.document.body);
+    const parentElement = self.document.getElementById(
+      REGISTRATION_BUTTON_CONTAINER_ID
+    );
+    // Apply iframe styles.
+    const styleEl = self.document.createElement('style');
+    styleEl./*OK*/ innerText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+    );
+    self.document.head.appendChild(styleEl);
+
+    if (!parentElement) {
+      return false;
+    }
+    // Render the third party Google Sign-In button.
+    const buttonEl = self.document.createElement('div');
+    buttonEl.id = GOOGLE_3P_SIGN_IN_BUTTON_ID;
+    buttonEl.tabIndex = 0;
+    buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
+    parentElement.appendChild(buttonEl);
+
+    buttonEl.addEventListener('click', () => {
+      // Track button clicks.
+      logEvent({
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+        isFromUserAction: true,
+      });
+      // Redirect user using the parent window.
+      self.open(authorizationUrl, '_parent');
+    });
+
+    return buttonEl;
   }
 }
 
@@ -1468,6 +1540,7 @@ export class GaaMetering {
     const productId = GaaMetering.getProductIDFromPageConfig_();
     const {
       googleApiClientId,
+      authorizationUrl,
       allowedReferrers,
       showcaseEntitlement,
       caslUrl,
@@ -1542,24 +1615,31 @@ export class GaaMetering {
     function showGoogleRegwall() {
       debugLog('show Google Regwall');
       // Don't render the regwall until the window has loaded.
-      self.addEventListener('load', () => {
-        GaaMeteringRegwall.showWithNativeRegistrationButton({
-          caslUrl,
-          clientId: googleApiClientId,
-          rawJwt,
-        }).then((jwt) => {
-          // Handle registration for new users
-          // Save credentials object so that registerUserPromise can use it using getGaaUser.
-          GaaMetering.setGaaUser(jwt);
-          registerUserPromise.then((registerUserUserState) => {
-            debugLog('registerUserPromise resolved');
-            if (GaaMetering.validateUserState(registerUserUserState)) {
-              GaaMetering.userState = registerUserUserState;
+      GaaMetering.getOnReadyPromise().then(() => {
+        if (googleApiClientId) {
+          GaaMeteringRegwall.showWithNativeRegistrationButton({
+            caslUrl,
+            googleApiClientId,
+            rawJwt,
+          }).then((jwt) => {
+            // Handle registration for new users
+            // Save credentials object so that registerUserPromise can use it using getGaaUser.
+            GaaMetering.setGaaUser(jwt);
+            registerUserPromise.then((registerUserUserState) => {
+              debugLog('registerUserPromise resolved');
+              if (GaaMetering.validateUserState(registerUserUserState)) {
+                GaaMetering.userState = registerUserUserState;
 
-              unlockArticleIfGranted();
-            }
+                unlockArticleIfGranted();
+              }
+            });
           });
-        });
+        } else {
+          GaaMeteringRegwall.showWithNative3PRegistrationButton({
+            caslUrl,
+            authorizationUrl,
+          });
+        }
       });
     }
 
@@ -1686,22 +1766,38 @@ export class GaaMetering {
    * @param {InitParams} params
    */
   static validateParameters(params) {
+    let noIssues = true;
     if (
-      !('googleApiClientId' in params) ||
+      ('googleApiClientId' in params && 'authorizationUrl' in params) ||
+      (!('googleApiClientId' in params) && !('authorizationUrl' in params))
+    ) {
+      debugLog(
+        'Either googleApiClientId or authorizationUrl should be supplied but not both.'
+      );
+      noIssues = false;
+    } else if ('authorizationUrl' in params) {
+      if (
+        !(typeof params.authorizationUrl === 'string') ||
+        parseUrl(params.authorizationUrl).href !== params.authorizationUrl
+      ) {
+        debugLog('authorizationUrl is not a valid URL');
+        noIssues = false;
+      }
+    } else if (
       !(typeof params.googleApiClientId === 'string') ||
       params.googleApiClientId.indexOf('.apps.googleusercontent.com') == -1
     ) {
       debugLog(
         'Missing googleApiClientId, or it is not a string, or it is not in a correct format'
       );
-      return false;
+      noIssues = false;
     }
 
     if (
       !('allowedReferrers' in params && Array.isArray(params.allowedReferrers))
     ) {
       debugLog('Missing allowedReferrers or it is not an array');
-      return false;
+      noIssues = false;
     }
 
     const reqFunc = ['unlockArticle', 'showPaywall'];
@@ -1714,7 +1810,7 @@ export class GaaMetering {
         )
       ) {
         debugLog(`Missing ${reqFunc[reqFuncNo]} or it is not a function`);
-        return false;
+        noIssues = false;
       }
     }
 
@@ -1723,7 +1819,7 @@ export class GaaMetering {
       typeof params.handleSwGEntitlement != 'function'
     ) {
       debugLog('handleSwGEntitlement is provided but it is not a function');
-      return false;
+      noIssues = false;
     }
 
     const reqPromise = ['handleLoginPromise', 'registerUserPromise'];
@@ -1740,19 +1836,18 @@ export class GaaMetering {
         )
       ) {
         debugLog(`Missing ${reqPromise[reqPromiseNo]} or it is not a promise`);
-        return false;
+        noIssues = false;
       }
     }
 
     if (
-      !(
-        'publisherEntitlementPromise' in params &&
-        GaaMetering.isPromise(params.publisherEntitlementPromise)
-      )
+      'publisherEntitlementPromise' in params &&
+      !GaaMetering.isPromise(params.publisherEntitlementPromise)
     ) {
       debugLog(
         'publisherEntitlementPromise is provided but it is not a promise'
       );
+      noIssues = false;
     }
 
     // Check userState is an 'object'
@@ -1761,29 +1856,27 @@ export class GaaMetering {
       !('publisherEntitlementPromise' in params)
     ) {
       debugLog(`userState or publisherEntitlementPromise needs to be provided`);
-      return false;
-    }
-
-    if ('userState' in params && typeof params.userState != 'object') {
+      noIssues = false;
+    } else if ('userState' in params && typeof params.userState != 'object') {
       debugLog(`userState is not an object`);
-      return false;
+      noIssues = false;
+    } else {
+      const userState = params.userState;
+      if (
+        (!('granted' in userState) ||
+          (userState.granted &&
+            !GaaMetering.isArticleFreeFromPageConfig_() &&
+            !('grantReason' in userState))) &&
+        !('publisherEntitlementPromise' in params)
+      ) {
+        debugLog(
+          'Either granted and grantReason have to be supplied or you have to provide pubisherEntitlementPromise'
+        );
+        noIssues = false;
+      }
     }
 
-    const userState = params.userState;
-    if (
-      (!('granted' in userState) ||
-        (userState.granted &&
-          !GaaMetering.isArticleFreeFromPageConfig_() &&
-          !('grantReason' in userState))) &&
-      !('publisherEntitlementPromise' in params)
-    ) {
-      debugLog(
-        'Either granted and grantReason have to be supplied or you have to provide pubisherEntitlementPromise'
-      );
-      return false;
-    }
-
-    return true;
+    return noIssues;
   }
 
   static isGaa(publisherReferrers = []) {
@@ -1794,12 +1887,9 @@ export class GaaMetering {
     }
 
     // Validate referrer.
-    // NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
-    const GOOGLE_DOMAIN_RE =
-      /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
-    const referrer = GaaMetering.getAnchorFromUrl(self.document.referrer);
+    const referrer = parseUrl(self.document.referrer);
     if (
-      !GOOGLE_DOMAIN_RE.test(referrer.hostname) &&
+      !wasReferredByGoogle(referrer) &&
       publisherReferrers.indexOf(referrer.hostname) == -1
     ) {
       // Real publications should bail if this referrer check fails.
@@ -1812,12 +1902,6 @@ export class GaaMetering {
     }
 
     return true;
-  }
-
-  static getAnchorFromUrl(url) {
-    const a = self.document.createElement('a');
-    a.href = url;
-    return a;
   }
 
   static getProductIDFromPageConfig_() {
@@ -2082,5 +2166,13 @@ export class GaaMetering {
     }
 
     return true;
+  }
+
+  static getOnReadyPromise() {
+    return new Promise((resolve) => {
+      self.window.addEventListener('load', () => {
+        resolve();
+      });
+    });
   }
 }

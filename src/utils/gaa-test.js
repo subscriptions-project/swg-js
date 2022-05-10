@@ -44,6 +44,7 @@ const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
 const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
+const CASL_URL = 'https://example-casl.com';
 const GOOGLE_API_CLIENT_ID =
   '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
 
@@ -247,6 +248,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   let script;
   let signOutFake;
   let subscriptionsMock;
+  let renderSpy;
 
   beforeEach(() => {
     // Mock clock.
@@ -298,6 +300,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
     );
 
+    // Mock window opener
+    sandbox.stub(self, 'open');
+
     // Mock console.warn & log methods.
     sandbox.stub(self.console, 'warn');
     sandbox.stub(self.console, 'log');
@@ -347,9 +352,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     }
   }
 
-  describe('show', () => {
+  describe('render_', () => {
     it('shows regwall with publisher name', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
 
       const descriptionEl = self.document.querySelector(
         '.gaa-metering-regwall--description'
@@ -358,25 +363,24 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('does not render CASL blurb by default', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
       expect(caslEl).to.be.null;
     });
 
     it('optionally renders CASL blurb', () => {
-      const caslUrl = 'https://example.com';
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL, caslUrl});
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL, caslUrl: CASL_URL});
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
       expect(caslEl.textContent).contains("Review The Scenic's CASL terms");
 
       const caslLinkEl = caslEl.querySelector('a');
-      expect(caslLinkEl.href).contains(caslUrl);
+      expect(caslLinkEl.href).contains(CASL_URL);
     });
 
     it('focuses on modal title after the animation completes', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
 
       // Mock animation ending.
       const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
@@ -386,9 +390,71 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expect(self.document.activeElement).to.equal(titleEl);
     });
 
+    it('parses publisher name from microdata', () => {
+      // Remove JSON-LD.
+      script.text = '{}';
+
+      // Add Microdata.
+      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
+
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+
+      const descriptionEl = self.document.querySelector(
+        '.gaa-metering-regwall--description'
+      );
+      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+    });
+
+    it('throws if article metadata lacks a publisher name', () => {
+      // Remove JSON-LD.
+      script.text = '{}';
+
+      const showingRegwall = () =>
+        GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+
+      expect(showingRegwall).throws(
+        'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
+      );
+    });
+
+    it('renders supported i18n languages', () => {
+      self.document.documentElement.lang = 'pt-br';
+
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+
+      const titleEl = self.document.querySelector(
+        '.gaa-metering-regwall--title'
+      );
+      expect(titleEl.textContent).to.equal(
+        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['pt-br']
+      );
+    });
+
+    it('renders "en" for non-supported i18n languages', () => {
+      self.document.documentElement.lang = 'non-supported';
+
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+
+      const titleEl = self.document.querySelector(
+        '.gaa-metering-regwall--title'
+      );
+      expect(titleEl.textContent).to.equal(
+        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['en']
+      );
+    });
+
+    it('adds "lang" URL param to iframe URL', () => {
+      self.document.documentElement.lang = 'pt-br';
+
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+
+      const iframeEl = self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID);
+      expect(iframeEl.src).to.contain('?lang=pt-br');
+    });
+
     it('handles clicks on publisher sign in link', async () => {
       // Show Regwall.
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
       await tick();
       logEvent.resetHistory();
 
@@ -411,32 +477,28 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         },
       ]);
     });
+  });
 
-    it('parses publisher name from microdata', () => {
-      // Remove JSON-LD.
-      script.text = '{}';
-
-      // Add Microdata.
-      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      const descriptionEl = self.document.querySelector(
-        '.gaa-metering-regwall--description'
-      );
-      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+  describe('show', () => {
+    beforeEach(() => {
+      renderSpy = sandbox.spy(GaaMeteringRegwall, 'render_');
     });
 
-    it('throws if article metadata lacks a publisher name', () => {
-      // Remove JSON-LD.
-      script.text = '{}';
+    it('passes iframeUrl to GaaMeteringRegwall.render_', () => {
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      expect(renderSpy).to.have.been.calledWithExactly({
+        iframeUrl: IFRAME_URL,
+        caslUrl: undefined,
+      });
+    });
 
-      const showingRegwall = () =>
-        GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+    it('optionally passes caslUrl to GaaMeteringRegwall.render_', () => {
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL, caslUrl: CASL_URL});
 
-      expect(showingRegwall).throws(
-        'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
-      );
+      expect(renderSpy).to.have.been.calledWithExactly({
+        iframeUrl: IFRAME_URL,
+        caslUrl: CASL_URL,
+      });
     });
 
     it('returns GAA User', async () => {
@@ -462,41 +524,6 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       await GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
 
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
-    });
-
-    it('renders supported i18n languages', () => {
-      self.document.documentElement.lang = 'pt-br';
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      const titleEl = self.document.querySelector(
-        '.gaa-metering-regwall--title'
-      );
-      expect(titleEl.textContent).to.equal(
-        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['pt-br']
-      );
-    });
-
-    it('renders "en" for non-supported i18n languages', () => {
-      self.document.documentElement.lang = 'non-supported';
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      const titleEl = self.document.querySelector(
-        '.gaa-metering-regwall--title'
-      );
-      expect(titleEl.textContent).to.equal(
-        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['en']
-      );
-    });
-
-    it('adds "lang" URL param to iframe URL', () => {
-      self.document.documentElement.lang = 'pt-br';
-
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
-
-      const iframeEl = self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID);
-      expect(iframeEl.src).to.contain('?lang=pt-br');
     });
 
     it('fails if GAA URL params are missing', () => {
@@ -567,116 +594,37 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 
   describe('showWithNativeRegistrationButton', () => {
-    it('shows regwall with publisher name', () => {
-      GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
-      });
-
-      const descriptionEl = self.document.querySelector(
-        '.gaa-metering-regwall--description'
-      );
-      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
+    beforeEach(() => {
+      renderSpy = sandbox.spy(GaaMeteringRegwall, 'render_');
     });
 
-    it('does not render CASL blurb by default', () => {
+    it('calls GaaMeteringRegwall.render_ with useNativeMode: true', () => {
       GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
       });
-
-      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
-      expect(caslEl).to.be.null;
+      expect(renderSpy).to.have.been.calledWithExactly({
+        iframeUrl: '',
+        caslUrl: undefined,
+        useNativeMode: true,
+      });
     });
 
-    it('optionally renders CASL blurb', () => {
-      const caslUrl = 'https://example.com';
+    it('optionally passes caslUrl to GaaMeteringRegwall.render_', () => {
       GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
-        caslUrl,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        caslUrl: CASL_URL,
       });
-
-      const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
-      expect(caslEl.textContent).contains("Review The Scenic's CASL terms");
-
-      const caslLinkEl = caslEl.querySelector('a');
-      expect(caslLinkEl.href).contains(caslUrl);
-    });
-
-    it('focuses on modal title after the animation completes', () => {
-      GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
+      expect(renderSpy).to.have.been.calledWithExactly({
+        iframeUrl: '',
+        caslUrl: CASL_URL,
+        useNativeMode: true,
       });
-
-      // Mock animation ending.
-      const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
-      dialogEl.dispatchEvent(new Event('animationend'));
-
-      const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
-      expect(self.document.activeElement).to.equal(titleEl);
-    });
-
-    it('handles clicks on publisher sign in link', async () => {
-      // Show Regwall.
-      GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
-      });
-      await tick();
-      logEvent.resetHistory();
-
-      // Click publisher link to trigger a login request.
-      const publisherSignInButtonEl = self.document.querySelector(
-        '#swg-publisher-sign-in-button'
-      );
-      publisherSignInButtonEl.click();
-      expect(subscriptionsMock.triggerLoginRequest).to.be.calledWithExactly({
-        linkRequested: false,
-      });
-      await tick();
-
-      // Verify analytics event.
-      expectAnalyticsEvents([
-        {
-          analyticsEvent:
-            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_EXISTING_ACCOUNT_CLICK,
-          isFromUserAction: true,
-        },
-      ]);
-    });
-
-    it('parses publisher name from microdata', () => {
-      // Remove JSON-LD.
-      script.text = '{}';
-
-      // Add Microdata.
-      microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
-
-      GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
-      });
-
-      const descriptionEl = self.document.querySelector(
-        '.gaa-metering-regwall--description'
-      );
-      expect(descriptionEl.textContent).contains(PUBLISHER_NAME);
-    });
-
-    it('throws if article metadata lacks a publisher name', () => {
-      // Remove JSON-LD.
-      script.text = '{}';
-
-      const showingRegwall = () =>
-        GaaMeteringRegwall.showWithNativeRegistrationButton({
-          clientId: GOOGLE_API_CLIENT_ID,
-        });
-
-      expect(showingRegwall).throws(
-        'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
-      );
     });
 
     it('resolves with a gaaUser removes Regwall from DOM on click', () => {
       const gaaUserPromise =
         GaaMeteringRegwall.showWithNativeRegistrationButton({
-          clientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
         });
       clock.tick(100);
 
@@ -696,7 +644,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('resolves with a decoded jwt if rawJwt is false', () => {
       const gaaUserPromise =
         GaaMeteringRegwall.showWithNativeRegistrationButton({
-          clientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
           rawJwt: false,
         });
       clock.tick(100);
@@ -719,36 +667,6 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
     });
 
-    it('renders supported i18n languages', () => {
-      self.document.documentElement.lang = 'pt-br';
-
-      GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
-      });
-
-      const titleEl = self.document.querySelector(
-        '.gaa-metering-regwall--title'
-      );
-      expect(titleEl.textContent).to.equal(
-        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['pt-br']
-      );
-    });
-
-    it('renders "en" for non-supported i18n languages', () => {
-      self.document.documentElement.lang = 'non-supported';
-
-      GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
-      });
-
-      const titleEl = self.document.querySelector(
-        '.gaa-metering-regwall--title'
-      );
-      expect(titleEl.textContent).to.equal(
-        I18N_STRINGS.SHOWCASE_REGWALL_TITLE['en']
-      );
-    });
-
     it('handles Sign In with Google errors', async () => {
       self.google.accounts.id.initialize = sandbox.fake.throws(
         'Function not loaded'
@@ -756,7 +674,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       const gaaUserPromise =
         GaaMeteringRegwall.showWithNativeRegistrationButton({
-          clientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
         });
       clock.tick(100);
       await tick(10);
@@ -775,7 +693,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       const gaaUserPromise =
         GaaMeteringRegwall.showWithNativeRegistrationButton({
-          clientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
         });
       clock.tick(100);
       await tick(10);
@@ -791,7 +709,76 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('logs Showcase impression events', async () => {
       GaaMeteringRegwall.showWithNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+      });
+      await tick();
+
+      // Verify analytics events.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.IMPRESSION_REGWALL,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL,
+          isFromUserAction: false,
+        },
+      ]);
+    });
+  });
+
+  describe('showWithNative3PRegistrationButton', () => {
+    let createNative3PRegistrationButtonSpy;
+    beforeEach(() => {
+      renderSpy = sandbox.spy(GaaMeteringRegwall, 'render_');
+      createNative3PRegistrationButtonSpy = sandbox.spy(
+        GaaMeteringRegwall,
+        'createNative3PRegistrationButton'
+      );
+    });
+
+    it('creates a 3P button when authorizationUrl is provided', () => {
+      GaaMeteringRegwall.showWithNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+
+      expect(
+        createNative3PRegistrationButtonSpy
+      ).to.have.been.calledWithExactly({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+    });
+
+    it('calls GaaMeteringRegwall.render_ with useNativeMode: true', () => {
+      GaaMeteringRegwall.showWithNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+      expect(renderSpy).to.have.been.calledWithExactly({
+        iframeUrl: '',
+        caslUrl: undefined,
+        useNativeMode: true,
+      });
+    });
+
+    it('optionally passes caslUrl to GaaMeteringRegwall.render_', () => {
+      GaaMeteringRegwall.showWithNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        caslUrl: CASL_URL,
+      });
+      expect(renderSpy).to.have.been.calledWithExactly({
+        iframeUrl: '',
+        caslUrl: CASL_URL,
+        useNativeMode: true,
+      });
+    });
+
+    it('logs Showcase impression events', async () => {
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
       });
       await tick();
 
@@ -817,7 +804,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('fails if regwall is not present', async () => {
       expect(
         GaaMeteringRegwall.createNativeRegistrationButton({
-          clientId: GOOGLE_API_CLIENT_ID,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
         })
       ).to.be.false;
     });
@@ -828,7 +815,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       await tick(10);
 
       GaaMeteringRegwall.createNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
       });
       clock.tick(100);
       await tick(10);
@@ -868,7 +855,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       await tick(10);
 
       GaaMeteringRegwall.createNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
       });
       clock.tick(100);
       await tick(10);
@@ -887,7 +874,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       await tick(10);
 
       GaaMeteringRegwall.createNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
       });
       clock.tick(100);
       await tick(10);
@@ -905,7 +892,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       // Show button.
       const gaaUserPromise = GaaMeteringRegwall.createNativeRegistrationButton({
-        clientId: GOOGLE_API_CLIENT_ID,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
       });
       clock.tick(100);
       await tick(10);
@@ -918,6 +905,87 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
       // Send JWT.
       expect(await gaaUserPromise).to.deep.equal(SIGN_IN_WITH_GOOGLE_JWT);
+    });
+  });
+
+  describe('createNative3PRegistrationButton', () => {
+    it('fails if regwall is not present', async () => {
+      expect(
+        GaaMeteringRegwall.createNative3PRegistrationButton({
+          authorizationUrl: GOOGLE_3P_AUTH_URL,
+        })
+      ).to.be.false;
+    });
+
+    it('renders third party Google Sign-In button', async () => {
+      GaaMeteringRegwall.render_({useNativeMode: true});
+      clock.tick(100);
+      await tick(10);
+
+      GaaMeteringRegwall.createNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+
+      const buttonDiv = self.document.querySelector(
+        '#' + GOOGLE_3P_SIGN_IN_BUTTON_ID
+      );
+      assert(buttonDiv);
+      expect(buttonDiv.tabIndex).to.equal(0);
+    });
+
+    it('renders supported i18n languages', async () => {
+      self.document.documentElement.lang = 'pt-br';
+
+      GaaMeteringRegwall.render_({useNativeMode: true});
+      clock.tick(100);
+      await tick(10);
+
+      GaaMeteringRegwall.createNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['pt-br']
+      );
+    });
+
+    it('renders English by default, if "lang" URL param is missing', async () => {
+      self.document.documentElement.lang = 'non-supported';
+
+      GaaMeteringRegwall.render_({useNativeMode: true});
+      clock.tick(100);
+      await tick(10);
+
+      GaaMeteringRegwall.createNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+
+      const styleEl = self.document.querySelector('style');
+      expect(styleEl.textContent).to.contain(
+        I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON['en']
+      );
+    });
+
+    it('should open an authorizationUrl in the same window on click', async () => {
+      // Show button.
+      GaaMeteringRegwall.render_({useNativeMode: true});
+      clock.tick(100);
+      await tick(10);
+
+      GaaMeteringRegwall.createNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+      clock.tick(100);
+      await tick(10);
+
+      expect(self.open).to.have.been.calledWithExactly(
+        GOOGLE_3P_AUTH_URL,
+        '_parent'
+      );
     });
   });
 
@@ -1970,7 +2038,10 @@ describes.realWin('GaaMetering', {}, () => {
     script.remove();
     microdata.remove();
     GaaUtils.getQueryString.restore();
-
+    GaaMeteringRegwall.remove();
+    self.document.head.querySelectorAll('style').forEach((e) => {
+      e.remove();
+    });
     // Remove the injected style from GaaGoogleSignInButton.show.
     self.document.head.querySelectorAll('style').forEach((e) => {
       e.remove();
@@ -1993,8 +2064,11 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('validateParameters', () => {
-    it('succeeds for valid params', () => {
+    beforeEach(() => {
       location.hash = `#swg.debug=1`;
+    });
+
+    it('succeeds for valid params', () => {
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -2016,8 +2090,29 @@ describes.realWin('GaaMetering', {}, () => {
       ).to.be.true;
     });
 
+    it('succeeds for valid params with authorizationUrl', () => {
+      expect(
+        GaaMetering.validateParameters({
+          authorizationUrl: GOOGLE_3P_AUTH_URL,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.true;
+    });
+
     it('fails for invalid googleApiClientId', () => {
-      location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4',
@@ -2044,8 +2139,88 @@ describes.realWin('GaaMetering', {}, () => {
       );
     });
 
+    it('fails for invalid authorizationUrl', () => {
+      expect(
+        GaaMetering.validateParameters({
+          authorizationUrl: 'login.html',
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'authorizationUrl is not a valid URL'
+      );
+    });
+
+    it('fails if googleApiClientId and authorizationUrl are provided', () => {
+      expect(
+        GaaMetering.validateParameters({
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          authorizationUrl: GOOGLE_3P_AUTH_URL,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Either googleApiClientId or authorizationUrl should be supplied but not both.'
+      );
+    });
+
+    it('fails if neither googleApiClientId and authorizationUrl are provided', () => {
+      expect(
+        GaaMetering.validateParameters({
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'Either googleApiClientId or authorizationUrl should be supplied but not both.'
+      );
+    });
+
     it('fails for invalid allowedReferrers', () => {
-      location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -2072,7 +2247,6 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('fails for missing required function unlockArticle', () => {
-      location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -2099,7 +2273,6 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('fails for handleSwgEntitlement not a function', () => {
-      location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -2127,7 +2300,6 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('fails for missing required promise registerUserPromise', () => {
-      location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -2154,7 +2326,6 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('fails for invalid userState', () => {
-      location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -2176,8 +2347,7 @@ describes.realWin('GaaMetering', {}, () => {
       );
     });
 
-    it('fails for missing publisherEntitlements or publisherEntitlementsPromise', () => {
-      location.hash = `#swg.debug=1`;
+    it('fails for missing userState or publisherEntitlementsPromise', () => {
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -2203,7 +2373,6 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('fails for missing userState or publisherEntitlementsPromise', () => {
-      location.hash = `#swg.debug=1`;
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -2223,9 +2392,34 @@ describes.realWin('GaaMetering', {}, () => {
       );
     });
 
-    it('succeeds for free articles where granted is true but grantedReason is not required', () => {
-      location.hash = `#swg.debug=1`;
+    it('fails for an invalid publisherEntitlementsPromise', () => {
+      expect(
+        GaaMetering.validateParameters({
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: function () {},
+          showPaywall: function () {},
+          handleLogin: function () {},
+          handleSwGEntitlement: function () {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: function () {},
+        })
+      ).to.be.false;
 
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'publisherEntitlementPromise is provided but it is not a promise'
+      );
+    });
+
+    it('succeeds for free articles where granted is true but grantedReason is not required', () => {
       sandbox.stub(GaaMetering, 'isArticleFreeFromPageConfig_');
       GaaMetering.isArticleFreeFromPageConfig_.returns(true);
 
@@ -2244,36 +2438,6 @@ describes.realWin('GaaMetering', {}, () => {
           handleLoginPromise: new Promise(() => {}),
         })
       ).to.be.true;
-    });
-  });
-
-  describe('getAnchorFromUrl', () => {
-    it('returns the expected anchor from url', () => {
-      const url = 'https://www.google.com/1234/5678/article.html';
-      const anchor = GaaMetering.getAnchorFromUrl(url);
-      expect(anchor.protocol).to.equal('https:');
-      expect(anchor.hostname).to.equal('www.google.com');
-    });
-
-    it('succeeds for an empty url', () => {
-      const url = '';
-      const anchor = GaaMetering.getAnchorFromUrl(url);
-      expect(anchor.protocol).to.not.equal('https:');
-      expect(anchor.hostname).to.not.equal('www.google.com');
-    });
-
-    it('succeeds for any string', () => {
-      const url = 'abc12345';
-      const anchor = GaaMetering.getAnchorFromUrl(url);
-      expect(anchor.protocol).to.not.equal('https:');
-      expect(anchor.hostname).to.not.equal('www.google.com');
-    });
-
-    it('succeeds if it is not a string', () => {
-      const url = 12345;
-      const anchor = GaaMetering.getAnchorFromUrl(url);
-      expect(anchor.protocol).to.not.equal('https:');
-      expect(anchor.hostname).to.not.equal('www.google.com');
     });
   });
 
@@ -3049,13 +3213,22 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('checkShowcaseEntitlement', () => {
-    it('checkShowcaseEntitlement for registered users', async () => {
+    beforeEach(() => {
+      sandbox
+        .stub(GaaMetering, 'getOnReadyPromise')
+        .returns(new Promise((resolve) => resolve()));
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
       location.hash = `#swg.debug=1`;
+    });
 
+    afterEach(() => {
+      GaaMetering.getOnReadyPromise.reset();
+    });
+
+    it('checkShowcaseEntitlement for registered users', async () => {
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
         allowedReferrers: ['example.com', 'test.com', 'localhost'],
@@ -3090,10 +3263,10 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('shows GoogleRegwall', async () => {
-      GaaUtils.getQueryString.returns(
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      const showWithNativeRegistrationButtonSpy = sandbox.spy(
+        GaaMeteringRegwall,
+        'showWithNativeRegistrationButton'
       );
-      self.document.referrer = 'https://www.google.com';
 
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -3119,27 +3292,118 @@ describes.realWin('GaaMetering', {}, () => {
 
       await tick();
 
-      expect(self.console.log).to.calledWith(
-        '[Subscriptions]',
-        'show Google Regwall'
-      );
+      GaaMetering.getOnReadyPromise().then(() => {
+        expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
+          caslUrl: undefined,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          rawJwt: undefined,
+        });
+      });
     });
 
-    it('showGoogleRegwall - registerUserPromise', async () => {
-      location.hash = `#swg.debug=1`;
-      self.document.referrer = 'https://www.google.com';
-
-      GaaUtils.getQueryString.returns(
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+    it('shows GoogleRegwall with optional caslUrl', async () => {
+      const showWithNativeRegistrationButtonSpy = sandbox.spy(
+        GaaMeteringRegwall,
+        'showWithNativeRegistrationButton'
       );
+
+      GaaMetering.init({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        caslUrl: CASL_URL,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          granted: false,
+        },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          resolve({granted: false});
+        }),
+      });
+
+      await tick();
+
+      GaaMetering.getOnReadyPromise().then(() => {
+        expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
+          caslUrl: CASL_URL,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          rawJwt: undefined,
+        });
+      });
+    });
+
+    it('shows GoogleRegwall with optional rawJwt', async () => {
+      const showWithNativeRegistrationButtonSpy = sandbox.spy(
+        GaaMeteringRegwall,
+        'showWithNativeRegistrationButton'
+      );
+
+      GaaMetering.init({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        rawJwt: false,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          granted: false,
+        },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          resolve({granted: false});
+        }),
+      });
+
+      await tick();
+
+      GaaMetering.getOnReadyPromise().then(() => {
+        expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
+          caslUrl: undefined,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          rawJwt: false,
+        });
+      });
+    });
+
+    it('showGoogleRegwall - registerUserPromise', () => {
+      const setGaaUserSpy = sandbox.spy(GaaMetering, 'setGaaUser');
+      const validateUserStateSpy = sandbox.spy(
+        GaaMetering,
+        'validateUserState'
+      );
+      const registerUserPromise = new Promise((resolve) => {
+        GaaMetering.getGaaUserPromise().then((gaaUser) => {
+          resolve({
+            id: gaaUser.email,
+            registrationTimestamp: Date.now() / 1000,
+            granted: false,
+          });
+        });
+      });
 
       // Mock showWithNativeRegistrationButton to return jwt
-      sandbox.stub(GaaMeteringRegwall, 'showWithNativeRegistrationButton');
-      GaaMeteringRegwall.showWithNativeRegistrationButton.returns(
-        new Promise((resolve) => {
-          resolve(SIGN_IN_WITH_GOOGLE_JWT);
-        })
-      );
+      const showWithNativeRegistrationButtonPromise = new Promise((resolve) => {
+        resolve(SIGN_IN_WITH_GOOGLE_JWT);
+      });
+      const showWithNativeRegistrationButtonSpy = sandbox
+        .stub(GaaMeteringRegwall, 'showWithNativeRegistrationButton')
+        .returns(showWithNativeRegistrationButtonPromise);
 
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -3150,42 +3414,108 @@ describes.realWin('GaaMetering', {}, () => {
         unlockArticle: function () {},
         showPaywall: function () {},
         handleSwGEntitlement: function () {},
-        registerUserPromise: new Promise((resolve) => {
-          GaaMetering.getGaaUserPromise().then((gaaUser) => {
-            const userState = {
-              id: gaaUser.email,
-              registrationTimestamp: Date.now() / 1000,
-              granted: false,
-            };
-            resolve(userState);
-          });
-        }),
+        registerUserPromise,
         handleLoginPromise: new Promise(() => {}),
         publisherEntitlementPromise: new Promise((resolve) => {
-          const publisherEntitlement = {
-            granted: false,
-          };
-          resolve(publisherEntitlement);
+          resolve({granted: false});
+        }),
+      });
+
+      GaaMetering.getOnReadyPromise().then(() => {
+        expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
+          caslUrl: undefined,
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          rawJwt: false,
+        });
+        showWithNativeRegistrationButtonPromise.then((gaaUser) => {
+          expect(gaaUser).to.equal(SIGN_IN_WITH_GOOGLE_JWT);
+          expect(setGaaUserSpy).to.have.been.calledWithExactly(gaaUser);
+        });
+        registerUserPromise.then((userState) => {
+          expect(self.console.log).to.calledWith(
+            '[Subscriptions]',
+            'registerUserPromise resolved'
+          );
+          expect(validateUserStateSpy).to.be.calledWithExactly(userState);
+        });
+      });
+    });
+
+    it('shows GoogleRegwall with 3P button when authorizationUrl is supplied', async () => {
+      const showWithNative3PRegistrationButtonSpy = sandbox.spy(
+        GaaMeteringRegwall,
+        'showWithNative3PRegistrationButton'
+      );
+
+      GaaMetering.init({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          granted: false,
+        },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          resolve({granted: false});
+        }),
+      });
+
+      await tick();
+
+      GaaMetering.getOnReadyPromise().then(() => {
+        expect(showWithNative3PRegistrationButtonSpy).to.calledWith({
+          caslUrl: undefined,
+          authorizationUrl: GOOGLE_3P_AUTH_URL,
+        });
+      });
+    });
+
+    it('shows GoogleRegwall with 3P button with optional caslUrl', async () => {
+      const showWithNative3PRegistrationButtonSpy = sandbox.spy(
+        GaaMeteringRegwall,
+        'showWithNative3PRegistrationButton'
+      );
+
+      GaaMetering.init({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        caslUrl: CASL_URL,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          granted: false,
+        },
+        unlockArticle: function () {},
+        showPaywall: function () {},
+        handleLogin: function () {},
+        handleSwGEntitlement: function () {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise((resolve) => {
+          resolve({granted: false});
         }),
       });
 
       await tick(10);
 
-      //ensure that showGoogleRegwall will receive the load event
-      self.window.dispatchEvent(new Event('load'));
-      await tick(10);
-
-      expect(self.console.log).to.calledWith(
-        '[Subscriptions]',
-        'registerUserPromise resolved'
-      );
-
-      expect(self.console.log).to.calledWith(
-        '[Subscriptions]',
-        'getting entitlements from Google'
-      );
-
-      expect(subscriptionsMock.getEntitlements).to.calledOnce;
+      GaaMetering.getOnReadyPromise().then(() => {
+        expect(showWithNative3PRegistrationButtonSpy).to.calledWith({
+          caslUrl: CASL_URL,
+          authorizationUrl: GOOGLE_3P_AUTH_URL,
+        });
+      });
     });
   });
 
