@@ -641,18 +641,15 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
     });
 
-    it('resolves with a decoded jwt if rawJwt is false', () => {
+    it('resolves with a decoded jwt if rawJwt is false', async () => {
       const gaaUserPromise =
         GaaMeteringRegwall.showWithNativeRegistrationButton({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
           rawJwt: false,
         });
-      clock.tick(100);
 
       // Mock JWT decoding function.
-      sandbox.stub(JwtHelper.prototype, 'decode').callsFake((unused) => {
-        return SIGN_IN_WITH_GOOGLE_DECODED_JWT;
-      });
+      sandbox.stub(JwtHelper.prototype, 'decode').returns(SIGN_IN_WITH_GOOGLE_DECODED_JWT);
 
       // Click button.
       self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
@@ -661,10 +658,10 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
-      gaaUserPromise.then((gaaUser) => {
-        expect(gaaUser).to.deep.equal(SIGN_IN_WITH_GOOGLE_DECODED_JWT);
-        expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
-      });
+      await tick();
+      
+      expect(await gaaUserPromise).to.equal(SIGN_IN_WITH_GOOGLE_DECODED_JWT);
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
 
     it('handles Sign In with Google errors', async () => {
@@ -2042,10 +2039,6 @@ describes.realWin('GaaMetering', {}, () => {
     self.document.head.querySelectorAll('style').forEach((e) => {
       e.remove();
     });
-    // Remove the injected style from GaaGoogleSignInButton.show.
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
 
     self.document.referrer = currentReferrer;
     self.console.log.restore();
@@ -3381,19 +3374,20 @@ describes.realWin('GaaMetering', {}, () => {
       });
     });
 
-    it('showGoogleRegwall - registerUserPromise', () => {
+    it('showGoogleRegwall - registerUserPromise', async () => {
       const setGaaUserSpy = sandbox.spy(GaaMetering, 'setGaaUser');
+      const returnedUserState = {
+        id: SIGN_IN_WITH_GOOGLE_DECODED_JWT.credential.payload.email,
+        registrationTimestamp: Date.now() / 1000,
+        granted: false,
+      };
       const validateUserStateSpy = sandbox.spy(
         GaaMetering,
         'validateUserState'
       );
       const registerUserPromise = new Promise((resolve) => {
-        GaaMetering.getGaaUserPromise().then((gaaUser) => {
-          resolve({
-            id: gaaUser.email,
-            registrationTimestamp: Date.now() / 1000,
-            granted: false,
-          });
+        GaaMetering.getGaaUserPromise().then(() => {
+          resolve(returnedUserState);
         });
       });
 
@@ -3401,7 +3395,7 @@ describes.realWin('GaaMetering', {}, () => {
       const showWithNativeRegistrationButtonPromise = new Promise((resolve) => {
         resolve(SIGN_IN_WITH_GOOGLE_JWT);
       });
-      const showWithNativeRegistrationButtonSpy = sandbox
+      sandbox
         .stub(GaaMeteringRegwall, 'showWithNativeRegistrationButton')
         .returns(showWithNativeRegistrationButtonPromise);
 
@@ -3421,24 +3415,18 @@ describes.realWin('GaaMetering', {}, () => {
         }),
       });
 
-      GaaMetering.getOnReadyPromise().then(() => {
-        expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
-          caslUrl: undefined,
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          rawJwt: false,
-        });
-        showWithNativeRegistrationButtonPromise.then((gaaUser) => {
-          expect(gaaUser).to.equal(SIGN_IN_WITH_GOOGLE_JWT);
-          expect(setGaaUserSpy).to.have.been.calledWithExactly(gaaUser);
-        });
-        registerUserPromise.then((userState) => {
-          expect(self.console.log).to.calledWith(
-            '[Subscriptions]',
-            'registerUserPromise resolved'
-          );
-          expect(validateUserStateSpy).to.be.calledWithExactly(userState);
-        });
-      });
+      await tick();
+      await GaaMetering.getOnReadyPromise();
+      await showWithNativeRegistrationButtonPromise;
+      expect(setGaaUserSpy).to.have.been.calledWith(SIGN_IN_WITH_GOOGLE_JWT);
+
+      await registerUserPromise;
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'registerUserPromise resolved'
+      );
+      expect(validateUserStateSpy).to.be.calledWithExactly(returnedUserState);
+
     });
 
     it('shows GoogleRegwall with 3P button when authorizationUrl is supplied', async () => {
@@ -3573,7 +3561,7 @@ describes.realWin('GaaMetering', {}, () => {
       const unlockArticleIfGranted = function () {};
       const handleLoginPromise = new Promise(() => {
         GaaMetering.getLoginPromise().then(() => {
-          expect(GaaMetering.resolveLogin).to.have.been.called();
+          expect(GaaMetering.resolveLogin).to.have.been.called;
         });
       });
       GaaMetering.handleLoginRequest(
@@ -3582,8 +3570,8 @@ describes.realWin('GaaMetering', {}, () => {
       );
     });
 
-    it('calls unlockArticleIfGranted if handleLoginUserState is valid', () => {
-      const unlockArticleIfGranted = function () {};
+    it('calls unlockArticleIfGranted if handleLoginUserState is valid', async () => {
+      const unlockArticleIfGranted = sandbox.fake();
       const handleLoginPromise = new Promise((resolve) => {
         GaaMetering.getLoginPromise().then(() => {
           const handleLoginUserState = {
@@ -3598,17 +3586,17 @@ describes.realWin('GaaMetering', {}, () => {
         handleLoginPromise,
         unlockArticleIfGranted
       );
-      handleLoginPromise.then(() => {
-        expect(unlockArticleIfGranted).to.have.been.called();
-        expect(self.console.log).to.calledWith(
-          '[Subscriptions]',
-          'GaaMeteringRegwall removed'
-        );
-      });
+      await tick();
+      await handleLoginPromise;
+      expect(unlockArticleIfGranted).to.have.been.called;
+      expect(self.console.log).to.have.been.calledWith(
+        '[Subscriptions]',
+        'GaaMeteringRegwall removed'
+      );
     });
 
-    it("doens't unlock article if handleLoginUserState is invalid", () => {
-      const unlockArticleIfGranted = function () {};
+    it("doens't unlock article if handleLoginUserState is invalid", async () => {
+      const unlockArticleIfGranted = sandbox.fake();
       const handleLoginPromise = new Promise((resolve) => {
         GaaMetering.getLoginPromise().then(() => {
           const userStateInvalid = {
@@ -3622,13 +3610,13 @@ describes.realWin('GaaMetering', {}, () => {
         handleLoginPromise,
         unlockArticleIfGranted
       );
-      handleLoginPromise.then(() => {
-        expect(unlockArticleIfGranted).to.not.have.been.called();
-        expect(self.console.log).to.calledWith(
-          '[Subscriptions]',
-          'invalid handleLoginUserState'
-        );
-      });
+      await tick();
+      await handleLoginPromise;
+      expect(unlockArticleIfGranted).not.to.have.been.called;
+      expect(self.console.log).to.have.been.calledWith(
+        '[Subscriptions]',
+        'invalid handleLoginUserState'
+      );
     });
   });
 
@@ -3647,15 +3635,11 @@ describes.realWin('GaaMetering', {}, () => {
 
       const googleEntitlementsPromise = new Promise((resolve) => {
         function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = function () {
-            return true;
-          };
-          this.consume = function () {
+          this.enablesThisWithGoogleMetering = sandbox.fake.returns(true);
+          this.enablesThis = sandbox.fake.returns(false);
+          this.consume = sandbox.fake(() => {
             unlockArticle();
-          };
-          this.enablesThis = function () {
-            return false;
-          };
+          });
         }
         resolve(new GoogleEntitlement());
       });
@@ -3681,13 +3665,9 @@ describes.realWin('GaaMetering', {}, () => {
 
       const googleEntitlementsPromise = new Promise((resolve) => {
         function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = function () {
-            return false;
-          };
-          this.consume = function () {};
-          this.enablesThis = function () {
-            return true;
-          };
+          this.enablesThisWithGoogleMetering = sandbox.fake.returns(false);
+          this.enablesThis = sandbox.fake.returns(true);
+          this.consume = sandbox.fake();
         }
         resolve(new GoogleEntitlement());
       });
@@ -3717,13 +3697,9 @@ describes.realWin('GaaMetering', {}, () => {
 
       const googleEntitlementsPromise = new Promise((resolve) => {
         function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = function () {
-            return false;
-          };
-          this.consume = function () {};
-          this.enablesThis = function () {
-            return false;
-          };
+          this.enablesThisWithGoogleMetering = sandbox.fake.returns(false);
+          this.enablesThis = sandbox.fake.returns(false);
+          this.consume = sandbox.fake();
         }
         resolve(new GoogleEntitlement());
       });
@@ -3750,13 +3726,9 @@ describes.realWin('GaaMetering', {}, () => {
 
       const googleEntitlementsPromise = new Promise((resolve) => {
         function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = function () {
-            return false;
-          };
-          this.consume = function () {};
-          this.enablesThis = function () {
-            return false;
-          };
+          this.enablesThisWithGoogleMetering = sandbox.fake.returns(false);
+          this.enablesThis = sandbox.fake.returns(false);
+          this.consume = sandbox.fake();
         }
         resolve(new GoogleEntitlement());
       });
@@ -3780,4 +3752,12 @@ describes.realWin('GaaMetering', {}, () => {
       expect(showPaywall).to.be.called;
     });
   });
+  describe('getOnReadyPromise', () => {
+    it('returns a promise that resolves when the window loads', async () => {
+      const onReadyPromise = GaaMetering.getOnReadyPromise();
+      self.window.dispatchEvent(new Event('load'));
+      await tick();
+      expect(onReadyPromise).to.be.fulfilled;
+    });
+  })
 });
