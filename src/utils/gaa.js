@@ -421,6 +421,7 @@ export let GoogleUserDef;
  * unlockArticle: function(): ?,
  * rawJwt: (boolean|null),
  * userState: {
+ *   paywallReason: string,
  *   grantReason: string,
  *   granted: boolean,
  *   id: string,
@@ -1584,9 +1585,7 @@ export class GaaMetering {
                 grantReasonToShowCaseEventMap[
                   GaaMetering.userState.grantReason
                 ],
-              isUserRegistered: GaaMetering.isUserRegistered(
-                GaaMetering.userState
-              ),
+              isUserRegistered: GaaMetering.isUserRegistered(),
             });
             debugLog('unlocked for ' + GaaMetering.userState.grantReason);
           });
@@ -1655,7 +1654,7 @@ export class GaaMetering {
         // This is only relevant for publishers doing SwG
         handleSwGEntitlement();
       } else if (
-        !GaaMetering.isUserRegistered(GaaMetering.userState) &&
+        !GaaMetering.isUserRegistered() &&
         GaaMetering.isGaa(allowedReferrers)
       ) {
         // This is an anonymous user so show the Google registration intervention
@@ -1663,12 +1662,20 @@ export class GaaMetering {
       } else {
         // User does not any access from publisher or Google so show the standard paywall
         callSwg((subscriptions) => {
-          subscriptions.setShowcaseEntitlement({
-            entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-            isUserRegistered: GaaMetering.isUserRegistered(
-              GaaMetering.userState
-            ),
-          });
+          switch (GaaMetering.userState.paywallReason) {
+            case 'RESERVED_USER':
+              subscriptions.setShowcaseEntitlement({
+                entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
+                isUserRegistered: GaaMetering.isUserRegistered(),
+              });
+              break;
+            default:
+              subscriptions.setShowcaseEntitlement({
+                entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+                isUserRegistered: GaaMetering.isUserRegistered(),
+              });
+          }
+          
         });
         // Show the paywall
         showPaywall();
@@ -1676,8 +1683,8 @@ export class GaaMetering {
     });
   }
 
-  static isUserRegistered(userState) {
-    return userState.id !== undefined && userState.id != '';
+  static isUserRegistered() {
+    return GaaMetering.userState.id !== undefined && GaaMetering.userState.id != '';
   }
 
   /**

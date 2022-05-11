@@ -36,6 +36,9 @@ import {
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
   queryStringHasFreshGaaParams,
 } from './gaa';
+import {
+  ShowcaseEvent,
+} from '../api/subscriptions';
 import {I18N_STRINGS} from '../i18n/strings';
 import {JwtHelper} from './jwt';
 import {tick} from '../../test/tick';
@@ -2726,7 +2729,7 @@ describes.realWin('GaaMetering', {}, () => {
       );
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
-        entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+        entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
         isUserRegistered: true,
       });
     });
@@ -2762,7 +2765,7 @@ describes.realWin('GaaMetering', {}, () => {
       );
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
-        entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+        entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
         isUserRegistered: true,
       });
     });
@@ -2802,7 +2805,7 @@ describes.realWin('GaaMetering', {}, () => {
       );
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
-        entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+        entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
         isUserRegistered: true,
       });
     });
@@ -2885,7 +2888,7 @@ describes.realWin('GaaMetering', {}, () => {
       );
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
-        entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+        entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
         isUserRegistered: true,
       });
     });
@@ -3191,16 +3194,17 @@ describes.realWin('GaaMetering', {}, () => {
 
   describe('isUserRegistered', () => {
     it('returns true for a registered user', () => {
-      const userState = {
+      GaaMetering.userState = {
         id: 'user1235',
         registrationTimestamp: 1602763054,
         subscriptionTimestamp: 1602763094,
       };
-      expect(GaaMetering.isUserRegistered(userState)).to.be.true;
+      expect(GaaMetering.isUserRegistered()).to.be.true;
     });
 
     it('returns false for an anonymous user', () => {
-      expect(GaaMetering.isUserRegistered({})).to.be.false;
+      GaaMetering.userState = {};
+      expect(GaaMetering.isUserRegistered()).to.be.false;
     });
   });
 
@@ -3312,8 +3316,7 @@ describes.realWin('GaaMetering', {}, () => {
     it('consumes google entitlement and unlock article', async () => {
       unlockArticle = sandbox.fake();
 
-      sandbox.stub(GaaMetering, 'isUserRegistered');
-      GaaMetering.isUserRegistered.returns(true);
+      sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
 
       const googleEntitlementsPromise = new Promise((resolve) => {
         function GoogleEntitlement() {
@@ -3346,8 +3349,7 @@ describes.realWin('GaaMetering', {}, () => {
     it('user is a SwG subscriber', async () => {
       handleSwGEntitlement = sandbox.fake();
 
-      sandbox.stub(GaaMetering, 'isUserRegistered');
-      GaaMetering.isUserRegistered.returns(true);
+      sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
 
       const googleEntitlementsPromise = new Promise((resolve) => {
         function GoogleEntitlement() {
@@ -3375,7 +3377,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(handleSwGEntitlement).to.be.called;
     });
 
-    it("shows regWall if user isn't registered", async () => {
+    it('shows regWall if user isn\'t registered', async () => {
       showGoogleRegwall = sandbox.fake();
 
       GaaMetering.userState = {};
@@ -3415,8 +3417,44 @@ describes.realWin('GaaMetering', {}, () => {
       showPaywall = sandbox.fake();
       GaaMetering.userState = {};
 
-      sandbox.stub(GaaMetering, 'isUserRegistered');
-      GaaMetering.isUserRegistered.returns(true);
+      sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
+
+      const googleEntitlementsPromise = new Promise((resolve) => {
+        function GoogleEntitlement() {
+          this.enablesThisWithGoogleMetering = sandbox.fake.returns(false);
+          this.enablesThis = sandbox.fake.returns(false);
+          this.consume = sandbox.fake();
+        }
+        resolve(new GoogleEntitlement());
+      });
+
+      GaaMetering.setEntitlements(
+        googleEntitlementsPromise,
+        allowedReferrers,
+        unlockArticle,
+        handleSwGEntitlement,
+        showGoogleRegwall,
+        showPaywall
+      );
+
+      await tick(10);
+
+      expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
+        entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+        isUserRegistered: true,
+      });
+
+      expect(showPaywall).to.be.called;
+    });
+
+    it('shows the paywall and call setShowcaseEntitlement', async () => {
+      showPaywall = sandbox.fake();
+
+      GaaMetering.userState = {
+        paywallReason: 'RESERVED_USER'
+      };
+
+      sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
 
       const googleEntitlementsPromise = new Promise((resolve) => {
         function GoogleEntitlement() {
@@ -3443,7 +3481,7 @@ describes.realWin('GaaMetering', {}, () => {
       await tick(10);
 
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
-        entitlement: 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',
+        entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
         isUserRegistered: true,
       });
 
