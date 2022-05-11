@@ -324,7 +324,7 @@ export class ConfiguredBasicRuntime {
       // Close the current dialog to allow a new one with potentially different configurations
       // to take over the screen.
       this.dismissSwgUI();
-      this.configuredClassicRuntime_.showOffers();
+      this.configuredClassicRuntime_.showOffers({isClosable: true});
     });
 
     // Fetches entitlements.

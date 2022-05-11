@@ -1012,10 +1012,12 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     });
 
     it('should dismiss the active dialog and call showOffers when offers flow request is triggered', async () => {
-      const showOffersStub = sandbox.stub(
-        configuredBasicRuntime.configuredClassicRuntime(),
-        'showOffers'
-      );
+      let offersOptions = null;
+      const showOffersStub = sandbox
+        .stub(configuredBasicRuntime.configuredClassicRuntime(), 'showOffers')
+        .callsFake((options) => {
+          offersOptions = options;
+        });
       const completeAllStub = sandbox.stub(
         configuredBasicRuntime.dialogManager(),
         'completeAll'
@@ -1023,6 +1025,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       await configuredBasicRuntime.callbacks().triggerOffersFlowRequest();
       expect(showOffersStub).to.be.calledOnce;
       expect(completeAllStub).to.be.calledOnce;
+      expect(offersOptions.isClosable).to.equal(true);
     });
   });
 });

@@ -545,6 +545,22 @@ describes.realWin('PayStartFlow', {}, (env) => {
       .once();
     await flow.start();
   });
+
+  it('should forceDisableNative for paySwgVersion 3', async () => {
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '3'})))
+      .once();
+
+    payClientMock
+      .expects('start')
+      .withArgs(sandbox.match.any, {
+        forceRedirect: false,
+        forceDisableNative: true,
+      })
+      .once();
+    await flow.start();
+  });
 });
 
 describes.realWin('PayCompleteFlow', {}, (env) => {
