@@ -363,5 +363,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       )
       .once();
     await audienceActionFlow.start();
+    dialogManagerMock.verify();
   });
 });
