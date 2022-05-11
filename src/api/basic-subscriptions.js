@@ -37,6 +37,7 @@ export class BasicSubscriptions {
    *   isPartOfProductId: string,
    *   autoPromptType: (AutoPromptType|undefined),
    *   clientOptions: (ClientOptions|undefined),
+   *   disableDefaultMeteringHandler: (boolean|undefined),
    * }=} params
    */
   init(params) {}

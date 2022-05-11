@@ -18,6 +18,7 @@ import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
+import {Callbacks} from './callbacks';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
@@ -99,15 +100,6 @@ export function installBasicRuntime(win) {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
-
-  // Set the default entitlements response handler to consume a valid metering entitlement.
-  basicRuntime.setOnEntitlementsResponse((entitlementsPromise) => {
-    entitlementsPromise.then((entitlements) => {
-      if (entitlements.enablesThisWithGoogleMetering()) {
-        entitlements.consume();
-      }
-    });
-  });
 }
 
 /**
@@ -149,6 +141,9 @@ export class BasicRuntime {
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
+
+    /** @private {boolean} */
+    this.defaultMeteringHandlerEnabled_ = true;
   }
 
   /**
@@ -175,7 +170,12 @@ export class BasicRuntime {
             new ConfiguredBasicRuntime(
               this.doc_,
               pageConfig,
-              /* integr */ {configPromise: this.configuredPromise_},
+              /* integr */ {
+                configPromise: this.configuredPromise_,
+                callbacks: new BasicRuntimeCallbacks(
+                  this.defaultMeteringHandlerEnabled_
+                ),
+              },
               this.config_,
               this.clientOptions_
             )
@@ -195,6 +195,7 @@ export class BasicRuntime {
 
   /** @override */
   init(params) {
+    this.defaultMeteringHandlerEnabled_ = !params.disableDefaultMeteringHandler;
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.pageConfigWriter_
       .writeConfigWhenReady({
@@ -265,6 +266,47 @@ export class BasicRuntime {
     return this.configured_(false).then((runtime) =>
       runtime.processEntitlements()
     );
+  }
+}
+
+/**
+ * Implementation of the default Callbacks that include the ability to always consume
+ * metered entitlements if they are provided in an entitlements response.
+ * @extends ./callbacks.Callbacks
+ */
+class BasicRuntimeCallbacks extends Callbacks {
+  /**
+   * @param {boolean|undefined} defaultMeteringHandlerEnabled
+   */
+  constructor(defaultMeteringHandlerEnabled) {
+    this.defaultMeteringHandlerEnabled_ = defaultMeteringHandlerEnabled;
+    super();
+  }
+
+  /**
+   * @override
+   */
+  triggerEntitlementsResponse(promise) {
+    if (this.defaultMeteringHandlerEnabled_) {
+      this.handleMeteredEntitlements_(promise);
+    }
+
+    super.triggerEntitlementsResponse(promise);
+  }
+
+  /**
+   *  Set the default entitlements response handler to consume a valid metering entitlement.
+   *
+   * @private
+   * @param {!Promise<!../api/entitlements.Entitlements>} promise
+   */
+  handleMeteredEntitlements_(promise) {
+    promise.then((response) => {
+      const entitlements = response.clone();
+      if (entitlements.enablesThisWithGoogleMetering()) {
+        entitlements.consume();
+      }
+    });
   }
 }
 
