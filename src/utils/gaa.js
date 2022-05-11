@@ -41,9 +41,9 @@ import {setImportantStyles} from './style';
 
 // Load types for Closure compiler.
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {createElement, injectStyleSheet} from './dom';
+import {resolveDoc} from '../model/doc';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
-import { injectStyleSheet, createElement } from './dom';
-import { resolveDoc } from '../model/doc';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -634,7 +634,7 @@ export class GaaMeteringRegwall {
     // Create and style container element.
     // TODO: Consider using a FriendlyIframe here, to avoid CSS conflicts.
     const containerEl = createElement(self.document, 'div', {
-      id: REGWALL_CONTAINER_ID
+      id: REGWALL_CONTAINER_ID,
     });
     setImportantStyles(containerEl, {
       'all': 'unset',
@@ -915,7 +915,7 @@ export class GaaMeteringRegwall {
     // Create and append button to regwall
     const buttonEl = createElement(self.document, 'div', {
       id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-      tabIndex: 0
+      tabIndex: 0,
     });
     parentElement.appendChild(buttonEl);
 
@@ -961,7 +961,7 @@ export class GaaMeteringRegwall {
     // Render the third party Google Sign-In button.
     const buttonEl = createElement(self.document, 'div', {
       id: GOOGLE_3P_SIGN_IN_BUTTON_ID,
-      tabIndex: 0
+      tabIndex: 0,
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     parentElement.appendChild(buttonEl);
@@ -1054,7 +1054,7 @@ export class GaaGoogleSignInButton {
             // Render the Google Sign-In button.
             const buttonEl = createElement(self.document, 'div', {
               id: GOOGLE_SIGN_IN_BUTTON_ID,
-              tabIndex: 0
+              tabIndex: 0,
             });
             self.document.body.appendChild(buttonEl);
             self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
@@ -1179,7 +1179,7 @@ export class GaaSignInWithGoogleButton {
     new Promise((resolve) => {
       const buttonEl = createElement(self.document, 'div', {
         id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-        tabIndex: 0
+        tabIndex: 0,
       });
       self.document.body.appendChild(buttonEl);
 
@@ -1351,7 +1351,7 @@ export class GaaGoogle3pSignInButton {
     // Render the third party Google Sign-In button.
     const buttonEl = createElement(self.document, 'div', {
       id: GOOGLE_3P_SIGN_IN_BUTTON_ID,
-      tabIndex: 0
+      tabIndex: 0,
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
