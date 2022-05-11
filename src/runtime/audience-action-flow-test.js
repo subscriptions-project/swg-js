@@ -349,26 +349,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activityIframeViewMock.verify();
   });
 
-  it('opens dialog without dialog config when useUpdatedOfferFlows=false', async () => {
-    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
-      new ClientConfig({
-        useUpdatedOfferFlows: false,
-        uiPredicates: {canDisplayAutoPrompt: true},
-      })
-    );
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
-      action: 'TYPE_REGISTRATION_WALL',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-    });
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
-      .once();
-    await audienceActionFlow.start();
-  });
-
-  it('opens dialog with scrolling disabled when useUpdatedOfferFlows=true', async () => {
+  it('opens dialog with scrolling disabled when shouldDisableBodyScrolling=true', async () => {
     sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
       new ClientConfig({
         useUpdatedOfferFlows: true,

@@ -140,30 +140,14 @@ export class AudienceActionFlow {
       }
 
       this.activityIframeView_ = activityIframeView;
-      return this.clientConfigManager_
-        .getClientConfig()
-        .then((clientConfig) => {
-          if (!this.activityIframeView_) {
-            return;
-          }
-          return this.dialogManager_.openView(
-            this.activityIframeView_,
-            /* hidden */ false,
-            this.getDialogConfig_(clientConfig)
-          );
-        });
+      return this.dialogManager_.openView(
+        activityIframeView,
+        /* hidden */ false,
+        /* dialogConfig */ {
+          shouldDisableBodyScrolling: true,
+        }
+      );
     });
-  }
-
-  /**
-   *
-   * @param {!../model/client-config.ClientConfig} clientConfig
-   * @return {!../components/dialog.DialogConfig}
-   */
-  getDialogConfig_(clientConfig) {
-    return clientConfig.useUpdatedOfferFlows
-      ? {shouldDisableBodyScrolling: true}
-      : {};
   }
 
   /**
