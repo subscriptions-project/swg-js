@@ -22,7 +22,6 @@ import {
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
@@ -350,12 +349,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   });
 
   it('opens dialog with scrolling disabled when shouldDisableBodyScrolling=true', async () => {
-    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
-      new ClientConfig({
-        useUpdatedOfferFlows: true,
-        uiPredicates: {canDisplayAutoPrompt: true},
-      })
-    );
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       onCancel: onCancelSpy,
