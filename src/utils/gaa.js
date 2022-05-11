@@ -40,9 +40,10 @@ import {parseJson} from './json';
 import {setImportantStyles} from './style';
 
 // Load types for Closure compiler.
-import '../model/doc';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
+import { injectStyleSheet, createElement } from './dom';
+import { resolveDoc } from '../model/doc';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -632,10 +633,9 @@ export class GaaMeteringRegwall {
 
     // Create and style container element.
     // TODO: Consider using a FriendlyIframe here, to avoid CSS conflicts.
-    const containerEl = /** @type {!HTMLDivElement} */ (
-      self.document.createElement('div')
-    );
-    containerEl.id = REGWALL_CONTAINER_ID;
+    const containerEl = createElement(self.document, 'div', {
+      id: REGWALL_CONTAINER_ID
+    });
     setImportantStyles(containerEl, {
       'all': 'unset',
       'background-color': 'rgba(32, 33, 36, 0.6)',
@@ -906,17 +906,17 @@ export class GaaMeteringRegwall {
       return false;
     }
     // Apply iframe styles.
-    const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_BUTTON_STYLES.replace(
+    const styleText = GOOGLE_SIGN_IN_BUTTON_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
       msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
     );
-    self.document.head.appendChild(styleEl);
+    injectStyleSheet(resolveDoc(self.document), styleText);
 
-    const buttonEl = self.document.createElement('div');
-    buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
-    buttonEl.tabIndex = 0;
-
+    // Create and append button to regwall
+    const buttonEl = createElement(self.document, 'div', {
+      id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
+      tabIndex: 0
+    });
     parentElement.appendChild(buttonEl);
 
     // Track button clicks.
@@ -948,21 +948,21 @@ export class GaaMeteringRegwall {
     const parentElement = self.document.getElementById(
       REGISTRATION_BUTTON_CONTAINER_ID
     );
-    // Apply iframe styles.
-    const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
-      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
-    );
-    self.document.head.appendChild(styleEl);
-
     if (!parentElement) {
       return false;
     }
+    // Apply iframe styles.
+    const styleText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
+      '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+    );
+    injectStyleSheet(resolveDoc(self.document), styleText);
+
     // Render the third party Google Sign-In button.
-    const buttonEl = self.document.createElement('div');
-    buttonEl.id = GOOGLE_3P_SIGN_IN_BUTTON_ID;
-    buttonEl.tabIndex = 0;
+    const buttonEl = createElement(self.document, 'div', {
+      id: GOOGLE_3P_SIGN_IN_BUTTON_ID,
+      tabIndex: 0
+    });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     parentElement.appendChild(buttonEl);
 
@@ -993,12 +993,11 @@ export class GaaGoogleSignInButton {
     const languageCode = queryParams['lang'] || 'en';
 
     // Apply iframe styles.
-    const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
+    const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
       msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
     );
-    self.document.head.appendChild(styleEl);
+    injectStyleSheet(resolveDoc(self.document), styleText);
 
     // Promise a function that sends messages to the parent frame.
     // Note: A function is preferable to a reference to the parent frame
@@ -1053,9 +1052,10 @@ export class GaaGoogleSignInButton {
         () =>
           new Promise((resolve) => {
             // Render the Google Sign-In button.
-            const buttonEl = self.document.createElement('div');
-            buttonEl.id = GOOGLE_SIGN_IN_BUTTON_ID;
-            buttonEl.tabIndex = 0;
+            const buttonEl = createElement(self.document, 'div', {
+              id: GOOGLE_SIGN_IN_BUTTON_ID,
+              tabIndex: 0
+            });
             self.document.body.appendChild(buttonEl);
             self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
               'longtitle': true,
@@ -1123,12 +1123,11 @@ export class GaaSignInWithGoogleButton {
     const languageCode = queryParams['lang'] || 'en';
 
     // Apply iframe styles.
-    const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
+    const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
       msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
     );
-    self.document.head.appendChild(styleEl);
+    injectStyleSheet(resolveDoc(self.document), styleText);
 
     // Promise a function that sends messages to the parent frame.
     // Note: A function is preferable to a reference to the parent frame
@@ -1178,9 +1177,10 @@ export class GaaSignInWithGoogleButton {
     }
 
     new Promise((resolve) => {
-      const buttonEl = self.document.createElement('div');
-      buttonEl.id = SIGN_IN_WITH_GOOGLE_BUTTON_ID;
-      buttonEl.tabIndex = 0;
+      const buttonEl = createElement(self.document, 'div', {
+        id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
+        tabIndex: 0
+      });
       self.document.body.appendChild(buttonEl);
 
       self.google.accounts.id.initialize({
@@ -1342,17 +1342,17 @@ export class GaaGoogle3pSignInButton {
     const languageCode = queryParams['lang'] || 'en';
 
     // Apply iframe styles.
-    const styleEl = self.document.createElement('style');
-    styleEl./*OK*/ innerText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
+    const styleText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
       msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
     );
-    self.document.head.appendChild(styleEl);
+    injectStyleSheet(resolveDoc(self.document), styleText);
 
     // Render the third party Google Sign-In button.
-    const buttonEl = self.document.createElement('div');
-    buttonEl.id = GOOGLE_3P_SIGN_IN_BUTTON_ID;
-    buttonEl.tabIndex = 0;
+    const buttonEl = createElement(self.document, 'div', {
+      id: GOOGLE_3P_SIGN_IN_BUTTON_ID,
+      tabIndex: 0
+    });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
       if (redirectMode) {
