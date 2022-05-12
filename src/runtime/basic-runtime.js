@@ -18,7 +18,6 @@ import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
-import {Callbacks} from './callbacks';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
@@ -143,7 +142,7 @@ export class BasicRuntime {
     this.pageConfigResolver_ = null;
 
     /** @private {boolean} */
-    this.defaultMeteringHandlerEnabled_ = true;
+    this.enableDefaultMeteringHandler_ = true;
   }
 
   /**
@@ -172,9 +171,8 @@ export class BasicRuntime {
               pageConfig,
               /* integr */ {
                 configPromise: this.configuredPromise_,
-                callbacks: new BasicRuntimeCallbacks(
-                  this.defaultMeteringHandlerEnabled_
-                ),
+                enableDefaultMeteringHandler:
+                  this.enableDefaultMeteringHandler_,
               },
               this.config_,
               this.clientOptions_
@@ -194,27 +192,36 @@ export class BasicRuntime {
   }
 
   /** @override */
-  init(params) {
-    this.defaultMeteringHandlerEnabled_ = !params.disableDefaultMeteringHandler;
+  init({
+    type,
+    isAccessibleForFree,
+    isPartOfType,
+    isPartOfProductId,
+    clientOptions,
+    autoPromptType,
+    alwaysShow = false,
+    disableDefaultMeteringHandler = false,
+  }) {
+    this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.pageConfigWriter_
       .writeConfigWhenReady({
-        type: params.type,
-        isAccessibleForFree: params.isAccessibleForFree,
-        isPartOfType: params.isPartOfType,
-        isPartOfProductId: params.isPartOfProductId,
+        type,
+        isAccessibleForFree,
+        isPartOfType,
+        isPartOfProductId,
       })
       .then(() => {
         this.pageConfigWriter_ = null;
         this.configured_(true);
       });
 
-    this.clientOptions_ = Object.assign({}, params.clientOptions, {
+    this.clientOptions_ = Object.assign({}, clientOptions, {
       forceLangInIframes: true,
     });
     this.setupAndShowAutoPrompt({
-      autoPromptType: params.autoPromptType,
-      alwaysShow: params.alwaysShow || false,
+      autoPromptType,
+      alwaysShow,
     });
     this.setOnLoginRequest();
     this.processEntitlements();
@@ -270,47 +277,6 @@ export class BasicRuntime {
 }
 
 /**
- * Implementation of the default Callbacks that include the ability to always consume
- * metered entitlements if they are provided in an entitlements response.
- * @extends ./callbacks.Callbacks
- */
-class BasicRuntimeCallbacks extends Callbacks {
-  /**
-   * @param {boolean|undefined} defaultMeteringHandlerEnabled
-   */
-  constructor(defaultMeteringHandlerEnabled) {
-    this.defaultMeteringHandlerEnabled_ = defaultMeteringHandlerEnabled;
-    super();
-  }
-
-  /**
-   * @override
-   */
-  triggerEntitlementsResponse(promise) {
-    if (this.defaultMeteringHandlerEnabled_) {
-      this.handleMeteredEntitlements_(promise);
-    }
-
-    super.triggerEntitlementsResponse(promise);
-  }
-
-  /**
-   *  Set the default entitlements response handler to consume a valid metering entitlement.
-   *
-   * @private
-   * @param {!Promise<!../api/entitlements.Entitlements>} promise
-   */
-  handleMeteredEntitlements_(promise) {
-    promise.then((response) => {
-      const entitlements = response.clone();
-      if (entitlements.enablesThisWithGoogleMetering()) {
-        entitlements.consume();
-      }
-    });
-  }
-}
-
-/**
  * @implements  {../api/basic-subscriptions.BasicSubscriptions}
  * @implements {./deps.DepsDef}
  */
@@ -321,6 +287,7 @@ export class ConfiguredBasicRuntime {
    * @param {{
    *     fetcher: (!./fetcher.Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
+   *     enableDefaultMeteringHandler: (!boolean),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions

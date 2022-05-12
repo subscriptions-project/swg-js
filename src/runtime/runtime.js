@@ -547,8 +547,8 @@ export class ConfiguredRuntime {
    * @param {{
    *     fetcher: (!FetcherInterface|undefined),
    *     configPromise: (!Promise|undefined),
-   *     callbacks: (!Callbacks|undefined),
    *     enableGoogleAnalytics: (boolean|undefined),
+   *     enableDefaultMeteringHandler: (boolean|undefined),
    *     useArticleEndpoint: (boolean|undefined)
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
@@ -601,7 +601,7 @@ export class ConfiguredRuntime {
     this.dialogManager_ = new DialogManager(this.doc_);
 
     /** @private @const {!Callbacks} */
-    this.callbacks_ = integr.callbacks || new Callbacks();
+    this.callbacks_ = new Callbacks();
 
     /** @private {?OffersFlow} */
     this.lastOffersFlow_ = null;
@@ -638,7 +638,8 @@ export class ConfiguredRuntime {
       this.pageConfig_,
       this.fetcher_,
       this, // See note about 'this' above
-      integr.useArticleEndpoint || false
+      integr.useArticleEndpoint || false,
+      integr.enableDefaultMeteringHandler || false
     );
 
     /** @private @const {!ClientConfigManager} */
