@@ -348,7 +348,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activityIframeViewMock.verify();
   });
 
-  it('opens dialog with scrolling disabled when shouldDisableBodyScrolling=true', async () => {
+  it('opens dialog with scrolling disabled', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       onCancel: onCancelSpy,
