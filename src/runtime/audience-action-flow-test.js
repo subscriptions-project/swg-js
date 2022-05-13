@@ -42,6 +42,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let messageCallback;
   let messageMap;
   let onCancelSpy;
+  let dialogManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -51,6 +52,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -344,5 +346,23 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.showNoEntitlementFoundToast();
 
     activityIframeViewMock.verify();
+  });
+
+  it('opens dialog with scrolling disabled', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({shouldDisableBodyScrolling: true})
+      )
+      .once();
+    await audienceActionFlow.start();
+    dialogManagerMock.verify();
   });
 });
