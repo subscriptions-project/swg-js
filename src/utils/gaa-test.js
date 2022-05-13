@@ -36,11 +36,9 @@ import {
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
   queryStringHasFreshGaaParams,
 } from './gaa';
-import {
-  ShowcaseEvent,
-} from '../api/subscriptions';
 import {I18N_STRINGS} from '../i18n/strings';
 import {JwtHelper} from './jwt';
+import {ShowcaseEvent} from '../api/subscriptions';
 import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
@@ -2748,6 +2746,34 @@ describes.realWin('GaaMetering', {}, () => {
         'userState.subscriptionTimestamp is in the future'
       );
     });
+
+    it('fails with a warning in debug mode if paywallReason is provided but granted is true', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          granted: true,
+          paywallReason: 'RESERVED_USER',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState.granted must be false when paywallReason is supplied.'
+      );
+    });
+
+    it('fails with a warning in debug mode for and invalid paywallReason', () => {
+      location.hash = `#swg.debug=1`;
+      expect(
+        GaaMetering.validateUserState({
+          granted: false,
+          paywallReason: 'INVALID',
+        })
+      ).to.be.false;
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState.paywallReason has to be empty or set to RESERVED_USER.'
+      );
+    });
   });
 
   describe('getGaaUserPromise', () => {
@@ -3688,7 +3714,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(handleSwGEntitlement).to.be.called;
     });
 
-    it('shows regWall if user isn\'t registered', async () => {
+    it("shows regWall if user isn't registered", async () => {
       showGoogleRegwall = sandbox.fake();
 
       GaaMetering.userState = {};
@@ -3758,7 +3784,7 @@ describes.realWin('GaaMetering', {}, () => {
       showPaywall = sandbox.fake();
 
       GaaMetering.userState = {
-        paywallReason: 'RESERVED_USER'
+        paywallReason: 'RESERVED_USER',
       };
 
       sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
@@ -3797,6 +3823,29 @@ describes.realWin('GaaMetering', {}, () => {
       self.window.dispatchEvent(new Event('load'));
       await tick();
       expect(onReadyPromise).to.be.fulfilled;
+    });
+  });
+
+  describe('convertTimestampToSeconds', () => {
+    it('returns seconds if seconds are provided', () => {
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      expect(GaaMetering.convertTimestampToSeconds(nowInSeconds)).to.equal(
+        nowInSeconds
+      );
+    });
+    it('converts milliseconds to seconds', () => {
+      const nowInMilliseconds = Date.now();
+      const nowInSeconds = Math.floor(nowInMilliseconds / 1000);
+      expect(GaaMetering.convertTimestampToSeconds(nowInMilliseconds)).to.equal(
+        nowInSeconds
+      );
+    });
+    it('converts microseconds to seconds', () => {
+      const nowInMicroseconds = Date.now() * 1000;
+      const nowInSeconds = Math.floor(nowInMicroseconds / 100000);
+      expect(GaaMetering.convertTimestampToSeconds(nowInMicroseconds)).to.equal(
+        nowInSeconds
+      );
     });
   });
 });

@@ -1488,6 +1488,15 @@ export const GrantReasonType = {
   METERING: 'METERING',
 };
 
+/**
+ * Types of paywallReason that can be specified by the user as part of
+ * the userState object
+ * @enum {string}
+ */
+export const PaywallReasonType = {
+  RESERVED_USER: 'RESERVED_USER',
+};
+
 export class GaaMetering {
   constructor() {
     this.userState = {};
@@ -1751,11 +1760,11 @@ export class GaaMetering {
               break;
             default:
               subscriptions.setShowcaseEntitlement({
-                entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+                entitlement:
+                  ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
                 isUserRegistered: GaaMetering.isUserRegistered(),
               });
           }
-          
         });
         // Show the paywall
         showPaywall();
@@ -1764,7 +1773,9 @@ export class GaaMetering {
   }
 
   static isUserRegistered() {
-    return GaaMetering.userState.id !== undefined && GaaMetering.userState.id != '';
+    return (
+      GaaMetering.userState.id !== undefined && GaaMetering.userState.id != ''
+    );
   }
 
   /**
@@ -2052,13 +2063,18 @@ export class GaaMetering {
   }
 
   static newUserStateToUserState(newUserState) {
+    // Convert registrationTimestamp
+    const registrationTimestamp = GaaMetering.convertTimestampToSeconds(
+      newUserState.registrationTimestamp
+    );
+
     return {
       'metering': {
         'state': {
           'id': newUserState.id,
           'standardAttributes': {
             'registered_user': {
-              'timestamp': newUserState.registrationTimestamp,
+              'timestamp': registrationTimestamp,
             },
           },
         },
@@ -2066,10 +2082,26 @@ export class GaaMetering {
     };
   }
 
+  static convertTimestampToSeconds(timestamp) {
+    let timestampInSeconds;
+    if (timestamp >= 1e14 || timestamp <= -1e14) {
+      // Microseconds
+      timestampInSeconds = Math.floor(timestamp / 100000);
+    } else if (timestamp >= 1e11 || timestamp <= -3e10) {
+      // Milliseconds
+      timestampInSeconds = Math.floor(timestamp / 1000);
+    } else {
+      timestampInSeconds = timestamp;
+    }
+    return timestampInSeconds;
+  }
+
   static validateUserState(newUserState) {
     if (!newUserState) {
       return false;
     }
+
+    let noIssues = true;
 
     if (
       !('granted' in newUserState && typeof newUserState.granted === 'boolean')
@@ -2078,7 +2110,7 @@ export class GaaMetering {
         'userState.granted is missing or invalid (must be true or false)'
       );
 
-      return false;
+      noIssues = false;
     }
 
     if (
@@ -2089,7 +2121,7 @@ export class GaaMetering {
         'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
       );
 
-      return false;
+      noIssues = false;
     }
 
     if (
@@ -2103,7 +2135,7 @@ export class GaaMetering {
         debugLog(
           'Missing user ID or registrationTimestamp in userState object'
         );
-        return false;
+        noIssues = false;
       } else {
         if (
           !(
@@ -2115,47 +2147,45 @@ export class GaaMetering {
             'userState.registrationTimestamp invalid, userState.registrationTimestamp needs to be an integer and in seconds'
           );
 
-          return false;
-        }
-
-        if (newUserState.registrationTimestamp > Date.now() / 1000) {
+          noIssues = false;
+        } else if (
+          GaaMetering.convertTimestampToSeconds(
+            newUserState.registrationTimestamp
+          ) >
+          Date.now() / 1000
+        ) {
           debugLog('userState.registrationTimestamp is in the future');
 
-          return false;
+          noIssues = false;
         }
 
-        if (
-          newUserState.grantReason === GrantReasonType.SUBSCRIBER &&
-          !('subscriptionTimestamp' in newUserState)
-        ) {
-          debugLog(
-            'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
-          );
+        if (newUserState.grantReason === GrantReasonType.SUBSCRIBER) {
+          if (!('subscriptionTimestamp' in newUserState)) {
+            debugLog(
+              'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
+            );
 
-          return false;
-        }
+            noIssues = false;
+          } else if (
+            !(
+              typeof newUserState.subscriptionTimestamp === 'number' &&
+              newUserState.subscriptionTimestamp % 1 === 0
+            )
+          ) {
+            debugLog(
+              'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
+            );
 
-        if (
-          'subscriptionTimestamp' in newUserState &&
-          !(
-            typeof newUserState.subscriptionTimestamp === 'number' &&
-            newUserState.subscriptionTimestamp % 1 === 0
-          )
-        ) {
-          debugLog(
-            'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
-          );
-
-          return false;
-        }
-
-        if (
-          'subscriptionTimestamp' in newUserState &&
-          newUserState.subscriptionTimestamp > Date.now() / 1000
-        ) {
-          debugLog('userState.subscriptionTimestamp is in the future');
-
-          return false;
+            noIssues = false;
+          } else if (
+            GaaMetering.convertTimestampToSeconds(
+              newUserState.subscriptionTimestamp
+            ) >
+            Date.now() / 1000
+          ) {
+            debugLog('userState.subscriptionTimestamp is in the future');
+            noIssues = false;
+          }
         }
       }
     }
@@ -2172,7 +2202,22 @@ export class GaaMetering {
       }
     }
 
-    return true;
+    if ('paywallReason' in newUserState) {
+      if (newUserState.granted) {
+        debugLog(
+          'userState.granted must be false when paywallReason is supplied.'
+        );
+        noIssues = false;
+      }
+
+      if (PaywallReasonType[newUserState.paywallReason] === undefined) {
+        debugLog(
+          'userState.paywallReason has to be empty or set to RESERVED_USER.'
+        );
+        noIssues = false;
+      }
+    }
+    return noIssues;
   }
 
   static getOnReadyPromise() {
