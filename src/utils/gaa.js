@@ -41,6 +41,7 @@ import {setImportantStyles} from './style';
 
 // Load types for Closure compiler.
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {convertPotentialTimestampToSeconds} from './date-utils';
 import {createElement, injectStyleSheet} from './dom';
 import {resolveDoc} from '../model/doc';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
@@ -2064,7 +2065,7 @@ export class GaaMetering {
 
   static newUserStateToUserState(newUserState) {
     // Convert registrationTimestamp
-    const registrationTimestamp = GaaMetering.convertTimestampToSeconds(
+    const registrationTimestamp = convertPotentialTimestampToSeconds(
       newUserState.registrationTimestamp
     );
 
@@ -2080,20 +2081,6 @@ export class GaaMetering {
         },
       },
     };
-  }
-
-  static convertTimestampToSeconds(timestamp) {
-    let timestampInSeconds;
-    if (timestamp >= 1e14 || timestamp <= -1e14) {
-      // Microseconds
-      timestampInSeconds = Math.floor(timestamp / 100000);
-    } else if (timestamp >= 1e11 || timestamp <= -3e10) {
-      // Milliseconds
-      timestampInSeconds = Math.floor(timestamp / 1000);
-    } else {
-      timestampInSeconds = timestamp;
-    }
-    return timestampInSeconds;
   }
 
   static validateUserState(newUserState) {
@@ -2149,7 +2136,7 @@ export class GaaMetering {
 
           noIssues = false;
         } else if (
-          GaaMetering.convertTimestampToSeconds(
+          convertPotentialTimestampToSeconds(
             newUserState.registrationTimestamp
           ) >
           Date.now() / 1000
@@ -2178,7 +2165,7 @@ export class GaaMetering {
 
             noIssues = false;
           } else if (
-            GaaMetering.convertTimestampToSeconds(
+            convertPotentialTimestampToSeconds(
               newUserState.subscriptionTimestamp
             ) >
             Date.now() / 1000

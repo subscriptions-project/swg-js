@@ -3825,27 +3825,4 @@ describes.realWin('GaaMetering', {}, () => {
       expect(onReadyPromise).to.be.fulfilled;
     });
   });
-
-  describe('convertTimestampToSeconds', () => {
-    it('returns seconds if seconds are provided', () => {
-      const nowInSeconds = Math.floor(Date.now() / 1000);
-      expect(GaaMetering.convertTimestampToSeconds(nowInSeconds)).to.equal(
-        nowInSeconds
-      );
-    });
-    it('converts milliseconds to seconds', () => {
-      const nowInMilliseconds = Date.now();
-      const nowInSeconds = Math.floor(nowInMilliseconds / 1000);
-      expect(GaaMetering.convertTimestampToSeconds(nowInMilliseconds)).to.equal(
-        nowInSeconds
-      );
-    });
-    it('converts microseconds to seconds', () => {
-      const nowInMicroseconds = Date.now() * 1000;
-      const nowInSeconds = Math.floor(nowInMicroseconds / 100000);
-      expect(GaaMetering.convertTimestampToSeconds(nowInMicroseconds)).to.equal(
-        nowInSeconds
-      );
-    });
-  });
 });
