@@ -2172,6 +2172,82 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(entitlements.getEntitlementForThis().source).to.equal('google');
       expect(toastOpenStub).to.not.be.called;
     });
+
+    describe('enableDefaultMeteringHandler', () => {
+      beforeEach(() => {
+        expectGetIsReadyToPayToBeCalled(null);
+        expectGetSwgUserTokenToBeCalled();
+        storageMock
+          .expects('set')
+          .withExactArgs(Constants.USER_TOKEN, 'abc', true);
+        jwtHelperMock
+          .expects('decode')
+          .withExactArgs('SIGNED_DATA')
+          .returns({
+            entitlements: {
+              source: GOOGLE_METERING_SOURCE,
+              products: ['pub1:label1'],
+              subscriptionToken: 'token1',
+            },
+          });
+        jwtHelperMock
+          .expects('decode')
+          .withExactArgs('token1')
+          .returns({
+            metering: {
+              ownerId: 'scenic-2017.appspot.com',
+              action: 'READ',
+              clientUserAttribute: 'standard_registered_user',
+              clientType: MeterClientTypes.METERED_BY_GOOGLE.valueOf(),
+            },
+          });
+        xhrMock
+          .expects('fetch')
+          .withExactArgs(
+            '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+            {
+              method: 'GET',
+              headers: {'Accept': 'text/plain, application/json'},
+              credentials: 'include',
+            }
+          )
+          .returns(
+            Promise.resolve({
+              text: () =>
+                Promise.resolve(
+                  JSON.stringify({
+                    signedEntitlements: 'SIGNED_DATA',
+                    swgUserToken: 'abc',
+                  })
+                ),
+            })
+          );
+      });
+
+      it('should NOT consume a Google meter entitlement by default', async () => {
+        const entitlements = await manager.getEntitlements();
+
+        expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
+      });
+
+      it('should consume an entitlement if default handler is enabled and is Google meter', async () => {
+        // When enabled, we expect the pingback to occur as part of the getEntitlements process
+        manager.enableDefaultMeteringHandler_ = true;
+        expectEntitlementPingback({
+          entitlementSource:
+            EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
+          entitlementResult: EntitlementResult.UNLOCKED_METER,
+          jwtString: 'token1',
+          jwtSource: GOOGLE_METERING_SOURCE,
+          gaaToken: '',
+          userToken: 'abc',
+        });
+
+        const entitlements = await manager.getEntitlements();
+
+        expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
+      });
+    });
   });
 
   describe('flow with cache', () => {

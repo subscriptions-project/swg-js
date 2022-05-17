@@ -1145,6 +1145,20 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
     ).to.throw();
   });
 
+  it('should pass enableDefaultMeteringHandler into EntitlementsManager during constuction and default to false', () => {
+    runtime = new ConfiguredRuntime(win, config);
+
+    expect(runtime.entitlementsManager().enableDefaultMeteringHandler_).to.be
+      .false;
+
+    runtime = new ConfiguredRuntime(win, config, {
+      enableDefaultMeteringHandler: true,
+    });
+
+    expect(runtime.entitlementsManager().enableDefaultMeteringHandler_).to.be
+      .true;
+  });
+
   describe('while configuring', () => {
     let resolveConfig;
     let rejectConfig;
