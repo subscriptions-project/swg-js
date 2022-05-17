@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as runtime from './runtime';
 import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
@@ -192,10 +193,12 @@ describes.realWin('BasicRuntime', {}, (env) => {
   let win;
   let doc;
   let basicRuntime;
+  let configuredRuntimeSpy;
 
   beforeEach(() => {
     win = env.win;
     doc = new GlobalDoc(win);
+    configuredRuntimeSpy = sandbox.spy(runtime, 'ConfiguredRuntime');
     basicRuntime = new BasicRuntime(win);
     setExperimentsStringForTesting('');
   });
@@ -221,7 +224,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
         isPartOfProductId: 'herald-foo-times.com:basic',
       });
 
-      const configuredRuntime = await basicRuntime.configured_(true);
+      await basicRuntime.configured_(true);
 
       // init should have written the LD+JSON markup.
       const elements = doc
@@ -236,7 +239,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
       // Default metering handler in entitlements-manager should be enabled
       // for BasicRuntime.
       expect(
-        configuredRuntime.entitlementsManager().enableDefaultMeteringHandler_
+        configuredRuntimeSpy.getCall(0).args[2].enableDefaultMeteringHandler
       ).to.be.true;
     });
 
@@ -288,10 +291,10 @@ describes.realWin('BasicRuntime', {}, (env) => {
         disableDefaultMeteringHandler: true,
       });
 
-      const configuredRuntime = await basicRuntime.configured_(true);
+      await basicRuntime.configured_(true);
 
       expect(
-        configuredRuntime.entitlementsManager().enableDefaultMeteringHandler_
+        configuredRuntimeSpy.getCall(0).args[2].enableDefaultMeteringHandler
       ).to.be.false;
     });
   });

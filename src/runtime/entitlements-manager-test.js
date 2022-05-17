@@ -2174,12 +2174,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     describe('enableDefaultMeteringHandler', () => {
-      beforeEach(() => {
-        expectGetIsReadyToPayToBeCalled(null);
-        expectGetSwgUserTokenToBeCalled();
-        storageMock
-          .expects('set')
-          .withExactArgs(Constants.USER_TOKEN, 'abc', true);
+      function expectSignedEntitlementsReturnsGoogleMeter() {
         jwtHelperMock
           .expects('decode')
           .withExactArgs('SIGNED_DATA')
@@ -2217,22 +2212,52 @@ describes.realWin('EntitlementsManager', {}, (env) => {
                 Promise.resolve(
                   JSON.stringify({
                     signedEntitlements: 'SIGNED_DATA',
-                    swgUserToken: 'abc',
                   })
                 ),
             })
           );
-      });
+      }
 
       it('should NOT consume a Google meter entitlement by default', async () => {
-        const entitlements = await manager.getEntitlements();
+        manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
+        jwtHelperMock = sandbox.mock(manager.jwtHelper_);
+        expectGetIsReadyToPayToBeCalled(null);
+        expectGetSwgUserTokenToBeCalled();
+        expectSignedEntitlementsReturnsGoogleMeter();
+        xhrMock
+          .expects('fetch')
+          .withArgs(
+            '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+            sinon.match({
+              method: 'POST',
+            })
+          )
+          .never();
 
+        const entitlements = await manager.getEntitlements();
+        await manager.entitlementsPostPromise;
+
+        // Verify that the entitlement created should trigger the handler.
         expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
+        xhrMock.verify();
+        jwtHelperMock.verify();
+        storageMock.verify();
       });
 
       it('should consume an entitlement if default handler is enabled and is Google meter', async () => {
         // When enabled, we expect the pingback to occur as part of the getEntitlements process
-        manager.enableDefaultMeteringHandler_ = true;
+        manager = new EntitlementsManager(
+          win,
+          pageConfig,
+          fetcher,
+          deps,
+          /* useArticleEndpoint */ false,
+          /* enableDefaultMeteringHandler */ true
+        );
+        jwtHelperMock = sandbox.mock(manager.jwtHelper_);
+        expectGetIsReadyToPayToBeCalled(null);
+        expectGetSwgUserTokenToBeCalled();
+        expectSignedEntitlementsReturnsGoogleMeter();
         expectEntitlementPingback({
           entitlementSource:
             EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
@@ -2240,12 +2265,16 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           jwtString: 'token1',
           jwtSource: GOOGLE_METERING_SOURCE,
           gaaToken: '',
-          userToken: 'abc',
         });
 
         const entitlements = await manager.getEntitlements();
+        await manager.entitlementsPostPromise;
 
+        // Verify that the entitlement created should trigger the handler.
         expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
+        xhrMock.verify();
+        jwtHelperMock.verify();
+        storageMock.verify();
       });
     });
   });
