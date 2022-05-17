@@ -287,7 +287,7 @@ export class ConfiguredBasicRuntime {
    * @param {{
    *     fetcher: (!./fetcher.Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
-   *     enableDefaultMeteringHandler: (!boolean),
+   *     enableDefaultMeteringHandler: (boolean|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
