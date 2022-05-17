@@ -140,7 +140,13 @@ export class AudienceActionFlow {
       }
 
       this.activityIframeView_ = activityIframeView;
-      return this.dialogManager_.openView(activityIframeView);
+      return this.dialogManager_.openView(
+        activityIframeView,
+        /* hidden */ false,
+        /* dialogConfig */ {
+          shouldDisableBodyScrolling: true,
+        }
+      );
     });
   }
 
