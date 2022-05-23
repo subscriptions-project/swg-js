@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as entitlementsManager from './entitlements-manager';
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
 import {
@@ -1143,6 +1144,22 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
           enableSwgAnalytics: 1,
         })
     ).to.throw();
+  });
+
+  it('should pass enableDefaultMeteringHandler into EntitlementsManager during constuction and default to false', () => {
+    const entitlementsManagerSpy = sandbox.spy(
+      entitlementsManager,
+      'EntitlementsManager'
+    );
+    runtime = new ConfiguredRuntime(win, config);
+
+    expect(entitlementsManagerSpy.getCall(0).args[5]).to.be.false;
+
+    runtime = new ConfiguredRuntime(win, config, {
+      enableDefaultMeteringHandler: true,
+    });
+
+    expect(entitlementsManagerSpy.getCall(1).args[5]).to.be.true;
   });
 
   describe('while configuring', () => {

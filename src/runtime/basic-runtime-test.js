@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as runtime from './runtime';
 import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
@@ -186,58 +187,18 @@ describes.realWin('installBasicRuntime', {}, (env) => {
       expect(basicSubscriptions).to.have.property(name);
     }
   });
-
-  describe('default onEntitlementsResponse', () => {
-    let entitlements;
-    let configuredCallback;
-
-    beforeEach(() => {
-      sandbox
-        .stub(BasicRuntime.prototype, 'setOnEntitlementsResponse')
-        .callsFake((callback) => {
-          configuredCallback = callback;
-        });
-      entitlements = {
-        consume: sandbox.stub(),
-      };
-    });
-
-    it('should consume if entitlement enables with metering', async () => {
-      entitlements.enablesThisWithGoogleMetering = sandbox.stub().returns(true);
-
-      installBasicRuntime(win);
-      const entitlementsResponse = Promise.resolve(entitlements);
-      configuredCallback(entitlementsResponse);
-      await entitlementsResponse;
-
-      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
-      expect(entitlements.consume).to.be.calledOnce;
-    });
-
-    it('should not consume if entitlement is not for metering', async () => {
-      entitlements.enablesThisWithGoogleMetering = sandbox
-        .stub()
-        .returns(false);
-
-      installBasicRuntime(win);
-      const entitlementsResponse = Promise.resolve(entitlements);
-      configuredCallback(entitlementsResponse);
-      await entitlementsResponse;
-
-      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
-      expect(entitlements.consume).to.not.be.called;
-    });
-  });
 });
 
 describes.realWin('BasicRuntime', {}, (env) => {
   let win;
   let doc;
   let basicRuntime;
+  let configuredRuntimeSpy;
 
   beforeEach(() => {
     win = env.win;
     doc = new GlobalDoc(win);
+    configuredRuntimeSpy = sandbox.spy(runtime, 'ConfiguredRuntime');
     basicRuntime = new BasicRuntime(win);
     setExperimentsStringForTesting('');
   });
@@ -274,6 +235,12 @@ describes.realWin('BasicRuntime', {}, (env) => {
       // PageConfigResolver should have been created and attempted to resolve
       // the PageConfig.
       expect(resolveStub).to.be.calledOnce;
+
+      // Default metering handler in entitlements-manager should be enabled
+      // for BasicRuntime.
+      expect(
+        configuredRuntimeSpy.getCall(0).args[2].enableDefaultMeteringHandler
+      ).to.be.true;
     });
 
     it('should try to check the page config resolver after initial configuration', async () => {
@@ -313,6 +280,22 @@ describes.realWin('BasicRuntime', {}, (env) => {
         lang: 'fr',
         theme: ClientTheme.DARK,
       });
+    });
+
+    it('should allow caller to disable default metering handler', async () => {
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        disableDefaultMeteringHandler: true,
+      });
+
+      await basicRuntime.configured_(true);
+
+      expect(
+        configuredRuntimeSpy.getCall(0).args[2].enableDefaultMeteringHandler
+      ).to.be.false;
     });
   });
 

@@ -99,15 +99,6 @@ export function installBasicRuntime(win) {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
-
-  // Set the default entitlements response handler to consume a valid metering entitlement.
-  basicRuntime.setOnEntitlementsResponse((entitlementsPromise) => {
-    entitlementsPromise.then((entitlements) => {
-      if (entitlements.enablesThisWithGoogleMetering()) {
-        entitlements.consume();
-      }
-    });
-  });
 }
 
 /**
@@ -149,6 +140,9 @@ export class BasicRuntime {
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
+
+    /** @private {boolean} */
+    this.enableDefaultMeteringHandler_ = true;
   }
 
   /**
@@ -175,7 +169,11 @@ export class BasicRuntime {
             new ConfiguredBasicRuntime(
               this.doc_,
               pageConfig,
-              /* integr */ {configPromise: this.configuredPromise_},
+              /* integr */ {
+                configPromise: this.configuredPromise_,
+                enableDefaultMeteringHandler:
+                  this.enableDefaultMeteringHandler_,
+              },
               this.config_,
               this.clientOptions_
             )
@@ -194,26 +192,36 @@ export class BasicRuntime {
   }
 
   /** @override */
-  init(params) {
+  init({
+    type,
+    isAccessibleForFree,
+    isPartOfType,
+    isPartOfProductId,
+    clientOptions,
+    autoPromptType,
+    alwaysShow = false,
+    disableDefaultMeteringHandler = false,
+  }) {
+    this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.pageConfigWriter_
       .writeConfigWhenReady({
-        type: params.type,
-        isAccessibleForFree: params.isAccessibleForFree,
-        isPartOfType: params.isPartOfType,
-        isPartOfProductId: params.isPartOfProductId,
+        type,
+        isAccessibleForFree,
+        isPartOfType,
+        isPartOfProductId,
       })
       .then(() => {
         this.pageConfigWriter_ = null;
         this.configured_(true);
       });
 
-    this.clientOptions_ = Object.assign({}, params.clientOptions, {
+    this.clientOptions_ = Object.assign({}, clientOptions, {
       forceLangInIframes: true,
     });
     this.setupAndShowAutoPrompt({
-      autoPromptType: params.autoPromptType,
-      alwaysShow: params.alwaysShow || false,
+      autoPromptType,
+      alwaysShow,
     });
     this.setOnLoginRequest();
     this.processEntitlements();
@@ -279,6 +287,7 @@ export class ConfiguredBasicRuntime {
    * @param {{
    *     fetcher: (!./fetcher.Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
+   *     enableDefaultMeteringHandler: (boolean|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
