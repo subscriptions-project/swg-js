@@ -728,6 +728,37 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         },
       ]);
     });
+
+    it('logs analytics events on button click', async () => {
+      GaaMeteringRegwall.showWithNativeRegistrationButton({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+      });
+
+      // Click button.
+      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+
+      await tick();
+
+      // Verify analytics events.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.IMPRESSION_REGWALL,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.IMPRESSION_SHOWCASE_REGWALL,
+          isFromUserAction: false,
+        },
+        {
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
   });
 
   describe('showWithNative3PRegistrationButton', () => {
