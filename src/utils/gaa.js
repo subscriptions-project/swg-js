@@ -922,7 +922,7 @@ export class GaaMeteringRegwall {
     // Track button clicks.
     buttonEl.addEventListener('click', () => {
       logEvent({
-        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
         isFromUserAction: true,
       });
     });
