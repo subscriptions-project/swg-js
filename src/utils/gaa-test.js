@@ -2131,7 +2131,6 @@ describes.realWin('GaaMetering', {}, () => {
           showPaywall: function () {},
           handleLogin: function () {},
           handleSwGEntitlement: function () {},
-          registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
           publisherEntitlementPromise: new Promise(() => {}),
         })
