@@ -62,7 +62,9 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       }),
       true
     );
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.IMPRESSION_OFFERS);
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
@@ -80,7 +82,9 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       }),
       true
     );
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK);
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK
+    );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
@@ -98,7 +102,10 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       }),
       true
     );
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, SubscriptionFlows.CONTRIBUTE);
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.CONTRIBUTE
+    );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
@@ -120,7 +127,10 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       }),
       true
     );
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, SubscriptionFlows.SUBSCRIBE);
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.SUBSCRIBE
+    );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
@@ -142,7 +152,10 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       }),
       true
     );
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.ACTION_PAYMENT_COMPLETE, SubscriptionFlows.CONTRIBUTE);
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.CONTRIBUTE
+    );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
     const eventParams = new EventParams();
@@ -197,7 +210,9 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       }),
       true
     );
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.IMPRESSION_OFFERS);
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
     expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
@@ -215,7 +230,9 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       }),
       true
     );
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.IMPRESSION_OFFERS);
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
     expectEventLoggedToGa(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
@@ -244,10 +261,7 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
   });
 
   function expectEventLoggedToGa(gaEvent) {
-    winMock
-      .expects('ga')
-      .withExactArgs('send', 'event', gaEvent)
-      .once();
+    winMock.expects('ga').withExactArgs('send', 'event', gaEvent).once();
   }
 
   function expectEventLoggedToGtag(gaEvent) {
@@ -260,5 +274,4 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       })
       .once();
   }
-
 });
