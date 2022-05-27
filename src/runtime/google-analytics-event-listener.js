@@ -15,7 +15,6 @@
  */
 
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
-import {isFunction} from '../utils/types';
 
 export class GoogleAnalyticsEventListener {
   /**
@@ -44,7 +43,10 @@ export class GoogleAnalyticsEventListener {
    */
   handleClientEvent_(event) {
     // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
-    if (!isFunction(this.win_.ga) && !isFunction(this.win_.gtag)) {
+    if (
+      typeof this.win_.ga !== 'function' &&
+      typeof this.win_.gtag !== 'function'
+    ) {
       return;
     }
     let subscriptionFlow = '';
@@ -62,11 +64,11 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
-    if (isFunction(this.win_.ga)) {
+    if (typeof this.win_.ga === 'function') {
       this.win_.ga('send', 'event', gaEvent);
     }
 
-    if (isFunction(this.win_.gtag)) {
+    if (typeof this.win_.gtag === 'function') {
       this.win_.gtag('event', gaEvent.eventAction, {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
