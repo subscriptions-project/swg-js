@@ -30,6 +30,7 @@ import {PageConfig} from '../model/page-config';
 import {tick} from '../../test/tick';
 
 const publicationId = 'PUB_ID';
+const TOKEN = 'abc';
 
 describes.realWin('Activity Components', {}, (env) => {
   let win, iframe, url, dialog, doc, deps, pageConfig, analytics, activityPorts;
@@ -50,6 +51,7 @@ describes.realWin('Activity Components', {}, (env) => {
       pageConfig: () => pageConfig,
       doc: () => doc,
       eventManager: () => eventManager,
+      storage: () => ({get: () => Promise.resolve(TOKEN)}),
     };
     activityPorts = new ActivityPorts(deps);
     deps['activities'] = () => activityPorts;
@@ -131,7 +133,7 @@ describes.realWin('Activity Components', {}, (env) => {
         expect(passedArgs).to.deep.equal(expectedDefaults);
       });
 
-      it('should not add them to openIframe', () => {
+      it('should not add them to openIframe', async () => {
         // The best test I could come up with was just to ensure it passed the
         // arguments to addDefaultArguments and used the result.
         let receivedArgs = null;
@@ -145,17 +147,18 @@ describes.realWin('Activity Components', {}, (env) => {
             return args;
           });
 
-        activityPorts.openIframe(iframe, url, sentArgs);
+        await activityPorts.openIframe(iframe, url, sentArgs);
 
         expect(receivedArgs).to.deep.equal(sentArgs);
       });
 
-      it('should add them to openIframe', () => {
+      it('should add them to openIframe', async () => {
         // The best test I could come up with was just to ensure it passed the
         // arguments to addDefaultArguments and used the result.
         let receivedArgs;
         const sentArgs = {
           a: 1,
+          sut: TOKEN,
         };
         sandbox
           .stub(activityPorts, 'openActivityIframePort_')
@@ -163,7 +166,7 @@ describes.realWin('Activity Components', {}, (env) => {
             receivedArgs = args;
             return args;
           });
-        activityPorts.openIframe(iframe, url, sentArgs, true);
+        await activityPorts.openIframe(iframe, url, sentArgs, true);
 
         expect(receivedArgs).to.deep.equal(
           activityPorts.addDefaultArguments(sentArgs)

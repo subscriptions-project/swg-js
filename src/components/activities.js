@@ -20,6 +20,9 @@ import {
   getLabel,
 } from '../proto/api_messages';
 
+import {Constants} from '../utils/constants';
+import {addQueryParam} from '../utils/url';
+
 const {
   ActivityIframePort: WebActivityIframePort,
   ActivityPorts: WebActivityPorts,
@@ -314,7 +317,19 @@ export class ActivityPorts {
     if (addDefaultArguments) {
       args = this.addDefaultArguments(args);
     }
-    return this.openActivityIframePort_(iframe, url, args);
+    return this.deps_
+      .storage()
+      .get(Constants.USER_TOKEN, true)
+      .then((swgUserToken) => {
+        const pubId = this.deps_.pageConfig().getPublicationId();
+        if (swgUserToken) {
+          url = addQueryParam(url, 'sut', swgUserToken);
+        }
+        if (pubId) {
+          url = addQueryParam(url, 'publicationId', pubId);
+        }
+        return this.openActivityIframePort_(iframe, url, args);
+      });
   }
 
   /**
