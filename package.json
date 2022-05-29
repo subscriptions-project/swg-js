@@ -53,7 +53,7 @@
     "cheerio": "1.0.0-rc.11",
     "chromedriver": "101.0.0",
     "cookie-parser": "1.4.6",
-    "cssnano": "5.1.9",
+    "cssnano": "5.1.10",
     "del": "6.1.1",
     "eslint": "8.16.0",
     "eslint-plugin-google-camelcase": "0.0.2",
