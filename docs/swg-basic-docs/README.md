@@ -12,6 +12,6 @@ If you have additional technical questions about Subscribe with Google, you can 
 
 | Article     |
 | ----------- |
-| [Enable Subscriptions or Contributions](/swg-basic-docs/enable_swg.md)|
-| [Suppress Ads for Subscribers](/swg-basic-docs/suppress_ads.md)|
-| [Hide Contribution Prompt for Entitled Users](/swg-basic-docs/hide_prompt_entitled.md)|
+| [Enable Subscriptions or Contributions](/enable_swg.md)|
+| [Suppress Ads for Subscribers](/suppress_ads.md)|
+| [Hide Contribution Prompt for Entitled Users](/hide_prompt_entitled.md)|
