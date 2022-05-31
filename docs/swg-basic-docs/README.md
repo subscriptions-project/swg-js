@@ -15,5 +15,3 @@ If you have additional technical questions about Subscribe with Google, you can 
 | [Enable Subscriptions or Contributions](enable_swg.md)|
 | [Suppress Ads for Subscribers](suppress_ads.md)|
 | [Hide Contribution Prompt for Entitled Users](hide_prompt_entitled.md)|
-
-https://github.com/fhinson/swg-js/blob/swg-zero-docs/enable_swg.md
