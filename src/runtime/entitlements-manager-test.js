@@ -535,7 +535,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* exactly= */ 2);
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
@@ -591,7 +591,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* exactly= */ 2);
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       storageMock
         .expects('set')
@@ -625,7 +625,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* exactly= */ 2);
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       storageMock
         .expects('set')
@@ -702,7 +702,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* exactly= */ 2);
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.be.null;
@@ -751,7 +751,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* exactly= */ 2);
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
@@ -811,7 +811,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* exactly= */ 2);
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       await manager.getEntitlements();
     });
@@ -893,7 +893,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* exactly= */ 2);
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
@@ -948,7 +948,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
-      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* exactly= */ 2);
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const entitlements = await manager.getEntitlements();
       expect(manager.positiveRetries_).to.equal(0);
@@ -1211,7 +1211,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should open metering dialog when metering entitlements are consumed and showToast is true', async () => {
-      //expectGetSwgUserTokenToBeCalled();
       dialogManagerMock
         .expects('openDialog')
         .once()
