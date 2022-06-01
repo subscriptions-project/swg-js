@@ -30,7 +30,7 @@ Add this code snippet into your content management system to give readers access
       type: "NewsArticle",
       isAccessibleForFree: false,
       isPartOfType: ["Product"],
-      isPartOfProductId: "<PRODUCT_ID>:basic",
+      isPartOfProductId: "<PUBLICATION_ID>:<PRODUCT_ID>",
       autoPromptType: "contribution",
       clientOptions: { theme: "light", lang: "en" },
     });
@@ -64,7 +64,7 @@ The `isPartOfType` attribute accepts an Array of strings. You should set the def
 
 ### `isPartOfProductID`
 
-Use the `isPartofProductID` attribute to specify which pricing plan you want to configure for the page. This attribute follows the syntax of `<PRODUCT_ID>:<PLAN_NAME>`
+Use the `isPartofProductID` attribute to specify which pricing plan you want to configure for the page. This attribute follows the syntax of `<PUBLICATION_ID>:<PRODUCT_ID>`
 
 You must ensure that your pricing plan is set to live, otherwise the snippet will not load correctly on the page.
 
