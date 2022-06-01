@@ -30,7 +30,6 @@ import {PageConfig} from '../model/page-config';
 import {tick} from '../../test/tick';
 
 const publicationId = 'PUB_ID';
-const TOKEN = 'abc';
 
 describes.realWin('Activity Components', {}, (env) => {
   let win, iframe, url, dialog, doc, deps, pageConfig, analytics, activityPorts;
@@ -51,7 +50,7 @@ describes.realWin('Activity Components', {}, (env) => {
       pageConfig: () => pageConfig,
       doc: () => doc,
       eventManager: () => eventManager,
-      storage: () => ({get: () => Promise.resolve(TOKEN)}),
+      storage: () => ({get: () => Promise.resolve(null)}),
     };
     activityPorts = new ActivityPorts(deps);
     deps['activities'] = () => activityPorts;
@@ -158,7 +157,6 @@ describes.realWin('Activity Components', {}, (env) => {
         let receivedArgs;
         const sentArgs = {
           a: 1,
-          sut: TOKEN,
         };
         sandbox
           .stub(activityPorts, 'openActivityIframePort_')
