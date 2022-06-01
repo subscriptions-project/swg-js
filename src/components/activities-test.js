@@ -30,6 +30,7 @@ import {PageConfig} from '../model/page-config';
 import {tick} from '../../test/tick';
 
 const publicationId = 'PUB_ID';
+const TOKEN = 'abc';
 
 describes.realWin('Activity Components', {}, (env) => {
   let win, iframe, url, dialog, doc, deps, pageConfig, analytics, activityPorts;
@@ -50,7 +51,7 @@ describes.realWin('Activity Components', {}, (env) => {
       pageConfig: () => pageConfig,
       doc: () => doc,
       eventManager: () => eventManager,
-      storage: () => ({get: () => Promise.resolve(null)}),
+      storage: () => ({get: () => Promise.resolve(TOKEN)}),
     };
     activityPorts = new ActivityPorts(deps);
     deps['activities'] = () => activityPorts;
@@ -239,6 +240,40 @@ describes.realWin('Activity Components', {}, (env) => {
       it('makes original activity ports available', () => {
         const original = activityPorts.getOriginalWebActivityPorts();
         expect(original).to.be.instanceof(WebActivityPorts);
+      });
+    });
+
+    describe('openIframe', () => {
+      it('adds sut and publicationId', async () => {
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(
+            iframe,
+            `${url}?sut=${TOKEN}&publicationId=${publicationId}`,
+            {}
+          )
+          .once();
+        await activityPorts.openIframe(iframe, url, {});
+        callMock.verify();
+      });
+
+      it('does not duplicate already existing sut and publicationId', async () => {
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(
+            iframe,
+            `${url}?sut=${TOKEN}&publicationId=${publicationId}`,
+            {}
+          )
+          .once();
+        await activityPorts.openIframe(
+          iframe,
+          `${url}?sut=${TOKEN}&publicationId=${publicationId}`,
+          {}
+        );
+        callMock.verify();
       });
     });
   });
