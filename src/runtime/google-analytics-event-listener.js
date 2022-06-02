@@ -64,6 +64,7 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
+    // TODO(oyj9109): Remove it once universal analytics is deprecated in 2023.
     if (typeof this.win_.ga === 'function') {
       this.win_.ga('send', 'event', gaEvent);
     }
