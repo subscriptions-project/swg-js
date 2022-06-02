@@ -37,7 +37,7 @@ describes.realWin('Activity Components', {}, (env) => {
   let eventManager;
 
   beforeEach(() => {
-    url = '/hello';
+    url = 'https://www.google.com/';
     win = env.win;
     doc = new GlobalDoc(win);
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
@@ -264,13 +264,13 @@ describes.realWin('Activity Components', {}, (env) => {
           .expects('openActivityIframePort_')
           .withExactArgs(
             iframe,
-            `${url}?sut=${TOKEN}&publicationId=${publicationId}`,
+            `${url}?sut=Original${TOKEN}&publicationId=Original${publicationId}`,
             {}
           )
           .once();
         await activityPorts.openIframe(
           iframe,
-          `${url}?sut=${TOKEN}&publicationId=${publicationId}`,
+          `${url}?sut=Original${TOKEN}&publicationId=Original${publicationId}`,
           {}
         );
         callMock.verify();

@@ -21,7 +21,7 @@ import {
 } from '../proto/api_messages';
 
 import {Constants} from '../utils/constants';
-import {addQueryParam, parseQueryString} from '../utils/url';
+import {addQueryParam} from '../utils/url';
 
 const {
   ActivityIframePort: WebActivityIframePort,
@@ -321,15 +321,13 @@ export class ActivityPorts {
       .storage()
       .get(Constants.USER_TOKEN, true)
       .then((swgUserToken) => {
-        const split = url.split('?');
-        const queryString = split.length == 1 ? '' : split[1];
-        const queries = parseQueryString(queryString);
-        if (swgUserToken && !('sut' in queries)) {
+        const queryParams = new URL(url).searchParams;
+        if (swgUserToken && !queryParams.has('sut')) {
           url = addQueryParam(url, 'sut', swgUserToken);
         }
 
         const pubId = this.deps_.pageConfig().getPublicationId();
-        if (pubId && !('publicationId' in queries)) {
+        if (pubId && !queryParams.has('publicationId')) {
           url = addQueryParam(url, 'publicationId', pubId);
         }
 
