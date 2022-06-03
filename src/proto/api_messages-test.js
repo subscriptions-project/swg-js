@@ -245,6 +245,7 @@ describe('AnalyticsContext', () => {
     timestamp.setSeconds(0);
     timestamp.setNanos(0);
     analyticscontext.setClientTimestamp(timestamp);
+    analyticscontext.setPluginVersion('1.4');
 
     let analyticscontextDeserialized;
 
@@ -294,6 +295,9 @@ describe('AnalyticsContext', () => {
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
       analyticscontext.getClientTimestamp()
     );
+    expect(analyticscontextDeserialized.getPluginVersion()).to.deep.equal(
+      analyticscontext.getPluginVersion()
+    );
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -338,6 +342,9 @@ describe('AnalyticsContext', () => {
     );
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
       analyticscontext.getClientTimestamp()
+    );
+    expect(analyticscontextDeserialized.getPluginVersion()).to.deep.equal(
+      analyticscontext.getPluginVersion()
     );
 
     // Verify includeLabel false
@@ -386,6 +393,9 @@ describe('AnalyticsContext', () => {
     );
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
       analyticscontext.getClientTimestamp()
+    );
+    expect(analyticscontextDeserialized.getPluginVersion()).to.deep.equal(
+      analyticscontext.getPluginVersion()
     );
   });
 });
