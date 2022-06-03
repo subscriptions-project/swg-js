@@ -108,7 +108,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -141,7 +141,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -168,7 +168,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -203,7 +203,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          '$frontend$/swg/_/ui/v1/meteriframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+          '$frontend$/swg/_/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc',
           iframeArgs
         )
         .returns(Promise.resolve(port));
@@ -425,7 +425,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -451,7 +451,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));

@@ -319,7 +319,7 @@ export class ActivityPorts {
     }
     return this.deps_
       .storage()
-      .get(Constants.USER_TOKEN, true)
+      .get(Constants.USER_TOKEN, /* useLocalStorage= */ true)
       .then((swgUserToken) => {
         const queryParams = new URL(url).searchParams;
         if (swgUserToken && !queryParams.has('sut')) {

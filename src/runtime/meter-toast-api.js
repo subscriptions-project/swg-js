@@ -131,16 +131,12 @@ export class MeterToastApi {
       IframeUrlByMeterClientType[
         this.meterClientType_ ?? MeterClientTypes.LICENSED_BY_GOOGLE
       ];
-    const iframeUrlParams = {
-      'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'origin': parseUrl(this.win_.location.href).origin,
-    };
 
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      feUrl(iframeUrl, iframeUrlParams),
+      feUrl(iframeUrl, {'origin': parseUrl(this.win_.location.href).origin}),
       iframeArgs,
       /* shouldFadeBody */ false
     );

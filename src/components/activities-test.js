@@ -286,15 +286,11 @@ describes.realWin('Activity Components', {}, (env) => {
           .expects('openActivityIframePort_')
           .withExactArgs(
             iframe,
-            `${url}?sut=Original${TOKEN}&publicationId=${publicationId}`,
+            `${url}?sut=Original&publicationId=${publicationId}`,
             {}
           )
           .once();
-        await activityPorts.openIframe(
-          iframe,
-          `${url}?sut=Original${TOKEN}`,
-          {}
-        );
+        await activityPorts.openIframe(iframe, `${url}?sut=Original`, {});
         callMock.verify();
       });
 
@@ -304,13 +300,13 @@ describes.realWin('Activity Components', {}, (env) => {
           .expects('openActivityIframePort_')
           .withExactArgs(
             iframe,
-            `${url}?publicationId=Original${publicationId}&sut=${TOKEN}`,
+            `${url}?publicationId=Original&sut=${TOKEN}`,
             {}
           )
           .once();
         await activityPorts.openIframe(
           iframe,
-          `${url}?publicationId=Original${publicationId}`,
+          `${url}?publicationId=Original`,
           {}
         );
         callMock.verify();
