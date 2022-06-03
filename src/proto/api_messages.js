@@ -234,7 +234,7 @@ class AccountCreationRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.complete_, // field 1 - complete
+      this.complete_, // field 1 - complete
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -287,7 +287,7 @@ class ActionRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.action_, // field 1 - action
+      this.action_, // field 1 - action
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -357,8 +357,8 @@ class AlreadySubscribedResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.subscriberOrMember_, // field 1 - subscriber_or_member
-        this.linkRequested_, // field 2 - link_requested
+      this.subscriberOrMember_, // field 1 - subscriber_or_member
+      this.linkRequested_, // field 2 - link_requested
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -601,18 +601,18 @@ class AnalyticsContext {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.embedderOrigin_, // field 1 - embedder_origin
-        this.transactionId_, // field 2 - transaction_id
-        this.referringOrigin_, // field 3 - referring_origin
-        this.utmSource_, // field 4 - utm_source
-        this.utmCampaign_, // field 5 - utm_campaign
-        this.utmMedium_, // field 6 - utm_medium
-        this.sku_, // field 7 - sku
-        this.readyToPay_, // field 8 - ready_to_pay
-        this.label_, // field 9 - label
-        this.clientVersion_, // field 10 - client_version
-        this.url_, // field 11 - url
-        this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
+      this.embedderOrigin_, // field 1 - embedder_origin
+      this.transactionId_, // field 2 - transaction_id
+      this.referringOrigin_, // field 3 - referring_origin
+      this.utmSource_, // field 4 - utm_source
+      this.utmCampaign_, // field 5 - utm_campaign
+      this.utmMedium_, // field 6 - utm_medium
+      this.sku_, // field 7 - sku
+      this.readyToPay_, // field 8 - ready_to_pay
+      this.label_, // field 9 - label
+      this.clientVersion_, // field 10 - client_version
+      this.url_, // field 11 - url
+      this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -682,8 +682,8 @@ class AnalyticsEventMeta {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.eventOriginator_, // field 1 - event_originator
-        this.isFromUserAction_, // field 2 - is_from_user_action
+      this.eventOriginator_, // field 1 - event_originator
+      this.isFromUserAction_, // field 2 - is_from_user_action
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -796,10 +796,10 @@ class AnalyticsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.context_ ? this.context_.toArray(includeLabel) : [], // field 1 - context
-        this.event_, // field 2 - event
-        this.meta_ ? this.meta_.toArray(includeLabel) : [], // field 3 - meta
-        this.params_ ? this.params_.toArray(includeLabel) : [], // field 4 - params
+      this.context_ ? this.context_.toArray(includeLabel) : [], // field 1 - context
+      this.event_, // field 2 - event
+      this.meta_ ? this.meta_.toArray(includeLabel) : [], // field 3 - meta
+      this.params_ ? this.params_.toArray(includeLabel) : [], // field 4 - params
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -852,7 +852,7 @@ class AudienceActivityClientLogsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.event_, // field 1 - event
+      this.event_, // field 1 - event
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -939,9 +939,9 @@ class CompleteAudienceActionResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.swgUserToken_, // field 1 - swg_user_token
-        this.actionCompleted_, // field 2 - action_completed
-        this.userEmail_, // field 3 - user_email
+      this.swgUserToken_, // field 1 - swg_user_token
+      this.actionCompleted_, // field 2 - action_completed
+      this.userEmail_, // field 3 - user_email
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1011,8 +1011,8 @@ class EntitlementJwt {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.jwt_, // field 1 - jwt
-        this.source_, // field 2 - source
+      this.jwt_, // field 1 - jwt
+      this.source_, // field 2 - source
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1156,12 +1156,12 @@ class EntitlementsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) : [], // field 1 - used_entitlement
-        this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 2 - client_event_time
-        this.entitlementSource_, // field 3 - entitlement_source
-        this.entitlementResult_, // field 4 - entitlement_result
-        this.token_, // field 5 - token
-        this.isUserRegistered_, // field 6 - is_user_registered
+      this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) : [], // field 1 - used_entitlement
+      this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 2 - client_event_time
+      this.entitlementSource_, // field 3 - entitlement_source
+      this.entitlementResult_, // field 4 - entitlement_result
+      this.token_, // field 5 - token
+      this.isUserRegistered_, // field 6 - is_user_registered
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1231,8 +1231,8 @@ class EntitlementsResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.jwt_, // field 1 - jwt
-        this.swgUserToken_, // field 2 - swg_user_token
+      this.jwt_, // field 1 - jwt
+      this.swgUserToken_, // field 2 - swg_user_token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1387,13 +1387,13 @@ class EventParams {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.smartboxMessage_, // field 1 - smartbox_message
-        this.gpayTransactionId_, // field 2 - gpay_transaction_id
-        this.hadLogged_, // field 3 - had_logged
-        this.sku_, // field 4 - sku
-        this.oldTransactionId_, // field 5 - old_transaction_id
-        this.isUserRegistered_, // field 6 - is_user_registered
-        this.subscriptionFlow_, // field 7 - subscription_flow
+      this.smartboxMessage_, // field 1 - smartbox_message
+      this.gpayTransactionId_, // field 2 - gpay_transaction_id
+      this.hadLogged_, // field 3 - had_logged
+      this.sku_, // field 4 - sku
+      this.oldTransactionId_, // field 5 - old_transaction_id
+      this.isUserRegistered_, // field 6 - is_user_registered
+      this.subscriptionFlow_, // field 7 - subscription_flow
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1463,8 +1463,8 @@ class FinishedLoggingResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.complete_, // field 1 - complete
-        this.error_, // field 2 - error
+      this.complete_, // field 1 - complete
+      this.error_, // field 2 - error
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1534,8 +1534,8 @@ class LinkSaveTokenRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.authCode_, // field 1 - auth_code
-        this.token_, // field 2 - token
+      this.authCode_, // field 1 - auth_code
+      this.token_, // field 2 - token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1588,7 +1588,7 @@ class LinkingInfoResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.requested_, // field 1 - requested
+      this.requested_, // field 1 - requested
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1641,7 +1641,7 @@ class OpenDialogRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.urlPath_, // field 1 - url_path
+      this.urlPath_, // field 1 - url_path
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1796,13 +1796,13 @@ class SkuSelectedResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.sku_, // field 1 - sku
-        this.oldSku_, // field 2 - old_sku
-        this.oneTime_, // field 3 - one_time
-        this.playOffer_, // field 4 - play_offer
-        this.oldPlayOffer_, // field 5 - old_play_offer
-        this.customMessage_, // field 6 - custom_message
-        this.anonymous_, // field 7 - anonymous
+      this.sku_, // field 1 - sku
+      this.oldSku_, // field 2 - old_sku
+      this.oneTime_, // field 3 - one_time
+      this.playOffer_, // field 4 - play_offer
+      this.oldPlayOffer_, // field 5 - old_play_offer
+      this.customMessage_, // field 6 - custom_message
+      this.anonymous_, // field 7 - anonymous
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1855,7 +1855,7 @@ class SmartBoxMessage {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.isClicked_, // field 1 - is_clicked
+      this.isClicked_, // field 1 - is_clicked
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1908,7 +1908,7 @@ class SubscribeResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.subscribe_, // field 1 - subscribe
+      this.subscribe_, // field 1 - subscribe
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1978,8 +1978,8 @@ class Timestamp {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.seconds_, // field 1 - seconds
-        this.nanos_, // field 2 - nanos
+      this.seconds_, // field 1 - seconds
+      this.nanos_, // field 2 - nanos
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2032,7 +2032,7 @@ class ToastCloseRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.close_, // field 1 - close
+      this.close_, // field 1 - close
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2085,7 +2085,7 @@ class ViewSubscriptionsResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.native_, // field 1 - native
+      this.native_, // field 1 - native
     ];
     if (includeLabel) {
       arr.unshift(this.label());
