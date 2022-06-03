@@ -1822,7 +1822,10 @@ export class GaaMetering {
       noIssues = false;
     }
 
-    const reqPromise = ['handleLoginPromise', 'registerUserPromise'];
+    const reqPromise =
+      'authorizationUrl' in params
+        ? ['handleLoginPromise']
+        : ['handleLoginPromise', 'registerUserPromise'];
 
     for (
       let reqPromiseNo = 0;
