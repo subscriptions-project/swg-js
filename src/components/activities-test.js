@@ -258,19 +258,59 @@ describes.realWin('Activity Components', {}, (env) => {
         callMock.verify();
       });
 
-      it('does not duplicate already existing sut and publicationId', async () => {
+      it('does not add sut if it does not exist', async () => {
+        deps.storage = () => ({get: () => Promise.resolve(null)});
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(iframe, `${url}?publicationId=${publicationId}`, {})
+          .once();
+        await activityPorts.openIframe(iframe, url, {});
+        callMock.verify();
+      });
+
+      it('does not add publicationId if it does not exist', async () => {
+        deps.pageConfig = () => new PageConfig('', false);
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(iframe, `${url}?sut=${TOKEN}`, {})
+          .once();
+        await activityPorts.openIframe(iframe, url, {});
+        callMock.verify();
+      });
+
+      it('does not replace or duplicate already existing sut', async () => {
         const callMock = sandbox
           .mock(activityPorts, 'openActivityIframePort_')
           .expects('openActivityIframePort_')
           .withExactArgs(
             iframe,
-            `${url}?sut=Original${TOKEN}&publicationId=Original${publicationId}`,
+            `${url}?sut=Original${TOKEN}&publicationId=${publicationId}`,
             {}
           )
           .once();
         await activityPorts.openIframe(
           iframe,
-          `${url}?sut=Original${TOKEN}&publicationId=Original${publicationId}`,
+          `${url}?sut=Original${TOKEN}`,
+          {}
+        );
+        callMock.verify();
+      });
+
+      it('does not replace or duplicate already existing publicationId', async () => {
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(
+            iframe,
+            `${url}?publicationId=Original${publicationId}&sut=${TOKEN}`,
+            {}
+          )
+          .once();
+        await activityPorts.openIframe(
+          iframe,
+          `${url}?publicationId=Original${publicationId}`,
           {}
         );
         callMock.verify();
