@@ -54,21 +54,19 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     }
   }
 
-  it('Should log to ga on valid event (IMPRESSION_OFFERS)', async () => {
+  it('Should log ga event on valid event (IMPRESSION_OFFERS)', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
+        gtag: () => {},
       }),
       true
     );
-    winMock
-      .expects('ga')
-      .withExactArgs(
-        'send',
-        'event',
-        analyticsEventToGoogleAnalyticsEvent(AnalyticsEvent.IMPRESSION_OFFERS)
-      )
-      .once();
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
+    expectEventLoggedToGa(gaEvent);
+    expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -76,23 +74,19 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should log to ga on valid event (ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK)', async () => {
+  it('Should log ga event on valid event (ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK)', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
+        gtag: () => {},
       }),
       true
     );
-    winMock
-      .expects('ga')
-      .withExactArgs(
-        'send',
-        'event',
-        analyticsEventToGoogleAnalyticsEvent(
-          AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK
-        )
-      )
-      .once();
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK
+    );
+    expectEventLoggedToGa(gaEvent);
+    expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -100,24 +94,20 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should log contribution pay complete to ga', async () => {
+  it('Should log contribution pay complete', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
+        gtag: () => {},
       }),
       true
     );
-    winMock
-      .expects('ga')
-      .withExactArgs(
-        'send',
-        'event',
-        analyticsEventToGoogleAnalyticsEvent(
-          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          SubscriptionFlows.CONTRIBUTE
-        )
-      )
-      .once();
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.CONTRIBUTE
+    );
+    expectEventLoggedToGa(gaEvent);
+    expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -129,24 +119,20 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should log subscription pay complete to ga', async () => {
+  it('Should log subscription pay complete', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
+        gtag: () => {},
       }),
       true
     );
-    winMock
-      .expects('ga')
-      .withExactArgs(
-        'send',
-        'event',
-        analyticsEventToGoogleAnalyticsEvent(
-          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          SubscriptionFlows.SUBSCRIBE
-        )
-      )
-      .once();
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.SUBSCRIBE
+    );
+    expectEventLoggedToGa(gaEvent);
+    expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -158,24 +144,20 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should log subscription pay complete to ga with EventParams as additionalParams', async () => {
+  it('Should log subscription pay complete with EventParams as additionalParams', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
+        gtag: () => {},
       }),
       true
     );
-    winMock
-      .expects('ga')
-      .withExactArgs(
-        'send',
-        'event',
-        analyticsEventToGoogleAnalyticsEvent(
-          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-          SubscriptionFlows.CONTRIBUTE
-        )
-      )
-      .once();
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+      SubscriptionFlows.CONTRIBUTE
+    );
+    expectEventLoggedToGa(gaEvent);
+    expectEventLoggedToGtag(gaEvent);
     const eventParams = new EventParams();
     eventParams.setSubscriptionFlow(SubscriptionFlows.CONTRIBUTE);
     eventParams.setIsUserRegistered(true);
@@ -187,14 +169,16 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should not log pay complete to ga when missing subscriptionFlow', async () => {
+  it('Should not log pay complete when missing subscriptionFlow', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
+        gtag: () => {},
       }),
       true
     );
     winMock.expects('ga').never();
+    winMock.expects('gtag').never();
     eventManager.logEvent({
       eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -202,14 +186,16 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should not log to ga on invalid event (IMPRESSION_REGWALL)', async () => {
+  it('Should not log on invalid event (IMPRESSION_REGWALL)', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
+        gtag: () => {},
       }),
       true
     );
     winMock.expects('ga').never();
+    winMock.expects('gtag').never();
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_REGWALL,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -217,8 +203,17 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should not log if ga not present', async () => {
-    setupEnvironment(env.win, true);
+  it('Should not log to ga if not present', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        gtag: () => {},
+      }),
+      true
+    );
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
+    expectEventLoggedToGtag(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -228,18 +223,55 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     expect(self.console.log).to.not.have.been.called;
   });
 
-  it('Should not log to ga if start has not been called', async () => {
+  it('Should not log to gtag if not present', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
       }),
+      true
+    );
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
+    expectEventLoggedToGa(gaEvent);
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+    });
+    await eventManager.lastAction_;
+    // Expect that a TypeError hasn't been thrown.
+    expect(self.console.log).to.not.have.been.called;
+  });
+
+  it('Should not log to neither ga nor gtag if start has not been called', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      }),
       false
     );
     winMock.expects('ga').never();
+    winMock.expects('gtag').never();
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.SWG_CLIENT,
     });
     await eventManager.lastAction_;
   });
+
+  function expectEventLoggedToGa(gaEvent) {
+    winMock.expects('ga').withExactArgs('send', 'event', gaEvent).once();
+  }
+
+  function expectEventLoggedToGtag(gaEvent) {
+    winMock
+      .expects('gtag')
+      .withExactArgs('event', gaEvent.eventAction, {
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+      })
+      .once();
+  }
 });
