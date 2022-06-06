@@ -20,6 +20,7 @@ import {
   LinkSaveTokenRequest,
   LinkingInfoResponse,
 } from '../proto/api_messages';
+import {Constants} from '../utils/constants';
 import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createCancelError, isCancelError} from '../utils/errors';
@@ -235,6 +236,10 @@ export class LinkCompleteFlow {
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
+    const userToken = response['swgUserToken'];
+    if (userToken) {
+      this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
+    }
     this.callbacks_.triggerLinkComplete();
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);

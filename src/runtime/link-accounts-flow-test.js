@@ -26,6 +26,7 @@ import {
 } from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
+import {Constants} from '../utils/constants';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {
@@ -499,6 +500,54 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
     await linkCompleteFlow.whenComplete();
     expect(triggerLinkCompleteSpy).to.be.calledOnce;
     expect(triggerLinkProgressSpy).to.not.be.called;
+  });
+
+  it('should set swgUserToken for successful response', async () => {
+    const storageMock = sandbox.mock(runtime.storage());
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    let resultResolver;
+    const resultPromise = new Promise((resolve) => {
+      resultResolver = resolve;
+    });
+    port.acceptResult = () => resultPromise;
+    activitiesMock.expects('openIframe').returns(Promise.resolve(port)).once();
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+    entitlementsManagerMock.expects('reset').withExactArgs(true).once();
+    entitlementsManagerMock
+      .expects('unblockNextNotification')
+      .withExactArgs()
+      .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
+
+    await linkCompleteFlow.start();
+
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      {success: true, swgUserToken: 'fake user token'},
+      'IFRAME',
+      '$frontend$',
+      true,
+      true
+    );
+    resultResolver(result);
+
+    await linkCompleteFlow.whenComplete();
+
+    storageMock.verify();
   });
 });
 
