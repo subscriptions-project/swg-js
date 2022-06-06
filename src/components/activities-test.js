@@ -30,13 +30,14 @@ import {PageConfig} from '../model/page-config';
 import {tick} from '../../test/tick';
 
 const publicationId = 'PUB_ID';
+const TOKEN = 'abc';
 
 describes.realWin('Activity Components', {}, (env) => {
   let win, iframe, url, dialog, doc, deps, pageConfig, analytics, activityPorts;
   let eventManager;
 
   beforeEach(() => {
-    url = '/hello';
+    url = 'https://www.google.com/';
     win = env.win;
     doc = new GlobalDoc(win);
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
@@ -50,6 +51,7 @@ describes.realWin('Activity Components', {}, (env) => {
       pageConfig: () => pageConfig,
       doc: () => doc,
       eventManager: () => eventManager,
+      storage: () => ({get: () => Promise.resolve(TOKEN)}),
     };
     activityPorts = new ActivityPorts(deps);
     deps['activities'] = () => activityPorts;
@@ -131,7 +133,7 @@ describes.realWin('Activity Components', {}, (env) => {
         expect(passedArgs).to.deep.equal(expectedDefaults);
       });
 
-      it('should not add them to openIframe', () => {
+      it('should not add them to openIframe', async () => {
         // The best test I could come up with was just to ensure it passed the
         // arguments to addDefaultArguments and used the result.
         let receivedArgs = null;
@@ -145,12 +147,12 @@ describes.realWin('Activity Components', {}, (env) => {
             return args;
           });
 
-        activityPorts.openIframe(iframe, url, sentArgs);
+        await activityPorts.openIframe(iframe, url, sentArgs);
 
         expect(receivedArgs).to.deep.equal(sentArgs);
       });
 
-      it('should add them to openIframe', () => {
+      it('should add them to openIframe', async () => {
         // The best test I could come up with was just to ensure it passed the
         // arguments to addDefaultArguments and used the result.
         let receivedArgs;
@@ -163,7 +165,7 @@ describes.realWin('Activity Components', {}, (env) => {
             receivedArgs = args;
             return args;
           });
-        activityPorts.openIframe(iframe, url, sentArgs, true);
+        await activityPorts.openIframe(iframe, url, sentArgs, true);
 
         expect(receivedArgs).to.deep.equal(
           activityPorts.addDefaultArguments(sentArgs)
@@ -238,6 +240,76 @@ describes.realWin('Activity Components', {}, (env) => {
       it('makes original activity ports available', () => {
         const original = activityPorts.getOriginalWebActivityPorts();
         expect(original).to.be.instanceof(WebActivityPorts);
+      });
+    });
+
+    describe('openIframe', () => {
+      it('adds sut and publicationId', async () => {
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(
+            iframe,
+            `${url}?sut=${TOKEN}&publicationId=${publicationId}`,
+            {}
+          )
+          .once();
+        await activityPorts.openIframe(iframe, url, {});
+        callMock.verify();
+      });
+
+      it('does not add sut if it does not exist', async () => {
+        deps.storage = () => ({get: () => Promise.resolve(null)});
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(iframe, `${url}?publicationId=${publicationId}`, {})
+          .once();
+        await activityPorts.openIframe(iframe, url, {});
+        callMock.verify();
+      });
+
+      it('does not add publicationId if it does not exist', async () => {
+        deps.pageConfig = () => new PageConfig('', false);
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(iframe, `${url}?sut=${TOKEN}`, {})
+          .once();
+        await activityPorts.openIframe(iframe, url, {});
+        callMock.verify();
+      });
+
+      it('does not replace or duplicate already existing sut', async () => {
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(
+            iframe,
+            `${url}?sut=Original&publicationId=${publicationId}`,
+            {}
+          )
+          .once();
+        await activityPorts.openIframe(iframe, `${url}?sut=Original`, {});
+        callMock.verify();
+      });
+
+      it('does not replace or duplicate already existing publicationId', async () => {
+        const callMock = sandbox
+          .mock(activityPorts, 'openActivityIframePort_')
+          .expects('openActivityIframePort_')
+          .withExactArgs(
+            iframe,
+            `${url}?publicationId=Original&sut=${TOKEN}`,
+            {}
+          )
+          .once();
+        await activityPorts.openIframe(
+          iframe,
+          `${url}?publicationId=Original`,
+          {}
+        );
+        callMock.verify();
       });
     });
   });
