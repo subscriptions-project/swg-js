@@ -44,7 +44,6 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {createElement, injectStyleSheet} from './dom';
 import {resolveDoc} from '../model/doc';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
-import { reject, resolve } from 'bluebird';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
