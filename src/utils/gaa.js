@@ -44,6 +44,7 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {createElement, injectStyleSheet} from './dom';
 import {resolveDoc} from '../model/doc';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
+import { reject, resolve } from 'bluebird';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -2173,9 +2174,13 @@ export class GaaMetering {
 
   static getOnReadyPromise() {
     return new Promise((resolve) => {
-      self.window.addEventListener('load', () => {
+      if (self.document.readyState === 'complete') {
         resolve();
-      });
+      } else {
+        self.window.addEventListener('load', () => {
+          resolve();
+        });
+      }
     });
   }
 }
