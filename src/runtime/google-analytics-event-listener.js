@@ -42,8 +42,11 @@ export class GoogleAnalyticsEventListener {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
-    // Bail immediately if ga function doesn't exist in Window.
-    if (typeof this.win_.ga != 'function') {
+    // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
+    if (
+      typeof this.win_.ga !== 'function' &&
+      typeof this.win_.gtag !== 'function'
+    ) {
       return;
     }
     let subscriptionFlow = '';
@@ -57,8 +60,21 @@ export class GoogleAnalyticsEventListener {
       event.eventType,
       subscriptionFlow
     );
-    if (gaEvent) {
+    if (!gaEvent) {
+      return;
+    }
+
+    // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
+    if (typeof this.win_.ga === 'function') {
       this.win_.ga('send', 'event', gaEvent);
+    }
+
+    if (typeof this.win_.gtag === 'function') {
+      this.win_.gtag('event', gaEvent.eventAction, {
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+      });
     }
   }
 }

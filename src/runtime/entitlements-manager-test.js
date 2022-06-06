@@ -326,11 +326,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   }
 
   // Clear locally stored SwgUserToken.
-  function expectGetSwgUserTokenToBeCalled(userToken = null) {
+  function expectGetSwgUserTokenToBeCalled(userToken = null, times = 1) {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
-      .returns(Promise.resolve(userToken));
+      .returns(Promise.resolve(userToken))
+      .exactly(times);
   }
 
   describe('fetching', () => {
@@ -534,7 +535,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
@@ -590,7 +591,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       storageMock
         .expects('set')
@@ -624,7 +625,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       storageMock
         .expects('set')
@@ -701,7 +702,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.be.null;
@@ -750,7 +751,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
@@ -810,7 +811,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       await manager.getEntitlements();
     });
@@ -892,7 +893,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
@@ -947,7 +948,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const entitlements = await manager.getEntitlements();
       expect(manager.positiveRetries_).to.equal(0);
@@ -1210,7 +1211,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should open metering dialog when metering entitlements are consumed and showToast is true', async () => {
-      expectGetSwgUserTokenToBeCalled();
       dialogManagerMock
         .expects('openDialog')
         .once()
@@ -1324,8 +1324,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl:
-          ENTITLEMENTS_URL + `?sut=abc&encodedParams=${noClientTypeParams}`,
+        pingbackUrl: `${ENTITLEMENTS_URL}?sut=abc&encodedParams=${noClientTypeParams}`,
         userToken: 'abc',
       });
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
@@ -1354,8 +1353,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl:
-          ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
+        pingbackUrl: `${ENTITLEMENTS_URL}?sut=abc&encodedParams=3ncod3dM3t3ringParams`,
         gaaToken: '',
         userToken: 'abc',
       });
@@ -1492,8 +1490,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl:
-          ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
+        pingbackUrl: `${ENTITLEMENTS_URL}?sut=abc&encodedParams=3ncod3dM3t3ringParams`,
         gaaToken: '',
         userToken: 'abc',
       });
