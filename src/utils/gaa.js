@@ -2173,9 +2173,13 @@ export class GaaMetering {
 
   static getOnReadyPromise() {
     return new Promise((resolve) => {
-      self.window.addEventListener('load', () => {
+      if (self.document.readyState === 'complete') {
         resolve();
-      });
+      } else {
+        self.window.addEventListener('load', () => {
+          resolve();
+        });
+      }
     });
   }
 }

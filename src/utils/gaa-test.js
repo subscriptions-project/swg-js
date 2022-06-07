@@ -3783,11 +3783,24 @@ describes.realWin('GaaMetering', {}, () => {
     });
   });
   describe('getOnReadyPromise', () => {
-    it('returns a promise that resolves when the window loads', async () => {
+    it('resolves when the page has aleady loaded', async () => {
+      expect(self.document.readyState).to.equal('complete');
       const onReadyPromise = GaaMetering.getOnReadyPromise();
-      self.window.dispatchEvent(new Event('load'));
-      await tick();
-      expect(onReadyPromise).to.be.fulfilled;
+      await expect(onReadyPromise).to.be.fulfilled;
+    });
+    it('resolves when the load event is triggered', async () => {
+      // Simulate a page that is in a loading state and then finishes loading
+      // with a load event fired.
+      Object.defineProperty(self.document, 'readyState', {
+        get() {
+          return 'loading';
+        },
+      });
+      const onReadyPromise = GaaMetering.getOnReadyPromise();
+      setTimeout(() => {
+        self.window.dispatchEvent(new Event('load'));
+      }, 500);
+      await expect(onReadyPromise).to.be.fulfilled;
     });
   });
 });
