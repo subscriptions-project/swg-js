@@ -424,6 +424,9 @@ class AnalyticsContext {
       data[11 + base] == null || data[11 + base] == undefined
         ? null
         : new Timestamp(data[11 + base], includesLabel);
+
+    /** @private {?string} */
+    this.integrationVersion_ = data[12 + base] == null ? null : data[12 + base];
   }
 
   /**
@@ -595,6 +598,20 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {?string}
+   */
+  getIntegrationVersion() {
+    return this.integrationVersion_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setIntegrationVersion(value) {
+    this.integrationVersion_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -613,6 +630,7 @@ class AnalyticsContext {
         this.clientVersion_, // field 10 - client_version
         this.url_, // field 11 - url
         this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
+        this.integrationVersion_, // field 13 - integration_version
     ];
     if (includeLabel) {
       arr.unshift(this.label());

@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * @fileoverview Protos for SwG client/iframe messaging
+ * Auto generated, do not edit
+ */
+
 import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
@@ -179,6 +184,7 @@ describe('AnalyticsContext', () => {
     timestamp.setSeconds(0);
     timestamp.setNanos(0);
     analyticscontext.setClientTimestamp(timestamp);
+    analyticscontext.setIntegrationVersion('');
 
     let analyticscontextDeserialized;
 
@@ -214,6 +220,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getUrl());
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
         analyticscontext.getClientTimestamp());
+    expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
+        analyticscontext.getIntegrationVersion());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -247,6 +255,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getUrl());
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
         analyticscontext.getClientTimestamp());
+    expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
+        analyticscontext.getIntegrationVersion());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -279,6 +289,8 @@ describe('AnalyticsContext', () => {
         analyticscontext.getUrl());
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
         analyticscontext.getClientTimestamp());
+    expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
+        analyticscontext.getIntegrationVersion());
   });
 });
 
@@ -349,6 +361,7 @@ describe('AnalyticsRequest', () => {
     timestamp.setSeconds(0);
     timestamp.setNanos(0);
     analyticscontext.setClientTimestamp(timestamp);
+    analyticscontext.setIntegrationVersion('');
     analyticsrequest.setContext(analyticscontext);
     analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
     const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
