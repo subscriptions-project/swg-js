@@ -148,7 +148,40 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
+        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&hl=fr-CA',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    await offersFlow.start();
+  });
+
+  it('includes purchaseUnavailableRegion param if true', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {purchaseUnavailableRegion: true},
+      })
+    );
+    offersFlow = new OffersFlow(runtime, {
+      'isClosable': false,
+    });
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&purchaseUnavailableRegion=true',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -189,7 +222,7 @@ describes.realWin('OffersFlow', {}, (env) => {
     await offersFlow.start();
   });
 
-  it('opens dialog without desktop config when useUpdatedOfferFlows=false', async () => {
+  it('opens dialog without dialog config when useUpdatedOfferFlows=false', async () => {
     sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
       new ClientConfig({
         useUpdatedOfferFlows: false,
@@ -212,9 +245,33 @@ describes.realWin('OffersFlow', {}, (env) => {
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     dialogManagerMock
       .expects('openView')
-      .withExactArgs(sandbox.match.any, false, {
-        desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+        })
+      )
+      .once();
+    await offersFlow.start();
+  });
+
+  it('opens dialog with scrolling disabled when useUpdatedOfferFlows=true', async () => {
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
       })
+    );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          shouldDisableBodyScrolling: true,
+        })
+      )
       .once();
     await offersFlow.start();
   });

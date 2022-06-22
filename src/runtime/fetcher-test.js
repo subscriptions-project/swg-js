@@ -15,6 +15,7 @@
  */
 
 import {AnalyticsContext} from '../proto/api_messages';
+import {ErrorUtils} from '../utils/errors';
 import {Xhr} from '../utils/xhr';
 import {XhrFetcher} from './fetcher';
 import {serializeProtoMessageForUrl} from '../utils/url';
@@ -131,7 +132,15 @@ describes.realWin('XhrFetcher', {}, (env) => {
       expect(response).to.deep.equal({});
     });
 
-    it('should post json', () => {
+    it('should post json', async () => {
+      sandbox.restore();
+      sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+        fetchInit = init;
+        fetchUrl = url;
+        return Promise.resolve({
+          text: () => Promise.resolve(")]}'\n{}"),
+        });
+      });
       sentInit = {
         method: 'POST',
         headers: {
@@ -140,7 +149,33 @@ describes.realWin('XhrFetcher', {}, (env) => {
         credentials: 'include',
         body: 'f.req=' + serializeProtoMessageForUrl(CONTEXT),
       };
-      fetcher.sendPost(sentUrl, CONTEXT);
+      const response = await fetcher.sendPost(sentUrl, CONTEXT);
+      expect(response).to.deep.equal({});
+    });
+
+    it("should throw error if post json's response cannot be parsed", async () => {
+      sandbox.restore();
+      const throwAsyncStub = sandbox
+        .stub(ErrorUtils, 'throwAsync')
+        .callsFake(() => {});
+      sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+        fetchInit = init;
+        fetchUrl = url;
+        return Promise.resolve({
+          text: () => Promise.resolve(")]}'\n{{}"),
+        });
+      });
+      sentInit = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        },
+        credentials: 'include',
+        body: 'f.req=' + serializeProtoMessageForUrl(CONTEXT),
+      };
+      const response = await fetcher.sendPost(sentUrl, CONTEXT);
+      expect(throwAsyncStub.callCount).to.equal(1);
+      expect(response).to.deep.equal({});
     });
   });
 });

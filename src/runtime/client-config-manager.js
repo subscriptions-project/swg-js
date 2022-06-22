@@ -16,10 +16,9 @@
 
 import {AttributionParams} from '../model/attribution-params';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
-import {ClientConfig} from '../model/client-config';
+import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientTheme} from '../api/basic-subscriptions';
 import {PreviewManager} from './preview-mode';
-import {UiPredicates} from '../model/auto-prompt-config';
 import {addQueryParam} from '../utils/url';
 import {serviceUrl} from './services';
 import {warn} from '../utils/log';
@@ -198,13 +197,23 @@ export class ClientConfigManager {
     const autoPromptConfigJson = json['autoPromptConfig'];
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
-      autoPromptConfig = new AutoPromptConfig(
-        autoPromptConfigJson.maxImpressionsPerWeek,
-        autoPromptConfigJson.clientDisplayTrigger?.displayDelaySeconds,
-        autoPromptConfigJson.explicitDismissalConfig?.backoffSeconds,
-        autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsPerWeek,
-        autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsResultingHideSeconds
-      );
+      autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds:
+          autoPromptConfigJson.clientDisplayTrigger?.displayDelaySeconds,
+        dismissalBackOffSeconds:
+          autoPromptConfigJson.explicitDismissalConfig?.backOffSeconds,
+        maxDismissalsPerWeek:
+          autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsPerWeek,
+        maxDismissalsResultingHideSeconds:
+          autoPromptConfigJson.explicitDismissalConfig
+            ?.maxDismissalsResultingHideSeconds,
+        impressionBackOffSeconds:
+          autoPromptConfigJson.impressionConfig?.backOffSeconds,
+        maxImpressions: autoPromptConfigJson.impressionConfig?.maxImpressions,
+        maxImpressionsResultingHideSeconds:
+          autoPromptConfigJson.impressionConfig
+            ?.maxImpressionsResultingHideSeconds,
+      });
     }
 
     const uiPredicatesJson = json['uiPredicates'];
@@ -212,7 +221,8 @@ export class ClientConfigManager {
     if (uiPredicatesJson) {
       uiPredicates = new UiPredicates(
         uiPredicatesJson.canDisplayAutoPrompt,
-        uiPredicatesJson.canDisplayButton
+        uiPredicatesJson.canDisplayButton,
+        uiPredicatesJson.purchaseUnavailableRegion
       );
     }
 

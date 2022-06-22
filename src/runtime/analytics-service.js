@@ -24,7 +24,6 @@ import {
   FinishedLoggingResponse,
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
-import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
@@ -286,21 +285,8 @@ export class AnalyticsService {
       // context and that it may not contain experiments activated late during
       // the publishers code lifecycle.
       this.addLabels(getOnExperiments(this.doc_.getWin()));
-      this.serviceReady_ = this.deps_
-        .storage()
-        .get(Constants.USER_TOKEN)
-        .then((swgUserToken) => {
-          const pubId = this.deps_.pageConfig().getPublicationId();
-          const urlParams = swgUserToken
-            ? {sut: swgUserToken, publicationId: pubId}
-            : {publicationId: pubId};
-          return this.activityPorts_.openIframe(
-            this.iframe_,
-            feUrl('/serviceiframe', urlParams),
-            null,
-            true
-          );
-        })
+      this.serviceReady_ = this.activityPorts_
+        .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
         .then(
           (port) => {
             // Register a listener for the logging to code indicate it is

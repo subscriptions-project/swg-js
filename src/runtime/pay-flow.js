@@ -218,8 +218,8 @@ export class PayStartFlow {
       {
         forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
-        // basic flow does not support native.
-        forceDisableNative: paySwgVersion == '2',
+        // SwG basic and TwG flows do not support native.
+        forceDisableNative: paySwgVersion == '2' || paySwgVersion == '3',
       }
     );
     return Promise.resolve();

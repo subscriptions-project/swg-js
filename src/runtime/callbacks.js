@@ -27,6 +27,7 @@ const CallbackId = {
   FLOW_STARTED: 7,
   FLOW_CANCELED: 8,
   PAY_CONFIRM_OPENED: 9,
+  OFFERS_FLOW_REQUEST: 10,
 };
 
 /**
@@ -157,6 +158,27 @@ export class Callbacks {
    */
   hasSubscribeRequestCallback() {
     return !!this.callbacks_[CallbackId.SUBSCRIBE_REQUEST];
+  }
+
+  /**
+   * @param {function()} callback
+   */
+  setOnOffersFlowRequest(callback) {
+    this.setCallback_(CallbackId.OFFERS_FLOW_REQUEST, callback);
+  }
+
+  /**
+   * @return {boolean} Whether the callback has been found.
+   */
+  triggerOffersFlowRequest() {
+    return this.trigger_(CallbackId.OFFERS_FLOW_REQUEST, true);
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasOffersFlowRequestCallback() {
+    return !!this.callbacks_[CallbackId.OFFERS_FLOW_REQUEST];
   }
 
   /**

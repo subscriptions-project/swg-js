@@ -23,7 +23,7 @@ import {PreviewManager} from '../runtime/preview-mode';
  *   attributionParams: (./attribution-params.AttributionParams|undefined),
  *   autoPromptConfig: (./auto-prompt-config.AutoPromptConfig|undefined),
  *   paySwgVersion: (string|undefined),
- *   uiPredicates: (./auto-prompt-config.UiPredicates|undefined),
+ *   uiPredicates: (UiPredicates|undefined),
  *   usePrefixedHostPath: (boolean|undefined),
  *   useUpdatedOfferFlows: (boolean|undefined),
  *   skipAccountCreationScreen: (boolean|undefined),
@@ -66,7 +66,7 @@ export class ClientConfig {
     /** @const {boolean} */
     this.skipAccountCreationScreen = skipAccountCreationScreen || false;
 
-    /** @const {./auto-prompt-config.UiPredicates|undefined} */
+    /** @const {UiPredicates|undefined} */
     this.uiPredicates = uiPredicates;
 
     /** @const {./attribution-params.AttributionParams|undefined} */
@@ -75,5 +75,30 @@ export class ClientConfig {
     if (PreviewManager.isPreviewEnabled()) {
       PreviewManager.getPreviewManager().setClientConfig(this);
     }
+  }
+}
+
+/**
+ * Predicates to control UI elements.
+ */
+export class UiPredicates {
+  /**
+   * @param {boolean|undefined} canDisplayAutoPrompt
+   * @param {boolean|undefined} canDisplayButton
+   * @param {boolean|undefined} purchaseUnavailableRegion
+   */
+  constructor(
+    canDisplayAutoPrompt,
+    canDisplayButton,
+    purchaseUnavailableRegion
+  ) {
+    /** @const {boolean|undefined} */
+    this.canDisplayAutoPrompt = canDisplayAutoPrompt;
+
+    /** @const {boolean|undefined} */
+    this.canDisplayButton = canDisplayButton;
+
+    /** @const {boolean|undefined} */
+    this.purchaseUnavailableRegion = purchaseUnavailableRegion;
   }
 }

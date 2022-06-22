@@ -29,7 +29,6 @@ import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
-const EXISTING_USER_TOKEN = 'existingUserToken';
 
 describes.realWin('AudienceActionFlow', {}, (env) => {
   let win;
@@ -41,7 +40,8 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let port;
   let messageCallback;
   let messageMap;
-  let fallbackSpy;
+  let onCancelSpy;
+  let dialogManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -51,6 +51,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
+    dialogManagerMock = sandbox.mock(runtime.dialogManager());
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -64,62 +65,27 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
       document: win.document,
     });
-    fallbackSpy = sandbox.spy();
+    onCancelSpy = sandbox.spy();
   });
 
   [
     {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
     {action: 'TYPE_NEWSLETTER_SIGNUP', path: 'newsletteriframe'},
   ].forEach(({action, path}) => {
-    it(`opens an AudienceActionFlow constructed with params for ${action} with a swg user token`, async () => {
-      sandbox
-        .stub(runtime.storage(), 'get')
-        .returns(Promise.resolve(EXISTING_USER_TOKEN));
-      const audienceActionFlow = new AudienceActionFlow(runtime, {
-        action,
-        fallback: fallbackSpy,
-        autoPromptType: AutoPromptType.SUBSCRIPTION,
-      });
-      activitiesMock
-        .expects('openIframe')
-        .withExactArgs(
-          sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          `$frontend$/swg/_/ui/v1/${path}?_=_&publicationId=pub1&origin=${encodeURIComponent(
-            WINDOW_LOCATION_DOMAIN
-          )}&sut=${EXISTING_USER_TOKEN}`,
-          {
-            _client: 'SwG $internalRuntimeVersion$',
-            productType: ProductType.SUBSCRIPTION,
-            supportsEventManager: true,
-          }
-        )
-        .resolves(port);
-
-      await audienceActionFlow.start();
-
-      activitiesMock.verify();
-      expect(fallbackSpy).to.not.be.called;
-    });
-  });
-
-  [
-    {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
-    {action: 'TYPE_NEWSLETTER_SIGNUP', path: 'newsletteriframe'},
-  ].forEach(({action, path}) => {
-    it(`opens an AudienceActionFlow constructed with params for ${action} without a swg user token`, async () => {
+    it(`opens an AudienceActionFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
-        fallback: fallbackSpy,
+        onCancel: onCancelSpy,
         autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
       activitiesMock
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          `$frontend$/swg/_/ui/v1/${path}?_=_&publicationId=pub1&origin=${encodeURIComponent(
+          `$frontend$/swg/_/ui/v1/${path}?_=_&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
-          )}&sut=`,
+          )}`,
           {
             _client: 'SwG $internalRuntimeVersion$',
             productType: ProductType.SUBSCRIPTION,
@@ -131,14 +97,14 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       await audienceActionFlow.start();
 
       activitiesMock.verify();
-      expect(fallbackSpy).to.not.be.called;
+      expect(onCancelSpy).to.not.be.called;
     });
   });
 
-  it('calls the fallback when an AudienceActionFlow is cancelled and one it provided', async () => {
+  it('calls the onCancel when an AudienceActionFlow is cancelled and one it provided', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
     });
     activitiesMock.expects('openIframe').resolves(port);
     sandbox
@@ -150,13 +116,13 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.start();
 
     activitiesMock.verify();
-    expect(fallbackSpy).to.be.calledOnce;
+    expect(onCancelSpy).to.be.calledOnce;
   });
 
   it('handles a CompleteAudienceActionResponse with regwall completed and opens a custom toast', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -195,7 +161,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   it('handles a CompleteAudienceActionResponse with newsletter completed and opens a custom toast', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -234,7 +200,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   it('handles a CompleteAudienceActionResponse with regwall completed before and opens a basic toast', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -270,7 +236,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   it(`handles a CompleteAudienceActionResponse with newsletter not completed and opens a custom toast indicating that the user has completed the newsletter before`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -308,7 +274,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -326,7 +292,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
-      fallback: fallbackSpy,
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
@@ -344,5 +310,23 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.showNoEntitlementFoundToast();
 
     activityIframeViewMock.verify();
+  });
+
+  it('opens dialog with scrolling disabled', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({shouldDisableBodyScrolling: true})
+      )
+      .once();
+    await audienceActionFlow.start();
+    dialogManagerMock.verify();
   });
 });

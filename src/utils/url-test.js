@@ -296,6 +296,7 @@ describe('serializeProtoMessageForUrl', () => {
       'version',
       'baseUrl',
       ['Timestamp', 12345, 0],
+      '1.4',
     ];
     const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
     const eventParamsArray = [

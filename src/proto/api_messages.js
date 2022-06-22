@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * @fileoverview Protos for SwG client/iframe messaging
+ * Auto generated, do not edit
+ */
+
 /**
  * @interface
  */
@@ -32,6 +38,7 @@ class Message {
 const ActionType = {
   ACTION_TYPE_UNKNOWN: 0,
   ACTION_TYPE_RELOAD_PAGE: 1,
+  ACTION_TYPE_UPDATE_COUNTER: 2,
 };
 /** @enum {number} */
 const AnalyticsEvent = {
@@ -131,6 +138,7 @@ const AnalyticsEvent = {
   ACTION_NEWSLETTER_ALREADY_OPTED_IN_CLICK: 1057,
   ACTION_REGWALL_OPT_IN_CLOSE: 1058,
   ACTION_NEWSLETTER_OPT_IN_CLOSE: 1059,
+  ACTION_SHOWCASE_REGWALL_SWIG_CLICK: 1060,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_REGWALL_OPT_IN_FAILED: 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
@@ -416,6 +424,9 @@ class AnalyticsContext {
       data[11 + base] == null || data[11 + base] == undefined
         ? null
         : new Timestamp(data[11 + base], includesLabel);
+
+    /** @private {?string} */
+    this.integrationVersion_ = data[12 + base] == null ? null : data[12 + base];
   }
 
   /**
@@ -587,6 +598,20 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {?string}
+   */
+  getIntegrationVersion() {
+    return this.integrationVersion_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setIntegrationVersion(value) {
+    this.integrationVersion_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -605,6 +630,7 @@ class AnalyticsContext {
         this.clientVersion_, // field 10 - client_version
         this.url_, // field 11 - url
         this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
+        this.integrationVersion_, // field 13 - integration_version
     ];
     if (includeLabel) {
       arr.unshift(this.label());

@@ -326,11 +326,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   }
 
   // Clear locally stored SwgUserToken.
-  function expectGetSwgUserTokenToBeCalled(userToken = null) {
+  function expectGetSwgUserTokenToBeCalled(userToken = null, times = 1) {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
-      .returns(Promise.resolve(userToken));
+      .returns(Promise.resolve(userToken))
+      .exactly(times);
   }
 
   describe('fetching', () => {
@@ -534,7 +535,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.equal('ddk1');
@@ -590,7 +591,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       storageMock
         .expects('set')
@@ -624,7 +625,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       storageMock
         .expects('set')
@@ -701,7 +702,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements(encryptedDocumentKey);
       expect(ents.decryptedDocumentKey).to.be.null;
@@ -750,7 +751,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const ents = await manager.getEntitlements();
       expect(ents.service).to.equal('subscribe.google.com');
@@ -810,7 +811,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       await manager.getEntitlements();
     });
@@ -892,7 +893,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         false,
         getEventParams(true)
       );
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
 
@@ -947,7 +948,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectGetSwgUserTokenToBeCalled();
       manager.reset(true);
       expect(manager.positiveRetries_).to.equal(3);
-      expectGetSwgUserTokenToBeCalled();
+      expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
       const entitlements = await manager.getEntitlements();
       expect(manager.positiveRetries_).to.equal(0);
@@ -1210,7 +1211,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should open metering dialog when metering entitlements are consumed and showToast is true', async () => {
-      expectGetSwgUserTokenToBeCalled();
       dialogManagerMock
         .expects('openDialog')
         .once()
@@ -1324,8 +1324,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl:
-          ENTITLEMENTS_URL + `?sut=abc&encodedParams=${noClientTypeParams}`,
+        pingbackUrl: `${ENTITLEMENTS_URL}?sut=abc&encodedParams=${noClientTypeParams}`,
         userToken: 'abc',
       });
       expectLog(AnalyticsEvent.EVENT_UNLOCKED_BY_METER, false);
@@ -1354,8 +1353,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl:
-          ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
+        pingbackUrl: `${ENTITLEMENTS_URL}?sut=abc&encodedParams=3ncod3dM3t3ringParams`,
         gaaToken: '',
         userToken: 'abc',
       });
@@ -1492,8 +1490,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: EntitlementResult.UNLOCKED_METER,
         jwtString: 'token1',
         jwtSource: GOOGLE_METERING_SOURCE,
-        pingbackUrl:
-          ENTITLEMENTS_URL + '?sut=abc&encodedParams=3ncod3dM3t3ringParams',
+        pingbackUrl: `${ENTITLEMENTS_URL}?sut=abc&encodedParams=3ncod3dM3t3ringParams`,
         gaaToken: '',
         userToken: 'abc',
       });
@@ -2171,6 +2168,111 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       const entitlements = await manager.getEntitlements();
       expect(entitlements.getEntitlementForThis().source).to.equal('google');
       expect(toastOpenStub).to.not.be.called;
+    });
+
+    describe('enableDefaultMeteringHandler', () => {
+      function expectSignedEntitlementsReturnsGoogleMeter() {
+        jwtHelperMock
+          .expects('decode')
+          .withExactArgs('SIGNED_DATA')
+          .returns({
+            entitlements: {
+              source: GOOGLE_METERING_SOURCE,
+              products: ['pub1:label1'],
+              subscriptionToken: 'token1',
+            },
+          });
+        jwtHelperMock
+          .expects('decode')
+          .withExactArgs('token1')
+          .returns({
+            metering: {
+              ownerId: 'scenic-2017.appspot.com',
+              action: 'READ',
+              clientUserAttribute: 'standard_registered_user',
+              clientType: MeterClientTypes.METERED_BY_GOOGLE.valueOf(),
+            },
+          });
+        xhrMock
+          .expects('fetch')
+          .withExactArgs(
+            '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+            {
+              method: 'GET',
+              headers: {'Accept': 'text/plain, application/json'},
+              credentials: 'include',
+            }
+          )
+          .returns(
+            Promise.resolve({
+              text: () =>
+                Promise.resolve(
+                  JSON.stringify({
+                    signedEntitlements: 'SIGNED_DATA',
+                  })
+                ),
+            })
+          );
+      }
+
+      it('should NOT consume a Google meter entitlement by default', async () => {
+        manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
+        jwtHelperMock = sandbox.mock(manager.jwtHelper_);
+        expectGetIsReadyToPayToBeCalled(null);
+        expectGetSwgUserTokenToBeCalled();
+        expectSignedEntitlementsReturnsGoogleMeter();
+        xhrMock
+          .expects('fetch')
+          .withArgs(
+            '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+            sinon.match({
+              method: 'POST',
+            })
+          )
+          .never();
+
+        const entitlements = await manager.getEntitlements();
+        await manager.entitlementsPostPromise;
+
+        // Verify that the entitlement created should trigger the handler.
+        expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
+        xhrMock.verify();
+        jwtHelperMock.verify();
+        storageMock.verify();
+      });
+
+      it('should consume an entitlement if default handler is enabled and is Google meter', async () => {
+        // When enabled, we expect the pingback to occur as part of the getEntitlements process
+        manager = new EntitlementsManager(
+          win,
+          pageConfig,
+          fetcher,
+          deps,
+          /* useArticleEndpoint */ false,
+          /* enableDefaultMeteringHandler */ true
+        );
+        jwtHelperMock = sandbox.mock(manager.jwtHelper_);
+        expectGetIsReadyToPayToBeCalled(null);
+        expectGetSwgUserTokenToBeCalled();
+        expectSignedEntitlementsReturnsGoogleMeter();
+        expectEntitlementPingback({
+          entitlementSource:
+            EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
+          entitlementResult: EntitlementResult.UNLOCKED_METER,
+          jwtString: 'token1',
+          jwtSource: GOOGLE_METERING_SOURCE,
+          gaaToken: '',
+        });
+
+        const entitlements = await manager.getEntitlements();
+        await manager.entitlementsPostPromise;
+
+        // Verify that the entitlement created should trigger the handler.
+        expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
+        xhrMock.verify();
+        jwtHelperMock.verify();
+        storageMock.verify();
+      });
     });
   });
 

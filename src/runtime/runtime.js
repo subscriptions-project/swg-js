@@ -70,8 +70,7 @@ import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
-import {isSecure, wasReferredByGoogle} from '../utils/url';
-import {parseUrl} from '../utils/url';
+import {isSecure} from '../utils/url';
 import {queryStringHasFreshGaaParams} from '../utils/gaa';
 import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
@@ -550,6 +549,7 @@ export class ConfiguredRuntime {
    *     fetcher: (!FetcherInterface|undefined),
    *     configPromise: (!Promise|undefined),
    *     enableGoogleAnalytics: (boolean|undefined),
+   *     enableDefaultMeteringHandler: (boolean|undefined),
    *     useArticleEndpoint: (boolean|undefined)
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
@@ -639,7 +639,8 @@ export class ConfiguredRuntime {
       this.pageConfig_,
       this.fetcher_,
       this, // See note about 'this' above
-      integr.useArticleEndpoint || false
+      integr.useArticleEndpoint || false,
+      integr.enableDefaultMeteringHandler || false
     );
 
     PreviewManager.init(this);
@@ -1144,7 +1145,6 @@ export class ConfiguredRuntime {
     if (
       !entitlement ||
       !isSecure(this.win().location) ||
-      !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !queryStringHasFreshGaaParams(
         this.win().location.search,
         /*allowAllAccessTypes=*/ true
