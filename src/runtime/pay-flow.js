@@ -135,7 +135,9 @@ export class PayStartFlow {
     // Get the paySwgVersion for buyflow.
     const promise = this.clientConfigManager_.getClientConfig();
     return promise.then((clientConfig) => {
-      if (PreviewManager.isPreviewEnabled() /*&& clientConfig.previewAvailable*/) {
+      if (
+        PreviewManager.isPreviewEnabled() /*&& clientConfig.previewAvailable*/
+      ) {
         PreviewManager.getPreviewManager().showPreviewResult(
           clientConfig,
           this.subscriptionRequest_,
