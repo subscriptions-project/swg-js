@@ -37,6 +37,7 @@ import {
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
+import {PreviewManager} from './preview-mode';
 import {Toast} from '../ui/toast';
 import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
@@ -369,6 +370,9 @@ export class EntitlementsManager {
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
     url = addDevModeParamsToUrl(this.win_.location, url);
+    if (PreviewManager.isPreviewEnabled()) {
+      url = addQueryParam(url, 'previewRequested', true);
+    }
 
     // Promise that sets this.encodedParams_ when it resolves.
     const encodedParamsPromise = this.encodedParams_
@@ -414,6 +418,9 @@ export class EntitlementsManager {
    */
   getEntitlementsFlow_(params) {
     return this.fetchEntitlementsWithCaching_(params).then((entitlements) => {
+      if (PreviewManager.isPreviewEnabled()) {
+        PreviewManager.getPreviewManager().setEntitlements(entitlements);
+      }
       this.onEntitlementsFetched_(entitlements);
       return entitlements;
     });
@@ -819,6 +826,11 @@ export class EntitlementsManager {
         const swgUserToken = values[1];
 
         url = addDevModeParamsToUrl(this.win_.location, url);
+
+        // Preview mode request?
+        if (PreviewManager.isPreviewEnabled()) {
+          url = addQueryParam(url, 'previewRequested', true);
+        }
 
         // Add encryption param.
         if (params?.encryption) {

@@ -54,6 +54,7 @@ import {
 import {PayClient} from './pay-client';
 import {PayCompleteFlow, PayStartFlow} from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
+import {PreviewManager} from './preview-mode';
 import {
   ProductType,
   Subscriptions as SubscriptionsInterface,
@@ -640,6 +641,8 @@ export class ConfiguredRuntime {
       this, // See note about 'this' above
       integr.useArticleEndpoint || false
     );
+
+    PreviewManager.init(this);
 
     /** @private @const {!ClientConfigManager} */
     this.clientConfigManager_ = new ClientConfigManager(

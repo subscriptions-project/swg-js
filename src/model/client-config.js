@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {PreviewManager} from '../runtime/preview-mode';
+
 /**
  * Client configuration options.
  *
@@ -40,6 +42,7 @@ export class ClientConfig {
     attributionParams,
     autoPromptConfig,
     paySwgVersion,
+    previewAvailable,
     uiPredicates,
     usePrefixedHostPath,
     useUpdatedOfferFlows,
@@ -50,6 +53,9 @@ export class ClientConfig {
 
     /** @const {string|undefined} */
     this.paySwgVersion = paySwgVersion;
+
+    /** @const {string|undefined} */
+    this.previewAvailable = previewAvailable;
 
     /** @const {boolean} */
     this.usePrefixedHostPath = usePrefixedHostPath || false;
@@ -65,5 +71,9 @@ export class ClientConfig {
 
     /** @const {./attribution-params.AttributionParams|undefined} */
     this.attributionParams = attributionParams;
+
+    if (PreviewManager.isPreviewEnabled()) {
+      PreviewManager.getPreviewManager().setClientConfig(this);
+    }
   }
 }

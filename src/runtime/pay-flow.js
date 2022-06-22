@@ -30,6 +30,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {Constants} from '../utils/constants';
 import {JwtHelper} from '../utils/jwt';
+import {PreviewManager} from './preview-mode';
 import {
   ProductType,
   SubscriptionFlows,
@@ -98,6 +99,9 @@ export class PayStartFlow {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
+    /** @private @const {!Window} */
+    this.win_ = deps.win();
+
     /** @private @const {!./pay-client.PayClient} */
     this.payClient_ = deps.payClient();
 
@@ -131,7 +135,16 @@ export class PayStartFlow {
     // Get the paySwgVersion for buyflow.
     const promise = this.clientConfigManager_.getClientConfig();
     return promise.then((clientConfig) => {
-      this.start_(clientConfig.paySwgVersion);
+      if (PreviewManager.isPreviewEnabled() /*&& clientConfig.previewAvailable*/) {
+        PreviewManager.getPreviewManager().showPreviewResult(
+          clientConfig,
+          this.subscriptionRequest_,
+          this.productType_
+        );
+        return Promise.resolve();
+      } else {
+        this.start_(clientConfig.paySwgVersion);
+      }
     });
   }
 
