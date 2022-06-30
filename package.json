@@ -57,7 +57,7 @@
     "del": "6.1.1",
     "eslint": "8.18.0",
     "eslint-plugin-google-camelcase": "0.0.2",
-    "eslint-plugin-prettier": "4.1.0",
+    "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-sort-requires": "2.1.0",
     "eslint-plugin-swg-internal": "file:./build-system/eslint-rules",
