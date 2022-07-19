@@ -1567,6 +1567,11 @@ export class GaaMetering {
     callSwg((subscriptions) => {
       subscriptions.init(productId);
 
+      logEvent({
+        analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
+        isFromUserAction: false,
+      });
+
       subscriptions.setOnLoginRequest(() =>
         GaaMetering.handleLoginRequest(
           handleLoginPromise,

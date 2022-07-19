@@ -2077,6 +2077,26 @@ describes.realWin('GaaMetering', {}, () => {
     self.console.log.restore();
   });
 
+  /**
+   * Expects a list of Analytics events.
+   * @param {!Array<{
+   *   analyticsEvent: !ShowcaseEvent,
+   *   isFromUserAction: boolean,
+   * }>} events
+   */
+  function expectAnalyticsEvents(events) {
+    expect(logEvent).to.have.callCount(events.length);
+    for (let i = 0; i < events.length; i++) {
+      const {analyticsEvent, isFromUserAction} = events[i];
+      expect(logEvent.getCall(i)).to.be.calledWithExactly({
+        eventType: analyticsEvent,
+        eventOriginator: 1,
+        isFromUserAction,
+        additionalParameters: null,
+      });
+    }
+  }
+
   describe('constructor', () => {
     it('sets class variable', () => {
       const gaaMeteringInstance = new GaaMetering();
@@ -2849,6 +2869,7 @@ describes.realWin('GaaMetering', {}, () => {
         '[Subscriptions]',
         '[gaa.js:GaaMetering.init]: Invalid params.'
       );
+      expect(logEvent).not.to.have.been.called;
     });
 
     it('GaaMetering.init fails the isGaa', () => {
@@ -2874,9 +2895,10 @@ describes.realWin('GaaMetering', {}, () => {
         '[Subscriptions]',
         'Extended Access - Invalid gaa parameters or referrer.'
       );
+      expect(logEvent).not.to.have.been.called;
     });
 
-    it('succeeds for a subscriber', () => {
+    it('succeeds for a subscriber', async () => {
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
@@ -2908,6 +2930,8 @@ describes.realWin('GaaMetering', {}, () => {
         })
       );
 
+      await tick();
+
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'unlocked for SUBSCRIBER'
@@ -2917,9 +2941,16 @@ describes.realWin('GaaMetering', {}, () => {
         entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
         isUserRegistered: true,
       });
+
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
+          isFromUserAction: false,
+        },
+      ]);
     });
 
-    it('succeeds for metering', () => {
+    it('succeeds for metering', async () => {
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
@@ -2944,6 +2975,8 @@ describes.realWin('GaaMetering', {}, () => {
         publisherEntitlementPromise: new Promise(() => {}),
       });
 
+      await tick();
+
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'unlocked for METERING'
@@ -2953,9 +2986,16 @@ describes.realWin('GaaMetering', {}, () => {
         entitlement: 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
         isUserRegistered: true,
       });
+
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
+          isFromUserAction: false,
+        },
+      ]);
     });
 
-    it('succeeds for free', () => {
+    it('succeeds for free', async () => {
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
@@ -2984,6 +3024,8 @@ describes.realWin('GaaMetering', {}, () => {
         publisherEntitlementPromise: new Promise(() => {}),
       });
 
+      await tick();
+
       expect(self.console.log).to.calledWith(
         '[Subscriptions]',
         'unlocked for FREE'
@@ -2993,6 +3035,13 @@ describes.realWin('GaaMetering', {}, () => {
         entitlement: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
         isUserRegistered: true,
       });
+
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
+          isFromUserAction: false,
+        },
+      ]);
     });
 
     it('fails for invalid userState', () => {
