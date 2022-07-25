@@ -1675,7 +1675,7 @@ export class GaaMetering {
                 grantReasonToShowCaseEventMap[
                   GaaMetering.userState.grantReason
                 ],
-              isUserRegistered: GaaMetering.isUserRegistered(),
+              isUserRegistered: GaaMetering.isCurrentUserRegistered(),
             });
             debugLog('unlocked for ' + GaaMetering.userState.grantReason);
           });
@@ -1744,7 +1744,7 @@ export class GaaMetering {
         // This is only relevant for publishers doing SwG
         handleSwGEntitlement();
       } else if (
-        !GaaMetering.isUserRegistered() &&
+        !GaaMetering.isCurrentUserRegistered() &&
         GaaMetering.isGaa(allowedReferrers)
       ) {
         // This is an anonymous user so show the Google registration intervention
@@ -1753,17 +1753,17 @@ export class GaaMetering {
         // User does not any access from publisher or Google so show the standard paywall
         callSwg((subscriptions) => {
           switch (GaaMetering.userState.paywallReason) {
-            case 'RESERVED_USER':
+            case PaywallReasonType.RESERVED_USER:
               subscriptions.setShowcaseEntitlement({
                 entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
-                isUserRegistered: GaaMetering.isUserRegistered(),
+                isUserRegistered: GaaMetering.isCurrentUserRegistered(),
               });
               break;
             default:
               subscriptions.setShowcaseEntitlement({
                 entitlement:
                   ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-                isUserRegistered: GaaMetering.isUserRegistered(),
+                isUserRegistered: GaaMetering.isCurrentUserRegistered(),
               });
           }
         });
@@ -1773,10 +1773,12 @@ export class GaaMetering {
     });
   }
 
-  static isUserRegistered() {
-    return (
-      GaaMetering.userState.id !== undefined && GaaMetering.userState.id != ''
-    );
+  static isCurrentUserRegistered() {
+    return GaaMetering.isUserRegistered(GaaMetering.userState);
+  }
+
+  static isUserRegistered(userState) {
+    return userState.id !== undefined && userState.id != '';
   }
 
   /**
@@ -2064,8 +2066,8 @@ export class GaaMetering {
   }
 
   static newUserStateToUserState(newUserState) {
-    // Convert registrationTimestamp
-    const registrationTimestamp = convertPotentialTimestampToSeconds(
+    // Convert registrationTimestamp to seconds
+    const registrationTimestampSeconds = convertPotentialTimestampToSeconds(
       newUserState.registrationTimestamp
     );
 
@@ -2075,7 +2077,7 @@ export class GaaMetering {
           'id': newUserState.id,
           'standardAttributes': {
             'registered_user': {
-              'timestamp': registrationTimestamp,
+              'timestamp': registrationTimestampSeconds,
             },
           },
         },
@@ -2124,6 +2126,7 @@ export class GaaMetering {
         );
         noIssues = false;
       } else {
+        // Check if the provided timestamp is an integer
         if (
           !(
             typeof newUserState.registrationTimestamp === 'number' &&
@@ -2154,6 +2157,7 @@ export class GaaMetering {
 
             noIssues = false;
           } else if (
+            // Check if the provided timestamp is an integer
             !(
               typeof newUserState.subscriptionTimestamp === 'number' &&
               newUserState.subscriptionTimestamp % 1 === 0

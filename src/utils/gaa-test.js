@@ -3537,19 +3537,35 @@ describes.realWin('GaaMetering', {}, () => {
     });
   });
 
-  describe('isUserRegistered', () => {
+  describe('isCurrentUserRegistered', () => {
     it('returns true for a registered user', () => {
       GaaMetering.userState = {
         id: 'user1235',
         registrationTimestamp: 1602763054,
         subscriptionTimestamp: 1602763094,
       };
-      expect(GaaMetering.isUserRegistered()).to.be.true;
+      expect(GaaMetering.isCurrentUserRegistered()).to.be.true;
     });
 
     it('returns false for an anonymous user', () => {
       GaaMetering.userState = {};
-      expect(GaaMetering.isUserRegistered()).to.be.false;
+      expect(GaaMetering.isCurrentUserRegistered()).to.be.false;
+    });
+  });
+
+  describe('isUserRegistered', () => {
+    it('returns true for a registered user', () => {
+      const userState = {
+        id: 'user1235',
+        registrationTimestamp: 1602763054,
+        subscriptionTimestamp: 1602763094,
+      };
+      expect(GaaMetering.isUserRegistered(userState)).to.be.true;
+    });
+
+    it('returns false for an anonymous user', () => {
+      const userState = {};
+      expect(GaaMetering.isUserRegistered(userState)).to.be.false;
     });
   });
 
@@ -3661,17 +3677,14 @@ describes.realWin('GaaMetering', {}, () => {
     it('consumes google entitlement and unlock article', async () => {
       unlockArticle = sandbox.fake();
 
-      sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
+      sandbox.stub(GaaMetering, 'isCurrentUserRegistered').returns(true);
 
-      const googleEntitlementsPromise = new Promise((resolve) => {
-        function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = sandbox.fake.returns(true);
-          this.enablesThis = sandbox.fake.returns(false);
-          this.consume = sandbox.fake(() => {
-            unlockArticle();
-          });
-        }
-        resolve(new GoogleEntitlement());
+      const googleEntitlementsPromise = Promise.resolve({
+        enablesThisWithGoogleMetering: sandbox.fake.returns(true),
+        enablesThis: sandbox.fake.returns(false),
+        consume: sandbox.fake((callback) => {
+          return callback();
+        }),
       });
 
       GaaMetering.setEntitlements(
@@ -3690,15 +3703,14 @@ describes.realWin('GaaMetering', {}, () => {
     it('user is a SwG subscriber', async () => {
       handleSwGEntitlement = sandbox.fake();
 
-      sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
+      sandbox.stub(GaaMetering, 'isCurrentUserRegistered').returns(true);
 
-      const googleEntitlementsPromise = new Promise((resolve) => {
-        function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = sandbox.fake.returns(false);
-          this.enablesThis = sandbox.fake.returns(true);
-          this.consume = sandbox.fake();
-        }
-        resolve(new GoogleEntitlement());
+      const googleEntitlementsPromise = Promise.resolve({
+        enablesThisWithGoogleMetering: sandbox.fake.returns(false),
+        enablesThis: sandbox.fake.returns(true),
+        consume: sandbox.fake((callback) => {
+          return callback();
+        }),
       });
 
       GaaMetering.setEntitlements(
@@ -3718,19 +3730,16 @@ describes.realWin('GaaMetering', {}, () => {
       showGoogleRegwall = sandbox.fake();
 
       GaaMetering.userState = {};
-      sandbox.stub(GaaMetering, 'isUserRegistered');
-      GaaMetering.isUserRegistered.returns(false);
 
-      sandbox.stub(GaaMetering, 'isGaa');
-      GaaMetering.isGaa.returns(true);
+      sandbox.stub(GaaMetering, 'isCurrentUserRegistered').returns(false);
+      sandbox.stub(GaaMetering, 'isGaa').returns(true);
 
-      const googleEntitlementsPromise = new Promise((resolve) => {
-        function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = sandbox.fake.returns(false);
-          this.enablesThis = sandbox.fake.returns(false);
-          this.consume = sandbox.fake();
-        }
-        resolve(new GoogleEntitlement());
+      const googleEntitlementsPromise = Promise.resolve({
+        enablesThisWithGoogleMetering: sandbox.fake.returns(false),
+        enablesThis: sandbox.fake.returns(false),
+        consume: sandbox.fake((callback) => {
+          return callback();
+        }),
       });
 
       GaaMetering.setEntitlements(
@@ -3750,15 +3759,14 @@ describes.realWin('GaaMetering', {}, () => {
       showPaywall = sandbox.fake();
       GaaMetering.userState = {};
 
-      sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
+      sandbox.stub(GaaMetering, 'isCurrentUserRegistered').returns(true);
 
-      const googleEntitlementsPromise = new Promise((resolve) => {
-        function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = sandbox.fake.returns(false);
-          this.enablesThis = sandbox.fake.returns(false);
-          this.consume = sandbox.fake();
-        }
-        resolve(new GoogleEntitlement());
+      const googleEntitlementsPromise = Promise.resolve({
+        enablesThisWithGoogleMetering: sandbox.fake.returns(false),
+        enablesThis: sandbox.fake.returns(false),
+        consume: sandbox.fake((callback) => {
+          return callback();
+        }),
       });
 
       GaaMetering.setEntitlements(
@@ -3787,15 +3795,14 @@ describes.realWin('GaaMetering', {}, () => {
         paywallReason: 'RESERVED_USER',
       };
 
-      sandbox.stub(GaaMetering, 'isUserRegistered').returns(true);
+      sandbox.stub(GaaMetering, 'isCurrentUserRegistered').returns(true);
 
-      const googleEntitlementsPromise = new Promise((resolve) => {
-        function GoogleEntitlement() {
-          this.enablesThisWithGoogleMetering = sandbox.fake.returns(false);
-          this.enablesThis = sandbox.fake.returns(false);
-          this.consume = sandbox.fake();
-        }
-        resolve(new GoogleEntitlement());
+      const googleEntitlementsPromise = Promise.resolve({
+        enablesThisWithGoogleMetering: sandbox.fake.returns(false),
+        enablesThis: sandbox.fake.returns(false),
+        consume: sandbox.fake((callback) => {
+          return callback();
+        }),
       });
 
       GaaMetering.setEntitlements(
