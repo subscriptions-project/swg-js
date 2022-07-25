@@ -105,13 +105,6 @@ export function installRuntime(win) {
     return;
   }
 
-  // Warn IE11 users of deprecation.
-  if (/MSIE|Trident/.test(self.navigator.userAgent)) {
-    warn(
-      'IE Support is being deprecated, in September 2021 IE will no longer be supported.'
-    );
-  }
-
   // Create a SwG runtime.
   const runtime = new Runtime(win);
 
@@ -548,6 +541,7 @@ export class ConfiguredRuntime {
    *     fetcher: (!FetcherInterface|undefined),
    *     configPromise: (!Promise|undefined),
    *     enableGoogleAnalytics: (boolean|undefined),
+   *     enableDefaultMeteringHandler: (boolean|undefined),
    *     useArticleEndpoint: (boolean|undefined)
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
@@ -637,7 +631,8 @@ export class ConfiguredRuntime {
       this.pageConfig_,
       this.fetcher_,
       this, // See note about 'this' above
-      integr.useArticleEndpoint || false
+      integr.useArticleEndpoint || false,
+      integr.enableDefaultMeteringHandler || false
     );
 
     /** @private @const {!ClientConfigManager} */

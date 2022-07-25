@@ -29,7 +29,6 @@ import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
-const EXISTING_USER_TOKEN = 'existingUserToken';
 
 describes.realWin('AudienceActionFlow', {}, (env) => {
   let win;
@@ -73,42 +72,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
     {action: 'TYPE_NEWSLETTER_SIGNUP', path: 'newsletteriframe'},
   ].forEach(({action, path}) => {
-    it(`opens an AudienceActionFlow constructed with params for ${action} with a swg user token`, async () => {
-      sandbox
-        .stub(runtime.storage(), 'get')
-        .returns(Promise.resolve(EXISTING_USER_TOKEN));
-      const audienceActionFlow = new AudienceActionFlow(runtime, {
-        action,
-        onCancel: onCancelSpy,
-        autoPromptType: AutoPromptType.SUBSCRIPTION,
-      });
-      activitiesMock
-        .expects('openIframe')
-        .withExactArgs(
-          sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          `$frontend$/swg/_/ui/v1/${path}?_=_&publicationId=pub1&origin=${encodeURIComponent(
-            WINDOW_LOCATION_DOMAIN
-          )}&sut=${EXISTING_USER_TOKEN}`,
-          {
-            _client: 'SwG $internalRuntimeVersion$',
-            productType: ProductType.SUBSCRIPTION,
-            supportsEventManager: true,
-          }
-        )
-        .resolves(port);
-
-      await audienceActionFlow.start();
-
-      activitiesMock.verify();
-      expect(onCancelSpy).to.not.be.called;
-    });
-  });
-
-  [
-    {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
-    {action: 'TYPE_NEWSLETTER_SIGNUP', path: 'newsletteriframe'},
-  ].forEach(({action, path}) => {
-    it(`opens an AudienceActionFlow constructed with params for ${action} without a swg user token`, async () => {
+    it(`opens an AudienceActionFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
@@ -119,9 +83,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          `$frontend$/swg/_/ui/v1/${path}?_=_&publicationId=pub1&origin=${encodeURIComponent(
+          `$frontend$/swg/_/ui/v1/${path}?_=_&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
-          )}&sut=`,
+          )}`,
           {
             _client: 'SwG $internalRuntimeVersion$',
             productType: ProductType.SUBSCRIPTION,

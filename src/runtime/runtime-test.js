@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as entitlementsManager from './entitlements-manager';
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
 import {
@@ -216,24 +217,6 @@ describes.realWin('installRuntime', {}, (env) => {
       }
       expect(subscriptions).to.have.property(name);
     }
-  });
-
-  it('tells IE11 users about deprecation', () => {
-    // Mock user agent.
-    const originalUserAgent = navigator.userAgent;
-    Object.defineProperty(self.navigator, 'userAgent', {
-      value: 'Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko',
-      writable: true,
-    });
-
-    // Warning should tell IE11 users about deprecation.
-    installRuntime(win);
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      'IE Support is being deprecated, in September 2021 IE will no longer be supported.'
-    );
-
-    // Restore user agent.
-    navigator.userAgent = originalUserAgent;
   });
 });
 
@@ -1143,6 +1126,22 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
           enableSwgAnalytics: 1,
         })
     ).to.throw();
+  });
+
+  it('should pass enableDefaultMeteringHandler into EntitlementsManager during constuction and default to false', () => {
+    const entitlementsManagerSpy = sandbox.spy(
+      entitlementsManager,
+      'EntitlementsManager'
+    );
+    runtime = new ConfiguredRuntime(win, config);
+
+    expect(entitlementsManagerSpy.getCall(0).args[5]).to.be.false;
+
+    runtime = new ConfiguredRuntime(win, config, {
+      enableDefaultMeteringHandler: true,
+    });
+
+    expect(entitlementsManagerSpy.getCall(1).args[5]).to.be.true;
   });
 
   describe('while configuring', () => {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsRequest} from '../proto/api_messages';
+import {AnalyticsRequest, ReaderSurfaceType} from '../proto/api_messages';
 import {
   addQueryParam,
   getCanonicalUrl,
@@ -296,6 +296,8 @@ describe('serializeProtoMessageForUrl', () => {
       'version',
       'baseUrl',
       ['Timestamp', 12345, 0],
+      '1.4',
+      ReaderSurfaceType.READER_SURFACE_WORDPRESS,
     ];
     const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
     const eventParamsArray = [

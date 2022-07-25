@@ -82,8 +82,17 @@ export class EntitlementsManager {
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!./fetcher.Fetcher} fetcher
    * @param {!./deps.DepsDef} deps
+   * @param {!boolean} useArticleEndpoint
+   * @param {!boolean} enableDefaultMeteringHandler
    */
-  constructor(win, pageConfig, fetcher, deps, useArticleEndpoint) {
+  constructor(
+    win,
+    pageConfig,
+    fetcher,
+    deps,
+    useArticleEndpoint,
+    enableDefaultMeteringHandler
+  ) {
     /** @private @const {!Window} */
     this.win_ = win;
 
@@ -146,6 +155,9 @@ export class EntitlementsManager {
 
     /** @private @const {boolean} */
     this.useArticleEndpoint_ = useArticleEndpoint;
+
+    /** @private @const {boolean} */
+    this.enableDefaultMeteringHandler_ = enableDefaultMeteringHandler;
 
     /** @private {?Article} */
     this.article_ = null;
@@ -683,6 +695,14 @@ export class EntitlementsManager {
     this.deps_
       .callbacks()
       .triggerEntitlementsResponse(Promise.resolve(entitlements));
+
+    // Implementation of the default ability to always consume metered entitlements
+    // if they are provided in an entitlements response.
+    if (this.enableDefaultMeteringHandler_) {
+      if (entitlements.enablesThisWithGoogleMetering()) {
+        entitlements.consume();
+      }
+    }
 
     const entitlement = entitlements.getEntitlementForThis();
     if (!entitlement) {

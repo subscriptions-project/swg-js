@@ -924,7 +924,7 @@ export class GaaMeteringRegwall {
     // Track button clicks.
     buttonEl.addEventListener('click', () => {
       logEvent({
-        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
         isFromUserAction: true,
       });
     });
@@ -1578,6 +1578,11 @@ export class GaaMetering {
     callSwg((subscriptions) => {
       subscriptions.init(productId);
 
+      logEvent({
+        analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
+        isFromUserAction: false,
+      });
+
       subscriptions.setOnLoginRequest(() =>
         GaaMetering.handleLoginRequest(
           handleLoginPromise,
@@ -1843,7 +1848,10 @@ export class GaaMetering {
       noIssues = false;
     }
 
-    const reqPromise = ['handleLoginPromise', 'registerUserPromise'];
+    const reqPromise =
+      'authorizationUrl' in params
+        ? ['handleLoginPromise']
+        : ['handleLoginPromise', 'registerUserPromise'];
 
     for (
       let reqPromiseNo = 0;
@@ -2213,9 +2221,13 @@ export class GaaMetering {
 
   static getOnReadyPromise() {
     return new Promise((resolve) => {
-      self.window.addEventListener('load', () => {
+      if (self.document.readyState === 'complete') {
         resolve();
-      });
+      } else {
+        self.window.addEventListener('load', () => {
+          resolve();
+        });
+      }
     });
   }
 }

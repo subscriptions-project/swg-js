@@ -16,7 +16,6 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent} from '../proto/api_messages';
-import {Constants} from '../utils/constants';
 import {MeterClientTypes} from '../api/metering';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {
@@ -125,141 +124,123 @@ export class MeterToastApi {
           ? MeterType.UNKNOWN
           : MeterType.KNOWN;
     }
-    return this.deps_
-      .storage()
-      .get(Constants.USER_TOKEN, true)
-      .then((swgUserToken) => {
-        const iframeArgs =
-          this.activityPorts_.addDefaultArguments(additionalArguments);
+    const iframeArgs =
+      this.activityPorts_.addDefaultArguments(additionalArguments);
 
-        const iframeUrl =
-          IframeUrlByMeterClientType[
-            this.meterClientType_ ?? MeterClientTypes.LICENSED_BY_GOOGLE
-          ];
-        const iframeUrlParams = {
-          'publicationId': this.deps_.pageConfig().getPublicationId(),
-          'origin': parseUrl(this.win_.location.href).origin,
-        };
-        if (swgUserToken) {
-          iframeUrlParams['sut'] = swgUserToken;
-        }
+    const iframeUrl =
+      IframeUrlByMeterClientType[
+        this.meterClientType_ ?? MeterClientTypes.LICENSED_BY_GOOGLE
+      ];
 
-        /** @private @const {!ActivityIframeView} */
-        this.activityIframeView_ = new ActivityIframeView(
-          this.win_,
-          this.activityPorts_,
-          feUrl(iframeUrl, iframeUrlParams),
-          iframeArgs,
-          /* shouldFadeBody */ false
+    /** @private @const {!ActivityIframeView} */
+    this.activityIframeView_ = new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      feUrl(iframeUrl, {'origin': parseUrl(this.win_.location.href).origin}),
+      iframeArgs,
+      /* shouldFadeBody */ false
+    );
+
+    /** @private @const {!function()} */
+    this.sendCloseRequestFunction_ = () => {
+      const closeRequest = new ToastCloseRequest();
+      closeRequest.setClose(true);
+      this.activityIframeView_.execute(closeRequest);
+      this.removeCloseEventListener();
+
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
+          true
         );
 
-        /** @private @const {!function()} */
-        this.sendCloseRequestFunction_ = () => {
-          const closeRequest = new ToastCloseRequest();
-          closeRequest.setClose(true);
-          this.activityIframeView_.execute(closeRequest);
-          this.removeCloseEventListener();
+      if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
+        this.onConsumeCallbackHandled_ = true;
+        this.onConsumeCallback_();
+      }
+    };
 
-          this.deps_
-            .eventManager()
-            .logSwgEvent(
-              AnalyticsEvent.ACTION_METER_TOAST_CLOSED_BY_ARTICLE_INTERACTION,
-              true
-            );
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
+    this.activityIframeView_.on(
+      ViewSubscriptionsResponse,
+      this.startSubscriptionFlow_.bind(this)
+    );
+    if (
+      !this.deps_.callbacks().hasSubscribeRequestCallback() &&
+      !this.deps_.callbacks().hasOffersFlowRequestCallback()
+    ) {
+      const errorMessage =
+        '[swg.js]: `setOnNativeSubscribeRequest` has not been set ' +
+        'before starting the metering flow, so users will not be able to ' +
+        'subscribe from the metering dialog directly. Please call ' +
+        '`setOnNativeSubscribeRequest` with a subscription flow callback ' +
+        'before starting metering.';
+      warn(errorMessage);
+    }
 
-          if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
-            this.onConsumeCallbackHandled_ = true;
-            this.onConsumeCallback_();
-          }
-        };
-
-        this.deps_
-          .callbacks()
-          .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
-        this.activityIframeView_.on(
-          ViewSubscriptionsResponse,
-          this.startSubscriptionFlow_.bind(this)
-        );
-        if (
-          !this.deps_.callbacks().hasSubscribeRequestCallback() &&
-          !this.deps_.callbacks().hasOffersFlowRequestCallback()
-        ) {
-          const errorMessage =
-            '[swg.js]: `setOnNativeSubscribeRequest` has not been set ' +
-            'before starting the metering flow, so users will not be able to ' +
-            'subscribe from the metering dialog directly. Please call ' +
-            '`setOnNativeSubscribeRequest` with a subscription flow callback ' +
-            'before starting metering.';
-          warn(errorMessage);
+    this.dialogManager_
+      .handleCancellations(this.activityIframeView_)
+      .catch((reason) => {
+        // Possibly call onConsumeCallback on all dialog cancellations to
+        // ensure unexpected dialog closures don't give access without a
+        // meter consumed.
+        if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
+          this.onConsumeCallbackHandled_ = true;
+          this.onConsumeCallback_();
         }
-
-        this.dialogManager_
-          .handleCancellations(this.activityIframeView_)
-          .catch((reason) => {
-            // Possibly call onConsumeCallback on all dialog cancellations to
-            // ensure unexpected dialog closures don't give access without a
-            // meter consumed.
-            if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
-              this.onConsumeCallbackHandled_ = true;
-              this.onConsumeCallback_();
-            }
-            // Don't throw on cancel errors since they happen when a user closes
-            // the toast, which is expected.
-            if (!isCancelError(reason)) {
-              // eslint-disable-next-line no-console
-              console /*OK*/
-                .error(
-                  '[swg.js]: Error occurred during meter toast handling: ' +
-                    reason
-                );
-              throw reason;
-            }
-          });
-
-        return this.dialogManager_.openDialog().then((dialog) => {
-          this.setDialogBoxShadow_();
-          this.setLoadingViewWidth_();
-          return dialog.openView(this.activityIframeView_).then(() => {
-            // Allow closing of the iframe with any scroll or click event.
-            this.win_.addEventListener('click', this.sendCloseRequestFunction_);
-            this.win_.addEventListener(
-              'touchstart',
-              this.sendCloseRequestFunction_
+        // Don't throw on cancel errors since they happen when a user closes
+        // the toast, which is expected.
+        if (!isCancelError(reason)) {
+          // eslint-disable-next-line no-console
+          console /*OK*/
+            .error(
+              '[swg.js]: Error occurred during meter toast handling: ' + reason
             );
-            this.win_.addEventListener(
-              'mousedown',
-              this.sendCloseRequestFunction_
-            );
-            // Making body's overflow property 'hidden' to prevent scrolling
-            // while swiping on the iframe only on mobile.
-            if (this.isMobile_()) {
-              const $body = this.win_.document.body;
-              setStyle($body, 'overflow', 'hidden');
-            } else {
-              let start, scrollTimeout;
-              this.scrollEventListener_ = () => {
-                start = start || this.win_./*REVIEW*/ pageYOffset;
-                this.win_.clearTimeout(scrollTimeout);
-                scrollTimeout = this.win_.setTimeout(() => {
-                  // If the scroll is longer than 100, close the toast.
-                  if (
-                    Math.abs(this.win_./*REVIEW*/ pageYOffset - start) > 100
-                  ) {
-                    this.sendCloseRequestFunction_();
-                  }
-                }, 100);
-              };
-              this.win_.addEventListener('scroll', this.scrollEventListener_);
-            }
-            this.deps_
-              .eventManager()
-              .logSwgEvent(AnalyticsEvent.IMPRESSION_METER_TOAST);
-            this.deps_
-              .eventManager()
-              .logSwgEvent(AnalyticsEvent.EVENT_OFFERED_METER);
-          });
-        });
+          throw reason;
+        }
       });
+
+    return this.dialogManager_.openDialog().then((dialog) => {
+      this.setDialogBoxShadow_();
+      this.setLoadingViewWidth_();
+      return dialog.openView(this.activityIframeView_).then(() => {
+        // Allow closing of the iframe with any scroll or click event.
+        this.win_.addEventListener('click', this.sendCloseRequestFunction_);
+        this.win_.addEventListener(
+          'touchstart',
+          this.sendCloseRequestFunction_
+        );
+        this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
+        // Making body's overflow property 'hidden' to prevent scrolling
+        // while swiping on the iframe only on mobile.
+        if (this.isMobile_()) {
+          const $body = this.win_.document.body;
+          setStyle($body, 'overflow', 'hidden');
+        } else {
+          let start, scrollTimeout;
+          this.scrollEventListener_ = () => {
+            start = start || this.win_./*REVIEW*/ pageYOffset;
+            this.win_.clearTimeout(scrollTimeout);
+            scrollTimeout = this.win_.setTimeout(() => {
+              // If the scroll is longer than 100, close the toast.
+              if (Math.abs(this.win_./*REVIEW*/ pageYOffset - start) > 100) {
+                this.sendCloseRequestFunction_();
+              }
+            }, 100);
+          };
+          this.win_.addEventListener('scroll', this.scrollEventListener_);
+        }
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.IMPRESSION_METER_TOAST);
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_OFFERED_METER);
+      });
+    });
   }
 
   /**

@@ -113,6 +113,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     miniPromptApiMock.verify();
   });
 
+  it('returns an instance of MiniPromptApi from getMiniPromptApi', () => {
+    const miniPromptApi = autoPromptManager.getMiniPromptApi(deps);
+    expect(miniPromptApi).to.be.instanceof(MiniPromptApi);
+  });
+
   it('should be listening for events from the events manager', () => {
     expect(eventManagerCallback).to.not.be.null;
   });

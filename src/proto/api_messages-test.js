@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+/**
+ * @fileoverview Protos for SwG client/iframe messaging
+ * Auto generated, do not edit
+ */
+
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -179,6 +184,8 @@ describe('AnalyticsContext', () => {
     timestamp.setSeconds(0);
     timestamp.setNanos(0);
     analyticscontext.setClientTimestamp(timestamp);
+    analyticscontext.setReaderSurfaceType(ReaderSurfaceType.READER_SURFACE_TYPE_UNSPECIFIED);
+    analyticscontext.setIntegrationVersion('');
 
     let analyticscontextDeserialized;
 
@@ -214,6 +221,10 @@ describe('AnalyticsContext', () => {
         analyticscontext.getUrl());
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
         analyticscontext.getClientTimestamp());
+    expect(analyticscontextDeserialized.getReaderSurfaceType()).to.deep.equal(
+        analyticscontext.getReaderSurfaceType());
+    expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
+        analyticscontext.getIntegrationVersion());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -247,6 +258,10 @@ describe('AnalyticsContext', () => {
         analyticscontext.getUrl());
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
         analyticscontext.getClientTimestamp());
+    expect(analyticscontextDeserialized.getReaderSurfaceType()).to.deep.equal(
+        analyticscontext.getReaderSurfaceType());
+    expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
+        analyticscontext.getIntegrationVersion());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -279,6 +294,10 @@ describe('AnalyticsContext', () => {
         analyticscontext.getUrl());
     expect(analyticscontextDeserialized.getClientTimestamp()).to.deep.equal(
         analyticscontext.getClientTimestamp());
+    expect(analyticscontextDeserialized.getReaderSurfaceType()).to.deep.equal(
+        analyticscontext.getReaderSurfaceType());
+    expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
+        analyticscontext.getIntegrationVersion());
   });
 });
 
@@ -349,6 +368,8 @@ describe('AnalyticsRequest', () => {
     timestamp.setSeconds(0);
     timestamp.setNanos(0);
     analyticscontext.setClientTimestamp(timestamp);
+    analyticscontext.setReaderSurfaceType(ReaderSurfaceType.READER_SURFACE_TYPE_UNSPECIFIED);
+    analyticscontext.setIntegrationVersion('');
     analyticsrequest.setContext(analyticscontext);
     analyticsrequest.setEvent(AnalyticsEvent.UNKNOWN);
     const /** !AnalyticsEventMeta  */ analyticseventmeta = new AnalyticsEventMeta();
