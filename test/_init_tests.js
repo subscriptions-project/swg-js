@@ -28,6 +28,7 @@ beforeEach(function () {
   window.TEST = true;
   MODES.default['feCache'] = 'zero';
   PAY_ORIGIN['$payEnvironment$'] = 'PAY_ORIGIN';
+  self.location.hash = '';
 });
 
 // Global cleanup of tags added during tests. Cool to add more
@@ -52,6 +53,9 @@ afterEach(function () {
     );
   }
 });
+
+// Disable string truncation on failures.
+chai.config.truncateThreshold = 0;
 
 chai.Assertion.addMethod('attribute', function (attr) {
   const obj = this._obj;
