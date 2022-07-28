@@ -28,7 +28,6 @@ beforeEach(function () {
   window.TEST = true;
   MODES.default['feCache'] = 'zero';
   PAY_ORIGIN['$payEnvironment$'] = 'PAY_ORIGIN';
-  self.location.hash = '';
 });
 
 // Global cleanup of tags added during tests. Cool to add more
@@ -36,6 +35,7 @@ beforeEach(function () {
 afterEach(function () {
   this.timeout(5000);
   delete window.TEST;
+  self.location.hash = '';
 
   const forgotGlobal = !!global.sandbox;
   if (forgotGlobal) {
