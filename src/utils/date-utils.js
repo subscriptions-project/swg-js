@@ -26,22 +26,3 @@ export function toTimestamp(millis) {
     false
   );
 }
-
-/**
- * @param {!number} timestamp represented as seconds, milliseconds or microseconds
- * @return {!number}
- */
-export function convertPotentialTimestampToSeconds(timestamp) {
-  let timestampInSeconds;
-  if (timestamp >= 1e14 || timestamp <= -1e14) {
-    // Microseconds
-    timestampInSeconds = Math.floor(timestamp / 100000);
-  } else if (timestamp >= 1e11 || timestamp <= -3e10) {
-    // Milliseconds
-    timestampInSeconds = Math.floor(timestamp / 1000);
-  } else {
-    // Seconds
-    timestampInSeconds = timestamp;
-  }
-  return timestampInSeconds;
-}

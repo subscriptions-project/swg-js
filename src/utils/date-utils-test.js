@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {convertPotentialTimestampToSeconds, toTimestamp} from './date-utils';
+import {toTimestamp} from './date-utils';
 
 /**
  *
@@ -38,28 +38,5 @@ describe('toTimestamp', () => {
     const stamp = toTimestamp(Date.now());
     expect(isInteger(stamp.getSeconds())).to.be.true;
     expect(isInteger(stamp.getNanos())).to.be.true;
-  });
-});
-
-describe('convertPotentialTimestampToSeconds', () => {
-  it('returns seconds if seconds are provided', () => {
-    const nowInSeconds = Math.floor(Date.now() / 1000);
-    expect(convertPotentialTimestampToSeconds(nowInSeconds)).to.equal(
-      nowInSeconds
-    );
-  });
-  it('converts milliseconds to seconds', () => {
-    const nowInMilliseconds = Date.now();
-    const nowInSeconds = Math.floor(nowInMilliseconds / 1000);
-    expect(convertPotentialTimestampToSeconds(nowInMilliseconds)).to.equal(
-      nowInSeconds
-    );
-  });
-  it('converts microseconds to seconds', () => {
-    const nowInMicroseconds = Date.now() * 1000;
-    const nowInSeconds = Math.floor(nowInMicroseconds / 100000);
-    expect(convertPotentialTimestampToSeconds(nowInMicroseconds)).to.equal(
-      nowInSeconds
-    );
   });
 });

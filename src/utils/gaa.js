@@ -41,7 +41,6 @@ import {setImportantStyles} from './style';
 
 // Load types for Closure compiler.
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {convertPotentialTimestampToSeconds} from './date-utils';
 import {createElement, injectStyleSheet} from './dom';
 import {resolveDoc} from '../model/doc';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
@@ -429,7 +428,6 @@ export let GoogleUserDef;
  * unlockArticle: function(): ?,
  * rawJwt: (boolean|null),
  * userState: {
- *   paywallReason: string,
  *   grantReason: string,
  *   granted: boolean,
  *   id: string,
@@ -1489,15 +1487,6 @@ export const GrantReasonType = {
   METERING: 'METERING',
 };
 
-/**
- * Types of paywallReason that can be specified by the user as part of
- * the userState object
- * @enum {string}
- */
-export const PaywallReasonType = {
-  RESERVED_USER: 'RESERVED_USER',
-};
-
 export class GaaMetering {
   constructor() {
     this.userState = {};
@@ -1680,7 +1669,9 @@ export class GaaMetering {
                 grantReasonToShowCaseEventMap[
                   GaaMetering.userState.grantReason
                 ],
-              isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+              isUserRegistered: GaaMetering.isUserRegistered(
+                GaaMetering.userState
+              ),
             });
             debugLog('unlocked for ' + GaaMetering.userState.grantReason);
           });
@@ -1749,7 +1740,7 @@ export class GaaMetering {
         // This is only relevant for publishers doing SwG
         handleSwGEntitlement();
       } else if (
-        !GaaMetering.isCurrentUserRegistered() &&
+        !GaaMetering.isUserRegistered(GaaMetering.userState) &&
         GaaMetering.isGaa(allowedReferrers)
       ) {
         // This is an anonymous user so show the Google registration intervention
@@ -1757,29 +1748,17 @@ export class GaaMetering {
       } else {
         // User does not any access from publisher or Google so show the standard paywall
         callSwg((subscriptions) => {
-          switch (GaaMetering.userState.paywallReason) {
-            case PaywallReasonType.RESERVED_USER:
-              subscriptions.setShowcaseEntitlement({
-                entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
-                isUserRegistered: GaaMetering.isCurrentUserRegistered(),
-              });
-              break;
-            default:
-              subscriptions.setShowcaseEntitlement({
-                entitlement:
-                  ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-                isUserRegistered: GaaMetering.isCurrentUserRegistered(),
-              });
-          }
+          subscriptions.setShowcaseEntitlement({
+            entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+            isUserRegistered: GaaMetering.isUserRegistered(
+              GaaMetering.userState
+            ),
+          });
         });
         // Show the paywall
         showPaywall();
       }
     });
-  }
-
-  static isCurrentUserRegistered() {
-    return GaaMetering.isUserRegistered(GaaMetering.userState);
   }
 
   static isUserRegistered(userState) {
@@ -2074,18 +2053,13 @@ export class GaaMetering {
   }
 
   static newUserStateToUserState(newUserState) {
-    // Convert registrationTimestamp to seconds
-    const registrationTimestampSeconds = convertPotentialTimestampToSeconds(
-      newUserState.registrationTimestamp
-    );
-
     return {
       'metering': {
         'state': {
           'id': newUserState.id,
           'standardAttributes': {
             'registered_user': {
-              'timestamp': registrationTimestampSeconds,
+              'timestamp': newUserState.registrationTimestamp,
             },
           },
         },
@@ -2098,8 +2072,6 @@ export class GaaMetering {
       return false;
     }
 
-    let noIssues = true;
-
     if (
       !('granted' in newUserState && typeof newUserState.granted === 'boolean')
     ) {
@@ -2107,7 +2079,7 @@ export class GaaMetering {
         'userState.granted is missing or invalid (must be true or false)'
       );
 
-      noIssues = false;
+      return false;
     }
 
     if (
@@ -2118,7 +2090,7 @@ export class GaaMetering {
         'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
       );
 
-      noIssues = false;
+      return false;
     }
 
     if (
@@ -2132,9 +2104,8 @@ export class GaaMetering {
         debugLog(
           'Missing user ID or registrationTimestamp in userState object'
         );
-        noIssues = false;
+        return false;
       } else {
-        // Check if the provided timestamp is an integer
         if (
           !(
             typeof newUserState.registrationTimestamp === 'number' &&
@@ -2145,46 +2116,47 @@ export class GaaMetering {
             'userState.registrationTimestamp invalid, userState.registrationTimestamp needs to be an integer and in seconds'
           );
 
-          noIssues = false;
-        } else if (
-          convertPotentialTimestampToSeconds(
-            newUserState.registrationTimestamp
-          ) >
-          Date.now() / 1000
-        ) {
-          debugLog('userState.registrationTimestamp is in the future');
-
-          noIssues = false;
+          return false;
         }
 
-        if (newUserState.grantReason === GrantReasonType.SUBSCRIBER) {
-          if (!('subscriptionTimestamp' in newUserState)) {
-            debugLog(
-              'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
-            );
+        if (newUserState.registrationTimestamp > Date.now() / 1000) {
+          debugLog('userState.registrationTimestamp is in the future');
 
-            noIssues = false;
-          } else if (
-            // Check if the provided timestamp is an integer
-            !(
-              typeof newUserState.subscriptionTimestamp === 'number' &&
-              newUserState.subscriptionTimestamp % 1 === 0
-            )
-          ) {
-            debugLog(
-              'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
-            );
+          return false;
+        }
 
-            noIssues = false;
-          } else if (
-            convertPotentialTimestampToSeconds(
-              newUserState.subscriptionTimestamp
-            ) >
-            Date.now() / 1000
-          ) {
-            debugLog('userState.subscriptionTimestamp is in the future');
-            noIssues = false;
-          }
+        if (
+          newUserState.grantReason === GrantReasonType.SUBSCRIBER &&
+          !('subscriptionTimestamp' in newUserState)
+        ) {
+          debugLog(
+            'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
+          );
+
+          return false;
+        }
+
+        if (
+          'subscriptionTimestamp' in newUserState &&
+          !(
+            typeof newUserState.subscriptionTimestamp === 'number' &&
+            newUserState.subscriptionTimestamp % 1 === 0
+          )
+        ) {
+          debugLog(
+            'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
+          );
+
+          return false;
+        }
+
+        if (
+          'subscriptionTimestamp' in newUserState &&
+          newUserState.subscriptionTimestamp > Date.now() / 1000
+        ) {
+          debugLog('userState.subscriptionTimestamp is in the future');
+
+          return false;
         }
       }
     }
@@ -2201,22 +2173,7 @@ export class GaaMetering {
       }
     }
 
-    if ('paywallReason' in newUserState) {
-      if (newUserState.granted) {
-        debugLog(
-          'userState.granted must be false when paywallReason is supplied.'
-        );
-        noIssues = false;
-      }
-
-      if (PaywallReasonType[newUserState.paywallReason] === undefined) {
-        debugLog(
-          'userState.paywallReason has to be empty or set to RESERVED_USER.'
-        );
-        noIssues = false;
-      }
-    }
-    return noIssues;
+    return true;
   }
 
   static getOnReadyPromise() {
