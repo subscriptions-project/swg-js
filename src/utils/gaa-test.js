@@ -2891,8 +2891,11 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('init', () => {
-    it('fails with a warning in debug mode for invalid params', () => {
+    beforeEach(() => {
       location.hash = `#swg.debug=1`;
+    });
+
+    it('fails with a warning in debug mode for invalid params', () => {
       expect(GaaMetering.init({})).to.be.false;
       expect(self.console.log).to.have.been.calledWithExactly(
         '[Subscriptions]',
@@ -3680,6 +3683,7 @@ describes.realWin('GaaMetering', {}, () => {
   describe('handleLoginRequest', () => {
     beforeEach(() => {
       GaaMetering.loginPromiseResolve_ = undefined;
+      location.hash = `#swg.debug=1`;
     });
 
     it('resolves the loginPromise', () => {
