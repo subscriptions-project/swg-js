@@ -487,6 +487,7 @@ describe('CompleteAudienceActionResponse', () => {
     completeaudienceactionresponse.setSwgUserToken('');
     completeaudienceactionresponse.setActionCompleted(false);
     completeaudienceactionresponse.setUserEmail('');
+    completeaudienceactionresponse.setAlreadyCompleted(false);
 
     let completeaudienceactionresponseDeserialized;
 
@@ -504,6 +505,8 @@ describe('CompleteAudienceActionResponse', () => {
         completeaudienceactionresponse.getActionCompleted());
     expect(completeaudienceactionresponseDeserialized.getUserEmail()).to.deep.equal(
         completeaudienceactionresponse.getUserEmail());
+    expect(completeaudienceactionresponseDeserialized.getAlreadyCompleted()).to.deep.equal(
+        completeaudienceactionresponse.getAlreadyCompleted());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -519,6 +522,8 @@ describe('CompleteAudienceActionResponse', () => {
         completeaudienceactionresponse.getActionCompleted());
     expect(completeaudienceactionresponseDeserialized.getUserEmail()).to.deep.equal(
         completeaudienceactionresponse.getUserEmail());
+    expect(completeaudienceactionresponseDeserialized.getAlreadyCompleted()).to.deep.equal(
+        completeaudienceactionresponse.getAlreadyCompleted());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -533,6 +538,8 @@ describe('CompleteAudienceActionResponse', () => {
         completeaudienceactionresponse.getActionCompleted());
     expect(completeaudienceactionresponseDeserialized.getUserEmail()).to.deep.equal(
         completeaudienceactionresponse.getUserEmail());
+    expect(completeaudienceactionresponseDeserialized.getAlreadyCompleted()).to.deep.equal(
+        completeaudienceactionresponse.getAlreadyCompleted());
   });
 });
 
