@@ -221,6 +221,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.start();
     const completeAudienceActionResponse = new CompleteAudienceActionResponse();
     completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setAlreadyCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
@@ -231,6 +232,44 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     expect(toastOpenStub).to.be.called;
     expect(toast).not.to.be.null;
     expect(toast.src_).to.contain('flavor=basic');
+  });
+
+  it('handles a CompleteAudienceActionResponse with regwall failure and opens a failure toast', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+
+    let toast;
+    const toastOpenStub = sandbox
+      .stub(Toast.prototype, 'open')
+      .callsFake(function () {
+        toast = this;
+      });
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setAlreadyCompleted(false);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).to.be.called;
+    expect(toast).not.to.be.null;
+    expect(toast.src_).to.contain('flavor=custom');
+    expect(decodeURI(toast.src_)).to.contain('Failed to register');
   });
 
   it(`handles a CompleteAudienceActionResponse with newsletter not completed and opens a custom toast indicating that the user has completed the newsletter before`, async () => {
@@ -257,6 +296,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.start();
     const completeAudienceActionResponse = new CompleteAudienceActionResponse();
     completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setAlreadyCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
@@ -268,6 +308,44 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     expect(toast).not.to.be.null;
     expect(toast.src_).to.contain('flavor=custom');
     expect(decodeURI(toast.src_)).to.contain('You have signed up before.');
+  });
+
+  it(`handles a CompleteAudienceActionResponse with newsletter failure and opens a custom toast indicating that the sign up has failed`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+
+    let toast;
+    const toastOpenStub = sandbox
+      .stub(Toast.prototype, 'open')
+      .callsFake(function () {
+        toast = this;
+      });
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setAlreadyCompleted(false);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).to.be.called;
+    expect(toast).not.to.be.null;
+    expect(toast.src_).to.contain('flavor=custom');
+    expect(decodeURI(toast.src_)).to.contain('Failed to sign up');
   });
 
   it('should trigger login flow for a registered user', async () => {
