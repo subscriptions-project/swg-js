@@ -971,7 +971,7 @@ export class GaaMeteringRegwall {
     buttonEl.addEventListener('click', () => {
       // Track button clicks.
       logEvent({
-        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
         isFromUserAction: true,
       });
       // Redirect user using the parent window.
