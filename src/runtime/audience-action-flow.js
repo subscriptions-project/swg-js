@@ -158,8 +158,10 @@ export class AudienceActionFlow {
     }
     if (response.getActionCompleted()) {
       this.showSignedInToast_(response.getUserEmail() ?? '');
-    } else {
+    } else if (response.getAlreadyCompleted()) {
       this.showAlreadyOptedInToast_();
+    } else {
+      this.showFailedOptedInToast_();
     }
     this.entitlementsManager_.getEntitlements();
   }
@@ -215,6 +217,24 @@ export class AudienceActionFlow {
         })
       ).open();
     }
+  }
+
+  /** @private */
+  showFailedOptedInToast_() {
+    const lang = this.clientConfigManager_.getLanguage();
+    const customText = msg(
+      this.params_.action === 'TYPE_REGISTRATION_WALL'
+        ? SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED_LANG_MAP
+        : SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED_LANG_MAP,
+      lang
+    );
+    new Toast(
+      this.deps_,
+      feUrl('/toastiframe', {
+        flavor: 'custom',
+        customText,
+      })
+    ).open();
   }
 
   /**
