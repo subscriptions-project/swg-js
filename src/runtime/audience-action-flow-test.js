@@ -269,7 +269,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     expect(toastOpenStub).to.be.called;
     expect(toast).not.to.be.null;
     expect(toast.src_).to.contain('flavor=custom');
-    expect(decodeURI(toast.src_)).to.contain('Failed to register');
+    expect(decodeURI(toast.src_)).to.contain('Registration failed. Try registering again.');
   });
 
   it(`handles a CompleteAudienceActionResponse with newsletter not completed and opens a custom toast indicating that the user has completed the newsletter before`, async () => {
@@ -345,7 +345,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     expect(toastOpenStub).to.be.called;
     expect(toast).not.to.be.null;
     expect(toast.src_).to.contain('flavor=custom');
-    expect(decodeURI(toast.src_)).to.contain('Failed to sign up');
+    expect(decodeURI(toast.src_)).to.contain('Signup failed. Try signing up again.');
   });
 
   it('should trigger login flow for a registered user', async () => {
