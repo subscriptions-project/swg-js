@@ -975,7 +975,9 @@ export class GaaMeteringRegwall {
         isFromUserAction: true,
       });
       // Redirect user using the parent window.
-      self.open(authorizationUrl, '_parent');
+      self.setTimeout(() => {
+        self.open(authorizationUrl, '_parent');
+      }, 10);
     });
 
     return buttonEl;

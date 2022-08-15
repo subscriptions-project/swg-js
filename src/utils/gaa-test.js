@@ -829,6 +829,26 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         },
       ]);
     });
+
+    it('check 3p button click', () => {
+      GaaMeteringRegwall.showWithNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        caslUrl: CASL_URL,
+      });
+
+      sandbox.stub(self, 'setTimeout').callsFake((callback, timeout) => {
+        callback();
+      });
+
+      // Verify analytics events.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
+          isFromUserAction: false,
+        },
+      ]);
+    });
   });
 
   describe('createNativeRegistrationButton', () => {
