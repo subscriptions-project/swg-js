@@ -89,6 +89,9 @@ export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
 /** ID for the Regwall title element. */
 export const REGWALL_TITLE_ID = 'swg-regwall-title';
 
+/** Delay used to log 3P button click before redirect */
+const REDIRECT_DELAY = 10;
+
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
  * The script creates a dialog based on this HTML.
@@ -977,7 +980,7 @@ export class GaaMeteringRegwall {
       // Redirect user using the parent window.
       self.setTimeout(() => {
         self.open(authorizationUrl, '_parent');
-      }, 10);
+      }, REDIRECT_DELAY);
     });
 
     return buttonEl;

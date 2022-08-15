@@ -836,6 +836,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         caslUrl: CASL_URL,
       });
 
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
       sandbox.stub(self, 'setTimeout').callsFake((callback, timeout) => {
         callback();
       });
@@ -845,7 +848,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         {
           analyticsEvent:
             AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
-          isFromUserAction: false,
+          isFromUserAction: true,
         },
       ]);
     });
