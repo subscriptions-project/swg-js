@@ -31,7 +31,6 @@ import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 
-
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 
 describes.realWin('AudienceActionFlow', {}, (env) => {
