@@ -118,6 +118,7 @@ export const AutoPromptType = {
  *   lang: (string|undefined),
  *   forceLangInIframes: (boolean|undefined),
  *   theme: (ClientTheme|undefined),
+ *   allowScroll: (boolean|undefined),
  * }}
  */
 export let ClientOptions;

@@ -411,4 +411,28 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.start();
     dialogManagerMock.verify();
   });
+
+  it('opens dialog with scrolling enabled', async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    audienceActionFlow.clientConfigManager_ = new ClientConfigManager(
+      deps,
+      'pubId',
+      fetcher,
+      {allowScroll: true}
+    );
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({shouldDisableBodyScrolling: false})
+      )
+      .once();
+    await audienceActionFlow.start();
+    dialogManagerMock.verify();
+  });
 });
