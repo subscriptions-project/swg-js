@@ -22,11 +22,15 @@ import {
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
+import {DepsDef} from './deps';
+import {Fetcher} from './fetcher';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
+
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 
@@ -419,9 +423,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     });
     audienceActionFlow.clientConfigManager_ = new ClientConfigManager(
-      deps,
+      new DepsDef(),
       'pubId',
-      fetcher,
+      new Fetcher(),
       {allowScroll: true}
     );
     dialogManagerMock

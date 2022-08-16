@@ -299,9 +299,9 @@ describes.realWin('ClientConfigManager', {}, () => {
         expect(clientConfigManager.shouldAllowScroll()).to.equal(
           testCase.expected
         );
-      })
+      });
     }
-  })
+  });
 
   describe('shouldForceLangInIframes', () => {
     const testCases = [
