@@ -830,20 +830,20 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       ]);
     });
 
-    it('check 3p button click', () => {
-      GaaMeteringRegwall.showWithNative3PRegistrationButton({
+    it('logs 3P button click event', async () => {
+      // Show button.
+      GaaMeteringRegwall.render_({useNativeMode: true});
+
+      GaaMeteringRegwall.createNative3PRegistrationButton({
         authorizationUrl: GOOGLE_3P_AUTH_URL,
-        caslUrl: CASL_URL,
       });
 
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+      clock.tick(100);
+      await tick(10);
 
-      sandbox.stub(self, 'setTimeout').callsFake((callback, timeout) => {
-        callback();
-      });
-
-      // Verify analytics events.
+      // Verify analytics event.
       expectAnalyticsEvents([
         {
           analyticsEvent:
