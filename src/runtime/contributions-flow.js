@@ -147,7 +147,7 @@ export class ContributionsFlow {
           return this.dialogManager_.openView(
             this.activityIframeView_,
             /* hidden */ false,
-            this.getDialogConfig_(clientConfig)
+            this.getDialogConfig_(clientConfig, this.clientConfigManager_)
           );
         });
     });
@@ -158,8 +158,9 @@ export class ContributionsFlow {
    * @param {!../model/client-config.ClientConfig} clientConfig
    * @return {!../components/dialog.DialogConfig}
    */
-  getDialogConfig_(clientConfig) {
-    return clientConfig.useUpdatedOfferFlows && !clientConfig.allowScroll
+  getDialogConfig_(clientConfig, clientConfigManager) {
+    return clientConfig.useUpdatedOfferFlows &&
+      !clientConfigManager.shouldAllowScroll()
       ? {shouldDisableBodyScrolling: true}
       : {};
   }
