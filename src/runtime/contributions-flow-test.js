@@ -289,7 +289,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
-  it('opens dialog with scrolling enabled when useUpdatedOfferFlows=false allowScroll=true', async () => {
+  it('opens dialog with scrolling enabled when useUpdatedOfferFlows=false and allowScroll=true', async () => {
     const clientConfigManager = runtime.clientConfigManager();
     sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
       new ClientConfig({
