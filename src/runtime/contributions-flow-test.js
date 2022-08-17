@@ -290,13 +290,14 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   });
 
   it('opens dialog with scrolling enabled when useUpdatedOfferFlows=false allowScroll=true', async () => {
-    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
       new ClientConfig({
         useUpdatedOfferFlows: false,
         uiPredicates: {canDisplayAutoPrompt: true},
-        allowScroll: true,
       })
     );
+    sandbox.stub(clientConfigManager, 'shouldAllowScroll').returns(true);
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     dialogManagerMock
       .expects('openView')
@@ -306,13 +307,14 @@ describes.realWin('ContributionsFlow', {}, (env) => {
   });
 
   it('opens dialog with scrolling enabled when useUpdatedOfferFlows=true allowScroll=true', async () => {
-    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
       new ClientConfig({
         useUpdatedOfferFlows: true,
         uiPredicates: {canDisplayAutoPrompt: true},
-        allowScroll: true,
       })
     );
+    sandbox.stub(clientConfigManager, 'shouldAllowScroll').returns(true);
     contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
     dialogManagerMock
       .expects('openView')
