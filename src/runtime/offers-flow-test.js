@@ -287,7 +287,14 @@ describes.realWin('OffersFlow', {}, (env) => {
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     dialogManagerMock
       .expects('openView')
-      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+          shouldDisableBodyScrolling: false,
+        })
+      )
       .once();
     await offersFlow.start();
   });
