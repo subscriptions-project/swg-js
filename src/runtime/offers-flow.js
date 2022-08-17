@@ -265,7 +265,7 @@ export class OffersFlow {
     return clientConfig.useUpdatedOfferFlows
       ? {
           desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
-          shouldDisableBodyScrolling: true,
+          shouldDisableBodyScrolling: !clientConfig.allowScroll,
         }
       : {};
   }

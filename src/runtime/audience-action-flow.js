@@ -136,8 +136,7 @@ export class AudienceActionFlow {
       this.activityIframeView_,
       /* hidden */ false,
       /* dialogConfig */ {
-        shouldDisableBodyScrolling:
-          !this.clientConfigManager_.shouldAllowScroll(),
+        shouldDisableBodyScrolling: true,
       }
     );
   }

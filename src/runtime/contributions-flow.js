@@ -159,7 +159,7 @@ export class ContributionsFlow {
    * @return {!../components/dialog.DialogConfig}
    */
   getDialogConfig_(clientConfig) {
-    return clientConfig.useUpdatedOfferFlows
+    return clientConfig.useUpdatedOfferFlows && !clientConfig.allowScroll
       ? {shouldDisableBodyScrolling: true}
       : {};
   }

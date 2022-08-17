@@ -22,11 +22,8 @@ import {
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
-import {DepsDef} from './deps';
-import {Fetcher} from './fetcher';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
@@ -409,30 +406,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         sandbox.match.any,
         false,
         sandbox.match({shouldDisableBodyScrolling: true})
-      )
-      .once();
-    await audienceActionFlow.start();
-    dialogManagerMock.verify();
-  });
-
-  it('opens dialog with scrolling enabled', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
-      action: 'TYPE_REGISTRATION_WALL',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-    });
-    audienceActionFlow.clientConfigManager_ = new ClientConfigManager(
-      new DepsDef(),
-      'pubId',
-      new Fetcher(),
-      {allowScroll: true}
-    );
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(
-        sandbox.match.any,
-        false,
-        sandbox.match({shouldDisableBodyScrolling: false})
       )
       .once();
     await audienceActionFlow.start();
