@@ -287,7 +287,7 @@ describes.realWin('OffersFlow', {}, (env) => {
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     dialogManagerMock
       .expects('openView')
-      .withExactArgs(sandbox.match.any, false, {})
+      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
       .once();
     await offersFlow.start();
   });
