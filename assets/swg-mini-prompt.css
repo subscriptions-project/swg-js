@@ -19,10 +19,10 @@
   border: 0;
   outline: 0;
   width: 100%;
-  bottom: 0px;
   height: 64px;
   min-height: 64px;
   position: fixed;
+  bottom: 0px;
   z-index: 1111;
   left: 50%;
   transform: translateX(-50%);
