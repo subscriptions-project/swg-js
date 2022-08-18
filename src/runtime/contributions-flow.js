@@ -157,9 +157,9 @@ export class ContributionsFlow {
   }
 
   /**
-   * Returns whether this flow is configured as enabled, not showing
-   * even on explicit start when flag is configured false.
-   *
+   * Gets display configuration options for the opened dialog. Uses the
+   * responsive desktop design properties if the updated offer flows UI (for
+   * SwG Basic) is enabled. Permits override to allow scrolling.
    * @param {!../model/client-config.ClientConfig} clientConfig
    * @param {boolean} shouldAllowScroll
    * @return {!../components/dialog.DialogConfig}
