@@ -149,7 +149,7 @@ export class ContributionsFlow {
             /* hidden */ false,
             this.getDialogConfig_(
               clientConfig,
-              this.clientConfigManager_shouldAllowScroll()
+              this.clientConfigManager_.shouldAllowScroll()
             )
           );
         });
