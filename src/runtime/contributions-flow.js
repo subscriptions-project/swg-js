@@ -147,20 +147,25 @@ export class ContributionsFlow {
           return this.dialogManager_.openView(
             this.activityIframeView_,
             /* hidden */ false,
-            this.getDialogConfig_(clientConfig, this.clientConfigManager_)
+            this.getDialogConfig_(
+              clientConfig,
+              this.clientConfigManager_shouldAllowScroll()
+            )
           );
         });
     });
   }
 
   /**
+   * Returns whether this flow is configured as enabled, not showing
+   * even on explicit start when flag is configured false.
    *
    * @param {!../model/client-config.ClientConfig} clientConfig
+   * @param {boolean} shouldAllowScroll
    * @return {!../components/dialog.DialogConfig}
    */
-  getDialogConfig_(clientConfig, clientConfigManager) {
-    return clientConfig.useUpdatedOfferFlows &&
-      !clientConfigManager.shouldAllowScroll()
+  getDialogConfig_(clientConfig, shouldAllowScroll) {
+    return clientConfig.useUpdatedOfferFlows && !shouldAllowScroll
       ? {shouldDisableBodyScrolling: true}
       : {};
   }
