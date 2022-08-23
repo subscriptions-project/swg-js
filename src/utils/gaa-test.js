@@ -26,6 +26,7 @@ import {
   GaaSignInWithGoogleButton,
   GaaUtils,
   POST_MESSAGE_COMMAND_BUTTON_CLICK,
+  POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
@@ -1117,6 +1118,33 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         },
       ]);
     });
+
+    it('sends 3P button click event', async () => {
+      // Show Regwall.
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      await tick();
+      logEvent.resetHistory();
+
+      // Send button click post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+      });
+
+      // Wait for logging.
+      await new Promise((resolve) => {
+        logEvent = sandbox.fake(resolve);
+      });
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
   });
 
   describe('getPublisherNameFromPageConfig_', () => {
@@ -1787,6 +1815,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
   let clock;
 
   beforeEach(() => {
+    sandbox.restore();
     // Mock clock.
     clock = sandbox.useFakeTimers();
 
@@ -1798,11 +1827,15 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     sandbox.stub(self.console, 'warn');
 
     sandbox.stub(self, 'open');
+    sandbox.stub(self, 'postMessage');
+    if (self.postMessage.restore) {
+      self.postMessage.restore();
+    }
   });
 
   afterEach(() => {
-    if (self.postMessage.restore) {
-      self.postMessage.restore();
+    if (self.postMessage.reset) {
+      self.postMessage.reset();
     }
 
     GaaUtils.getQueryString.restore();
@@ -1896,6 +1929,85 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       );
     });
 
+    it('sends post message with 3p button click event', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for button click post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      // Expect button click post message.
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('sends post message with 3p button click event when redirectMode is true', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        redirectMode: true,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for button click post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      // Expect button click post message.
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
     it('should open an authorizationUrl in a new window by default', async () => {
       // Show button.
       GaaGoogle3pSignInButton.show({
@@ -1938,6 +2050,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         location.origin,
       ];
 
+      const spy = sandbox.stub(self, 'postMessage').resolves();
       GaaGoogle3pSignInButton.show(
         {allowedOrigins: invalidOrigin},
         GOOGLE_3P_AUTH_URL
@@ -1954,18 +2067,20 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       await tick(10);
 
       // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
+      // await new Promise((resolve) => {
+      //   sandbox.stub(self, 'postMessage').callsFake(() => {
+      //     resolve();
+      //   });
+      // });
 
-      expect(self.postMessage).to.be.calledWith(
-        {
+      // expect(spy.callCount).to.equal(2);
+      expect(spy).to.be.calledWith(
+        sinon.match.any,
+        sinon.match({
           command: POST_MESSAGE_COMMAND_ERROR,
           stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
+        }),
+        location.origin.toString()
       );
     });
 
