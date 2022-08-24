@@ -155,6 +155,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     dialogManagerMock.verify();
     eventManagerMock.verify();
     self.console.warn.restore();
+    sandbox.restore();
   });
 
   function expectNoResponse() {
@@ -1702,6 +1703,69 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       manager.enableMeteredByGoogle();
 
       await manager.getEntitlements();
+    });
+
+    it('should add the publisherProvidedId param from the config', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
+            encodeURIComponent('abc') +
+            '&ppid=' +
+            encodeURIComponent('publisherProvidedId'),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+
+      config.publisherProvidedId = "publisherProvidedId";
+
+      // Check SwgUserToken from local storage.
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, true)
+        .returns(Promise.resolve('abc')).once;
+
+      await manager.getEntitlements();
+    });
+
+    it('should add the publisherProvidedId param from the getEntitlements params', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
+            encodeURIComponent('abc') +
+            '&ppid=' +
+            encodeURIComponent('publisherProvidedId'),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+
+      // Check SwgUserToken from local storage.
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, true)
+        .returns(Promise.resolve('abc')).once;
+
+      await manager.getEntitlements({
+        publisherProvidedId: "publisherProvidedId",
+      });
+      
     });
   });
 

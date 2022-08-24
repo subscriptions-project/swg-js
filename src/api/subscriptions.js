@@ -337,6 +337,13 @@ export class Subscriptions {
    * @return {?}
    */
   showBestAudienceAction() {}
+
+   /**
+   * Set the publisherProvidedId.
+   * @param {string} publisherProvidedId
+   * @return {?}
+   */
+    setPpid(publisherProvidedId) {}
 }
 /* eslint-enable no-unused-vars */
 
@@ -409,6 +416,7 @@ export const SubscriptionFlows = {
  *   analyticsMode: (!AnalyticsMode|undefined),
  *   enableSwgAnalytics: (boolean|undefined),
  *   enablePropensity: (boolean|undefined),
+ *   publisherProvidedId: (string|undefined),
  * }}
  */
 export let Config;
@@ -459,6 +467,7 @@ export let GetEntitlementsMeteringParamsInternal;
  * @typedef {{
  *   encryption: (!GetEntitlementsEncryptionParams|undefined),
  *   metering: (!GetEntitlementsMeteringParamsExternal|undefined),
+ *   publisherProvidedId: (string|undefined),
  * }}
  */
 export let GetEntitlementsParamsExternalDef;

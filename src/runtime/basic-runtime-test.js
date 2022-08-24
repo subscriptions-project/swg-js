@@ -297,6 +297,16 @@ describes.realWin('BasicRuntime', {}, (env) => {
         configuredRuntimeSpy.getCall(0).args[2].enableDefaultMeteringHandler
       ).to.be.false;
     });
+
+    it('should set publisherProvidedId after initialization', async () => {
+      basicRuntime.init({
+        publisherProvidedId: 'publisherProvidedId'
+      });
+
+      await basicRuntime.configured_(true);
+
+      expect(basicRuntime.config_.publisherProvidedId).to.equal("publisherProvidedId");
+    });
   });
 
   describe('configured', () => {

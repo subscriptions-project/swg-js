@@ -1070,6 +1070,16 @@ describes.realWin('Runtime', {}, (env) => {
     it('should not call showBestAudienceAction', () => {
       expect(() => runtime.showBestAudienceAction()).to.not.throw();
     });
+
+    it('should delegate "setPpid"', async () => {
+      configuredRuntimeMock
+        .expects('setPpid')
+        .withExactArgs("publisherProvidedId")
+        .once();
+
+      await runtime.setPpid("publisherProvidedId");
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
   });
 });
 
@@ -1579,7 +1589,6 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         );
         entitlementsManagerMock
           .expects('getEntitlements')
-          .withExactArgs(undefined)
           .returns(promise)
           .once();
         await runtime.start();
@@ -1630,7 +1639,6 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       const error = new Error('broken');
       entitlementsManagerMock
         .expects('getEntitlements')
-        .withExactArgs(undefined)
         .returns(Promise.reject(error))
         .once();
       await runtime.start();
@@ -2189,6 +2197,12 @@ subscribe() method'
       const request = {};
       runtime.triggerLoginRequest(request);
       expect(stub).to.be.calledWithExactly(request);
+    });
+
+    it('should set the publisherProvidedId', async () => {
+      runtime.setPpid("publisherProvidedId");
+
+      expect(runtime.publisherProvidedId_).to.equal("publisherProvidedId");
     });
 
     describe('setShowcaseEntitlement', () => {

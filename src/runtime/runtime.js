@@ -534,6 +534,11 @@ export class Runtime {
   showBestAudienceAction() {
     warn('Not implemented yet');
   }
+
+  /** @override */
+  setPpid(publisherProvidedId){
+    return this.configured_(true).then((runtime) => runtime.setPpid(publisherProvidedId));;
+  }
 }
 
 /**
@@ -608,6 +613,9 @@ export class ConfiguredRuntime {
 
     /** @private {?ContributionsFlow} */
     this.lastContributionsFlow_ = null;
+
+    /** @private {string} */
+    this.publisherProvidedId_ = null;
 
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
@@ -810,6 +818,8 @@ export class ConfiguredRuntime {
             error = 'Unknown skipAccountCreationScreen value: ' + value;
           }
           break;
+        case 'publisherProvidedId':
+          break;
         default:
           error = 'Unknown config property: ' + key;
       }
@@ -854,7 +864,7 @@ export class ConfiguredRuntime {
   /** @override */
   getEntitlements(params) {
     return this.entitlementsManager_
-      .getEntitlements(params)
+      .getEntitlements({publisherProvidedId: this.publisherProvidedId_})
       .then((entitlements) => {
         // The swg user token is stored in the entitlements flow, so the analytics service is ready for logging.
         this.analyticsService_.setReadyForLogging();
@@ -1179,6 +1189,11 @@ export class ConfiguredRuntime {
   showBestAudienceAction() {
     warn('Not implemented yet');
   }
+
+  /** @override */
+  setPpid(publisherProvidedId) {
+    this.publisherProvidedId_ = publisherProvidedId;
+  }
 }
 
 /**
@@ -1230,5 +1245,6 @@ function createPublicRuntime(runtime) {
     consumeShowcaseEntitlementJwt:
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
+    setPpid: runtime.setPpid.bind(runtime),
   });
 }
