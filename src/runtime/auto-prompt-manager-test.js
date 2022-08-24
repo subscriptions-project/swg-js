@@ -27,6 +27,7 @@ import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher} from './fetcher';
+import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
@@ -41,6 +42,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   let autoPromptManager;
   let win;
   let deps;
+  let doc;
+  let gd;
   let pageConfig;
   let fetcher;
   let eventManager;
@@ -59,6 +62,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
 
   beforeEach(() => {
     deps = new DepsDef();
+
+    doc = env.win.document;
+    gd = new GlobalDoc(env.win);
+    gd.innerWidth = 600;
+    sandbox.stub(deps, 'doc').returns(gd);
 
     sandbox.useFakeTimers(CURRENT_TIME);
     win = env.win;

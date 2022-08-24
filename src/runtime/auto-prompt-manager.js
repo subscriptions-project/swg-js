@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ExperimentFlags} from './experiment-flags';
 import {MiniPromptApi} from './mini-prompt-api';
 import {assert} from '../utils/log';
+import {isExperimentOn} from './experiments';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
@@ -53,6 +55,9 @@ export class AutoPromptManager {
   constructor(deps) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
+
+    /** @private @const {!../model/doc.Doc} */
+    this.doc_ = deps.doc();
 
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = deps.pageConfig();
@@ -89,6 +94,9 @@ export class AutoPromptManager {
 
     /** @private {?string} */
     this.promptDisplayed_ = null;
+
+    /** @private @const {!./client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
   }
 
   /**
@@ -398,7 +406,7 @@ export class AutoPromptManager {
     return actionToUse;
   }
 
-  /**
+  /**logEvent
    * @param {{
    *  action: (string|undefined),
    *  autoPromptType: (AutoPromptType|undefined)
@@ -430,25 +438,60 @@ export class AutoPromptManager {
 
   /**
    * Shows the prompt based on the type specified.
+   * If the window viewport is wider than 480px, automatically display
+   * the large prompt.
    * @param {AutoPromptType|undefined} autoPromptType
    * @param {function()|undefined} displayLargePromptFn
    * @returns
    */
   showPrompt_(autoPromptType, displayLargePromptFn) {
-    if (
-      autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      autoPromptType === AutoPromptType.CONTRIBUTION
-    ) {
-      this.miniPromptAPI_.create({
-        autoPromptType,
-        clickCallback: displayLargePromptFn,
-      });
-    } else if (
-      (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
-      displayLargePromptFn
-    ) {
-      displayLargePromptFn();
+    const disableDesktopMiniprompt = isExperimentOn(
+      this.doc_.getWin(),
+      ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
+    );
+    // Override display rules, to force desktop swg to display the large prompt
+    // instead of the miniprompt.
+    if (!disableDesktopMiniprompt) {
+      if (
+        autoPromptType === AutoPromptType.SUBSCRIPTION ||
+        autoPromptType === AutoPromptType.CONTRIBUTION
+      ) {
+        this.miniPromptAPI_.create({
+          autoPromptType,
+          clickCallback: displayLargePromptFn,
+        });
+      } else if (
+        (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
+        displayLargePromptFn
+      ) {
+        displayLargePromptFn();
+      }
+    } else {
+      let isWideDesktop = this.doc_.getWin().innerWidth > 480;
+      // Displays the large prompt if it is selected or if the the desktop is wider than
+      // 480px, the minimum width where the standalone miniprompt button is displayed.
+      if (
+        isWideDesktop ||
+        ((autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
+          displayLargePromptFn)
+      ) {
+        if (isWideDesktop) {
+          this.eventManager_.logEvent({
+            eventType: AnalyticsEvent.ACTION_DISABLE_MINIPROMPT_DESKTOP,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: false,
+            additionalParameters: this.pageConfig.getPublicationId(),
+          });
+        }
+        displayLargePromptFn();
+      } else {
+        this.miniPromptAPI_.create({
+          autoPromptType,
+          clickCallback: displayLargePromptFn,
+        });
+      }
     }
   }
 
