@@ -338,12 +338,12 @@ export class Subscriptions {
    */
   showBestAudienceAction() {}
 
-   /**
+  /**
    * Set the publisherProvidedId.
    * @param {string} publisherProvidedId
    * @return {?}
    */
-    setPpid(publisherProvidedId) {}
+  setPpid(publisherProvidedId) {}
 }
 /* eslint-enable no-unused-vars */
 
@@ -542,6 +542,7 @@ export function defaultConfig() {
     analyticsMode: AnalyticsMode.DEFAULT,
     enableSwgAnalytics: false,
     enablePropensity: false,
+    publisherProvidedId: '',
   };
 }
 

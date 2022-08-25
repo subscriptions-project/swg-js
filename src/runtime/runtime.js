@@ -821,7 +821,10 @@ export class ConfiguredRuntime {
           }
           break;
         case 'publisherProvidedId':
-          if (!value || !(typeof value === 'string')) {
+          if (
+            value != undefined &&
+            !(typeof value === 'string' && value != '')
+          ) {
             error = 'Unknown publisherProvidedId value: ' + value;
           }
           break;
@@ -868,8 +871,11 @@ export class ConfiguredRuntime {
 
   /** @override */
   getEntitlements(params) {
+    if (params?.publisherProvidedId) {
+      params.publisherProvidedId = this.publisherProvidedId_;
+    }
     return this.entitlementsManager_
-      .getEntitlements({publisherProvidedId: this.publisherProvidedId_})
+      .getEntitlements(params)
       .then((entitlements) => {
         // The swg user token is stored in the entitlements flow, so the analytics service is ready for logging.
         this.analyticsService_.setReadyForLogging();

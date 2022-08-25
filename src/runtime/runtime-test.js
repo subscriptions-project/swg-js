@@ -1474,8 +1474,8 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
 
       it('throws on unknown publisherProvidedId value', () => {
         expect(() => {
-          runtime.configure({publisherProvidedId: undefined});
-        }).to.throw(/Unknown publisherProvidedId value: undefined/);
+          runtime.configure({publisherProvidedId: 1});
+        }).to.throw(/Unknown publisherProvidedId value: 1/);
         expect(() => {
           runtime.configure({publisherProvidedId: ''});
         }).to.throw(/Unknown publisherProvidedId value: /);
