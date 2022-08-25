@@ -1,6 +1,6 @@
-src/ @alin04 @fikus @jpettitt @adolgachev
-third_party/ @alin04 @fikus @jpettitt @adolgachev
-exports/ @alin04 @fikus @jpettitt @adolgachev
+src/ @alin04 @fikus @jpettitt @hartmannr76
+third_party/ @alin04 @fikus @jpettitt @hartmannr76
+exports/ @alin04 @fikus @jpettitt @hartmannr76
 src/api/ @jpettitt
 src/runtime/pay*.js @alin04 @younmi-park @jpettitt
-docs/CODEOWNERS @alin04 @fikus @jpettitt @adolgachev
+docs/CODEOWNERS @alin04 @fikus @jpettitt @hartmannr76

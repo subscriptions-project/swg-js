@@ -35,6 +35,7 @@ beforeEach(function () {
 afterEach(function () {
   this.timeout(5000);
   delete window.TEST;
+  self.location.hash = '';
 
   const forgotGlobal = !!global.sandbox;
   if (forgotGlobal) {
@@ -52,6 +53,9 @@ afterEach(function () {
     );
   }
 });
+
+// Disable string truncation on failures.
+chai.config.truncateThreshold = 0;
 
 chai.Assertion.addMethod('attribute', function (attr) {
   const obj = this._obj;

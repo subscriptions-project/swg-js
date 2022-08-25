@@ -111,6 +111,13 @@ export function feOrigin() {
  * @return {string} The complete URL.
  */
 export function serviceUrl(url) {
+  // Allows us to make API calls with enabled experiments.
+  const query = parseQueryString(self.location.hash);
+  const experiments = query['swg.experiments'];
+  if (experiments !== undefined) {
+    url = addQueryParam(url, 'e', experiments);
+  }
+
   return `${getSwgMode().frontEnd}/swg/_/api/v1` + url;
 }
 
@@ -147,6 +154,12 @@ export function feUrl(
   const boqJsMode = query['swg.boqjsmode'];
   if (boqJsMode !== undefined) {
     url = addQueryParam(url, 'jsmode', boqJsMode);
+  }
+
+  // Allows us to open iframes with enabled experiments.
+  const experiments = query['swg.experiments'];
+  if (experiments !== undefined) {
+    url = addQueryParam(url, 'e', experiments);
   }
 
   for (const param in params) {

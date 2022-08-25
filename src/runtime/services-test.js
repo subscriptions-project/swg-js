@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-import {CACHE_KEYS, MODES, cacheParam, feUrl, getSwgMode} from './services';
+import {
+  CACHE_KEYS,
+  MODES,
+  cacheParam,
+  feUrl,
+  getSwgMode,
+  serviceUrl,
+} from './services';
 
 describes.sandboxed('services', {}, () => {
   beforeEach(() => {
@@ -86,6 +93,28 @@ describes.sandboxed('services', {}, () => {
     it('should insert prefix properly when hostpath prefixed', () => {
       expect(feUrl('/iframe', {}, true, 'u/1')).to.equal(
         'https://news.google.com/swg/u/1/_/ui/v1/iframe?_=_'
+      );
+    });
+
+    it('should include experiments if setup on the current page', () => {
+      self.location.hash = '#swg.experiments=foo,bar,-foobar';
+      expect(feUrl('/iframe?testParam=test', {}, true, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/_/ui/v1/iframe?testParam=test&_=_&e=foo%2Cbar%2C-foobar'
+      );
+    });
+  });
+
+  describe('serviceUrl', () => {
+    it('should include url provided correctly', () => {
+      expect(serviceUrl('/some/apicall')).to.equal(
+        'https://news.google.com/swg/_/api/v1/some/apicall'
+      );
+    });
+
+    it('should include experiments if setup on the current page', () => {
+      self.location.hash = '#swg.experiments=foo,bar,-foobar';
+      expect(serviceUrl('/some/apicall')).to.equal(
+        'https://news.google.com/swg/_/api/v1/some/apicall?e=foo%2Cbar%2C-foobar'
       );
     });
   });
