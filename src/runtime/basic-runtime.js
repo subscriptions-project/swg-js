@@ -144,8 +144,8 @@ export class BasicRuntime {
     /** @private {boolean} */
     this.enableDefaultMeteringHandler_ = true;
 
-    /** @private {?string} */
-    this.publisherProvidedId_ = null;
+    /** @private {string|undefined} */
+    this.publisherProvidedId_ = undefined;
   }
 
   /**

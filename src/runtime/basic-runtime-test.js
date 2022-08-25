@@ -300,12 +300,14 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
     it('should set publisherProvidedId after initialization', async () => {
       basicRuntime.init({
-        publisherProvidedId: 'publisherProvidedId'
+        publisherProvidedId: 'publisherProvidedId',
       });
 
       await basicRuntime.configured_(true);
 
-      expect(basicRuntime.config_.publisherProvidedId).to.equal("publisherProvidedId");
+      expect(basicRuntime.config_.publisherProvidedId).to.equal(
+        'publisherProvidedId'
+      );
     });
   });
 

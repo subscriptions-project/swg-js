@@ -858,7 +858,10 @@ export class EntitlementsManager {
           url = addQueryParam(url, 'ppid', this.config_.publisherProvidedId);
         }
         // Add publisherProvidedId param for swg-classic
-        else if(params?.publisherProvidedId) {
+        else if (
+          params?.publisherProvidedId &&
+          typeof params.publisherProvidedId === 'string'
+        ) {
           url = addQueryParam(url, 'ppid', params.publisherProvidedId);
         }
 

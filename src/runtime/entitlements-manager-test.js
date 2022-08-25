@@ -1725,7 +1725,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
 
-      config.publisherProvidedId = "publisherProvidedId";
+      config.publisherProvidedId = 'publisherProvidedId';
 
       // Check SwgUserToken from local storage.
       storageMock
@@ -1763,9 +1763,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(Promise.resolve('abc')).once;
 
       await manager.getEntitlements({
-        publisherProvidedId: "publisherProvidedId",
+        publisherProvidedId: 'publisherProvidedId',
       });
-      
     });
   });
 

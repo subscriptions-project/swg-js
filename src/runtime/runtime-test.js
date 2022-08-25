@@ -1074,10 +1074,10 @@ describes.realWin('Runtime', {}, (env) => {
     it('should delegate "setPpid"', async () => {
       configuredRuntimeMock
         .expects('setPpid')
-        .withExactArgs("publisherProvidedId")
+        .withExactArgs('publisherProvidedId')
         .once();
 
-      await runtime.setPpid("publisherProvidedId");
+      await runtime.setPpid('publisherProvidedId');
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
   });
@@ -1470,6 +1470,15 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         expect(isExperimentOn(win, 'exp1')).to.be.true;
         expect(isExperimentOn(win, 'exp2')).to.be.true;
         expect(isExperimentOn(win, 'exp3')).to.be.false;
+      });
+
+      it('throws on unknown publisherProvidedId value', () => {
+        expect(() => {
+          runtime.configure({publisherProvidedId: undefined});
+        }).to.throw(/Unknown publisherProvidedId value: undefined/);
+        expect(() => {
+          runtime.configure({publisherProvidedId: ''});
+        }).to.throw(/Unknown publisherProvidedId value: /);
       });
     });
 
@@ -2200,9 +2209,9 @@ subscribe() method'
     });
 
     it('should set the publisherProvidedId', async () => {
-      runtime.setPpid("publisherProvidedId");
+      runtime.setPpid('publisherProvidedId');
 
-      expect(runtime.publisherProvidedId_).to.equal("publisherProvidedId");
+      expect(runtime.publisherProvidedId_).to.equal('publisherProvidedId');
     });
 
     describe('setShowcaseEntitlement', () => {

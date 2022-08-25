@@ -536,8 +536,10 @@ export class Runtime {
   }
 
   /** @override */
-  setPpid(publisherProvidedId){
-    return this.configured_(true).then((runtime) => runtime.setPpid(publisherProvidedId));;
+  setPpid(publisherProvidedId) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setPpid(publisherProvidedId)
+    );
   }
 }
 
@@ -614,8 +616,8 @@ export class ConfiguredRuntime {
     /** @private {?ContributionsFlow} */
     this.lastContributionsFlow_ = null;
 
-    /** @private {string} */
-    this.publisherProvidedId_ = null;
+    /** @private {string|undefined} */
+    this.publisherProvidedId_ = undefined;
 
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
@@ -819,6 +821,9 @@ export class ConfiguredRuntime {
           }
           break;
         case 'publisherProvidedId':
+          if (!value || !(typeof value === 'string')) {
+            error = 'Unknown publisherProvidedId value: ' + value;
+          }
           break;
         default:
           error = 'Unknown config property: ' + key;
