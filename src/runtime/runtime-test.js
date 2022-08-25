@@ -1580,6 +1580,7 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         );
         entitlementsManagerMock
           .expects('getEntitlements')
+          .withExactArgs(undefined)
           .returns(promise)
           .once();
         await runtime.start();
@@ -1630,6 +1631,7 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       const error = new Error('broken');
       entitlementsManagerMock
         .expects('getEntitlements')
+        .withExactArgs(undefined)
         .returns(Promise.reject(error))
         .once();
       await runtime.start();

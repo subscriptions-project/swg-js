@@ -155,7 +155,6 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     dialogManagerMock.verify();
     eventManagerMock.verify();
     self.console.warn.restore();
-    sandbox.restore();
   });
 
   function expectNoResponse() {
