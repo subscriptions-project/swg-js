@@ -482,7 +482,7 @@ export class AutoPromptManager {
             eventType: AnalyticsEvent.ACTION_DISABLE_MINIPROMPT_DESKTOP,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: false,
-            additionalParameters: this.pageConfig.getPublicationId(),
+            additionalParameters: this.pageConfig?.getPublicationId(),
           });
         }
         displayLargePromptFn();

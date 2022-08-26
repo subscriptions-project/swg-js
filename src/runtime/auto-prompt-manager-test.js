@@ -26,12 +26,14 @@ import {Constants} from '../utils/constants';
 import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {Fetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {tick} from '../../test/tick';
+import {setExperiment} from './experiments';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
@@ -63,15 +65,13 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   beforeEach(() => {
     deps = new DepsDef();
 
-    doc = env.win.document;
-    gd = new GlobalDoc(env.win);
-    gd.innerWidth = 600;
-    sandbox.stub(deps, 'doc').returns(gd);
-
     sandbox.useFakeTimers(CURRENT_TIME);
     win = env.win;
     win.setTimeout = (callback) => callback();
     sandbox.stub(deps, 'win').returns(win);
+
+    doc = new GlobalDoc(win);
+    sandbox.stub(deps, 'doc').returns(doc);
 
     pageConfig = new PageConfig(productId);
     sandbox.stub(deps, 'pageConfig').returns(pageConfig);
@@ -1075,6 +1075,41 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve(clientConfig))
       .once();
     miniPromptApiMock.expects('create').once();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    expect(alternatePromptSpy).to.not.be.called;
+  });
+
+  it('should force display the large prompt if the viewport is wider than 480px and DISABLE_DESKTOP_MINIPROMPT is enabled', async () => {
+    win.innerWidth = 500;
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    expect(alternatePromptSpy).to.be.calledOnce;
+  });
+
+  it('should only display the mini prompt if the viewport is narrower than 480px and DISABLE_DESKTOP_MINIPROMPT is enabled', async () => {
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .returns(Promise.resolve(entitlements))
+      .once();
+    const clientConfig = new ClientConfig();
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(clientConfig))
+      .once();
+    // alwaysShow is false
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,

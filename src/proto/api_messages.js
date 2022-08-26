@@ -211,7 +211,6 @@ const ReaderSurfaceType = {
   READER_SURFACE_CHROME: 2,
   READER_SURFACE_TENOR: 3,
 };
-
 /**
  * @implements {Message}
  */
