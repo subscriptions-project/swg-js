@@ -406,7 +406,7 @@ export class AutoPromptManager {
     return actionToUse;
   }
 
-  /**logEvent
+  /**
    * @param {{
    *  action: (string|undefined),
    *  autoPromptType: (AutoPromptType|undefined)
