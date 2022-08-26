@@ -1053,13 +1053,13 @@ describes.realWin('Runtime', {}, (env) => {
       expect(() => runtime.showBestAudienceAction()).to.not.throw();
     });
 
-    it('should delegate "setPpid"', async () => {
+    it('should delegate "setPublisherProvidedId"', async () => {
       configuredRuntimeMock
-        .expects('setPpid')
+        .expects('setPublisherProvidedId')
         .withExactArgs('publisherProvidedId')
         .once();
 
-      await runtime.setPpid('publisherProvidedId');
+      await runtime.setPublisherProvidedId('publisherProvidedId');
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
   });
@@ -2193,7 +2193,7 @@ subscribe() method'
     });
 
     it('should set the publisherProvidedId', async () => {
-      runtime.setPpid('publisherProvidedId');
+      runtime.setPublisherProvidedId('publisherProvidedId');
 
       expect(runtime.publisherProvidedId_).to.equal('publisherProvidedId');
     });

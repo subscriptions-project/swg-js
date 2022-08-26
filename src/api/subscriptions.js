@@ -339,11 +339,11 @@ export class Subscriptions {
   showBestAudienceAction() {}
 
   /**
-   * Set the publisherProvidedId.
+   * Sets the publisherProvidedId.
    * @param {string} publisherProvidedId
    * @return {?}
    */
-  setPpid(publisherProvidedId) {}
+  setPublisherProvidedId(publisherProvidedId) {}
 }
 /* eslint-enable no-unused-vars */
 

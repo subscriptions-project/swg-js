@@ -853,14 +853,15 @@ export class EntitlementsManager {
         if (swgUserToken) {
           url = addQueryParam(url, 'sut', swgUserToken);
         }
-        // Add publisherProvidedId param for swg-basic
+        // Add publisherProvidedId param for swg-basic.
         if (this.config_.publisherProvidedId) {
           url = addQueryParam(url, 'ppid', this.config_.publisherProvidedId);
         }
-        // Add publisherProvidedId param for swg-classic
+        // Add publisherProvidedId param for swg-classic.
         else if (
           params?.publisherProvidedId &&
-          typeof params.publisherProvidedId === 'string'
+          typeof params.publisherProvidedId === 'string' &&
+          params.publisherProvidedId.length > 0
         ) {
           url = addQueryParam(url, 'ppid', params.publisherProvidedId);
         }

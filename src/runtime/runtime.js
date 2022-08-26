@@ -529,9 +529,9 @@ export class Runtime {
   }
 
   /** @override */
-  setPpid(publisherProvidedId) {
+  setPublisherProvidedId(publisherProvidedId) {
     return this.configured_(true).then((runtime) =>
-      runtime.setPpid(publisherProvidedId)
+      runtime.setPublisherProvidedId(publisherProvidedId)
     );
   }
 }
@@ -1195,7 +1195,7 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  setPpid(publisherProvidedId) {
+  setPublisherProvidedId(publisherProvidedId) {
     this.publisherProvidedId_ = publisherProvidedId;
   }
 }
@@ -1249,6 +1249,6 @@ function createPublicRuntime(runtime) {
     consumeShowcaseEntitlementJwt:
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
-    setPpid: runtime.setPpid.bind(runtime),
+    setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
   });
 }
