@@ -45,7 +45,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   let win;
   let deps;
   let doc;
-  let gd;
   let pageConfig;
   let fetcher;
   let eventManager;
