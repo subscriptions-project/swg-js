@@ -32,8 +32,8 @@ import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
-import {tick} from '../../test/tick';
 import {setExperiment} from './experiments';
+import {tick} from '../../test/tick';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
