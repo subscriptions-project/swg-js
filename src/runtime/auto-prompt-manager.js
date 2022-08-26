@@ -468,7 +468,7 @@ export class AutoPromptManager {
         displayLargePromptFn();
       }
     } else {
-      const isWideDesktop = this.doc_.getWin().innerWidth > 480;
+      const isWideDesktop = this.doc_.getWin()./* REVIEW */ innerWidth > 480;
       // Displays the large prompt if it is selected or if the the desktop is wider than
       // 480px, the minimum width where the standalone miniprompt button is displayed.
       if (

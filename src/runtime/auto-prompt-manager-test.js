@@ -1084,7 +1084,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   });
 
   it('should force display the large prompt if the viewport is wider than 480px and DISABLE_DESKTOP_MINIPROMPT is enabled', async () => {
-    win.innerWidth = 500;
+    win./*OK*/ innerWidth = 500;
     setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
 
     await autoPromptManager.showAutoPrompt({
