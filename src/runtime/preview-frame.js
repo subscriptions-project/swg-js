@@ -60,6 +60,7 @@ body {
   color: #000;
   border-bottom: 2px solid blue;
 }
+.prevMenu li { margin: 2px 0 2px 0}
 .hidden { display: none }
 .expand #tidy, .show { display: block }
 #dataPane { border-top: 1px solid #ccc; overflow: scroll;  position: fixed; top: 53px; bottom: 0; 
@@ -100,7 +101,7 @@ export const PREVIEW_FRAME_HTML = `
     </div>
     <div class="hidden" id="entsData">
       <div>Entitlement response from server:</div>
-      <pre id="entitmentDetail">Fetching entitlments ...</pre>
+      <pre id="entitlementDetail">Fetching entitlments ...</pre>
     </div>
     <div class="hidden" id="prevData">
       <div>Available Previews</div>

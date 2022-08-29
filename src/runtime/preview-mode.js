@@ -67,6 +67,7 @@ const SKIPPED_KEYS = [
   'raw',
   'usePrefixedHostPath',
   'useUpdatedOfferFlows',
+  'skipAccountCreationScreen',
   'product_',
 ];
 
@@ -78,25 +79,34 @@ const UNITS = {
 };
 
 /**
+ * @typedef {{
+ *   name: string,
+ *   previewCallback: function(*),
+ *   cbParams: Array,
+ * }} PreviewOption
+ **/
+export let PreviewOption;
+
+/**
  * Singleton class to manage preview/debug mode
- * dialog state and avoid having to pass deps with every call
+ * dialog state and avoid having to pass runtime with every call
  */
 export class PreviewManager {
   /**
    * initialize the singlton preview manager
-   * @param {!../runtime/deps.DepsDef} deps
+   * @param {!../runtime/runtime.ConfiguredRuntime} runtime
    */
-  static init(deps) {
+  static init(runtime) {
     // Check hash, preview mode requested
 
     try {
-      const query = parseQueryString(deps.win().location.hash);
+      const query = parseQueryString(runtime.win().location.hash);
       if (!query[QUERY_KEY]) {
         return; // If preview is not enabled bail
       }
       // Create the singleton if needed
       if (!swgPreviewManager) {
-        swgPreviewManager = new PreviewManager(deps, query[QUERY_KEY]);
+        swgPreviewManager = new PreviewManager(runtime, query[QUERY_KEY]);
       }
     } catch (e) {
       // Ignore: query parsing cannot block runtime.
@@ -116,25 +126,25 @@ export class PreviewManager {
 
   /**
    * getPreviewManager
-   * @returns{!PreviewManager}
+   * @returns{?PreviewManager}
    */
   static getPreviewManager() {
     return swgPreviewManager;
   }
 
   /**
-   * @param {!../runtime/deps.DepsDef} deps
+   * @param {!../runtime/runtime.ConfiguredRuntime} runtime
    * @param {string} level
    */
-  constructor(deps, level) {
-    /** @private @const {!../deps.DepsDef} */
-    this.deps_ = deps;
+  constructor(runtime, level) {
+    /** @private @const {!../runtime/runtime.ConfiguredRuntime} */
+    this.runtime_ = runtime;
 
     /** @private @const {string} */
     this.level_ = level;
 
     /** @private @const */
-    this.globalDoc_ = deps.doc();
+    this.globalDoc_ = runtime.doc();
     /** @private @const */
     this.doc_ = this.globalDoc_.getRootNode();
 
@@ -159,14 +169,9 @@ export class PreviewManager {
 
     /**
      * available preview functions
-     * @private {!Array<{name: string, entry: function, params: *}>}
+     * @private {!Array<PreviewOption>}
      */
     this.availablePreviews_ = [];
-
-    /**
-     * Processed offers
-     * @private {!Promise}
-     */
 
     // Init our listner and window
     addEventListener('message', (e) => this.messageHandler_(e), false);
@@ -197,7 +202,7 @@ export class PreviewManager {
 
   /**
    * messaheHandler
-   * @param {!Event} messsge
+   * @param {!Event} message
    * @private
    */
   messageHandler_(message) {
@@ -219,12 +224,12 @@ export class PreviewManager {
         break;
       case 'subscription':
         this.tidy_(); // hide the menu
-        //this.deps_.showSubscribeOption();
-        this.deps_.showOffers();
+        //this.runtime_.showSubscribeOption();
+        this.runtime_.showOffers();
         break;
       case 'contribution':
         this.tidy_();
-        this.deps_.showContributionOptions();
+        this.runtime_.showContributionOptions();
         break;
     }
   }
@@ -233,7 +238,9 @@ export class PreviewManager {
    * exit preview mode, delete our frame and remove the manager instance.
    */
   exit_() {
-    removeElement(this.frameElement_);
+    if (this.frameElement_) {
+      removeElement(this.frameElement_);
+    }
     swgPreviewManager = null;
   }
 
@@ -270,8 +277,8 @@ export class PreviewManager {
    */
   tidy_() {
     // Restore the  z-index of swg-dialogs
-    Array.from(this.doc_.getElementsByClassName('swg-dialog')).forEach(
-      (dialog) => setImportantStyles(dialog, {'z-index': MAX_Z_INDEX})
+    [...this.doc_.getElementsByClassName('swg-dialog')].forEach((dialog) =>
+      setImportantStyles(dialog, {'z-index': MAX_Z_INDEX})
     );
     this.frameElement_.style.setProperty('height', MENU_HEIGHT, 'important');
     this.frameDoc_.body.classList.remove('expand');
@@ -283,13 +290,9 @@ export class PreviewManager {
    * @private
    */
   hideData_() {
-    const dataElements = Array.from(
-      this.frameDoc_.getElementsByClassName('show')
-    );
+    const dataElements = [...this.frameDoc_.getElementsByClassName('show')];
     dataElements.forEach((el) => el.classList.remove('show'));
-    const menuElements = Array.from(
-      this.frameDoc_.getElementsByClassName('active')
-    );
+    const menuElements = [...this.frameDoc_.getElementsByClassName('active')];
     menuElements.forEach((el) => el.classList.remove('active'));
   }
 
@@ -311,7 +314,7 @@ export class PreviewManager {
   setPageConfig() {
     this.openPromise_.then(() => {
       this.frameDoc_.getElementById('pageConfig').innerText = JSON.stringify(
-        this.deps_.pageConfig(),
+        this.runtime_.pageConfig(),
         (key, value) => this.replacer_(key, value),
         /* spaces */ 2
       );
@@ -320,10 +323,11 @@ export class PreviewManager {
 
   /**
    * setClientConfig
-   * @param {!../model/client-config.ClientConfig} clientConfig
+   * @param {!../model/client-config.ClientConfig} clientConf
    * @public
    */
-  setClientConfig(clientConfig) {
+  setClientConfig(clientConf) {
+    const clientConfig = /** @type {!JsonObject} */ clientConf;
     this.openPromise_
       .then(() => {
         this.frameDoc_.getElementById('clientConfig').innerText =
@@ -347,14 +351,15 @@ export class PreviewManager {
 
   /**
    * setEntitlements
-   * @param {!../amo/entitlments.Entitlements} entitlements
+   * @param {!../api/entitlements.Entitlements} entitlements
    * @public
    */
-  setEntitlements(entitlments) {
+  setEntitlements(entitlements) {
+    const ents = /** @type {JsonObject} */ entitlements;
     this.openPromise_.then(() => {
-      this.frameDoc_.getElementById('entitmentDetail').innerText =
+      this.frameDoc_.getElementById('entitlementDetail').innerText =
         JSON.stringify(
-          entitlments,
+          ents,
           (key, value) => this.replacer_(key, value),
           /* spaces */ 2
         );
@@ -364,7 +369,7 @@ export class PreviewManager {
   /**
    * replacer - sugar to remove keys from stringify
    * @param {string} key
-   * @param {string} value
+   * @param {*} value
    * @returns {*}
    * @private
    */
@@ -376,6 +381,14 @@ export class PreviewManager {
       } catch (e) {
         // ignore parse failures
       }
+    }
+    // Change decrypted key to N/A if we're not in debug
+    if (
+      this.level_ != 'debug' &&
+      key == 'decryptedDocumentKey' &&
+      value === null
+    ) {
+      value = 'N/A (plain text document)';
     }
     // If we're in debug mode show all the keys
     // Otherwsie skip the ones in the SKIPPED_KEYS array
@@ -401,12 +414,13 @@ export class PreviewManager {
    */
   showPreviewResult(clientConfig, subscriptionRequest, productType) {
     // Move the swGFrame down one layer so we overlay it.
-    Array.from(this.doc_.getElementsByClassName('swg-dialog')).forEach(
-      (dialog) => setImportantStyles(dialog, {'z-index': MAX_Z_INDEX - 1})
+    [...this.doc_.getElementsByClassName('swg-dialog')].forEach((dialog) =>
+      setImportantStyles(dialog, {'z-index': MAX_Z_INDEX - 1})
     );
     // Get the offers now becasue we need to page
     // config to be valid before we can do it
-    this.deps_.getOffers().then((offers) => {
+    /** @type {!../api/subscriptions.Subscriptions} */
+    (this.runtime_).getOffers().then((offers) => {
       // Find the offer that matches this sku
       const [selectedOffer] = offers.filter((offer) => {
         return offer.skuId == subscriptionRequest.skuId;

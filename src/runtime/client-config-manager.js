@@ -172,7 +172,7 @@ export class ClientConfigManager {
               '/clientconfiguration'
           );
           if (PreviewManager.isPreviewEnabled()) {
-            url = addQueryParam(url, 'previewRequested', true);
+            url = addQueryParam(url, 'previewRequested', '1');
           }
 
           return this.fetcher_.fetchCredentialedJson(url).then((json) => {

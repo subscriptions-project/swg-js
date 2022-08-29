@@ -383,7 +383,7 @@ export class EntitlementsManager {
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
     url = addDevModeParamsToUrl(this.win_.location, url);
     if (PreviewManager.isPreviewEnabled()) {
-      url = addQueryParam(url, 'previewRequested', true);
+      url = addQueryParam(url, 'previewRequested', '1');
     }
 
     // Promise that sets this.encodedParams_ when it resolves.
@@ -849,7 +849,7 @@ export class EntitlementsManager {
 
         // Preview mode request?
         if (PreviewManager.isPreviewEnabled()) {
-          url = addQueryParam(url, 'previewRequested', true);
+          url = addQueryParam(url, 'previewRequested', 'true');
         }
 
         // Add encryption param.
