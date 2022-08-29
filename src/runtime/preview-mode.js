@@ -192,7 +192,7 @@ export class PreviewManager {
       previewScript.textContent = PREVIEW_FRAME_JS;
       this.frameDoc_.head.appendChild(previewScript);
 
-      previewDialog.getContainer().innerHTML = PREVIEW_FRAME_HTML;
+      previewDialog.getContainer()./*OK*/ innerHTML = PREVIEW_FRAME_HTML;
 
       this.setPageConfig();
 
@@ -313,11 +313,12 @@ export class PreviewManager {
    */
   setPageConfig() {
     this.openPromise_.then(() => {
-      this.frameDoc_.getElementById('pageConfig').innerText = JSON.stringify(
-        this.runtime_.pageConfig(),
-        (key, value) => this.replacer_(key, value),
-        /* spaces */ 2
-      );
+      this.frameDoc_.getElementById('pageConfig')./*OK*/ innerText =
+        JSON.stringify(
+          this.runtime_.pageConfig(),
+          (key, value) => this.replacer_(key, value),
+          /* spaces */ 2
+        );
     });
   }
 
@@ -327,10 +328,10 @@ export class PreviewManager {
    * @public
    */
   setClientConfig(clientConf) {
-    const clientConfig = /** @type {!JsonObject} */ clientConf;
+    const clientConfig = clientConf;
     this.openPromise_
       .then(() => {
-        this.frameDoc_.getElementById('clientConfig').innerText =
+        this.frameDoc_.getElementById('clientConfig')./*OK*/ innerText =
           JSON.stringify(
             clientConfig,
             (key, value) => this.replacer_(key, value),
@@ -355,9 +356,9 @@ export class PreviewManager {
    * @public
    */
   setEntitlements(entitlements) {
-    const ents = /** @type {JsonObject} */ entitlements;
+    const ents = entitlements;
     this.openPromise_.then(() => {
-      this.frameDoc_.getElementById('entitlementDetail').innerText =
+      this.frameDoc_.getElementById('entitlementDetail')./*OK*/ innerText =
         JSON.stringify(
           ents,
           (key, value) => this.replacer_(key, value),
@@ -433,7 +434,7 @@ export class PreviewManager {
       );
       this.frameDoc_.getElementById(
         'previewResultData'
-      ).innerText = `Product type: ${productType.replace(
+      )./*OK*/ innerText = `Product type: ${productType.replace(
         'UI_',
         ''
       )}\n${prodInfo}`;

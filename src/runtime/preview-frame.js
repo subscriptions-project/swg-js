@@ -26,7 +26,6 @@ export const PREVIEW_FRAME_JS = `
       type: event.type,
       target: event.target.id,
     };
-    console.log(message);
     window.parent.postMessage(message, '*');
   }
   window.addEventListener('click',clickHandler);
