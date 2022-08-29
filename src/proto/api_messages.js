@@ -139,9 +139,14 @@ const AnalyticsEvent = {
   ACTION_REGWALL_OPT_IN_CLOSE: 1058,
   ACTION_NEWSLETTER_OPT_IN_CLOSE: 1059,
   ACTION_SHOWCASE_REGWALL_SWIG_CLICK: 1060,
+  ACTION_TWG_CHROME_APP_MENU_ENTRY_POINT_CLICK: 1061,
+  ACTION_TWG_DISCOVER_FEED_MENU_ENTRY_POINT_CLICK: 1062,
+  ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK: 1063,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_REGWALL_OPT_IN_FAILED: 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
+  EVENT_REGWALL_ALREADY_OPT_IN: 2003,
+  EVENT_NEWSLETTER_ALREADY_OPT_IN: 2004,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
   EVENT_CHANGED_TX_ID: 3002,
@@ -167,6 +172,7 @@ const AnalyticsEvent = {
   EVENT_TWG_POST_TRANSACTION_SETTING_PUBLIC: 3022,
   EVENT_REGWALL_OPTED_IN: 3023,
   EVENT_NEWSLETTER_OPTED_IN: 3024,
+  EVENT_SHOWCASE_METERING_INIT: 3025,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -196,6 +202,13 @@ const EventOriginator = {
   SWG_SERVER: 4,
   PUBLISHER_CLIENT: 5,
   SHOWCASE_CLIENT: 6,
+};
+/** @enum {number} */
+const ReaderSurfaceType = {
+  READER_SURFACE_TYPE_UNSPECIFIED: 0,
+  READER_SURFACE_WORDPRESS: 1,
+  READER_SURFACE_CHROME: 2,
+  READER_SURFACE_TENOR: 3,
 };
 
 /**
@@ -425,8 +438,11 @@ class AnalyticsContext {
         ? null
         : new Timestamp(data[11 + base], includesLabel);
 
+    /** @private {?ReaderSurfaceType} */
+    this.readerSurfaceType_ = data[12 + base] == null ? null : data[12 + base];
+
     /** @private {?string} */
-    this.integrationVersion_ = data[12 + base] == null ? null : data[12 + base];
+    this.integrationVersion_ = data[13 + base] == null ? null : data[13 + base];
   }
 
   /**
@@ -598,6 +614,20 @@ class AnalyticsContext {
   }
 
   /**
+   * @return {?ReaderSurfaceType}
+   */
+  getReaderSurfaceType() {
+    return this.readerSurfaceType_;
+  }
+
+  /**
+   * @param {!ReaderSurfaceType} value
+   */
+  setReaderSurfaceType(value) {
+    this.readerSurfaceType_ = value;
+  }
+
+  /**
    * @return {?string}
    */
   getIntegrationVersion() {
@@ -630,7 +660,8 @@ class AnalyticsContext {
         this.clientVersion_, // field 10 - client_version
         this.url_, // field 11 - url
         this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
-        this.integrationVersion_, // field 13 - integration_version
+        this.readerSurfaceType_, // field 13 - reader_surface_type
+        this.integrationVersion_, // field 14 - integration_version
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -906,6 +937,9 @@ class CompleteAudienceActionResponse {
 
     /** @private {?string} */
     this.userEmail_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {?boolean} */
+    this.alreadyCompleted_ = data[3 + base] == null ? null : data[3 + base];
   }
 
   /**
@@ -951,6 +985,20 @@ class CompleteAudienceActionResponse {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getAlreadyCompleted() {
+    return this.alreadyCompleted_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setAlreadyCompleted(value) {
+    this.alreadyCompleted_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -960,6 +1008,7 @@ class CompleteAudienceActionResponse {
         this.swgUserToken_, // field 1 - swg_user_token
         this.actionCompleted_, // field 2 - action_completed
         this.userEmail_, // field 3 - user_email
+        this.alreadyCompleted_, // field 4 - already_completed
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2195,6 +2244,7 @@ export {
   LinkingInfoResponse,
   Message,
   OpenDialogRequest,
+  ReaderSurfaceType,
   SkuSelectedResponse,
   SmartBoxMessage,
   SubscribeResponse,

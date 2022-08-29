@@ -153,6 +153,12 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '您之前已訂閱。',
     'zh-tw': '你已經訂閱了。',
   },
+  'REGWALL_REGISTER_FAILED_LANG_MAP': {
+    'en': 'Registration failed. Try registering again.',
+  },
+  'NEWSLETTER_SIGN_UP_FAILED_LANG_MAP': {
+    'en': 'Signup failed. Try signing up again.',
+  },
   'REGWALL_ACCOUNT_CREATED_LANG_MAP': {
     'en': 'Created an account with <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph>',
     'ar': 'تم إنشاء حساب باستخدام <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph>.',
