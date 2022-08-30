@@ -1826,6 +1826,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     sandbox.stub(self.console, 'warn');
 
     sandbox.stub(self, 'open');
+    // Makes sure no div elements on the test dom exist.
     const elements = self.document.getElementsByTagName('div');
     while (elements[0]) {
       elements[0].parentNode.removeChild(elements[0]);
