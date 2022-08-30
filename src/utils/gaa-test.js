@@ -25,6 +25,7 @@ import {
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
   GaaUtils,
+  POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
@@ -1117,6 +1118,33 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         },
       ]);
     });
+
+    it('sends 3P button click event', async () => {
+      // Show Regwall.
+      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      await tick();
+      logEvent.resetHistory();
+
+      // Send button click post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+      });
+
+      // Wait for logging.
+      await new Promise((resolve) => {
+        logEvent = sandbox.fake(resolve);
+      });
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
   });
 
   describe('getPublisherNameFromPageConfig_', () => {
@@ -1798,6 +1826,11 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     sandbox.stub(self.console, 'warn');
 
     sandbox.stub(self, 'open');
+    // Makes sure no div elements on the test dom exist.
+    const elements = self.document.getElementsByTagName('div');
+    while (elements[0]) {
+      elements[0].parentNode.removeChild(elements[0]);
+    }
   });
 
   afterEach(() => {
@@ -1812,11 +1845,79 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       style.remove();
     }
 
-    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).remove();
+    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID)?.remove();
     self.console.warn.restore();
   });
 
   describe('show', () => {
+    it('sends errors to parent', async () => {
+      const invalidOrigin = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        location.origin,
+      ];
+
+      GaaGoogle3pSignInButton.show(
+        {allowedOrigins: invalidOrigin},
+        GOOGLE_3P_AUTH_URL
+      );
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWith(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('fails and warns when passed invalid origins', async () => {
+      const invalidOrigins = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        // Includes path.
+        'http://localhost:8080/',
+      ];
+
+      for (const invalidOrigin of invalidOrigins) {
+        GaaGoogle3pSignInButton.show(
+          {allowedOrigins: [invalidOrigin]},
+          GOOGLE_3P_AUTH_URL
+        );
+
+        // Send intro post message.
+        postMessage({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+        });
+
+        // Wait for promises and intervals to resolve.
+        clock.tick(100);
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
+        );
+      }
+    });
+
     it('renders third party Google Sign-In button', async () => {
       GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
       clock.tick(100);
@@ -1896,6 +1997,85 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       );
     });
 
+    it('sends post message with 3p button click event', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for button click post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      // Expect button click post message.
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('sends post message with 3p button click event when redirectMode is true', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        redirectMode: true,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for button click post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      // Expect button click post message.
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
     it('should open an authorizationUrl in a new window by default', async () => {
       // Show button.
       GaaGoogle3pSignInButton.show({
@@ -1923,80 +2103,12 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
-      await tick(10);
+      await tick(100);
 
       expect(self.open).to.have.been.calledWithExactly(
         GOOGLE_3P_AUTH_URL,
         '_parent'
       );
-    });
-
-    it('sends errors to parent', async () => {
-      const invalidOrigin = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        location.origin,
-      ];
-
-      GaaGoogle3pSignInButton.show(
-        {allowedOrigins: invalidOrigin},
-        GOOGLE_3P_AUTH_URL
-      );
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWith(
-        {
-          command: POST_MESSAGE_COMMAND_ERROR,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('fails and warns when passed invalid origins', async () => {
-      const invalidOrigins = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        // Includes path.
-        'http://localhost:8080/',
-      ];
-
-      for (const invalidOrigin of invalidOrigins) {
-        GaaGoogle3pSignInButton.show(
-          {allowedOrigins: [invalidOrigin]},
-          GOOGLE_3P_AUTH_URL
-        );
-
-        // Send intro post message.
-        postMessage({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_INTRODUCTION,
-        });
-
-        // Wait for promises and intervals to resolve.
-        clock.tick(100);
-        await tick(10);
-
-        expect(self.console.warn).to.have.been.calledWithExactly(
-          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
-        );
-      }
     });
   });
 
