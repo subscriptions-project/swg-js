@@ -25,8 +25,8 @@ import {
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
   GaaUtils,
-  POST_MESSAGE_COMMAND_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+  POST_MESSAGE_COMMAND_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
   POST_MESSAGE_COMMAND_USER,
@@ -52,117 +52,117 @@ const GOOGLE_API_CLIENT_ID =
 
 /** Article metadata in ld+json form. */
 const ARTICLE_LD_JSON_METADATA = `
-{
-  "@context": "http://schema.org",
-  "@type": "NewsArticle",
-  "headline": "16 Top Spots for Hiking",
-  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
-  "datePublished": "2025-02-05T08:00:00+08:00",
-  "dateModified": "2025-02-05T09:20:00+08:00",
-  "author": {
-    "@type": "Person",
-    "name": "John Doe"
-  },
-  "publisher": {
-      "name": "${PUBLISHER_NAME}",
-      "@type": "Organization",
-      "@id": "scenic-2017.appspot.com",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
-      }
-  },
-  "description": "A most wonderful article",
-  "isAccessibleForFree": "False",
-  "isPartOf": {
-    "@type": ["CreativeWork", "Product"],
-    "name" : "Scenic News",
-    "productID": "${PRODUCT_ID}"
-  }
-}`;
+  {
+    "@context": "http://schema.org",
+    "@type": "NewsArticle",
+    "headline": "16 Top Spots for Hiking",
+    "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
+    "datePublished": "2025-02-05T08:00:00+08:00",
+    "dateModified": "2025-02-05T09:20:00+08:00",
+    "author": {
+      "@type": "Person",
+      "name": "John Doe"
+    },
+    "publisher": {
+        "name": "${PUBLISHER_NAME}",
+        "@type": "Organization",
+        "@id": "scenic-2017.appspot.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
+        }
+    },
+    "description": "A most wonderful article",
+    "isAccessibleForFree": "False",
+    "isPartOf": {
+      "@type": ["CreativeWork", "Product"],
+      "name" : "Scenic News",
+      "productID": "${PRODUCT_ID}"
+    }
+  }`;
 
 const ARTICLE_LD_JSON_METADATA_FREE_ARTICLE = `
-{
-  "@context": "http://schema.org",
-  "@type": "NewsArticle",
-  "headline": "16 Top Spots for Hiking",
-  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
-  "datePublished": "2025-02-05T08:00:00+08:00",
-  "dateModified": "2025-02-05T09:20:00+08:00",
-  "author": {
-    "@type": "Person",
-    "name": "John Doe"
-  },
-  "publisher": {
-      "name": "${PUBLISHER_NAME}",
-      "@type": "Organization",
-      "@id": "scenic-2017.appspot.com",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
-      }
-  },
-  "description": "A most wonderful article",
-  "isAccessibleForFree": true,
-  "isPartOf": {
-    "@type": ["CreativeWork", "Product"],
-    "name" : "Scenic News",
-    "productID": "${PRODUCT_ID}"
-  }
-}`;
+  {
+    "@context": "http://schema.org",
+    "@type": "NewsArticle",
+    "headline": "16 Top Spots for Hiking",
+    "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
+    "datePublished": "2025-02-05T08:00:00+08:00",
+    "dateModified": "2025-02-05T09:20:00+08:00",
+    "author": {
+      "@type": "Person",
+      "name": "John Doe"
+    },
+    "publisher": {
+        "name": "${PUBLISHER_NAME}",
+        "@type": "Organization",
+        "@id": "scenic-2017.appspot.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
+        }
+    },
+    "description": "A most wonderful article",
+    "isAccessibleForFree": true,
+    "isPartOf": {
+      "@type": ["CreativeWork", "Product"],
+      "name" : "Scenic News",
+      "productID": "${PRODUCT_ID}"
+    }
+  }`;
 
 const ARTICLE_LD_JSON_METADATA_NULL = `
-{
-  "@context": "http://schema.org",
-  "@type": "NewsArticle",
-  "headline": "16 Top Spots for Hiking",
-  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
-  "datePublished": "2025-02-05T08:00:00+08:00",
-  "dateModified": "2025-02-05T09:20:00+08:00",
-  "author": {
-    "@type": "Person",
-    "name": "John Doe"
-  },
-  "publisher": {
-      "name": "${PUBLISHER_NAME}",
-      "@type": "Organization",
-      "@id": "scenic-2017.appspot.com",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
-      }
-  },
-  "description": "A most wonderful article",
-  "isAccessibleForFree": null,
-  "isPartOf": {
-    "@type": ["CreativeWork", "Product"],
-    "name" : "Scenic News",
-    "productID": "${PRODUCT_ID}"
-  }
-}`;
+  {
+    "@context": "http://schema.org",
+    "@type": "NewsArticle",
+    "headline": "16 Top Spots for Hiking",
+    "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
+    "datePublished": "2025-02-05T08:00:00+08:00",
+    "dateModified": "2025-02-05T09:20:00+08:00",
+    "author": {
+      "@type": "Person",
+      "name": "John Doe"
+    },
+    "publisher": {
+        "name": "${PUBLISHER_NAME}",
+        "@type": "Organization",
+        "@id": "scenic-2017.appspot.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
+        }
+    },
+    "description": "A most wonderful article",
+    "isAccessibleForFree": null,
+    "isPartOf": {
+      "@type": ["CreativeWork", "Product"],
+      "name" : "Scenic News",
+      "productID": "${PRODUCT_ID}"
+    }
+  }`;
 
 /** Article metadata in microdata form. */
 const ARTICLE_MICRODATA_METADATA = `
-<div itemscope itemtype="http://schema.org/NewsArticle">
-  <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
-    <meta itemprop="name" content="${PUBLISHER_NAME}"/>
-  </span>
-  <meta itemprop="isAccessibleForFree" content="False"/>
-  <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
-    <meta itemprop="productID" content="${PRODUCT_ID}"/>
-  </div>
-</div>`;
+  <div itemscope itemtype="http://schema.org/NewsArticle">
+    <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
+      <meta itemprop="name" content="${PUBLISHER_NAME}"/>
+    </span>
+    <meta itemprop="isAccessibleForFree" content="False"/>
+    <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+      <meta itemprop="productID" content="${PRODUCT_ID}"/>
+    </div>
+  </div>`;
 
 const ARTICLE_MICRODATA_METADATA_TRUE = `
-<div itemscope itemtype="http://schema.org/NewsArticle">
-  <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
-    <meta itemprop="name" content="${PUBLISHER_NAME}"/>
-  </span>
-  <meta itemprop="isAccessibleForFree" content=true />
-  <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
-    <meta itemprop="productID" content="${PRODUCT_ID}"/>
-  </div>
-</div>`;
+  <div itemscope itemtype="http://schema.org/NewsArticle">
+    <span itemscope itemprop="publisher" itemtype="https://schema.org/Organization" aria-hidden="true">
+      <meta itemprop="name" content="${PUBLISHER_NAME}"/>
+    </span>
+    <meta itemprop="isAccessibleForFree" content=true />
+    <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product">
+      <meta itemprop="productID" content="${PRODUCT_ID}"/>
+    </div>
+  </div>`;
 
 const SIGN_IN_WITH_GOOGLE_JWT =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2MTgwMzM5ODg3NCwiYXVkIjoiMzE0MTU5MjY1LXBpLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMzE0MTU5MjY1MzU4OTc5MzIzOCIsImhkIjoiZ21haWwuY29tIiwiZW1haWwiOiJlbGlzYS5nLmJlY2tldHRAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF6cCI6IjMxNDE1OTI2NS1waS5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsIm5hbWUiOiJFbGlzYSBCZWNrZXR0IiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hLS9lMjcxODI4MTgyODQ1OTA0NTIzNTM2MHVsZXIiLCJnaXZlbl9uYW1lIjoiRWxpc2EiLCJmYW1pbHlfbmFtZSI6IkJlY2tldHQiLCJpYXQiOjE1OTY0NzQwMDAsImV4cCI6MTU5NjQ3NzYwMCwianRpIjoiYWJjMTYxODAzMzk4ODc0ZGVmIn0.B2WPwt9X22Ql6EOLSolL3lkNkxPm-YLgzGyutnW7FRs';
@@ -1156,10 +1156,10 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('gets the publisher name from array page config', () => {
       self.document.head.innerHTML = `
-        <script type="application/ld+json">
-          [${ARTICLE_LD_JSON_METADATA}]
-        </script>
-      `;
+          <script type="application/ld+json">
+            [${ARTICLE_LD_JSON_METADATA}]
+          </script>
+        `;
 
       expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
         PUBLISHER_NAME
@@ -1168,13 +1168,13 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('gets the publisher name from graph construct', () => {
       self.document.head.innerHTML = `
-        <script type="application/ld+json">
-          [{
-            "@context": "http://schema.org",
-            "@graph": [${ARTICLE_LD_JSON_METADATA}]
-          }]
-        </script>
-      `;
+          <script type="application/ld+json">
+            [{
+              "@context": "http://schema.org",
+              "@graph": [${ARTICLE_LD_JSON_METADATA}]
+            }]
+          </script>
+        `;
 
       expect(GaaMeteringRegwall.getPublisherNameFromPageConfig_()).to.equal(
         PUBLISHER_NAME
@@ -1815,7 +1815,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
   let clock;
 
   beforeEach(() => {
-    sandbox.restore();
     // Mock clock.
     clock = sandbox.useFakeTimers();
 
@@ -1827,15 +1826,15 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     sandbox.stub(self.console, 'warn');
 
     sandbox.stub(self, 'open');
-    sandbox.stub(self, 'postMessage');
-    if (self.postMessage.restore) {
-      self.postMessage.restore();
+    const elements = self.document.getElementsByTagName('div');
+    while (elements[0]) {
+      elements[0].parentNode.removeChild(elements[0]);
     }
   });
 
   afterEach(() => {
-    if (self.postMessage.reset) {
-      self.postMessage.reset();
+    if (self.postMessage.restore) {
+      self.postMessage.restore();
     }
 
     GaaUtils.getQueryString.restore();
@@ -1845,11 +1844,79 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       style.remove();
     }
 
-    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).remove();
+    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID)?.remove();
     self.console.warn.restore();
   });
 
   describe('show', () => {
+    it('sends errors to parent', async () => {
+      const invalidOrigin = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        location.origin,
+      ];
+
+      GaaGoogle3pSignInButton.show(
+        {allowedOrigins: invalidOrigin},
+        GOOGLE_3P_AUTH_URL
+      );
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWith(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('fails and warns when passed invalid origins', async () => {
+      const invalidOrigins = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        // Includes path.
+        'http://localhost:8080/',
+      ];
+
+      for (const invalidOrigin of invalidOrigins) {
+        GaaGoogle3pSignInButton.show(
+          {allowedOrigins: [invalidOrigin]},
+          GOOGLE_3P_AUTH_URL
+        );
+
+        // Send intro post message.
+        postMessage({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+        });
+
+        // Wait for promises and intervals to resolve.
+        clock.tick(100);
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
+        );
+      }
+    });
+
     it('renders third party Google Sign-In button', async () => {
       GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
       clock.tick(100);
@@ -2035,83 +2102,12 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
-      await tick(10);
+      await tick(100);
 
       expect(self.open).to.have.been.calledWithExactly(
         GOOGLE_3P_AUTH_URL,
         '_parent'
       );
-    });
-
-    it('sends errors to parent', async () => {
-      const invalidOrigin = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        location.origin,
-      ];
-
-      const spy = sandbox.stub(self, 'postMessage').resolves();
-      GaaGoogle3pSignInButton.show(
-        {allowedOrigins: invalidOrigin},
-        GOOGLE_3P_AUTH_URL
-      );
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      // Wait for post message.
-      // await new Promise((resolve) => {
-      //   sandbox.stub(self, 'postMessage').callsFake(() => {
-      //     resolve();
-      //   });
-      // });
-
-      // expect(spy.callCount).to.equal(2);
-      expect(spy).to.be.calledWith(
-        sinon.match.any,
-        sinon.match({
-          command: POST_MESSAGE_COMMAND_ERROR,
-          stamp: POST_MESSAGE_STAMP,
-        }),
-        location.origin.toString()
-      );
-    });
-
-    it('fails and warns when passed invalid origins', async () => {
-      const invalidOrigins = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        // Includes path.
-        'http://localhost:8080/',
-      ];
-
-      for (const invalidOrigin of invalidOrigins) {
-        GaaGoogle3pSignInButton.show(
-          {allowedOrigins: [invalidOrigin]},
-          GOOGLE_3P_AUTH_URL
-        );
-
-        // Send intro post message.
-        postMessage({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_INTRODUCTION,
-        });
-
-        // Wait for promises and intervals to resolve.
-        clock.tick(100);
-        await tick(10);
-
-        expect(self.console.warn).to.have.been.calledWithExactly(
-          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
-        );
-      }
     });
   });
 
@@ -2631,10 +2627,10 @@ describes.realWin('GaaMetering', {}, () => {
 
     it('gets the publisher ID from array page config', () => {
       self.document.head.innerHTML = `
-        <script type="application/ld+json">
-          [${ARTICLE_LD_JSON_METADATA}]
-        </script>
-      `;
+          <script type="application/ld+json">
+            [${ARTICLE_LD_JSON_METADATA}]
+          </script>
+        `;
 
       expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
@@ -2679,10 +2675,10 @@ describes.realWin('GaaMetering', {}, () => {
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
-        <script type="application/ld+json">
-          [${ARTICLE_LD_JSON_METADATA}]
-        </script>
-      `;
+          <script type="application/ld+json">
+            [${ARTICLE_LD_JSON_METADATA}]
+          </script>
+        `;
 
       expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.false;
     });
@@ -2694,10 +2690,10 @@ describes.realWin('GaaMetering', {}, () => {
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
-        <script type="application/ld+json">
-          [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
-        </script>
-      `;
+          <script type="application/ld+json">
+            [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+          </script>
+        `;
 
       expect(GaaMetering.isArticleFreeFromPageConfig_()).to.be.true;
     });
@@ -3256,10 +3252,10 @@ describes.realWin('GaaMetering', {}, () => {
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
-      <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
-      </script>
-      `;
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+        </script>
+        `;
 
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
@@ -3303,10 +3299,10 @@ describes.realWin('GaaMetering', {}, () => {
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
-      <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA}]
-      </script>
-      `;
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA}]
+        </script>
+        `;
 
       GaaUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
@@ -3357,10 +3353,10 @@ describes.realWin('GaaMetering', {}, () => {
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
-      <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA}]
-      </script>
-      `;
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA}]
+        </script>
+        `;
 
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -3409,10 +3405,10 @@ describes.realWin('GaaMetering', {}, () => {
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
-      <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA}]
-      </script>
-      `;
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA}]
+        </script>
+        `;
 
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -3795,10 +3791,10 @@ describes.realWin('GaaMetering', {}, () => {
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
-      <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
-      </script>
-      `;
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+        </script>
+        `;
 
       expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.true;
     });
@@ -3809,10 +3805,10 @@ describes.realWin('GaaMetering', {}, () => {
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
-      <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_NULL}]
-      </script>
-      `;
+        <script type="application/ld+json">
+          [${ARTICLE_LD_JSON_METADATA_NULL}]
+        </script>
+        `;
 
       expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
     });
