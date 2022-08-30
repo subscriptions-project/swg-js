@@ -1377,7 +1377,6 @@ export class GaaGoogle3pSignInButton {
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
-      debugger;
       sendMessageToParentFnPromise.then((sendMessageToParent) => {
         sendMessageToParent({
           stamp: POST_MESSAGE_STAMP,
@@ -1422,7 +1421,6 @@ export class GaaGoogle3pSignInButton {
           command: POST_MESSAGE_COMMAND_ERROR,
         });
       });
-      debugger;
     }
 
     // Validate origins.
@@ -1439,7 +1437,6 @@ export class GaaGoogle3pSignInButton {
         warn(
           `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${allowedOrigin}`
         );
-        debugger;
         sendErrorMessageToParent();
         return;
       }
