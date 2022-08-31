@@ -1083,7 +1083,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     expect(alternatePromptSpy).to.not.be.called;
   });
 
-  it('should force display the large prompt if the viewport is wider than 480px and DISABLE_DESKTOP_MINIPROMPT is enabled', async () => {
+  it('should log events when a large prompt overrides the miniprompt', async () => {
     win./*OK*/ innerWidth = 500;
     setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
 
@@ -1092,10 +1092,55 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: null,
+    });
     expect(alternatePromptSpy).to.be.calledOnce;
   });
 
-  it('should only display the mini prompt if the viewport is narrower than 480px and DISABLE_DESKTOP_MINIPROMPT is enabled', async () => {
+  it('should replace the  contribution miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
+    win./*OK*/ innerWidth = 500;
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: null,
+    });
+    expect(alternatePromptSpy).to.be.calledOnce;
+  });
+
+  it('should replace the subscription miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
+    win./*OK*/ innerWidth = 500;
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: null,
+    });
+    expect(alternatePromptSpy).to.be.calledOnce;
+  });
+
+  it('should not replace the miniprompt with a large prompt when DISABLE_DESKTOP_MINIPROMPT is enabled but the viewport is narrower than 480px', async () => {
+    win./*OK*/ innerWidth = 450;
     setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
     const entitlements = new Entitlements();
     entitlementsManagerMock
