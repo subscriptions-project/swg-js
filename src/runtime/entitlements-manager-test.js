@@ -352,6 +352,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .withExactArgs('isreadytopay')
         .returns(Promise.resolve(null))
         .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, true)
+        .returns(Promise.resolve(null))
+        .atLeast(0);
     });
 
     it('should fetch empty response', async () => {
@@ -1937,6 +1942,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .withArgs('ents')
         .returns(Promise.resolve())
         .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, true)
+        .returns(Promise.resolve(null))
+        .atLeast(0);
     });
 
     function expectToastShown(value) {
@@ -2287,6 +2297,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('set')
         .withArgs('toast')
+        .returns(Promise.resolve(null))
+        .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, true)
         .returns(Promise.resolve(null))
         .atLeast(0);
     });

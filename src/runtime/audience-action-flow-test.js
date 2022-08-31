@@ -29,6 +29,7 @@ import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
+const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 
 describes.realWin('AudienceActionFlow', {}, (env) => {
   let win;
@@ -66,6 +67,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       document: win.document,
     });
     onCancelSpy = sandbox.spy();
+    sandbox.useFakeTimers(CURRENT_TIME);
   });
 
   [
@@ -132,6 +134,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
       .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .exactly(1);
 
     let toast;
     const toastOpenStub = sandbox
@@ -170,6 +176,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     storageMock
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, 1615416442, true)
       .exactly(1);
 
     let toast;
@@ -210,6 +220,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
       .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .exactly(1);
 
     let toast;
     const toastOpenStub = sandbox
@@ -246,6 +260,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     storageMock
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, 1615416442, true)
       .exactly(1);
 
     let toast;
@@ -287,6 +305,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
       .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .exactly(1);
 
     let toast;
     const toastOpenStub = sandbox
@@ -324,6 +346,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     storageMock
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, 1615416442, true)
       .exactly(1);
 
     let toast;

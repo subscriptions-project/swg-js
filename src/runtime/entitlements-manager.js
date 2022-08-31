@@ -827,16 +827,21 @@ export class EntitlementsManager {
     // Get swgUserToken from local storage
     const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
 
+    // Get read_time from local storage
+    const readTimePromise = this.storage_.get(Constants.READ_TIME, true);
+
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
 
     return Promise.all([
       hash(getCanonicalUrl(this.deps_.doc())),
       swgUserTokenPromise,
+      readTimePromise,
     ])
       .then((values) => {
         const hashedCanonicalUrl = values[0];
         const swgUserToken = values[1];
+        const readTime = values[2];
 
         url = addDevModeParamsToUrl(this.win_.location, url);
 
@@ -852,6 +857,11 @@ export class EntitlementsManager {
         // Add swgUserToken param.
         if (swgUserToken) {
           url = addQueryParam(url, 'sut', swgUserToken);
+        }
+
+        // Add readTime param.
+        if (readTime) {
+          url = addQueryParam(url, 'read_time', readTime.toString());
         }
 
         /** @type {!GetEntitlementsParamsInternalDef|undefined} */
