@@ -818,7 +818,7 @@ export class ConfiguredRuntime {
             value != undefined &&
             !(typeof value === 'string' && value != '')
           ) {
-            error = 'Unknown publisherProvidedId value: ' + value;
+            error = 'publisherProvidedId must be a string, value: ' + value;
           }
           break;
         default:
