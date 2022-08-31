@@ -164,7 +164,7 @@ export class AudienceActionFlow {
     } else {
       this.showFailedOptedInToast_();
     }
-    const now = Date.now();
+    const now = Date.now().toString();
     this.deps_.storage().set(Constants.READ_TIME, now, true);
     this.entitlementsManager_.getEntitlements();
   }

@@ -136,7 +136,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
       .exactly(1);
 
     let toast;
@@ -179,7 +179,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
       .exactly(1);
 
     let toast;
@@ -222,7 +222,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
       .exactly(1);
 
     let toast;
@@ -263,7 +263,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
       .exactly(1);
 
     let toast;
@@ -307,7 +307,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
       .exactly(1);
 
     let toast;
@@ -349,7 +349,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, 1615416442, true)
+      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
       .exactly(1);
 
     let toast;

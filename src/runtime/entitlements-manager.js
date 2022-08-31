@@ -861,7 +861,7 @@ export class EntitlementsManager {
 
         // Add readTime param.
         if (readTime) {
-          url = addQueryParam(url, 'read_time', readTime.toString());
+          url = addQueryParam(url, 'read_time', readTime);
         }
 
         /** @type {!GetEntitlementsParamsInternalDef|undefined} */
