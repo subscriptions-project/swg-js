@@ -129,7 +129,7 @@ export class AutoPromptManager {
   showAutoPrompt(params) {
     // Manual override of display rules, mainly for demo purposes.
     if (params.alwaysShow) {
-      this.showPrompt_(params.autoPromptType, params.displayLargePromptFn);
+      this.showPrompt_(this.getPromptTypeToDisplay_(params.autoPromptType), params.displayLargePromptFn);
       return Promise.resolve();
     }
 
@@ -208,7 +208,8 @@ export class AutoPromptManager {
       }
       this.deps_.win().setTimeout(() => {
         this.autoPromptDisplayed_ = true;
-        this.showPrompt_(params.autoPromptType, promptFn);
+
+        this.showPrompt_(this.getPromptTypeToDisplay_(params.autoPromptType), promptFn);
       }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
     });
   }
@@ -445,13 +446,6 @@ export class AutoPromptManager {
    * @returns
    */
   showPrompt_(autoPromptType, displayLargePromptFn) {
-    const disableDesktopMiniprompt = isExperimentOn(
-      this.doc_.getWin(),
-      ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
-    );
-    // Override display rules, to force desktop swg to display the large prompt
-    // instead of the miniprompt.
-    if (!disableDesktopMiniprompt) {
       if (
         autoPromptType === AutoPromptType.SUBSCRIPTION ||
         autoPromptType === AutoPromptType.CONTRIBUTION
@@ -467,34 +461,52 @@ export class AutoPromptManager {
       ) {
         displayLargePromptFn();
       }
-    } else {
-      const isWideDesktop = this.doc_.getWin()./* REVIEW */ innerWidth > 480;
-      // Displays the large prompt if it is selected or if the the desktop is wider than
-      // 480px, the minimum width where the standalone miniprompt button is displayed.
-      if (
-        isWideDesktop ||
-        ((autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
-          displayLargePromptFn)
-      ) {
-        if (isWideDesktop) {
-          this.eventManager_.logEvent({
-            eventType: AnalyticsEvent.ACTION_DISABLE_MINIPROMPT_DESKTOP,
-            eventOriginator: EventOriginator.SWG_CLIENT,
-            isFromUserAction: false,
-            additionalParameters: {
-              publicationid: this.pageConfig_.getPublicationId(),
-            },
-          });
-        }
-        displayLargePromptFn();
-      } else {
-        this.miniPromptAPI_.create({
-          autoPromptType,
-          clickCallback: displayLargePromptFn,
-        });
+  }
+
+  /**
+   * Returns which type of prompt to display based on the type specified
+   * the viewport width, and whether the disableDesktopMiniprompt experiment
+   * is enabled.
+   * If the disableDesktopMiniprompt experiment is enabled and 
+   * 
+   * @param {AutoPromptType|undefined} promptType
+   * @returns
+   */
+  getPromptTypeToDisplay_(promptType) {
+    const disableDesktopMiniprompt = isExperimentOn(
+      this.doc_.getWin(),
+      ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
+    );
+    const isWideDesktop = this.doc_.getWin()./* OK */ innerWidth > 480;
+
+    if (disableDesktopMiniprompt && isWideDesktop) {
+      if (promptType === AutoPromptType.SUBSCRIPTION) {
+        this.logDisableMinipromptEvent_(promptType);
+        return AutoPromptType.SUBSCRIPTION_LARGE;
       }
-    }
+      if (promptType === AutoPromptType.CONTRIBUTION) {
+        this.logDisableMinipromptEvent_(promptType);
+        return AutoPromptType.CONTRIBUTION_LARGE;
+      }
+    } 
+
+    return promptType;
+  }
+
+  /** 
+   * Logs the disable miniprompt event
+   * @param {AutoPromptType|undefined} overriddenPromptType
+   */
+  logDisableMinipromptEvent_(overriddenPromptType) {
+    this.eventManager_.logEvent({
+      eventType: AnalyticsEvent.ACTION_DISABLE_MINIPROMPT_DESKTOP,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: {
+        publicationid: this.pageConfig_.getPublicationId(),
+        promptType: overriddenPromptType,
+      },
+    });
   }
 
   /**
