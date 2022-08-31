@@ -147,19 +147,25 @@ export class ContributionsFlow {
           return this.dialogManager_.openView(
             this.activityIframeView_,
             /* hidden */ false,
-            this.getDialogConfig_(clientConfig)
+            this.getDialogConfig_(
+              clientConfig,
+              this.clientConfigManager_.shouldAllowScroll()
+            )
           );
         });
     });
   }
 
   /**
-   *
+   * Gets display configuration options for the opened dialog. Uses the
+   * responsive desktop design properties if the updated offer flows UI (for
+   * SwG Basic) is enabled. Permits override to allow scrolling.
    * @param {!../model/client-config.ClientConfig} clientConfig
+   * @param {boolean} shouldAllowScroll
    * @return {!../components/dialog.DialogConfig}
    */
-  getDialogConfig_(clientConfig) {
-    return clientConfig.useUpdatedOfferFlows
+  getDialogConfig_(clientConfig, shouldAllowScroll) {
+    return clientConfig.useUpdatedOfferFlows && !shouldAllowScroll
       ? {shouldDisableBodyScrolling: true}
       : {};
   }

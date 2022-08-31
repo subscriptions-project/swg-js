@@ -289,6 +289,40 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     await contributionsFlow.start();
   });
 
+  it('opens dialog with scrolling enabled when useUpdatedOfferFlows=false and allowScroll=true', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: false,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
+    sandbox.stub(clientConfigManager, 'shouldAllowScroll').returns(true);
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
+      .once();
+    await contributionsFlow.start();
+  });
+
+  it('opens dialog with scrolling enabled when useUpdatedOfferFlows=true and allowScroll=true', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
+    sandbox.stub(clientConfigManager, 'shouldAllowScroll').returns(true);
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
+      .once();
+    await contributionsFlow.start();
+  });
+
   it('activates pay, login', async () => {
     const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');

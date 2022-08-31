@@ -61,6 +61,9 @@ export const POST_MESSAGE_COMMAND_ERROR = 'error';
 /** Button click command for post messages. */
 export const POST_MESSAGE_COMMAND_BUTTON_CLICK = 'button-click';
 
+/** 3P button click command for post messages. */
+export const POST_MESSAGE_COMMAND_3P_BUTTON_CLICK = '3p-button-click';
+
 /** ID for the Google Sign-In iframe element. */
 export const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
 
@@ -88,6 +91,9 @@ export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
 
 /** ID for the Regwall title element. */
 export const REGWALL_TITLE_ID = 'swg-regwall-title';
+
+/** Delay used to log 3P button click before redirect */
+const REDIRECT_DELAY = 10;
 
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
@@ -872,6 +878,17 @@ export class GaaMeteringRegwall {
           isFromUserAction: true,
         });
       }
+      if (
+        e.data.stamp === POST_MESSAGE_STAMP &&
+        e.data.command === POST_MESSAGE_COMMAND_3P_BUTTON_CLICK
+      ) {
+        // Log button click event.
+        logEvent({
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
+          isFromUserAction: true,
+        });
+      }
     });
   }
 
@@ -971,11 +988,14 @@ export class GaaMeteringRegwall {
     buttonEl.addEventListener('click', () => {
       // Track button clicks.
       logEvent({
-        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
         isFromUserAction: true,
       });
       // Redirect user using the parent window.
-      self.open(authorizationUrl, '_parent');
+      // TODO(b/242998655): Fix the downstream calls for logEvent to be chained to remove the need of delaying redirect.
+      self.setTimeout(() => {
+        self.open(authorizationUrl, '_parent');
+      }, REDIRECT_DELAY);
     });
 
     return buttonEl;
@@ -1357,7 +1377,17 @@ export class GaaGoogle3pSignInButton {
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+        });
+      });
       if (redirectMode) {
+        // TODO(b/242998655): Fix the downstream calls for logEvent to be chained to remove the need of delaying redirect.
+        self.setTimeout(() => {
+          self.open(authorizationUrl, '_parent');
+        }, REDIRECT_DELAY);
         self.open(authorizationUrl, '_parent');
       } else {
         self.open(authorizationUrl);

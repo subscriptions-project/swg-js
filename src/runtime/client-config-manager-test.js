@@ -266,6 +266,43 @@ describes.realWin('ClientConfigManager', {}, () => {
     expect(clientConfigManager.getLanguage()).to.equal('en');
   });
 
+  describe('shouldAllowScroll', () => {
+    const testCases = [
+      {
+        description: 'allowScroll is not set',
+        clientOptions: {},
+        expected: false,
+      },
+      {
+        description: 'allowScroll is set false',
+        clientOptions: {
+          allowScroll: false,
+        },
+        expected: false,
+      },
+      {
+        description: 'allowScroll is set true',
+        clientOptions: {
+          allowScroll: true,
+        },
+        expected: true,
+      },
+    ];
+    for (const testCase of testCases) {
+      it(`shouldAllowScroll returns ${testCase.expected} when ${testCase.description}`, () => {
+        clientConfigManager = new ClientConfigManager(
+          deps,
+          'pubId',
+          fetcher,
+          testCase.clientOptions
+        );
+        expect(clientConfigManager.shouldAllowScroll()).to.equal(
+          testCase.expected
+        );
+      });
+    }
+  });
+
   describe('shouldForceLangInIframes', () => {
     const testCases = [
       {
