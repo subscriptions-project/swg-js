@@ -499,7 +499,7 @@ export class AutoPromptManager {
    */
   logDisableMinipromptEvent_(overriddenPromptType) {
     this.eventManager_.logEvent({
-      eventType: AnalyticsEvent.ACTION_DISABLE_MINIPROMPT_DESKTOP,
+      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: false,
       additionalParameters: {
