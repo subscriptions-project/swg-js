@@ -1454,13 +1454,13 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         expect(isExperimentOn(win, 'exp3')).to.be.false;
       });
 
-      it('throws on unknown publisherProvidedId value', () => {
+      it('throws when the publisherProvidedId value is not a string', () => {
         expect(() => {
           runtime.configure({publisherProvidedId: 1});
-        }).to.throw(/Unknown publisherProvidedId value: 1/);
+        }).to.throw(/publisherProvidedId must be a string, value: 1/);
         expect(() => {
           runtime.configure({publisherProvidedId: ''});
-        }).to.throw(/Unknown publisherProvidedId value: /);
+        }).to.throw(/publisherProvidedId must be a string, value: /);
       });
     });
 
