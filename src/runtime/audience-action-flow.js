@@ -37,7 +37,6 @@ import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
-import {nowAsSecondsString} from '../utils/date-utils';
 import {parseUrl} from '../utils/url';
 
 /**
@@ -165,7 +164,7 @@ export class AudienceActionFlow {
     } else {
       this.showFailedOptedInToast_();
     }
-    const now = nowAsSecondsString();
+    const now = Date.now().toString();
     this.deps_.storage().set(Constants.READ_TIME, now, false);
     this.entitlementsManager_.getEntitlements();
   }

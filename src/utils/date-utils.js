@@ -45,10 +45,3 @@ export function convertPotentialTimestampToSeconds(timestamp) {
   }
   return timestampInSeconds;
 }
-
-/**
- * @return {!string}
- */
-export function nowAsSecondsString() {
-  return Math.round(Date.now() / 1000).toString();
-}

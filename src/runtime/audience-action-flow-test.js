@@ -30,7 +30,7 @@ import {Toast} from '../ui/toast';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const CURRENT_TIME = 1615416442000;
-const EXPECTED_TIME_STRING = '1615416442';
+const EXPECTED_TIME_STRING = '1615416442000';
 
 describes.realWin('AudienceActionFlow', {}, (env) => {
   let win;

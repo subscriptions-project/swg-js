@@ -859,9 +859,15 @@ export class EntitlementsManager {
           url = addQueryParam(url, 'sut', swgUserToken);
         }
 
-        // Add readTime param.
+        // Add staleness param.
         if (readTime) {
-          url = addQueryParam(url, 'read_time', readTime);
+          const now = Date.now();
+          const last = parseInt(readTime, 10);
+          const staleness = Math.ceil((now - last) / 1000);
+          // if 
+          if (last && staleness > 0 && staleness < 11) {
+            url = addQueryParam(url, 'staleness', staleness);
+          }
         }
 
         /** @type {!GetEntitlementsParamsInternalDef|undefined} */
