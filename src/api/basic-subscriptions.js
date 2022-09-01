@@ -39,6 +39,7 @@ export class BasicSubscriptions {
    *   clientOptions: (ClientOptions|undefined),
    *   alwaysShow: (boolean|undefined),
    *   disableDefaultMeteringHandler: (boolean|undefined),
+   *   publisherProvidedId: (string|undefined),
    * }=} params
    */
   init(params) {}

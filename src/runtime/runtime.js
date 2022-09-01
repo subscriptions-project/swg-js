@@ -527,6 +527,13 @@ export class Runtime {
   showBestAudienceAction() {
     warn('Not implemented yet');
   }
+
+  /** @override */
+  setPublisherProvidedId(publisherProvidedId) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setPublisherProvidedId(publisherProvidedId)
+    );
+  }
 }
 
 /**
@@ -601,6 +608,9 @@ export class ConfiguredRuntime {
 
     /** @private {?ContributionsFlow} */
     this.lastContributionsFlow_ = null;
+
+    /** @private {string|undefined} */
+    this.publisherProvidedId_ = undefined;
 
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
@@ -803,6 +813,14 @@ export class ConfiguredRuntime {
             error = 'Unknown skipAccountCreationScreen value: ' + value;
           }
           break;
+        case 'publisherProvidedId':
+          if (
+            value != undefined &&
+            !(typeof value === 'string' && value != '')
+          ) {
+            error = 'publisherProvidedId must be a string, value: ' + value;
+          }
+          break;
         default:
           error = 'Unknown config property: ' + key;
       }
@@ -846,6 +864,9 @@ export class ConfiguredRuntime {
 
   /** @override */
   getEntitlements(params) {
+    if (params?.publisherProvidedId) {
+      params.publisherProvidedId = this.publisherProvidedId_;
+    }
     return this.entitlementsManager_
       .getEntitlements(params)
       .then((entitlements) => {
@@ -1172,6 +1193,11 @@ export class ConfiguredRuntime {
   showBestAudienceAction() {
     warn('Not implemented yet');
   }
+
+  /** @override */
+  setPublisherProvidedId(publisherProvidedId) {
+    this.publisherProvidedId_ = publisherProvidedId;
+  }
 }
 
 /**
@@ -1223,5 +1249,6 @@ function createPublicRuntime(runtime) {
     consumeShowcaseEntitlementJwt:
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
+    setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
   });
 }

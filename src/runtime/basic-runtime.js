@@ -143,6 +143,9 @@ export class BasicRuntime {
 
     /** @private {boolean} */
     this.enableDefaultMeteringHandler_ = true;
+
+    /** @private {string|undefined} */
+    this.publisherProvidedId_ = undefined;
   }
 
   /**
@@ -158,6 +161,7 @@ export class BasicRuntime {
    * @private
    */
   configured_(commit) {
+    this.config_.publisherProvidedId = this.publisherProvidedId_;
     if (!this.committed_ && commit && !this.pageConfigWriter_) {
       this.committed_ = true;
 
@@ -201,9 +205,11 @@ export class BasicRuntime {
     autoPromptType,
     alwaysShow = false,
     disableDefaultMeteringHandler = false,
+    publisherProvidedId,
   }) {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
+    this.publisherProvidedId_ = publisherProvidedId;
     this.pageConfigWriter_
       .writeConfigWhenReady({
         type,
