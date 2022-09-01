@@ -129,7 +129,10 @@ export class AutoPromptManager {
   showAutoPrompt(params) {
     // Manual override of display rules, mainly for demo purposes.
     if (params.alwaysShow) {
-      this.showPrompt_(this.getPromptTypeToDisplay_(params.autoPromptType), params.displayLargePromptFn);
+      this.showPrompt_(
+        this.getPromptTypeToDisplay_(params.autoPromptType),
+        params.displayLargePromptFn
+      );
       return Promise.resolve();
     }
 
@@ -209,7 +212,10 @@ export class AutoPromptManager {
       this.deps_.win().setTimeout(() => {
         this.autoPromptDisplayed_ = true;
 
-        this.showPrompt_(this.getPromptTypeToDisplay_(params.autoPromptType), promptFn);
+        this.showPrompt_(
+          this.getPromptTypeToDisplay_(params.autoPromptType),
+          promptFn
+        );
       }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
     });
   }
@@ -444,29 +450,29 @@ export class AutoPromptManager {
    * @returns
    */
   showPrompt_(autoPromptType, displayLargePromptFn) {
-      if (
-        autoPromptType === AutoPromptType.SUBSCRIPTION ||
-        autoPromptType === AutoPromptType.CONTRIBUTION
-      ) {
-        this.miniPromptAPI_.create({
-          autoPromptType,
-          clickCallback: displayLargePromptFn,
-        });
-      } else if (
-        (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
-        displayLargePromptFn
-      ) {
-        displayLargePromptFn();
-      }
+    if (
+      autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      autoPromptType === AutoPromptType.CONTRIBUTION
+    ) {
+      this.miniPromptAPI_.create({
+        autoPromptType,
+        clickCallback: displayLargePromptFn,
+      });
+    } else if (
+      (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
+      displayLargePromptFn
+    ) {
+      displayLargePromptFn();
+    }
   }
 
   /**
    * Returns which type of prompt to display based on the type specified,
    * the viewport width, and whether the disableDesktopMiniprompt experiment
    * is enabled.
-   * 
-   * If the disableDesktopMiniprompt experiment is enabled and the desktop is 
+   *
+   * If the disableDesktopMiniprompt experiment is enabled and the desktop is
    * wider than 480px then the miniprompt type will be substituted for the large
    * prompt. The miniprompt will be returned as is in all other cases.
    * @param {AutoPromptType|undefined} promptType
@@ -488,12 +494,12 @@ export class AutoPromptManager {
         this.logDisableMinipromptEvent_(promptType);
         return AutoPromptType.CONTRIBUTION_LARGE;
       }
-    } 
+    }
 
     return promptType;
   }
 
-  /** 
+  /**
    * Logs the disable miniprompt event.
    * @param {AutoPromptType|undefined} overriddenPromptType
    */
