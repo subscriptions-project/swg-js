@@ -439,7 +439,6 @@ export class AutoPromptManager {
 
   /**
    * Shows the prompt based on the type specified.
-   * 
    * @param {AutoPromptType|undefined} autoPromptType
    * @param {function()|undefined} displayLargePromptFn
    * @returns
@@ -470,7 +469,6 @@ export class AutoPromptManager {
    * If the disableDesktopMiniprompt experiment is enabled and the desktop is 
    * wider than 480px then the miniprompt type will be substituted for the large
    * prompt. The miniprompt will be returned as is in all other cases.
-   * 
    * @param {AutoPromptType|undefined} promptType
    * @returns
    */
@@ -496,7 +494,7 @@ export class AutoPromptManager {
   }
 
   /** 
-   * Logs the disable miniprompt event
+   * Logs the disable miniprompt event.
    * @param {AutoPromptType|undefined} overriddenPromptType
    */
   logDisableMinipromptEvent_(overriddenPromptType) {
