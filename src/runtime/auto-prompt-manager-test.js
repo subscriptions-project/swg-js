@@ -1101,6 +1101,19 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     expect(alternatePromptSpy).to.be.calledOnce;
   });
 
+  it('should replace the  contribution miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
+    win./*OK*/ innerWidth = 500;
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    expect(alternatePromptSpy).to.be.calledOnce;
+  });
+
   it('should replace the subscription miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
     win./*OK*/ innerWidth = 500;
     setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
