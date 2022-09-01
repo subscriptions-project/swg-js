@@ -828,7 +828,7 @@ export class EntitlementsManager {
     const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
 
     // Get read_time from local storage
-    const readTimePromise = this.storage_.get(Constants.READ_TIME, true);
+    const readTimePromise = this.storage_.get(Constants.READ_TIME, false);
 
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;

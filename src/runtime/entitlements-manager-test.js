@@ -354,7 +354,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .atLeast(0);
       storageMock
         .expects('get')
-        .withExactArgs(Constants.READ_TIME, true)
+        .withExactArgs(Constants.READ_TIME, false)
         .returns(Promise.resolve(null))
         .atLeast(0);
     });
@@ -1944,7 +1944,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .atLeast(0);
       storageMock
         .expects('get')
-        .withExactArgs(Constants.READ_TIME, true)
+        .withExactArgs(Constants.READ_TIME, false)
         .returns(Promise.resolve(null))
         .atLeast(0);
     });
@@ -2301,7 +2301,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .atLeast(0);
       storageMock
         .expects('get')
-        .withExactArgs(Constants.READ_TIME, true)
+        .withExactArgs(Constants.READ_TIME, false)
         .returns(Promise.resolve(null))
         .atLeast(0);
     });

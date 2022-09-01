@@ -27,6 +27,7 @@ import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
+import {nowAsSecondsString} from '../utils/date-utils';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
@@ -136,7 +137,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
+      .withExactArgs(Constants.READ_TIME, nowAsSecondsString(), false)
       .exactly(1);
 
     let toast;
@@ -179,7 +180,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
+      .withExactArgs(Constants.READ_TIME, nowAsSecondsString(), false)
       .exactly(1);
 
     let toast;
@@ -222,7 +223,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
+      .withExactArgs(Constants.READ_TIME, nowAsSecondsString(), false)
       .exactly(1);
 
     let toast;
@@ -263,7 +264,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
+      .withExactArgs(Constants.READ_TIME, nowAsSecondsString(), false)
       .exactly(1);
 
     let toast;
@@ -307,7 +308,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
+      .withExactArgs(Constants.READ_TIME, nowAsSecondsString(), false)
       .exactly(1);
 
     let toast;
@@ -349,7 +350,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, CURRENT_TIME.toString(), true)
+      .withExactArgs(Constants.READ_TIME, nowAsSecondsString(), false)
       .exactly(1);
 
     let toast;
