@@ -147,7 +147,7 @@ export class AudienceActionFlow {
    * 1) Store the updated user token
    * 2) Clear existing entitlements from the page
    * 3) Update READ_TIME in local storage to indicate that entitlements may have changed recently
-   * 3) Re-fetch entitlements which may potentially provide access to the page
+   * 4) Re-fetch entitlements which may potentially provide access to the page
    * @param {CompleteAudienceActionResponse} response
    * @private
    */
