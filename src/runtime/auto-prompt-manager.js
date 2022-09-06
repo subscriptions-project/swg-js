@@ -473,8 +473,8 @@ export class AutoPromptManager {
    * is enabled.
    *
    * If the disableDesktopMiniprompt experiment is enabled and the desktop is
-   * wider than 480px then the miniprompt type will be substituted for the large
-   * prompt. The miniprompt will be returned as is in all other cases.
+   * wider than 480px then the large prompt type will be substituted for the mini
+   * prompt. The original promptType will be returned as is in all other cases.
    * @param {AutoPromptType|undefined} promptType
    * @returns
    */
