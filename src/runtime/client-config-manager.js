@@ -113,6 +113,15 @@ export class ClientConfigManager {
   }
 
   /**
+   * Returns whether scrolling on main page should be allowed when
+   * subscription or contribution dialog is displayed.
+   * @return {boolean}
+   */
+  shouldAllowScroll() {
+    return !!this.clientOptions_.allowScroll;
+  }
+
+  /**
    * Returns whether iframes should also use the language specified in the
    * client options, rather than the default of letting the iframes decide the
    * display language. Note that this will return false if the lang option is

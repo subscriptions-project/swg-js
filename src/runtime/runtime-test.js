@@ -1052,6 +1052,16 @@ describes.realWin('Runtime', {}, (env) => {
     it('should not call showBestAudienceAction', () => {
       expect(() => runtime.showBestAudienceAction()).to.not.throw();
     });
+
+    it('should delegate "setPublisherProvidedId"', async () => {
+      configuredRuntimeMock
+        .expects('setPublisherProvidedId')
+        .withExactArgs('publisherProvidedId')
+        .once();
+
+      await runtime.setPublisherProvidedId('publisherProvidedId');
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
   });
 });
 
@@ -1442,6 +1452,15 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         expect(isExperimentOn(win, 'exp1')).to.be.true;
         expect(isExperimentOn(win, 'exp2')).to.be.true;
         expect(isExperimentOn(win, 'exp3')).to.be.false;
+      });
+
+      it('throws when the publisherProvidedId value is not a string', () => {
+        expect(() => {
+          runtime.configure({publisherProvidedId: 1});
+        }).to.throw(/publisherProvidedId must be a string, value: 1/);
+        expect(() => {
+          runtime.configure({publisherProvidedId: ''});
+        }).to.throw(/publisherProvidedId must be a string, value: /);
       });
     });
 
@@ -2171,6 +2190,12 @@ subscribe() method'
       const request = {};
       runtime.triggerLoginRequest(request);
       expect(stub).to.be.calledWithExactly(request);
+    });
+
+    it('should set the publisherProvidedId', async () => {
+      runtime.setPublisherProvidedId('publisherProvidedId');
+
+      expect(runtime.publisherProvidedId_).to.equal('publisherProvidedId');
     });
 
     describe('setShowcaseEntitlement', () => {
