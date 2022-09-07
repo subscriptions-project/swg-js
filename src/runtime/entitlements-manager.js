@@ -861,12 +861,13 @@ export class EntitlementsManager {
 
         // Add staleness param.
         if (readTime) {
-          const now = Date.now();
           const last = parseInt(readTime, 10);
-          const staleness = Math.ceil((now - last) / 1000);
-          // if 
-          if (last && staleness > 0 && staleness < 11) {
-            url = addQueryParam(url, 'staleness', staleness);
+          if (last) {
+            const now = Date.now();
+            const staleness = Math.ceil((now - last) / 1000);
+            if (staleness > 0) {
+              url = addQueryParam(url, 'staleness', staleness);
+            }
           }
         }
 
