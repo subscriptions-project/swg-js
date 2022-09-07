@@ -1103,8 +1103,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(logEventSpy).to.be.calledWith(expectedEvent);
-    expect(logEventSpy).to.be.calledOnce;
+    expect(logEventSpy).to.be.calledOnceWith(expectedEvent);
     expect(alternatePromptSpy).to.be.calledOnce;
   });
 
