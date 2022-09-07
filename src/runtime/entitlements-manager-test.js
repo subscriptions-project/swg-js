@@ -1708,6 +1708,96 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
       await manager.getEntitlements();
     });
+
+    it('should send staleness with readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = '1615416440000';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?staleness=2`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
+
+      await manager.getEntitlements();
+    });
+
+    it('should not send staleness with future readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = '1615416444000';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
+
+      await manager.getEntitlements();
+    });
+
+    it('should not send staleness with unparseable readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = 'unparseable number';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
+
+      await manager.getEntitlements();
+    });
   });
 
   describe('event listening', () => {
