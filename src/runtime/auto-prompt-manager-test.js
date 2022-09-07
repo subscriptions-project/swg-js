@@ -78,7 +78,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
 
     eventManager = new ClientEventManager(new Promise(() => {}));
     sandbox.stub(deps, 'eventManager').returns(eventManager);
-    eventManager.registerEventListener((e) => events.push(e));
     sandbox
       .stub(eventManager, 'registerEventListener')
       .callsFake((callback) => (eventManagerCallback = callback));
