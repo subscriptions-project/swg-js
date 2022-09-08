@@ -875,7 +875,7 @@ export class EntitlementsManager {
         if (readTime) {
           const last = parseInt(readTime, 10);
           if (last) {
-            const interaction_age = Math.floor(Date.now() - last) / 1000);
+            const interaction_age = Math.floor((Date.now() - last) / 1000);
             if (interaction_age >= 0) {
               url = addQueryParam(url, 'interaction_age', interaction_age);
             }
