@@ -165,7 +165,9 @@ export class AudienceActionFlow {
       this.showFailedOptedInToast_();
     }
     const now = Date.now().toString();
-    this.deps_.storage().set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+    this.deps_
+      .storage()
+      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
   }
 

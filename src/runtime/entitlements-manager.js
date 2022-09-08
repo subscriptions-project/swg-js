@@ -828,7 +828,10 @@ export class EntitlementsManager {
     const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
 
     // Get read_time from session storage
-    const readTimePromise = this.storage_.get(Constants.READ_TIME, /*useLocalStorage=*/ false);
+    const readTimePromise = this.storage_.get(
+      Constants.READ_TIME,
+      /*useLocalStorage=*/ false
+    );
 
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
@@ -875,9 +878,13 @@ export class EntitlementsManager {
         if (readTime) {
           const last = parseInt(readTime, 10);
           if (last) {
-            const interaction_age = Math.floor((Date.now() - last) / 1000);
-            if (interaction_age >= 0) {
-              url = addQueryParam(url, 'interaction_age', interaction_age);
+            const interactionAge = Math.floor((Date.now() - last) / 1000);
+            if (interactionAge >= 0) {
+              url = addQueryParam(
+                url,
+                'interaction_age',
+                interactionAge.toString()
+              );
             }
           }
         }
