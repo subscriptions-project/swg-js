@@ -1709,7 +1709,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.getEntitlements();
     });
 
-    it('should send staleness with readTime', async () => {
+    it('should send interaction_age with readTime', async () => {
       const CURRENT_TIME = 1615416442000;
       const LAST_TIME_STRING = '1615416440000';
       storageMock
@@ -1722,7 +1722,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       xhrMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?staleness=2`,
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?interaction_age=2`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1739,7 +1739,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.getEntitlements();
     });
 
-    it('should not send staleness with future readTime', async () => {
+    it('should not send interaction_age with future readTime', async () => {
       const CURRENT_TIME = 1615416442000;
       const LAST_TIME_STRING = '1615416444000';
       storageMock
@@ -1769,7 +1769,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.getEntitlements();
     });
 
-    it('should not send staleness with unparseable readTime', async () => {
+    it('should not send interaction_age with unparseable readTime', async () => {
       const CURRENT_TIME = 1615416442000;
       const LAST_TIME_STRING = 'unparseable number';
       storageMock

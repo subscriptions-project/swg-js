@@ -859,14 +859,14 @@ export class EntitlementsManager {
           url = addQueryParam(url, 'sut', swgUserToken);
         }
 
-        // Add staleness param.
+        // Add interaction_age param.
         if (readTime) {
           const last = parseInt(readTime, 10);
           if (last) {
             const now = Date.now();
-            const staleness = Math.ceil((now - last) / 1000);
-            if (staleness > 0) {
-              url = addQueryParam(url, 'staleness', staleness);
+            const interaction_age = Math.ceil((now - last) / 1000);
+            if (interaction_age > 0) {
+              url = addQueryParam(url, 'interaction_age', interaction_age);
             }
           }
         }
