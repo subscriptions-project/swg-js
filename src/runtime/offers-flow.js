@@ -235,7 +235,10 @@ export class OffersFlow {
           return this.dialogManager_.openView(
             this.activityIframeView_,
             /* hidden */ false,
-            this.getDialogConfig_(clientConfig)
+            this.getDialogConfig_(
+              clientConfig,
+              this.clientConfigManager_.shouldAllowScroll()
+            )
           );
         });
       });
@@ -257,15 +260,16 @@ export class OffersFlow {
   /**
    * Gets display configuration options for the opened dialog. Uses the
    * responsive desktop design properties if the updated offer flows UI (for
-   * SwG Basic) is enabled.
+   * SwG Basic) is enabled. Permits override to allow scrolling.
    * @param {!../model/client-config.ClientConfig} clientConfig
+   * @param {boolean} shouldAllowScroll
    * @return {!../components/dialog.DialogConfig}
    */
-  getDialogConfig_(clientConfig) {
+  getDialogConfig_(clientConfig, shouldAllowScroll) {
     return clientConfig.useUpdatedOfferFlows
       ? {
           desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
-          shouldDisableBodyScrolling: true,
+          shouldDisableBodyScrolling: !shouldAllowScroll,
         }
       : {};
   }

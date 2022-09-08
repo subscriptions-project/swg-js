@@ -26,10 +26,13 @@ import {Constants} from '../utils/constants';
 import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {Fetcher} from './fetcher';
+import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
+import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
@@ -41,11 +44,13 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   let autoPromptManager;
   let win;
   let deps;
+  let doc;
   let pageConfig;
   let fetcher;
   let eventManager;
   let eventManagerCallback;
   let entitlementsManager;
+  let logEventSpy;
   let entitlementsManagerMock;
   let clientConfigManager;
   let clientConfigManagerMock;
@@ -65,14 +70,18 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     win.setTimeout = (callback) => callback();
     sandbox.stub(deps, 'win').returns(win);
 
+    doc = new GlobalDoc(win);
+    sandbox.stub(deps, 'doc').returns(doc);
+
     pageConfig = new PageConfig(productId);
     sandbox.stub(deps, 'pageConfig').returns(pageConfig);
 
-    eventManager = new ClientEventManager(Promise.resolve());
+    eventManager = new ClientEventManager(new Promise(() => {}));
     sandbox.stub(deps, 'eventManager').returns(eventManager);
     sandbox
       .stub(eventManager, 'registerEventListener')
       .callsFake((callback) => (eventManagerCallback = callback));
+    logEventSpy = sandbox.spy(eventManager, 'logEvent');
 
     const storage = new Storage(win);
     storageMock = sandbox.mock(storage);
@@ -1073,6 +1082,76 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
+    expect(alternatePromptSpy).to.not.be.called;
+  });
+
+  it('should log events when a large prompt overrides the miniprompt', async () => {
+    win./*OK*/ innerWidth = 500;
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    const expectedEvent = {
+      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: {
+        publicationid: pubId,
+        promptType: AutoPromptType.CONTRIBUTION,
+      },
+    };
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    expect(logEventSpy).to.be.calledOnceWith(expectedEvent);
+    expect(alternatePromptSpy).to.be.calledOnce;
+  });
+
+  it('should replace the contribution miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
+    win./*OK*/ innerWidth = 500;
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    expect(alternatePromptSpy).to.be.calledOnce;
+  });
+
+  it('should replace the subscription miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
+    win./*OK*/ innerWidth = 500;
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    expect(alternatePromptSpy).to.be.calledOnce;
+  });
+
+  it('should not replace the miniprompt with a large prompt when DISABLE_DESKTOP_MINIPROMPT is enabled but the viewport is narrower than 480px', async () => {
+    win./*OK*/ innerWidth = 450;
+    setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    const expectedEvent = {
+      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: {
+        publicationid: pubId,
+        promptType: AutoPromptType.CONTRIBUTION,
+      },
+    };
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: true,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    logEventSpy.should.not.have.been.calledWith(expectedEvent);
     expect(alternatePromptSpy).to.not.be.called;
   });
 

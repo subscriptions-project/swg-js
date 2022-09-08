@@ -1709,6 +1709,68 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       await manager.getEntitlements();
     });
 
+    it('should add the publisherProvidedId param from the config', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
+            encodeURIComponent('abc') +
+            '&ppid=' +
+            encodeURIComponent('publisherProvidedId'),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+
+      config.publisherProvidedId = 'publisherProvidedId';
+
+      // Check SwgUserToken from local storage.
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, true)
+        .returns(Promise.resolve('abc')).once;
+
+      await manager.getEntitlements();
+    });
+
+    it('should add the publisherProvidedId param from the getEntitlements params', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
+            encodeURIComponent('abc') +
+            '&ppid=' +
+            encodeURIComponent('publisherProvidedId'),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+
+      // Check SwgUserToken from local storage.
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, true)
+        .returns(Promise.resolve('abc')).once;
+
+      await manager.getEntitlements({
+        publisherProvidedId: 'publisherProvidedId',
+      });
+    });
+
     it('should send interaction_age with readTime', async () => {
       const CURRENT_TIME = 1615416442000;
       const LAST_TIME_STRING = '1615416440000';
