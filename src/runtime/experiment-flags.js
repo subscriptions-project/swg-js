@@ -80,5 +80,5 @@ export const ExperimentFlags = {
   /**
    * Experiment flag for disabling the miniprompt icon on desktop screens wider than 480px.
    */
-  DISABLE_DESKTOP_MINIPROMPT: 'disable_desktop_miniprompt',
+  DISABLE_DESKTOP_MINIPROMPT: 'disable-desktop-miniprompt',
 };
