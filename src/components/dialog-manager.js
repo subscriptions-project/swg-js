@@ -92,7 +92,7 @@ export class DialogManager {
   }
 
   /**
-   * Opens ErrorView and resets port promise in the view in preparation of re-connection.
+   * Opens error view and resets port promise in the view in preparation of re-connection.
    * @param {!./view.View} view
    * @private
    */
@@ -121,7 +121,7 @@ export class DialogManager {
   }
 
   /**
-   * Enables ErrorView on generic errors other than cancellations.
+   * Enables error view on generic errors other than cancellations.
    * @param {!./view.View} view
    * @return {!Promise}
    */
