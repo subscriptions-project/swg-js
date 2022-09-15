@@ -26,7 +26,29 @@ swg-loading-image {
   display: block;
 }
 
-swg-loading-container {
+swg-error-retry-button {
+  border: 1px solid lightgray;
+  border-radius: 4px;
+  color: #1A73E8;
+  cursor: pointer;
+  margin-top: 16px;
+  padding: 6px 12px;
+  text-align: center;
+}
+
+swg-error-container {
+  flex-direction: column;
+  font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
+  font-size: 16px;
+}
+
+/* Container may have a child iframe that blocks clicks on ErrorView. */
+.error-view-open swg-container {
+  display: none;
+}
+
+swg-loading-container,
+swg-error-container {
   width: 100% !important;
   display: flex !important;
   align-items: center !important;
@@ -34,8 +56,11 @@ swg-loading-container {
   min-height: 148px !important;
   height: 100% !important;
   bottom: 0 !important;
-  margin-top: 5px !important;
   z-index: 2147483647 !important;
+}
+
+swg-loading-container {
+  margin-top: 5px !important;
 }
 
 /**
@@ -43,7 +68,8 @@ swg-loading-container {
  * this style adds the background with borders to the loading indicator.
  */
 @media (min-width: 630px), (min-height: 630px) {
-  swg-loading-container {
+  swg-loading-container,
+  swg-error-container {
     width: 560px !important;
     margin-left: auto !important;
     margin-right: auto !important;
@@ -54,9 +80,13 @@ swg-loading-container {
       rgba(60, 64, 67, 0.15) 0 1px 4px 1px !important;
   }
 
-  swg-loading-container.centered-on-desktop {
+  .centered-on-desktop swg-loading-container {
     height: 120px !important;
     min-height: 120px !important;
+    border-radius: 8px !important;
+  }
+
+  .centered-on-desktop swg-error-container {
     border-radius: 8px !important;
   }
 }
