@@ -64,4 +64,17 @@ export class View {
    * @abstract
    */
   hasLoadingIndicator() {}
+
+  /**
+   * Sets a callback to be executed on port ready.
+   * @param {!function(!Object)} unusedCallback
+   * @abstract
+   */
+  setOnPortReadyCallback(unusedCallback) {}
+
+  /**
+   * Resets the port promise.
+   * @abstract
+   */
+  resetPortPromise() {}
 }

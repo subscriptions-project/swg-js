@@ -15,10 +15,10 @@
  */
 
 import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
+import {ErrorView} from '../ui/error-view';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
-import {ErrorView} from '../ui/error-view';
 import {
   createElement,
   injectStyleSheet,
@@ -264,10 +264,12 @@ export class Dialog {
    * @private
    */
   onRetry_() {
-    this.iframe_.getBody().classList.remove('error-view-open');
-    this.errorView_.hide();
+    if (this.view_) {
+      this.iframe_.getBody().classList.remove('error-view-open');
+      this.errorView_.hide();
 
-    return this.openView(this.view_);
+      return this.openView(this.view_);
+    }
   }
 
   /**

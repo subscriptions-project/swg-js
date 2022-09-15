@@ -98,7 +98,8 @@ export class ActivityIframeView extends View {
   }
 
   /**
-   * @param {!function<!ActivityIframeView>} callback
+   * Sets a callback to be executed on port ready.
+   * @param {!function(?)} callback
    */
   setOnPortReadyCallback(callback) {
     this.onPortReadyCallback_ = callback;
