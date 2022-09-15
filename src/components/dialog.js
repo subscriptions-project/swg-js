@@ -248,6 +248,9 @@ export class Dialog {
     });
   }
 
+  /**
+   * Opens the error view in the dialog.
+   */
   openErrorView() {
     // The css class is required to hide other elements that block click on ErrorView.
     this.iframe_.getBody().classList.add('error-view-open');
@@ -256,7 +259,11 @@ export class Dialog {
     this.errorView_.show();
   }
 
-  onRetry() {
+  /**
+   * Closes the error view and re-open the view.
+   * @private
+   */
+  onRetry_() {
     this.iframe_.getBody().classList.remove('error-view-open');
     this.errorView_.hide();
 
@@ -284,7 +291,7 @@ export class Dialog {
     iframeBody.appendChild(this.loadingView_.getElement());
 
     // Add error view.
-    this.errorView_ = new ErrorView(iframeDoc, this.onRetry.bind(this));
+    this.errorView_ = new ErrorView(iframeDoc, this.onRetry_.bind(this));
     iframeBody.appendChild(this.errorView_.getElement());
 
     // Container for all dynamic content, including 3P iframe.

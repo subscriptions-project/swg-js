@@ -81,15 +81,22 @@ export class DialogManager {
    *    dialog.
    * @return {!Promise}
    */
-  openView(view, hidden = false, dialogConfig = {}) {
+  openView(view, hidden = false, dialogConfig = {}, enableErrorView = false) {
     this.handleCancellations(view);
-    this.handleGenericErrors_(view);
+    if (enableErrorView) {
+      this.handleGenericErrors_(view);
+    }
     return this.openDialog(hidden, dialogConfig).then((dialog) => {
       return dialog.openView(view);
     });
   }
 
-  openErrorView(view) {
+  /**
+   * Opens ErrorView and resets port promise in the view in preparation of re-connection.
+   * @param {!./view.View} view
+   * @private
+   */
+  openErrorView_(view) {
     if (this.dialog_) {
       this.dialog_.openErrorView();
       // The failed port promise should be reset before appending promise chains (e.g., cancellation handler).
@@ -121,7 +128,7 @@ export class DialogManager {
   handleGenericErrors_(view) {
     return view.whenComplete().catch((reason) => {
       if (!isCancelError(reason)) {
-        this.openErrorView(view);
+        this.openErrorView_(view);
       } else {
         throw reason;
       }

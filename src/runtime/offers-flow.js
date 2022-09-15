@@ -190,7 +190,12 @@ export class OffersFlow {
     }
   }
 
-  setUpActivityIframeViewWhenReady_(activityIframeView) {
+  /**
+   * Sets up message handlers on the view.
+   * @param {!ActivityIframeView} activityIframeView
+   * @private
+   */
+  setUpViewMessageHandlers_(activityIframeView) {
     activityIframeView.onCancel(() => {
       this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
     });
@@ -226,7 +231,7 @@ export class OffersFlow {
             source: 'SwG',
           });
         activityIframeView.setOnPortReadyCallback(
-          this.setUpActivityIframeViewWhenReady_.bind(this)
+          this.setUpViewMessageHandlers_.bind(this)
         );
         this.activityIframeView_ = activityIframeView;
         return this.clientConfig_.then((clientConfig) => {
