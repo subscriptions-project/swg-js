@@ -18,6 +18,7 @@ import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
+import {ErrorView} from '../ui/error-view';
 import {
   createElement,
   injectStyleSheet,
@@ -148,6 +149,9 @@ export class Dialog {
     /** @private {LoadingView} */
     this.loadingView_ = null;
 
+    /** @private {ErrorView} */
+    this.errorView_ = null;
+
     /** @private {?Element} */
     this.container_ = null; // Depends on constructed document inside iframe.
 
@@ -244,6 +248,21 @@ export class Dialog {
     });
   }
 
+  openErrorView() {
+    // The css class is required to hide other elements that block click on ErrorView.
+    this.iframe_.getBody().classList.add('error-view-open');
+
+    this.loadingView_.hide();
+    this.errorView_.show();
+  }
+
+  onRetry() {
+    this.iframe_.getBody().classList.remove('error-view-open');
+    this.errorView_.hide();
+
+    return this.openView(this.view_);
+  }
+
   /**
    * Build the iframe with the styling after iframe is loaded.
    * @private
@@ -256,15 +275,17 @@ export class Dialog {
     // Inject Google fonts in <HEAD> section of the iframe.
     injectStyleSheet(resolveDoc(iframeDoc), DIALOG_CSS);
 
-    // Add Loading indicator.
-    const loadingViewClasses = [];
     if (this.isPositionCenterOnDesktop()) {
-      loadingViewClasses.push('centered-on-desktop');
+      this.iframe_.getBody().classList.add('centered-on-desktop');
     }
-    this.loadingView_ = new LoadingView(iframeDoc, {
-      additionalClasses: loadingViewClasses,
-    });
+
+    // Add Loading indicator.
+    this.loadingView_ = new LoadingView(iframeDoc);
     iframeBody.appendChild(this.loadingView_.getElement());
+
+    // Add error view.
+    this.errorView_ = new ErrorView(iframeDoc, this.onRetry.bind(this));
+    iframeBody.appendChild(this.errorView_.getElement());
 
     // Container for all dynamic content, including 3P iframe.
     this.container_ = createElement(iframeDoc, 'swg-container', {});

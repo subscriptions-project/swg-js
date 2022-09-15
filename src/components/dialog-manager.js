@@ -83,9 +83,20 @@ export class DialogManager {
    */
   openView(view, hidden = false, dialogConfig = {}) {
     this.handleCancellations(view);
+    this.handleGenericErrors_(view);
     return this.openDialog(hidden, dialogConfig).then((dialog) => {
       return dialog.openView(view);
     });
+  }
+
+  openErrorView(view) {
+    if (this.dialog_) {
+      this.dialog_.openErrorView();
+      // The failed port promise should be reset before appending promise chains (e.g., cancellation handler).
+      view.resetPortPromise();
+      this.handleCancellations(view);
+      this.handleGenericErrors_(view);
+    }
   }
 
   /**
@@ -99,6 +110,21 @@ export class DialogManager {
         this.completeView(view);
       }
       throw reason;
+    });
+  }
+
+  /**
+   * Enables ErrorView on generic errors other than cancellations.
+   * @param {!./view.View} view
+   * @return {!Promise}
+   */
+  handleGenericErrors_(view) {
+    return view.whenComplete().catch((reason) => {
+      if (!isCancelError(reason)) {
+        this.openErrorView(view);
+      } else {
+        throw reason;
+      }
     });
   }
 

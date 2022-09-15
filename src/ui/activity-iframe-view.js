@@ -83,12 +83,25 @@ export class ActivityIframeView extends View {
     this.portResolver_ = null;
 
     /**
-     * @private @const
+     * @private
      * {!Promise<!web-activities/activity-ports.ActivityIframePort>}
      */
     this.portPromise_ = new Promise((resolve) => {
       this.portResolver_ = resolve;
     });
+
+    /**
+     * @private
+     * {?function<!ActivityIframeView>}
+     */
+    this.onPortReadyCallback_ = null;
+  }
+
+  /**
+   * @param {!function<!ActivityIframeView>} callback
+   */
+  setOnPortReadyCallback(callback) {
+    this.onPortReadyCallback_ = callback;
   }
 
   /** @override */
@@ -131,6 +144,10 @@ export class ActivityIframeView extends View {
     this.port_.onResizeRequest((height) => {
       dialog.resizeView(this, height);
     });
+
+    if (typeof this.onPortReadyCallback_ === 'function') {
+      this.onPortReadyCallback_(this);
+    }
 
     return this.port_.whenReady();
   }
@@ -199,6 +216,16 @@ export class ActivityIframeView extends View {
    */
   whenComplete() {
     return this.acceptResult();
+  }
+
+  /**
+   * Creates a new Promise to reset this.portPromise_ which has already been fullied/rejected to be pending.
+   * It should be executed before appending promise chains to this.portPromise_ when retrying connection.
+   */
+  resetPortPromise() {
+    this.portPromise_ = new Promise((resolve) => {
+      this.portResolver_ = resolve;
+    });
   }
 
   /**
