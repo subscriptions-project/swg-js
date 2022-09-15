@@ -190,6 +190,21 @@ export class OffersFlow {
     }
   }
 
+  setUpActivityIframeViewWhenReady_(activityIframeView) {
+    activityIframeView.onCancel(() => {
+      this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+    });
+    activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
+    activityIframeView.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+    activityIframeView.on(
+      ViewSubscriptionsResponse,
+      this.startNativeFlow_.bind(this)
+    );
+  }
+
   /**
    * Starts the offers flow or alreadySubscribed flow.
    * @return {!Promise}
@@ -210,22 +225,8 @@ export class OffersFlow {
             skus: this.skus_,
             source: 'SwG',
           });
-        activityIframeView.onCancel(() => {
-          this.deps_
-            .callbacks()
-            .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
-        });
-        activityIframeView.on(
-          SkuSelectedResponse,
-          this.startPayFlow_.bind(this)
-        );
-        activityIframeView.on(
-          AlreadySubscribedResponse,
-          this.handleLinkRequest_.bind(this)
-        );
-        activityIframeView.on(
-          ViewSubscriptionsResponse,
-          this.startNativeFlow_.bind(this)
+        activityIframeView.setOnPortReadyCallback(
+          this.setUpActivityIframeViewWhenReady_.bind(this)
         );
         this.activityIframeView_ = activityIframeView;
         return this.clientConfig_.then((clientConfig) => {
@@ -238,7 +239,8 @@ export class OffersFlow {
             this.getDialogConfig_(
               clientConfig,
               this.clientConfigManager_.shouldAllowScroll()
-            )
+            ),
+            /* enableErrorView */ true
           );
         });
       });
