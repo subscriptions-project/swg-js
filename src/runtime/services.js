@@ -138,7 +138,7 @@ export function adsUrl(url) {
 export function feUrl(
   url,
   params = {},
-  usePrefixedHostPath = false,
+  usePrefixedHostPath = true,
   prefix = ''
 ) {
   // Add cache param.
