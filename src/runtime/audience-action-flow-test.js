@@ -71,6 +71,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   [
     {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
     {action: 'TYPE_NEWSLETTER_SIGNUP', path: 'newsletteriframe'},
+    {action: 'TYPE_REWARDED_SURVEY', path: 'surveyiframe'},
   ].forEach(({action, path}) => {
     it(`opens an AudienceActionFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
