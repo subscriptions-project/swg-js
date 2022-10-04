@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -992,6 +992,7 @@ describe('SkuSelectedResponse', () => {
     skuselectedresponse.setOldPlayOffer('');
     skuselectedresponse.setCustomMessage('');
     skuselectedresponse.setAnonymous(false);
+    skuselectedresponse.setSharingPolicyEnabled(false);
 
     let skuselectedresponseDeserialized;
 
@@ -1017,6 +1018,8 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getCustomMessage());
     expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
         skuselectedresponse.getAnonymous());
+    expect(skuselectedresponseDeserialized.getSharingPolicyEnabled()).to.deep.equal(
+        skuselectedresponse.getSharingPolicyEnabled());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -1040,6 +1043,8 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getCustomMessage());
     expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
         skuselectedresponse.getAnonymous());
+    expect(skuselectedresponseDeserialized.getSharingPolicyEnabled()).to.deep.equal(
+        skuselectedresponse.getSharingPolicyEnabled());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -1062,6 +1067,8 @@ describe('SkuSelectedResponse', () => {
         skuselectedresponse.getCustomMessage());
     expect(skuselectedresponseDeserialized.getAnonymous()).to.deep.equal(
         skuselectedresponse.getAnonymous());
+    expect(skuselectedresponseDeserialized.getSharingPolicyEnabled()).to.deep.equal(
+        skuselectedresponse.getSharingPolicyEnabled());
   });
 });
 
@@ -1144,6 +1151,88 @@ describe('SubscribeResponse', () => {
     // Verify fields.
     expect(subscriberesponseDeserialized.getSubscribe()).to.deep.equal(
         subscriberesponse.getSubscribe());
+  });
+});
+
+describe('SubscriptionLinkingCompleteResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !SubscriptionLinkingCompleteResponse  */ subscriptionlinkingcompleteresponse = new SubscriptionLinkingCompleteResponse();
+    subscriptionlinkingcompleteresponse.setPublisherProvidedId('');
+
+    let subscriptionlinkingcompleteresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    subscriptionlinkingcompleteresponseDeserialized = deserialize(
+        subscriptionlinkingcompleteresponse.toArray(undefined));
+    expect(subscriptionlinkingcompleteresponseDeserialized.toArray(undefined)).to.deep.equal(
+        subscriptionlinkingcompleteresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(subscriptionlinkingcompleteresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkingcompleteresponse.getPublisherProvidedId());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    subscriptionlinkingcompleteresponseDeserialized = deserialize(
+        subscriptionlinkingcompleteresponse.toArray(true));
+    expect(subscriptionlinkingcompleteresponseDeserialized.toArray(true)).to.deep.equal(
+        subscriptionlinkingcompleteresponse.toArray(true));
+
+    // Verify fields.
+    expect(subscriptionlinkingcompleteresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkingcompleteresponse.getPublisherProvidedId());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    subscriptionlinkingcompleteresponseDeserialized = new SubscriptionLinkingCompleteResponse(subscriptionlinkingcompleteresponse.toArray(false), false);
+    expect(subscriptionlinkingcompleteresponseDeserialized.toArray(false)).to.deep.equal(
+        subscriptionlinkingcompleteresponse.toArray(false));
+
+    // Verify fields.
+    expect(subscriptionlinkingcompleteresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkingcompleteresponse.getPublisherProvidedId());
+  });
+});
+
+describe('SubscriptionLinkingResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !SubscriptionLinkingResponse  */ subscriptionlinkingresponse = new SubscriptionLinkingResponse();
+    subscriptionlinkingresponse.setPublisherProvidedId('');
+
+    let subscriptionlinkingresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    subscriptionlinkingresponseDeserialized = deserialize(
+        subscriptionlinkingresponse.toArray(undefined));
+    expect(subscriptionlinkingresponseDeserialized.toArray(undefined)).to.deep.equal(
+        subscriptionlinkingresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(subscriptionlinkingresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkingresponse.getPublisherProvidedId());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    subscriptionlinkingresponseDeserialized = deserialize(
+        subscriptionlinkingresponse.toArray(true));
+    expect(subscriptionlinkingresponseDeserialized.toArray(true)).to.deep.equal(
+        subscriptionlinkingresponse.toArray(true));
+
+    // Verify fields.
+    expect(subscriptionlinkingresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkingresponse.getPublisherProvidedId());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    subscriptionlinkingresponseDeserialized = new SubscriptionLinkingResponse(subscriptionlinkingresponse.toArray(false), false);
+    expect(subscriptionlinkingresponseDeserialized.toArray(false)).to.deep.equal(
+        subscriptionlinkingresponse.toArray(false));
+
+    // Verify fields.
+    expect(subscriptionlinkingresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkingresponse.getPublisherProvidedId());
   });
 });
 
