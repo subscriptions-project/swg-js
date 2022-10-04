@@ -22,7 +22,7 @@
 /**
  * @interface
  */
-class Message {
+ class Message {
   /**
    * @return {string}
    */
@@ -2020,6 +2020,112 @@ class SubscribeResponse {
 /**
  * @implements {Message}
  */
+class SubscriptionLinkingCompleteResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.publisherProvidedId_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getPublisherProvidedId() {
+    return this.publisherProvidedId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setPublisherProvidedId(value) {
+    this.publisherProvidedId_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.publisherProvidedId_, // field 1 - publisher_provided_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SubscriptionLinkingCompleteResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SubscriptionLinkingResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.publisherProvidedId_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getPublisherProvidedId() {
+    return this.publisherProvidedId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setPublisherProvidedId(value) {
+    this.publisherProvidedId_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.publisherProvidedId_, // field 1 - publisher_provided_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SubscriptionLinkingResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class Timestamp {
   /**
    * @param {!Array<*>=} data
@@ -2214,6 +2320,8 @@ const PROTO_MAP = {
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
+  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
+  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
   'Timestamp': Timestamp,
   'ToastCloseRequest': ToastCloseRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
@@ -2273,6 +2381,8 @@ export {
   SkuSelectedResponse,
   SmartBoxMessage,
   SubscribeResponse,
+  SubscriptionLinkingCompleteResponse,
+  SubscriptionLinkingResponse,
   Timestamp,
   ToastCloseRequest,
   ViewSubscriptionsResponse,
