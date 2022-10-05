@@ -23,11 +23,13 @@ import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isExperimentOn} from './experiments';
+import {msg} from '../utils/i18n';
 import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
@@ -551,6 +553,21 @@ export class ConfiguredBasicRuntime {
           lastAudienceActionFlow.showNoEntitlementFoundToast();
           return;
         }
+
+        // Fallback in case there is no active flow. This occurs when the entitlment check
+        // runs as a redirect.
+        const language = this.clientConfigManager().getLanguage();
+        const customText = msg(
+          SWG_I18N_STRINGS['NO_MEMBERSHIP_FOUND_LANG_MAP'],
+          language
+        );
+        new Toast(
+          this,
+          feUrl('/toastiframe', {
+            flavor: 'custom',
+            customText,
+          })
+        ).open();
       }
     });
   }
