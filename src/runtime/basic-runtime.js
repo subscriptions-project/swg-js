@@ -506,7 +506,7 @@ export class ConfiguredBasicRuntime {
       port,
       feOrigin(),
       /* requireOriginVerified */ true,
-      /* requireSecureChannel */ true
+      /* requireSecureChannel */ false
     );
     return promise.then((response) => {
       const jwt = response['jwt'];
