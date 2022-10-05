@@ -454,7 +454,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
         port,
         sandbox.match.any,
         true,
-        true
+        false
       );
       expect(data['jwt']).to.equal('abc');
       expect(data['usertoken']).to.equal('xyz');
