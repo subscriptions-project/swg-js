@@ -1137,6 +1137,12 @@ class EntitlementsRequest {
 
     /** @private {?boolean} */
     this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
+
+    /** @private {?Timestamp} */
+    this.subscriptionTimestamp_ =
+      data[6 + base] == null || data[6 + base] == undefined
+        ? null
+        : new Timestamp(data[6 + base], includesLabel);
   }
 
   /**
@@ -1224,6 +1230,20 @@ class EntitlementsRequest {
   }
 
   /**
+   * @return {?Timestamp}
+   */
+  getSubscriptionTimestamp() {
+    return this.subscriptionTimestamp_;
+  }
+
+  /**
+   * @param {!Timestamp} value
+   */
+  setSubscriptionTimestamp(value) {
+    this.subscriptionTimestamp_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1236,6 +1256,7 @@ class EntitlementsRequest {
         this.entitlementResult_, // field 4 - entitlement_result
         this.token_, // field 5 - token
         this.isUserRegistered_, // field 6 - is_user_registered
+        this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 7 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1354,6 +1375,12 @@ class EventParams {
 
     /** @private {?string} */
     this.subscriptionFlow_ = data[6 + base] == null ? null : data[6 + base];
+
+    /** @private {?Timestamp} */
+    this.subscriptionTimestamp_ =
+      data[7 + base] == null || data[7 + base] == undefined
+        ? null
+        : new Timestamp(data[7 + base], includesLabel);
   }
 
   /**
@@ -1455,6 +1482,20 @@ class EventParams {
   }
 
   /**
+   * @return {?Timestamp}
+   */
+  getSubscriptionTimestamp() {
+    return this.subscriptionTimestamp_;
+  }
+
+  /**
+   * @param {!Timestamp} value
+   */
+  setSubscriptionTimestamp(value) {
+    this.subscriptionTimestamp_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1468,6 +1509,7 @@ class EventParams {
         this.oldTransactionId_, // field 5 - old_transaction_id
         this.isUserRegistered_, // field 6 - is_user_registered
         this.subscriptionFlow_, // field 7 - subscription_flow
+        this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 8 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2020,112 +2062,6 @@ class SubscribeResponse {
 /**
  * @implements {Message}
  */
-class SubscriptionLinkingCompleteResponse {
-  /**
-   * @param {!Array<*>=} data
-   * @param {boolean=} includesLabel
-   */
-  constructor(data = [], includesLabel = true) {
-    const base = includesLabel ? 1 : 0;
-
-    /** @private {?string} */
-    this.publisherProvidedId_ = data[base] == null ? null : data[base];
-  }
-
-  /**
-   * @return {?string}
-   */
-  getPublisherProvidedId() {
-    return this.publisherProvidedId_;
-  }
-
-  /**
-   * @param {string} value
-   */
-  setPublisherProvidedId(value) {
-    this.publisherProvidedId_ = value;
-  }
-
-  /**
-   * @param {boolean=} includeLabel
-   * @return {!Array<?>}
-   * @override
-   */
-  toArray(includeLabel = true) {
-    const arr = [
-        this.publisherProvidedId_, // field 1 - publisher_provided_id
-    ];
-    if (includeLabel) {
-      arr.unshift(this.label());
-    }
-    return arr;
-  }
-
-  /**
-   * @return {string}
-   * @override
-   */
-  label() {
-    return 'SubscriptionLinkingCompleteResponse';
-  }
-}
-
-/**
- * @implements {Message}
- */
-class SubscriptionLinkingResponse {
-  /**
-   * @param {!Array<*>=} data
-   * @param {boolean=} includesLabel
-   */
-  constructor(data = [], includesLabel = true) {
-    const base = includesLabel ? 1 : 0;
-
-    /** @private {?string} */
-    this.publisherProvidedId_ = data[base] == null ? null : data[base];
-  }
-
-  /**
-   * @return {?string}
-   */
-  getPublisherProvidedId() {
-    return this.publisherProvidedId_;
-  }
-
-  /**
-   * @param {string} value
-   */
-  setPublisherProvidedId(value) {
-    this.publisherProvidedId_ = value;
-  }
-
-  /**
-   * @param {boolean=} includeLabel
-   * @return {!Array<?>}
-   * @override
-   */
-  toArray(includeLabel = true) {
-    const arr = [
-        this.publisherProvidedId_, // field 1 - publisher_provided_id
-    ];
-    if (includeLabel) {
-      arr.unshift(this.label());
-    }
-    return arr;
-  }
-
-  /**
-   * @return {string}
-   * @override
-   */
-  label() {
-    return 'SubscriptionLinkingResponse';
-  }
-}
-
-/**
- * @implements {Message}
- */
 class Timestamp {
   /**
    * @param {!Array<*>=} data
@@ -2320,8 +2256,6 @@ const PROTO_MAP = {
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
-  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
-  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
   'Timestamp': Timestamp,
   'ToastCloseRequest': ToastCloseRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
@@ -2381,8 +2315,6 @@ export {
   SkuSelectedResponse,
   SmartBoxMessage,
   SubscribeResponse,
-  SubscriptionLinkingCompleteResponse,
-  SubscriptionLinkingResponse,
   Timestamp,
   ToastCloseRequest,
   ViewSubscriptionsResponse,

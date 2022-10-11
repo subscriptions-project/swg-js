@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {convertPotentialTimestampToSeconds, toTimestamp} from './date-utils';
+import {
+  convertPotentialTimestampToMilliseconds,
+  convertPotentialTimestampToSeconds,
+  toTimestamp,
+} from './date-utils';
 
 /**
  *
@@ -57,9 +61,32 @@ describe('convertPotentialTimestampToSeconds', () => {
   });
   it('converts microseconds to seconds', () => {
     const nowInMicroseconds = Date.now() * 1000;
-    const nowInSeconds = Math.floor(nowInMicroseconds / 100000);
+    const nowInSeconds = Math.floor(nowInMicroseconds / 1000000);
     expect(convertPotentialTimestampToSeconds(nowInMicroseconds)).to.equal(
       nowInSeconds
+    );
+  });
+});
+
+describe('convertPotentialTimestampToMilliseconds', () => {
+  it('converts seconds to milliseconds ', () => {
+    const nowInSeconds = Math.floor(Date.now() * 1000);
+    const nowInMilliseconds = Date.now();
+    expect(convertPotentialTimestampToMilliseconds(nowInSeconds)).to.equal(
+      nowInMilliseconds
+    );
+  });
+  it('returns seconds if seconds are provided', () => {
+    const nowInMilliseconds = Date.now();
+    expect(convertPotentialTimestampToMilliseconds(nowInMilliseconds)).to.equal(
+      nowInMilliseconds
+    );
+  });
+  it('converts microseconds to milliseconds', () => {
+    const nowInMicroseconds = Date.now() * 1000;
+    const nowInMilliseconds = Math.floor(nowInMicroseconds / 1000);
+    expect(convertPotentialTimestampToMilliseconds(nowInMicroseconds)).to.equal(
+      nowInMilliseconds
     );
   });
 });

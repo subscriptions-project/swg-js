@@ -48,11 +48,14 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {defaultConfig} from '../api/subscriptions';
 import {serializeProtoMessageForUrl} from '../utils/url';
+import {toTimestamp} from '../utils/date-utils';
 
 const ENTITLEMENTS_URL =
   '$frontend$/swg/_/api/v1/publication/pub1/entitlements';
 
 const MOCK_TIME_ARRAY = [1600389016, 959000000];
+
+const SUBSCRIPTION_TIMESTAMP = toTimestamp(1665445119);
 
 describes.realWin('EntitlementsManager', {}, (env) => {
   let win;
@@ -196,6 +199,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         source: 'google',
         products: ['pub1:label1'],
         subscriptionToken: 's1',
+        subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
       },
       options,
       isReadyToPay,
@@ -213,6 +217,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
       entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
       isUserRegistered: true,
+      subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
     });
     return resp;
   }
@@ -248,9 +253,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     return resp;
   }
 
-  function getEventParams(isUserRegistered) {
+  function getEventParams(isUserRegistered, subscriptionTimestamp) {
     const params = new EventParams();
     params.setIsUserRegistered(isUserRegistered);
+    params.setSubscriptionTimestamp(subscriptionTimestamp);
     return params;
   }
 
@@ -295,6 +301,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     gaaToken = 'token',
     mockTimeArray = MOCK_TIME_ARRAY,
     userToken = null,
+    subscriptionTimestamp = null,
   } = {}) {
     expectGetSwgUserTokenToBeCalled(userToken);
     const encodedParams = base64UrlEncodeFromBytes(
@@ -309,20 +316,19 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         (userToken ? `sut=${userToken}&` : '') +
         (devModeParams ? `devEnt=${devModeParams}&` : '') +
         `encodedParams=${encodedParams}`;
-    expectPost(
-      url,
-      new EntitlementsRequest(
-        [
-          new EntitlementJwt([jwtString, jwtSource], false).toArray(false),
-          mockTimeArray,
-          entitlementSource,
-          entitlementResult,
-          gaaToken,
-          isUserRegistered,
-        ],
-        false
-      )
+    const request = new EntitlementsRequest(
+      [
+        new EntitlementJwt([jwtString, jwtSource], false).toArray(false),
+        mockTimeArray,
+        entitlementSource,
+        entitlementResult,
+        gaaToken,
+        isUserRegistered,
+      ],
+      false
     );
+    request.setSubscriptionTimestamp(subscriptionTimestamp);
+    expectPost(url, request);
   }
 
   // Clear locally stored SwgUserToken.
@@ -716,6 +722,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           entitlements: {
             products: ['pub1:label1'],
             subscriptionToken: 'token1',
+            subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
           },
         });
       const testSubscriptionTokenContents = {
@@ -749,7 +756,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectLog(
         AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
         false,
-        getEventParams(true)
+        getEventParams(true, SUBSCRIPTION_TIMESTAMP)
       );
       expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
@@ -762,6 +769,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           products: ['pub1:label1'],
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
+          subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
         },
       ]);
 
@@ -1102,6 +1110,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           products: ['pub1:label1'],
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
+          subscriptionTimestamp: undefined,
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
@@ -1673,6 +1682,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           products: ['pub1:label1'],
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
+          subscriptionTimestamp: undefined,
         },
       ]);
       expect(ents.raw).to.equal('SIGNED_DATA');
@@ -1796,6 +1806,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: result,
         isUserRegistered: params.getIsUserRegistered(),
         pingbackUrl: ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`,
+        subscriptionTimestamp: params.getSubscriptionTimestamp(),
       });
       eventManager.logEvent({
         eventType: event,
@@ -1834,7 +1845,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE,
-          getEventParams(true)
+          getEventParams(true, SUBSCRIPTION_TIMESTAMP)
         ));
 
       it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
@@ -1872,6 +1883,22 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE,
           getEventParams(false)
+        ));
+
+      it('should pingback with subscriptionTimestamp is null on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getEventParams(true, null)
+        ));
+
+      it('should pingback with subscriptionTimestamp is not null on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getEventParams(true, SUBSCRIPTION_TIMESTAMP)
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
@@ -1916,7 +1943,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
           EventOriginator.SHOWCASE_CLIENT,
           EntitlementSource.PUBLISHER_ENTITLEMENT,
-          getEventParams(true)
+          getEventParams(true, SUBSCRIPTION_TIMESTAMP)
         ));
 
       it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
@@ -1931,6 +1958,22 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SHOWCASE_CLIENT,
           EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback with subscriptionTimestamp is null on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getEventParams(true, null)
+        ));
+
+      it('should pingback with subscriptionTimestamp is not null on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getEventParams(true, SUBSCRIPTION_TIMESTAMP)
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
