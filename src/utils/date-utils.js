@@ -35,7 +35,7 @@ export function convertPotentialTimestampToSeconds(timestamp) {
   let timestampInSeconds;
   if (timestamp >= 1e14 || timestamp <= -1e14) {
     // Microseconds
-    timestampInSeconds = Math.floor(timestamp / 100000);
+    timestampInSeconds = Math.floor(timestamp / 1000000);
   } else if (timestamp >= 1e11 || timestamp <= -3e10) {
     // Milliseconds
     timestampInSeconds = Math.floor(timestamp / 1000);
@@ -44,4 +44,23 @@ export function convertPotentialTimestampToSeconds(timestamp) {
     timestampInSeconds = timestamp;
   }
   return timestampInSeconds;
+}
+
+/**
+ * @param {!number} timestamp represented as seconds, milliseconds or microseconds
+ * @return {!number}
+ */
+export function convertPotentialTimestampToMilliseconds(timestamp) {
+  let timestampInMilliseconds;
+  if (timestamp >= 1e14 || timestamp <= -1e14) {
+    // Microseconds
+    timestampInMilliseconds = Math.floor(timestamp / 1000);
+  } else if (timestamp >= 1e11 || timestamp <= -3e10) {
+    // Milliseconds
+    timestampInMilliseconds = timestamp;
+  } else {
+    // Seconds
+    timestampInMilliseconds = Math.floor(timestamp * 1000);
+  }
+  return timestampInMilliseconds;
 }

@@ -294,8 +294,15 @@ export class Entitlement {
    * @param {!Array<string>} products
    * @param {string} subscriptionToken
    * @param {JsonObject|null|undefined} subscriptionTokenContents
+   * @param {Timestamp} subscriptionTimestamp
    */
-  constructor(source, products, subscriptionToken, subscriptionTokenContents) {
+  constructor(
+    source,
+    products,
+    subscriptionToken,
+    subscriptionTokenContents,
+    subscriptionTimestamp
+  ) {
     /** @const {string} */
     this.source = source;
     /** @const {!Array<string>} */
@@ -304,6 +311,8 @@ export class Entitlement {
     this.subscriptionToken = subscriptionToken;
     /** @const {JsonObject|null|undefined} */
     this.subscriptionTokenContents = subscriptionTokenContents;
+    /** @const {Timestamp} */
+    this.subscriptionTimestamp = subscriptionTimestamp;
   }
 
   /**
@@ -314,7 +323,8 @@ export class Entitlement {
       this.source,
       this.products.slice(0),
       this.subscriptionToken,
-      this.subscriptionTokenContents
+      this.subscriptionTokenContents,
+      this.subscriptionTimestamp
     );
   }
 
@@ -373,6 +383,7 @@ export class Entitlement {
     const products = json['products'] || [];
     const subscriptionToken = json['subscriptionToken'];
     let subscriptionTokenContents;
+    const subscriptionTimestamp = json['subscriptionTimestamp'];
     try {
       subscriptionTokenContents = subscriptionToken
         ? jwtHelper.decode(subscriptionToken)
@@ -384,7 +395,8 @@ export class Entitlement {
       source,
       products,
       subscriptionToken,
-      subscriptionTokenContents
+      subscriptionTokenContents,
+      subscriptionTimestamp
     );
   }
 

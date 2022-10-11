@@ -1024,6 +1024,7 @@ describes.realWin('Runtime', {}, (env) => {
       const entitlement = {
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
         isUserRegistered: true,
+        subscriptionTimestamp: 1602763094,
       };
       configuredRuntimeMock
         .expects('setShowcaseEntitlement')
@@ -2224,6 +2225,7 @@ subscribe() method'
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(2);
@@ -2233,6 +2235,7 @@ subscribe() method'
         runtime.setShowcaseEntitlement({
           entitlement: undefined,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(0);
@@ -2245,6 +2248,7 @@ subscribe() method'
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(0);
@@ -2261,6 +2265,7 @@ subscribe() method'
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(1);
@@ -2273,6 +2278,7 @@ subscribe() method'
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(0);

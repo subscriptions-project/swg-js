@@ -3107,6 +3107,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
         isUserRegistered: true,
+        subscriptionTimestamp: 1602763094,
       });
 
       expectAnalyticsEvents([
@@ -3152,6 +3153,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
 
       expectAnalyticsEvents([
@@ -3201,6 +3203,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
 
       expectAnalyticsEvents([
@@ -3291,6 +3294,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
     });
 
@@ -4000,6 +4004,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
 
       expect(showPaywall).to.be.called;
@@ -4036,6 +4041,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
 
       expect(showPaywall).to.be.called;

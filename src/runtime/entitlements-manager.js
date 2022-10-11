@@ -350,12 +350,15 @@ export class EntitlementsManager {
     const token = this.getGaaToken_();
     const isUserRegistered =
       event?.additionalParameters?.getIsUserRegistered?.();
+    const subscriptionTimestamp =
+      event?.additionalParameters?.getSubscriptionTimestamp?.();
     this.postEntitlementsRequest_(
       new EntitlementJwt(),
       result,
       source,
       token,
-      isUserRegistered
+      isUserRegistered,
+      subscriptionTimestamp
     );
   }
 
@@ -366,7 +369,8 @@ export class EntitlementsManager {
     entitlementResult,
     entitlementSource,
     optionalToken = '',
-    optionalIsUserRegistered = null
+    optionalIsUserRegistered = null,
+    optionalSubscriptionTimestamp = null
   ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
@@ -376,6 +380,9 @@ export class EntitlementsManager {
     message.setToken(optionalToken);
     if (typeof optionalIsUserRegistered === 'boolean') {
       message.setIsUserRegistered(optionalIsUserRegistered);
+    }
+    if (optionalSubscriptionTimestamp) {
+      message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
     }
 
     let url =
@@ -734,6 +741,7 @@ export class EntitlementsManager {
 
     const params = new EventParams();
     params.setIsUserRegistered(true);
+    params.setSubscriptionTimestamp(entitlement.subscriptionTimestamp);
 
     // Log unlock event.
     const eventType =
