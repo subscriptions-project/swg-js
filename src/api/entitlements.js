@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Timestamp} from '../proto/api_messages';
 import {debugLog} from '../utils/log';
 import {findInArray} from '../utils/object';
 import {getPropertyFromJsonString} from '../utils/json';
@@ -294,7 +295,7 @@ export class Entitlement {
    * @param {!Array<string>} products
    * @param {string} subscriptionToken
    * @param {JsonObject|null|undefined} subscriptionTokenContents
-   * @param {Timestamp} subscriptionTimestamp
+   * @param {!Timestamp} subscriptionTimestamp
    */
   constructor(
     source,
@@ -311,7 +312,7 @@ export class Entitlement {
     this.subscriptionToken = subscriptionToken;
     /** @const {JsonObject|null|undefined} */
     this.subscriptionTokenContents = subscriptionTokenContents;
-    /** @const {Timestamp} */
+    /** @const {!Timestamp} */
     this.subscriptionTimestamp = subscriptionTimestamp;
   }
 
@@ -383,13 +384,22 @@ export class Entitlement {
     const products = json['products'] || [];
     const subscriptionToken = json['subscriptionToken'];
     let subscriptionTokenContents;
-    const subscriptionTimestamp = json['subscriptionTimestamp'];
+    const timestampJson = json['subscriptionTimestamp'];
+    let subscriptionTimestamp;
     try {
       subscriptionTokenContents = subscriptionToken
         ? jwtHelper.decode(subscriptionToken)
         : null;
     } catch (e) {
       subscriptionTokenContents = null;
+    }
+    try {
+      subscriptionTimestamp = new Timestamp(
+        [timestampJson.seconds_, timestampJson.nanos_],
+        false
+      );
+    } catch (e) {
+      subscriptionTimestamp = new Timestamp();
     }
     return new Entitlement(
       source,

@@ -22,6 +22,7 @@ import {
   EntitlementsRequest,
   EventOriginator,
   EventParams,
+  Timestamp,
 } from '../proto/api_messages';
 import {Constants} from '../utils/constants';
 import {
@@ -370,7 +371,7 @@ export class EntitlementsManager {
     entitlementSource,
     optionalToken = '',
     optionalIsUserRegistered = null,
-    optionalSubscriptionTimestamp = null
+    optionalSubscriptionTimestamp = new Timestamp()
   ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
@@ -378,11 +379,9 @@ export class EntitlementsManager {
     message.setEntitlementResult(entitlementResult);
     message.setEntitlementSource(entitlementSource);
     message.setToken(optionalToken);
+    message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
     if (typeof optionalIsUserRegistered === 'boolean') {
       message.setIsUserRegistered(optionalIsUserRegistered);
-    }
-    if (optionalSubscriptionTimestamp) {
-      message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
     }
 
     let url =
@@ -741,7 +740,9 @@ export class EntitlementsManager {
 
     const params = new EventParams();
     params.setIsUserRegistered(true);
-    params.setSubscriptionTimestamp(entitlement.subscriptionTimestamp);
+    if (entitlement.subscriptionTimestamp) {
+      params.setSubscriptionTimestamp(entitlement.subscriptionTimestamp);
+    }
 
     // Log unlock event.
     const eventType =
