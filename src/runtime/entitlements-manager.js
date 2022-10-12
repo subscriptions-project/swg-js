@@ -383,6 +383,9 @@ export class EntitlementsManager {
     if (typeof optionalIsUserRegistered === 'boolean') {
       message.setIsUserRegistered(optionalIsUserRegistered);
     }
+    if (optionalSubscriptionTimestamp) {
+      message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
+    }
 
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
