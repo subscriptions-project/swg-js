@@ -392,7 +392,7 @@ function startFlowAuto() {
         document.body.appendChild(button3);
 
         const button4 = document.createElement('button');
-        button4.setAttribute('lang', 'jp');
+        button4.setAttribute('lang', 'ja');
         document.body.appendChild(button4);
         subscriptions.attachButton(button4, {theme: 'dark'}, () => {
           log('SwG button4 clicked!');

@@ -22,7 +22,7 @@
 /**
  * @interface
  */
-class Message {
+ class Message {
   /**
    * @return {string}
    */
@@ -78,6 +78,9 @@ const AnalyticsEvent = {
   IMPRESSION_TWG_PUBLICATION_NOT_SET_UP: 33,
   IMPRESSION_REGWALL_OPT_IN: 34,
   IMPRESSION_NEWSLETTER_OPT_IN: 35,
+  IMPRESSION_SUBSCRIPTION_OFFERS_ERROR: 36,
+  IMPRESSION_CONTRIBUTION_OFFERS_ERROR: 37,
+  IMPRESSION_TWG_SHORTENED_STICKER_FLOW: 38,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -142,6 +145,9 @@ const AnalyticsEvent = {
   ACTION_TWG_CHROME_APP_MENU_ENTRY_POINT_CLICK: 1061,
   ACTION_TWG_DISCOVER_FEED_MENU_ENTRY_POINT_CLICK: 1062,
   ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK: 1063,
+  ACTION_SUBSCRIPTION_OFFERS_RETRY: 1064,
+  ACTION_CONTRIBUTION_OFFERS_RETRY: 1065,
+  ACTION_TWG_SHORTENED_STICKER_FLOW_STICKER_SELECTION_CLICK: 1066,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_REGWALL_OPT_IN_FAILED: 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
@@ -1757,6 +1763,9 @@ class SkuSelectedResponse {
 
     /** @private {?boolean} */
     this.anonymous_ = data[6 + base] == null ? null : data[6 + base];
+
+    /** @private {?boolean} */
+    this.sharingPolicyEnabled_ = data[7 + base] == null ? null : data[7 + base];
   }
 
   /**
@@ -1858,6 +1867,20 @@ class SkuSelectedResponse {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getSharingPolicyEnabled() {
+    return this.sharingPolicyEnabled_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSharingPolicyEnabled(value) {
+    this.sharingPolicyEnabled_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1871,6 +1894,7 @@ class SkuSelectedResponse {
         this.oldPlayOffer_, // field 5 - old_play_offer
         this.customMessage_, // field 6 - custom_message
         this.anonymous_, // field 7 - anonymous
+        this.sharingPolicyEnabled_, // field 8 - sharing_policy_enabled
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1990,6 +2014,112 @@ class SubscribeResponse {
    */
   label() {
     return 'SubscribeResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SubscriptionLinkingCompleteResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.publisherProvidedId_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getPublisherProvidedId() {
+    return this.publisherProvidedId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setPublisherProvidedId(value) {
+    this.publisherProvidedId_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.publisherProvidedId_, // field 1 - publisher_provided_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SubscriptionLinkingCompleteResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SubscriptionLinkingResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.publisherProvidedId_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getPublisherProvidedId() {
+    return this.publisherProvidedId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setPublisherProvidedId(value) {
+    this.publisherProvidedId_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.publisherProvidedId_, // field 1 - publisher_provided_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SubscriptionLinkingResponse';
   }
 }
 
@@ -2190,6 +2320,8 @@ const PROTO_MAP = {
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
+  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
+  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
   'Timestamp': Timestamp,
   'ToastCloseRequest': ToastCloseRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
@@ -2249,6 +2381,8 @@ export {
   SkuSelectedResponse,
   SmartBoxMessage,
   SubscribeResponse,
+  SubscriptionLinkingCompleteResponse,
+  SubscriptionLinkingResponse,
   Timestamp,
   ToastCloseRequest,
   ViewSubscriptionsResponse,

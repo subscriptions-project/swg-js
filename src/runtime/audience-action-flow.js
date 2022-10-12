@@ -51,6 +51,7 @@ export let AudienceActionParams;
 const actionToIframeMapping = {
   'TYPE_REGISTRATION_WALL': '/regwalliframe',
   'TYPE_NEWSLETTER_SIGNUP': '/newsletteriframe',
+  'TYPE_REWARDED_SURVEY': '/surveyiframe',
 };
 
 const autopromptTypeToProductTypeMapping = {
