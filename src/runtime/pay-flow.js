@@ -433,6 +433,10 @@ export class PayCompleteFlow {
       true,
       getEventParams(this.sku_ || '')
     );
+    const now = Date.now().toString();
+    this.deps_
+      .storage()
+      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
     this.deps_.entitlementsManager().unblockNextNotification();
     return Promise.all([
       this.activityIframeViewPromise_,

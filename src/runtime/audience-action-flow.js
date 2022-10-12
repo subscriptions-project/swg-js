@@ -146,7 +146,8 @@ export class AudienceActionFlow {
    * On a successful response from the dialog, we should:
    * 1) Store the updated user token
    * 2) Clear existing entitlements from the page
-   * 3) Re-fetch entitlements which may potentially provide access to the page
+   * 3) Update READ_TIME in local storage to indicate that entitlements may have changed recently
+   * 4) Re-fetch entitlements which may potentially provide access to the page
    * @param {CompleteAudienceActionResponse} response
    * @private
    */
@@ -164,6 +165,10 @@ export class AudienceActionFlow {
     } else {
       this.showFailedOptedInToast_();
     }
+    const now = Date.now().toString();
+    this.deps_
+      .storage()
+      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
   }
 

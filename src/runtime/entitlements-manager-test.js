@@ -352,6 +352,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .withExactArgs('isreadytopay')
         .returns(Promise.resolve(null))
         .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(null))
+        .atLeast(0);
     });
 
     it('should fetch empty response', async () => {
@@ -1765,6 +1770,96 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         publisherProvidedId: 'publisherProvidedId',
       });
     });
+
+    it('should send interaction_age with readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = '1615416440000';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?interaction_age=2`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
+
+      await manager.getEntitlements();
+    });
+
+    it('should not send interaction_age with future readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = '1615416444000';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
+
+      await manager.getEntitlements();
+    });
+
+    it('should not send interaction_age with unparseable readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = 'unparseable number';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
+
+      await manager.getEntitlements();
+    });
   });
 
   describe('event listening', () => {
@@ -1998,6 +2093,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('set')
         .withArgs('ents')
         .returns(Promise.resolve())
+        .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(null))
         .atLeast(0);
     });
 
@@ -2349,6 +2449,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('set')
         .withArgs('toast')
+        .returns(Promise.resolve(null))
+        .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
         .returns(Promise.resolve(null))
         .atLeast(0);
     });
