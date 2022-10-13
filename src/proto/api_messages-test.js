@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingResponse, SurveyDataTransferResponse, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -1233,6 +1233,47 @@ describe('SubscriptionLinkingResponse', () => {
     // Verify fields.
     expect(subscriptionlinkingresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
         subscriptionlinkingresponse.getPublisherProvidedId());
+  });
+});
+
+describe('SurveyDataTransferResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !SurveyDataTransferResponse  */ surveydatatransferresponse = new SurveyDataTransferResponse();
+    surveydatatransferresponse.setSuccess(false);
+
+    let surveydatatransferresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    surveydatatransferresponseDeserialized = deserialize(
+        surveydatatransferresponse.toArray(undefined));
+    expect(surveydatatransferresponseDeserialized.toArray(undefined)).to.deep.equal(
+        surveydatatransferresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(surveydatatransferresponseDeserialized.getSuccess()).to.deep.equal(
+        surveydatatransferresponse.getSuccess());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    surveydatatransferresponseDeserialized = deserialize(
+        surveydatatransferresponse.toArray(true));
+    expect(surveydatatransferresponseDeserialized.toArray(true)).to.deep.equal(
+        surveydatatransferresponse.toArray(true));
+
+    // Verify fields.
+    expect(surveydatatransferresponseDeserialized.getSuccess()).to.deep.equal(
+        surveydatatransferresponse.getSuccess());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    surveydatatransferresponseDeserialized = new SurveyDataTransferResponse(surveydatatransferresponse.toArray(false), false);
+    expect(surveydatatransferresponseDeserialized.toArray(false)).to.deep.equal(
+        surveydatatransferresponse.toArray(false));
+
+    // Verify fields.
+    expect(surveydatatransferresponseDeserialized.getSuccess()).to.deep.equal(
+        surveydatatransferresponse.getSuccess());
   });
 });
 
