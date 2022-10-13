@@ -22,7 +22,6 @@ import {
   EntitlementsRequest,
   EventOriginator,
   EventParams,
-  Timestamp,
 } from '../proto/api_messages';
 import {Constants} from '../utils/constants';
 import {
@@ -371,7 +370,7 @@ export class EntitlementsManager {
     entitlementSource,
     optionalToken = '',
     optionalIsUserRegistered = null,
-    optionalSubscriptionTimestamp = new Timestamp()
+    optionalSubscriptionTimestamp = null
   ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);

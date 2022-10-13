@@ -24,7 +24,6 @@ import {
   EntitlementsRequest,
   EventOriginator,
   EventParams,
-  Timestamp,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
@@ -254,10 +253,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     return resp;
   }
 
-  function getEventParams(
-    isUserRegistered,
-    subscriptionTimestamp = new Timestamp()
-  ) {
+  function getEventParams(isUserRegistered, subscriptionTimestamp = null) {
     const params = new EventParams();
     params.setIsUserRegistered(isUserRegistered);
     params.setSubscriptionTimestamp(subscriptionTimestamp);
@@ -305,7 +301,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     gaaToken = 'token',
     mockTimeArray = MOCK_TIME_ARRAY,
     userToken = null,
-    subscriptionTimestamp = new Timestamp(),
+    subscriptionTimestamp = null,
   } = {}) {
     expectGetSwgUserTokenToBeCalled(userToken);
     const encodedParams = base64UrlEncodeFromBytes(
@@ -1114,7 +1110,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           products: ['pub1:label1'],
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
-          subscriptionTimestamp: new Timestamp(),
+          subscriptionTimestamp: null,
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
@@ -1686,7 +1682,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           products: ['pub1:label1'],
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
-          subscriptionTimestamp: new Timestamp(),
+          subscriptionTimestamp: null,
         },
       ]);
       expect(ents.raw).to.equal('SIGNED_DATA');

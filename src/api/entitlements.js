@@ -295,7 +295,7 @@ export class Entitlement {
    * @param {!Array<string>} products
    * @param {string} subscriptionToken
    * @param {JsonObject|null|undefined} subscriptionTokenContents
-   * @param {!Timestamp} subscriptionTimestamp
+   * @param {!Timestamp|null} subscriptionTimestamp
    */
   constructor(
     source,
@@ -312,7 +312,7 @@ export class Entitlement {
     this.subscriptionToken = subscriptionToken;
     /** @const {JsonObject|null|undefined} */
     this.subscriptionTokenContents = subscriptionTokenContents;
-    /** @const {!Timestamp} */
+    /** @const {!Timestamp|null} */
     this.subscriptionTimestamp = subscriptionTimestamp;
   }
 
@@ -399,7 +399,7 @@ export class Entitlement {
         false
       );
     } catch (e) {
-      subscriptionTimestamp = new Timestamp();
+      subscriptionTimestamp = null;
     }
     return new Entitlement(
       source,
