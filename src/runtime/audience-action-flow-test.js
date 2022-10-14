@@ -425,7 +425,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   });
 
   it(`handles a SurveyDataTransferRequest`, async () => {
-    // TODO(justinchou): test data transfer parameters and
+    // @TODO(justinchou): test data transfer parameters and
     // callback success/failure when callback is implemented
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
@@ -443,7 +443,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     );
     activityIframeViewMock
       .expects('execute')
-      .withExactArgs(new EntitlementsResponse())
+      .withExactArgs(successSurveyDataTransferResponse)
       .once();
 
     const surveyDataTransferRequest = new SurveyDataTransferRequest();

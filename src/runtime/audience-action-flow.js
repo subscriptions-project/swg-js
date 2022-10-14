@@ -261,7 +261,7 @@ export class AudienceActionFlow {
   }
 
   /**
-   * @param {handleSurveyDataTransferRequest} response
+   * @param {handleSurveyDataTransferRequest} request
    * @private
    */
   // eslint-disable-next-line no-unused-vars
