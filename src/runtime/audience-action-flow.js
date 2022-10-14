@@ -29,6 +29,8 @@ import {
   AlreadySubscribedResponse,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {Constants} from '../utils/constants';
@@ -126,6 +128,11 @@ export class AudienceActionFlow {
     this.activityIframeView_.on(
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      SurveyDataTransferRequest,
+      this.handleSurveyDataTransferRequest_.bind(this)
     );
 
     const {onCancel} = this.params_;
@@ -251,6 +258,20 @@ export class AudienceActionFlow {
     if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
+  }
+
+  /**
+   * @param {handleSurveyDataTransferRequest} response
+   * @private
+   */
+  // eslint-disable-next-line no-unused-vars
+  handleSurveyDataTransferRequest_(request) {
+    // @TODO(justinchou): execute callback with
+    // setOnInterventionComplete and Google Analytics
+    // and check for success
+    const surveyDataTransferResponse = new SurveyDataTransferResponse();
+    surveyDataTransferResponse.setSuccess(true);
+    this.activityIframeView_.execute(surveyDataTransferResponse);
   }
 
   /**

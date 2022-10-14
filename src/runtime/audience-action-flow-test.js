@@ -19,6 +19,8 @@ import {
   AlreadySubscribedResponse,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
@@ -418,6 +420,35 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .once();
 
     await audienceActionFlow.showNoEntitlementFoundToast();
+
+    activityIframeViewMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest`, async () => {
+    // TODO(justinchou): test data transfer parameters and
+    // callback success/failure when callback is implemented
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(new EntitlementsResponse())
+      .once();
+
+    const surveyDataTransferRequest = new SurveyDataTransferRequest();
+    const messageCallBack = messageMap[surveyDataTransferRequest.label()];
+    messageCallback(messageCallBack);
 
     activityIframeViewMock.verify();
   });

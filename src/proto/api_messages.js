@@ -2132,6 +2132,148 @@ class SubscriptionLinkingResponse {
 /**
  * @implements {Message}
  */
+class SurveyAnswer {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?number} */
+    this.answerId_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.answerText_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?string} */
+    this.answerCategory_ = data[2 + base] == null ? null : data[2 + base];
+  }
+
+  /**
+   * @return {?number}
+   */
+  getAnswerId() {
+    return this.answerId_;
+  }
+
+  /**
+   * @param {number} value
+   */
+  setAnswerId(value) {
+    this.answerId_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getAnswerText() {
+    return this.answerText_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setAnswerText(value) {
+    this.answerText_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getAnswerCategory() {
+    return this.answerCategory_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setAnswerCategory(value) {
+    this.answerCategory_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.answerId_, // field 1 - answer_id
+        this.answerText_, // field 2 - answer_text
+        this.answerCategory_, // field 3 - answer_category
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SurveyAnswer';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SurveyDataTransferRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {!Array<!SurveyQuestion>} */
+    this.surveyQuestions_ = data[base] || [];
+  }
+
+  /**
+   * @return {!Array<!SurveyQuestion>}
+   */
+  getSurveyQuestionsList() {
+    return this.surveyQuestions_;
+  }
+
+  /**
+   * @param {!Array<!SurveyQuestion>} value
+   */
+  setSurveyQuestionsList(value) {
+    this.surveyQuestions_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.surveyQuestions_ ? this.surveyQuestions_.map(item => item.toArray(includeLabel)) : [], // field 1 - survey_questions
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SurveyDataTransferRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
 class SurveyDataTransferResponse {
   /**
    * @param {!Array<*>=} data
@@ -2179,6 +2321,113 @@ class SurveyDataTransferResponse {
    */
   label() {
     return 'SurveyDataTransferResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SurveyQuestion {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?number} */
+    this.questionId_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.questionText_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?string} */
+    this.questionCategory_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {!Array<!SurveyAnswer>} */
+    this.surveyAnswers_ = data[3 + base] || [];
+  }
+
+  /**
+   * @return {?number}
+   */
+  getQuestionId() {
+    return this.questionId_;
+  }
+
+  /**
+   * @param {number} value
+   */
+  setQuestionId(value) {
+    this.questionId_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getQuestionText() {
+    return this.questionText_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setQuestionText(value) {
+    this.questionText_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getQuestionCategory() {
+    return this.questionCategory_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setQuestionCategory(value) {
+    this.questionCategory_ = value;
+  }
+
+  /**
+   * @return {!Array<!SurveyAnswer>}
+   */
+  getSurveyAnswersList() {
+    return this.surveyAnswers_;
+  }
+
+  /**
+   * @param {!Array<!SurveyAnswer>} value
+   */
+  setSurveyAnswersList(value) {
+    this.surveyAnswers_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.questionId_, // field 1 - question_id
+        this.questionText_, // field 2 - question_text
+        this.questionCategory_, // field 3 - question_category
+        this.surveyAnswers_ ? this.surveyAnswers_.map(item => item.toArray(includeLabel)) : [], // field 4 - survey_answers
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SurveyQuestion';
   }
 }
 
@@ -2381,7 +2630,10 @@ const PROTO_MAP = {
   'SubscribeResponse': SubscribeResponse,
   'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
   'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
+  'SurveyAnswer': SurveyAnswer,
+  'SurveyDataTransferRequest': SurveyDataTransferRequest,
   'SurveyDataTransferResponse': SurveyDataTransferResponse,
+  'SurveyQuestion': SurveyQuestion,
   'Timestamp': Timestamp,
   'ToastCloseRequest': ToastCloseRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
@@ -2443,7 +2695,10 @@ export {
   SubscribeResponse,
   SubscriptionLinkingCompleteResponse,
   SubscriptionLinkingResponse,
+  SurveyAnswer,
+  SurveyDataTransferRequest,
   SurveyDataTransferResponse,
+  SurveyQuestion,
   Timestamp,
   ToastCloseRequest,
   ViewSubscriptionsResponse,
