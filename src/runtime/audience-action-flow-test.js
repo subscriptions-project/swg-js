@@ -446,6 +446,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .withExactArgs(successSurveyDataTransferResponse)
       .once();
 
+    const surveyDataTransferRequest = new SurveyDataTransferRequest();
+    const messageCallBack = messageMap[surveyDataTransferRequest.label()];
+    messageCallback(messageCallBack);
+
     activityIframeViewMock.verify();
   });
 
