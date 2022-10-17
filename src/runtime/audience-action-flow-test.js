@@ -42,7 +42,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let storageMock;
   let pageConfig;
   let port;
-  let messageCallback;
   let messageMap;
   let onCancelSpy;
   let dialogManagerMock;
