@@ -125,14 +125,13 @@ export class AudienceActionFlow {
       this.handleCompleteAudienceActionResponse_(response)
     );
 
-    this.activityIframeView_.on(
-      AlreadySubscribedResponse,
-      this.handleLinkRequest_.bind(this)
+    this.activityIframeView_.on(SurveyDataTransferRequest, (request) =>
+      this.handleSurveyDataTransferRequest_(request)
     );
 
     this.activityIframeView_.on(
-      SurveyDataTransferRequest,
-      this.handleSurveyDataTransferRequest_.bind(this)
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
     );
 
     const {onCancel} = this.params_;

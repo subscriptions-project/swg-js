@@ -394,7 +394,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.start();
     const response = new AlreadySubscribedResponse();
     response.setSubscriberOrMember(true);
-    messageCallback = messageMap['AlreadySubscribedResponse'];
+    const messageCallback = messageMap['AlreadySubscribedResponse'];
     messageCallback(response);
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
@@ -447,8 +447,8 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .once();
 
     const surveyDataTransferRequest = new SurveyDataTransferRequest();
-    const messageCallBack = messageMap[surveyDataTransferRequest.label()];
-    messageCallback(messageCallBack);
+    const messageCallback = messageMap[surveyDataTransferRequest.label()];
+    messageCallback(surveyDataTransferRequest);
 
     activityIframeViewMock.verify();
   });
