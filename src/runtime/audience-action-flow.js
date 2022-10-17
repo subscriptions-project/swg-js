@@ -265,9 +265,8 @@ export class AudienceActionFlow {
    */
   // eslint-disable-next-line no-unused-vars
   handleSurveyDataTransferRequest_(request) {
-    // @TODO(justinchou): execute callback with
-    // setOnInterventionComplete and Google Analytics
-    // and check for success
+    // @TODO(justinchou): execute callback with setOnInterventionComplete
+    // and Google Analytics, then check for success
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     surveyDataTransferResponse.setSuccess(true);
     this.activityIframeView_.execute(surveyDataTransferResponse);
