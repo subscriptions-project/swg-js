@@ -281,8 +281,8 @@ export class AudienceActionFlow {
    * @private
    */
   logSurveyDataToGoogleAnalytics(request) {
-    const gtag = this.deps_.win().gtag;
-    if (typeof gtag !== 'function') {
+    const gtag = this.deps_.win().gtag || null;
+    if (gtag && typeof gtag !== 'function') {
       return false;
     }
     request.getSurveyQuestionsList().map((question) => {
