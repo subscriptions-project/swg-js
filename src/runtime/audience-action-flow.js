@@ -266,10 +266,36 @@ export class AudienceActionFlow {
   // eslint-disable-next-line no-unused-vars
   handleSurveyDataTransferRequest_(request) {
     // @TODO(justinchou): execute callback with setOnInterventionComplete
-    // and Google Analytics, then check for success
+    // then check for success
+    const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    surveyDataTransferResponse.setSuccess(true);
+    surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
     this.activityIframeView_.execute(surveyDataTransferResponse);
+  }
+
+  /**
+   * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
+   * for whether or not logging was successful.
+   * @param {SurveyDataTransferRequest} request
+   * @return {boolean}
+   * @private
+   */
+  logSurveyDataToGoogleAnalytics(request) {
+    const gtag = this.deps_.win().gtag;
+    if (typeof gtag !== 'function') {
+      return false;
+    }
+    request.getSurveyQuestionsList().map((question) => {
+      const answer = question.getSurveyAnswersList()[0];
+      gtag('event', 'survey submission', {
+        'event_category': 'survey',
+        'survey_question_category': question.getQuestionCategory(),
+        'survey_question': question.getQuestionText(),
+        'survey_answer_category': answer.getAnswerCategory() || null,
+        'survey_answer': answer.getAnswerText() || null,
+      });
+    });
+    return true;
   }
 
   /**

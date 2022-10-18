@@ -45,6 +45,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let messageMap;
   let onCancelSpy;
   let dialogManagerMock;
+  let winMock;
 
   beforeEach(() => {
     win = env.win;
@@ -55,6 +56,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    winMock = sandbox.mock(win);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -67,10 +69,19 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     sandbox.stub(runtime, 'win').returns({
       location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
       document: win.document,
+      gtag: () => {},
     });
     onCancelSpy = sandbox.spy();
     sandbox.useFakeTimers(CURRENT_TIME);
   });
+
+  function setGtagToNonfunction() {
+    sandbox.stub(runtime, 'win').returns(
+      Object.assign({}, runtime.win(), {
+        gtag: false,
+      })
+    );
+  }
 
   [
     {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
@@ -423,7 +434,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activityIframeViewMock.verify();
   });
 
-  it(`handles a SurveyDataTransferRequest`, async () => {
+  it(`handles a SurveyDataTransferRequest with successful logging`, async () => {
     // @TODO(justinchou): test data transfer parameters and
     // callback success/failure when callback is implemented
     const audienceActionFlow = new AudienceActionFlow(runtime, {
@@ -434,6 +445,8 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     await audienceActionFlow.start();
+
+    winMock.expects('gtag').withExactArgs('event', 'survey', {}).once;
 
     const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
     successSurveyDataTransferResponse.setSuccess(true);
@@ -449,6 +462,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     const messageCallback = messageMap[surveyDataTransferRequest.label()];
     messageCallback(surveyDataTransferRequest);
 
+    winMock.verify();
     activityIframeViewMock.verify();
   });
 
