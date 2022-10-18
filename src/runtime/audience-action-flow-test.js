@@ -19,6 +19,8 @@ import {
   AlreadySubscribedResponse,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
@@ -40,7 +42,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let storageMock;
   let pageConfig;
   let port;
-  let messageCallback;
   let messageMap;
   let onCancelSpy;
   let dialogManagerMock;
@@ -392,7 +393,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.start();
     const response = new AlreadySubscribedResponse();
     response.setSubscriberOrMember(true);
-    messageCallback = messageMap['AlreadySubscribedResponse'];
+    const messageCallback = messageMap['AlreadySubscribedResponse'];
     messageCallback(response);
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
@@ -418,6 +419,35 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .once();
 
     await audienceActionFlow.showNoEntitlementFoundToast();
+
+    activityIframeViewMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest`, async () => {
+    // @TODO(justinchou): test data transfer parameters and
+    // callback success/failure when callback is implemented
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const surveyDataTransferRequest = new SurveyDataTransferRequest();
+    const messageCallback = messageMap[surveyDataTransferRequest.label()];
+    messageCallback(surveyDataTransferRequest);
 
     activityIframeViewMock.verify();
   });
