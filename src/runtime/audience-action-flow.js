@@ -282,7 +282,7 @@ export class AudienceActionFlow {
    */
   logSurveyDataToGoogleAnalytics(request) {
     const gtag = this.deps_.win().gtag || null;
-    if (gtag && typeof gtag !== 'function') {
+    if (typeof gtag !== 'function') {
       return false;
     }
     request.getSurveyQuestionsList().map((question) => {
