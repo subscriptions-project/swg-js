@@ -373,6 +373,7 @@ export class AutoPromptManager {
     shouldShowAutoPrompt,
   }) {
     let potentialActions = article?.audienceActions?.actions || [];
+    potentialActions = potentialActions.filter(this.checkActionEligibility_);
 
     // No audience actions means use the default prompt.
     if (potentialActions.length === 0) {
@@ -681,5 +682,18 @@ export class AutoPromptManager {
       }
     }
     return dateArray.slice(sliceIndex);
+  }
+
+  /**
+   * Checks AudienceAction eligbility, used to filter potential actions.
+   * @param {string} action
+   * @return {boolean}
+   */
+  checkActionEligibility_(action) {
+    if (action == 'TYPE_REWARDED_SURVEY') {
+      const gtag = this.deps_.win().gtag || null;
+      return typeof gtag === 'function';
+    }
+    return true;
   }
 }
