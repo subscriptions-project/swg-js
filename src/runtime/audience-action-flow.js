@@ -291,8 +291,8 @@ export class AudienceActionFlow {
         'event_category': 'survey',
         'survey_question_category': question.getQuestionCategory(),
         'survey_question': question.getQuestionText(),
-        'survey_answer_category': answer.getAnswerCategory() || null,
-        'survey_answer': answer.getAnswerText() || null,
+        'survey_answer_category': answer.getAnswerCategory(),
+        'survey_answer': answer.getAnswerText(),
       });
     });
     return true;

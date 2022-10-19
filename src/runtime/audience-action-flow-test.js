@@ -36,26 +36,28 @@ const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const CURRENT_TIME = 1615416442000;
 const EXPECTED_TIME_STRING = '1615416442000';
 
-const TEST_CATEGORY_1 = 'Test Category 1';
+const TEST_QUESTION_CATEGORY_1 = 'Test Question Category 1';
 const TEST_QUESTION_TEXT_1 = 'Test Question 1';
-const TEST_CATEGORY_2 = 'Test Category 2';
+const TEST_QUESTION_CATEGORY_2 = 'Test Question Category 2';
 const TEST_QUESTION_TEXT_2 = 'Test Question 2';
+const TEST_ANSWER_CATEGORY_1 = 'Test Answer Category 1';
 const TEST_ANSWER_TEXT_1 = 'Test Answer 1';
+const TEST_ANSWER_CATEGORY_2 = 'Test Answer Category 2';
 const TEST_ANSWER_TEXT_2 = 'Test Answer 2';
 
 const TEST_SURVEYANSWER_1 = new SurveyAnswer();
-TEST_SURVEYANSWER_1.setAnswerCategory(TEST_CATEGORY_1);
+TEST_SURVEYANSWER_1.setAnswerCategory(TEST_ANSWER_CATEGORY_1);
 TEST_SURVEYANSWER_1.setAnswerText(TEST_ANSWER_TEXT_1);
 const TEST_SURVEYQUESTION_1 = new SurveyQuestion();
-TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_CATEGORY_1);
+TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_QUESTION_CATEGORY_1);
 TEST_SURVEYQUESTION_1.setQuestionText(TEST_QUESTION_TEXT_1);
 TEST_SURVEYQUESTION_1.setSurveyAnswersList([TEST_SURVEYANSWER_1]);
 
 const TEST_SURVEYANSWER_2 = new SurveyAnswer();
-TEST_SURVEYANSWER_2.setAnswerCategory(TEST_CATEGORY_2);
+TEST_SURVEYANSWER_2.setAnswerCategory(TEST_ANSWER_CATEGORY_2);
 TEST_SURVEYANSWER_2.setAnswerText(TEST_ANSWER_TEXT_2);
 const TEST_SURVEYQUESTION_2 = new SurveyQuestion();
-TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_CATEGORY_2);
+TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
 TEST_SURVEYQUESTION_2.setQuestionText(TEST_QUESTION_TEXT_2);
 TEST_SURVEYQUESTION_2.setSurveyAnswersList([TEST_SURVEYANSWER_2]);
 
@@ -109,13 +111,11 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     sandbox.useFakeTimers(CURRENT_TIME);
   });
 
-  function setGtagToNonfunction() {
+  function setWinWithoutGtag() {
+    const winWithNoGtag = Object.assign({}, win);
+    delete winWithNoGtag.gtag;
     runtime.win.restore();
-    sandbox.stub(runtime, 'win').returns(
-      Object.assign({}, win, {
-        gtag: false,
-      })
-    );
+    sandbox.stub(runtime, 'win').returns(winWithNoGtag);
   }
 
   [
@@ -482,9 +482,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('gtag')
       .withExactArgs('event', 'survey submission', {
         'event_category': 'survey',
-        'survey_question_category': TEST_CATEGORY_1,
+        'survey_question_category': TEST_QUESTION_CATEGORY_1,
         'survey_question': TEST_QUESTION_TEXT_1,
-        'survey_answer_category': TEST_CATEGORY_1,
+        'survey_answer_category': TEST_ANSWER_CATEGORY_1,
         'survey_answer': TEST_ANSWER_TEXT_1,
       })
       .once();
@@ -492,9 +492,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('gtag')
       .withExactArgs('event', 'survey submission', {
         'event_category': 'survey',
-        'survey_question_category': TEST_CATEGORY_2,
+        'survey_question_category': TEST_QUESTION_CATEGORY_2,
         'survey_question': TEST_QUESTION_TEXT_2,
-        'survey_answer_category': TEST_CATEGORY_2,
+        'survey_answer_category': TEST_ANSWER_CATEGORY_2,
         'survey_answer': TEST_ANSWER_TEXT_2,
       })
       .once();
@@ -516,7 +516,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   });
 
   it(`handles a SurveyDataTransferRequest with failed logging`, async () => {
-    setGtagToNonfunction();
+    setWinWithoutGtag();
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       onCancel: onCancelSpy,
