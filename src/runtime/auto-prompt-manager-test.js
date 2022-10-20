@@ -66,7 +66,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     deps = new DepsDef();
 
     sandbox.useFakeTimers(CURRENT_TIME);
-    win = env.win;
+    win = Object.assign({}, env.win, {gtag: () => {}});
     win.setTimeout = (callback) => callback();
     sandbox.stub(deps, 'win').returns(win);
 
@@ -121,6 +121,13 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     storageMock.verify();
     miniPromptApiMock.verify();
   });
+
+  function setWinWithoutGtag() {
+    const winWithNoGtag = Object.assign({}, win);
+    delete winWithNoGtag.gtag;
+    autoPromptManager.deps_.win.restore();
+    sandbox.stub(autoPromptManager.deps_, 'win').returns(winWithNoGtag);
+  }
 
   it('returns an instance of MiniPromptApi from getMiniPromptApi', () => {
     const miniPromptApi = autoPromptManager.getMiniPromptApi(deps);
@@ -1276,6 +1283,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         .resolves({
           audienceActions: {
             actions: [
+              {type: 'TYPE_REWARDED_SURVEY'},
               {type: 'TYPE_REGISTRATION_WALL'},
               {type: 'TYPE_NEWSLETTER_SIGNUP'},
             ],
@@ -1324,15 +1332,15 @@ describes.realWin('AutoPromptManager', {}, (env) => {
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REGISTRATION_WALL',
+        action: 'TYPE_REWARDED_SURVEY',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(alternatePromptSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
-        'TYPE_REGISTRATION_WALL'
+        'TYPE_REWARDED_SURVEY'
       );
-      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
+      await verifyOnCancelStores('contribution,TYPE_REWARDED_SURVEY');
     });
 
     it('should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
@@ -1341,7 +1349,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
-        'contribution,TYPE_REGISTRATION_WALL',
+        'contribution,TYPE_REWARDED_SURVEY',
         2
       );
       miniPromptApiMock.expects('create').never();
@@ -1355,16 +1363,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_NEWSLETTER_SIGNUP',
+        action: 'TYPE_REGISTRATION_WALL',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(alternatePromptSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
-        'TYPE_NEWSLETTER_SIGNUP'
+        'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
-        'contribution,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP'
+        'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL'
       );
     });
 
@@ -1374,7 +1382,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
-        'contribution,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP',
+        'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP',
         1
       );
       miniPromptApiMock.expects('create').never();
@@ -1399,7 +1407,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
-        'contribution,TYPE_REGISTRATION_WALL',
+        'contribution,TYPE_REWARDED_SURVEY',
         1
       );
       miniPromptApiMock.expects('create').once();
@@ -1415,6 +1423,38 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(alternatePromptSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
+    });
+
+    it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for gTag', async () => {
+      setWinWithoutGtag();
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(
+        storedImpressions,
+        storedDismissals,
+        AutoPromptType.CONTRIBUTION,
+        2
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
     });
 
     async function verifyOnCancelStores(setValue) {

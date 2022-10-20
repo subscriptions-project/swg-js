@@ -21,6 +21,7 @@ import {ExperimentFlags} from './experiment-flags';
 import {MiniPromptApi} from './mini-prompt-api';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
+import {isGtagEligible} from '../utils/action-utils';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
@@ -373,7 +374,9 @@ export class AutoPromptManager {
     shouldShowAutoPrompt,
   }) {
     let potentialActions = article?.audienceActions?.actions || [];
-    potentialActions = potentialActions.filter(this.checkActionEligibility_);
+    potentialActions = potentialActions.filter((action) =>
+      this.checkActionEligibility_(action.type)
+    );
 
     // No audience actions means use the default prompt.
     if (potentialActions.length === 0) {
@@ -686,13 +689,12 @@ export class AutoPromptManager {
 
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
-   * @param {string} action
+   * @param {string} actionType
    * @return {boolean}
    */
-  checkActionEligibility_(action) {
-    if (action == 'TYPE_REWARDED_SURVEY') {
-      const gtag = this.deps_.win().gtag || null;
-      return typeof gtag === 'function';
+  checkActionEligibility_(actionType) {
+    if (actionType === 'TYPE_REWARDED_SURVEY') {
+      return isGtagEligible(this.deps_);
     }
     return true;
   }
