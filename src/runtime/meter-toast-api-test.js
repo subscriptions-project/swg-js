@@ -50,6 +50,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   let onConsumeCallbackFake;
   let isMobile;
   const productId = 'pub1:label1';
+  let clientOptions;
 
   beforeEach(() => {
     win = env.win;
@@ -59,7 +60,14 @@ describes.realWin('MeterToastApi', {}, (env) => {
     });
     messageMap = {};
     pageConfig = new PageConfig(productId);
-    runtime = new ConfiguredRuntime(win, pageConfig);
+    clientOptions = {};
+    runtime = new ConfiguredRuntime(
+      win,
+      pageConfig,
+      /* integr */ undefined,
+      /* config */ undefined,
+      clientOptions
+    );
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
@@ -108,7 +116,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -141,7 +149,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -168,7 +176,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -203,7 +211,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          '$frontend$/swg/_/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc',
+          '$frontend$/swg/_/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc&hl=en',
           iframeArgs
         )
         .returns(Promise.resolve(port));
@@ -425,7 +433,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -451,13 +459,32 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
         iframeArgs
       )
       .returns(Promise.resolve(port));
     await meterToastApi.start();
     const element = runtime.dialogManager().getDialog().getElement();
     expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
+  });
+
+  it('should open the iframe with query param locale set to client configuration language', async () => {
+    clientOptions.lang = 'pt-BR';
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
+        iframeArgs
+      )
+      .returns(Promise.resolve(port));
+    await meterToastApi.start();
   });
 
   it('isMobile_ works as expected', async () => {
