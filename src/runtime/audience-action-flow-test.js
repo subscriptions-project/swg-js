@@ -45,9 +45,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let messageMap;
   let onCancelSpy;
   let dialogManagerMock;
-  /**
-   * @private {../api/basic-subscriptions.ClientOptions}
-   */
   let clientOptions;
 
   beforeEach(() => {
@@ -58,8 +55,8 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     runtime = new ConfiguredRuntime(
       win,
       pageConfig,
-      undefined,
-      undefined,
+      /* integr */ undefined,
+      /* config */ undefined,
       clientOptions
     );
     activitiesMock = sandbox.mock(runtime.activities());
