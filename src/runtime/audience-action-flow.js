@@ -27,8 +27,10 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  AnalyticsEvent,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  EventOriginator,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
@@ -38,6 +40,7 @@ import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
+import {isFunction} from '../utils/types';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 
@@ -282,19 +285,31 @@ export class AudienceActionFlow {
    * @private
    */
   logSurveyDataToGoogleAnalytics(request) {
+    const ga = this.deps__.win().ga || null;
     const gtag = this.deps_.win().gtag || null;
-    if (typeof gtag !== 'function') {
+    if (!isFunction(ga) && !isFunction(gtag)) {
       return false;
     }
     request.getSurveyQuestionsList().map((question) => {
       const answer = question.getSurveyAnswersList()[0];
-      gtag('event', 'survey submission', {
-        'event_category': 'survey',
-        'survey_question_category': question.getQuestionCategory(),
-        'survey_question': question.getQuestionText(),
-        'survey_answer_category': answer.getAnswerCategory(),
-        'survey_answer': answer.getAnswerText(),
-      });
+      const event = {
+        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: {
+          gaParams: {
+            eventCategory: question.getQuestionCategory(),
+            eventLabel: answer.getAnswerText(),
+          },
+          gtagParams: {
+            event_category: question.getQuestionCategory(),
+            survey_question: question.getQuestionText(),
+            survey_answer_category: answer.getAnswerCategory(),
+            eventLabel: answer.getAnswerText(),
+          },
+        },
+      };
+      this.deps_.eventManager().logEvent(event);
     });
     return true;
   }

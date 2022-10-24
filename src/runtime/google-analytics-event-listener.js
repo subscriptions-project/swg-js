@@ -15,6 +15,7 @@
  */
 
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
+import {isFunction} from '../utils/types';
 
 export class GoogleAnalyticsEventListener {
   /**
@@ -65,16 +66,28 @@ export class GoogleAnalyticsEventListener {
     }
 
     // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
-    if (typeof this.win_.ga === 'function') {
-      this.win_.ga('send', 'event', gaEvent);
+    if (isFunction(this.win_.ga || null)) {
+      this.win_.ga(
+        'send',
+        'event',
+        Object.assign({}, gaEvent, event.additionalParameters.gaParams)
+      );
     }
 
-    if (typeof this.win_.gtag === 'function') {
-      this.win_.gtag('event', gaEvent.eventAction, {
-        'event_category': gaEvent.eventCategory,
-        'event_label': gaEvent.eventLabel,
-        'non_interaction': gaEvent.nonInteraction,
-      });
+    if (isFunction(this.win_.gtag)) {
+      this.win_.gtag(
+        'event',
+        gaEvent.eventAction,
+        Object.assign(
+          {},
+          {
+            'event_category': gaEvent.eventCategory,
+            'event_label': gaEvent.eventLabel,
+            'non_interaction': gaEvent.nonInteraction,
+          },
+          event.additionalParameters.gtagParams
+        )
+      );
     }
   }
 }

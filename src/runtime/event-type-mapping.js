@@ -195,6 +195,12 @@ export const AnalyticsEventToGoogleAnalyticsEvent = {
     'success',
     false
   ),
+  [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER]: createGoogleAnalyticsEvent(
+    '',
+    'survey submission',
+    '',
+    false
+  ),
 };
 
 /** @const {!Object<?AnalyticsEvent,?Object>} */
