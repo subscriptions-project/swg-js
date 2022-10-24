@@ -17,8 +17,10 @@
 import {ActivityPort} from '../components/activities';
 import {
   AlreadySubscribedResponse,
+  AnalyticsEvent,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  EventOriginator,
   SurveyAnswer,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
@@ -26,6 +28,7 @@ import {
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
@@ -79,7 +82,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let onCancelSpy;
   let dialogManagerMock;
   let clientOptions;
-  let winMock;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = Object.assign(
@@ -90,7 +93,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         gtag: () => {},
       }
     );
-    winMock = sandbox.mock(win);
     messageMap = {};
     pageConfig = new PageConfig('pub1:label1');
     clientOptions = {};
@@ -105,6 +107,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManagerMock = sandbox.mock(eventManager);
+    sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -513,28 +518,50 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs({
+        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: {
+          gaParams: {
+            eventCategory: TEST_QUESTION_CATEGORY_1,
+            eventLabel: TEST_ANSWER_TEXT_1,
+          },
+          gtagParams: {
+            event_category: TEST_QUESTION_CATEGORY_1,
+            survey_question: TEST_QUESTION_TEXT_1,
+            survey_answer_category: TEST_ANSWER_CATEGORY_1,
+            eventLabel: TEST_ANSWER_TEXT_1,
+          },
+        },
+      })
+      .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs({
+        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: {
+          gaParams: {
+            eventCategory: TEST_QUESTION_CATEGORY_2,
+            eventLabel: TEST_ANSWER_TEXT_2,
+          },
+          gtagParams: {
+            event_category: TEST_QUESTION_CATEGORY_2,
+            survey_question: TEST_QUESTION_TEXT_2,
+            survey_answer_category: TEST_ANSWER_CATEGORY_2,
+            eventLabel: TEST_ANSWER_TEXT_2,
+          },
+        },
+      })
+      .once();
+
     await audienceActionFlow.start();
 
-    winMock
-      .expects('gtag')
-      .withExactArgs('event', 'survey submission', {
-        'event_category': 'survey',
-        'survey_question_category': TEST_QUESTION_CATEGORY_1,
-        'survey_question': TEST_QUESTION_TEXT_1,
-        'survey_answer_category': TEST_ANSWER_CATEGORY_1,
-        'survey_answer': TEST_ANSWER_TEXT_1,
-      })
-      .once();
-    winMock
-      .expects('gtag')
-      .withExactArgs('event', 'survey submission', {
-        'event_category': 'survey',
-        'survey_question_category': TEST_QUESTION_CATEGORY_2,
-        'survey_question': TEST_QUESTION_TEXT_2,
-        'survey_answer_category': TEST_ANSWER_CATEGORY_2,
-        'survey_answer': TEST_ANSWER_TEXT_2,
-      })
-      .once();
     const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
     successSurveyDataTransferResponse.setSuccess(true);
     const activityIframeViewMock = sandbox.mock(
@@ -548,7 +575,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
     messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
 
-    winMock.verify();
     activityIframeViewMock.verify();
   });
 
@@ -560,9 +586,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
+    eventManagerMock.expects('logEvent').never();
     await audienceActionFlow.start();
 
-    winMock.expects('gtag').never();
     const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
     successSurveyDataTransferResponse.setSuccess(false);
     const activityIframeViewMock = sandbox.mock(
@@ -576,7 +602,6 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
     messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
 
-    winMock.verify();
     activityIframeViewMock.verify();
   });
 

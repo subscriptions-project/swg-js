@@ -169,6 +169,44 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
+  it('Should log ga and gtag event with additional gaParams and gtagParams', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      }),
+      true
+    );
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
+    const gaEventWithParams = Object.assign({}, gaEvent, {
+      eventType: 'TYPE OVERRIDE',
+      someGaParam: 123,
+    });
+    const gtagEventWithParams = Object.assign({}, gaEvent, {
+      eventType: 'TYPE OVERRIDE GTAG',
+      someGtagParam: 999,
+    });
+    expectEventLoggedToGa(gaEventWithParams);
+    expectEventLoggedToGtag(gtagEventWithParams);
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      additionalParams: {
+        gaParams: {
+          eventType: 'TYPE OVERRIDE',
+          someGaParam: 123,
+        },
+        gtagParams: {
+          eventType: 'TYPE OVERRIDE GTAG',
+          someGtagParam: 999,
+        },
+      },
+    });
+    await eventManager.lastAction_;
+  });
+
   it('Should not log pay complete when missing subscriptionFlow', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
