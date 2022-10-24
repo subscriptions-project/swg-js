@@ -66,16 +66,18 @@ export class GoogleAnalyticsEventListener {
     }
 
     // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
-    if (isFunction(this.win_.ga || null)) {
-      this.win_.ga(
+    const ga = this.win_.ga || null;
+    if (isFunction(ga)) {
+      ga(
         'send',
         'event',
         Object.assign({}, gaEvent, event.additionalParameters.gaParams || {})
       );
     }
 
-    if (isFunction(this.win_.gtag || null)) {
-      this.win_.gtag(
+    const gtag = this.win_.gtag || null;
+    if (isFunction(gtag)) {
+      gtag(
         'event',
         gaEvent.eventAction,
         Object.assign(

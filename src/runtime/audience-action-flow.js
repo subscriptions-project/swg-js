@@ -285,7 +285,7 @@ export class AudienceActionFlow {
    * @private
    */
   logSurveyDataToGoogleAnalytics(request) {
-    const ga = this.deps__.win().ga || null;
+    const ga = this.deps_.win().ga || null;
     const gtag = this.deps_.win().gtag || null;
     if (!isFunction(ga) && !isFunction(gtag)) {
       return false;
