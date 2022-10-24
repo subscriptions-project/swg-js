@@ -70,11 +70,11 @@ export class GoogleAnalyticsEventListener {
       this.win_.ga(
         'send',
         'event',
-        Object.assign({}, gaEvent, event.additionalParameters.gaParams)
+        Object.assign({}, gaEvent, event.additionalParameters.gaParams || {})
       );
     }
 
-    if (isFunction(this.win_.gtag)) {
+    if (isFunction(this.win_.gtag || null)) {
       this.win_.gtag(
         'event',
         gaEvent.eventAction,
@@ -85,7 +85,7 @@ export class GoogleAnalyticsEventListener {
             'event_label': gaEvent.eventLabel,
             'non_interaction': gaEvent.nonInteraction,
           },
-          event.additionalParameters.gtagParams
+          event.additionalParameters.gtagParams || {}
         )
       );
     }
