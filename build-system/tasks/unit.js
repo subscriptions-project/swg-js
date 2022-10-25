@@ -64,7 +64,7 @@ function printArgvMessages() {
     ie: 'Running tests on IE.',
     edge: 'Running tests on Edge.',
     nobuild: 'Skipping build.',
-    watch:
+    persist:
       'Enabling watch mode. Editing and saving a file will cause the' +
       ' tests for that file to be re-run in the same browser instance.',
     verbose: 'Enabling verbose mode. Expect lots of output!',
@@ -146,7 +146,7 @@ function getUnitTestsToRun(c) {
 function runTests() {
   const c = getConfig();
 
-  c.singleRun = !argv.watch && !argv.w;
+  c.singleRun = !argv.persist && !argv.w;
   c.client.captureConsole = !!argv.verbose || !!argv.v || !!argv.files;
 
   getUnitTestsToRun(c);
@@ -244,7 +244,7 @@ unit.flags = {
   'coverage': '  Run tests in code coverage mode',
   'verbose': '  With logging enabled',
   'testnames': '  Lists the name of each test being run',
-  'watch': '  Watches for changes in files, runs corresponding test(s)',
+  'persist': '  Watches for changes in files, runs corresponding test(s)',
   'safari': '  Runs tests on Safari',
   'firefox': '  Runs tests on Firefox',
   'edge': '  Runs tests on Edge',
