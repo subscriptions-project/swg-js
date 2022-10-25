@@ -296,20 +296,14 @@ export class AudienceActionFlow {
         eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
-        additionalParameters: {
-          gaParams: {
-            eventCategory: question.getQuestionCategory(),
-            eventLabel: answer.getAnswerText(),
-          },
-          gtagParams: {
-            event_category: question.getQuestionCategory(),
-            survey_question: question.getQuestionText(),
-            survey_answer_category: answer.getAnswerCategory(),
-            eventLabel: answer.getAnswerText(),
-          },
-        },
       };
-      this.deps_.eventManager().logEvent(event);
+      const analyticsParams = {
+        eventCategory: question.getQuestionCategory(),
+        surveyQuestion: question.getQuestionText(),
+        surveyAnswerCategory: answer.getAnswerCategory(),
+        eventLabel: answer.getAnswerText(),
+      };
+      this.deps_.eventManager().logEvent(event, analyticsParams);
     });
     return true;
   }

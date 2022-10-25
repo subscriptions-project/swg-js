@@ -521,43 +521,35 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
 
     eventManagerMock
       .expects('logEvent')
-      .withExactArgs({
-        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: {
-          gaParams: {
-            eventCategory: TEST_QUESTION_CATEGORY_1,
-            eventLabel: TEST_ANSWER_TEXT_1,
-          },
-          gtagParams: {
-            event_category: TEST_QUESTION_CATEGORY_1,
-            survey_question: TEST_QUESTION_TEXT_1,
-            survey_answer_category: TEST_ANSWER_CATEGORY_1,
-            eventLabel: TEST_ANSWER_TEXT_1,
-          },
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
         },
-      })
+        {
+          eventCategory: TEST_QUESTION_CATEGORY_1,
+          eventLabel: TEST_ANSWER_TEXT_1,
+          surveyQuestion: TEST_QUESTION_TEXT_1,
+          surveyAnswerCategory: TEST_ANSWER_CATEGORY_1,
+        }
+      )
       .once();
     eventManagerMock
       .expects('logEvent')
-      .withExactArgs({
-        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: {
-          gaParams: {
-            eventCategory: TEST_QUESTION_CATEGORY_2,
-            eventLabel: TEST_ANSWER_TEXT_2,
-          },
-          gtagParams: {
-            event_category: TEST_QUESTION_CATEGORY_2,
-            survey_question: TEST_QUESTION_TEXT_2,
-            survey_answer_category: TEST_ANSWER_CATEGORY_2,
-            eventLabel: TEST_ANSWER_TEXT_2,
-          },
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
         },
-      })
+        {
+          eventCategory: TEST_QUESTION_CATEGORY_2,
+          eventLabel: TEST_ANSWER_TEXT_2,
+          surveyQuestion: TEST_QUESTION_TEXT_2,
+          surveyAnswerCategory: TEST_ANSWER_CATEGORY_2,
+        }
+      )
       .once();
 
     await audienceActionFlow.start();

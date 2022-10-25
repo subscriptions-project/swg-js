@@ -122,8 +122,15 @@ export class ClientEventManager {
   /**
    * @overrides
    * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @param {?{
+   *   eventCategory: string
+   *   surveyQuestion: string
+   *   surveyAnswerCategory: string
+   *   eventLabel: string
+   * }} analyticsParams
    */
-  logEvent(event) {
+  logEvent(event, analyticsParams) {
+    analyticsParams = analyticsParams || {};
     validateEvent(event);
     this.lastAction_ = this.isReadyPromise_.then(() => {
       for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
@@ -137,7 +144,7 @@ export class ClientEventManager {
       }
       for (let listener = 0; listener < this.listeners_.length; listener++) {
         try {
-          this.listeners_[listener](event);
+          this.listeners_[listener](event, analyticsParams);
         } catch (e) {
           log(e);
         }

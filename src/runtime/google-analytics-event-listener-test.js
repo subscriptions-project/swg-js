@@ -16,6 +16,7 @@
 
 import {
   AnalyticsEvent,
+  AnalyticsParams,
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
@@ -181,29 +182,34 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       AnalyticsEvent.IMPRESSION_OFFERS
     );
     const gaEventWithParams = Object.assign({}, gaEvent, {
-      eventType: 'TYPE OVERRIDE',
-      someGaParam: 123,
-    });
-    const gtagEventWithParams = Object.assign({}, gaEvent, {
-      eventType: 'TYPE OVERRIDE GTAG',
-      someGtagParam: 999,
+      eventCategory: 'TEST CATEGORY',
+      eventLabel: 'TEST LABEL',
     });
     expectEventLoggedToGa(gaEventWithParams);
-    expectEventLoggedToGtag(gtagEventWithParams);
-    eventManager.logEvent({
-      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      additionalParams: {
-        gaParams: {
-          eventType: 'TYPE OVERRIDE',
-          someGaParam: 123,
-        },
-        gtagParams: {
-          eventType: 'TYPE OVERRIDE GTAG',
-          someGtagParam: 999,
-        },
+    winMock
+      .expects('gtag')
+      .withExactArgs('event', gaEvent.eventAction, {
+        'event_category': 'TEST CATEGORY',
+        'survey_question': 'TEST QUESTION',
+        'survey_answer_category': 'TEST CATEGORY',
+        'event_label': 'TEST LABEL',
+        'non_interaction': gaEvent.nonInteraction,
+      })
+      .once();
+
+    const analyticsParams = {
+      eventCategory: 'TEST CATEGORY',
+      eventLabel: 'TEST LABEL',
+      surveyQuestion: 'TEST QUESTION',
+      surveyAnswerCategory: 'TEST CATEGORY',
+    };
+    eventManager.logEvent(
+      {
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        eventOriginator: EventOriginator.SWG_CLIENT,
       },
-    });
+      analyticsParams
+    );
     await eventManager.lastAction_;
   });
 

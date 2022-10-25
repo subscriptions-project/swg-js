@@ -41,8 +41,14 @@ export class GoogleAnalyticsEventListener {
   /**
    *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
    * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @param {?{
+   *   eventCategory: string
+   *   surveyQuestion: string
+   *   surveyAnswerCategory: string
+   *   eventLabel: string
+   * }} analyticsParams
    */
-  handleClientEvent_(event) {
+  handleClientEvent_(event, analyticsParams) {
     // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
     if (
       typeof this.win_.ga !== 'function' &&
@@ -71,7 +77,14 @@ export class GoogleAnalyticsEventListener {
       ga(
         'send',
         'event',
-        Object.assign({}, gaEvent, event.additionalParameters.gaParams || {})
+        Object.assign(
+          {},
+          gaEvent,
+          analyticsParams.eventCategory && {
+            eventCategory: analyticsParams.eventCategory,
+          },
+          analyticsParams.eventLabel && {eventLabel: analyticsParams.eventLabel}
+        )
       );
     }
 
@@ -87,7 +100,18 @@ export class GoogleAnalyticsEventListener {
             'event_label': gaEvent.eventLabel,
             'non_interaction': gaEvent.nonInteraction,
           },
-          event.additionalParameters.gtagParams || {}
+          analyticsParams.eventCategory && {
+            'event_category': analyticsParams.eventCategory,
+          },
+          analyticsParams.surveyQuestion && {
+            'survey_question': analyticsParams.surveyQuestion,
+          },
+          analyticsParams.surveyAnswerCategory && {
+            'survey_answer_category': analyticsParams.surveyAnswerCategory,
+          },
+          analyticsParams.eventLabel && {
+            'event_label': analyticsParams.eventLabel,
+          }
         )
       );
     }
