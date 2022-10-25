@@ -15,7 +15,7 @@
  */
 
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {ClientEventParams, FilterResult} from '../api/client-event-manager-api';
+import {FilterResult} from '../api/client-event-manager-api';
 import {isBoolean, isEnumValue, isFunction, isObject} from '../utils/types';
 import {log} from '../utils/log';
 
@@ -86,7 +86,7 @@ export class ClientEventManager {
    * @param {!Promise} configuredPromise
    */
   constructor(configuredPromise) {
-    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, ?ClientEventParams)>} */
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, ?../api/client-event-manager-api.ClientEventParams)>} */
     this.listeners_ = [];
 
     /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!FilterResult>} */
@@ -122,7 +122,7 @@ export class ClientEventManager {
   /**
    * @overrides
    * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {?ClientEventParams} eventParams
+   * @param {?../api/client-event-manager-api.ClientEventParams} eventParams
    */
   logEvent(event, eventParams) {
     validateEvent(event);
