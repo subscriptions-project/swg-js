@@ -16,7 +16,6 @@
 
 import {
   AnalyticsEvent,
-  AnalyticsParams,
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';

@@ -296,6 +296,7 @@ export class AudienceActionFlow {
         eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
+        additionalParameters: null,
       };
       const analyticsParams = {
         eventCategory: question.getQuestionCategory(),

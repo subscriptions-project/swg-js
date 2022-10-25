@@ -526,6 +526,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: true,
+          additionalParameters: null,
         },
         {
           eventCategory: TEST_QUESTION_CATEGORY_1,
@@ -542,6 +543,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: true,
+          additionalParameters: null,
         },
         {
           eventCategory: TEST_QUESTION_CATEGORY_2,

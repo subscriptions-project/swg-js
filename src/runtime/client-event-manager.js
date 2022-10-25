@@ -86,7 +86,7 @@ export class ClientEventManager {
    * @param {!Promise} configuredPromise
    */
   constructor(configuredPromise) {
-    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent)>} */
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, Object)>} */
     this.listeners_ = [];
 
     /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!FilterResult>} */
@@ -122,15 +122,10 @@ export class ClientEventManager {
   /**
    * @overrides
    * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {?{
-   *   eventCategory: string,
-   *   surveyQuestion: string,
-   *   surveyAnswerCategory: string,
-   *   eventLabel: string,
-   * }} analyticsParams
+   * @param {Object} eventParams
    */
-  logEvent(event, analyticsParams) {
-    analyticsParams = analyticsParams || {};
+  logEvent(event, eventParams) {
+    eventParams = eventParams || {};
     validateEvent(event);
     this.lastAction_ = this.isReadyPromise_.then(() => {
       for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
@@ -144,7 +139,7 @@ export class ClientEventManager {
       }
       for (let listener = 0; listener < this.listeners_.length; listener++) {
         try {
-          this.listeners_[listener](event, analyticsParams);
+          this.listeners_[listener](event, eventParams);
         } catch (e) {
           log(e);
         }
@@ -160,12 +155,15 @@ export class ClientEventManager {
    * @param {../proto/api_messages.EventParams=} eventParams
    */
   logSwgEvent(eventType, isFromUserAction = false, eventParams = null) {
-    this.logEvent({
-      eventType,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction,
-      additionalParameters: eventParams,
-    });
+    this.logEvent(
+      {
+        eventType,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction,
+        additionalParameters: eventParams,
+      },
+      /* eventParams */ {}
+    );
   }
 
   /** @return {!Promise<null>} */

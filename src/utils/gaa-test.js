@@ -345,12 +345,15 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     expect(logEvent).to.have.callCount(events.length);
     for (let i = 0; i < events.length; i++) {
       const {analyticsEvent, isFromUserAction} = events[i];
-      expect(logEvent.getCall(i)).to.be.calledWithExactly({
-        eventType: analyticsEvent,
-        eventOriginator: 1,
-        isFromUserAction,
-        additionalParameters: null,
-      });
+      expect(logEvent.getCall(i)).to.be.calledWithExactly(
+        {
+          eventType: analyticsEvent,
+          eventOriginator: 1,
+          isFromUserAction,
+          additionalParameters: null,
+        },
+        /* eventParams */ {}
+      );
     }
   }
 
@@ -2224,12 +2227,15 @@ describes.realWin('GaaMetering', {}, () => {
     expect(logEvent).to.have.callCount(events.length);
     for (let i = 0; i < events.length; i++) {
       const {analyticsEvent, isFromUserAction} = events[i];
-      expect(logEvent.getCall(i)).to.be.calledWithExactly({
-        eventType: analyticsEvent,
-        eventOriginator: 1,
-        isFromUserAction,
-        additionalParameters: null,
-      });
+      expect(logEvent.getCall(i)).to.be.calledWithExactly(
+        {
+          eventType: analyticsEvent,
+          eventOriginator: 1,
+          isFromUserAction,
+          additionalParameters: null,
+        },
+        /* eventParams */ {}
+      );
     }
   }
 

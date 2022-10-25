@@ -109,11 +109,14 @@ export class Propensity {
       throw new Error('Event active must be a boolean');
     }
 
-    this.eventManager_.logEvent({
-      eventType: analyticsEvent,
-      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
-      isFromUserAction: userEvent.active,
-      additionalParameters: data,
-    });
+    this.eventManager_.logEvent(
+      {
+        eventType: analyticsEvent,
+        eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+        isFromUserAction: userEvent.active,
+        additionalParameters: data,
+      },
+      /* eventParams */ {}
+    );
   }
 }

@@ -38,15 +38,18 @@ export class GoogleAnalyticsEventListener {
     );
   }
 
-  /**
-   *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {?{
+  /*    * @param {?{
    *   eventCategory: string,
    *   surveyQuestion: string,
    *   surveyAnswerCategory: string,
    *   eventLabel: string,
    * }} analyticsParams
+   * */
+
+  /**
+   *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @param {?Object} analyticsParams
    */
   handleClientEvent_(event, analyticsParams) {
     // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
@@ -80,10 +83,14 @@ export class GoogleAnalyticsEventListener {
         Object.assign(
           {},
           gaEvent,
-          analyticsParams.eventCategory && {
-            eventCategory: analyticsParams.eventCategory,
-          },
-          analyticsParams.eventLabel && {eventLabel: analyticsParams.eventLabel}
+          !!analyticsParams?.eventCategory
+            ? {
+                eventCategory: analyticsParams.eventCategory,
+              }
+            : null,
+          !!analyticsParams?.eventLabel
+            ? {eventLabel: analyticsParams.eventLabel}
+            : null
         )
       );
     }
@@ -100,18 +107,27 @@ export class GoogleAnalyticsEventListener {
             'event_label': gaEvent.eventLabel,
             'non_interaction': gaEvent.nonInteraction,
           },
-          analyticsParams.eventCategory && {
-            'event_category': analyticsParams.eventCategory,
-          },
-          analyticsParams.surveyQuestion && {
-            'survey_question': analyticsParams.surveyQuestion,
-          },
-          analyticsParams.surveyAnswerCategory && {
-            'survey_answer_category': analyticsParams.surveyAnswerCategory,
-          },
-          analyticsParams.eventLabel && {
-            'event_label': analyticsParams.eventLabel,
-          }
+          !!analyticsParams?.eventCategory
+            ? {
+                'event_category': analyticsParams.eventCategory,
+              }
+            : null,
+          !!analyticsParams?.surveyQuestion
+            ? {
+                'survey_question': analyticsParams.surveyQuestion || '',
+              }
+            : null,
+          !!analyticsParams?.surveyAnswerCategory
+            ? {
+                'survey_answer_category':
+                  analyticsParams.surveyAnswerCategory || '',
+              }
+            : null,
+          !!analyticsParams?.eventLabel
+            ? {
+                'event_label': analyticsParams.eventLabel,
+              }
+            : null
         )
       );
     }

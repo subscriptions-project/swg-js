@@ -53,7 +53,7 @@ export class ClientEventManagerApi {
   /**
    * Call this function to log an event. The registered listeners will be
    * invoked unless the event is filtered.
-   * @param {!function(!ClientEvent)} listener
+   * @param {!function(!ClientEvent, Object)} listener
    */
   registerEventListener(listener) {}
 
@@ -72,7 +72,8 @@ export class ClientEventManagerApi {
    * stop the event if a filterer cancels it.  After that, it will call each
    * listener asynchronously.
    * @param {!ClientEvent} event
+   * @param {Object} eventParams
    */
-  logEvent(event) {}
+  logEvent(event, eventParams) {}
 }
 /* eslint-enable no-unused-vars */
