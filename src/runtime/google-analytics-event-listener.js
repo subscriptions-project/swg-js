@@ -38,14 +38,6 @@ export class GoogleAnalyticsEventListener {
     );
   }
 
-  /*    * @param {?{
-   *   eventCategory: string,
-   *   surveyQuestion: string,
-   *   surveyAnswerCategory: string,
-   *   eventLabel: string,
-   * }} analyticsParams
-   * */
-
   /**
    *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
    * @param {!../api/client-event-manager-api.ClientEvent} event
