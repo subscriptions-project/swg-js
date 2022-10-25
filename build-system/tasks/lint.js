@@ -30,7 +30,7 @@ const {gitDiffNameOnlyMain} = require('../git');
 const {green, yellow, cyan, red} = require('ansi-colors');
 const {isCiBuild} = require('../ci');
 
-const isWatching = argv.watch || argv.w || false;
+const isWatching = argv.persist || argv.w || false;
 const options = {
   fix: false,
 };
@@ -230,7 +230,7 @@ module.exports = {
 
 lint.description = 'Validates against Google Closure Linter';
 lint.flags = {
-  'watch': '  Watches for changes in files, validates against the linter',
+  'persist': '  Watches for changes in files, validates against the linter',
   'fix': '  Fixes simple lint errors (spacing etc)',
   'files': '  Lints just the specified files',
   'local_changes': '  Lints just the files changed in the local branch',
