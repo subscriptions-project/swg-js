@@ -84,6 +84,7 @@ const AnalyticsEvent = {
   IMPRESSION_SUBSCRIPTION_LINKING_LOADING: 39,
   IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE: 40,
   IMPRESSION_SUBSCRIPTION_LINKING_ERROR: 41,
+  IMPRESSION_SURVEY: 42,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -152,6 +153,8 @@ const AnalyticsEvent = {
   ACTION_CONTRIBUTION_OFFERS_RETRY: 1065,
   ACTION_TWG_SHORTENED_STICKER_FLOW_STICKER_SELECTION_CLICK: 1066,
   ACTION_INITIATE_UPDATED_SUBSCRIPTION_LINKING: 1067,
+  ACTION_SURVEY_SUBMIT_CLICK: 1068,
+  ACTION_SURVEY_CLOSED: 1069,
   ACTION_SURVEY_DATA_TRANSFER: 1070,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_REGWALL_OPT_IN_FAILED: 2001,
@@ -159,6 +162,8 @@ const AnalyticsEvent = {
   EVENT_REGWALL_ALREADY_OPT_IN: 2003,
   EVENT_NEWSLETTER_ALREADY_OPT_IN: 2004,
   EVENT_SUBSCRIPTION_LINKING_FAILED: 2005,
+  EVENT_SURVEY_ALREADY_SUBMITTED: 2006,
+  EVENT_SURVEY_SUBMIT_FAILED: 2007,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
   EVENT_CHANGED_TX_ID: 3002,
@@ -187,6 +192,7 @@ const AnalyticsEvent = {
   EVENT_SHOWCASE_METERING_INIT: 3025,
   EVENT_DISABLE_MINIPROMPT_DESKTOP: 3026,
   EVENT_SUBSCRIPTION_LINKING_SUCCESS: 3027,
+  EVENT_SURVEY_SUBMITTED: 3028,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -261,7 +267,7 @@ class AccountCreationRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.complete_, // field 1 - complete
+      this.complete_, // field 1 - complete
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -314,7 +320,7 @@ class ActionRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.action_, // field 1 - action
+      this.action_, // field 1 - action
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -384,8 +390,8 @@ class AlreadySubscribedResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.subscriberOrMember_, // field 1 - subscriber_or_member
-        this.linkRequested_, // field 2 - link_requested
+      this.subscriberOrMember_, // field 1 - subscriber_or_member
+      this.linkRequested_, // field 2 - link_requested
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -662,20 +668,20 @@ class AnalyticsContext {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.embedderOrigin_, // field 1 - embedder_origin
-        this.transactionId_, // field 2 - transaction_id
-        this.referringOrigin_, // field 3 - referring_origin
-        this.utmSource_, // field 4 - utm_source
-        this.utmCampaign_, // field 5 - utm_campaign
-        this.utmMedium_, // field 6 - utm_medium
-        this.sku_, // field 7 - sku
-        this.readyToPay_, // field 8 - ready_to_pay
-        this.label_, // field 9 - label
-        this.clientVersion_, // field 10 - client_version
-        this.url_, // field 11 - url
-        this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
-        this.readerSurfaceType_, // field 13 - reader_surface_type
-        this.integrationVersion_, // field 14 - integration_version
+      this.embedderOrigin_, // field 1 - embedder_origin
+      this.transactionId_, // field 2 - transaction_id
+      this.referringOrigin_, // field 3 - referring_origin
+      this.utmSource_, // field 4 - utm_source
+      this.utmCampaign_, // field 5 - utm_campaign
+      this.utmMedium_, // field 6 - utm_medium
+      this.sku_, // field 7 - sku
+      this.readyToPay_, // field 8 - ready_to_pay
+      this.label_, // field 9 - label
+      this.clientVersion_, // field 10 - client_version
+      this.url_, // field 11 - url
+      this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
+      this.readerSurfaceType_, // field 13 - reader_surface_type
+      this.integrationVersion_, // field 14 - integration_version
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -745,8 +751,8 @@ class AnalyticsEventMeta {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.eventOriginator_, // field 1 - event_originator
-        this.isFromUserAction_, // field 2 - is_from_user_action
+      this.eventOriginator_, // field 1 - event_originator
+      this.isFromUserAction_, // field 2 - is_from_user_action
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -859,10 +865,10 @@ class AnalyticsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.context_ ? this.context_.toArray(includeLabel) : [], // field 1 - context
-        this.event_, // field 2 - event
-        this.meta_ ? this.meta_.toArray(includeLabel) : [], // field 3 - meta
-        this.params_ ? this.params_.toArray(includeLabel) : [], // field 4 - params
+      this.context_ ? this.context_.toArray(includeLabel) : [], // field 1 - context
+      this.event_, // field 2 - event
+      this.meta_ ? this.meta_.toArray(includeLabel) : [], // field 3 - meta
+      this.params_ ? this.params_.toArray(includeLabel) : [], // field 4 - params
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -915,7 +921,7 @@ class AudienceActivityClientLogsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.event_, // field 1 - event
+      this.event_, // field 1 - event
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1019,10 +1025,10 @@ class CompleteAudienceActionResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.swgUserToken_, // field 1 - swg_user_token
-        this.actionCompleted_, // field 2 - action_completed
-        this.userEmail_, // field 3 - user_email
-        this.alreadyCompleted_, // field 4 - already_completed
+      this.swgUserToken_, // field 1 - swg_user_token
+      this.actionCompleted_, // field 2 - action_completed
+      this.userEmail_, // field 3 - user_email
+      this.alreadyCompleted_, // field 4 - already_completed
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1092,8 +1098,8 @@ class EntitlementJwt {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.jwt_, // field 1 - jwt
-        this.source_, // field 2 - source
+      this.jwt_, // field 1 - jwt
+      this.source_, // field 2 - source
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1237,12 +1243,12 @@ class EntitlementsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) : [], // field 1 - used_entitlement
-        this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 2 - client_event_time
-        this.entitlementSource_, // field 3 - entitlement_source
-        this.entitlementResult_, // field 4 - entitlement_result
-        this.token_, // field 5 - token
-        this.isUserRegistered_, // field 6 - is_user_registered
+      this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) : [], // field 1 - used_entitlement
+      this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 2 - client_event_time
+      this.entitlementSource_, // field 3 - entitlement_source
+      this.entitlementResult_, // field 4 - entitlement_result
+      this.token_, // field 5 - token
+      this.isUserRegistered_, // field 6 - is_user_registered
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1312,8 +1318,8 @@ class EntitlementsResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.jwt_, // field 1 - jwt
-        this.swgUserToken_, // field 2 - swg_user_token
+      this.jwt_, // field 1 - jwt
+      this.swgUserToken_, // field 2 - swg_user_token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1468,13 +1474,13 @@ class EventParams {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.smartboxMessage_, // field 1 - smartbox_message
-        this.gpayTransactionId_, // field 2 - gpay_transaction_id
-        this.hadLogged_, // field 3 - had_logged
-        this.sku_, // field 4 - sku
-        this.oldTransactionId_, // field 5 - old_transaction_id
-        this.isUserRegistered_, // field 6 - is_user_registered
-        this.subscriptionFlow_, // field 7 - subscription_flow
+      this.smartboxMessage_, // field 1 - smartbox_message
+      this.gpayTransactionId_, // field 2 - gpay_transaction_id
+      this.hadLogged_, // field 3 - had_logged
+      this.sku_, // field 4 - sku
+      this.oldTransactionId_, // field 5 - old_transaction_id
+      this.isUserRegistered_, // field 6 - is_user_registered
+      this.subscriptionFlow_, // field 7 - subscription_flow
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1544,8 +1550,8 @@ class FinishedLoggingResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.complete_, // field 1 - complete
-        this.error_, // field 2 - error
+      this.complete_, // field 1 - complete
+      this.error_, // field 2 - error
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1615,8 +1621,8 @@ class LinkSaveTokenRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.authCode_, // field 1 - auth_code
-        this.token_, // field 2 - token
+      this.authCode_, // field 1 - auth_code
+      this.token_, // field 2 - token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1669,7 +1675,7 @@ class LinkingInfoResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.requested_, // field 1 - requested
+      this.requested_, // field 1 - requested
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1722,7 +1728,7 @@ class OpenDialogRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.urlPath_, // field 1 - url_path
+      this.urlPath_, // field 1 - url_path
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1894,14 +1900,14 @@ class SkuSelectedResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.sku_, // field 1 - sku
-        this.oldSku_, // field 2 - old_sku
-        this.oneTime_, // field 3 - one_time
-        this.playOffer_, // field 4 - play_offer
-        this.oldPlayOffer_, // field 5 - old_play_offer
-        this.customMessage_, // field 6 - custom_message
-        this.anonymous_, // field 7 - anonymous
-        this.sharingPolicyEnabled_, // field 8 - sharing_policy_enabled
+      this.sku_, // field 1 - sku
+      this.oldSku_, // field 2 - old_sku
+      this.oneTime_, // field 3 - one_time
+      this.playOffer_, // field 4 - play_offer
+      this.oldPlayOffer_, // field 5 - old_play_offer
+      this.customMessage_, // field 6 - custom_message
+      this.anonymous_, // field 7 - anonymous
+      this.sharingPolicyEnabled_, // field 8 - sharing_policy_enabled
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1954,7 +1960,7 @@ class SmartBoxMessage {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.isClicked_, // field 1 - is_clicked
+      this.isClicked_, // field 1 - is_clicked
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2007,7 +2013,7 @@ class SubscribeResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.subscribe_, // field 1 - subscribe
+      this.subscribe_, // field 1 - subscribe
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2060,7 +2066,7 @@ class SubscriptionLinkingCompleteResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.publisherProvidedId_, // field 1 - publisher_provided_id
+      this.publisherProvidedId_, // field 1 - publisher_provided_id
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2113,7 +2119,7 @@ class SubscriptionLinkingResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.publisherProvidedId_, // field 1 - publisher_provided_id
+      this.publisherProvidedId_, // field 1 - publisher_provided_id
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2200,9 +2206,9 @@ class SurveyAnswer {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.answerId_, // field 1 - answer_id
-        this.answerText_, // field 2 - answer_text
-        this.answerCategory_, // field 3 - answer_category
+      this.answerId_, // field 1 - answer_id
+      this.answerText_, // field 2 - answer_text
+      this.answerCategory_, // field 3 - answer_category
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2255,7 +2261,9 @@ class SurveyDataTransferRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.surveyQuestions_ ? this.surveyQuestions_.map(item => item.toArray(includeLabel)) : [], // field 1 - survey_questions
+      this.surveyQuestions_
+        ? this.surveyQuestions_.map((item) => item.toArray(includeLabel))
+        : [], // field 1 - survey_questions
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2308,7 +2316,7 @@ class SurveyDataTransferResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.success_, // field 1 - success
+      this.success_, // field 1 - success
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2412,10 +2420,12 @@ class SurveyQuestion {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.questionId_, // field 1 - question_id
-        this.questionText_, // field 2 - question_text
-        this.questionCategory_, // field 3 - question_category
-        this.surveyAnswers_ ? this.surveyAnswers_.map(item => item.toArray(includeLabel)) : [], // field 4 - survey_answers
+      this.questionId_, // field 1 - question_id
+      this.questionText_, // field 2 - question_text
+      this.questionCategory_, // field 3 - question_category
+      this.surveyAnswers_
+        ? this.surveyAnswers_.map((item) => item.toArray(includeLabel))
+        : [], // field 4 - survey_answers
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2485,8 +2495,8 @@ class Timestamp {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.seconds_, // field 1 - seconds
-        this.nanos_, // field 2 - nanos
+      this.seconds_, // field 1 - seconds
+      this.nanos_, // field 2 - nanos
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2539,7 +2549,7 @@ class ToastCloseRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.close_, // field 1 - close
+      this.close_, // field 1 - close
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2592,7 +2602,7 @@ class ViewSubscriptionsResponse {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.native_, // field 1 - native
+      this.native_, // field 1 - native
     ];
     if (includeLabel) {
       arr.unshift(this.label());
