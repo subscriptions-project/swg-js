@@ -53,7 +53,7 @@ export class ClientEventManagerApi {
   /**
    * Call this function to log an event. The registered listeners will be
    * invoked unless the event is filtered.
-   * @param {!function(!ClientEvent, Object)} listener
+   * @param {!function(!ClientEvent, ?ClientEventParams)} listener
    */
   registerEventListener(listener) {}
 
@@ -77,3 +77,17 @@ export class ClientEventManagerApi {
   logEvent(event, eventParams) {}
 }
 /* eslint-enable no-unused-vars */
+
+/**
+ * Event Properties to handle for a specific event. For example, GA Event
+ * properties to skip SwG logging but still be handled via callback.
+ * @typedef {{
+ *   googleAnalyticsParameters: ({
+ *     eventCategory: string,
+ *     surveyQuestion: string,
+ *     surveyAnswerCategory: string,
+ *     eventLabel: string,
+ *   }|undefined)
+ * }}
+ */
+export let ClientEventParams;

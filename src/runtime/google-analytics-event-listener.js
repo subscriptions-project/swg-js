@@ -41,7 +41,7 @@ export class GoogleAnalyticsEventListener {
   /**
    *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
    * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {?Object} analyticsParams
+   * @param {?../api/client-event-manager-api.ClientEventParams} analyticsParams
    */
   handleClientEvent_(event, analyticsParams) {
     // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
@@ -66,58 +66,48 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
+    const gaEventWithParams = Object.assign({}, gaEvent, analyticsParams);
     // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
     const ga = this.win_.ga || null;
     if (isFunction(ga)) {
-      ga(
-        'send',
-        'event',
-        Object.assign(
-          {},
-          gaEvent,
-          !!analyticsParams?.eventCategory
-            ? {
-                eventCategory: analyticsParams.eventCategory,
-              }
-            : null,
-          !!analyticsParams?.eventLabel
-            ? {eventLabel: analyticsParams.eventLabel}
-            : null
-        )
-      );
+      const {eventAction, eventCategory, eventLabel, nonInteraction} =
+        gaEventWithParams;
+      ga('send', 'event', {
+        eventAction,
+        eventCategory,
+        eventLabel,
+        nonInteraction,
+      });
     }
 
     const gtag = this.win_.gtag || null;
     if (isFunction(gtag)) {
+      const {
+        eventAction,
+        eventCategory,
+        eventLabel,
+        nonInteraction,
+        surveyQuestion,
+        surveyAnswerCategory,
+      } = gaEventWithParams;
       gtag(
         'event',
-        gaEvent.eventAction,
+        eventAction,
         Object.assign(
           {},
           {
-            'event_category': gaEvent.eventCategory,
-            'event_label': gaEvent.eventLabel,
-            'non_interaction': gaEvent.nonInteraction,
+            'event_category': eventCategory,
+            'event_label': eventLabel,
+            'non_interaction': nonInteraction,
           },
-          !!analyticsParams?.eventCategory
+          !!surveyQuestion
             ? {
-                'event_category': analyticsParams.eventCategory,
+                'survey_question': surveyQuestion,
               }
             : null,
-          !!analyticsParams?.surveyQuestion
+          !!surveyAnswerCategory
             ? {
-                'survey_question': analyticsParams.surveyQuestion || '',
-              }
-            : null,
-          !!analyticsParams?.surveyAnswerCategory
-            ? {
-                'survey_answer_category':
-                  analyticsParams.surveyAnswerCategory || '',
-              }
-            : null,
-          !!analyticsParams?.eventLabel
-            ? {
-                'event_label': analyticsParams.eventLabel,
+                'survey_answer_category': surveyAnswerCategory,
               }
             : null
         )
