@@ -5,7 +5,7 @@
   "description": "Subscribe with Google",
   "main": "index.js",
   "engines": {
-    "node": "^16.0.0",
+    "node": "^18.0.0",
     "yarn": "^1.10.1"
   },
   "author": "Subscribe with Google Authors",
