@@ -298,7 +298,7 @@ export class AudienceActionFlow {
         isFromUserAction: true,
         additionalParameters: null,
       };
-      const eventParmas = {
+      const eventParams = {
         googleAnalyticsParameters: {
           'event_category': question.getQuestionCategory() || '',
           'survey_question': question.getQuestionText() || '',
@@ -306,7 +306,7 @@ export class AudienceActionFlow {
           'event_label': answer.getAnswerText() || '',
         },
       };
-      this.deps_.eventManager().logEvent(event, eventParmas);
+      this.deps_.eventManager().logEvent(event, eventParams);
     });
     return true;
   }
