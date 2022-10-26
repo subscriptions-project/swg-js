@@ -47,8 +47,7 @@ const PRODUCT_ID = 'scenic-2017.appspot.com:news';
 const IFRAME_URL = 'https://localhost/gsi-iframe';
 const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
 const CASL_URL = 'https://example-casl.com';
-const GOOGLE_API_CLIENT_ID =
-  '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
+const GOOGLE_API_CLIENT_ID = 'test123.apps.googleusercontent.com';
 
 /** Article metadata in ld+json form. */
 const ARTICLE_LD_JSON_METADATA = `
@@ -81,7 +80,7 @@ const ARTICLE_LD_JSON_METADATA = `
   }
 }`;
 
-const ARTICLE_LD_JSON_METADATA_FREE_ARTICLE = `
+const ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE = `
 {
   "@context": "http://schema.org",
   "@type": "NewsArticle",
@@ -111,35 +110,17 @@ const ARTICLE_LD_JSON_METADATA_FREE_ARTICLE = `
   }
 }`;
 
-const ARTICLE_LD_JSON_METADATA_NULL = `
-{
-  "@context": "http://schema.org",
-  "@type": "NewsArticle",
-  "headline": "16 Top Spots for Hiking",
-  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
-  "datePublished": "2025-02-05T08:00:00+08:00",
-  "dateModified": "2025-02-05T09:20:00+08:00",
-  "author": {
-    "@type": "Person",
-    "name": "John Doe"
-  },
-  "publisher": {
-      "name": "${PUBLISHER_NAME}",
-      "@type": "Organization",
-      "@id": "scenic-2017.appspot.com",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
-      }
-  },
-  "description": "A most wonderful article",
-  "isAccessibleForFree": null,
-  "isPartOf": {
-    "@type": ["CreativeWork", "Product"],
-    "name" : "Scenic News",
-    "productID": "${PRODUCT_ID}"
-  }
-}`;
+const ARTICLE_LD_JSON_METADATA_THAT_DOES_NOT_SAY_WHETHER_ARTICLE_IS_FREE =
+  ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE.replace(
+    '"isAccessibleForFree": true,',
+    ''
+  );
+
+const ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_NOT_FREE_VIA_NULL_VALUE =
+  ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE.replace(
+    '"isAccessibleForFree": true,',
+    '"isAccessibleForFree": null,'
+  );
 
 /** Article metadata in microdata form. */
 const ARTICLE_MICRODATA_METADATA = `
@@ -2692,7 +2673,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       self.document.head.innerHTML = `
         <script type="application/ld+json">
-          [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+          [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE}]
         </script>
       `;
 
@@ -3254,7 +3235,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+        [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE}]
       </script>
       `;
 
@@ -3786,32 +3767,71 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('isArticleFreeFromJsonLdPageConfig_', () => {
-    it('returns true for a JSON isAccessibleFree true', () => {
+    it('returns true if ld+json says the article is free', () => {
       self.document
         .querySelectorAll('script[type="application/ld+json"]')
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+        [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE}]
       </script>
       `;
 
       expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.true;
     });
 
-    it('returns false for a JSON isAccessibleFree null', () => {
+    it('returns true if ld+json says the article is free, following ld+json that does not say whether the article is free', () => {
       self.document
         .querySelectorAll('script[type="application/ld+json"]')
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_NULL}]
+        [${ARTICLE_LD_JSON_METADATA_THAT_DOES_NOT_SAY_WHETHER_ARTICLE_IS_FREE}]
+      </script>
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE}]
+      </script>
+      `;
+
+      expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.true;
+    });
+
+    it('returns false if ld+json does not say whether article is free', () => {
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_THAT_DOES_NOT_SAY_WHETHER_ARTICLE_IS_FREE}]
       </script>
       `;
 
       expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
+    });
+
+    it('returns false if ld+json says the article is not free', () => {
+      const ldJsonScriptsThatSayArticleIsNotFree = [
+        `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>`,
+        `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_NOT_FREE_VIA_NULL_VALUE}]
+      </script>`,
+      ];
+      for (const ldJsonScript of ldJsonScriptsThatSayArticleIsNotFree) {
+        self.document
+          .querySelectorAll('script[type="application/ld+json"]')
+          .forEach((e) => e.remove());
+
+        self.document.head.innerHTML = ldJsonScript;
+
+        expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
+      }
     });
   });
 
