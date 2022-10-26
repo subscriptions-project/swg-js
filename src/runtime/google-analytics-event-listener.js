@@ -66,7 +66,6 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
-    // const gaEventWithParams = Object.assign({}, gaEvent, analyticsParams);
     const analyticsParams = eventParams.googleAnalyticsParameters || {};
     gaEvent = {
       ...gaEvent,
