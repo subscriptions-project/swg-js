@@ -35,7 +35,7 @@ export function convertPotentialTimestampToSeconds(timestamp) {
   let timestampInSeconds;
   if (timestamp >= 1e14 || timestamp <= -1e14) {
     // Microseconds
-    timestampInSeconds = Math.floor(timestamp / 1000000);
+    timestampInSeconds = Math.floor(timestamp / 1e6);
   } else if (timestamp >= 1e11 || timestamp <= -3e10) {
     // Milliseconds
     timestampInSeconds = Math.floor(timestamp / 1000);
