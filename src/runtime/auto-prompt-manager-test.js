@@ -66,6 +66,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     deps = new DepsDef();
 
     sandbox.useFakeTimers(CURRENT_TIME);
+    self.ga = () => {};
     self.gtag = () => {};
     win = env.win;
     win.setTimeout = (callback) => callback();
@@ -1420,6 +1421,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for gTag', async () => {
+      self.ga = undefined;
       self.gtag = undefined;
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
