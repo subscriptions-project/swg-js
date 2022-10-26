@@ -58,7 +58,7 @@ export class GoogleAnalyticsEventListener {
         event.additionalParameters.subscriptionFlow ||
         event.additionalParameters.getSubscriptionFlow();
     }
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+    let gaEvent = analyticsEventToGoogleAnalyticsEvent(
       event.eventType,
       subscriptionFlow
     );
@@ -66,52 +66,27 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
-    const gaEventWithParams = Object.assign({}, gaEvent, analyticsParams);
+    // const gaEventWithParams = Object.assign({}, gaEvent, analyticsParams);
+    gaEvent = {
+      ...gaEvent,
+      eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
+      eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
+    };
     // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
     const ga = this.win_.ga || null;
     if (isFunction(ga)) {
-      const {eventAction, eventCategory, eventLabel, nonInteraction} =
-        gaEventWithParams;
-      ga('send', 'event', {
-        eventAction,
-        eventCategory,
-        eventLabel,
-        nonInteraction,
-      });
+      ga('send', 'event', gaEvent);
     }
 
     const gtag = this.win_.gtag || null;
     if (isFunction(gtag)) {
-      const {
-        eventAction,
-        eventCategory,
-        eventLabel,
-        nonInteraction,
-        surveyQuestion,
-        surveyAnswerCategory,
-      } = gaEventWithParams;
-      gtag(
-        'event',
-        eventAction,
-        Object.assign(
-          {},
-          {
-            'event_category': eventCategory,
-            'event_label': eventLabel,
-            'non_interaction': nonInteraction,
-          },
-          !!surveyQuestion
-            ? {
-                'survey_question': surveyQuestion,
-              }
-            : null,
-          !!surveyAnswerCategory
-            ? {
-                'survey_answer_category': surveyAnswerCategory,
-              }
-            : null
-        )
-      );
+      const gtagEvent = {
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+        ...analyticsParams,
+      };
+      gtag('event', gaEvent.eventAction, gtagEvent);
     }
   }
 }

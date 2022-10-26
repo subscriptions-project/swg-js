@@ -299,10 +299,10 @@ export class AudienceActionFlow {
         additionalParameters: null,
       };
       const analyticsParams = {
-        eventCategory: question.getQuestionCategory(),
-        surveyQuestion: question.getQuestionText(),
-        surveyAnswerCategory: answer.getAnswerCategory(),
-        eventLabel: answer.getAnswerText(),
+        'event_category': question.getQuestionCategory(),
+        'survey_question': question.getQuestionText(),
+        'survey_answer_category': answer.getAnswerCategory(),
+        'event_label': answer.getAnswerText(),
       };
       this.deps_.eventManager().logEvent(event, analyticsParams);
     });

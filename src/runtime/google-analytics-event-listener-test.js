@@ -197,10 +197,10 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       .once();
 
     const analyticsParams = {
-      eventCategory: 'TEST CATEGORY',
-      eventLabel: 'TEST LABEL',
-      surveyQuestion: 'TEST QUESTION',
-      surveyAnswerCategory: 'TEST CATEGORY',
+      'event_category': 'TEST CATEGORY',
+      'event_label': 'TEST LABEL',
+      'survey_question': 'TEST QUESTION',
+      'survey_answer_category': 'TEST CATEGORY',
     };
     eventManager.logEvent(
       {

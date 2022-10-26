@@ -83,10 +83,10 @@ export class ClientEventManagerApi {
  * properties to skip SwG logging but still be handled via callback.
  * @typedef {{
  *   googleAnalyticsParameters: ({
- *     eventCategory: string,
- *     surveyQuestion: string,
- *     surveyAnswerCategory: string,
- *     eventLabel: string,
+ *     event_category: string,
+ *     survey_question: string,
+ *     survey_answer_category: string,
+ *     event_label: string,
  *   }|undefined)
  * }}
  */

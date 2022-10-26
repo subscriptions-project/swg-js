@@ -529,10 +529,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           additionalParameters: null,
         },
         {
-          eventCategory: TEST_QUESTION_CATEGORY_1,
-          eventLabel: TEST_ANSWER_TEXT_1,
-          surveyQuestion: TEST_QUESTION_TEXT_1,
-          surveyAnswerCategory: TEST_ANSWER_CATEGORY_1,
+          'event_category': TEST_QUESTION_CATEGORY_1,
+          'event_label': TEST_ANSWER_TEXT_1,
+          'survey_question': TEST_QUESTION_TEXT_1,
+          'survey_answer_category': TEST_ANSWER_CATEGORY_1,
         }
       )
       .once();
@@ -546,10 +546,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           additionalParameters: null,
         },
         {
-          eventCategory: TEST_QUESTION_CATEGORY_2,
-          eventLabel: TEST_ANSWER_TEXT_2,
-          surveyQuestion: TEST_QUESTION_TEXT_2,
-          surveyAnswerCategory: TEST_ANSWER_CATEGORY_2,
+          'event_category': TEST_QUESTION_CATEGORY_2,
+          'event_label': TEST_ANSWER_TEXT_2,
+          'survey_question': TEST_QUESTION_TEXT_2,
+          'survey_answer_category': TEST_ANSWER_CATEGORY_2,
         }
       )
       .once();
