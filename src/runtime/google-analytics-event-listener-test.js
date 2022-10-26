@@ -196,18 +196,20 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       })
       .once();
 
-    const analyticsParams = {
-      'event_category': 'TEST CATEGORY',
-      'event_label': 'TEST LABEL',
-      'survey_question': 'TEST QUESTION',
-      'survey_answer_category': 'TEST CATEGORY',
+    const eventParams = {
+      googleAnalyticsParameters: {
+        'event_category': 'TEST CATEGORY',
+        'event_label': 'TEST LABEL',
+        'survey_question': 'TEST QUESTION',
+        'survey_answer_category': 'TEST CATEGORY',
+      },
     };
     eventManager.logEvent(
       {
         eventType: AnalyticsEvent.IMPRESSION_OFFERS,
         eventOriginator: EventOriginator.SWG_CLIENT,
       },
-      analyticsParams
+      eventParams
     );
     await eventManager.lastAction_;
   });
