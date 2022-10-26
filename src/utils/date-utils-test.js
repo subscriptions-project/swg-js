@@ -22,6 +22,7 @@ import {
 
 const EXAMPLE_TIME_IN_SECONDS = 1666817992;
 const EXAMPLE_TIME_IN_MILLISECONDS = 1666817992918;
+const EXAMPLE_TIME_IN_MILLISECONDS_CONVERTED_FROM_SECONDS = 1666817992000;
 const EXAMPLE_TIME_IN_MICROSECONDS = 1666817992918291;
 
 /**
@@ -69,23 +70,18 @@ describe('convertPotentialTimestampToSeconds', () => {
 
 describe('convertPotentialTimestampToMilliseconds', () => {
   it('converts seconds to milliseconds ', () => {
-    const nowInSeconds = Math.floor(Date.now() * 1000);
-    const nowInMilliseconds = Date.now();
-    expect(convertPotentialTimestampToMilliseconds(nowInSeconds)).to.equal(
-      nowInMilliseconds
-    );
+    expect(
+      convertPotentialTimestampToMilliseconds(EXAMPLE_TIME_IN_SECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_MILLISECONDS_CONVERTED_FROM_SECONDS);
   });
-  it('returns seconds if seconds are provided', () => {
-    const nowInMilliseconds = Date.now();
-    expect(convertPotentialTimestampToMilliseconds(nowInMilliseconds)).to.equal(
-      nowInMilliseconds
-    );
+  it('returns milliseconds if milliseconds are provided', () => {
+    expect(
+      convertPotentialTimestampToMilliseconds(EXAMPLE_TIME_IN_MILLISECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_MILLISECONDS);
   });
   it('converts microseconds to milliseconds', () => {
-    const nowInMicroseconds = Date.now() * 1000;
-    const nowInMilliseconds = Math.floor(nowInMicroseconds / 1000);
-    expect(convertPotentialTimestampToMilliseconds(nowInMicroseconds)).to.equal(
-      nowInMilliseconds
-    );
+    expect(
+      convertPotentialTimestampToMilliseconds(EXAMPLE_TIME_IN_MICROSECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_MILLISECONDS);
   });
 });

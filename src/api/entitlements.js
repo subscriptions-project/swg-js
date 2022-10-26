@@ -384,8 +384,6 @@ export class Entitlement {
     const products = json['products'] || [];
     const subscriptionToken = json['subscriptionToken'];
     let subscriptionTokenContents;
-    const timestampJson = json['subscriptionTimestamp'];
-    let subscriptionTimestamp;
     try {
       subscriptionTokenContents = subscriptionToken
         ? jwtHelper.decode(subscriptionToken)
@@ -393,6 +391,9 @@ export class Entitlement {
     } catch (e) {
       subscriptionTokenContents = null;
     }
+
+    const timestampJson = json['subscriptionTimestamp'];
+    let subscriptionTimestamp;
     try {
       subscriptionTimestamp = new Timestamp(
         [timestampJson.seconds_, timestampJson.nanos_],
