@@ -66,7 +66,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     deps = new DepsDef();
 
     sandbox.useFakeTimers(CURRENT_TIME);
-    win = Object.assign({}, env.win, {gtag: () => {}});
+    self.gtag = () => {};
+    win = env.win;
     win.setTimeout = (callback) => callback();
     sandbox.stub(deps, 'win').returns(win);
 
@@ -121,13 +122,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     storageMock.verify();
     miniPromptApiMock.verify();
   });
-
-  function setWinWithoutGtag() {
-    const winWithNoGtag = Object.assign({}, win);
-    delete winWithNoGtag.gtag;
-    autoPromptManager.deps_.win.restore();
-    sandbox.stub(autoPromptManager.deps_, 'win').returns(winWithNoGtag);
-  }
 
   it('returns an instance of MiniPromptApi from getMiniPromptApi', () => {
     const miniPromptApi = autoPromptManager.getMiniPromptApi(deps);
@@ -1426,7 +1420,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for gTag', async () => {
-      setWinWithoutGtag();
+      self.gtag = undefined;
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
       setupPreviousImpressionAndDismissals(

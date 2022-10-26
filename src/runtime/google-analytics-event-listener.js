@@ -15,6 +15,7 @@
  */
 
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
+import {isFunction} from '../utils/types';
 
 export class GoogleAnalyticsEventListener {
   /**
@@ -76,5 +77,21 @@ export class GoogleAnalyticsEventListener {
         'non_interaction': gaEvent.nonInteraction,
       });
     }
+  }
+
+  /**
+   * Function to determine whether publisher is eligible for GA.
+   * @returns {boolean}
+   */
+  static isGaEligible() {
+    return isFunction(self.ga || null);
+  }
+
+  /**
+   * Function to determine whether publisher is eligible for gTag.
+   * @returns {boolean}
+   */
+  static isGtagEligible() {
+    return isFunction(self.gtag || null);
   }
 }

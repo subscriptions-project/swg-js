@@ -34,6 +34,8 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
 
   beforeEach(() => {
     sandbox.stub(self.console, 'log');
+    self.ga = () => {};
+    self.gtag = () => {};
   });
 
   afterEach(() => {
@@ -258,6 +260,18 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       eventOriginator: EventOriginator.SWG_CLIENT,
     });
     await eventManager.lastAction_;
+  });
+
+  it('Should be ga and gtag eligible', async () => {
+    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.true;
+    expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.true;
+  });
+
+  it('Should be ga and gtag ineligible without valid ga nor gtag', async () => {
+    self.ga = undefined;
+    self.gtag = undefined;
+    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.false;
+    expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.false;
   });
 
   function expectEventLoggedToGa(gaEvent) {

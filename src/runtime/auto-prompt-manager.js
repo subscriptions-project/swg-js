@@ -18,10 +18,10 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ExperimentFlags} from './experiment-flags';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
-import {isFunction} from '../utils/types';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
@@ -694,7 +694,10 @@ export class AutoPromptManager {
    */
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
-      return isFunction(this.deps_ || null);
+      return (
+        GoogleAnalyticsEventListener.isGaEligible() ||
+        GoogleAnalyticsEventListener.isGtagEligible()
+      );
     }
     return true;
   }
