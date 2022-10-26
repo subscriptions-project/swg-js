@@ -57,7 +57,7 @@ describe('convertPotentialTimestampToSeconds', () => {
   });
   it('converts microseconds to seconds', () => {
     const nowInMicroseconds = Date.now() * 1000;
-    const nowInSeconds = Math.floor(nowInMicroseconds / 100000);
+    const nowInSeconds = Math.floor(nowInMicroseconds / 1000000);
     expect(convertPotentialTimestampToSeconds(nowInMicroseconds)).to.equal(
       nowInSeconds
     );
