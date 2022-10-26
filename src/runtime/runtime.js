@@ -1170,15 +1170,12 @@ export class ConfiguredRuntime {
     params.setIsUserRegistered(entitlement.isUserRegistered);
 
     for (let i = 0; i < eventsToLog.length; i++) {
-      this.eventManager().logEvent(
-        {
-          eventType: eventsToLog[i],
-          eventOriginator: EventOriginator.SHOWCASE_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: params,
-        },
-        /* eventParams */ {}
-      );
+      this.eventManager().logEvent({
+        eventType: eventsToLog[i],
+        eventOriginator: EventOriginator.SHOWCASE_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: params,
+      });
     }
 
     return Promise.resolve();

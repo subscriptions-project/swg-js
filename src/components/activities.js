@@ -173,17 +173,12 @@ export class ActivityIframePort {
       if (this.deps_ && this.deps_.eventManager()) {
         this.on(AnalyticsRequest, (request) => {
           const analyticsRequest = /** @type {AnalyticsRequest} */ (request);
-          this.deps_.eventManager().logEvent(
-            {
-              eventType: analyticsRequest.getEvent(),
-              eventOriginator: EventOriginator.SWG_SERVER,
-              isFromUserAction: analyticsRequest
-                .getMeta()
-                .getIsFromUserAction(),
-              additionalParameters: analyticsRequest.getParams(),
-            },
-            /* eventParams */ {}
-          );
+          this.deps_.eventManager().logEvent({
+            eventType: analyticsRequest.getEvent(),
+            eventOriginator: EventOriginator.SWG_SERVER,
+            isFromUserAction: analyticsRequest.getMeta().getIsFromUserAction(),
+            additionalParameters: analyticsRequest.getParams(),
+          });
         });
       }
     });

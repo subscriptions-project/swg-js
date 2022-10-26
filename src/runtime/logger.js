@@ -52,18 +52,15 @@ export class Logger {
     if (jsonProducts) {
       productsOrSkus = JSON.stringify(jsonProducts);
     }
-    this.eventManager_.logEvent(
-      {
-        eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
-        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: {
-          state,
-          productsOrSkus,
-        },
+    this.eventManager_.logEvent({
+      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_STATE,
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: {
+        state,
+        productsOrSkus,
       },
-      /* eventParams */ {}
-    );
+    });
   }
 
   /** @override */
@@ -92,14 +89,11 @@ export class Logger {
     } else if (userEvent.active != null) {
       throw new Error('Event active must be a boolean');
     }
-    this.eventManager_.logEvent(
-      {
-        eventType: publisherEventToAnalyticsEvent(userEvent.name),
-        eventOriginator: EventOriginator.PUBLISHER_CLIENT,
-        isFromUserAction: userEvent.active,
-        additionalParameters: data,
-      },
-      /* eventParams */ {}
-    );
+    this.eventManager_.logEvent({
+      eventType: publisherEventToAnalyticsEvent(userEvent.name),
+      eventOriginator: EventOriginator.PUBLISHER_CLIENT,
+      isFromUserAction: userEvent.active,
+      additionalParameters: data,
+    });
   }
 }

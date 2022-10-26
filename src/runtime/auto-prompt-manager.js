@@ -504,18 +504,15 @@ export class AutoPromptManager {
    * @param {AutoPromptType|undefined} overriddenPromptType
    */
   logDisableMinipromptEvent_(overriddenPromptType) {
-    this.eventManager_.logEvent(
-      {
-        eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: {
-          publicationid: this.pageConfig_.getPublicationId(),
-          promptType: overriddenPromptType,
-        },
+    this.eventManager_.logEvent({
+      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: {
+        publicationid: this.pageConfig_.getPublicationId(),
+        promptType: overriddenPromptType,
       },
-      /* eventParams */ {}
-    );
+    });
   }
 
   /**

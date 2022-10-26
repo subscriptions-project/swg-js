@@ -86,7 +86,7 @@ export class ClientEventManager {
    * @param {!Promise} configuredPromise
    */
   constructor(configuredPromise) {
-    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, ?../api/client-event-manager-api.ClientEventParams)>} */
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, (!../api/client-event-manager-api.ClientEventParams|undefined))>} */
     this.listeners_ = [];
 
     /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!FilterResult>} */
@@ -122,9 +122,9 @@ export class ClientEventManager {
   /**
    * @overrides
    * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {?../api/client-event-manager-api.ClientEventParams} eventParams
+   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
-  logEvent(event, eventParams) {
+  logEvent(event, eventParams = undefined) {
     validateEvent(event);
     this.lastAction_ = this.isReadyPromise_.then(() => {
       for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
@@ -154,15 +154,12 @@ export class ClientEventManager {
    * @param {../proto/api_messages.EventParams=} eventParams
    */
   logSwgEvent(eventType, isFromUserAction = false, eventParams = null) {
-    this.logEvent(
-      {
-        eventType,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction,
-        additionalParameters: eventParams,
-      },
-      /* eventParams */ {}
-    );
+    this.logEvent({
+      eventType,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction,
+      additionalParameters: eventParams,
+    });
   }
 
   /** @return {!Promise<null>} */
