@@ -300,10 +300,10 @@ export class AudienceActionFlow {
       };
       const eventParmas = {
         googleAnalyticsParameters: {
-          'event_category': question.getQuestionCategory(),
-          'survey_question': question.getQuestionText(),
-          'survey_answer_category': answer.getAnswerCategory(),
-          'event_label': answer.getAnswerText(),
+          'event_category': question.getQuestionCategory() || '',
+          'survey_question': question.getQuestionText() || '',
+          'survey_answer_category': answer.getAnswerCategory() || '',
+          'event_label': answer.getAnswerText() || '',
         },
       };
       this.deps_.eventManager().logEvent(event, eventParmas);
