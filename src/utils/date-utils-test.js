@@ -20,6 +20,10 @@ import {
   toTimestamp,
 } from './date-utils';
 
+const EXAMPLE_TIME_IN_SECONDS = 1666817992;
+const EXAMPLE_TIME_IN_MILLISECONDS = 1666817992918;
+const EXAMPLE_TIME_IN_MICROSECONDS = 1666817992918291;
+
 /**
  *
  * @param {*} val
@@ -47,24 +51,19 @@ describe('toTimestamp', () => {
 
 describe('convertPotentialTimestampToSeconds', () => {
   it('returns seconds if seconds are provided', () => {
-    const nowInSeconds = Math.floor(Date.now() / 1000);
-    expect(convertPotentialTimestampToSeconds(nowInSeconds)).to.equal(
-      nowInSeconds
-    );
+    expect(
+      convertPotentialTimestampToSeconds(EXAMPLE_TIME_IN_SECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_SECONDS);
   });
   it('converts milliseconds to seconds', () => {
-    const nowInMilliseconds = Date.now();
-    const nowInSeconds = Math.floor(nowInMilliseconds / 1000);
-    expect(convertPotentialTimestampToSeconds(nowInMilliseconds)).to.equal(
-      nowInSeconds
-    );
+    expect(
+      convertPotentialTimestampToSeconds(EXAMPLE_TIME_IN_MILLISECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_SECONDS);
   });
   it('converts microseconds to seconds', () => {
-    const nowInMicroseconds = Date.now() * 1000;
-    const nowInSeconds = Math.floor(nowInMicroseconds / 100000);
-    expect(convertPotentialTimestampToSeconds(nowInMicroseconds)).to.equal(
-      nowInSeconds
-    );
+    expect(
+      convertPotentialTimestampToSeconds(EXAMPLE_TIME_IN_MICROSECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_SECONDS);
   });
 });
 
