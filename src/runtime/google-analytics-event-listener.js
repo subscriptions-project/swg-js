@@ -41,9 +41,9 @@ export class GoogleAnalyticsEventListener {
   /**
    *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
    * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} analyticsParams
+   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
-  handleClientEvent_(event, analyticsParams = undefined) {
+  handleClientEvent_(event, eventParams = undefined) {
     // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
     if (
       typeof this.win_.ga !== 'function' &&
@@ -67,6 +67,7 @@ export class GoogleAnalyticsEventListener {
     }
 
     // const gaEventWithParams = Object.assign({}, gaEvent, analyticsParams);
+    const analyticsParams = eventParams.googleAnalyticsParameters || {};
     gaEvent = {
       ...gaEvent,
       eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
