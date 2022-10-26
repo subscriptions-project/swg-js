@@ -233,7 +233,7 @@ export class BasicRuntime {
     });
     this.setOnLoginRequest();
     this.processEntitlements();
-    // this.processEntitlements();
+    this.processEntitlements();
   }
 
   /** @override */
