@@ -136,7 +136,10 @@ export class MeterToastApi {
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      feUrl(iframeUrl, {'origin': parseUrl(this.win_.location.href).origin}),
+      feUrl(iframeUrl, {
+        'origin': parseUrl(this.win_.location.href).origin,
+        'hl': this.deps_.clientConfigManager().getLanguage(),
+      }),
       iframeArgs,
       /* shouldFadeBody */ false
     );

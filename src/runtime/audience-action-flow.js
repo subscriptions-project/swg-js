@@ -102,6 +102,7 @@ export class AudienceActionFlow {
       deps.activities(),
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
+        'hl': this.clientConfigManager_.getLanguage(),
       }),
       feArgs({
         'supportsEventManager': true,

@@ -27,6 +27,7 @@ import {
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
 import {DepsDef} from './deps';
@@ -120,6 +121,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .stub(analyticsService, 'getContext')
       .returns(new AnalyticsContext());
     sandbox.stub(deps, 'analytics').returns(analyticsService);
+    const clientConfigManager = new ClientConfigManager(deps);
+    sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);

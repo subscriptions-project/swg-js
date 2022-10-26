@@ -45,12 +45,20 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let messageMap;
   let onCancelSpy;
   let dialogManagerMock;
+  let clientOptions;
 
   beforeEach(() => {
     win = env.win;
     messageMap = {};
     pageConfig = new PageConfig('pub1:label1');
-    runtime = new ConfiguredRuntime(win, pageConfig);
+    clientOptions = {};
+    runtime = new ConfiguredRuntime(
+      win,
+      pageConfig,
+      /* integr */ undefined,
+      /* config */ undefined,
+      clientOptions
+    );
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
@@ -90,7 +98,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
           `$frontend$/swg/_/ui/v1/${path}?_=_&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
-          )}`,
+          )}&hl=en`,
           {
             _client: 'SwG $internalRuntimeVersion$',
             productType: ProductType.SUBSCRIPTION,
@@ -104,6 +112,35 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       activitiesMock.verify();
       expect(onCancelSpy).to.not.be.called;
     });
+  });
+
+  it('opens an AudienceActionFlow with query param locale set to client configuration language', async () => {
+    clientOptions.lang = 'pt-BR';
+    sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        `$frontend$/swg/_/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
+          WINDOW_LOCATION_DOMAIN
+        )}&hl=pt-BR`,
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          productType: ProductType.SUBSCRIPTION,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+
+    await audienceActionFlow.start();
+
+    activitiesMock.verify();
+    expect(onCancelSpy).to.not.be.called;
   });
 
   it('calls the onCancel when an AudienceActionFlow is cancelled and one it provided', async () => {
