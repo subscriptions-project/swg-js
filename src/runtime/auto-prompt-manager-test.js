@@ -1420,7 +1420,71 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
 
-    it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for gTag', async () => {
+    it('should show survey if TYPE_REWARDED_SURVEY is next and is ga eligible but not gtag eligible', async () => {
+      self.gtag = undefined;
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(
+        storedImpressions,
+        storedDismissals,
+        AutoPromptType.CONTRIBUTION,
+        2
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REWARDED_SURVEY'
+      );
+      await verifyOnCancelStores('contribution,TYPE_REWARDED_SURVEY');
+    });
+
+    it('should show survey if TYPE_REWARDED_SURVEY is next and is gtag eligible but not ga eligible', async () => {
+      self.ga = undefined;
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(
+        storedImpressions,
+        storedDismissals,
+        AutoPromptType.CONTRIBUTION,
+        2
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REWARDED_SURVEY'
+      );
+      await verifyOnCancelStores('contribution,TYPE_REWARDED_SURVEY');
+    });
+
+    it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for ga nor gTag', async () => {
       self.ga = undefined;
       self.gtag = undefined;
       const storedImpressions = (CURRENT_TIME - 5).toString();
