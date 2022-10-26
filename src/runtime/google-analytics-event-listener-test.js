@@ -262,15 +262,29 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should be ga and gtag eligible', async () => {
+  it('Should be ga eligible', async () => {
     expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.true;
+    self.gtag = undefined;
+    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.true;
+  });
+
+  it('Should be ga ineligible without valid ga', async () => {
+    self.ga = undefined;
+    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.false;
+    self.gtag = undefined;
+    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.false;
+  });
+
+  it('Should be gtag eligible', async () => {
+    expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.true;
+    self.ga = undefined;
     expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.true;
   });
 
-  it('Should be ga and gtag ineligible without valid ga nor gtag', async () => {
-    self.ga = undefined;
+  it('Should be gtag ineligible without valid gtag', async () => {
     self.gtag = undefined;
-    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.false;
+    expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.false;
+    self.ga = undefined;
     expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.false;
   });
 
