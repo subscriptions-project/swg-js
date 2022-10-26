@@ -21,7 +21,7 @@ import {ExperimentFlags} from './experiment-flags';
 import {MiniPromptApi} from './mini-prompt-api';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
-import {isGtagEligible} from '../utils/action-utils';
+import {isFunction} from '../utils/types';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
@@ -694,7 +694,7 @@ export class AutoPromptManager {
    */
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
-      return isGtagEligible(this.deps_);
+      return isFunction(this.deps_ || null);
     }
     return true;
   }
