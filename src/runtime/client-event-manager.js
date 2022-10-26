@@ -86,7 +86,7 @@ export class ClientEventManager {
    * @param {!Promise} configuredPromise
    */
   constructor(configuredPromise) {
-    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, (!../api/client-event-manager-api.ClientEventParams|undefined))>} */
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, (!../api/client-event-manager-api.ClientEventParams|undefined)=)>} */
     this.listeners_ = [];
 
     /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!FilterResult>} */

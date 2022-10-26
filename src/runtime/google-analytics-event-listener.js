@@ -66,7 +66,7 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
-    const analyticsParams = eventParams.googleAnalyticsParameters || {};
+    const analyticsParams = eventParams?.googleAnalyticsParameters || {};
     gaEvent = {
       ...gaEvent,
       eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
