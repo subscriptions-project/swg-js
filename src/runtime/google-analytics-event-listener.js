@@ -80,7 +80,7 @@ export class GoogleAnalyticsEventListener {
   }
 
   /**
-   * Function to determine whether publisher is eligible for GA.
+   * Function to determine whether event is eligible for GA logging.
    * @returns {boolean}
    */
   static isGaEligible() {
@@ -88,7 +88,7 @@ export class GoogleAnalyticsEventListener {
   }
 
   /**
-   * Function to determine whether publisher is eligible for gTag.
+   * Function to determine whether event is eligible for gTag logging.
    * @returns {boolean}
    */
   static isGtagEligible() {
