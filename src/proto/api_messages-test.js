@@ -1459,6 +1459,205 @@ describe('SurveyQuestion', () => {
   });
 });
 
+describe('SurveyAnswer', () => {
+  it('should deserialize correctly', () => {
+    const /** !SurveyAnswer  */ surveyanswer = new SurveyAnswer();
+    surveyanswer.setAnswerId(0);
+    surveyanswer.setAnswerText('');
+    surveyanswer.setAnswerCategory('');
+
+    let surveyanswerDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    surveyanswerDeserialized = deserialize(
+        surveyanswer.toArray(undefined));
+    expect(surveyanswerDeserialized.toArray(undefined)).to.deep.equal(
+        surveyanswer.toArray(undefined));
+
+    // Verify fields.
+    expect(surveyanswerDeserialized.getAnswerId()).to.deep.equal(
+        surveyanswer.getAnswerId());
+    expect(surveyanswerDeserialized.getAnswerText()).to.deep.equal(
+        surveyanswer.getAnswerText());
+    expect(surveyanswerDeserialized.getAnswerCategory()).to.deep.equal(
+        surveyanswer.getAnswerCategory());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    surveyanswerDeserialized = deserialize(
+        surveyanswer.toArray(true));
+    expect(surveyanswerDeserialized.toArray(true)).to.deep.equal(
+        surveyanswer.toArray(true));
+
+    // Verify fields.
+    expect(surveyanswerDeserialized.getAnswerId()).to.deep.equal(
+        surveyanswer.getAnswerId());
+    expect(surveyanswerDeserialized.getAnswerText()).to.deep.equal(
+        surveyanswer.getAnswerText());
+    expect(surveyanswerDeserialized.getAnswerCategory()).to.deep.equal(
+        surveyanswer.getAnswerCategory());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    surveyanswerDeserialized = new SurveyAnswer(surveyanswer.toArray(false), false);
+    expect(surveyanswerDeserialized.toArray(false)).to.deep.equal(
+        surveyanswer.toArray(false));
+
+    // Verify fields.
+    expect(surveyanswerDeserialized.getAnswerId()).to.deep.equal(
+        surveyanswer.getAnswerId());
+    expect(surveyanswerDeserialized.getAnswerText()).to.deep.equal(
+        surveyanswer.getAnswerText());
+    expect(surveyanswerDeserialized.getAnswerCategory()).to.deep.equal(
+        surveyanswer.getAnswerCategory());
+  });
+});
+
+describe('SurveyDataTransferRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !SurveyDataTransferRequest  */ surveydatatransferrequest = new SurveyDataTransferRequest();
+    surveydatatransferrequest.setSurveyQuestionsList([]);
+
+    let surveydatatransferrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    surveydatatransferrequestDeserialized = deserialize(
+        surveydatatransferrequest.toArray(undefined));
+    expect(surveydatatransferrequestDeserialized.toArray(undefined)).to.deep.equal(
+        surveydatatransferrequest.toArray(undefined));
+
+    // Verify fields.
+    expect(surveydatatransferrequestDeserialized.getSurveyQuestionsList()).to.deep.equal(
+        surveydatatransferrequest.getSurveyQuestionsList());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    surveydatatransferrequestDeserialized = deserialize(
+        surveydatatransferrequest.toArray(true));
+    expect(surveydatatransferrequestDeserialized.toArray(true)).to.deep.equal(
+        surveydatatransferrequest.toArray(true));
+
+    // Verify fields.
+    expect(surveydatatransferrequestDeserialized.getSurveyQuestionsList()).to.deep.equal(
+        surveydatatransferrequest.getSurveyQuestionsList());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    surveydatatransferrequestDeserialized = new SurveyDataTransferRequest(surveydatatransferrequest.toArray(false), false);
+    expect(surveydatatransferrequestDeserialized.toArray(false)).to.deep.equal(
+        surveydatatransferrequest.toArray(false));
+
+    // Verify fields.
+    expect(surveydatatransferrequestDeserialized.getSurveyQuestionsList()).to.deep.equal(
+        surveydatatransferrequest.getSurveyQuestionsList());
+  });
+});
+
+describe('SurveyDataTransferResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !SurveyDataTransferResponse  */ surveydatatransferresponse = new SurveyDataTransferResponse();
+    surveydatatransferresponse.setSuccess(false);
+
+    let surveydatatransferresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    surveydatatransferresponseDeserialized = deserialize(
+        surveydatatransferresponse.toArray(undefined));
+    expect(surveydatatransferresponseDeserialized.toArray(undefined)).to.deep.equal(
+        surveydatatransferresponse.toArray(undefined));
+
+    // Verify fields.
+    expect(surveydatatransferresponseDeserialized.getSuccess()).to.deep.equal(
+        surveydatatransferresponse.getSuccess());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    surveydatatransferresponseDeserialized = deserialize(
+        surveydatatransferresponse.toArray(true));
+    expect(surveydatatransferresponseDeserialized.toArray(true)).to.deep.equal(
+        surveydatatransferresponse.toArray(true));
+
+    // Verify fields.
+    expect(surveydatatransferresponseDeserialized.getSuccess()).to.deep.equal(
+        surveydatatransferresponse.getSuccess());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    surveydatatransferresponseDeserialized = new SurveyDataTransferResponse(surveydatatransferresponse.toArray(false), false);
+    expect(surveydatatransferresponseDeserialized.toArray(false)).to.deep.equal(
+        surveydatatransferresponse.toArray(false));
+
+    // Verify fields.
+    expect(surveydatatransferresponseDeserialized.getSuccess()).to.deep.equal(
+        surveydatatransferresponse.getSuccess());
+  });
+});
+
+describe('SurveyQuestion', () => {
+  it('should deserialize correctly', () => {
+    const /** !SurveyQuestion  */ surveyquestion = new SurveyQuestion();
+    surveyquestion.setQuestionId(0);
+    surveyquestion.setQuestionText('');
+    surveyquestion.setQuestionCategory('');
+    surveyquestion.setSurveyAnswersList([]);
+
+    let surveyquestionDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    surveyquestionDeserialized = deserialize(
+        surveyquestion.toArray(undefined));
+    expect(surveyquestionDeserialized.toArray(undefined)).to.deep.equal(
+        surveyquestion.toArray(undefined));
+
+    // Verify fields.
+    expect(surveyquestionDeserialized.getQuestionId()).to.deep.equal(
+        surveyquestion.getQuestionId());
+    expect(surveyquestionDeserialized.getQuestionText()).to.deep.equal(
+        surveyquestion.getQuestionText());
+    expect(surveyquestionDeserialized.getQuestionCategory()).to.deep.equal(
+        surveyquestion.getQuestionCategory());
+    expect(surveyquestionDeserialized.getSurveyAnswersList()).to.deep.equal(
+        surveyquestion.getSurveyAnswersList());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    surveyquestionDeserialized = deserialize(
+        surveyquestion.toArray(true));
+    expect(surveyquestionDeserialized.toArray(true)).to.deep.equal(
+        surveyquestion.toArray(true));
+
+    // Verify fields.
+    expect(surveyquestionDeserialized.getQuestionId()).to.deep.equal(
+        surveyquestion.getQuestionId());
+    expect(surveyquestionDeserialized.getQuestionText()).to.deep.equal(
+        surveyquestion.getQuestionText());
+    expect(surveyquestionDeserialized.getQuestionCategory()).to.deep.equal(
+        surveyquestion.getQuestionCategory());
+    expect(surveyquestionDeserialized.getSurveyAnswersList()).to.deep.equal(
+        surveyquestion.getSurveyAnswersList());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    surveyquestionDeserialized = new SurveyQuestion(surveyquestion.toArray(false), false);
+    expect(surveyquestionDeserialized.toArray(false)).to.deep.equal(
+        surveyquestion.toArray(false));
+
+    // Verify fields.
+    expect(surveyquestionDeserialized.getQuestionId()).to.deep.equal(
+        surveyquestion.getQuestionId());
+    expect(surveyquestionDeserialized.getQuestionText()).to.deep.equal(
+        surveyquestion.getQuestionText());
+    expect(surveyquestionDeserialized.getQuestionCategory()).to.deep.equal(
+        surveyquestion.getQuestionCategory());
+    expect(surveyquestionDeserialized.getSurveyAnswersList()).to.deep.equal(
+        surveyquestion.getSurveyAnswersList());
+  });
+});
+
 describe('Timestamp', () => {
   it('should deserialize correctly', () => {
     const /** !Timestamp  */ timestamp1 = new Timestamp();

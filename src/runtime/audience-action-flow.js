@@ -29,6 +29,8 @@ import {
   AlreadySubscribedResponse,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {Constants} from '../utils/constants';
@@ -100,6 +102,7 @@ export class AudienceActionFlow {
       deps.activities(),
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
+        'hl': this.clientConfigManager_.getLanguage(),
       }),
       feArgs({
         'supportsEventManager': true,
@@ -121,6 +124,10 @@ export class AudienceActionFlow {
 
     this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
       this.handleCompleteAudienceActionResponse_(response)
+    );
+
+    this.activityIframeView_.on(SurveyDataTransferRequest, (request) =>
+      this.handleSurveyDataTransferRequest_(request)
     );
 
     this.activityIframeView_.on(
@@ -146,7 +153,8 @@ export class AudienceActionFlow {
    * On a successful response from the dialog, we should:
    * 1) Store the updated user token
    * 2) Clear existing entitlements from the page
-   * 3) Re-fetch entitlements which may potentially provide access to the page
+   * 3) Update READ_TIME in local storage to indicate that entitlements may have changed recently
+   * 4) Re-fetch entitlements which may potentially provide access to the page
    * @param {CompleteAudienceActionResponse} response
    * @private
    */
@@ -164,6 +172,10 @@ export class AudienceActionFlow {
     } else {
       this.showFailedOptedInToast_();
     }
+    const now = Date.now().toString();
+    this.deps_
+      .storage()
+      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
   }
 
@@ -246,6 +258,19 @@ export class AudienceActionFlow {
     if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
+  }
+
+  /**
+   * @param {SurveyDataTransferRequest} request
+   * @private
+   */
+  // eslint-disable-next-line no-unused-vars
+  handleSurveyDataTransferRequest_(request) {
+    // @TODO(justinchou): execute callback with setOnInterventionComplete
+    // and Google Analytics, then check for success
+    const surveyDataTransferResponse = new SurveyDataTransferResponse();
+    surveyDataTransferResponse.setSuccess(true);
+    this.activityIframeView_.execute(surveyDataTransferResponse);
   }
 
   /**

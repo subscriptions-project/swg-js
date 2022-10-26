@@ -936,6 +936,34 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       audienceActionFlowMock.verify();
     });
 
+    it('should handle an empty EntitlementsResponse with no active flow', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      let toast;
+      const toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
+
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+
+      expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
+      expect(toast.src_).to.contain('flavor=custom');
+      expect(toast.src_).to.contain(
+        `customText=${encodeURIComponent('No membership found')}`
+      );
+    });
+
     it('should pass getEntitlemnts to fetchClientConfig if useArticleEndpoint is enabled', () => {
       setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT, true);
       const entitlements = new Entitlements('foo.service');

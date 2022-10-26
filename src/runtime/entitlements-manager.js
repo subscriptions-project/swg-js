@@ -838,16 +838,24 @@ export class EntitlementsManager {
     // Get swgUserToken from local storage
     const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
 
+    // Get read_time from session storage
+    const readTimePromise = this.storage_.get(
+      Constants.READ_TIME,
+      /*useLocalStorage=*/ false
+    );
+
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
 
     return Promise.all([
       hash(getCanonicalUrl(this.deps_.doc())),
       swgUserTokenPromise,
+      readTimePromise,
     ])
       .then((values) => {
         const hashedCanonicalUrl = values[0];
         const swgUserToken = values[1];
+        const readTime = values[2];
 
         url = addDevModeParamsToUrl(this.win_.location, url);
 
@@ -875,6 +883,21 @@ export class EntitlementsManager {
           params.publisherProvidedId.length > 0
         ) {
           url = addQueryParam(url, 'ppid', params.publisherProvidedId);
+        }
+
+        // Add interaction_age param.
+        if (readTime) {
+          const last = parseInt(readTime, 10);
+          if (last) {
+            const interactionAge = Math.floor((Date.now() - last) / 1000);
+            if (interactionAge >= 0) {
+              url = addQueryParam(
+                url,
+                'interaction_age',
+                interactionAge.toString()
+              );
+            }
+          }
         }
 
         /** @type {!GetEntitlementsParamsInternalDef|undefined} */

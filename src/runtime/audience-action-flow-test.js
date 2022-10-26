@@ -19,6 +19,8 @@ import {
   AlreadySubscribedResponse,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
@@ -29,6 +31,8 @@ import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
+const CURRENT_TIME = 1615416442000;
+const EXPECTED_TIME_STRING = '1615416442000';
 
 describes.realWin('AudienceActionFlow', {}, (env) => {
   let win;
@@ -38,16 +42,23 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let storageMock;
   let pageConfig;
   let port;
-  let messageCallback;
   let messageMap;
   let onCancelSpy;
   let dialogManagerMock;
+  let clientOptions;
 
   beforeEach(() => {
     win = env.win;
     messageMap = {};
     pageConfig = new PageConfig('pub1:label1');
-    runtime = new ConfiguredRuntime(win, pageConfig);
+    clientOptions = {};
+    runtime = new ConfiguredRuntime(
+      win,
+      pageConfig,
+      /* integr */ undefined,
+      /* config */ undefined,
+      clientOptions
+    );
     activitiesMock = sandbox.mock(runtime.activities());
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
@@ -66,6 +77,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       document: win.document,
     });
     onCancelSpy = sandbox.spy();
+    sandbox.useFakeTimers(CURRENT_TIME);
   });
 
   [
@@ -86,7 +98,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
           `$frontend$/swg/_/ui/v1/${path}?_=_&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
-          )}`,
+          )}&hl=en`,
           {
             _client: 'SwG $internalRuntimeVersion$',
             productType: ProductType.SUBSCRIPTION,
@@ -100,6 +112,35 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       activitiesMock.verify();
       expect(onCancelSpy).to.not.be.called;
     });
+  });
+
+  it('opens an AudienceActionFlow with query param locale set to client configuration language', async () => {
+    clientOptions.lang = 'pt-BR';
+    sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        `$frontend$/swg/_/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
+          WINDOW_LOCATION_DOMAIN
+        )}&hl=pt-BR`,
+        {
+          _client: 'SwG $internalRuntimeVersion$',
+          productType: ProductType.SUBSCRIPTION,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+
+    await audienceActionFlow.start();
+
+    activitiesMock.verify();
+    expect(onCancelSpy).to.not.be.called;
   });
 
   it('calls the onCancel when an AudienceActionFlow is cancelled and one it provided', async () => {
@@ -132,6 +173,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     storageMock
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -172,6 +217,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
       .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
 
     let toast;
     const toastOpenStub = sandbox
@@ -211,6 +260,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
       .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
 
     let toast;
     const toastOpenStub = sandbox
@@ -247,6 +300,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     storageMock
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -288,6 +345,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
       .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
 
     let toast;
     const toastOpenStub = sandbox
@@ -325,6 +386,10 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     storageMock
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -365,7 +430,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     await audienceActionFlow.start();
     const response = new AlreadySubscribedResponse();
     response.setSubscriberOrMember(true);
-    messageCallback = messageMap['AlreadySubscribedResponse'];
+    const messageCallback = messageMap['AlreadySubscribedResponse'];
     messageCallback(response);
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
@@ -391,6 +456,35 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .once();
 
     await audienceActionFlow.showNoEntitlementFoundToast();
+
+    activityIframeViewMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest`, async () => {
+    // @TODO(justinchou): test data transfer parameters and
+    // callback success/failure when callback is implemented
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const surveyDataTransferRequest = new SurveyDataTransferRequest();
+    const messageCallback = messageMap[surveyDataTransferRequest.label()];
+    messageCallback(surveyDataTransferRequest);
 
     activityIframeViewMock.verify();
   });
