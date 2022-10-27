@@ -2265,10 +2265,6 @@ export class GaaMetering {
   }
 
   static getSubscriptionTimestamp() {
-    if (GaaMetering.userState && GaaMetering.userState.subscriptionTimestamp) {
-      return GaaMetering.userState.subscriptionTimestamp;
-    } else {
-      return null;
-    }
+    return GaaMetering?.userState?.subscriptionTimestamp || null;
   }
 }

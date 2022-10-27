@@ -378,7 +378,6 @@ export class EntitlementsManager {
     message.setEntitlementResult(entitlementResult);
     message.setEntitlementSource(entitlementSource);
     message.setToken(optionalToken);
-    message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
     if (typeof optionalIsUserRegistered === 'boolean') {
       message.setIsUserRegistered(optionalIsUserRegistered);
     }
