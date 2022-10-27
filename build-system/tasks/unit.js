@@ -146,7 +146,7 @@ function getUnitTestsToRun(c) {
 function runTests() {
   const c = getConfig();
 
-  c.singleRun = !argv.w;
+  c.singleRun = !argv.watch && !argv.w;
   c.client.captureConsole = !!argv.verbose || !!argv.v || !!argv.files;
 
   getUnitTestsToRun(c);
