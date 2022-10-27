@@ -116,12 +116,6 @@ const ARTICLE_LD_JSON_METADATA_THAT_DOES_NOT_SAY_WHETHER_ARTICLE_IS_FREE =
     ''
   );
 
-const ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_NOT_FREE_VIA_NULL_VALUE =
-  ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE.replace(
-    '"isAccessibleForFree": true,',
-    '"isAccessibleForFree": null,'
-  );
-
 /** Article metadata in microdata form. */
 const ARTICLE_MICRODATA_METADATA = `
 <div itemscope itemtype="http://schema.org/NewsArticle">
@@ -3817,25 +3811,17 @@ describes.realWin('GaaMetering', {}, () => {
     });
 
     it('returns false if ld+json says the article is not free', () => {
-      const ldJsonScriptsThatSayArticleIsNotFree = [
-        `
+      const ldJsonScript = `
       <script type="application/ld+json">
         [${ARTICLE_LD_JSON_METADATA}]
-      </script>`,
-        `
-      <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_NOT_FREE_VIA_NULL_VALUE}]
-      </script>`,
-      ];
-      for (const ldJsonScript of ldJsonScriptsThatSayArticleIsNotFree) {
-        self.document
-          .querySelectorAll('script[type="application/ld+json"]')
-          .forEach((e) => e.remove());
+      </script>`;
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
 
-        self.document.head.innerHTML = ldJsonScript;
+      self.document.head.innerHTML = ldJsonScript;
 
-        expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
-      }
+      expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
     });
   });
 

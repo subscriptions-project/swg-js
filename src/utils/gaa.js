@@ -2063,10 +2063,6 @@ export class GaaMetering {
         (entry) => entry?.isAccessibleForFree
       )?.isAccessibleForFree;
 
-      if (accessibleForFree === null) {
-        return false;
-      }
-
       if (typeof accessibleForFree === 'boolean') {
         return accessibleForFree;
       }
