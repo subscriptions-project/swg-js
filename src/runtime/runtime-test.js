@@ -2221,7 +2221,7 @@ subscribe() method'
         sandbox.useFakeTimers();
       });
 
-      it('should log events', () => {
+      it('should log unlock by meter events', () => {
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
@@ -2229,6 +2229,16 @@ subscribe() method'
         });
 
         expect(logEventStub).callCount(2);
+      });
+
+      it('should log unlock by subscription events', () => {
+        runtime.setShowcaseEntitlement({
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+          isUserRegistered: true,
+          subscriptionTimestamp: 1602763094,
+        });
+
+        expect(logEventStub).callCount(1);
       });
 
       it('should require entitlement', () => {
