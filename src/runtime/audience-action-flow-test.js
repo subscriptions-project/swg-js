@@ -435,11 +435,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('set')
       .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
-
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
-    // .callsFake(function () {
-    //   toast = this;
-    // })
 
     await audienceActionFlow.start();
     const completeAudienceActionResponse = new CompleteAudienceActionResponse();
@@ -470,11 +466,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('set')
       .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
-
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
-    // .callsFake(function () {
-    //   toast = this;
-    // });
 
     await audienceActionFlow.start();
     const completeAudienceActionResponse = new CompleteAudienceActionResponse();
