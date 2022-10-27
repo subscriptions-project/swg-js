@@ -449,6 +449,38 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     expect(toastOpenStub).not.to.be.called;
   });
 
+  it(`handles a CompleteAudienceActionResponse with survey already completed and does not open a custom toast.`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
+    const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setAlreadyCompleted(true);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).not.to.be.called;
+  });
+
   it(`handles a CompleteAudienceActionResponse with survey failure and does not open a custom toast.`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
