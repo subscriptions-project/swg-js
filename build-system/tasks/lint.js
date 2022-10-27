@@ -30,7 +30,7 @@ const {gitDiffNameOnlyMain} = require('../git');
 const {green, yellow, cyan, red} = require('ansi-colors');
 const {isCiBuild} = require('../ci');
 
-const isWatching = argv.w || argv.w || false;
+const isWatching = argv.w || false;
 const options = {
   fix: false,
 };
