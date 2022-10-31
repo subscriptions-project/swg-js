@@ -39,6 +39,7 @@ export class BasicSubscriptions {
    *   clientOptions: (ClientOptions|undefined),
    *   alwaysShow: (boolean|undefined),
    *   disableDefaultMeteringHandler: (boolean|undefined),
+   *   publisherProvidedId: (string|undefined),
    * }=} params
    */
   init(params) {}
@@ -118,6 +119,7 @@ export const AutoPromptType = {
  *   lang: (string|undefined),
  *   forceLangInIframes: (boolean|undefined),
  *   theme: (ClientTheme|undefined),
+ *   allowScroll: (boolean|undefined),
  * }}
  */
 export let ClientOptions;

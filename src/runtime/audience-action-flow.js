@@ -27,11 +27,16 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  AnalyticsEvent,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  EventOriginator,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {Constants} from '../utils/constants';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
@@ -51,6 +56,7 @@ export let AudienceActionParams;
 const actionToIframeMapping = {
   'TYPE_REGISTRATION_WALL': '/regwalliframe',
   'TYPE_NEWSLETTER_SIGNUP': '/newsletteriframe',
+  'TYPE_REWARDED_SURVEY': '/surveyiframe',
 };
 
 const autopromptTypeToProductTypeMapping = {
@@ -99,6 +105,7 @@ export class AudienceActionFlow {
       deps.activities(),
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
+        'hl': this.clientConfigManager_.getLanguage(),
       }),
       feArgs({
         'supportsEventManager': true,
@@ -120,6 +127,10 @@ export class AudienceActionFlow {
 
     this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
       this.handleCompleteAudienceActionResponse_(response)
+    );
+
+    this.activityIframeView_.on(SurveyDataTransferRequest, (request) =>
+      this.handleSurveyDataTransferRequest_(request)
     );
 
     this.activityIframeView_.on(
@@ -145,7 +156,8 @@ export class AudienceActionFlow {
    * On a successful response from the dialog, we should:
    * 1) Store the updated user token
    * 2) Clear existing entitlements from the page
-   * 3) Re-fetch entitlements which may potentially provide access to the page
+   * 3) Update READ_TIME in local storage to indicate that entitlements may have changed recently
+   * 4) Re-fetch entitlements which may potentially provide access to the page
    * @param {CompleteAudienceActionResponse} response
    * @private
    */
@@ -158,9 +170,15 @@ export class AudienceActionFlow {
     }
     if (response.getActionCompleted()) {
       this.showSignedInToast_(response.getUserEmail() ?? '');
-    } else {
+    } else if (response.getAlreadyCompleted()) {
       this.showAlreadyOptedInToast_();
+    } else {
+      this.showFailedOptedInToast_();
     }
+    const now = Date.now().toString();
+    this.deps_
+      .storage()
+      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
   }
 
@@ -217,6 +235,24 @@ export class AudienceActionFlow {
     }
   }
 
+  /** @private */
+  showFailedOptedInToast_() {
+    const lang = this.clientConfigManager_.getLanguage();
+    const customText = msg(
+      this.params_.action === 'TYPE_REGISTRATION_WALL'
+        ? SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED_LANG_MAP
+        : SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED_LANG_MAP,
+      lang
+    );
+    new Toast(
+      this.deps_,
+      feUrl('/toastiframe', {
+        flavor: 'custom',
+        customText,
+      })
+    ).open();
+  }
+
   /**
    * @param {AlreadySubscribedResponse} response
    * @private
@@ -225,6 +261,55 @@ export class AudienceActionFlow {
     if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
+  }
+
+  /**
+   * @param {SurveyDataTransferRequest} request
+   * @private
+   */
+  // eslint-disable-next-line no-unused-vars
+  handleSurveyDataTransferRequest_(request) {
+    // @TODO(justinchou): execute callback with setOnInterventionComplete
+    // then check for success
+    const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
+    const surveyDataTransferResponse = new SurveyDataTransferResponse();
+    surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
+    this.activityIframeView_.execute(surveyDataTransferResponse);
+  }
+
+  /**
+   * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
+   * for whether or not logging was successful.
+   * @param {SurveyDataTransferRequest} request
+   * @return {boolean}
+   * @private
+   */
+  logSurveyDataToGoogleAnalytics(request) {
+    if (
+      !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
+      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
+    ) {
+      return false;
+    }
+    request.getSurveyQuestionsList().map((question) => {
+      const answer = question.getSurveyAnswersList()[0];
+      const event = {
+        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      };
+      const eventParams = {
+        googleAnalyticsParameters: {
+          'event_category': question.getQuestionCategory() || '',
+          'survey_question': question.getQuestionText() || '',
+          'survey_answer_category': answer.getAnswerCategory() || '',
+          'event_label': answer.getAnswerText() || '',
+        },
+      };
+      this.deps_.eventManager().logEvent(event, eventParams);
+    });
+    return true;
   }
 
   /**

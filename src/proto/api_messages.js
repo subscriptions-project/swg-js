@@ -78,6 +78,13 @@ const AnalyticsEvent = {
   IMPRESSION_TWG_PUBLICATION_NOT_SET_UP: 33,
   IMPRESSION_REGWALL_OPT_IN: 34,
   IMPRESSION_NEWSLETTER_OPT_IN: 35,
+  IMPRESSION_SUBSCRIPTION_OFFERS_ERROR: 36,
+  IMPRESSION_CONTRIBUTION_OFFERS_ERROR: 37,
+  IMPRESSION_TWG_SHORTENED_STICKER_FLOW: 38,
+  IMPRESSION_SUBSCRIPTION_LINKING_LOADING: 39,
+  IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE: 40,
+  IMPRESSION_SUBSCRIPTION_LINKING_ERROR: 41,
+  IMPRESSION_SURVEY: 42,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -141,9 +148,22 @@ const AnalyticsEvent = {
   ACTION_SHOWCASE_REGWALL_SWIG_CLICK: 1060,
   ACTION_TWG_CHROME_APP_MENU_ENTRY_POINT_CLICK: 1061,
   ACTION_TWG_DISCOVER_FEED_MENU_ENTRY_POINT_CLICK: 1062,
+  ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK: 1063,
+  ACTION_SUBSCRIPTION_OFFERS_RETRY: 1064,
+  ACTION_CONTRIBUTION_OFFERS_RETRY: 1065,
+  ACTION_TWG_SHORTENED_STICKER_FLOW_STICKER_SELECTION_CLICK: 1066,
+  ACTION_INITIATE_UPDATED_SUBSCRIPTION_LINKING: 1067,
+  ACTION_SURVEY_SUBMIT_CLICK: 1068,
+  ACTION_SURVEY_CLOSED: 1069,
+  ACTION_SURVEY_DATA_TRANSFER: 1070,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_REGWALL_OPT_IN_FAILED: 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
+  EVENT_REGWALL_ALREADY_OPT_IN: 2003,
+  EVENT_NEWSLETTER_ALREADY_OPT_IN: 2004,
+  EVENT_SUBSCRIPTION_LINKING_FAILED: 2005,
+  EVENT_SURVEY_ALREADY_SUBMITTED: 2006,
+  EVENT_SURVEY_SUBMIT_FAILED: 2007,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
   EVENT_CHANGED_TX_ID: 3002,
@@ -170,6 +190,9 @@ const AnalyticsEvent = {
   EVENT_REGWALL_OPTED_IN: 3023,
   EVENT_NEWSLETTER_OPTED_IN: 3024,
   EVENT_SHOWCASE_METERING_INIT: 3025,
+  EVENT_DISABLE_MINIPROMPT_DESKTOP: 3026,
+  EVENT_SUBSCRIPTION_LINKING_SUCCESS: 3027,
+  EVENT_SURVEY_SUBMITTED: 3028,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -934,6 +957,9 @@ class CompleteAudienceActionResponse {
 
     /** @private {?string} */
     this.userEmail_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {?boolean} */
+    this.alreadyCompleted_ = data[3 + base] == null ? null : data[3 + base];
   }
 
   /**
@@ -979,6 +1005,20 @@ class CompleteAudienceActionResponse {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getAlreadyCompleted() {
+    return this.alreadyCompleted_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setAlreadyCompleted(value) {
+    this.alreadyCompleted_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -988,6 +1028,7 @@ class CompleteAudienceActionResponse {
         this.swgUserToken_, // field 1 - swg_user_token
         this.actionCompleted_, // field 2 - action_completed
         this.userEmail_, // field 3 - user_email
+        this.alreadyCompleted_, // field 4 - already_completed
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1109,6 +1150,12 @@ class EntitlementsRequest {
 
     /** @private {?boolean} */
     this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
+
+    /** @private {?Timestamp} */
+    this.subscriptionTimestamp_ =
+      data[6 + base] == null || data[6 + base] == undefined
+        ? null
+        : new Timestamp(data[6 + base], includesLabel);
   }
 
   /**
@@ -1196,6 +1243,20 @@ class EntitlementsRequest {
   }
 
   /**
+   * @return {?Timestamp}
+   */
+  getSubscriptionTimestamp() {
+    return this.subscriptionTimestamp_;
+  }
+
+  /**
+   * @param {!Timestamp} value
+   */
+  setSubscriptionTimestamp(value) {
+    this.subscriptionTimestamp_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1208,6 +1269,7 @@ class EntitlementsRequest {
         this.entitlementResult_, // field 4 - entitlement_result
         this.token_, // field 5 - token
         this.isUserRegistered_, // field 6 - is_user_registered
+        this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 7 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1326,6 +1388,12 @@ class EventParams {
 
     /** @private {?string} */
     this.subscriptionFlow_ = data[6 + base] == null ? null : data[6 + base];
+
+    /** @private {?Timestamp} */
+    this.subscriptionTimestamp_ =
+      data[7 + base] == null || data[7 + base] == undefined
+        ? null
+        : new Timestamp(data[7 + base], includesLabel);
   }
 
   /**
@@ -1427,6 +1495,20 @@ class EventParams {
   }
 
   /**
+   * @return {?Timestamp}
+   */
+  getSubscriptionTimestamp() {
+    return this.subscriptionTimestamp_;
+  }
+
+  /**
+   * @param {!Timestamp} value
+   */
+  setSubscriptionTimestamp(value) {
+    this.subscriptionTimestamp_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1440,6 +1522,7 @@ class EventParams {
         this.oldTransactionId_, // field 5 - old_transaction_id
         this.isUserRegistered_, // field 6 - is_user_registered
         this.subscriptionFlow_, // field 7 - subscription_flow
+        this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 8 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1735,6 +1818,9 @@ class SkuSelectedResponse {
 
     /** @private {?boolean} */
     this.anonymous_ = data[6 + base] == null ? null : data[6 + base];
+
+    /** @private {?boolean} */
+    this.sharingPolicyEnabled_ = data[7 + base] == null ? null : data[7 + base];
   }
 
   /**
@@ -1836,6 +1922,20 @@ class SkuSelectedResponse {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getSharingPolicyEnabled() {
+    return this.sharingPolicyEnabled_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSharingPolicyEnabled(value) {
+    this.sharingPolicyEnabled_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1849,6 +1949,7 @@ class SkuSelectedResponse {
         this.oldPlayOffer_, // field 5 - old_play_offer
         this.customMessage_, // field 6 - custom_message
         this.anonymous_, // field 7 - anonymous
+        this.sharingPolicyEnabled_, // field 8 - sharing_policy_enabled
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1968,6 +2069,414 @@ class SubscribeResponse {
    */
   label() {
     return 'SubscribeResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SubscriptionLinkingCompleteResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.publisherProvidedId_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getPublisherProvidedId() {
+    return this.publisherProvidedId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setPublisherProvidedId(value) {
+    this.publisherProvidedId_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.publisherProvidedId_, // field 1 - publisher_provided_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SubscriptionLinkingCompleteResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SubscriptionLinkingResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?string} */
+    this.publisherProvidedId_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?string}
+   */
+  getPublisherProvidedId() {
+    return this.publisherProvidedId_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setPublisherProvidedId(value) {
+    this.publisherProvidedId_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.publisherProvidedId_, // field 1 - publisher_provided_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SubscriptionLinkingResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SurveyAnswer {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?number} */
+    this.answerId_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.answerText_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?string} */
+    this.answerCategory_ = data[2 + base] == null ? null : data[2 + base];
+  }
+
+  /**
+   * @return {?number}
+   */
+  getAnswerId() {
+    return this.answerId_;
+  }
+
+  /**
+   * @param {number} value
+   */
+  setAnswerId(value) {
+    this.answerId_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getAnswerText() {
+    return this.answerText_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setAnswerText(value) {
+    this.answerText_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getAnswerCategory() {
+    return this.answerCategory_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setAnswerCategory(value) {
+    this.answerCategory_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.answerId_, // field 1 - answer_id
+        this.answerText_, // field 2 - answer_text
+        this.answerCategory_, // field 3 - answer_category
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SurveyAnswer';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SurveyDataTransferRequest {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {!Array<!SurveyQuestion>} */
+    this.surveyQuestions_ = data[base] || [];
+  }
+
+  /**
+   * @return {!Array<!SurveyQuestion>}
+   */
+  getSurveyQuestionsList() {
+    return this.surveyQuestions_;
+  }
+
+  /**
+   * @param {!Array<!SurveyQuestion>} value
+   */
+  setSurveyQuestionsList(value) {
+    this.surveyQuestions_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.surveyQuestions_ ? this.surveyQuestions_.map(item => item.toArray(includeLabel)) : [], // field 1 - survey_questions
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SurveyDataTransferRequest';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SurveyDataTransferResponse {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?boolean} */
+    this.success_ = data[base] == null ? null : data[base];
+  }
+
+  /**
+   * @return {?boolean}
+   */
+  getSuccess() {
+    return this.success_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSuccess(value) {
+    this.success_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.success_, // field 1 - success
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SurveyDataTransferResponse';
+  }
+}
+
+/**
+ * @implements {Message}
+ */
+class SurveyQuestion {
+  /**
+   * @param {!Array<*>=} data
+   * @param {boolean=} includesLabel
+   */
+  constructor(data = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    /** @private {?number} */
+    this.questionId_ = data[base] == null ? null : data[base];
+
+    /** @private {?string} */
+    this.questionText_ = data[1 + base] == null ? null : data[1 + base];
+
+    /** @private {?string} */
+    this.questionCategory_ = data[2 + base] == null ? null : data[2 + base];
+
+    /** @private {!Array<!SurveyAnswer>} */
+    this.surveyAnswers_ = data[3 + base] || [];
+  }
+
+  /**
+   * @return {?number}
+   */
+  getQuestionId() {
+    return this.questionId_;
+  }
+
+  /**
+   * @param {number} value
+   */
+  setQuestionId(value) {
+    this.questionId_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getQuestionText() {
+    return this.questionText_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setQuestionText(value) {
+    this.questionText_ = value;
+  }
+
+  /**
+   * @return {?string}
+   */
+  getQuestionCategory() {
+    return this.questionCategory_;
+  }
+
+  /**
+   * @param {string} value
+   */
+  setQuestionCategory(value) {
+    this.questionCategory_ = value;
+  }
+
+  /**
+   * @return {!Array<!SurveyAnswer>}
+   */
+  getSurveyAnswersList() {
+    return this.surveyAnswers_;
+  }
+
+  /**
+   * @param {!Array<!SurveyAnswer>} value
+   */
+  setSurveyAnswersList(value) {
+    this.surveyAnswers_ = value;
+  }
+
+  /**
+   * @param {boolean=} includeLabel
+   * @return {!Array<?>}
+   * @override
+   */
+  toArray(includeLabel = true) {
+    const arr = [
+        this.questionId_, // field 1 - question_id
+        this.questionText_, // field 2 - question_text
+        this.questionCategory_, // field 3 - question_category
+        this.surveyAnswers_ ? this.surveyAnswers_.map(item => item.toArray(includeLabel)) : [], // field 4 - survey_answers
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  /**
+   * @return {string}
+   * @override
+   */
+  label() {
+    return 'SurveyQuestion';
   }
 }
 
@@ -2168,6 +2677,12 @@ const PROTO_MAP = {
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
+  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
+  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
+  'SurveyAnswer': SurveyAnswer,
+  'SurveyDataTransferRequest': SurveyDataTransferRequest,
+  'SurveyDataTransferResponse': SurveyDataTransferResponse,
+  'SurveyQuestion': SurveyQuestion,
   'Timestamp': Timestamp,
   'ToastCloseRequest': ToastCloseRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
@@ -2227,6 +2742,12 @@ export {
   SkuSelectedResponse,
   SmartBoxMessage,
   SubscribeResponse,
+  SubscriptionLinkingCompleteResponse,
+  SubscriptionLinkingResponse,
+  SurveyAnswer,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
+  SurveyQuestion,
   Timestamp,
   ToastCloseRequest,
   ViewSubscriptionsResponse,
