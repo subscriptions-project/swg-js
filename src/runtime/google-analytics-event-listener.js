@@ -46,8 +46,8 @@ export class GoogleAnalyticsEventListener {
   handleClientEvent_(event, eventParams = undefined) {
     // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
     if (
-      !this.constructor.isGaEligible(this.deps_) &&
-      !this.constructor.isGtagEligible(this.deps_)
+      !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
+      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
     ) {
       return;
     }
@@ -73,15 +73,15 @@ export class GoogleAnalyticsEventListener {
       eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
     };
 
-    /** @type {Window |{ga?: function(string, string, Object), gtag?: function(string, string, Object)}} */
+    /** @type {Window | {ga?: function(string, string, Object), gtag?: function(string, string, Object)}} */
     const win = this.deps_.win();
     // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
-    if (this.constructor.isGaEligible(this.deps_)) {
+    if (GoogleAnalyticsEventListener.isGaEligible(this.deps_)) {
       const ga = win.ga;
       ga('send', 'event', gaEvent);
     }
 
-    if (this.constructor.isGtagEligible(this.deps_)) {
+    if (GoogleAnalyticsEventListener.isGtagEligible(this.deps_)) {
       const gtag = win.gtag;
       const gtagEvent = {
         'event_category': gaEvent.eventCategory,
