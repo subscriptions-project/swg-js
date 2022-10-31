@@ -96,7 +96,7 @@ export class GoogleAnalyticsEventListener {
    * @returns {boolean}
    */
   static isGaEligible(deps) {
-    return isFunction(deps.win().ga || null);
+    return isFunction(deps.win().ga);
   }
 
   /**
@@ -105,6 +105,6 @@ export class GoogleAnalyticsEventListener {
    * @returns {boolean}
    */
   static isGtagEligible(deps) {
-    return isFunction(deps.win().gtag || null);
+    return isFunction(deps.win().gtag);
   }
 }
