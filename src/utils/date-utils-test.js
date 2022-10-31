@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-import {convertPotentialTimestampToSeconds, toTimestamp} from './date-utils';
+import {
+  convertPotentialTimestampToMilliseconds,
+  convertPotentialTimestampToSeconds,
+  toTimestamp,
+} from './date-utils';
 
 const EXAMPLE_TIME_IN_SECONDS = 1666817992;
 const EXAMPLE_TIME_IN_MILLISECONDS = 1666817992918;
+const EXAMPLE_TIME_IN_MILLISECONDS_CONVERTED_FROM_SECONDS = 1666817992000;
 const EXAMPLE_TIME_IN_MICROSECONDS = 1666817992918291;
 
 /**
@@ -60,5 +65,23 @@ describe('convertPotentialTimestampToSeconds', () => {
     expect(
       convertPotentialTimestampToSeconds(EXAMPLE_TIME_IN_MICROSECONDS)
     ).to.equal(EXAMPLE_TIME_IN_SECONDS);
+  });
+});
+
+describe('convertPotentialTimestampToMilliseconds', () => {
+  it('converts seconds to milliseconds ', () => {
+    expect(
+      convertPotentialTimestampToMilliseconds(EXAMPLE_TIME_IN_SECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_MILLISECONDS_CONVERTED_FROM_SECONDS);
+  });
+  it('returns milliseconds if milliseconds are provided', () => {
+    expect(
+      convertPotentialTimestampToMilliseconds(EXAMPLE_TIME_IN_MILLISECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_MILLISECONDS);
+  });
+  it('converts microseconds to milliseconds', () => {
+    expect(
+      convertPotentialTimestampToMilliseconds(EXAMPLE_TIME_IN_MICROSECONDS)
+    ).to.equal(EXAMPLE_TIME_IN_MILLISECONDS);
   });
 });

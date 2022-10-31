@@ -1711,6 +1711,7 @@ export class GaaMetering {
                   GaaMetering.userState.grantReason
                 ],
               isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+              subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
             });
             debugLog('unlocked for ' + GaaMetering.userState.grantReason);
           });
@@ -1792,6 +1793,7 @@ export class GaaMetering {
               subscriptions.setShowcaseEntitlement({
                 entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
                 isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+                subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
               });
               break;
             default:
@@ -1799,6 +1801,7 @@ export class GaaMetering {
                 entitlement:
                   ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
                 isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+                subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
               });
           }
         });
@@ -2255,5 +2258,9 @@ export class GaaMetering {
         });
       }
     });
+  }
+
+  static getSubscriptionTimestamp() {
+    return GaaMetering?.userState?.subscriptionTimestamp || null;
   }
 }

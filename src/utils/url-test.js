@@ -309,6 +309,7 @@ describe('serializeProtoMessageForUrl', () => {
       'othertxid',
       true,
       'subscriptions',
+      ['Timestamp', 12345, 0],
     ];
     const analyticsRequestArray = [
       'AnalyticsRequest',
@@ -333,6 +334,7 @@ describe('serializeProtoMessageForUrl', () => {
     deserializedAnalyticsRequestArray[1][12].unshift('Timestamp');
     deserializedAnalyticsRequestArray[3].unshift('AnalyticsEventMeta');
     deserializedAnalyticsRequestArray[4].unshift('EventParams');
+    deserializedAnalyticsRequestArray[4][8].unshift('Timestamp');
     expect(deserializedAnalyticsRequestArray).to.deep.equal(
       analyticsRequestArray
     );
