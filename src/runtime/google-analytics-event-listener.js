@@ -72,14 +72,17 @@ export class GoogleAnalyticsEventListener {
       eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
       eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
     };
+
+    /** @type {Window |{ga?: function(string, string, Object), gtag?: function(string, string, Object)}} */
+    const win = this.deps_.win();
     // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
     if (this.constructor.isGaEligible(this.deps_)) {
-      const ga = this.deps_.win().ga || null;
+      const ga = win.ga;
       ga('send', 'event', gaEvent);
     }
 
     if (this.constructor.isGtagEligible(this.deps_)) {
-      const gtag = this.deps_.win().gtag || null;
+      const gtag = win.gtag;
       const gtagEvent = {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
