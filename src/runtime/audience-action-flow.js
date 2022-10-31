@@ -36,11 +36,11 @@ import {
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {Constants} from '../utils/constants';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
-import {isFunction} from '../utils/types';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 
@@ -285,9 +285,10 @@ export class AudienceActionFlow {
    * @private
    */
   logSurveyDataToGoogleAnalytics(request) {
-    const ga = this.deps_.win().ga || null;
-    const gtag = this.deps_.win().gtag || null;
-    if (!isFunction(ga) && !isFunction(gtag)) {
+    if (
+      !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
+      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
+    ) {
       return false;
     }
     request.getSurveyQuestionsList().map((question) => {
