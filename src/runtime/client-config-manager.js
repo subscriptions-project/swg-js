@@ -18,6 +18,8 @@ import {AttributionParams} from '../model/attribution-params';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientTheme} from '../api/basic-subscriptions';
+import {PreviewManager} from './preview-mode';
+import {addQueryParam} from '../utils/url';
 import {serviceUrl} from './services';
 import {warn} from '../utils/log';
 
@@ -174,11 +176,15 @@ export class ClientConfigManager {
         } else {
           // If there was no article from the entitlement manager, we need
           // to fetch our own using the internal version.
-          const url = serviceUrl(
+          let url = serviceUrl(
             '/publication/' +
               encodeURIComponent(this.publicationId_) +
               '/clientconfiguration'
           );
+          if (PreviewManager.isPreviewEnabled()) {
+            url = addQueryParam(url, 'previewRequested', '1');
+          }
+
           return this.fetcher_.fetchCredentialedJson(url).then((json) => {
             if (json.errorMessages && json.errorMessages.length > 0) {
               for (const errorMessage of json.errorMessages) {
