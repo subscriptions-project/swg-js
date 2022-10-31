@@ -17,13 +17,18 @@
 import {ActivityPort} from '../components/activities';
 import {
   AlreadySubscribedResponse,
+  AnalyticsEvent,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  EventOriginator,
+  SurveyAnswer,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
+  SurveyQuestion,
 } from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
@@ -33,6 +38,37 @@ import {Toast} from '../ui/toast';
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const CURRENT_TIME = 1615416442000;
 const EXPECTED_TIME_STRING = '1615416442000';
+
+const TEST_QUESTION_CATEGORY_1 = 'Test Question Category 1';
+const TEST_QUESTION_TEXT_1 = 'Test Question 1';
+const TEST_QUESTION_CATEGORY_2 = 'Test Question Category 2';
+const TEST_QUESTION_TEXT_2 = 'Test Question 2';
+const TEST_ANSWER_CATEGORY_1 = 'Test Answer Category 1';
+const TEST_ANSWER_TEXT_1 = 'Test Answer 1';
+const TEST_ANSWER_CATEGORY_2 = 'Test Answer Category 2';
+const TEST_ANSWER_TEXT_2 = 'Test Answer 2';
+
+const TEST_SURVEYANSWER_1 = new SurveyAnswer();
+TEST_SURVEYANSWER_1.setAnswerCategory(TEST_ANSWER_CATEGORY_1);
+TEST_SURVEYANSWER_1.setAnswerText(TEST_ANSWER_TEXT_1);
+const TEST_SURVEYQUESTION_1 = new SurveyQuestion();
+TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_QUESTION_CATEGORY_1);
+TEST_SURVEYQUESTION_1.setQuestionText(TEST_QUESTION_TEXT_1);
+TEST_SURVEYQUESTION_1.setSurveyAnswersList([TEST_SURVEYANSWER_1]);
+
+const TEST_SURVEYANSWER_2 = new SurveyAnswer();
+TEST_SURVEYANSWER_2.setAnswerCategory(TEST_ANSWER_CATEGORY_2);
+TEST_SURVEYANSWER_2.setAnswerText(TEST_ANSWER_TEXT_2);
+const TEST_SURVEYQUESTION_2 = new SurveyQuestion();
+TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
+TEST_SURVEYQUESTION_2.setQuestionText(TEST_QUESTION_TEXT_2);
+TEST_SURVEYQUESTION_2.setSurveyAnswersList([TEST_SURVEYANSWER_2]);
+
+const TEST_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
+TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
+  TEST_SURVEYQUESTION_1,
+  TEST_SURVEYQUESTION_2,
+]);
 
 describes.realWin('AudienceActionFlow', {}, (env) => {
   let win;
@@ -46,14 +82,22 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
   let onCancelSpy;
   let dialogManagerMock;
   let clientOptions;
+  let eventManagerMock;
 
   beforeEach(() => {
-    win = env.win;
+    win = Object.assign(
+      {},
+      {
+        location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
+        document: env.win.document,
+        gtag: () => {},
+      }
+    );
     messageMap = {};
     pageConfig = new PageConfig('pub1:label1');
     clientOptions = {};
     runtime = new ConfiguredRuntime(
-      win,
+      env.win,
       pageConfig,
       /* integr */ undefined,
       /* config */ undefined,
@@ -63,6 +107,9 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     entitlementsManagerMock = sandbox.mock(runtime.entitlementsManager());
     storageMock = sandbox.mock(runtime.storage());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    const eventManager = new ClientEventManager(Promise.resolve());
+    eventManagerMock = sandbox.mock(eventManager);
+    sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -72,13 +119,17 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
     });
-    sandbox.stub(runtime, 'win').returns({
-      location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
-      document: win.document,
-    });
+    sandbox.stub(runtime, 'win').returns(win);
     onCancelSpy = sandbox.spy();
     sandbox.useFakeTimers(CURRENT_TIME);
   });
+
+  function setWinWithoutGtag() {
+    const winWithNoGtag = Object.assign({}, win);
+    delete winWithNoGtag.gtag;
+    runtime.win.restore();
+    sandbox.stub(runtime, 'win').returns(winWithNoGtag);
+  }
 
   [
     {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
@@ -460,15 +511,52 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     activityIframeViewMock.verify();
   });
 
-  it(`handles a SurveyDataTransferRequest`, async () => {
-    // @TODO(justinchou): test data transfer parameters and
-    // callback success/failure when callback is implemented
+  it(`handles a SurveyDataTransferRequest with successful logging`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+        },
+        {
+          googleAnalyticsParameters: {
+            'event_category': TEST_QUESTION_CATEGORY_1,
+            'event_label': TEST_ANSWER_TEXT_1,
+            'survey_question': TEST_QUESTION_TEXT_1,
+            'survey_answer_category': TEST_ANSWER_CATEGORY_1,
+          },
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+        },
+        {
+          googleAnalyticsParameters: {
+            'event_category': TEST_QUESTION_CATEGORY_2,
+            'event_label': TEST_ANSWER_TEXT_2,
+            'survey_question': TEST_QUESTION_TEXT_2,
+            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
+          },
+        }
+      )
+      .once();
 
     await audienceActionFlow.start();
 
@@ -482,9 +570,35 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .withExactArgs(successSurveyDataTransferResponse)
       .once();
 
-    const surveyDataTransferRequest = new SurveyDataTransferRequest();
-    const messageCallback = messageMap[surveyDataTransferRequest.label()];
-    messageCallback(surveyDataTransferRequest);
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
+
+    activityIframeViewMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest with failed logging`, async () => {
+    setWinWithoutGtag();
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    eventManagerMock.expects('logEvent').never();
+    await audienceActionFlow.start();
+
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(false);
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
 
     activityIframeViewMock.verify();
   });

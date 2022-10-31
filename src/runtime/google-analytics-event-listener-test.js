@@ -169,6 +169,51 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
+  it('Should log ga and gtag event with additional gaParams and gtagParams', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      }),
+      true
+    );
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
+    const gaEventWithParams = Object.assign({}, gaEvent, {
+      eventCategory: 'TEST CATEGORY',
+      eventLabel: 'TEST LABEL',
+    });
+    expectEventLoggedToGa(gaEventWithParams);
+    winMock
+      .expects('gtag')
+      .withExactArgs('event', gaEvent.eventAction, {
+        'event_category': 'TEST CATEGORY',
+        'survey_question': 'TEST QUESTION',
+        'survey_answer_category': 'TEST CATEGORY',
+        'event_label': 'TEST LABEL',
+        'non_interaction': gaEvent.nonInteraction,
+      })
+      .once();
+
+    const eventParams = {
+      googleAnalyticsParameters: {
+        'event_category': 'TEST CATEGORY',
+        'event_label': 'TEST LABEL',
+        'survey_question': 'TEST QUESTION',
+        'survey_answer_category': 'TEST CATEGORY',
+      },
+    };
+    eventManager.logEvent(
+      {
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+      },
+      eventParams
+    );
+    await eventManager.lastAction_;
+  });
+
   it('Should not log pay complete when missing subscriptionFlow', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {

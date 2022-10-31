@@ -27,13 +27,16 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  AnalyticsEvent,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  EventOriginator,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {Constants} from '../utils/constants';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
@@ -267,10 +270,46 @@ export class AudienceActionFlow {
   // eslint-disable-next-line no-unused-vars
   handleSurveyDataTransferRequest_(request) {
     // @TODO(justinchou): execute callback with setOnInterventionComplete
-    // and Google Analytics, then check for success
+    // then check for success
+    const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    surveyDataTransferResponse.setSuccess(true);
+    surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
     this.activityIframeView_.execute(surveyDataTransferResponse);
+  }
+
+  /**
+   * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
+   * for whether or not logging was successful.
+   * @param {SurveyDataTransferRequest} request
+   * @return {boolean}
+   * @private
+   */
+  logSurveyDataToGoogleAnalytics(request) {
+    if (
+      !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
+      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
+    ) {
+      return false;
+    }
+    request.getSurveyQuestionsList().map((question) => {
+      const answer = question.getSurveyAnswersList()[0];
+      const event = {
+        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      };
+      const eventParams = {
+        googleAnalyticsParameters: {
+          'event_category': question.getQuestionCategory() || '',
+          'survey_question': question.getQuestionText() || '',
+          'survey_answer_category': answer.getAnswerCategory() || '',
+          'event_label': answer.getAnswerText() || '',
+        },
+      };
+      this.deps_.eventManager().logEvent(event, eventParams);
+    });
+    return true;
   }
 
   /**
