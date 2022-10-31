@@ -81,17 +81,19 @@ export class GoogleAnalyticsEventListener {
 
   /**
    * Function to determine whether event is eligible for GA logging.
+   * @param {!./deps.DepsDef} deps
    * @returns {boolean}
    */
-  static isGaEligible() {
-    return isFunction(self.ga || null);
+  static isGaEligible(deps) {
+    return isFunction(deps.win().ga || null);
   }
 
   /**
    * Function to determine whether event is eligible for gTag logging.
+   * @param {!./deps.DepsDef} deps
    * @returns {boolean}
    */
-  static isGtagEligible() {
-    return isFunction(self.gtag || null);
+  static isGtagEligible(deps) {
+    return isFunction(deps.win().gtag || null);
   }
 }

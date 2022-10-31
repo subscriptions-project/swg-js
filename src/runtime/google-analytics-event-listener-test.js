@@ -34,8 +34,6 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
 
   beforeEach(() => {
     sandbox.stub(self.console, 'log');
-    self.ga = () => {};
-    self.gtag = () => {};
   });
 
   afterEach(() => {
@@ -263,29 +261,68 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
   });
 
   it('Should be ga eligible', async () => {
-    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.true;
-    self.gtag = undefined;
-    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.true;
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGaEligible(deps)).to.be.true;
+    deps.win.restore();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGaEligible(deps)).to.be.true;
   });
 
   it('Should be ga ineligible without valid ga', async () => {
-    self.ga = undefined;
-    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.false;
-    self.gtag = undefined;
-    expect(GoogleAnalyticsEventListener.isGaEligible()).to.be.false;
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGaEligible(deps)).to.be.false;
+    deps.win.restore();
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(Object.assign({}, env.win));
+    expect(GoogleAnalyticsEventListener.isGaEligible(deps)).to.be.false;
   });
 
   it('Should be gtag eligible', async () => {
-    expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.true;
-    self.ga = undefined;
-    expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.true;
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.true;
+    deps.win.restore();
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.true;
   });
 
   it('Should be gtag ineligible without valid gtag', async () => {
-    self.gtag = undefined;
-    expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.false;
-    self.ga = undefined;
-    expect(GoogleAnalyticsEventListener.isGtagEligible()).to.be.false;
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.false;
+    deps.win.restore();
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(Object.assign({}, env.win));
+    expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.false;
   });
 
   function expectEventLoggedToGa(gaEvent) {

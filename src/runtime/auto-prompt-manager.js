@@ -695,8 +695,8 @@ export class AutoPromptManager {
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
       return (
-        GoogleAnalyticsEventListener.isGaEligible() ||
-        GoogleAnalyticsEventListener.isGtagEligible()
+        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
+        GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
       );
     }
     return true;
