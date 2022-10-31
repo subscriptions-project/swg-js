@@ -28,6 +28,11 @@ export function toTimestamp(millis) {
 }
 
 /**
+ * This function is used for convert the timestamp provided by publisher to
+ * milliseconds. Although we required publishers to provide timestamp in
+ * milliseconds, but there's a chance they may not follow the instruction.
+ * So this function supports the conversion of seconds, milliseconds and
+ * microseconds.
  * @param {!number} timestamp represented as seconds, milliseconds or microseconds
  * @return {!number}
  */
@@ -44,4 +49,23 @@ export function convertPotentialTimestampToSeconds(timestamp) {
     timestampInSeconds = timestamp;
   }
   return timestampInSeconds;
+}
+
+/**
+ * @param {!number} timestamp represented as seconds, milliseconds or microseconds
+ * @return {!number}
+ */
+export function convertPotentialTimestampToMilliseconds(timestamp) {
+  let timestampInMilliseconds;
+  if (timestamp >= 1e14 || timestamp <= -1e14) {
+    // Microseconds
+    timestampInMilliseconds = Math.floor(timestamp / 1000);
+  } else if (timestamp >= 1e11 || timestamp <= -3e10) {
+    // Milliseconds
+    timestampInMilliseconds = timestamp;
+  } else {
+    // Seconds
+    timestampInMilliseconds = Math.floor(timestamp * 1000);
+  }
+  return timestampInMilliseconds;
 }

@@ -374,9 +374,11 @@ export const ShowcaseEvent = {
  * Properties:
  * - isUserRegistered: Is the user registered currently?
  * - entitlement: Publisher entitlement event type.
+ * - subscriptionTimestamp: Timestamp(in millisecond) when the user converted to a subscriber. Null if the user is not a subscriber.
  *  @typedef {{
  *    isUserRegistered:  !boolean,
  *    entitlement: !ShowcaseEvent,
+ *    subscriptionTimestamp: (!number|null),
  * }}
  */
 export let PublisherEntitlement;

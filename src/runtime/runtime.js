@@ -65,6 +65,10 @@ import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Storage} from './storage';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
+import {
+  convertPotentialTimestampToMilliseconds,
+  toTimestamp,
+} from '../utils/date-utils';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
@@ -1168,6 +1172,15 @@ export class ConfiguredRuntime {
       showcaseEventToAnalyticsEvents(entitlement.entitlement) || [];
     const params = new EventParams();
     params.setIsUserRegistered(entitlement.isUserRegistered);
+    if (entitlement.subscriptionTimestamp) {
+      params.setSubscriptionTimestamp(
+        toTimestamp(
+          convertPotentialTimestampToMilliseconds(
+            entitlement.subscriptionTimestamp
+          )
+        )
+      );
+    }
 
     for (let i = 0; i < eventsToLog.length; i++) {
       this.eventManager().logEvent({
