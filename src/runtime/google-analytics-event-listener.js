@@ -15,6 +15,7 @@
  */
 
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
+import {isFunction} from '../utils/types';
 
 export class GoogleAnalyticsEventListener {
   /**
@@ -76,5 +77,23 @@ export class GoogleAnalyticsEventListener {
         'non_interaction': gaEvent.nonInteraction,
       });
     }
+  }
+
+  /**
+   * Function to determine whether event is eligible for GA logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGaEligible(deps) {
+    return isFunction(deps.win().ga || null);
+  }
+
+  /**
+   * Function to determine whether event is eligible for gTag logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGtagEligible(deps) {
+    return isFunction(deps.win().gtag || null);
   }
 }
