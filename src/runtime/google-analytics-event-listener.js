@@ -89,4 +89,22 @@ export class GoogleAnalyticsEventListener {
       gtag('event', gaEvent.eventAction, gtagEvent);
     }
   }
+
+  /**
+   * Function to determine whether event is eligible for GA logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGaEligible(deps) {
+    return isFunction(deps.win().ga || null);
+  }
+
+  /**
+   * Function to determine whether event is eligible for gTag logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGtagEligible(deps) {
+    return isFunction(deps.win().gtag || null);
+  }
 }

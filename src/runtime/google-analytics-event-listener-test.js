@@ -305,6 +305,71 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
+  it('Should be ga eligible', async () => {
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGaEligible(deps)).to.be.true;
+    deps.win.restore();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGaEligible(deps)).to.be.true;
+  });
+
+  it('Should be ga ineligible without valid ga', async () => {
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGaEligible(deps)).to.be.false;
+    deps.win.restore();
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(Object.assign({}, env.win));
+    expect(GoogleAnalyticsEventListener.isGaEligible(deps)).to.be.false;
+  });
+
+  it('Should be gtag eligible', async () => {
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.true;
+    deps.win.restore();
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.true;
+  });
+
+  it('Should be gtag ineligible without valid gtag', async () => {
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.false;
+    deps.win.restore();
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(Object.assign({}, env.win));
+    expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.false;
+  });
+
   function expectEventLoggedToGa(gaEvent) {
     winMock.expects('ga').withExactArgs('send', 'event', gaEvent).once();
   }
