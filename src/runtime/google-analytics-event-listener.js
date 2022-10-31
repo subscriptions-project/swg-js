@@ -17,6 +17,12 @@
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {isFunction} from '../utils/types';
 
+/** @typedef {?function(string, string, Object)} */
+let AnalyticsMethod;
+
+/** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod}} */
+let WindowWithAnalyticsMethods;
+
 export class GoogleAnalyticsEventListener {
   /**
    * @param {!./deps.DepsDef} deps
@@ -44,13 +50,21 @@ export class GoogleAnalyticsEventListener {
    * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
   handleClientEvent_(event, eventParams = undefined) {
-    // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
-    if (
-      !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
-      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
-    ) {
+    // Require either ga function (analytics.js) or gtag function (gtag.js).
+    const gaIsEligible = GoogleAnalyticsEventListener.isGaEligible(this.deps_);
+    const gtagIsEligible = GoogleAnalyticsEventListener.isGtagEligible(
+      this.deps_
+    );
+    const neitherIsEligible = !gaIsEligible && !gtagIsEligible;
+    if (neitherIsEligible) {
       return;
     }
+
+    // Extract methods from window.
+    const {ga, gtag} = /** @type {!WindowWithAnalyticsMethods} */ (
+      this.deps_.win()
+    );
+
     let subscriptionFlow = '';
     if (event.additionalParameters) {
       // additionalParameters isn't strongly typed so checking for both object and class notation.
@@ -73,16 +87,12 @@ export class GoogleAnalyticsEventListener {
       eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
     };
 
-    /** @type {Window | {ga: ?function(string, string, Object), gtag: ?function(string, string, Object)}} */
-    const win = this.deps_.win();
-    // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
-    if (GoogleAnalyticsEventListener.isGaEligible(this.deps_)) {
-      const ga = win.ga;
+    // TODO(b/234825847): Remove this once universal analytics is deprecated in 2023.
+    if (gaIsEligible) {
       ga('send', 'event', gaEvent);
     }
 
-    if (GoogleAnalyticsEventListener.isGtagEligible(this.deps_)) {
-      const gtag = win.gtag;
+    if (gtagIsEligible) {
       const gtagEvent = {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
@@ -99,7 +109,9 @@ export class GoogleAnalyticsEventListener {
    * @returns {boolean}
    */
   static isGaEligible(deps) {
-    return isFunction(deps.win().ga || null);
+    return isFunction(
+      /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).ga
+    );
   }
 
   /**
@@ -108,6 +120,8 @@ export class GoogleAnalyticsEventListener {
    * @returns {boolean}
    */
   static isGtagEligible(deps) {
-    return isFunction(deps.win().gtag || null);
+    return isFunction(
+      /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).gtag
+    );
   }
 }
