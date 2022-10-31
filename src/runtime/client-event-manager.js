@@ -86,7 +86,7 @@ export class ClientEventManager {
    * @param {!Promise} configuredPromise
    */
   constructor(configuredPromise) {
-    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent)>} */
+    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, (!../api/client-event-manager-api.ClientEventParams|undefined)=)>} */
     this.listeners_ = [];
 
     /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!FilterResult>} */
@@ -122,8 +122,9 @@ export class ClientEventManager {
   /**
    * @overrides
    * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
-  logEvent(event) {
+  logEvent(event, eventParams = undefined) {
     validateEvent(event);
     this.lastAction_ = this.isReadyPromise_.then(() => {
       for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
@@ -137,7 +138,7 @@ export class ClientEventManager {
       }
       for (let listener = 0; listener < this.listeners_.length; listener++) {
         try {
-          this.listeners_[listener](event);
+          this.listeners_[listener](event, eventParams);
         } catch (e) {
           log(e);
         }

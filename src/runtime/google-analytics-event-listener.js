@@ -15,6 +15,7 @@
  */
 
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
+import {isFunction} from '../utils/types';
 
 export class GoogleAnalyticsEventListener {
   /**
@@ -40,8 +41,9 @@ export class GoogleAnalyticsEventListener {
   /**
    *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
    * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
-  handleClientEvent_(event) {
+  handleClientEvent_(event, eventParams = undefined) {
     // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
     if (
       typeof this.win_.ga !== 'function' &&
@@ -56,7 +58,7 @@ export class GoogleAnalyticsEventListener {
         event.additionalParameters.subscriptionFlow ||
         event.additionalParameters.getSubscriptionFlow();
     }
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+    let gaEvent = analyticsEventToGoogleAnalyticsEvent(
       event.eventType,
       subscriptionFlow
     );
@@ -64,17 +66,45 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
+    const analyticsParams = eventParams?.googleAnalyticsParameters || {};
+    gaEvent = {
+      ...gaEvent,
+      eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
+      eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
+    };
     // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
-    if (typeof this.win_.ga === 'function') {
-      this.win_.ga('send', 'event', gaEvent);
+    const ga = this.win_.ga || null;
+    if (isFunction(ga)) {
+      ga('send', 'event', gaEvent);
     }
 
-    if (typeof this.win_.gtag === 'function') {
-      this.win_.gtag('event', gaEvent.eventAction, {
+    const gtag = this.win_.gtag || null;
+    if (isFunction(gtag)) {
+      const gtagEvent = {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
         'non_interaction': gaEvent.nonInteraction,
-      });
+        ...analyticsParams,
+      };
+      gtag('event', gaEvent.eventAction, gtagEvent);
     }
+  }
+
+  /**
+   * Function to determine whether event is eligible for GA logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGaEligible(deps) {
+    return isFunction(deps.win().ga || null);
+  }
+
+  /**
+   * Function to determine whether event is eligible for gTag logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGtagEligible(deps) {
+    return isFunction(deps.win().gtag || null);
   }
 }
