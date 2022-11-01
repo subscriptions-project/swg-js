@@ -23,4 +23,6 @@ const Constants = {};
  */
 Constants.USER_TOKEN = 'USER_TOKEN';
 
+Constants.READ_TIME = 'READ_TIME';
+
 export {Constants};
