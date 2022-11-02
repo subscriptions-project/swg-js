@@ -21,7 +21,7 @@ import {setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
-  'aria-label': 'SwG Smart Box iframe',
+  'aria-label': 'SwG Smart Box Container',
   'frameborder': '0',
   'scrolling': 'no',
 };

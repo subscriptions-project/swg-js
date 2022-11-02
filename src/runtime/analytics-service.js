@@ -86,7 +86,7 @@ export class AnalyticsService {
 
     /** @private @const {!HTMLIFrameElement} */
     this.iframe_ = /** @type {!HTMLIFrameElement} */ (
-      createElement(this.doc_.getWin().document, 'iframe', {'aria-label': 'SwG Analytics iframe'})
+      createElement(this.doc_.getWin().document, 'iframe', {'aria-label': 'SwG Analytics Container'})
     );
     setImportantStyles(this.iframe_, iframeStyles);
     this.doc_.getBody().appendChild(this.getElement());

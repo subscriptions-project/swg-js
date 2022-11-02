@@ -21,7 +21,7 @@ import {isCancelError} from '../utils/errors';
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
-  'aria-label': 'SwG Activity iframe',
+  'aria-label': 'SwG Activity Container',
   'frameborder': '0',
   'scrolling': 'no',
 };
