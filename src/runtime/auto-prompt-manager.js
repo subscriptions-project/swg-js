@@ -18,6 +18,7 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ExperimentFlags} from './experiment-flags';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
@@ -373,6 +374,9 @@ export class AutoPromptManager {
     shouldShowAutoPrompt,
   }) {
     let potentialActions = article?.audienceActions?.actions || [];
+    potentialActions = potentialActions.filter((action) =>
+      this.checkActionEligibility_(action.type)
+    );
 
     // No audience actions means use the default prompt.
     if (potentialActions.length === 0) {
@@ -681,5 +685,20 @@ export class AutoPromptManager {
       }
     }
     return dateArray.slice(sliceIndex);
+  }
+
+  /**
+   * Checks AudienceAction eligbility, used to filter potential actions.
+   * @param {string} actionType
+   * @return {boolean}
+   */
+  checkActionEligibility_(actionType) {
+    if (actionType === 'TYPE_REWARDED_SURVEY') {
+      return (
+        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
+        GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
+      );
+    }
+    return true;
   }
 }

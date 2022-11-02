@@ -1711,6 +1711,7 @@ export class GaaMetering {
                   GaaMetering.userState.grantReason
                 ],
               isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+              subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
             });
             debugLog('unlocked for ' + GaaMetering.userState.grantReason);
           });
@@ -1792,6 +1793,7 @@ export class GaaMetering {
               subscriptions.setShowcaseEntitlement({
                 entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
                 isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+                subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
               });
               break;
             default:
@@ -1799,6 +1801,7 @@ export class GaaMetering {
                 entitlement:
                   ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
                 isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+                subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
               });
           }
         });
@@ -2044,12 +2047,11 @@ export class GaaMetering {
    * @return {boolean}
    */
   static isArticleFreeFromJsonLdPageConfig_() {
-    const ldJsonElements = self.document.querySelectorAll(
-      'script[type="application/ld+json"]'
-    );
+    const ldJsonElements = [
+      ...self.document.querySelectorAll('script[type="application/ld+json"]'),
+    ];
 
-    for (let i = 0; i < ldJsonElements.length; i++) {
-      const ldJsonElement = ldJsonElements[i];
+    for (const ldJsonElement of ldJsonElements) {
       let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
@@ -2061,15 +2063,12 @@ export class GaaMetering {
         (entry) => entry?.isAccessibleForFree
       )?.isAccessibleForFree;
 
-      if (accessibleForFree == null || accessibleForFree === '') {
-        return false;
-      }
-      if (typeof accessibleForFree == 'boolean') {
+      if (typeof accessibleForFree === 'boolean') {
         return accessibleForFree;
       }
-      if (typeof accessibleForFree == 'string') {
-        const lowercase = accessibleForFree.toLowerCase();
-        return lowercase == 'true';
+
+      if (typeof accessibleForFree === 'string') {
+        return accessibleForFree.toLowerCase() === 'true';
       }
     }
 
@@ -2259,5 +2258,9 @@ export class GaaMetering {
         });
       }
     });
+  }
+
+  static getSubscriptionTimestamp() {
+    return GaaMetering?.userState?.subscriptionTimestamp || null;
   }
 }
