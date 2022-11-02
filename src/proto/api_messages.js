@@ -85,6 +85,10 @@ const AnalyticsEvent = {
   IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE: 40,
   IMPRESSION_SUBSCRIPTION_LINKING_ERROR: 41,
   IMPRESSION_SURVEY: 42,
+  IMPRESSION_REGWALL_ERROR: 43,
+  IMPRESSION_NEWSLETTER_ERROR: 44,
+  IMPRESSION_SURVEY_ERROR: 45,
+  IMPRESSION_METER_TOAST_ERROR: 46,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -156,6 +160,10 @@ const AnalyticsEvent = {
   ACTION_SURVEY_SUBMIT_CLICK: 1068,
   ACTION_SURVEY_CLOSED: 1069,
   ACTION_SURVEY_DATA_TRANSFER: 1070,
+  ACTION_SUBSCRIPTION_REGWALL_RETRY: 1071,
+  ACTION_SUBSCRIPTION_NEWSLETTER_RETRY: 1072,
+  ACTION_SUBSCRIPTION_SURVEY_RETRY: 1073,
+  ACTION_SUBSCRIPTION_METER_TOAST_RETRY: 1074,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_REGWALL_OPT_IN_FAILED: 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
@@ -164,6 +172,7 @@ const AnalyticsEvent = {
   EVENT_SUBSCRIPTION_LINKING_FAILED: 2005,
   EVENT_SURVEY_ALREADY_SUBMITTED: 2006,
   EVENT_SURVEY_SUBMIT_FAILED: 2007,
+  EVENT_SURVEY_DATA_TRANSFER_FAILED: 2008,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
   EVENT_CHANGED_TX_ID: 3002,
@@ -1153,9 +1162,9 @@ class EntitlementsRequest {
 
     /** @private {?Timestamp} */
     this.subscriptionTimestamp_ =
-      data[6 + base] == null || data[6 + base] == undefined
-        ? null
-        : new Timestamp(data[6 + base], includesLabel);
+        data[6 + base] == null || data[6 + base] == undefined ?
+        null :
+        new Timestamp(data[6 + base], includesLabel);
   }
 
   /**
@@ -1263,13 +1272,17 @@ class EntitlementsRequest {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) : [], // field 1 - used_entitlement
-        this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) : [], // field 2 - client_event_time
-        this.entitlementSource_, // field 3 - entitlement_source
-        this.entitlementResult_, // field 4 - entitlement_result
-        this.token_, // field 5 - token
-        this.isUserRegistered_, // field 6 - is_user_registered
-        this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 7 - subscription_timestamp
+      this.usedEntitlement_ ? this.usedEntitlement_.toArray(includeLabel) :
+                              [],  // field 1 - used_entitlement
+      this.clientEventTime_ ? this.clientEventTime_.toArray(includeLabel) :
+                              [],  // field 2 - client_event_time
+      this.entitlementSource_,     // field 3 - entitlement_source
+      this.entitlementResult_,     // field 4 - entitlement_result
+      this.token_,                 // field 5 - token
+      this.isUserRegistered_,      // field 6 - is_user_registered
+      this.subscriptionTimestamp_ ?
+          this.subscriptionTimestamp_.toArray(includeLabel) :
+          [],  // field 7 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1391,9 +1404,9 @@ class EventParams {
 
     /** @private {?Timestamp} */
     this.subscriptionTimestamp_ =
-      data[7 + base] == null || data[7 + base] == undefined
-        ? null
-        : new Timestamp(data[7 + base], includesLabel);
+        data[7 + base] == null || data[7 + base] == undefined ?
+        null :
+        new Timestamp(data[7 + base], includesLabel);
   }
 
   /**
@@ -1515,14 +1528,16 @@ class EventParams {
    */
   toArray(includeLabel = true) {
     const arr = [
-        this.smartboxMessage_, // field 1 - smartbox_message
-        this.gpayTransactionId_, // field 2 - gpay_transaction_id
-        this.hadLogged_, // field 3 - had_logged
-        this.sku_, // field 4 - sku
-        this.oldTransactionId_, // field 5 - old_transaction_id
-        this.isUserRegistered_, // field 6 - is_user_registered
-        this.subscriptionFlow_, // field 7 - subscription_flow
-        this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 8 - subscription_timestamp
+      this.smartboxMessage_,    // field 1 - smartbox_message
+      this.gpayTransactionId_,  // field 2 - gpay_transaction_id
+      this.hadLogged_,          // field 3 - had_logged
+      this.sku_,                // field 4 - sku
+      this.oldTransactionId_,   // field 5 - old_transaction_id
+      this.isUserRegistered_,   // field 6 - is_user_registered
+      this.subscriptionFlow_,   // field 7 - subscription_flow
+      this.subscriptionTimestamp_ ?
+          this.subscriptionTimestamp_.toArray(includeLabel) :
+          [],  // field 8 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
