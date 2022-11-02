@@ -130,6 +130,7 @@ export class Dialog {
 
     /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(doc.getWin().document, {
+      'aria-label': 'SwG Dialog iframe',
       'class': iframeCssClass,
     });
 
@@ -267,7 +268,7 @@ export class Dialog {
     iframeBody.appendChild(this.loadingView_.getElement());
 
     // Container for all dynamic content, including 3P iframe.
-    this.container_ = createElement(iframeDoc, 'swg-container', {});
+    this.container_ = createElement(iframeDoc, 'swg-container', {'aria-label': 'SwG iframe Container',});
     iframeBody.appendChild(this.container_);
     this.setPosition_();
 

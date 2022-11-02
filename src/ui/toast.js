@@ -32,6 +32,7 @@ export let ToastSpecDef;
 
 /** @const {!Object<string, string>} */
 const iframeAttributes = {
+  'aria-label': 'SwG Toast iframe',
   'frameborder': '0',
   'scrolling': 'no',
   'class': 'swg-toast',
