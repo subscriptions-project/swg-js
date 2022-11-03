@@ -27,6 +27,7 @@ import {
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {Callbacks} from './callbacks';
+import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
 import {DepsDef} from './deps';
@@ -48,6 +49,7 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {defaultConfig} from '../api/subscriptions';
 import {serializeProtoMessageForUrl} from '../utils/url';
+import {toTimestamp} from '../utils/date-utils';
 
 const ENTITLEMENTS_URL =
   '$frontend$/swg/_/api/v1/publication/pub1/entitlements';
@@ -58,6 +60,9 @@ const CANONICAL_URL = 'https://norcal.com/article';
 
 const HASHED_CANONICAL_URL =
   'c275572c0f2fe80215a63e040c29a0ce3d1f6a9ed537e0c8c8e0a642f447531ff82a49aa439dc6ffa5bd8bb5efe2b05c03ee49fcf1e5f995bf97c883f26c40e6';
+
+const SUBSCRIPTION_TIMESTAMP = toTimestamp(1665445119);
+
 
 describes.realWin('EntitlementsManager', {}, (env) => {
   let win;
@@ -134,6 +139,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       .stub(analyticsService, 'getContext')
       .returns(new AnalyticsContext());
     sandbox.stub(deps, 'analytics').returns(analyticsService);
+    const clientConfigManager = new ClientConfigManager(deps);
+    sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
@@ -210,6 +217,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         source: 'google',
         products: ['pub1:label1'],
         subscriptionToken: 's1',
+        subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
       },
       options,
       isReadyToPay,
@@ -227,6 +235,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
       entitlementResult: EntitlementResult.UNLOCKED_SUBSCRIBER,
       isUserRegistered: true,
+      subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
     });
     return resp;
   }
@@ -262,9 +271,10 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     return resp;
   }
 
-  function getEventParams(isUserRegistered) {
+  function getEventParams(isUserRegistered, subscriptionTimestamp = null) {
     const params = new EventParams();
     params.setIsUserRegistered(isUserRegistered);
+    params.setSubscriptionTimestamp(subscriptionTimestamp);
     return params;
   }
 
@@ -309,6 +319,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     gaaToken = 'token',
     mockTimeArray = MOCK_TIME_ARRAY,
     userToken = null,
+    subscriptionTimestamp = null,
   } = {}) {
     expectGetSwgUserTokenToBeCalled(userToken);
     const encodedParams = base64UrlEncodeFromBytes(
@@ -323,20 +334,19 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         (userToken ? `sut=${userToken}&` : '') +
         (devModeParams ? `devEnt=${devModeParams}&` : '') +
         `encodedParams=${encodedParams}`;
-    expectPost(
-      url,
-      new EntitlementsRequest(
-        [
-          new EntitlementJwt([jwtString, jwtSource], false).toArray(false),
-          mockTimeArray,
-          entitlementSource,
-          entitlementResult,
-          gaaToken,
-          isUserRegistered,
-        ],
-        false
-      )
+    const request = new EntitlementsRequest(
+      [
+        new EntitlementJwt([jwtString, jwtSource], false).toArray(false),
+        mockTimeArray,
+        entitlementSource,
+        entitlementResult,
+        gaaToken,
+        isUserRegistered,
+      ],
+      false
     );
+    request.setSubscriptionTimestamp(subscriptionTimestamp);
+    expectPost(url, request);
   }
 
   // Clear locally stored SwgUserToken.
@@ -364,6 +374,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs('isreadytopay')
+        .returns(Promise.resolve(null))
+        .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
         .returns(Promise.resolve(null))
         .atLeast(0);
     });
@@ -730,6 +745,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           entitlements: {
             products: ['pub1:label1'],
             subscriptionToken: 'token1',
+            subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
           },
         });
       const testSubscriptionTokenContents = {
@@ -763,7 +779,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expectLog(
         AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
         false,
-        getEventParams(true)
+        getEventParams(true, SUBSCRIPTION_TIMESTAMP)
       );
       expectGetSwgUserTokenToBeCalled(/* token= */ null, /* times= */ 2);
 
@@ -776,6 +792,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           products: ['pub1:label1'],
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
+          subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
         },
       ]);
 
@@ -1116,6 +1133,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           products: ['pub1:label1'],
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
+          subscriptionTimestamp: null,
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
@@ -1687,6 +1705,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           products: ['pub1:label1'],
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
+          subscriptionTimestamp: null,
         },
       ]);
       expect(ents.raw).to.equal('SIGNED_DATA');
@@ -1714,6 +1733,158 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         );
       manager.enableMeteredByGoogle();
+
+      await manager.getEntitlements();
+    });
+
+    it('should add the publisherProvidedId param from the config', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
+            encodeURIComponent('abc') +
+            '&ppid=' +
+            encodeURIComponent('publisherProvidedId'),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+
+      config.publisherProvidedId = 'publisherProvidedId';
+
+      // Check SwgUserToken from local storage.
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, true)
+        .returns(Promise.resolve('abc')).once;
+
+      await manager.getEntitlements();
+    });
+
+    it('should add the publisherProvidedId param from the getEntitlements params', async () => {
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
+            encodeURIComponent('abc') +
+            '&ppid=' +
+            encodeURIComponent('publisherProvidedId'),
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+
+      // Check SwgUserToken from local storage.
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.USER_TOKEN, true)
+        .returns(Promise.resolve('abc')).once;
+
+      await manager.getEntitlements({
+        publisherProvidedId: 'publisherProvidedId',
+      });
+    });
+
+    it('should send interaction_age with readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = '1615416440000';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?interaction_age=2`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
+
+      await manager.getEntitlements();
+    });
+
+    it('should not send interaction_age with future readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = '1615416444000';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
+
+      await manager.getEntitlements();
+    });
+
+    it('should not send interaction_age with unparseable readTime', async () => {
+      const CURRENT_TIME = 1615416442000;
+      const LAST_TIME_STRING = 'unparseable number';
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(LAST_TIME_STRING))
+        .atLeast(1);
+      sandbox.useFakeTimers(CURRENT_TIME);
+      expectGetSwgUserTokenToBeCalled();
+      xhrMock
+        .expects('fetch')
+        .withExactArgs(
+          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        )
+        .once();
 
       await manager.getEntitlements();
     });
@@ -1748,6 +1919,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         entitlementResult: result,
         isUserRegistered: params.getIsUserRegistered(),
         pingbackUrl: ENTITLEMENTS_URL + `?encodedParams=${noClientTypeParams}`,
+        subscriptionTimestamp: params.getSubscriptionTimestamp(),
       });
       eventManager.logEvent({
         eventType: event,
@@ -1786,7 +1958,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE,
-          getEventParams(true)
+          getEventParams(true, SUBSCRIPTION_TIMESTAMP)
         ));
 
       it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
@@ -1824,6 +1996,22 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           EventOriginator.SWG_CLIENT,
           GOOGLE_SOURCE,
           getEventParams(false)
+        ));
+
+      it('should pingback with subscriptionTimestamp is null on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getEventParams(true, null)
+        ));
+
+      it('should pingback with subscriptionTimestamp is not null on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getEventParams(true, SUBSCRIPTION_TIMESTAMP)
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
@@ -1868,7 +2056,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
           EventOriginator.SHOWCASE_CLIENT,
           EntitlementSource.PUBLISHER_ENTITLEMENT,
-          getEventParams(true)
+          getEventParams(true, SUBSCRIPTION_TIMESTAMP)
         ));
 
       it('should pingback EVENT_UNLOCKED_FREE_PAGE', () =>
@@ -1883,6 +2071,22 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SHOWCASE_CLIENT,
           EntitlementSource.PUBLISHER_ENTITLEMENT
+        ));
+
+      it('should pingback with subscriptionTimestamp is null on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getEventParams(true, null)
+        ));
+
+      it('should pingback with subscriptionTimestamp is not null on valid event', () =>
+        expectPingback(
+          AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION,
+          EventOriginator.SWG_CLIENT,
+          GOOGLE_SOURCE,
+          getEventParams(true, SUBSCRIPTION_TIMESTAMP)
         ));
 
       it('should NOT pingback on invalid GAA params', async () => {
@@ -1950,6 +2154,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('set')
         .withArgs('ents')
         .returns(Promise.resolve())
+        .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
+        .returns(Promise.resolve(null))
         .atLeast(0);
     });
 
@@ -2301,6 +2510,11 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('set')
         .withArgs('toast')
+        .returns(Promise.resolve(null))
+        .atLeast(0);
+      storageMock
+        .expects('get')
+        .withExactArgs(Constants.READ_TIME, false)
         .returns(Promise.resolve(null))
         .atLeast(0);
     });

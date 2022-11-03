@@ -350,12 +350,15 @@ export class EntitlementsManager {
     const token = this.getGaaToken_();
     const isUserRegistered =
       event?.additionalParameters?.getIsUserRegistered?.();
+    const subscriptionTimestamp =
+      event?.additionalParameters?.getSubscriptionTimestamp?.();
     this.postEntitlementsRequest_(
       new EntitlementJwt(),
       result,
       source,
       token,
-      isUserRegistered
+      isUserRegistered,
+      subscriptionTimestamp
     );
   }
 
@@ -366,7 +369,8 @@ export class EntitlementsManager {
     entitlementResult,
     entitlementSource,
     optionalToken = '',
-    optionalIsUserRegistered = null
+    optionalIsUserRegistered = null,
+    optionalSubscriptionTimestamp = null
   ) {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
@@ -376,6 +380,9 @@ export class EntitlementsManager {
     message.setToken(optionalToken);
     if (typeof optionalIsUserRegistered === 'boolean') {
       message.setIsUserRegistered(optionalIsUserRegistered);
+    }
+    if (optionalSubscriptionTimestamp) {
+      message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
     }
 
     let url =
@@ -734,6 +741,9 @@ export class EntitlementsManager {
 
     const params = new EventParams();
     params.setIsUserRegistered(true);
+    if (entitlement.subscriptionTimestamp) {
+      params.setSubscriptionTimestamp(entitlement.subscriptionTimestamp);
+    }
 
     // Log unlock event.
     const eventType =
@@ -827,16 +837,24 @@ export class EntitlementsManager {
     // Get swgUserToken from local storage
     const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
 
+    // Get read_time from session storage
+    const readTimePromise = this.storage_.get(
+      Constants.READ_TIME,
+      /*useLocalStorage=*/ false
+    );
+
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
 
     return Promise.all([
       hash(getCanonicalUrl(this.deps_.doc())),
       swgUserTokenPromise,
+      readTimePromise,
     ])
       .then((values) => {
         const hashedCanonicalUrl = values[0];
         const swgUserToken = values[1];
+        const readTime = values[2];
 
         url = addDevModeParamsToUrl(this.win_.location, url);
 
@@ -852,6 +870,33 @@ export class EntitlementsManager {
         // Add swgUserToken param.
         if (swgUserToken) {
           url = addQueryParam(url, 'sut', swgUserToken);
+        }
+        // Add publisherProvidedId param for swg-basic.
+        if (this.config_.publisherProvidedId) {
+          url = addQueryParam(url, 'ppid', this.config_.publisherProvidedId);
+        }
+        // Add publisherProvidedId param for swg-classic.
+        else if (
+          params?.publisherProvidedId &&
+          typeof params.publisherProvidedId === 'string' &&
+          params.publisherProvidedId.length > 0
+        ) {
+          url = addQueryParam(url, 'ppid', params.publisherProvidedId);
+        }
+
+        // Add interaction_age param.
+        if (readTime) {
+          const last = parseInt(readTime, 10);
+          if (last) {
+            const interactionAge = Math.floor((Date.now() - last) / 1000);
+            if (interactionAge >= 0) {
+              url = addQueryParam(
+                url,
+                'interaction_age',
+                interactionAge.toString()
+              );
+            }
+          }
         }
 
         /** @type {!GetEntitlementsParamsInternalDef|undefined} */

@@ -28,7 +28,7 @@ module.exports = {
       .assert.containsText('.K2Fgzb', 'Subscribe with your Google Account')
       .assert.containsText('.wlhaj.I3RyHc', 'Already subscribed?')
       .assert.containsText('.amekj', 'Weekly')
-      .assert.containsText('.e02Wob', '$4.99/week')
+      .assert.containsText('.e02Wob', '$9.99/week')
       .end();
   },
 

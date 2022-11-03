@@ -15,14 +15,23 @@
  */
 
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
+import {isFunction} from '../utils/types';
+
+/* eslint-disable no-unused-vars */
+/** @typedef {?function(string, string, Object)} */
+let AnalyticsMethod;
+
+/** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod}} */
+let WindowWithAnalyticsMethods;
+/* eslint-enable no-unused-vars */
 
 export class GoogleAnalyticsEventListener {
   /**
    * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+    /** @private @const {!./deps.DepsDef} deps */
+    this.deps_ = deps;
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
@@ -40,15 +49,24 @@ export class GoogleAnalyticsEventListener {
   /**
    *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
    * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
-  handleClientEvent_(event) {
-    // Bail immediately if neither ga function (analytics.js) nor gtag function (gtag.js) exists in Window.
-    if (
-      typeof this.win_.ga !== 'function' &&
-      typeof this.win_.gtag !== 'function'
-    ) {
+  handleClientEvent_(event, eventParams = undefined) {
+    // Require either ga function (analytics.js) or gtag function (gtag.js).
+    const gaIsEligible = GoogleAnalyticsEventListener.isGaEligible(this.deps_);
+    const gtagIsEligible = GoogleAnalyticsEventListener.isGtagEligible(
+      this.deps_
+    );
+    const neitherIsEligible = !gaIsEligible && !gtagIsEligible;
+    if (neitherIsEligible) {
       return;
     }
+
+    // Extract methods from window.
+    const {ga, gtag} = /** @type {!WindowWithAnalyticsMethods} */ (
+      this.deps_.win()
+    );
+
     let subscriptionFlow = '';
     if (event.additionalParameters) {
       // additionalParameters isn't strongly typed so checking for both object and class notation.
@@ -56,7 +74,7 @@ export class GoogleAnalyticsEventListener {
         event.additionalParameters.subscriptionFlow ||
         event.additionalParameters.getSubscriptionFlow();
     }
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+    let gaEvent = analyticsEventToGoogleAnalyticsEvent(
       event.eventType,
       subscriptionFlow
     );
@@ -64,17 +82,48 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
-    // TODO(b/234825847): Remove it once universal analytics is deprecated in 2023.
-    if (typeof this.win_.ga === 'function') {
-      this.win_.ga('send', 'event', gaEvent);
+    const analyticsParams = eventParams?.googleAnalyticsParameters || {};
+    gaEvent = {
+      ...gaEvent,
+      eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
+      eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
+    };
+
+    // TODO(b/234825847): Remove this once universal analytics is deprecated in 2023.
+    if (gaIsEligible) {
+      ga('send', 'event', gaEvent);
     }
 
-    if (typeof this.win_.gtag === 'function') {
-      this.win_.gtag('event', gaEvent.eventAction, {
+    if (gtagIsEligible) {
+      const gtagEvent = {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
         'non_interaction': gaEvent.nonInteraction,
-      });
+        ...analyticsParams,
+      };
+      gtag('event', gaEvent.eventAction, gtagEvent);
     }
+  }
+
+  /**
+   * Function to determine whether event is eligible for GA logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGaEligible(deps) {
+    return isFunction(
+      /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).ga
+    );
+  }
+
+  /**
+   * Function to determine whether event is eligible for gTag logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGtagEligible(deps) {
+    return isFunction(
+      /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).gtag
+    );
   }
 }

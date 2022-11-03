@@ -41,6 +41,7 @@ import {setImportantStyles} from './style';
 
 // Load types for Closure compiler.
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {convertPotentialTimestampToSeconds} from './date-utils';
 import {createElement, injectStyleSheet} from './dom';
 import {resolveDoc} from '../model/doc';
 import {showcaseEventToAnalyticsEvents} from '../runtime/event-type-mapping';
@@ -59,6 +60,9 @@ export const POST_MESSAGE_COMMAND_ERROR = 'error';
 
 /** Button click command for post messages. */
 export const POST_MESSAGE_COMMAND_BUTTON_CLICK = 'button-click';
+
+/** 3P button click command for post messages. */
+export const POST_MESSAGE_COMMAND_3P_BUTTON_CLICK = '3p-button-click';
 
 /** ID for the Google Sign-In iframe element. */
 export const GOOGLE_SIGN_IN_IFRAME_ID = 'swg-google-sign-in-iframe';
@@ -87,6 +91,9 @@ export const REGWALL_DIALOG_ID = 'swg-regwall-dialog';
 
 /** ID for the Regwall title element. */
 export const REGWALL_TITLE_ID = 'swg-regwall-title';
+
+/** Delay used to log 3P button click before redirect */
+const REDIRECT_DELAY = 10;
 
 /**
  * HTML for the metering regwall dialog, where users can sign in with Google.
@@ -428,6 +435,7 @@ export let GoogleUserDef;
  * unlockArticle: function(): ?,
  * rawJwt: (boolean|null),
  * userState: {
+ *   paywallReason: string,
  *   grantReason: string,
  *   granted: boolean,
  *   id: string,
@@ -870,6 +878,17 @@ export class GaaMeteringRegwall {
           isFromUserAction: true,
         });
       }
+      if (
+        e.data.stamp === POST_MESSAGE_STAMP &&
+        e.data.command === POST_MESSAGE_COMMAND_3P_BUTTON_CLICK
+      ) {
+        // Log button click event.
+        logEvent({
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
+          isFromUserAction: true,
+        });
+      }
     });
   }
 
@@ -969,11 +988,14 @@ export class GaaMeteringRegwall {
     buttonEl.addEventListener('click', () => {
       // Track button clicks.
       logEvent({
-        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
         isFromUserAction: true,
       });
       // Redirect user using the parent window.
-      self.open(authorizationUrl, '_parent');
+      // TODO(b/242998655): Fix the downstream calls for logEvent to be chained to remove the need of delaying redirect.
+      self.setTimeout(() => {
+        self.open(authorizationUrl, '_parent');
+      }, REDIRECT_DELAY);
     });
 
     return buttonEl;
@@ -1355,7 +1377,17 @@ export class GaaGoogle3pSignInButton {
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+        });
+      });
       if (redirectMode) {
+        // TODO(b/242998655): Fix the downstream calls for logEvent to be chained to remove the need of delaying redirect.
+        self.setTimeout(() => {
+          self.open(authorizationUrl, '_parent');
+        }, REDIRECT_DELAY);
         self.open(authorizationUrl, '_parent');
       } else {
         self.open(authorizationUrl);
@@ -1487,6 +1519,15 @@ export const GrantReasonType = {
   METERING: 'METERING',
 };
 
+/**
+ * Types of paywallReason that can be specified by the user as part of
+ * the userState object
+ * @enum {string}
+ */
+export const PaywallReasonType = {
+  RESERVED_USER: 'RESERVED_USER',
+};
+
 export class GaaMetering {
   constructor() {
     this.userState = {};
@@ -1566,6 +1607,11 @@ export class GaaMetering {
 
     callSwg((subscriptions) => {
       subscriptions.init(productId);
+
+      logEvent({
+        analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
+        isFromUserAction: false,
+      });
 
       subscriptions.setOnLoginRequest(() =>
         GaaMetering.handleLoginRequest(
@@ -1664,9 +1710,8 @@ export class GaaMetering {
                 grantReasonToShowCaseEventMap[
                   GaaMetering.userState.grantReason
                 ],
-              isUserRegistered: GaaMetering.isUserRegistered(
-                GaaMetering.userState
-              ),
+              isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+              subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
             });
             debugLog('unlocked for ' + GaaMetering.userState.grantReason);
           });
@@ -1735,7 +1780,7 @@ export class GaaMetering {
         // This is only relevant for publishers doing SwG
         handleSwGEntitlement();
       } else if (
-        !GaaMetering.isUserRegistered(GaaMetering.userState) &&
+        !GaaMetering.isCurrentUserRegistered() &&
         GaaMetering.isGaa(allowedReferrers)
       ) {
         // This is an anonymous user so show the Google registration intervention
@@ -1743,17 +1788,31 @@ export class GaaMetering {
       } else {
         // User does not any access from publisher or Google so show the standard paywall
         callSwg((subscriptions) => {
-          subscriptions.setShowcaseEntitlement({
-            entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-            isUserRegistered: GaaMetering.isUserRegistered(
-              GaaMetering.userState
-            ),
-          });
+          switch (GaaMetering.userState.paywallReason) {
+            case PaywallReasonType.RESERVED_USER:
+              subscriptions.setShowcaseEntitlement({
+                entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
+                isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+                subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
+              });
+              break;
+            default:
+              subscriptions.setShowcaseEntitlement({
+                entitlement:
+                  ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+                isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+                subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
+              });
+          }
         });
         // Show the paywall
         showPaywall();
       }
     });
+  }
+
+  static isCurrentUserRegistered() {
+    return GaaMetering.isUserRegistered(GaaMetering.userState);
   }
 
   static isUserRegistered(userState) {
@@ -1988,12 +2047,11 @@ export class GaaMetering {
    * @return {boolean}
    */
   static isArticleFreeFromJsonLdPageConfig_() {
-    const ldJsonElements = self.document.querySelectorAll(
-      'script[type="application/ld+json"]'
-    );
+    const ldJsonElements = [
+      ...self.document.querySelectorAll('script[type="application/ld+json"]'),
+    ];
 
-    for (let i = 0; i < ldJsonElements.length; i++) {
-      const ldJsonElement = ldJsonElements[i];
+    for (const ldJsonElement of ldJsonElements) {
       let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
@@ -2005,15 +2063,12 @@ export class GaaMetering {
         (entry) => entry?.isAccessibleForFree
       )?.isAccessibleForFree;
 
-      if (accessibleForFree == null || accessibleForFree === '') {
-        return false;
-      }
-      if (typeof accessibleForFree == 'boolean') {
+      if (typeof accessibleForFree === 'boolean') {
         return accessibleForFree;
       }
-      if (typeof accessibleForFree == 'string') {
-        const lowercase = accessibleForFree.toLowerCase();
-        return lowercase == 'true';
+
+      if (typeof accessibleForFree === 'string') {
+        return accessibleForFree.toLowerCase() === 'true';
       }
     }
 
@@ -2048,13 +2103,18 @@ export class GaaMetering {
   }
 
   static newUserStateToUserState(newUserState) {
+    // Convert registrationTimestamp to seconds
+    const registrationTimestampSeconds = convertPotentialTimestampToSeconds(
+      newUserState.registrationTimestamp
+    );
+
     return {
       'metering': {
         'state': {
           'id': newUserState.id,
           'standardAttributes': {
             'registered_user': {
-              'timestamp': newUserState.registrationTimestamp,
+              'timestamp': registrationTimestampSeconds,
             },
           },
         },
@@ -2067,6 +2127,8 @@ export class GaaMetering {
       return false;
     }
 
+    let noIssues = true;
+
     if (
       !('granted' in newUserState && typeof newUserState.granted === 'boolean')
     ) {
@@ -2074,7 +2136,7 @@ export class GaaMetering {
         'userState.granted is missing or invalid (must be true or false)'
       );
 
-      return false;
+      noIssues = false;
     }
 
     if (
@@ -2085,7 +2147,7 @@ export class GaaMetering {
         'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
       );
 
-      return false;
+      noIssues = false;
     }
 
     if (
@@ -2099,8 +2161,9 @@ export class GaaMetering {
         debugLog(
           'Missing user ID or registrationTimestamp in userState object'
         );
-        return false;
+        noIssues = false;
       } else {
+        // Check if the provided timestamp is an integer
         if (
           !(
             typeof newUserState.registrationTimestamp === 'number' &&
@@ -2111,47 +2174,46 @@ export class GaaMetering {
             'userState.registrationTimestamp invalid, userState.registrationTimestamp needs to be an integer and in seconds'
           );
 
-          return false;
-        }
-
-        if (newUserState.registrationTimestamp > Date.now() / 1000) {
+          noIssues = false;
+        } else if (
+          convertPotentialTimestampToSeconds(
+            newUserState.registrationTimestamp
+          ) >
+          Date.now() / 1000
+        ) {
           debugLog('userState.registrationTimestamp is in the future');
 
-          return false;
+          noIssues = false;
         }
 
-        if (
-          newUserState.grantReason === GrantReasonType.SUBSCRIBER &&
-          !('subscriptionTimestamp' in newUserState)
-        ) {
-          debugLog(
-            'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
-          );
+        if (newUserState.grantReason === GrantReasonType.SUBSCRIBER) {
+          if (!('subscriptionTimestamp' in newUserState)) {
+            debugLog(
+              'subscriptionTimestamp is required if userState.grantReason is SUBSCRIBER'
+            );
 
-          return false;
-        }
+            noIssues = false;
+          } else if (
+            // Check if the provided timestamp is an integer
+            !(
+              typeof newUserState.subscriptionTimestamp === 'number' &&
+              newUserState.subscriptionTimestamp % 1 === 0
+            )
+          ) {
+            debugLog(
+              'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
+            );
 
-        if (
-          'subscriptionTimestamp' in newUserState &&
-          !(
-            typeof newUserState.subscriptionTimestamp === 'number' &&
-            newUserState.subscriptionTimestamp % 1 === 0
-          )
-        ) {
-          debugLog(
-            'userState.subscriptionTimestamp invalid, userState.subscriptionTimestamp needs to be an integer and in seconds'
-          );
-
-          return false;
-        }
-
-        if (
-          'subscriptionTimestamp' in newUserState &&
-          newUserState.subscriptionTimestamp > Date.now() / 1000
-        ) {
-          debugLog('userState.subscriptionTimestamp is in the future');
-
-          return false;
+            noIssues = false;
+          } else if (
+            convertPotentialTimestampToSeconds(
+              newUserState.subscriptionTimestamp
+            ) >
+            Date.now() / 1000
+          ) {
+            debugLog('userState.subscriptionTimestamp is in the future');
+            noIssues = false;
+          }
         }
       }
     }
@@ -2168,7 +2230,22 @@ export class GaaMetering {
       }
     }
 
-    return true;
+    if ('paywallReason' in newUserState) {
+      if (newUserState.granted) {
+        debugLog(
+          'userState.granted must be false when paywallReason is supplied.'
+        );
+        noIssues = false;
+      }
+
+      if (PaywallReasonType[newUserState.paywallReason] === undefined) {
+        debugLog(
+          'userState.paywallReason has to be empty or set to RESERVED_USER.'
+        );
+        noIssues = false;
+      }
+    }
+    return noIssues;
   }
 
   static getOnReadyPromise() {
@@ -2181,5 +2258,9 @@ export class GaaMetering {
         });
       }
     });
+  }
+
+  static getSubscriptionTimestamp() {
+    return GaaMetering?.userState?.subscriptionTimestamp || null;
   }
 }
