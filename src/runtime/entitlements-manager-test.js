@@ -54,6 +54,11 @@ const ENTITLEMENTS_URL =
 
 const MOCK_TIME_ARRAY = [1600389016, 959000000];
 
+const CANONICAL_URL = 'https://norcal.com/article';
+
+const HASHED_CANONICAL_URL =
+  'c275572c0f2fe80215a63e040c29a0ce3d1f6a9ed537e0c8c8e0a642f447531ff82a49aa439dc6ffa5bd8bb5efe2b05c03ee49fcf1e5f995bf97c883f26c40e6';
+
 describes.realWin('EntitlementsManager', {}, (env) => {
   let win;
   let nowStub;
@@ -99,6 +104,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     deps = new DepsDef();
     sandbox.stub(deps, 'win').returns(win);
     const globalDoc = new GlobalDoc(win);
+
+    globalDoc.getRootNode = function () {
+      return {
+        querySelector: function (unused) {
+          return {href: CANONICAL_URL};
+        },
+      };
+    };
+
     sandbox.stub(deps, 'doc').returns(globalDoc);
     callbacks = new Callbacks();
     sandbox.stub(deps, 'callbacks').returns(callbacks);
@@ -131,12 +145,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     nowStub = sandbox.stub(Date, 'now').returns(1600389016959);
     defaultGoogleMeteringEncodedParams = base64UrlEncodeFromBytes(
       utf8EncodeSync(
-        '{"metering":{"clientTypes":[2],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
+        `{"metering":{"clientTypes":[2],"owner":"pub1","resource":{"hashedCanonicalUrl":"${HASHED_CANONICAL_URL}"}}}`
       )
     );
     noClientTypeParams = base64UrlEncodeFromBytes(
       utf8EncodeSync(
-        '{"metering":{"resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
+        `{"metering":{"resource":{"hashedCanonicalUrl":"${HASHED_CANONICAL_URL}"}}}`
       )
     );
   });
@@ -299,7 +313,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     expectGetSwgUserTokenToBeCalled(userToken);
     const encodedParams = base64UrlEncodeFromBytes(
       utf8EncodeSync(
-        '{"metering":{"resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"}}}'
+        `{"metering":{"resource":{"hashedCanonicalUrl":"${HASHED_CANONICAL_URL}"}}}`
       )
     );
     const url =
@@ -1054,7 +1068,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .returns(testSubscriptionTokenContents);
       const encodedParams = base64UrlEncodeFromBytes(
         utf8EncodeSync(
-          '{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]},"token":"token"}}'
+          `{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"${HASHED_CANONICAL_URL}"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]},"token":"token"}}`
         )
       );
       xhrMock
@@ -1639,7 +1653,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       };
       const encodedParams = base64UrlEncodeFromBytes(
         utf8EncodeSync(
-          '{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},"state":{"id":"u1","attributes":[]},"token":"token"}}'
+          `{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"${HASHED_CANONICAL_URL}"},"state":{"id":"u1","attributes":[]},"token":"token"}}`
         )
       );
       xhrMock
