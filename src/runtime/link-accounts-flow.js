@@ -155,32 +155,11 @@ export class LinkCompleteFlow {
     /** @private @const {!./callbacks.Callbacks} */
     this.callbacks_ = deps.callbacks();
 
-    const index = (response && response['index']) || '0';
-
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
 
-    /** @private @const {!Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfigManager_
-      .getClientConfig()
-      .then(
-        (clientConfig) =>
-          new ActivityIframeView(
-            this.win_,
-            this.activityPorts_,
-            feUrl(
-              '/linkconfirmiframe',
-              {},
-              clientConfig.usePrefixedHostPath,
-              'u/' + index
-            ),
-            feArgs({
-              'productId': deps.pageConfig().getProductId(),
-              'publicationId': deps.pageConfig().getPublicationId(),
-            }),
-            /* shouldFadeBody */ true
-          )
-      );
+    /** @private {!Object} */
+    this.response_ = response || {};
 
     /** @private {?function()} */
     this.completeResolver_ = null;
@@ -196,8 +175,28 @@ export class LinkCompleteFlow {
    * @return {!Promise}
    */
   start() {
-    return this.activityIframeViewPromise_.then((activityIframeView) => {
-      this.activityIframeView_ = activityIframeView;
+    if (this.response_['saveAndRefresh']) {
+      this.complete_(this.saveAndRefreshResponse_);
+      return Promise.resolve();
+    }
+
+    return this.clientConfigManager_.getClientConfig().then((clientConfig) => {
+      const index = this.response_['index'] || '0';
+      this.activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        feUrl(
+          '/linkconfirmiframe',
+          {},
+          clientConfig.usePrefixedHostPath,
+          'u/' + index
+        ),
+        feArgs({
+          'productId': this.deps_.pageConfig().getProductId(),
+          'publicationId': this.deps_.pageConfig().getPublicationId(),
+        }),
+        /* shouldFadeBody */ true
+      );
 
       const promise = this.activityIframeView_.acceptResultAndVerify(
         feOrigin(),
