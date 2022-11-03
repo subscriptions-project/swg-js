@@ -276,6 +276,29 @@ describes.realWin('OffersFlow', {}, (env) => {
     await offersFlow.start();
   });
 
+  it('opens dialog with scrolling enabled when useUpdatedOfferFlows=true and allowScroll=true', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+      })
+    );
+    sandbox.stub(clientConfigManager, 'shouldAllowScroll').returns(true);
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+          shouldDisableBodyScrolling: false,
+        })
+      )
+      .once();
+    await offersFlow.start();
+  });
+
   it('should trigger on cancel', async () => {
     callbacksMock
       .expects('triggerFlowStarted')

@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ExperimentFlags} from './experiment-flags';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
 import {assert} from '../utils/log';
+import {isExperimentOn} from './experiments';
 
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
@@ -54,6 +57,9 @@ export class AutoPromptManager {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
+    /** @private @const {!../model/doc.Doc} */
+    this.doc_ = deps.doc();
+
     /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = deps.pageConfig();
 
@@ -75,7 +81,7 @@ export class AutoPromptManager {
       .registerEventListener(this.handleClientEvent_.bind(this));
 
     /** @private @const {!MiniPromptApi} */
-    this.miniPromptAPI_ = this.getMiniPromptApi();
+    this.miniPromptAPI_ = this.getMiniPromptApi(deps);
     this.miniPromptAPI_.init();
 
     /** @private {boolean} */
@@ -89,17 +95,21 @@ export class AutoPromptManager {
 
     /** @private {?string} */
     this.promptDisplayed_ = null;
+
+    /** @private @const {!./client-event-manager.ClientEventManager} */
+    this.eventManager_ = deps.eventManager();
   }
 
   /**
    * Returns an instance of MiniPromptApi. Can be overwridden by subclasses,
    * such as in order to instantiate a different implementation of
    * MiniPromptApi.
+   * @param {!./deps.DepsDef} deps
    * @return {!MiniPromptApi}
    * @protected
    */
-  getMiniPromptApi() {
-    return new MiniPromptApi(this.deps_);
+  getMiniPromptApi(deps) {
+    return new MiniPromptApi(deps);
   }
 
   /**
@@ -120,7 +130,10 @@ export class AutoPromptManager {
   showAutoPrompt(params) {
     // Manual override of display rules, mainly for demo purposes.
     if (params.alwaysShow) {
-      this.showPrompt_(params.autoPromptType, params.displayLargePromptFn);
+      this.showPrompt_(
+        this.getPromptTypeToDisplay_(params.autoPromptType),
+        params.displayLargePromptFn
+      );
       return Promise.resolve();
     }
 
@@ -199,7 +212,11 @@ export class AutoPromptManager {
       }
       this.deps_.win().setTimeout(() => {
         this.autoPromptDisplayed_ = true;
-        this.showPrompt_(params.autoPromptType, promptFn);
+
+        this.showPrompt_(
+          this.getPromptTypeToDisplay_(params.autoPromptType),
+          promptFn
+        );
       }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
     });
   }
@@ -357,6 +374,9 @@ export class AutoPromptManager {
     shouldShowAutoPrompt,
   }) {
     let potentialActions = article?.audienceActions?.actions || [];
+    potentialActions = potentialActions.filter((action) =>
+      this.checkActionEligibility_(action.type)
+    );
 
     // No audience actions means use the default prompt.
     if (potentialActions.length === 0) {
@@ -449,6 +469,54 @@ export class AutoPromptManager {
     ) {
       displayLargePromptFn();
     }
+  }
+
+  /**
+   * Returns which type of prompt to display based on the type specified,
+   * the viewport width, and whether the disableDesktopMiniprompt experiment
+   * is enabled.
+   *
+   * If the disableDesktopMiniprompt experiment is enabled and the desktop is
+   * wider than 480px then the large prompt type will be substituted for the mini
+   * prompt. The original promptType will be returned as-is in all other cases.
+   * @param {AutoPromptType|undefined} promptType
+   * @returns
+   */
+  getPromptTypeToDisplay_(promptType) {
+    const disableDesktopMiniprompt = isExperimentOn(
+      this.doc_.getWin(),
+      ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
+    );
+    const isWideDesktop = this.doc_.getWin()./* OK */ innerWidth > 480;
+
+    if (disableDesktopMiniprompt && isWideDesktop) {
+      if (promptType === AutoPromptType.SUBSCRIPTION) {
+        this.logDisableMinipromptEvent_(promptType);
+        return AutoPromptType.SUBSCRIPTION_LARGE;
+      }
+      if (promptType === AutoPromptType.CONTRIBUTION) {
+        this.logDisableMinipromptEvent_(promptType);
+        return AutoPromptType.CONTRIBUTION_LARGE;
+      }
+    }
+
+    return promptType;
+  }
+
+  /**
+   * Logs the disable miniprompt event.
+   * @param {AutoPromptType|undefined} overriddenPromptType
+   */
+  logDisableMinipromptEvent_(overriddenPromptType) {
+    this.eventManager_.logEvent({
+      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: false,
+      additionalParameters: {
+        publicationid: this.pageConfig_.getPublicationId(),
+        promptType: overriddenPromptType,
+      },
+    });
   }
 
   /**
@@ -617,5 +685,20 @@ export class AutoPromptManager {
       }
     }
     return dateArray.slice(sliceIndex);
+  }
+
+  /**
+   * Checks AudienceAction eligbility, used to filter potential actions.
+   * @param {string} actionType
+   * @return {boolean}
+   */
+  checkActionEligibility_(actionType) {
+    if (actionType === 'TYPE_REWARDED_SURVEY') {
+      return (
+        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
+        GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
+      );
+    }
+    return true;
   }
 }

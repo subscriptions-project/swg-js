@@ -218,24 +218,6 @@ describes.realWin('installRuntime', {}, (env) => {
       expect(subscriptions).to.have.property(name);
     }
   });
-
-  it('tells IE11 users about deprecation', () => {
-    // Mock user agent.
-    const originalUserAgent = navigator.userAgent;
-    Object.defineProperty(self.navigator, 'userAgent', {
-      value: 'Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko',
-      writable: true,
-    });
-
-    // Warning should tell IE11 users about deprecation.
-    installRuntime(win);
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      'IE Support is being deprecated, in September 2021 IE will no longer be supported.'
-    );
-
-    // Restore user agent.
-    navigator.userAgent = originalUserAgent;
-  });
 });
 
 describes.realWin('installRuntime legacy', {}, (env) => {
@@ -1042,6 +1024,7 @@ describes.realWin('Runtime', {}, (env) => {
       const entitlement = {
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
         isUserRegistered: true,
+        subscriptionTimestamp: 1602763094,
       };
       configuredRuntimeMock
         .expects('setShowcaseEntitlement')
@@ -1069,6 +1052,16 @@ describes.realWin('Runtime', {}, (env) => {
 
     it('should not call showBestAudienceAction', () => {
       expect(() => runtime.showBestAudienceAction()).to.not.throw();
+    });
+
+    it('should delegate "setPublisherProvidedId"', async () => {
+      configuredRuntimeMock
+        .expects('setPublisherProvidedId')
+        .withExactArgs('publisherProvidedId')
+        .once();
+
+      await runtime.setPublisherProvidedId('publisherProvidedId');
+      expect(configureStub).to.be.calledOnce.calledWith(true);
     });
   });
 });
@@ -1460,6 +1453,15 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
         expect(isExperimentOn(win, 'exp1')).to.be.true;
         expect(isExperimentOn(win, 'exp2')).to.be.true;
         expect(isExperimentOn(win, 'exp3')).to.be.false;
+      });
+
+      it('throws when the publisherProvidedId value is not a string', () => {
+        expect(() => {
+          runtime.configure({publisherProvidedId: 1});
+        }).to.throw(/publisherProvidedId must be a string, value: 1/);
+        expect(() => {
+          runtime.configure({publisherProvidedId: ''});
+        }).to.throw(/publisherProvidedId must be a string, value: /);
       });
     });
 
@@ -2191,6 +2193,12 @@ subscribe() method'
       expect(stub).to.be.calledWithExactly(request);
     });
 
+    it('should set the publisherProvidedId', async () => {
+      runtime.setPublisherProvidedId('publisherProvidedId');
+
+      expect(runtime.publisherProvidedId_).to.equal('publisherProvidedId');
+    });
+
     describe('setShowcaseEntitlement', () => {
       const SECURE_PUB_URL = 'https://www.publisher.com';
       const UNSECURE_PUB_URL = 'http://www.publisher.com';
@@ -2213,19 +2221,31 @@ subscribe() method'
         sandbox.useFakeTimers();
       });
 
-      it('should log events', () => {
+      it('should log unlock by meter events', () => {
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(2);
+      });
+
+      it('should log unlock by subscription events', () => {
+        runtime.setShowcaseEntitlement({
+          entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
+          isUserRegistered: true,
+          subscriptionTimestamp: 1602763094,
+        });
+
+        expect(logEventStub).callCount(1);
       });
 
       it('should require entitlement', () => {
         runtime.setShowcaseEntitlement({
           entitlement: undefined,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(0);
@@ -2238,6 +2258,7 @@ subscribe() method'
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(0);
@@ -2254,6 +2275,7 @@ subscribe() method'
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(1);
@@ -2266,6 +2288,7 @@ subscribe() method'
         runtime.setShowcaseEntitlement({
           entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
           isUserRegistered: true,
+          subscriptionTimestamp: null,
         });
 
         expect(logEventStub).callCount(0);

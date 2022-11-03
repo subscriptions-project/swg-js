@@ -299,7 +299,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
+        '$frontend$/swg/u/0/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
@@ -334,7 +334,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
+        '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
@@ -390,7 +390,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
+        '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
