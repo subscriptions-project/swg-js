@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { WindowOpenMode } from '../api/subscriptions';
 import {warn} from './log';
 
 // NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
@@ -201,12 +202,17 @@ export function getHostUrl(url) {
 }
 
 /**
+ * Returns the canonical URL from the canonical tag. If the canonical tag is
+ * not present, treat the doc URL itself as canonical.
  * @param {!../model/doc.Doc} doc
  * @return {string}
  */
 export function getCanonicalUrl(doc) {
   const node = doc.getRootNode().querySelector("link[rel='canonical']");
-  return (node && node.href) || '';
+  return (
+    (node && node.href) ||
+    doc.getRootNode().location.origin + doc.getRootNode().location.pathname
+  );
 }
 
 const PARSED_URL = parseUrl(self.window.location.href);
