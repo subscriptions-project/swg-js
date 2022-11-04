@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Doc, resolveDoc} from './doc';
+import {Doc as DocInterface, resolveDoc} from './doc';
 import {PageConfig} from './page-config';
 import {debugLog} from '../utils/log';
 import {hasNextNodeInDocumentOrder} from '../utils/dom';
@@ -44,10 +44,10 @@ const RE_ALLOWED_TYPES = new RegExp(ALLOWED_TYPES.join('|'));
  */
 export class PageConfigResolver {
   /**
-   * @param {!Window|!Document|!Doc} winOrDoc
+   * @param {!Window|!Document|!DocInterface} winOrDoc
    */
   constructor(winOrDoc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(winOrDoc);
 
     /** @private {?function((!PageConfig|!Promise))} */
@@ -84,13 +84,10 @@ export class PageConfigResolver {
     if (!this.configResolver_) {
       return null;
     }
-    let config = this.metaParser_.check();
-    if (!config) {
-      config = this.ldParser_.check();
-    }
-    if (!config) {
-      config = this.microdataParser_.check();
-    }
+    const config =
+      this.metaParser_.check() ||
+      this.ldParser_.check() ||
+      this.microdataParser_.check();
     if (config) {
       // Product ID has been found: initialize the rest of the config.
       this.configResolver_(config);
@@ -164,10 +161,10 @@ class TypeChecker {
 
 class MetaParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
   }
 
@@ -204,10 +201,10 @@ class MetaParser {
 
 class JsonLdParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
     /** @private @const @function */
     this.checkType_ = new TypeChecker();
@@ -306,26 +303,25 @@ class JsonLdParser {
 
   /**
    * @param {*} value
-   * @param {boolean} def
+   * @param {boolean} defaultValue
    * @return {boolean}
    */
-  bool_(value, def) {
-    if (value == null || value === '') {
-      return def;
-    }
-    if (typeof value == 'boolean') {
+  bool_(value, defaultValue) {
+    if (typeof value === 'boolean') {
       return value;
     }
-    if (typeof value == 'string') {
+
+    if (typeof value === 'string') {
       const lowercase = value.toLowerCase();
-      if (lowercase == 'false') {
+      if (lowercase === 'false') {
         return false;
       }
-      if (lowercase == 'true') {
+      if (lowercase === 'true') {
         return true;
       }
     }
-    return def;
+
+    return defaultValue;
   }
 
   /**
@@ -367,10 +363,10 @@ class JsonLdParser {
 
 class MicrodataParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
     /** @private {?boolean} */
     this.access_ = null;
@@ -560,9 +556,4 @@ function getMetaTag(rootNode, name) {
     return el.getAttribute('content');
   }
   return null;
-}
-
-/** @package Visible for testing only. */
-export function getDocClassForTesting() {
-  return Doc;
 }

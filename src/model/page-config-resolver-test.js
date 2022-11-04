@@ -72,6 +72,12 @@ describes.realWin('PageConfigResolver', {}, (env) => {
       expect(config.isLocked()).to.be.false;
       expect(config.getProductId()).to.equal('pub1:label1');
     });
+
+    it('rejects when <body> is unavailable', async () => {
+      sandbox.stub(gd, 'getBody').returns(null);
+      const configPromise = new PageConfigResolver(gd).resolveConfig();
+      await expect(configPromise).to.eventually.be.rejected;
+    });
   });
 
   describe('parse json-ld', () => {
