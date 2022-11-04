@@ -303,26 +303,25 @@ class JsonLdParser {
 
   /**
    * @param {*} value
-   * @param {boolean} def
+   * @param {boolean} defaultValue
    * @return {boolean}
    */
-  bool_(value, def) {
-    if (value == null || value === '') {
-      return def;
-    }
-    if (typeof value == 'boolean') {
+  bool_(value, defaultValue) {
+    if (typeof value === 'boolean') {
       return value;
     }
-    if (typeof value == 'string') {
+
+    if (typeof value === 'string') {
       const lowercase = value.toLowerCase();
-      if (lowercase == 'false') {
+      if (lowercase === 'false') {
         return false;
       }
-      if (lowercase == 'true') {
+      if (lowercase === 'true') {
         return true;
       }
     }
-    return def;
+
+    return defaultValue;
   }
 
   /**
