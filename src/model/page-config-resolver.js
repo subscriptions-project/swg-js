@@ -558,8 +558,3 @@ function getMetaTag(rootNode, name) {
   }
   return null;
 }
-
-/** @package Visible for testing only. */
-export function getDocClassForTesting() {
-  return Doc;
-}
