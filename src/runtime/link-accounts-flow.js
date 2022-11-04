@@ -176,7 +176,7 @@ export class LinkCompleteFlow {
    */
   start() {
     if (this.response_['saveAndRefresh']) {
-      this.complete_(this.saveAndRefreshResponse_);
+      this.complete_(this.response_, this.response_['linked']);
       return Promise.resolve();
     }
 
@@ -204,8 +204,8 @@ export class LinkCompleteFlow {
         /* requireSecureChannel */ true
       );
       promise
-        .then((response) => {
-          this.complete_(response);
+        .then((response = {}) => {
+          this.complete_(response, response['success'] || false);
         })
         .catch((reason) => {
           // Rethrow async.
@@ -228,10 +228,11 @@ export class LinkCompleteFlow {
   }
 
   /**
-   * @param {?Object} response
+   * @param {!Object} response
+   * @param {boolean} success
    * @private
    */
-  complete_(response) {
+  complete_(response, success) {
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
@@ -243,7 +244,7 @@ export class LinkCompleteFlow {
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);
     this.entitlementsManager_.unblockNextNotification();
-    this.entitlementsManager_.reset((response && response['success']) || false);
+    this.entitlementsManager_.reset(success);
     if (response && response['entitlements']) {
       this.entitlementsManager_.pushNextEntitlements(response['entitlements']);
     }
