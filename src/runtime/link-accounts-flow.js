@@ -205,7 +205,7 @@ export class LinkCompleteFlow {
       );
       promise
         .then((response = {}) => {
-          this.complete_(response, response['success'] || false);
+          this.complete_(response, !!response['success']);
         })
         .catch((reason) => {
           // Rethrow async.
