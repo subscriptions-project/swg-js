@@ -334,7 +334,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
     })
   );
 
-  it('should not open linkconfirmiframe the response came from a saveAndRefresh flow', async () => {
+  it('should not open linkconfirmiframe if the response came from a saveAndRefresh flow', async () => {
     const storageMock = sandbox.mock(runtime.storage());
     linkCompleteFlow = new LinkCompleteFlow(runtime, {
       linked: true,
