@@ -30,6 +30,7 @@ describes.realWin('ActivityIframeView', {}, (env) => {
   let activityIframeView;
   let dialog;
   let deps;
+  let onResizeRequestCallback;
 
   const activityArgs = {
     'publicationId': 'pub1',
@@ -59,7 +60,12 @@ describes.realWin('ActivityIframeView', {}, (env) => {
       .stub(activityPorts, 'openIframe')
       .callsFake(() => Promise.resolve(activityIframePort));
 
-    sandbox.stub(activityIframePort, 'onResizeRequest').callsFake(() => true);
+    sandbox
+      .stub(activityIframePort, 'onResizeRequest')
+      .callsFake((callback) => {
+        onResizeRequestCallback = callback;
+        return true;
+      });
 
     activityIframeView = new ActivityIframeView(
       win,
@@ -123,6 +129,11 @@ describes.realWin('ActivityIframeView', {}, (env) => {
 
       expect(activityIframePort.onResizeRequest).to.have.been.calledOnce;
       expect(activityIframePort.whenReady).to.have.been.calledOnce;
+
+      // Verify `onResizeRequest` is set.
+      sandbox.stub(dialog, 'resizeView');
+      onResizeRequestCallback();
+      expect(dialog.resizeView).to.have.been.calledOnce;
     });
 
     it('disallows scrolling within dialogs', async () => {
@@ -134,6 +145,16 @@ describes.realWin('ActivityIframeView', {}, (env) => {
       ).getElement();
 
       expect(iframe.scrolling).to.equal('no');
+    });
+
+    it('calls resized method on port', async () => {
+      sandbox.stub(activityIframePort, 'resized');
+
+      await activityIframeView.init(dialog);
+
+      activityIframeView.resized();
+
+      expect(activityIframePort.resized).to.have.been.calledOnce;
     });
 
     it('should accept port and result', async () => {
