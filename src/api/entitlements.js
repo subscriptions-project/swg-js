@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Timestamp} from '../proto/api_messages';
 import {debugLog} from '../utils/log';
 import {findInArray} from '../utils/object';
 import {getPropertyFromJsonString} from '../utils/json';
@@ -294,8 +295,15 @@ export class Entitlement {
    * @param {!Array<string>} products
    * @param {string} subscriptionToken
    * @param {JsonObject|null|undefined} subscriptionTokenContents
+   * @param {!Timestamp|null} subscriptionTimestamp
    */
-  constructor(source, products, subscriptionToken, subscriptionTokenContents) {
+  constructor(
+    source,
+    products,
+    subscriptionToken,
+    subscriptionTokenContents,
+    subscriptionTimestamp
+  ) {
     /** @const {string} */
     this.source = source;
     /** @const {!Array<string>} */
@@ -304,6 +312,8 @@ export class Entitlement {
     this.subscriptionToken = subscriptionToken;
     /** @const {JsonObject|null|undefined} */
     this.subscriptionTokenContents = subscriptionTokenContents;
+    /** @const {!Timestamp|null} */
+    this.subscriptionTimestamp = subscriptionTimestamp;
   }
 
   /**
@@ -314,7 +324,8 @@ export class Entitlement {
       this.source,
       this.products.slice(0),
       this.subscriptionToken,
-      this.subscriptionTokenContents
+      this.subscriptionTokenContents,
+      this.subscriptionTimestamp
     );
   }
 
@@ -380,11 +391,23 @@ export class Entitlement {
     } catch (e) {
       subscriptionTokenContents = null;
     }
+
+    const timestampJson = json['subscriptionTimestamp'];
+    let subscriptionTimestamp;
+    try {
+      subscriptionTimestamp = new Timestamp(
+        [timestampJson.seconds_, timestampJson.nanos_],
+        false
+      );
+    } catch (e) {
+      subscriptionTimestamp = null;
+    }
     return new Entitlement(
       source,
       products,
       subscriptionToken,
-      subscriptionTokenContents
+      subscriptionTokenContents,
+      subscriptionTimestamp
     );
   }
 

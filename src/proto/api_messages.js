@@ -84,6 +84,7 @@ const AnalyticsEvent = {
   IMPRESSION_SUBSCRIPTION_LINKING_LOADING: 39,
   IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE: 40,
   IMPRESSION_SUBSCRIPTION_LINKING_ERROR: 41,
+  IMPRESSION_SURVEY: 42,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -152,12 +153,17 @@ const AnalyticsEvent = {
   ACTION_CONTRIBUTION_OFFERS_RETRY: 1065,
   ACTION_TWG_SHORTENED_STICKER_FLOW_STICKER_SELECTION_CLICK: 1066,
   ACTION_INITIATE_UPDATED_SUBSCRIPTION_LINKING: 1067,
+  ACTION_SURVEY_SUBMIT_CLICK: 1068,
+  ACTION_SURVEY_CLOSED: 1069,
+  ACTION_SURVEY_DATA_TRANSFER: 1070,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_REGWALL_OPT_IN_FAILED: 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
   EVENT_REGWALL_ALREADY_OPT_IN: 2003,
   EVENT_NEWSLETTER_ALREADY_OPT_IN: 2004,
   EVENT_SUBSCRIPTION_LINKING_FAILED: 2005,
+  EVENT_SURVEY_ALREADY_SUBMITTED: 2006,
+  EVENT_SURVEY_SUBMIT_FAILED: 2007,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
   EVENT_CHANGED_TX_ID: 3002,
@@ -186,6 +192,7 @@ const AnalyticsEvent = {
   EVENT_SHOWCASE_METERING_INIT: 3025,
   EVENT_DISABLE_MINIPROMPT_DESKTOP: 3026,
   EVENT_SUBSCRIPTION_LINKING_SUCCESS: 3027,
+  EVENT_SURVEY_SUBMITTED: 3028,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -1143,6 +1150,12 @@ class EntitlementsRequest {
 
     /** @private {?boolean} */
     this.isUserRegistered_ = data[5 + base] == null ? null : data[5 + base];
+
+    /** @private {?Timestamp} */
+    this.subscriptionTimestamp_ =
+      data[6 + base] == null || data[6 + base] == undefined
+        ? null
+        : new Timestamp(data[6 + base], includesLabel);
   }
 
   /**
@@ -1230,6 +1243,20 @@ class EntitlementsRequest {
   }
 
   /**
+   * @return {?Timestamp}
+   */
+  getSubscriptionTimestamp() {
+    return this.subscriptionTimestamp_;
+  }
+
+  /**
+   * @param {!Timestamp} value
+   */
+  setSubscriptionTimestamp(value) {
+    this.subscriptionTimestamp_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1242,6 +1269,7 @@ class EntitlementsRequest {
         this.entitlementResult_, // field 4 - entitlement_result
         this.token_, // field 5 - token
         this.isUserRegistered_, // field 6 - is_user_registered
+        this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 7 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1360,6 +1388,12 @@ class EventParams {
 
     /** @private {?string} */
     this.subscriptionFlow_ = data[6 + base] == null ? null : data[6 + base];
+
+    /** @private {?Timestamp} */
+    this.subscriptionTimestamp_ =
+      data[7 + base] == null || data[7 + base] == undefined
+        ? null
+        : new Timestamp(data[7 + base], includesLabel);
   }
 
   /**
@@ -1461,6 +1495,20 @@ class EventParams {
   }
 
   /**
+   * @return {?Timestamp}
+   */
+  getSubscriptionTimestamp() {
+    return this.subscriptionTimestamp_;
+  }
+
+  /**
+   * @param {!Timestamp} value
+   */
+  setSubscriptionTimestamp(value) {
+    this.subscriptionTimestamp_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -1474,6 +1522,7 @@ class EventParams {
         this.oldTransactionId_, // field 5 - old_transaction_id
         this.isUserRegistered_, // field 6 - is_user_registered
         this.subscriptionFlow_, // field 7 - subscription_flow
+        this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 8 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2230,7 +2279,7 @@ class SurveyDataTransferRequest {
     const base = includesLabel ? 1 : 0;
 
     /** @private {!Array<!SurveyQuestion>} */
-    this.surveyQuestions_ = data[base] || [];
+    this.surveyQuestions_ = (data[base] || []).map(item => new SurveyQuestion(item, includesLabel));
   }
 
   /**
@@ -2345,7 +2394,7 @@ class SurveyQuestion {
     this.questionCategory_ = data[2 + base] == null ? null : data[2 + base];
 
     /** @private {!Array<!SurveyAnswer>} */
-    this.surveyAnswers_ = data[3 + base] || [];
+    this.surveyAnswers_ = (data[3 + base] || []).map(item => new SurveyAnswer(item, includesLabel));
   }
 
   /**
