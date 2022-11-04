@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Doc, resolveDoc} from './doc';
+import {Doc as DocInterface, resolveDoc} from './doc';
 import {PageConfig} from './page-config';
 import {debugLog} from '../utils/log';
 import {hasNextNodeInDocumentOrder} from '../utils/dom';
@@ -44,10 +44,10 @@ const RE_ALLOWED_TYPES = new RegExp(ALLOWED_TYPES.join('|'));
  */
 export class PageConfigResolver {
   /**
-   * @param {!Window|!Document|!Doc} winOrDoc
+   * @param {!Window|!Document|!DocInterface} winOrDoc
    */
   constructor(winOrDoc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(winOrDoc);
 
     /** @private {?function((!PageConfig|!Promise))} */
@@ -161,10 +161,10 @@ class TypeChecker {
 
 class MetaParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
   }
 
@@ -201,10 +201,10 @@ class MetaParser {
 
 class JsonLdParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
     /** @private @const @function */
     this.checkType_ = new TypeChecker();
@@ -364,10 +364,10 @@ class JsonLdParser {
 
 class MicrodataParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
     /** @private {?boolean} */
     this.access_ = null;
