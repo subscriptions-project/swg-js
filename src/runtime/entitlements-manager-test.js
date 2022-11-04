@@ -109,13 +109,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     sandbox.stub(deps, 'win').returns(win);
     const globalDoc = new GlobalDoc(win);
 
-    globalDoc.getRootNode = function () {
-      return {
-        querySelector: function (unused) {
-          return {href: CANONICAL_URL};
-        },
-      };
-    };
+    globalDoc.getRootNode = () => ({
+      querySelector: (unused) => ({href: CANONICAL_URL}),
+    });
 
     sandbox.stub(deps, 'doc').returns(globalDoc);
     callbacks = new Callbacks();
