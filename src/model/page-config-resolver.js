@@ -84,13 +84,10 @@ export class PageConfigResolver {
     if (!this.configResolver_) {
       return null;
     }
-    let config = this.metaParser_.check();
-    if (!config) {
-      config = this.ldParser_.check();
-    }
-    if (!config) {
-      config = this.microdataParser_.check();
-    }
+    const config =
+      this.metaParser_.check() ||
+      this.ldParser_.check() ||
+      this.microdataParser_.check();
     if (config) {
       // Product ID has been found: initialize the rest of the config.
       this.configResolver_(config);
