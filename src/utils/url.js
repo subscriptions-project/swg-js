@@ -205,10 +205,10 @@ export function getHostUrl(url) {
  * @return {string}
  */
 export function getCanonicalUrl(doc) {
-  const node = doc.getRootNode().querySelector("link[rel='canonical']");
+  const rootNode = doc.getRootNode();
+  const canonicalTag = rootNode.querySelector("link[rel='canonical']");
   return (
-    (node && node.href) ||
-    doc.getRootNode().location.origin + doc.getRootNode().location.pathname
+    canonicalTag?.href || rootNode.location.origin + rootNode.location.pathname
   );
 }
 
