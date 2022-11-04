@@ -2279,7 +2279,7 @@ class SurveyDataTransferRequest {
     const base = includesLabel ? 1 : 0;
 
     /** @private {!Array<!SurveyQuestion>} */
-    this.surveyQuestions_ = data[base] || [];
+    this.surveyQuestions_ = (data[base] || []).map(item => new SurveyQuestion(item, includesLabel));
   }
 
   /**
@@ -2394,7 +2394,7 @@ class SurveyQuestion {
     this.questionCategory_ = data[2 + base] == null ? null : data[2 + base];
 
     /** @private {!Array<!SurveyAnswer>} */
-    this.surveyAnswers_ = data[3 + base] || [];
+    this.surveyAnswers_ = (data[3 + base] || []).map(item => new SurveyAnswer(item, includesLabel));
   }
 
   /**
