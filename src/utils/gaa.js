@@ -951,13 +951,12 @@ export class GaaMeteringRegwall {
     });
     parentElement.appendChild(buttonEl);
 
-    // Track button clicks.
-    buttonEl.addEventListener('click', () => {
+    function logButtonClicks() {
       logEvent({
         analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
         isFromUserAction: true,
       });
-    });
+    }
 
     return new Promise((resolve) => {
       self.google.accounts.id.initialize({
@@ -971,13 +970,7 @@ export class GaaMeteringRegwall {
         'theme': 'outline',
         'text': 'continue_with',
         'logo_alignment': 'center',
-        'click_listener': () => {
-          console.log('Foo');
-          logEvent({
-            analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
-            isFromUserAction: true,
-          });
-        },
+        'click_listener': logButtonClicks,
       });
     });
   }
