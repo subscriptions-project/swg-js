@@ -712,8 +712,8 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         googleApiClientId: GOOGLE_API_CLIENT_ID,
       });
 
-      // Click button.
-      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+      // Simulate a click event from SIWG.
+      self.google.accounts.id.renderButton.args[0][1].click_listener();
 
       await tick();
 
