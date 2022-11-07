@@ -26,9 +26,10 @@ import {
   GaaSignInWithGoogleButton,
   GaaUtils,
   POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
-  POST_MESSAGE_COMMAND_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
+  POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_INTRODUCTION,
+  POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
   REGWALL_CONTAINER_ID,
@@ -872,6 +873,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
             'theme': 'outline',
             'text': 'continue_with',
             'logo_alignment': 'center',
+            'click_listener': argsRender[0][1].click_listener,
           },
         ],
       ]);
@@ -1077,7 +1079,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Send button click post message.
       postMessage({
         stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+        command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
       });
 
       // Wait for logging.
@@ -1277,7 +1279,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
       // Expect button click post message.
       expect(self.postMessage).to.be.calledWithExactly(
         {
-          command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin
@@ -1465,7 +1467,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
   });
 
   describe('show', () => {
-    it('renders Google Sign-In button', async () => {
+    it('renders Sign-In with Google button', async () => {
       GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
       clock.tick(100);
       await tick(10);
@@ -1499,6 +1501,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
             'logo_alignment': 'center',
             'width': buttonEl.offsetWidth,
             'height': buttonEl.offsetHeight,
+            'click_listener': argsRender[0][1].click_listener,
           },
         ],
       ]);
@@ -1544,10 +1547,9 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      // Click button.
-      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+      // Simulate a click event from SIWG.
+      self.google.accounts.id.renderButton.args[0][1].click_listener();
 
-      // Wait for button click post message.
       await new Promise((resolve) => {
         sandbox.stub(self, 'postMessage').callsFake(() => {
           resolve();
@@ -1557,7 +1559,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       // Expect button click post message.
       expect(self.postMessage).to.be.calledWithExactly(
         {
-          command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin
