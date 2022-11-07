@@ -4,9 +4,9 @@ on: [push, pull_request]
 
 jobs:
   check:
-    # Canonical will support this LTS until April 2025.
+    # Canonical will support this LTS until April 2027.
     # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
@@ -23,9 +23,9 @@ jobs:
         run: gulp check
 
   e2e:
-    # Canonical will support this LTS until April 2025.
+    # Canonical will support this LTS until April 2027.
     # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
@@ -42,9 +42,9 @@ jobs:
         run: gulp e2e --retries=3
 
   unit:
-    # Canonical will support this LTS until April 2025.
+    # Canonical will support this LTS until April 2027.
     # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
@@ -60,6 +60,6 @@ jobs:
       - name: Unit Tests
         run: gulp unit --headless --coverage
 
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
         with:
-          file: ./test/coverage/lcov-unit.info
+          files: ./test/coverage/lcov-unit.info
