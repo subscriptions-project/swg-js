@@ -58,8 +58,11 @@ export const POST_MESSAGE_COMMAND_USER = 'user';
 /** Error command for post messages. */
 export const POST_MESSAGE_COMMAND_ERROR = 'error';
 
-/** Button click command for post messages. */
-export const POST_MESSAGE_COMMAND_BUTTON_CLICK = 'button-click';
+/** GSI Button click command for post messages. */
+export const POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK = 'gsi-button-click';
+
+/** SIWG Button click command for post messages. */
+export const POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK = 'siwg-button-click';
 
 /** 3P button click command for post messages. */
 export const POST_MESSAGE_COMMAND_3P_BUTTON_CLICK = '3p-button-click';
@@ -870,11 +873,21 @@ export class GaaMeteringRegwall {
     self.addEventListener('message', (e) => {
       if (
         e.data.stamp === POST_MESSAGE_STAMP &&
-        e.data.command === POST_MESSAGE_COMMAND_BUTTON_CLICK
+        e.data.command === POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK
       ) {
         // Log button click event.
         logEvent({
           analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+          isFromUserAction: true,
+        });
+      }
+      if (
+        e.data.stamp === POST_MESSAGE_STAMP &&
+        e.data.command === POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK
+      ) {
+        // Log button click event.
+        logEvent({
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
           isFromUserAction: true,
         });
       }
@@ -958,6 +971,13 @@ export class GaaMeteringRegwall {
         'theme': 'outline',
         'text': 'continue_with',
         'logo_alignment': 'center',
+        'click_listener': () => {
+          console.log('Foo');
+          logEvent({
+            analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+            isFromUserAction: true,
+          });
+        },
       });
     });
   }
@@ -1093,7 +1113,7 @@ export class GaaGoogleSignInButton {
               sendMessageToParentFnPromise.then((sendMessageToParent) => {
                 sendMessageToParent({
                   stamp: POST_MESSAGE_STAMP,
-                  command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+                  command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
                 });
               });
             });
@@ -1179,6 +1199,15 @@ export class GaaSignInWithGoogleButton {
       });
     }
 
+    function sendClickMessageToParent() {
+      sendMessageToParentFnPromise.then((sendMessageToParent) => {
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
+        });
+      });
+    }
+
     // Validate origins.
     for (let i = 0; i < allowedOrigins.length; i++) {
       const allowedOrigin = allowedOrigins[i];
@@ -1221,19 +1250,9 @@ export class GaaSignInWithGoogleButton {
           'logo_alignment': 'center',
           'width': buttonEl.offsetWidth,
           'height': buttonEl.offsetHeight,
+          'click_listener': sendClickMessageToParent,
         }
       );
-
-      // Track button clicks.
-      buttonEl.addEventListener('click', () => {
-        // Tell parent frame about button click.
-        sendMessageToParentFnPromise.then((sendMessageToParent) => {
-          sendMessageToParent({
-            stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
-          });
-        });
-      });
     })
       .then((jwt) => {
         const jwtPayload = /** @type {!GoogleIdentityV1} */ (
