@@ -49,9 +49,7 @@ const dismissEvents = [
 const completedActions = [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK];
 
 /**
- * Returns an instance of MiniPromptApi. Can be overwridden by subclasses,
- * such as in order to instantiate a different implementation of
- * MiniPromptApi.
+ * Returns storage key for a given event.
  * @param {!AnalyticsEvent} event
  * @return {string}
  * @protected
@@ -718,9 +716,12 @@ export class AutoPromptManager {
    */
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
-      const surveyNotCompleted = !this.getEvent_(
-        completedActionToStorageKey_(AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK)
-      );
+      const surveyNotCompleted =
+        this.getEvent_(
+          completedActionToStorageKey_(
+            AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK
+          )
+        ).length === 0;
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
