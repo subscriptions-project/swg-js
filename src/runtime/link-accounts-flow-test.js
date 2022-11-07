@@ -311,7 +311,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       activitiesMock
         .expects('openIframe')
         .withExactArgs(
-          sandbox.match((arg) => arg.tagName == 'IFRAME'),
+          sandbox.match((arg) => arg.tagName === 'IFRAME'),
           expectedPath,
           {
             '_client': 'SwG $internalRuntimeVersion$',
