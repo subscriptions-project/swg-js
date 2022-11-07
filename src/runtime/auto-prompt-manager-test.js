@@ -1621,6 +1621,11 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         .withExactArgs(Constants.USER_TOKEN, /* useLocalStorage */ true)
         .returns(Promise.resolve('token'))
         .atMost(1);
+      storageMock
+        .expects('get')
+        .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
+        .returns(Promise.resolve())
+        .once();
     }
   });
 });
