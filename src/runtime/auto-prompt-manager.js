@@ -716,12 +716,14 @@ export class AutoPromptManager {
    */
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
-      const surveyNotCompleted =
+      const surveyCompleted = Promise.resolve(
         this.getEvent_(
           completedActionToStorageKey_(
             AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK
           )
-        ).length === 0;
+        )
+      );
+      const surveyNotCompleted = surveyCompleted.length === 0;
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
