@@ -45,10 +45,25 @@ const dismissEvents = [
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
   AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
 ];
-/** @const {!Map<!AnalyticsEvent, String>} */
-const completedActionToStorageKey = {
-  [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK]: STORAGE_KEY_SURVEY_COMPLETED,
-};
+/** @const {!Array<!AnalyticsEvent>} */
+const completedActions = [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK];
+
+/**
+ * Returns an instance of MiniPromptApi. Can be overwridden by subclasses,
+ * such as in order to instantiate a different implementation of
+ * MiniPromptApi.
+ * @param {!AnalyticsEvent} event
+ * @return {string}
+ * @protected
+ */
+function completedActionToStorageKey_(event) {
+  switch (event) {
+    case AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK:
+      return STORAGE_KEY_SURVEY_COMPLETED;
+    default:
+      return 'unknownaction';
+  }
+}
 
 /**
  * Manages the display of subscription/contribution prompts automatically
@@ -576,8 +591,8 @@ export class AutoPromptManager {
       ]);
     }
 
-    if (event.eventType in completedActionToStorageKey) {
-      return this.storeEvent_(completedActionToStorageKey[event.eventType]);
+    if (completedActions.includes(event.eventType)) {
+      return this.storeEvent_(completedActionToStorageKey_(event.eventType));
     }
 
     return Promise.resolve();
@@ -704,7 +719,7 @@ export class AutoPromptManager {
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
       const surveyNotCompleted = !this.getEvent_(
-        completedActionToStorageKey[AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK]
+        completedActionToStorageKey_(AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK)
       );
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
