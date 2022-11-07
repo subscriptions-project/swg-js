@@ -960,6 +960,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
         defaultArguments
       )
       .returns(Promise.resolve(port));
+    // Saving subscription succeeded, but showing the confirmation iframe failed.
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
