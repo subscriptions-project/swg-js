@@ -26,6 +26,7 @@ import {isExperimentOn} from './experiments';
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
+const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
 const STORAGE_DELIMITER = ',';
 const WEEK_IN_MILLIS = 604800000;
 const SECOND_IN_MILLIS = 1000;
@@ -44,6 +45,10 @@ const dismissEvents = [
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
   AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
 ];
+/** @const {!Map<!AnalyticsEvent, String>} */
+const completedActionToStorageKey = {
+  [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK]: STORAGE_KEY_SURVEY_COMPLETED,
+};
 
 /**
  * Manages the display of subscription/contribution prompts automatically
@@ -533,9 +538,9 @@ export class AutoPromptManager {
   }
 
   /**
-   * Listens for relevant prompt impression and dismissal events, and logs them
-   * to local storage for use in determining whether to display the prompt in
-   * the future.
+   * Listens for relevant prompt impression, dismissal events, and completed
+   * action events, and logs them to local storage for use in determining
+   * whether to display the prompt in the future.
    * @param {../api/client-event-manager-api.ClientEvent} event
    * @return {!Promise}
    */
@@ -569,6 +574,10 @@ export class AutoPromptManager {
         // record it.
         this.storeLastDismissal_(),
       ]);
+    }
+
+    if (event.eventType in completedActionToStorageKey) {
+      return this.storeEvent_(completedActionToStorageKey[event.eventType]);
     }
 
     return Promise.resolve();
@@ -694,10 +703,13 @@ export class AutoPromptManager {
    */
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
-      return (
-        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
-        GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
+      const surveyNotCompleted = !this.getEvent_(
+        completedActionToStorageKey[AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK]
       );
+      const isAnalyticsEligible =
+        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
+        GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
+      return surveyNotCompleted && isAnalyticsEligible;
     }
     return true;
   }

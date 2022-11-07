@@ -38,6 +38,7 @@ import {tick} from '../../test/tick';
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
+const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 
 describes.realWin('AutoPromptManager', {}, (env) => {
@@ -344,6 +345,25 @@ describes.realWin('AutoPromptManager', {}, (env) => {
 
     await eventManagerCallback({
       eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it('should record survey completed on survey submit action', async () => {
+    autoPromptManager.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        STORAGE_KEY_SURVEY_COMPLETED,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .returns(Promise.resolve())
+      .once();
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
@@ -1374,6 +1394,42 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       await verifyOnCancelStores(
         'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL'
       );
+    });
+
+    it('should skip survey and show second Audience Action flow if survey was completed', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(
+        storedImpressions,
+        storedDismissals,
+        'contribution',
+        2
+      );
+      storageMock
+        .expects('get')
+        .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
+        .resolves(storedImpressions)
+        .once();
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(2);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
     });
 
     it('should show nothing if the the last Audience Action was previously dismissed and is not in the next Contribution prompt time', async () => {
