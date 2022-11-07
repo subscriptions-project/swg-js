@@ -716,18 +716,19 @@ export class AutoPromptManager {
    */
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
-      const surveyCompleted = Promise.resolve(
+      const isAnalyticsEligible =
+        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
+        GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
+      Promise.resolve(
         this.getEvent_(
           completedActionToStorageKey_(
             AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK
           )
         )
-      );
-      const surveyNotCompleted = surveyCompleted.length === 0;
-      const isAnalyticsEligible =
-        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
-        GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
-      return surveyNotCompleted && isAnalyticsEligible;
+      ).then((surveyCompleted) => {
+        const surveyNotCompleted = surveyCompleted.length === 0;
+        return surveyNotCompleted && isAnalyticsEligible;
+      });
     }
     return true;
   }
