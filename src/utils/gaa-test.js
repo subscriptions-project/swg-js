@@ -349,7 +349,10 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('optionally renders CASL blurb', () => {
-      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL, caslUrl: CASL_URL});
+      GaaMeteringRegwall.render_({
+        iframeUrl: GSI_IFRAME_URL,
+        caslUrl: CASL_URL,
+      });
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
       expect(caslEl.textContent).contains("Review The Scenic's CASL terms");
@@ -482,7 +485,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('returns GAA User', async () => {
       const gaaUser = {name: 'Hello'};
-      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
+      const gaaUserPromise = GaaMeteringRegwall.show({
+        iframeUrl: GSI_IFRAME_URL,
+      });
 
       postMessage({
         stamp: POST_MESSAGE_STAMP,
@@ -533,7 +538,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('handles GSI error', async () => {
-      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
+      const gaaUserPromise = GaaMeteringRegwall.show({
+        iframeUrl: GSI_IFRAME_URL,
+      });
 
       // Send intro post message.
       postMessage({
@@ -1057,7 +1064,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       self.document.body.appendChild(mockIframeEl);
 
       // Send intro message then trigger mock iframe's onload callback.
-      GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl: GSI_IFRAME_URL});
+      GaaMeteringRegwall.sendIntroMessageToGsiIframe_({
+        iframeUrl: GSI_IFRAME_URL,
+      });
       mockIframeEl.onload();
 
       expect(mockIframeEl.contentWindow.postMessage).to.be.calledWithExactly(
