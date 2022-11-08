@@ -1399,7 +1399,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should skip survey and show second Audience Action flow if survey was completed', async () => {
-      setWinWithoutGtag();
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
       setupPreviousImpressionAndDismissals(
