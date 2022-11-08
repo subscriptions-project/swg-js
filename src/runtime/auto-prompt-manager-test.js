@@ -1314,7 +1314,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should show the Contribution prompt before any actions', async () => {
-      setupPreviousImpressionAndDismissals(null, null, null, 1);
+      setupPreviousImpressionAndDismissals(null, null, null, 1, null);
       miniPromptApiMock.expects('create').once();
 
       await autoPromptManager.showAutoPrompt({
@@ -1339,7 +1339,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedImpressions,
         storedDismissals,
         AutoPromptType.CONTRIBUTION,
-        2
+        2,
+        null
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1370,7 +1371,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedImpressions,
         storedDismissals,
         'contribution,TYPE_REWARDED_SURVEY',
-        2
+        2,
+        null
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1397,19 +1399,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should skip survey and show second Audience Action flow if survey was completed', async () => {
+      setWinWithoutGtag();
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
         'contribution',
-        2
+        2,
+        [storedDismissals]
       );
-      storageMock
-        .expects('get')
-        .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-        .resolves(storedImpressions)
-        .once();
       miniPromptApiMock.expects('create').never();
 
       await autoPromptManager.showAutoPrompt({
@@ -1439,7 +1438,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedImpressions,
         storedDismissals,
         'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP',
-        1
+        1,
+        null
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1464,7 +1464,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedImpressions,
         storedDismissals,
         'contribution,TYPE_REWARDED_SURVEY',
-        1
+        1,
+        null
       );
       miniPromptApiMock.expects('create').once();
 
@@ -1489,7 +1490,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedImpressions,
         storedDismissals,
         AutoPromptType.CONTRIBUTION,
-        2
+        2,
+        null
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1521,7 +1523,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedImpressions,
         storedDismissals,
         AutoPromptType.CONTRIBUTION,
-        2
+        2,
+        null
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1553,7 +1556,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedImpressions,
         storedDismissals,
         AutoPromptType.CONTRIBUTION,
-        2
+        2,
+        null
       );
       miniPromptApiMock.expects('create').never();
 
@@ -1596,7 +1600,8 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       storedImpressions,
       storedDismissals,
       dismissedPrompts,
-      dismissedPromptGetCallCount
+      dismissedPromptGetCallCount,
+      storedSurveyCompleted
     ) {
       storageMock
         .expects('get')
@@ -1624,7 +1629,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-        .returns(Promise.resolve())
+        .returns(Promise.resolve(storedSurveyCompleted))
         .once();
     }
   });

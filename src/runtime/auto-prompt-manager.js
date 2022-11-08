@@ -146,6 +146,14 @@ export class AutoPromptManager {
    * @return {!Promise}
    */
   showAutoPrompt(params) {
+    // const alwaysShowSurvey = false;
+    // if (alwaysShowSurvey) {
+    //   this.audienceActionPrompt_({
+    //     action: 'TYPE_REWARDED_SURVEY',
+    //     autoPromptType: params.autoPromptType,
+    //   })();
+    //   return Promise.resolve();
+    // }
     // Manual override of display rules, mainly for demo purposes.
     if (params.alwaysShow) {
       this.showPrompt_(
@@ -712,14 +720,14 @@ export class AutoPromptManager {
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    * @param {string} actionType
-   * @return {boolean}
+   * @return {!Promise<boolean>}
    */
   checkActionEligibility_(actionType) {
     if (actionType === 'TYPE_REWARDED_SURVEY') {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
-      Promise.resolve(
+      return Promise.resolve(
         this.getEvent_(
           completedActionToStorageKey_(
             AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK
@@ -730,6 +738,6 @@ export class AutoPromptManager {
         return surveyNotCompleted && isAnalyticsEligible;
       });
     }
-    return true;
+    return Promise.resolve(true);
   }
 }
