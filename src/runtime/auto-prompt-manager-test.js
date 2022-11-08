@@ -67,7 +67,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     deps = new DepsDef();
 
     sandbox.useFakeTimers(CURRENT_TIME);
-    win = Object.assign({}, env.win, {gtag: () => {}});
+    win = Object.assign({}, env.win, {gtag: () => {}, ga: () => {}});
     win.setTimeout = (callback) => callback();
     sandbox.stub(deps, 'win').returns(win);
 
@@ -123,11 +123,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     miniPromptApiMock.verify();
   });
 
-  function setWinWithoutGtag() {
-    const winWithNoGtag = Object.assign({}, win);
-    delete winWithNoGtag.gtag;
+  function setWinWithAnalytics(gtag, ga) {
+    const winWithAnalytics = Object.assign({}, win);
+    if (!gtag) {
+      delete winWithAnalytics.gtag;
+    }
+    if (!ga) {
+      delete winWithAnalytics.ga;
+    }
     autoPromptManager.deps_.win.restore();
-    sandbox.stub(autoPromptManager.deps_, 'win').returns(winWithNoGtag);
+    sandbox.stub(autoPromptManager.deps_, 'win').returns(winWithAnalytics);
   }
 
   it('returns an instance of MiniPromptApi from getMiniPromptApi', () => {
@@ -1482,7 +1487,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should show survey if TYPE_REWARDED_SURVEY is next and is ga eligible but not gtag eligible', async () => {
-      self.gtag = undefined;
+      setWinWithAnalytics(/* gtag */ false, /* ga */ true);
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
       setupPreviousImpressionAndDismissals(
@@ -1515,7 +1520,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should show survey if TYPE_REWARDED_SURVEY is next and is gtag eligible but not ga eligible', async () => {
-      self.ga = undefined;
+      setWinWithAnalytics(/* gtag */ true, /* ga */ false);
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
       setupPreviousImpressionAndDismissals(
@@ -1548,7 +1553,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     });
 
     it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for ga nor gTag', async () => {
-      setWinWithoutGtag();
+      setWinWithAnalytics(/* gtag */ false, /* ga */ false);
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
       setupPreviousImpressionAndDismissals(
