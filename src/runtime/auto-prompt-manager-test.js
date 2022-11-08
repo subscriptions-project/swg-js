@@ -123,15 +123,15 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   });
 
   function setWinWithAnalytics(gtag, ga) {
-    const winWithNoGtag = Object.assign({}, win);
+    const winWithAnalytics = Object.assign({}, win);
     if (!gtag) {
-      delete winWithNoGtag.gtag;
+      delete winWithAnalytics.gtag;
     }
     if (!ga) {
-      delete winWithNoGtag.ga;
+      delete winWithAnalytics.ga;
     }
     autoPromptManager.deps_.win.restore();
-    sandbox.stub(autoPromptManager.deps_, 'win').returns(winWithNoGtag);
+    sandbox.stub(autoPromptManager.deps_, 'win').returns(winWithAnalytics);
   }
 
   it('returns an instance of MiniPromptApi from getMiniPromptApi', () => {
