@@ -45,7 +45,8 @@ import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
-const IFRAME_URL = 'https://localhost/gsi-iframe';
+const GSI_IFRAME_URL = 'https://localhost/gsi-iframe';
+const SIWG_IFRAME_URL = 'https://localhost/gis-iframe';
 const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
 const CASL_URL = 'https://example-casl.com';
 const GOOGLE_API_CLIENT_ID = 'test123.apps.googleusercontent.com';
@@ -332,7 +333,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   describe('render_', () => {
     it('shows regwall with publisher name', () => {
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const descriptionEl = self.document.querySelector(
         '.gaa-metering-regwall--description'
@@ -341,14 +342,14 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('does not render CASL blurb by default', () => {
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
       expect(caslEl).to.be.null;
     });
 
     it('optionally renders CASL blurb', () => {
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL, caslUrl: CASL_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL, caslUrl: CASL_URL});
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
       expect(caslEl.textContent).contains("Review The Scenic's CASL terms");
@@ -358,7 +359,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('focuses on modal title after the animation completes', () => {
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       // Mock animation ending.
       const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
@@ -375,7 +376,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Add Microdata.
       microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
 
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const descriptionEl = self.document.querySelector(
         '.gaa-metering-regwall--description'
@@ -388,7 +389,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       script.text = '{}';
 
       const showingRegwall = () =>
-        GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+        GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       expect(showingRegwall).throws(
         'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
@@ -398,7 +399,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('renders supported i18n languages', () => {
       self.document.documentElement.lang = 'pt-br';
 
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const titleEl = self.document.querySelector(
         '.gaa-metering-regwall--title'
@@ -411,7 +412,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('renders "en" for non-supported i18n languages', () => {
       self.document.documentElement.lang = 'non-supported';
 
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const titleEl = self.document.querySelector(
         '.gaa-metering-regwall--title'
@@ -424,7 +425,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('adds "lang" URL param to iframe URL', () => {
       self.document.documentElement.lang = 'pt-br';
 
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const iframeEl = self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID);
       expect(iframeEl.src).to.contain('?lang=pt-br');
@@ -432,7 +433,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('handles clicks on publisher sign in link', async () => {
       // Show Regwall.
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
       await tick();
       logEvent.resetHistory();
 
@@ -463,25 +464,25 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('passes iframeUrl to GaaMeteringRegwall.render_', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       expect(renderSpy).to.have.been.calledWithExactly({
-        iframeUrl: IFRAME_URL,
+        iframeUrl: GSI_IFRAME_URL,
         caslUrl: undefined,
       });
     });
 
     it('optionally passes caslUrl to GaaMeteringRegwall.render_', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL, caslUrl: CASL_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL, caslUrl: CASL_URL});
 
       expect(renderSpy).to.have.been.calledWithExactly({
-        iframeUrl: IFRAME_URL,
+        iframeUrl: GSI_IFRAME_URL,
         caslUrl: CASL_URL,
       });
     });
 
     it('returns GAA User', async () => {
       const gaaUser = {name: 'Hello'};
-      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
       postMessage({
         stamp: POST_MESSAGE_STAMP,
@@ -499,7 +500,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         gaaUser: {},
       });
 
-      await GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      await GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
@@ -508,7 +509,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Remove GAA URL params.
       GaaUtils.getQueryString.restore();
 
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
@@ -524,7 +525,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Move clock a little past 7 seconds.
       clock.tick(7001);
 
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
@@ -532,7 +533,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('handles GSI error', async () => {
-      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
       // Send intro post message.
       postMessage({
@@ -550,7 +551,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('logs Showcase impression events', async () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       await tick();
 
       // Verify analytics events.
@@ -1027,7 +1028,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         return self.document.querySelector('.gaa-metering-regwall--dialog');
       }
 
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       expect(findRegwallInDocument()).to.not.be.null;
 
       GaaMeteringRegwall.remove();
@@ -1056,7 +1057,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       self.document.body.appendChild(mockIframeEl);
 
       // Send intro message then trigger mock iframe's onload callback.
-      GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl: GSI_IFRAME_URL});
       mockIframeEl.onload();
 
       expect(mockIframeEl.contentWindow.postMessage).to.be.calledWithExactly(
@@ -1070,9 +1071,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 
   describe('logButtonClickEvents_', () => {
-    it('sends button click event', async () => {
+    it('sends GSI button click event', async () => {
       // Show Regwall.
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       await tick();
       logEvent.resetHistory();
 
@@ -1096,9 +1097,35 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       ]);
     });
 
+    it('sends SIWG button click event', async () => {
+      // Show Regwall.
+      GaaMeteringRegwall.show({iframeUrl: SIWG_IFRAME_URL});
+      await tick();
+      logEvent.resetHistory();
+
+      // Send button click post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
+      });
+
+      // Wait for logging.
+      await new Promise((resolve) => {
+        logEvent = sandbox.fake(resolve);
+      });
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
+
     it('sends 3P button click event', async () => {
       // Show Regwall.
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       await tick();
       logEvent.resetHistory();
 
