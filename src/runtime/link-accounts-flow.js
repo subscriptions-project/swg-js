@@ -106,6 +106,9 @@ export class LinkCompleteFlow {
           deps
             .eventManager()
             .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
+          deps
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.EVENT_LINK_ACCOUNT_SUCCESS);
           const flow = new LinkCompleteFlow(deps, response);
           flow.start();
         },
@@ -324,6 +327,9 @@ export class LinkSaveFlow {
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
       linkConfirm = new LinkCompleteFlow(this.deps_, result);
       startPromise = linkConfirm.start();
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
     } else {
       startPromise = Promise.reject(createCancelError(this.win_, 'not linked'));
     }
