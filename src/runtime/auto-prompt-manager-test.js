@@ -1409,12 +1409,13 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     it('should skip survey and show second Audience Action flow if survey was completed', async () => {
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
+      const surveyCompleted = (CURRENT_TIME - 5).toString();
       setupPreviousImpressionAndDismissals(
         storedImpressions,
         storedDismissals,
         'contribution',
         2,
-        [storedDismissals]
+        surveyCompleted
       );
       miniPromptApiMock.expects('create').never();
 
