@@ -146,14 +146,6 @@ export class AutoPromptManager {
    * @return {!Promise}
    */
   showAutoPrompt(params) {
-    // const alwaysShowSurvey = false;
-    // if (alwaysShowSurvey) {
-    //   this.audienceActionPrompt_({
-    //     action: 'TYPE_REWARDED_SURVEY',
-    //     autoPromptType: params.autoPromptType,
-    //   })();
-    //   return Promise.resolve();
-    // }
     // Manual override of display rules, mainly for demo purposes.
     if (params.alwaysShow) {
       this.showPrompt_(
