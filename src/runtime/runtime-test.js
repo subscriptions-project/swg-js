@@ -61,6 +61,7 @@ import {PayClient} from './pay-client';
 import {PayStartFlow} from './pay-flow';
 import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
+import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
@@ -946,6 +947,18 @@ describes.realWin('Runtime', {}, (env) => {
 
       await runtime.waitForSubscriptionLookup();
       expect(configureStub).to.be.calledOnce;
+    });
+
+    it('delegates linkSubscription', async () => {
+      const mockResult = {success: true};
+      configuredRuntimeMock
+        .expects('linkSubscription')
+        .once()
+        .returns(Promise.resolve(mockResult));
+
+      const result = await runtime.linkSubscription({});
+
+      expect(result).to.deep.equal(mockResult);
     });
 
     it('should directly call "attachButton"', () => {
@@ -2298,6 +2311,21 @@ subscribe() method'
     describe('showBestAudienceAction', () => {
       it('not implemented', () => {
         expect(() => runtime.showBestAudienceAction()).to.not.throw();
+      });
+    });
+
+    describe('linkSubscription', () => {
+      it('starts SubscriptionLinkingFlow', async () => {
+        const request = {publisherPovidedId: 'foo'};
+        const mockResult = {success: true};
+        const start = sandbox
+          .stub(SubscriptionLinkingFlow.prototype, 'start')
+          .returns(mockResult);
+
+        const result = await runtime.linkSubscription(request);
+
+        expect(start).to.be.calledOnceWith(request);
+        expect(result).to.deep.equal(mockResult);
       });
     });
   });
