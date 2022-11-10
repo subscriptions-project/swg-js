@@ -368,7 +368,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .returns(Promise.resolve())
       .once();
     await eventManagerCallback({
-      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+      eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
@@ -1330,7 +1330,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(6);
+      await tick(10);
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
@@ -1357,7 +1357,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(8);
+      await tick(10);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -1424,7 +1424,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(8);
+      await tick(10);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -1456,7 +1456,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(8);
+      await tick(10);
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
@@ -1482,7 +1482,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(8);
+      await tick(10);
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
@@ -1508,7 +1508,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(8);
+      await tick(10);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -1541,7 +1541,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(8);
+      await tick(10);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -1574,7 +1574,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(8);
+      await tick(10);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {

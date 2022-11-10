@@ -28,6 +28,7 @@ const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
 const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
 const STORAGE_DELIMITER = ',';
+const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const WEEK_IN_MILLIS = 604800000;
 const SECOND_IN_MILLIS = 1000;
 
@@ -46,7 +47,12 @@ const dismissEvents = [
   AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
 ];
 /** @const {!Array<!AnalyticsEvent>} */
-const completedActions = [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK];
+const completedActions = [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER];
+
+/* eslint-disable no-unused-vars */
+/** @typedef {{TYPE_REWARDED_SURVEY: string|undefined}} */
+let LocalStorage;
+/* eslint-enable no-unused-vars */
 
 /**
  * Returns storage key for a given event.
@@ -56,7 +62,7 @@ const completedActions = [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK];
  */
 function completedActionToStorageKey_(event) {
   switch (event) {
-    case AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK:
+    case AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER:
       return STORAGE_KEY_SURVEY_COMPLETED;
     default:
       return 'unknownaction';
@@ -220,7 +226,6 @@ export class AutoPromptManager {
               autoPromptType: params.autoPromptType,
             })
           : params.displayLargePromptFn;
-
         if (!shouldShowAutoPrompt) {
           if (
             this.shouldShowBlockingPrompt_(
@@ -235,7 +240,6 @@ export class AutoPromptManager {
         }
         this.deps_.win().setTimeout(() => {
           this.autoPromptDisplayed_ = true;
-
           this.showPrompt_(
             this.getPromptTypeToDisplay_(params.autoPromptType),
             promptFn
@@ -398,13 +402,31 @@ export class AutoPromptManager {
   }) {
     const audienceActions = article?.audienceActions?.actions || [];
 
-    const filterBooleans = audienceActions.map((action) =>
-      this.checkActionEligibility_(action.type)
-    );
-    return Promise.all(filterBooleans).then((booleans) => {
-      let potentialActions = audienceActions.filter((_, i) => booleans[i]);
+    const fetchedLocalStorage = /** @type {LocalStorage} */ ({});
+    let promiseChain = Promise.resolve();
+    const actionsIncludeSurvey = audienceActions
+      .map((action) => action.type)
+      .includes(TYPE_REWARDED_SURVEY);
+    if (actionsIncludeSurvey) {
+      promiseChain = promiseChain
+        .then(() =>
+          this.getEvent_(
+            completedActionToStorageKey_(
+              AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
+            )
+          )
+        )
+        .then((surveyCompleted) => {
+          fetchedLocalStorage[STORAGE_KEY_SURVEY_COMPLETED] = surveyCompleted;
+        });
+    }
 
+    return promiseChain.then(() => {
       // No audience actions means use the default prompt.
+      let potentialActions = audienceActions.filter((action) =>
+        this.checkActionEligibility_(action.type, fetchedLocalStorage)
+      );
+
       if (potentialActions.length === 0) {
         return undefined;
       }
@@ -720,21 +742,18 @@ export class AutoPromptManager {
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    * @param {string} actionType
-   * @return {!Promise<boolean>}
+   * @param {LocalStorage} localStorage
+   * @return {boolean}
    */
-  checkActionEligibility_(actionType) {
-    if (actionType === 'TYPE_REWARDED_SURVEY') {
+  checkActionEligibility_(actionType, localStorage) {
+    if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
-      return this.getEvent_(
-        completedActionToStorageKey_(AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK)
-      ).then((surveyCompleted) => {
-        const surveyNotCompleted =
-          !surveyCompleted || surveyCompleted.length === 0;
-        return surveyNotCompleted && isAnalyticsEligible;
-      });
+      const surveyStorage = localStorage[STORAGE_KEY_SURVEY_COMPLETED];
+      const surveyNotCompleted = !surveyStorage || surveyStorage.length === 0;
+      return surveyNotCompleted && isAnalyticsEligible;
     }
-    return Promise.resolve(true);
+    return true;
   }
 }
