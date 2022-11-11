@@ -204,22 +204,23 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
-    let shouldShowAutoPrompt;
     return this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
       params.autoPromptType
     )
-      .then((shouldShowAutoPrompt_) => {
-        shouldShowAutoPrompt = shouldShowAutoPrompt_;
-        return this.getAudienceActionPromptType_({
-          article,
-          autoPromptType: params.autoPromptType,
-          dismissedPrompts,
+      .then((shouldShowAutoPrompt) => {
+        return Promise.all([
+          this.getAudienceActionPromptType_({
+            article,
+            autoPromptType: params.autoPromptType,
+            dismissedPrompts,
+            shouldShowAutoPrompt,
+          }),
           shouldShowAutoPrompt,
-        });
+        ]);
       })
-      .then((potentialActionPromptType) => {
+      .then(([potentialActionPromptType, shouldShowAutoPrompt]) => {
         const promptFn = potentialActionPromptType
           ? this.audienceActionPrompt_({
               action: potentialActionPromptType,

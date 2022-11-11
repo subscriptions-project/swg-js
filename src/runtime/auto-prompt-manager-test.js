@@ -751,7 +751,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       displayLargePromptFn: alternatePromptSpy,
     });
 
-    await tick(5);
+    await tick(8);
     expect(alternatePromptSpy).to.be.calledOnce;
   });
 
