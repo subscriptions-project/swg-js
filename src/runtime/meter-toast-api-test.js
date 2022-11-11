@@ -193,6 +193,9 @@ describes.realWin('MeterToastApi', {}, (env) => {
   [
     {userAttribute: 'anonymous_user', meterType: 'UNKNOWN'},
     {userAttribute: 'known_user', meterType: 'KNOWN'},
+    {userAttribute: 'newsletter_user', meterType: 'KNOWN'},
+    {userAttribute: 'registration_user', meterType: 'KNOWN'},
+    {userAttribute: 'survey_user', meterType: 'SUPPRESSED'},
   ].forEach(({userAttribute, meterType}) => {
     it(`should start the flow correctly with METERED_BY_GOOGLE client type with client user attribute ${userAttribute}`, async () => {
       const meterToastApiWithParams = new MeterToastApi(runtime, {
