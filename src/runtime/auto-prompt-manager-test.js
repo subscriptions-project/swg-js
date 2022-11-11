@@ -567,26 +567,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       false
     );
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(storedImpressions))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -626,21 +606,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       false
     );
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(storedImpressions))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -648,11 +613,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
     expect(alternatePromptSpy).to.not.be.called;
   });
 
@@ -682,26 +642,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       false
     );
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(storedImpressions))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -835,21 +775,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       false
     );
-    storageMock;
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(storedImpressions))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
-    // storageMock
-    //   .expects('get')
-    //   .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
-    //   .returns(Promise.resolve(null))
-    //   .once();
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
