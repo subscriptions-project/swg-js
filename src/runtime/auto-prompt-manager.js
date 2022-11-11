@@ -46,23 +46,11 @@ const dismissEvents = [
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
   AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
 ];
-/** @const {!Array<!AnalyticsEvent>} */
-const completedActions = [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER];
 
-/**
- * Returns storage key for a given event.
- * @param {!AnalyticsEvent} event
- * @return {string}
- * @protected
- */
-function completedActionToStorageKey_(event) {
-  switch (event) {
-    case AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER:
-      return STORAGE_KEY_SURVEY_COMPLETED;
-    default:
-      return 'unknownaction';
-  }
-}
+/** @const {Map<AnalyticsEvent, string>} */
+const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
+  [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, STORAGE_KEY_SURVEY_COMPLETED],
+]);
 
 /**
  * Manages the display of subscription/contribution prompts automatically
@@ -399,7 +387,9 @@ export class AutoPromptManager {
     const audienceActions = article?.audienceActions?.actions || [];
 
     return this.getEvent_(
-      completedActionToStorageKey_(AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER)
+      COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(
+        AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
+      )
     ).then((surveysCompleted) => {
       // No audience actions means use the default prompt.
       let potentialActions = audienceActions.filter((action) =>
@@ -598,8 +588,10 @@ export class AutoPromptManager {
       ]);
     }
 
-    if (completedActions.includes(event.eventType)) {
-      return this.storeEvent_(completedActionToStorageKey_(event.eventType));
+    if (COMPLETED_ACTION_TO_STORAGE_KEY_MAP.has(event.eventType)) {
+      return this.storeEvent_(
+        COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(event.eventType)
+      );
     }
 
     return Promise.resolve();
