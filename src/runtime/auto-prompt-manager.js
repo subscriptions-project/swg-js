@@ -50,7 +50,7 @@ const dismissEvents = [
 const completedActions = [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER];
 
 /* eslint-disable no-unused-vars */
-/** @typedef {{TYPE_REWARDED_SURVEY: string|undefined}} */
+/** @typedef {{TYPE_REWARDED_SURVEY: (string|undefined)}} */
 let LocalStorage;
 /* eslint-enable no-unused-vars */
 
