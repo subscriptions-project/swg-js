@@ -721,7 +721,7 @@ export class AutoPromptManager {
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    * @param {string} actionType
-   * @param {!Array<string>|undefined} surveyCompletions
+   * @param {!Array<number>|undefined} surveyCompletions
    * @return {boolean}
    */
   checkActionEligibility_(actionType, surveyCompletions) {
