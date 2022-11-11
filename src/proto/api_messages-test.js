@@ -1182,6 +1182,7 @@ describe('SubscriptionLinkingCompleteResponse', () => {
   it('should deserialize correctly', () => {
     const /** !SubscriptionLinkingCompleteResponse  */ subscriptionlinkingcompleteresponse1 = new SubscriptionLinkingCompleteResponse();
     subscriptionlinkingcompleteresponse1.setPublisherProvidedId('');
+    subscriptionlinkingcompleteresponse1.setSuccess(false);
 
     let subscriptionlinkingcompleteresponseDeserialized;
 
@@ -1195,6 +1196,8 @@ describe('SubscriptionLinkingCompleteResponse', () => {
     // Verify fields.
     expect(subscriptionlinkingcompleteresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
         subscriptionlinkingcompleteresponse1.getPublisherProvidedId());
+    expect(subscriptionlinkingcompleteresponseDeserialized.getSuccess()).to.deep.equal(
+        subscriptionlinkingcompleteresponse1.getSuccess());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -1206,6 +1209,8 @@ describe('SubscriptionLinkingCompleteResponse', () => {
     // Verify fields.
     expect(subscriptionlinkingcompleteresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
         subscriptionlinkingcompleteresponse1.getPublisherProvidedId());
+    expect(subscriptionlinkingcompleteresponseDeserialized.getSuccess()).to.deep.equal(
+        subscriptionlinkingcompleteresponse1.getSuccess());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -1216,6 +1221,8 @@ describe('SubscriptionLinkingCompleteResponse', () => {
     // Verify fields.
     expect(subscriptionlinkingcompleteresponseDeserialized.getPublisherProvidedId()).to.deep.equal(
         subscriptionlinkingcompleteresponse1.getPublisherProvidedId());
+    expect(subscriptionlinkingcompleteresponseDeserialized.getSuccess()).to.deep.equal(
+        subscriptionlinkingcompleteresponse1.getSuccess());
   });
 });
 
