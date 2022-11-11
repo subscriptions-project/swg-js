@@ -742,15 +742,15 @@ export class AutoPromptManager {
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    * @param {string} actionType
-   * @param {LocalStorage} localStorage
+   * @param {LocalStorage} fetchedLocalStorage
    * @return {boolean}
    */
-  checkActionEligibility_(actionType, localStorage) {
+  checkActionEligibility_(actionType, fetchedLocalStorage) {
     if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
-      const surveyStorage = localStorage[STORAGE_KEY_SURVEY_COMPLETED];
+      const surveyStorage = fetchedLocalStorage[STORAGE_KEY_SURVEY_COMPLETED];
       const surveyNotCompleted = !surveyStorage || surveyStorage.length === 0;
       return surveyNotCompleted && isAnalyticsEligible;
     }
