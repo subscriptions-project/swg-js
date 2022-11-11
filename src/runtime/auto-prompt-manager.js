@@ -49,11 +49,6 @@ const dismissEvents = [
 /** @const {!Array<!AnalyticsEvent>} */
 const completedActions = [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER];
 
-/* eslint-disable no-unused-vars */
-/** @typedef {{TYPE_REWARDED_SURVEY: (string|undefined)}} */
-let LocalStorage;
-/* eslint-enable no-unused-vars */
-
 /**
  * Returns storage key for a given event.
  * @param {!AnalyticsEvent} event
@@ -403,29 +398,12 @@ export class AutoPromptManager {
   }) {
     const audienceActions = article?.audienceActions?.actions || [];
 
-    const fetchedLocalStorage = /** @type {LocalStorage} */ ({});
-    let promiseChain = Promise.resolve();
-    const actionsIncludeSurvey = audienceActions
-      .map((action) => action.type)
-      .includes(TYPE_REWARDED_SURVEY);
-    if (actionsIncludeSurvey) {
-      promiseChain = promiseChain
-        .then(() =>
-          this.getEvent_(
-            completedActionToStorageKey_(
-              AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
-            )
-          )
-        )
-        .then((surveyCompleted) => {
-          fetchedLocalStorage[STORAGE_KEY_SURVEY_COMPLETED] = surveyCompleted;
-        });
-    }
-
-    return promiseChain.then(() => {
+    return this.getEvent_(
+      completedActionToStorageKey_(AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER)
+    ).then((surveysCompleted) => {
       // No audience actions means use the default prompt.
       let potentialActions = audienceActions.filter((action) =>
-        this.checkActionEligibility_(action.type, fetchedLocalStorage)
+        this.checkActionEligibility_(action.type, surveysCompleted)
       );
 
       if (potentialActions.length === 0) {
@@ -743,16 +721,16 @@ export class AutoPromptManager {
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    * @param {string} actionType
-   * @param {LocalStorage} fetchedLocalStorage
+   * @param {!Array<string>|undefined} surveyCompletions
    * @return {boolean}
    */
-  checkActionEligibility_(actionType, fetchedLocalStorage) {
+  checkActionEligibility_(actionType, surveyCompletions) {
     if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
-      const surveyStorage = fetchedLocalStorage[STORAGE_KEY_SURVEY_COMPLETED];
-      const surveyNotCompleted = !surveyStorage || surveyStorage.length === 0;
+      const surveyNotCompleted =
+        !surveyCompletions || surveyCompletions.length === 0;
       return surveyNotCompleted && isAnalyticsEligible;
     }
     return true;
