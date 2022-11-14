@@ -386,6 +386,7 @@ export class AutoPromptManager {
   }) {
     const audienceActions = article?.audienceActions?.actions || [];
 
+    // Count completed surveys.
     return this.getEvent_(
       COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(
         AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
