@@ -135,6 +135,12 @@ export class MeterToastApi {
           ? MeterType.KNOWN
           : MeterType.SUPPRESSED;
     }
+
+    // Exit flow and do not show prompt for Suppressed MeterType
+    if (additionalArguments['meterType'] === MeterType.SUPPRESSED) {
+      return Promise.resolve();
+    }
+
     const iframeArgs =
       this.activityPorts_.addDefaultArguments(additionalArguments);
 

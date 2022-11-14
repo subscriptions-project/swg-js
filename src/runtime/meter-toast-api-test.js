@@ -195,7 +195,6 @@ describes.realWin('MeterToastApi', {}, (env) => {
     {userAttribute: 'known_user', meterType: 'KNOWN'},
     {userAttribute: 'newsletter_user', meterType: 'KNOWN'},
     {userAttribute: 'registration_user', meterType: 'KNOWN'},
-    {userAttribute: 'survey_user', meterType: 'SUPPRESSED'},
   ].forEach(({userAttribute, meterType}) => {
     it(`should start the flow correctly with METERED_BY_GOOGLE client type with client user attribute ${userAttribute}`, async () => {
       const meterToastApiWithParams = new MeterToastApi(runtime, {
@@ -220,6 +219,16 @@ describes.realWin('MeterToastApi', {}, (env) => {
         .returns(Promise.resolve(port));
       await meterToastApiWithParams.start();
     });
+  });
+
+  it('should exit flow with SUPPRESSED MeterType for survey_user', async () => {
+    const meterToastApiWithParams = new MeterToastApi(runtime, {
+      meterClientType: MeterClientTypes.METERED_BY_GOOGLE,
+      meterClientUserAttribute: 'survey_user',
+    });
+    callbacksMock.expects('triggerFlowStarted').never();
+    activitiesMock.expects('openIframe').never();
+    await meterToastApiWithParams.start();
   });
 
   it('should activate native subscribe request', async () => {
