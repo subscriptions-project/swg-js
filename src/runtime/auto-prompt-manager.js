@@ -550,9 +550,9 @@ export class AutoPromptManager {
   }
 
   /**
-   * Listens for relevant prompt impression, dismissal events, and completed
-   * action events, and logs them to local storage for use in determining
-   * whether to display the prompt in the future.
+   * Listens for relevant prompt impression events, dismissal events, and completed
+   * action events, and logs them to local storage for use in determining whether
+   * to display the prompt in the future.
    * @param {../api/client-event-manager-api.ClientEvent} event
    * @return {!Promise}
    */
