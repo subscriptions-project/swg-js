@@ -391,11 +391,11 @@ export class AutoPromptManager {
         AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
       )
     ).then((surveysCompleted) => {
-      // No audience actions means use the default prompt.
       let potentialActions = audienceActions.filter((action) =>
         this.checkActionEligibility_(action.type, surveysCompleted)
       );
 
+      // No audience actions means use the default prompt.
       if (potentialActions.length === 0) {
         return undefined;
       }
