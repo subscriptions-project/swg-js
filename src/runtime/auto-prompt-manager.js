@@ -192,8 +192,8 @@ export class AutoPromptManager {
       entitlements,
       params.autoPromptType
     )
-      .then((shouldShowAutoPrompt) => {
-        return Promise.all([
+      .then((shouldShowAutoPrompt) =>
+        Promise.all([
           this.getAudienceActionPromptType_({
             article,
             autoPromptType: params.autoPromptType,
@@ -201,8 +201,8 @@ export class AutoPromptManager {
             shouldShowAutoPrompt,
           }),
           shouldShowAutoPrompt,
-        ]);
-      })
+        ])
+      )
       .then(([potentialActionPromptType, shouldShowAutoPrompt]) => {
         const promptFn = potentialActionPromptType
           ? this.audienceActionPrompt_({
