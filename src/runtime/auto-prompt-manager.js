@@ -391,9 +391,10 @@ export class AutoPromptManager {
       COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(
         AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
       )
-    ).then((surveysCompleted) => {
+    ).then((surveyCompletionTimestamps) => {
+      const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
       let potentialActions = audienceActions.filter((action) =>
-        this.checkActionEligibility_(action.type, surveysCompleted)
+        this.checkActionEligibility_(action.type, hasCompletedSurveys)
       );
 
       // No audience actions means use the default prompt.
@@ -714,17 +715,15 @@ export class AutoPromptManager {
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    * @param {string} actionType
-   * @param {!Array<number>|undefined} surveyCompletions
+   * @param {boolean} hasCompletedSurveys
    * @return {boolean}
    */
-  checkActionEligibility_(actionType, surveyCompletions) {
+  checkActionEligibility_(actionType, hasCompletedSurveys) {
     if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
-      const surveyNotCompleted =
-        !surveyCompletions || surveyCompletions.length === 0;
-      return surveyNotCompleted && isAnalyticsEligible;
+      return !hasCompletedSurveys && isAnalyticsEligible;
     }
     return true;
   }
