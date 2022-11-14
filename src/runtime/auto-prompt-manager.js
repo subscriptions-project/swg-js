@@ -26,7 +26,9 @@ import {isExperimentOn} from './experiments';
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
+const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
 const STORAGE_DELIMITER = ',';
+const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const WEEK_IN_MILLIS = 604800000;
 const SECOND_IN_MILLIS = 1000;
 
@@ -44,6 +46,11 @@ const dismissEvents = [
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
   AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
 ];
+
+/** @const {Map<AnalyticsEvent, string>} */
+const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
+  [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, STORAGE_KEY_SURVEY_COMPLETED],
+]);
 
 /**
  * Manages the display of subscription/contribution prompts automatically
@@ -184,41 +191,45 @@ export class AutoPromptManager {
       clientConfig,
       entitlements,
       params.autoPromptType
-    ).then((shouldShowAutoPrompt) => {
-      const potentialActionPromptType = this.getAudienceActionPromptType_({
-        article,
-        autoPromptType: params.autoPromptType,
-        dismissedPrompts,
-        shouldShowAutoPrompt,
-      });
-      const promptFn = potentialActionPromptType
-        ? this.audienceActionPrompt_({
-            action: potentialActionPromptType,
+    )
+      .then((shouldShowAutoPrompt) =>
+        Promise.all([
+          this.getAudienceActionPromptType_({
+            article,
             autoPromptType: params.autoPromptType,
-          })
-        : params.displayLargePromptFn;
-
-      if (!shouldShowAutoPrompt) {
-        if (
-          this.shouldShowBlockingPrompt_(
-            entitlements,
-            /* hasPotentialAudienceAction */ !!potentialActionPromptType
-          ) &&
-          promptFn
-        ) {
-          promptFn();
+            dismissedPrompts,
+            shouldShowAutoPrompt,
+          }),
+          shouldShowAutoPrompt,
+        ])
+      )
+      .then(([potentialActionPromptType, shouldShowAutoPrompt]) => {
+        const promptFn = potentialActionPromptType
+          ? this.audienceActionPrompt_({
+              action: potentialActionPromptType,
+              autoPromptType: params.autoPromptType,
+            })
+          : params.displayLargePromptFn;
+        if (!shouldShowAutoPrompt) {
+          if (
+            this.shouldShowBlockingPrompt_(
+              entitlements,
+              /* hasPotentialAudienceAction */ !!potentialActionPromptType
+            ) &&
+            promptFn
+          ) {
+            promptFn();
+          }
+          return;
         }
-        return;
-      }
-      this.deps_.win().setTimeout(() => {
-        this.autoPromptDisplayed_ = true;
-
-        this.showPrompt_(
-          this.getPromptTypeToDisplay_(params.autoPromptType),
-          promptFn
-        );
-      }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
-    });
+        this.deps_.win().setTimeout(() => {
+          this.autoPromptDisplayed_ = true;
+          this.showPrompt_(
+            this.getPromptTypeToDisplay_(params.autoPromptType),
+            promptFn
+          );
+        }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
+      });
   }
 
   /**
@@ -365,7 +376,7 @@ export class AutoPromptManager {
    *   dismissedPrompts: (?string|undefined),
    *   shouldShowAutoPrompt: (boolean|undefined),
    * }} params
-   * @return {!string|undefined}
+   * @return {!Promise<string|undefined>}
    */
   getAudienceActionPromptType_({
     article,
@@ -373,48 +384,56 @@ export class AutoPromptManager {
     dismissedPrompts,
     shouldShowAutoPrompt,
   }) {
-    let potentialActions = article?.audienceActions?.actions || [];
-    potentialActions = potentialActions.filter((action) =>
-      this.checkActionEligibility_(action.type)
-    );
+    const audienceActions = article?.audienceActions?.actions || [];
 
-    // No audience actions means use the default prompt.
-    if (potentialActions.length === 0) {
-      return undefined;
-    }
-
-    // Default to the first recommended action.
-    let actionToUse = potentialActions[0].type;
-
-    // Contribution prompts should appear before recommended actions, so we'll need
-    // to check if we have shown it before.
-    if (
-      autoPromptType === AutoPromptType.CONTRIBUTION ||
-      autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
-    ) {
-      if (!dismissedPrompts) {
-        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
-        return undefined;
-      }
-      const previousPrompts = dismissedPrompts.split(',');
-      potentialActions = potentialActions.filter(
-        (action) => !previousPrompts.includes(action.type)
+    // Count completed surveys.
+    return this.getEvent_(
+      COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(
+        AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
+      )
+    ).then((surveyCompletionTimestamps) => {
+      const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
+      let potentialActions = audienceActions.filter((action) =>
+        this.checkActionEligibility_(action.type, hasCompletedSurveys)
       );
 
-      // If all actions have been dismissed or the frequency indicates that we
-      // should show the Contribution prompt again regardless of previous dismissals,
-      // we don't want to record the Contribution dismissal
-      if (potentialActions.length === 0 || shouldShowAutoPrompt) {
+      // No audience actions means use the default prompt.
+      if (potentialActions.length === 0) {
         return undefined;
       }
 
-      // Otherwise, set to the next recommended action. If the last dismissal was the
-      // Contribution prompt, this will resolve to the first recommended action.
-      actionToUse = potentialActions[0].type;
-      this.promptDisplayed_ = actionToUse;
-    }
+      // Default to the first recommended action.
+      let actionToUse = potentialActions[0].type;
 
-    return actionToUse;
+      // Contribution prompts should appear before recommended actions, so we'll need
+      // to check if we have shown it before.
+      if (
+        autoPromptType === AutoPromptType.CONTRIBUTION ||
+        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+      ) {
+        if (!dismissedPrompts) {
+          this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+          return undefined;
+        }
+        const previousPrompts = dismissedPrompts.split(',');
+        potentialActions = potentialActions.filter(
+          (action) => !previousPrompts.includes(action.type)
+        );
+
+        // If all actions have been dismissed or the frequency indicates that we
+        // should show the Contribution prompt again regardless of previous dismissals,
+        // we don't want to record the Contribution dismissal
+        if (potentialActions.length === 0 || shouldShowAutoPrompt) {
+          return undefined;
+        }
+
+        // Otherwise, set to the next recommended action. If the last dismissal was the
+        // Contribution prompt, this will resolve to the first recommended action.
+        actionToUse = potentialActions[0].type;
+        this.promptDisplayed_ = actionToUse;
+      }
+      return actionToUse;
+    });
   }
 
   /**
@@ -533,9 +552,9 @@ export class AutoPromptManager {
   }
 
   /**
-   * Listens for relevant prompt impression and dismissal events, and logs them
-   * to local storage for use in determining whether to display the prompt in
-   * the future.
+   * Listens for relevant prompt impression events, dismissal events, and completed
+   * action events, and logs them to local storage for use in determining whether
+   * to display the prompt in the future.
    * @param {../api/client-event-manager-api.ClientEvent} event
    * @return {!Promise}
    */
@@ -569,6 +588,12 @@ export class AutoPromptManager {
         // record it.
         this.storeLastDismissal_(),
       ]);
+    }
+
+    if (COMPLETED_ACTION_TO_STORAGE_KEY_MAP.has(event.eventType)) {
+      return this.storeEvent_(
+        COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(event.eventType)
+      );
     }
 
     return Promise.resolve();
@@ -690,14 +715,15 @@ export class AutoPromptManager {
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    * @param {string} actionType
+   * @param {boolean} hasCompletedSurveys
    * @return {boolean}
    */
-  checkActionEligibility_(actionType) {
-    if (actionType === 'TYPE_REWARDED_SURVEY') {
-      return (
+  checkActionEligibility_(actionType, hasCompletedSurveys) {
+    if (actionType === TYPE_REWARDED_SURVEY) {
+      const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
-        GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
-      );
+        GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
+      return !hasCompletedSurveys && isAnalyticsEligible;
     }
     return true;
   }
