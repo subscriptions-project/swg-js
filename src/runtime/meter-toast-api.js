@@ -34,8 +34,11 @@ export const MINIMIZED_IFRAME_SIZE = '420px';
 export const DEFAULT_IFRAME_URL = '/metertoastiframe';
 export const ANONYMOUS_USER_ATTRIBUTE = 'anonymous_user';
 
-/** @const {Array<string>} */
-export const KNOWN_USER_TYPES = [
+/**
+ * Values of meterClientUserAttribute for which to show the Known MeterType.
+ * @const {Array<string>}
+ */
+export const KNOWN_USER_ATTRIBUTES = [
   'known_user',
   'newsletter_user',
   'registration_user',
@@ -131,7 +134,7 @@ export class MeterToastApi {
       additionalArguments['meterType'] =
         this.meterClientUserAttribute_ === ANONYMOUS_USER_ATTRIBUTE
           ? MeterType.UNKNOWN
-          : KNOWN_USER_TYPES.includes(this.meterClientUserAttribute_)
+          : KNOWN_USER_ATTRIBUTES.includes(this.meterClientUserAttribute_)
           ? MeterType.KNOWN
           : MeterType.SUPPRESSED;
     }
