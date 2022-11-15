@@ -33,6 +33,17 @@ export const IFRAME_BOX_SHADOW =
 export const MINIMIZED_IFRAME_SIZE = '420px';
 export const DEFAULT_IFRAME_URL = '/metertoastiframe';
 export const ANONYMOUS_USER_ATTRIBUTE = 'anonymous_user';
+
+/**
+ * Values of meterClientUserAttribute for which to show the Known MeterType.
+ * @const {Array<string>}
+ */
+export const KNOWN_USER_ATTRIBUTES = [
+  'known_user',
+  'newsletter_user',
+  'registration_user',
+];
+
 /**
  * The iframe URLs to be used per MeterClientType
  * @type {Object.<MeterClientTypes, string>}
@@ -45,6 +56,7 @@ export const IframeUrlByMeterClientType = {
 const MeterType = {
   UNKNOWN: 'UNKNOWN',
   KNOWN: 'KNOWN',
+  SUPPRESSED: 'SUPPRESSED',
 };
 
 /**
@@ -122,8 +134,16 @@ export class MeterToastApi {
       additionalArguments['meterType'] =
         this.meterClientUserAttribute_ === ANONYMOUS_USER_ATTRIBUTE
           ? MeterType.UNKNOWN
-          : MeterType.KNOWN;
+          : KNOWN_USER_ATTRIBUTES.includes(this.meterClientUserAttribute_)
+          ? MeterType.KNOWN
+          : MeterType.SUPPRESSED;
     }
+
+    // Exit flow and do not show prompt for Suppressed MeterType
+    if (additionalArguments['meterType'] === MeterType.SUPPRESSED) {
+      return Promise.resolve();
+    }
+
     const iframeArgs =
       this.activityPorts_.addDefaultArguments(additionalArguments);
 
