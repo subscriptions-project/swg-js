@@ -740,7 +740,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
           isFromUserAction: false,
         },
         {
-          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
           isFromUserAction: true,
         },
       ]);
@@ -1126,7 +1126,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Verify analytics event.
       expectAnalyticsEvents([
         {
-          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
           isFromUserAction: true,
         },
       ]);

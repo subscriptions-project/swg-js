@@ -887,7 +887,7 @@ export class GaaMeteringRegwall {
       ) {
         // Log button click event.
         logEvent({
-          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
           isFromUserAction: true,
         });
       }
@@ -953,7 +953,7 @@ export class GaaMeteringRegwall {
 
     function logButtonClicks() {
       logEvent({
-        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
         isFromUserAction: true,
       });
     }
