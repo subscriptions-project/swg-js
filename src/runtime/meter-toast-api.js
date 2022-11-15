@@ -152,14 +152,19 @@ export class MeterToastApi {
         this.meterClientType_ ?? MeterClientTypes.LICENSED_BY_GOOGLE
       ];
 
+    const iframeUrlParams = {
+      'origin': parseUrl(this.win_.location.href).origin,
+    };
+
+    if (this.deps_.clientConfigManager().shouldForceLangInIframes()) {
+      iframeUrlParams['hl'] = this.deps_.clientConfigManager().getLanguage();
+    }
+
     /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      feUrl(iframeUrl, {
-        'origin': parseUrl(this.win_.location.href).origin,
-        'hl': this.deps_.clientConfigManager().getLanguage(),
-      }),
+      feUrl(iframeUrl, iframeUrlParams),
       iframeArgs,
       /* shouldFadeBody */ false
     );
