@@ -228,6 +228,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     });
     callbacksMock.expects('triggerFlowStarted').never();
     activitiesMock.expects('openIframe').never();
+    expect(onConsumeCallbackFake).to.be.calledOnce;
     await meterToastApiWithParams.start();
   });
 
