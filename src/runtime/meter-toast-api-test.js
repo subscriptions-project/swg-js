@@ -226,10 +226,11 @@ describes.realWin('MeterToastApi', {}, (env) => {
       meterClientType: MeterClientTypes.METERED_BY_GOOGLE,
       meterClientUserAttribute: 'survey_user',
     });
+    meterToastApiWithParams.setOnConsumeCallback(onConsumeCallbackFake);
     callbacksMock.expects('triggerFlowStarted').never();
     activitiesMock.expects('openIframe').never();
-    expect(onConsumeCallbackFake).to.be.calledOnce;
     await meterToastApiWithParams.start();
+    expect(onConsumeCallbackFake).to.be.calledOnce;
   });
 
   it('should activate native subscribe request', async () => {
