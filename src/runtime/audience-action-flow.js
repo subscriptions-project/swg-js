@@ -69,6 +69,8 @@ const autopromptTypeToProductTypeMapping = {
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
 const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
+const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
+  'surveydatatransferfailed';
 
 /**
  * The flow to initiate and manage handling an audience action.
@@ -98,6 +100,9 @@ export class AudienceActionFlow {
 
     /** @private @const {?./client-config-manager.ClientConfigManager} */
     this.clientConfigManager_ = deps.clientConfigManager();
+
+    /** @private @const {!./storage.Storage} */
+    this.storage_ = deps.storage();
 
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
@@ -293,6 +298,31 @@ export class AudienceActionFlow {
     // @TODO(justinchou): execute callback with setOnInterventionComplete
     // then check for success
     const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
+    if (!gaLoggingSuccess) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_SURVEY_COMPLETION_RECORD_FAILED,
+          /* isFromUserAction */ false
+        );
+      this.storage_ // AutoPromptManager.storeEvent_
+        .get(
+          STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED,
+          /* useLocalStorage */ true
+        )
+        .then((value) => {
+          const dateValues = this.filterOldValues_(
+            this.storedValueToDateArray_(value)
+          );
+          dateValues.push(Date.now());
+          const valueToStore = this.arrayToStoredValue_(dateValues);
+          this.storage_.set(
+            STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED,
+            valueToStore,
+            /* useLocalStorage */ true
+          );
+        });
+    }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
     this.activityIframeView_.execute(surveyDataTransferResponse);
