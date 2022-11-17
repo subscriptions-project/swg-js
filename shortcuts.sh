@@ -121,9 +121,6 @@ function swgjs_add_shortcuts_to_bashrc() {
 
 
 # Creates a Swgjs AMP Release PR.
-#
-# You can call this when you're doing a Swgjs release,
-# and you are ready to bring the release to AMP.
 function swgjs_create_amp_release_pr() {
   if ! __swgjs_has_nodejs; then return 1; fi
 
@@ -131,12 +128,6 @@ function swgjs_create_amp_release_pr() {
   echo ""
 
   __swgjs_get_github_username
-
-  SWG_VERSION=$1
-  if [[ -z "$SWG_VERSION" ]]; then
-    echo "What SwG Version are you releasing? (ex: 0.1.22.333)"
-    read SWG_VERSION
-  fi
 
   swgjs_install
   __swgjs_install_amp
@@ -146,10 +137,10 @@ function swgjs_create_amp_release_pr() {
   git fetch team
   git checkout team/main
   npx gulp build
-  npx gulp export-to-amp --swgVersion=$SWG_VERSION
+  npx gulp export-to-amp --swgVersion=AMP
 
   # Create new AMP branch.
-  BRANCH_NAME="swg-release--$SWG_VERSION"
+  BRANCH_NAME="swg-release--AMP--$(date +%s)"
   __swgjs_create_amp_branch $BRANCH_NAME
 
   # Copy exports to AMP.
@@ -157,7 +148,7 @@ function swgjs_create_amp_release_pr() {
 
   # Push AMP branch.
   git add .
-  git commit -m "SwG Release $SWG_VERSION"
+  git commit -m "SwG Release"
   git push -f -u me $BRANCH_NAME
 
   # Wrap up.
