@@ -141,7 +141,7 @@ export class MeterToastApi {
 
     // Exit flow and do not show prompt for Suppressed MeterType
     if (additionalArguments['meterType'] === MeterType.SUPPRESSED) {
-      this.checkAndInvokeConsumeCallback();
+      this.checkAndInvokeConsumeCallback_();
       return Promise.resolve();
     }
 
@@ -184,7 +184,7 @@ export class MeterToastApi {
           true
         );
 
-      this.checkAndInvokeConsumeCallback();
+      this.checkAndInvokeConsumeCallback_();
     };
 
     this.deps_
@@ -213,7 +213,7 @@ export class MeterToastApi {
         // Possibly call onConsumeCallback on all dialog cancellations to
         // ensure unexpected dialog closures don't give access without a
         // meter consumed.
-        this.checkAndInvokeConsumeCallback();
+        this.checkAndInvokeConsumeCallback_();
         // Don't throw on cancel errors since they happen when a user closes
         // the toast, which is expected.
         if (!isCancelError(reason)) {
@@ -277,7 +277,7 @@ export class MeterToastApi {
   /**
    * Checks the callback function to consume free read has not been invoked and invokes it.
    */
-  checkAndInvokeConsumeCallback() {
+  checkAndInvokeConsumeCallback_() {
     if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
       this.onConsumeCallbackHandled_ = true;
       this.onConsumeCallback_();
