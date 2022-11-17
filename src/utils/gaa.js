@@ -1790,7 +1790,7 @@ export class GaaMetering {
       } else if (googleEntitlement.enablesThis()) {
         // Google returned a non-metering entitlement
         // This is only relevant for publishers doing SwG
-        handleSwGEntitlement();
+        handleSwGEntitlement(googleEntitlement);
       } else if (
         !GaaMetering.isCurrentUserRegistered() &&
         GaaMetering.isGaa(allowedReferrers)

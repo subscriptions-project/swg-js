@@ -116,7 +116,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -149,7 +149,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -176,7 +176,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -213,7 +213,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          '$frontend$/swg/_/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc&hl=en',
+          '$frontend$/swg/_/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc',
           iframeArgs
         )
         .returns(Promise.resolve(port));
@@ -446,7 +446,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -472,7 +472,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=en',
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .returns(Promise.resolve(port));
@@ -481,24 +481,56 @@ describes.realWin('MeterToastApi', {}, (env) => {
     expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
   });
 
-  it('should open the iframe with query param locale set to client configuration language', async () => {
-    clientOptions.lang = 'pt-BR';
-    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
-      isClosable: true,
-      hasSubscriptionCallback: runtime
-        .callbacks()
-        .hasSubscribeRequestCallback(),
-    });
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+  [
+    {
+      description:
+        'should open the iframe without locale set if no language or forceLangInIframes set in clientConfig',
+      expectedPath:
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+    },
+    {
+      description:
+        'should open the iframe without locale set if no language but forceLangInIframes enabled in clientConfig',
+      forceLangInIframes: true,
+      expectedPath:
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+    },
+    {
+      description:
+        'should open the iframe without locale set if language set but forceLangInIframes disabled in clientConfig',
+      lang: 'pt-BR',
+      expectedPath:
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+    },
+    {
+      description:
+        'should open the iframe with locale set if language set and forceLangInIframes enabled in clientConfig',
+      lang: 'pt-BR',
+      forceLangInIframes: true,
+      expectedPath:
         '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
-        iframeArgs
-      )
-      .returns(Promise.resolve(port));
-    await meterToastApi.start();
-  });
+    },
+  ].forEach(({description, lang, forceLangInIframes, expectedPath}) =>
+    it(description, async () => {
+      clientOptions.lang = lang;
+      clientOptions.forceLangInIframes = forceLangInIframes;
+      const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+        isClosable: true,
+        hasSubscriptionCallback: runtime
+          .callbacks()
+          .hasSubscribeRequestCallback(),
+      });
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(
+          sandbox.match((arg) => arg.tagName == 'IFRAME'),
+          expectedPath,
+          iframeArgs
+        )
+        .returns(Promise.resolve(port));
+      await meterToastApi.start();
+    })
+  );
 
   it('isMobile_ works as expected', async () => {
     let window = {
