@@ -275,7 +275,7 @@ export class MeterToastApi {
   }
 
   /**
-   * Checks callback function to consume free read is not yet invoked and invokes it.
+   * Checks callback function to consume free read has not been invoked and invokes it.
    */
   checkAndInvokeConsumeCallback() {
     if (this.onConsumeCallback_ && !this.onConsumeCallbackHandled_) {
