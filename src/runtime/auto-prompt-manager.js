@@ -398,12 +398,7 @@ export class AutoPromptManager {
       ([surveyCompletionTimestamps, surveyDataTransferFailureTimestamps]) => {
         const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
         const hasRecentSurveyDataTransferFailure =
-          surveyDataTransferFailureTimestamps &&
-          Date.now() -
-            surveyDataTransferFailureTimestamps[
-              surveyDataTransferFailureTimestamps - 1
-            ] <
-            10 * 60 * SECOND_IN_MILLIS; // 10 min
+          surveyDataTransferFailureTimestamps.length >= 1;
         const isSurveyEligible =
           !hasCompletedSurveys && !hasRecentSurveyDataTransferFailure;
 
