@@ -81,7 +81,7 @@
     "gzip-size": "7.0.0",
     "hogan-express": "0.5.2",
     "is-running": "2.1.0",
-    "json-stable-stringify": "1.0.1",
+    "json-stable-stringify": "1.0.2",
     "jsonwebtoken": "8.5.1",
     "karma": "6.4.1",
     "karma-browserify": "8.1.0",
