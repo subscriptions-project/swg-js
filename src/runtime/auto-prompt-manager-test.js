@@ -1522,7 +1522,6 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       storedSurveyCompleted,
       getUserToken,
     } = setupArgs;
-    console.log(setupArgs);
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
