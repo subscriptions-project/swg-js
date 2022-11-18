@@ -132,15 +132,21 @@ function swgjs_create_amp_release_pr() {
   swgjs_install
   __swgjs_install_amp
 
-  # Build Swgjs for AMP.
-  cd $SWGJS_PATH
+  # Switch to clean AMP branch.
   git fetch team
   git checkout team/amp
+  if [[ `git status --porcelain` ]]; then
+    # Avoid building with local changes.
+    return
+  fi
+
+  # Build Swgjs for AMP.
+  SWG_VERSION=$(git rev-parse --short HEAD)
   npx gulp build
-  npx gulp export-to-amp --swgVersion=AMP
+  npx gulp export-to-amp --swgVersion=$SWG_VERSION
 
   # Create new AMP branch.
-  BRANCH_NAME="swg-release--AMP--$(date +%s)"
+  BRANCH_NAME="swg-release--$SWG_VERSION"
   __swgjs_create_amp_branch $BRANCH_NAME
 
   # Copy exports to AMP.
