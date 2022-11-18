@@ -15,6 +15,8 @@
  */
 
 const PREFIX = 'subscribe.google.com';
+const STORAGE_DELIMITER = ',';
+const WEEK_IN_MILLIS = 604800000;
 
 /**
  * This class is responsible for the storage of data in session storage. If
@@ -102,6 +104,78 @@ export class Storage {
       }
       resolve();
     });
+  }
+
+  /**
+   * Stores the current time to local storage, under the storageKey provided.
+   * Removes times older than a week in the process.
+   * @param {string} storageKey
+   */
+  storeEvent(storageKey) {
+    return this.get(storageKey, /* useLocalStorage */ true).then((value) => {
+      const dateValues = this.filterOldValues_(
+        this.storedValueToDateArray_(value)
+      );
+      dateValues.push(Date.now());
+      const valueToStore = this.arrayToStoredValue_(dateValues);
+      this.set(storageKey, valueToStore, /* useLocalStorage */ true);
+    });
+  }
+
+  /**
+   * Retrieves the current time to local storage, under the storageKey provided.
+   * Filters out timestamps older than a week.
+   * @param {string} storageKey
+   * @return {!Promise<!Array<number>>}
+   */
+  getEvent(storageKey) {
+    return this.get(storageKey, /* useLocalStorage */ true).then((value) => {
+      return this.filterOldValues_(this.storedValueToDateArray_(value));
+    });
+  }
+
+  /**
+   * Converts a stored series of timestamps to an array of numbers.
+   * @param {?string} value
+   * @return {!Array<number>}
+   */
+  storedValueToDateArray_(value) {
+    if (value === null) {
+      return [];
+    }
+    return value
+      .split(STORAGE_DELIMITER)
+      .map((dateStr) => parseInt(dateStr, 10));
+  }
+
+  /**
+   * Converts an array of numbers to a concatenated string of timestamps for
+   * storage.
+   * @param {!Array<number>} dateArray
+   * @return {string}
+   */
+  arrayToStoredValue_(dateArray) {
+    return dateArray.join(STORAGE_DELIMITER);
+  }
+
+  /**
+   * Filters out values that are older than a week.
+   * @param {!Array<number>} dateArray
+   * @return {!Array<number>}
+   */
+  filterOldValues_(dateArray) {
+    const now = Date.now();
+    let sliceIndex = dateArray.length;
+    for (let i = 0; i < dateArray.length; i++) {
+      // The arrays are sorted in time, so if you find a time in the array
+      // that's within the week boundary, we can skip over the remainder because
+      // the rest of the array else should be too.
+      if (now - dateArray[i] <= WEEK_IN_MILLIS) {
+        sliceIndex = i;
+        break;
+      }
+    }
+    return dateArray.slice(sliceIndex);
   }
 }
 

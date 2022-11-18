@@ -71,8 +71,6 @@ const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
 const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
   'surveydatatransferfailed';
-const STORAGE_DELIMITER = ',';
-const WEEK_IN_MILLIS = 604800000;
 
 /**
  * The flow to initiate and manage handling an audience action.
@@ -304,10 +302,10 @@ export class AudienceActionFlow {
       this.deps_
         .eventManager()
         .logSwgEvent(
-          AnalyticsEvent.EVENT_SURVEY_COMPLETION_RECORD_FAILED,
-          /* isFromUserAction */ false
+          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+          /* isFromUserAction */ true
         );
-      this.storeEvent_(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED);
+      this.storage_.storeEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
@@ -347,68 +345,6 @@ export class AudienceActionFlow {
       this.deps_.eventManager().logEvent(event, eventParams);
     });
     return true;
-  }
-
-  /**
-   * Stores the current time to local storage, under the storageKey provided.
-   * Removes times older than a week in the process.
-   * @param {string} storageKey
-   */
-  storeEvent_(storageKey) {
-    return this.storage_
-      .get(storageKey, /* useLocalStorage */ true)
-      .then((value) => {
-        const dateValues = this.filterOldValues_(
-          this.storedValueToDateArray_(value)
-        );
-        dateValues.push(Date.now());
-        const valueToStore = this.arrayToStoredValue_(dateValues);
-        this.storage_.set(storageKey, valueToStore, /* useLocalStorage */ true);
-      });
-  }
-
-  /**
-   * Converts a stored series of timestamps to an array of numbers.
-   * @param {?string} value
-   * @return {!Array<number>}
-   */
-  storedValueToDateArray_(value) {
-    if (value === null) {
-      return [];
-    }
-    return value
-      .split(STORAGE_DELIMITER)
-      .map((dateStr) => parseInt(dateStr, 10));
-  }
-
-  /**
-   * Converts an array of numbers to a concatenated string of timestamps for
-   * storage.
-   * @param {!Array<number>} dateArray
-   * @return {string}
-   */
-  arrayToStoredValue_(dateArray) {
-    return dateArray.join(STORAGE_DELIMITER);
-  }
-
-  /**
-   * Filters out values that are older than a week.
-   * @param {!Array<number>} dateArray
-   * @return {!Array<number>}
-   */
-  filterOldValues_(dateArray) {
-    const now = Date.now();
-    let sliceIndex = dateArray.length;
-    for (let i = 0; i < dateArray.length; i++) {
-      // The arrays are sorted in time, so if you find a time in the array
-      // that's within the week boundary, we can skip over the remainder because
-      // the rest of the array else should be too.
-      if (now - dateArray[i] <= WEEK_IN_MILLIS) {
-        sliceIndex = i;
-        break;
-      }
-    }
-    return dateArray.slice(sliceIndex);
   }
 
   /**

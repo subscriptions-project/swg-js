@@ -38,6 +38,8 @@ import {tick} from '../../test/tick';
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
+const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
+  'surveydatatransferfailed';
 const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 
@@ -565,6 +567,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       1,
       null,
+      null,
       false
     );
     miniPromptApiMock.expects('create').never();
@@ -604,6 +607,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       1,
       null,
+      null,
       false
     );
     miniPromptApiMock.expects('create').once();
@@ -640,6 +644,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       1,
       null,
+      null,
       false
     );
     miniPromptApiMock.expects('create').once();
@@ -670,26 +675,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .once();
     // One stored impression.
     const storedImpressions = (CURRENT_TIME - 6000).toString();
-    storageMock
-      .expects('get')
-      .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedImpressions))
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
-      .once();
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      storedImpressions,
+      null,
+      null,
+      1,
+      null,
+      null,
+      false
+    );
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -715,26 +710,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('getClientConfig')
       .returns(Promise.resolve(clientConfig))
       .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
-      .once();
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      null,
+      null,
+      null,
+      1,
+      null,
+      null,
+      false
+    );
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -772,6 +757,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       null,
       1,
+      null,
       null,
       false
     );
@@ -814,6 +800,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       1,
       null,
+      null,
       false
     );
     miniPromptApiMock.expects('create').never();
@@ -854,6 +841,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       storedDismissals,
       null,
       1,
+      null,
       null,
       false
     );
@@ -896,6 +884,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       null,
       1,
       null,
+      null,
       false
     );
     miniPromptApiMock.expects('create').never();
@@ -936,6 +925,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       storedDismissals,
       null,
       1,
+      null,
       null,
       false
     );
@@ -1291,6 +1281,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         null,
         1,
         null,
+        null,
         true
       );
       miniPromptApiMock.expects('create').once();
@@ -1319,6 +1310,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedDismissals,
         AutoPromptType.CONTRIBUTION,
         2,
+        null,
         null,
         true
       );
@@ -1353,6 +1345,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedDismissals,
         'contribution,TYPE_REWARDED_SURVEY',
         2,
+        null,
         null,
         true
       );
@@ -1391,6 +1384,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         'contribution',
         2,
         surveyCompleted,
+        null,
         true
       );
       miniPromptApiMock.expects('create').never();
@@ -1425,6 +1419,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP',
         1,
         null,
+        null,
         true
       );
       miniPromptApiMock.expects('create').never();
@@ -1453,6 +1448,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         'contribution,TYPE_REWARDED_SURVEY',
         1,
         null,
+        null,
         true
       );
       miniPromptApiMock.expects('create').once();
@@ -1480,6 +1476,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedDismissals,
         AutoPromptType.CONTRIBUTION,
         2,
+        null,
         null,
         true
       );
@@ -1516,6 +1513,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         AutoPromptType.CONTRIBUTION,
         2,
         null,
+        null,
         true
       );
       miniPromptApiMock.expects('create').never();
@@ -1550,6 +1548,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
         storedDismissals,
         AutoPromptType.CONTRIBUTION,
         2,
+        null,
         null,
         true
       );
@@ -1597,6 +1596,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     dismissedPrompts,
     dismissedPromptGetCallCount,
     storedSurveyCompleted,
+    storedSurveyFailed,
     getUserToken
   ) {
     storageMock
@@ -1618,6 +1618,14 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('get')
       .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
       .returns(Promise.resolve(storedSurveyCompleted))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED,
+        /* useLocalStorage */ true
+      )
+      .returns(Promise.resolve(storedSurveyFailed))
       .once();
     if (getUserToken) {
       storageMock

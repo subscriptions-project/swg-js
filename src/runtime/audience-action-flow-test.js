@@ -679,7 +679,15 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
     });
     activitiesMock.expects('openIframe').resolves(port);
-    eventManagerMock.expects('logEvent').never();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs({
+        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      })
+      .once();
     await audienceActionFlow.start();
 
     const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
