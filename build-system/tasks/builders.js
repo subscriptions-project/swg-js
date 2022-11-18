@@ -24,8 +24,8 @@ const delPromise = import('del');
  * @return {!Promise}
  */
 async function clean() {
-  const del = await delPromise;
-  return del(['dist', 'build']);
+  const {deleteAsync} = await delPromise;
+  return deleteAsync(['dist', 'build']);
 }
 
 /**
