@@ -154,7 +154,7 @@ function swgjs_create_amp_release_pr() {
 
   # Push AMP branch.
   git add .
-  git commit -m "SwG Release"
+  git commit -m "SwG Release $SWG_VERSION"
   git push -f -u me $BRANCH_NAME
 
   # Wrap up.
