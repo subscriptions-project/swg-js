@@ -1979,12 +1979,20 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
       await tick(10);
-
-      expect(self.open).to.have.been.calledOnce;
 
       postMessage({
         stamp: POST_MESSAGE_STAMP,
@@ -2097,10 +2105,37 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       });
       clock.tick(100);
       await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
       await tick(10);
+
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      await new Promise((resolve) => {
+        sandbox.stub(self.parent, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
       expect(self.open).to.have.been.calledWithExactly(GOOGLE_3P_AUTH_URL);
     });
 
@@ -2113,10 +2148,36 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       });
       clock.tick(100);
       await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
       await tick(100);
+
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      await new Promise((resolve) => {
+        sandbox.stub(self.parent, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
 
       expect(self.open).to.have.been.calledWithExactly(
         GOOGLE_3P_AUTH_URL,
