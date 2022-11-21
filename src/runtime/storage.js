@@ -113,11 +113,11 @@ export class Storage {
    */
   storeEvent(storageKey) {
     return this.get(storageKey, /* useLocalStorage */ true).then((value) => {
-      const dateValues = this.pruneDateArray_(
-        this.deserializeDateArray_(value)
+      const dateValues = this.pruneTimestamps_(
+        this.deserializeTimestamps_(value)
       );
       dateValues.push(Date.now());
-      const valueToStore = this.serializeDateArray_(dateValues);
+      const valueToStore = this.serializeTimestamps_(dateValues);
       this.set(storageKey, valueToStore, /* useLocalStorage */ true);
     });
   }
@@ -130,7 +130,7 @@ export class Storage {
    */
   getEvent(storageKey) {
     return this.get(storageKey, /* useLocalStorage */ true).then((value) =>
-      this.pruneDateArray_(this.deserializeDateArray_(value))
+      this.pruneTimestamps_(this.deserializeTimestamps_(value))
     );
   }
 
@@ -139,7 +139,7 @@ export class Storage {
    * @param {?string} value
    * @return {!Array<number>}
    */
-  deserializeDateArray_(value) {
+  deserializeTimestamps_(value) {
     if (value === null) {
       return [];
     }
@@ -151,31 +151,31 @@ export class Storage {
   /**
    * Converts an array of numbers to a concatenated string of timestamps for
    * storage.
-   * @param {!Array<number>} dateArray
+   * @param {!Array<number>} timestamps
    * @return {string}
    */
-  serializeDateArray_(dateArray) {
-    return dateArray.join(STORAGE_DELIMITER);
+  serializeTimestamps_(timestamps) {
+    return timestamps.join(STORAGE_DELIMITER);
   }
 
   /**
    * Filters out values that are older than a week.
-   * @param {!Array<number>} dateArray
+   * @param {!Array<number>} timestamps
    * @return {!Array<number>}
    */
-  pruneDateArray_(dateArray) {
+  pruneTimestamps_(timestamps) {
     const now = Date.now();
-    let sliceIndex = dateArray.length;
-    for (let i = 0; i < dateArray.length; i++) {
+    let sliceIndex = timestamps.length;
+    for (let i = 0; i < timestamps.length; i++) {
       // The arrays are sorted in time, so if you find a time in the array
       // that's within the week boundary, we can skip over the remainder because
       // the rest of the array else should be too.
-      if (now - dateArray[i] <= WEEK_IN_MILLIS) {
+      if (now - timestamps[i] <= WEEK_IN_MILLIS) {
         sliceIndex = i;
         break;
       }
     }
-    return dateArray.slice(sliceIndex);
+    return timestamps.slice(sliceIndex);
   }
 }
 
