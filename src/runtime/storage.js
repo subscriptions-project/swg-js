@@ -113,11 +113,11 @@ export class Storage {
    */
   storeEvent(storageKey) {
     return this.get(storageKey, /* useLocalStorage */ true).then((value) => {
-      const dateValues = this.filterOldValues_(
-        this.storedValueToDateArray_(value)
+      const dateValues = this.pruneDateArray_(
+        this.deserializeDateArray_(value)
       );
       dateValues.push(Date.now());
-      const valueToStore = this.arrayToStoredValue_(dateValues);
+      const valueToStore = this.serializeDateArray_(dateValues);
       this.set(storageKey, valueToStore, /* useLocalStorage */ true);
     });
   }
@@ -129,9 +129,9 @@ export class Storage {
    * @return {!Promise<!Array<number>>}
    */
   getEvent(storageKey) {
-    return this.get(storageKey, /* useLocalStorage */ true).then((value) => {
-      return this.filterOldValues_(this.storedValueToDateArray_(value));
-    });
+    return this.get(storageKey, /* useLocalStorage */ true).then((value) =>
+      this.pruneDateArray_(this.deserializeDateArray_(value))
+    );
   }
 
   /**
@@ -139,7 +139,7 @@ export class Storage {
    * @param {?string} value
    * @return {!Array<number>}
    */
-  storedValueToDateArray_(value) {
+  deserializeDateArray_(value) {
     if (value === null) {
       return [];
     }
@@ -154,7 +154,7 @@ export class Storage {
    * @param {!Array<number>} dateArray
    * @return {string}
    */
-  arrayToStoredValue_(dateArray) {
+  serializeDateArray_(dateArray) {
     return dateArray.join(STORAGE_DELIMITER);
   }
 
@@ -163,7 +163,7 @@ export class Storage {
    * @param {!Array<number>} dateArray
    * @return {!Array<number>}
    */
-  filterOldValues_(dateArray) {
+  pruneDateArray_(dateArray) {
     const now = Date.now();
     let sliceIndex = dateArray.length;
     for (let i = 0; i < dateArray.length; i++) {
