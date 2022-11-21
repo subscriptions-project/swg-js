@@ -542,7 +542,7 @@ export class GaaMeteringRegwall {
    * where users can sign in with Google.
    * @nocollapse
    * @param {{ caslUrl: string, googleApiClientId: string, rawJwt: (boolean|null) }} params
-   * @return {!Promise<!GoogleIdentityV1>}
+   * @return {!Promise<!GoogleIdentityV1|JsonObject|undefined>}
    */
   static async showWithNativeRegistrationButton({
     caslUrl,
