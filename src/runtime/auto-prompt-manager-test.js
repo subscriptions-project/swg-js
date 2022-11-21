@@ -35,12 +35,6 @@ import {Storage} from './storage';
 import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
-const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
-const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
-const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
-const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
-  'surveydatatransferfailed';
-const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 
 describes.realWin('AutoPromptManager', {}, (env) => {
@@ -149,13 +143,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   it('should locally store contribution impressions when contribution impression events are fired', async () => {
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_IMPRESSIONS,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(null))
       .once();
     storageMock
       .expects('set')
       .withExactArgs(
-        STORAGE_KEY_IMPRESSIONS,
+        Constants.STORAGE_KEY_IMPRESSIONS,
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
@@ -173,13 +170,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   it('should locally store subscription impressions when subscription impression events are fired', async () => {
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_IMPRESSIONS,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(null))
       .once();
     storageMock
       .expects('set')
       .withExactArgs(
-        STORAGE_KEY_IMPRESSIONS,
+        Constants.STORAGE_KEY_IMPRESSIONS,
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
@@ -219,13 +219,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       it(`should not store a ${autoPromptType} impression if a previous prompt impression has been stored`, async () => {
         storageMock
           .expects('get')
-          .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
+          .withExactArgs(
+            Constants.STORAGE_KEY_IMPRESSIONS,
+            /* useLocalStorage */ true
+          )
           .returns(Promise.resolve(null))
           .once();
         storageMock
           .expects('set')
           .withExactArgs(
-            STORAGE_KEY_IMPRESSIONS,
+            Constants.STORAGE_KEY_IMPRESSIONS,
             sandbox.match.any,
             /* useLocalStorage */ true
           )
@@ -233,13 +236,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
           .exactly(1);
         storageMock
           .expects('get')
-          .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+          .withExactArgs(
+            Constants.STORAGE_KEY_DISMISSALS,
+            /* useLocalStorage */ true
+          )
           .returns(Promise.resolve(null))
           .once();
         storageMock
           .expects('set')
           .withExactArgs(
-            STORAGE_KEY_DISMISSALS,
+            Constants.STORAGE_KEY_DISMISSALS,
             sandbox.match.any,
             /* useLocalStorage */ true
           )
@@ -273,13 +279,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   it('should locally store contribution dismissals when contribution dismissal events are fired', async () => {
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_DISMISSALS,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(null))
       .once();
     storageMock
       .expects('set')
       .withExactArgs(
-        STORAGE_KEY_DISMISSALS,
+        Constants.STORAGE_KEY_DISMISSALS,
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
@@ -297,13 +306,16 @@ describes.realWin('AutoPromptManager', {}, (env) => {
   it('should locally store subscription dismissals when subscription dismissal events are fired', async () => {
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_DISMISSALS,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(null))
       .once();
     storageMock
       .expects('set')
       .withExactArgs(
-        STORAGE_KEY_DISMISSALS,
+        Constants.STORAGE_KEY_DISMISSALS,
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
@@ -322,19 +334,25 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     autoPromptManager.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_DISMISSALS,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(null))
       .once();
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_DISMISSED_PROMPTS,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(null))
       .once();
 
     storageMock
       .expects('set')
       .withExactArgs(
-        STORAGE_KEY_DISMISSALS,
+        Constants.STORAGE_KEY_DISMISSALS,
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
@@ -343,7 +361,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     storageMock
       .expects('set')
       .withExactArgs(
-        STORAGE_KEY_DISMISSED_PROMPTS,
+        Constants.STORAGE_KEY_DISMISSED_PROMPTS,
         AutoPromptType.CONTRIBUTION,
         /* useLocalStorage */ true
       )
@@ -363,7 +381,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     storageMock
       .expects('set')
       .withExactArgs(
-        STORAGE_KEY_SURVEY_COMPLETED,
+        Constants.STORAGE_KEY_SURVEY_COMPLETED,
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
@@ -1538,7 +1556,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       storageMock
         .expects('set')
         .withExactArgs(
-          STORAGE_KEY_DISMISSED_PROMPTS,
+          Constants.STORAGE_KEY_DISMISSED_PROMPTS,
           setValue,
           /* useLocalStorage */ true
         )
@@ -1568,28 +1586,40 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     };
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_IMPRESSIONS,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(storedImpressions))
       .once();
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_DISMISSALS,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(storedDismissals))
       .once();
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_DISMISSED_PROMPTS,
+        /* useLocalStorage */ true
+      )
       .resolves(dismissedPrompts)
       .exactly(dismissedPromptGetCallCount);
     storageMock
       .expects('get')
-      .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
+      .withExactArgs(
+        Constants.STORAGE_KEY_SURVEY_COMPLETED,
+        /* useLocalStorage */ true
+      )
       .returns(Promise.resolve(storedSurveyCompleted))
       .once();
     storageMock
       .expects('get')
       .withExactArgs(
-        STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED,
+        Constants.STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED,
         /* useLocalStorage */ true
       )
       .returns(Promise.resolve(storedSurveyFailed))

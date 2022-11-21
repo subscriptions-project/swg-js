@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
@@ -22,8 +23,6 @@ import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
 import {getSwgMode} from './services';
 import {isExperimentOn} from './experiments';
-
-const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
  * @typedef {{
@@ -351,7 +350,10 @@ export class RedirectVerifierHelper {
     this.getOrCreatePair_((pair) => {
       if (pair) {
         try {
-          this.win_.localStorage.setItem(REDIRECT_STORAGE_KEY, pair.key);
+          this.win_.localStorage.setItem(
+            Constants.STORAGE_KEY_REDIRECT,
+            pair.key
+          );
         } catch (e) {
           // If storage has failed, there's no point in using the verifer.
           // However, there are other ways to recover the redirect, so it's
@@ -371,7 +373,7 @@ export class RedirectVerifierHelper {
     try {
       return (
         (this.win_.localStorage &&
-          this.win_.localStorage.getItem(REDIRECT_STORAGE_KEY)) ||
+          this.win_.localStorage.getItem(Constants.STORAGE_KEY_REDIRECT)) ||
         null
       );
     } catch (e) {

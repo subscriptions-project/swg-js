@@ -69,8 +69,6 @@ const autopromptTypeToProductTypeMapping = {
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
 const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
-const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
-  'surveydatatransferfailed';
 
 /**
  * The flow to initiate and manage handling an audience action.
@@ -305,7 +303,9 @@ export class AudienceActionFlow {
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
           /* isFromUserAction */ false
         );
-      this.storage_.storeEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED);
+      this.storage_.storeEvent(
+        Constants.STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED
+      );
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     surveyDataTransferResponse.setSuccess(gaLoggingSuccess);

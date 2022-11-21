@@ -49,9 +49,6 @@ import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
-const TOAST_STORAGE_KEY = 'toast';
-const ENTS_STORAGE_KEY = 'ents';
-const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
 
 /**
  * Article response object.
@@ -180,8 +177,8 @@ export class EntitlementsManager {
       expectPositive ? 3 : 0
     );
     if (expectPositive) {
-      this.storage_.remove(ENTS_STORAGE_KEY);
-      this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
+      this.storage_.remove(Constants.STORAGE_KEY_ENTITLEMENTS);
+      this.storage_.remove(Constants.STORAGE_KEY_IS_READY_TO_PAY);
     }
   }
 
@@ -192,9 +189,9 @@ export class EntitlementsManager {
     this.responsePromise_ = null;
     this.positiveRetries_ = 0;
     this.unblockNextNotification();
-    this.storage_.remove(ENTS_STORAGE_KEY);
-    this.storage_.remove(TOAST_STORAGE_KEY);
-    this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
+    this.storage_.remove(Constants.STORAGE_KEY_ENTITLEMENTS);
+    this.storage_.remove(Constants.STORAGE_KEY_TOAST);
+    this.storage_.remove(Constants.STORAGE_KEY_IS_READY_TO_PAY);
   }
 
   /**
@@ -242,7 +239,7 @@ export class EntitlementsManager {
       isReadyToPay
     );
     if (entitlements && entitlements.enablesThis()) {
-      this.storage_.set(ENTS_STORAGE_KEY, raw);
+      this.storage_.set(Constants.STORAGE_KEY_ENTITLEMENTS, raw);
       return true;
     }
     return false;
@@ -445,8 +442,8 @@ export class EntitlementsManager {
    */
   fetchEntitlementsWithCaching_(params) {
     return Promise.all([
-      this.storage_.get(ENTS_STORAGE_KEY),
-      this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
+      this.storage_.get(Constants.STORAGE_KEY_ENTITLEMENTS),
+      this.storage_.get(Constants.STORAGE_KEY_IS_READY_TO_PAY),
     ]).then((cachedValues) => {
       const raw = cachedValues[0];
       const irtp = cachedValues[1];
@@ -468,7 +465,7 @@ export class EntitlementsManager {
       return this.fetchEntitlements_(params).then((ents) => {
         // If the product is enabled by cacheable entitlements, store them in cache.
         if (ents && ents.enablesThisWithCacheableEntitlements() && ents.raw) {
-          this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
+          this.storage_.set(Constants.STORAGE_KEY_ENTITLEMENTS, ents.raw);
         }
         return ents;
       });
@@ -535,7 +532,7 @@ export class EntitlementsManager {
    * @param {boolean} value
    */
   setToastShown(value) {
-    this.storage_.set(TOAST_STORAGE_KEY, value ? '1' : '0');
+    this.storage_.set(Constants.STORAGE_KEY_TOAST, value ? '1' : '0');
   }
 
   /**
@@ -572,9 +569,12 @@ export class EntitlementsManager {
   parseEntitlements(json) {
     const isReadyToPay = json['isReadyToPay'];
     if (isReadyToPay == null) {
-      this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
+      this.storage_.remove(Constants.STORAGE_KEY_IS_READY_TO_PAY);
     } else {
-      this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, String(isReadyToPay));
+      this.storage_.set(
+        Constants.STORAGE_KEY_IS_READY_TO_PAY,
+        String(isReadyToPay)
+      );
     }
     const signedData = json['signedEntitlements'];
     const decryptedDocumentKey = json['decryptedDocumentKey'];
@@ -753,7 +753,7 @@ export class EntitlementsManager {
     this.deps_.eventManager().logSwgEvent(eventType, false, params);
 
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
-    return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
+    return this.storage_.get(Constants.STORAGE_KEY_TOAST).then((value) => {
       const toastWasShown = value === '1';
       if (toastWasShown) {
         return;
