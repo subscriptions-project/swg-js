@@ -38,6 +38,8 @@ import {tick} from '../../test/tick';
 const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
+const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
+  'surveydatatransferfailed';
 const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 
@@ -1347,6 +1349,40 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
     });
 
+    it('should skip survey and show second Audience Action flow if survey data transfer failed', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      const storedSurveyFailed = (CURRENT_TIME - 5).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: AutoPromptType.CONTRIBUTION,
+        dismissedPromptGetCallCount: 2,
+        storedSurveyFailed,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
+    });
+
     it('should show nothing if the the last Audience Action was previously dismissed and is not in the next Contribution prompt time', async () => {
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
@@ -1520,12 +1556,14 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       dismissedPrompts,
       dismissedPromptGetCallCount,
       storedSurveyCompleted,
+      storedSurveyFailed,
       getUserToken,
     } = {
       storedImpressions: null,
       storedDismissals: null,
       dismissedPrompts: null,
       storedSurveyCompleted: null,
+      storedSurveyFailed: null,
       ...setupArgs,
     };
     storageMock
@@ -1547,6 +1585,14 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       .expects('get')
       .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
       .returns(Promise.resolve(storedSurveyCompleted))
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED,
+        /* useLocalStorage */ true
+      )
+      .returns(Promise.resolve(storedSurveyFailed))
       .once();
     if (getUserToken) {
       storageMock

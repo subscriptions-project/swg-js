@@ -27,9 +27,9 @@ const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
 const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
-const STORAGE_DELIMITER = ',';
+const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
+  'surveydatatransferfailed';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
-const WEEK_IN_MILLIS = 604800000;
 const SECOND_IN_MILLIS = 1000;
 
 /** @const {!Array<!AnalyticsEvent>} */
@@ -387,53 +387,63 @@ export class AutoPromptManager {
     const audienceActions = article?.audienceActions?.actions || [];
 
     // Count completed surveys.
-    return this.getEvent_(
-      COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(
-        AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
-      )
-    ).then((surveyCompletionTimestamps) => {
-      const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
-      let potentialActions = audienceActions.filter((action) =>
-        this.checkActionEligibility_(action.type, hasCompletedSurveys)
-      );
+    return Promise.all([
+      this.storage_.getEvent(
+        COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(
+          AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
+        )
+      ),
+      this.storage_.getEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED),
+    ]).then(
+      ([surveyCompletionTimestamps, surveyDataTransferFailureTimestamps]) => {
+        const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
+        const hasRecentSurveyDataTransferFailure =
+          surveyDataTransferFailureTimestamps.length >= 1;
+        const isSurveyEligible =
+          !hasCompletedSurveys && !hasRecentSurveyDataTransferFailure;
 
-      // No audience actions means use the default prompt.
-      if (potentialActions.length === 0) {
-        return undefined;
-      }
-
-      // Default to the first recommended action.
-      let actionToUse = potentialActions[0].type;
-
-      // Contribution prompts should appear before recommended actions, so we'll need
-      // to check if we have shown it before.
-      if (
-        autoPromptType === AutoPromptType.CONTRIBUTION ||
-        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
-      ) {
-        if (!dismissedPrompts) {
-          this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
-          return undefined;
-        }
-        const previousPrompts = dismissedPrompts.split(',');
-        potentialActions = potentialActions.filter(
-          (action) => !previousPrompts.includes(action.type)
+        let potentialActions = audienceActions.filter((action) =>
+          this.checkActionEligibility_(action.type, isSurveyEligible)
         );
 
-        // If all actions have been dismissed or the frequency indicates that we
-        // should show the Contribution prompt again regardless of previous dismissals,
-        // we don't want to record the Contribution dismissal
-        if (potentialActions.length === 0 || shouldShowAutoPrompt) {
+        // No audience actions means use the default prompt.
+        if (potentialActions.length === 0) {
           return undefined;
         }
 
-        // Otherwise, set to the next recommended action. If the last dismissal was the
-        // Contribution prompt, this will resolve to the first recommended action.
-        actionToUse = potentialActions[0].type;
-        this.promptDisplayed_ = actionToUse;
+        // Default to the first recommended action.
+        let actionToUse = potentialActions[0].type;
+
+        // Contribution prompts should appear before recommended actions, so we'll need
+        // to check if we have shown it before.
+        if (
+          autoPromptType === AutoPromptType.CONTRIBUTION ||
+          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+        ) {
+          if (!dismissedPrompts) {
+            this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+            return undefined;
+          }
+          const previousPrompts = dismissedPrompts.split(',');
+          potentialActions = potentialActions.filter(
+            (action) => !previousPrompts.includes(action.type)
+          );
+
+          // If all actions have been dismissed or the frequency indicates that we
+          // should show the Contribution prompt again regardless of previous dismissals,
+          // we don't want to record the Contribution dismissal
+          if (potentialActions.length === 0 || shouldShowAutoPrompt) {
+            return undefined;
+          }
+
+          // Otherwise, set to the next recommended action. If the last dismissal was the
+          // Contribution prompt, this will resolve to the first recommended action.
+          actionToUse = potentialActions[0].type;
+          this.promptDisplayed_ = actionToUse;
+        }
+        return actionToUse;
       }
-      return actionToUse;
-    });
+    );
   }
 
   /**
@@ -578,12 +588,12 @@ export class AutoPromptManager {
       impressionEvents.includes(event.eventType)
     ) {
       this.hasStoredImpression = true;
-      return this.storeEvent_(STORAGE_KEY_IMPRESSIONS);
+      return this.storage_.storeEvent(STORAGE_KEY_IMPRESSIONS);
     }
 
     if (dismissEvents.includes(event.eventType)) {
       return Promise.all([
-        this.storeEvent_(STORAGE_KEY_DISMISSALS),
+        this.storage_.storeEvent(STORAGE_KEY_DISMISSALS),
         // If we need to keep track of the prompt that was dismissed, make sure to
         // record it.
         this.storeLastDismissal_(),
@@ -591,7 +601,7 @@ export class AutoPromptManager {
     }
 
     if (COMPLETED_ACTION_TO_STORAGE_KEY_MAP.has(event.eventType)) {
-      return this.storeEvent_(
+      return this.storage_.storeEvent(
         COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(event.eventType)
       );
     }
@@ -619,30 +629,12 @@ export class AutoPromptManager {
   }
 
   /**
-   * Stores the current time to local storage, under the storageKey provided.
-   * Removes times older than a week in the process.
-   * @param {string} storageKey
-   */
-  storeEvent_(storageKey) {
-    return this.storage_
-      .get(storageKey, /* useLocalStorage */ true)
-      .then((value) => {
-        const dateValues = this.filterOldValues_(
-          this.storedValueToDateArray_(value)
-        );
-        dateValues.push(Date.now());
-        const valueToStore = this.arrayToStoredValue_(dateValues);
-        this.storage_.set(storageKey, valueToStore, /* useLocalStorage */ true);
-      });
-  }
-
-  /**
    * Retrieves the locally stored impressions of the auto prompt, within a week
    * of the current time.
    * @return {!Promise<!Array<number>>}
    */
   getImpressions_() {
-    return this.getEvent_(STORAGE_KEY_IMPRESSIONS);
+    return this.storage_.getEvent(STORAGE_KEY_IMPRESSIONS);
   }
 
   /**
@@ -651,79 +643,21 @@ export class AutoPromptManager {
    * @return {!Promise<!Array<number>>}
    */
   getDismissals_() {
-    return this.getEvent_(STORAGE_KEY_DISMISSALS);
-  }
-
-  /**
-   * Retrieves the current time to local storage, under the storageKey provided.
-   * Filters out timestamps older than a week.
-   * @param {string} storageKey
-   * @return {!Promise<!Array<number>>}
-   */
-  getEvent_(storageKey) {
-    return this.storage_
-      .get(storageKey, /* useLocalStorage */ true)
-      .then((value) => {
-        return this.filterOldValues_(this.storedValueToDateArray_(value));
-      });
-  }
-
-  /**
-   * Converts a stored series of timestamps to an array of numbers.
-   * @param {?string} value
-   * @return {!Array<number>}
-   */
-  storedValueToDateArray_(value) {
-    if (value === null) {
-      return [];
-    }
-    return value
-      .split(STORAGE_DELIMITER)
-      .map((dateStr) => parseInt(dateStr, 10));
-  }
-
-  /**
-   * Converts an array of numbers to a concatenated string of timestamps for
-   * storage.
-   * @param {!Array<number>} dateArray
-   * @return {string}
-   */
-  arrayToStoredValue_(dateArray) {
-    return dateArray.join(STORAGE_DELIMITER);
-  }
-
-  /**
-   * Filters out values that are older than a week.
-   * @param {!Array<number>} dateArray
-   * @return {!Array<number>}
-   */
-  filterOldValues_(dateArray) {
-    const now = Date.now();
-    let sliceIndex = dateArray.length;
-    for (let i = 0; i < dateArray.length; i++) {
-      // The arrays are sorted in time, so if you find a time in the array
-      // that's within the week boundary, we can skip over the remainder because
-      // the rest of the array else should be too.
-      if (now - dateArray[i] <= WEEK_IN_MILLIS) {
-        sliceIndex = i;
-        break;
-      }
-    }
-    return dateArray.slice(sliceIndex);
+    return this.storage_.getEvent(STORAGE_KEY_DISMISSALS);
   }
 
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    * @param {string} actionType
-   * @param {boolean} hasCompletedSurveys
+   * @param {boolean} isSurveyEligible
    * @return {boolean}
    */
-  checkActionEligibility_(actionType, hasCompletedSurveys) {
+  checkActionEligibility_(actionType, isSurveyEligible) {
     if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
-      return !hasCompletedSurveys && isAnalyticsEligible;
+      return isSurveyEligible && isAnalyticsEligible;
     }
     return true;
   }
