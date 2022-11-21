@@ -121,9 +121,6 @@ function swgjs_add_shortcuts_to_bashrc() {
 
 
 # Creates a Swgjs AMP Release PR.
-#
-# You can call this when you're doing a Swgjs release,
-# and you are ready to bring the release to AMP.
 function swgjs_create_amp_release_pr() {
   if ! __swgjs_has_nodejs; then return 1; fi
 
@@ -132,19 +129,19 @@ function swgjs_create_amp_release_pr() {
 
   __swgjs_get_github_username
 
-  SWG_VERSION=$1
-  if [[ -z "$SWG_VERSION" ]]; then
-    echo "What SwG Version are you releasing? (ex: 0.1.22.333)"
-    read SWG_VERSION
-  fi
-
   swgjs_install
   __swgjs_install_amp
 
-  # Build Swgjs for AMP.
-  cd $SWGJS_PATH
+  # Switch to clean AMP branch.
   git fetch team
-  git checkout team/main
+  git checkout team/amp
+  if [[ `git status --porcelain` ]]; then
+    # Avoid building with local changes.
+    return
+  fi
+
+  # Build Swgjs for AMP.
+  SWG_VERSION=$(git rev-parse --short HEAD)
   npx gulp build
   npx gulp export-to-amp --swgVersion=$SWG_VERSION
 
