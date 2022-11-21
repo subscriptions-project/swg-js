@@ -17,10 +17,11 @@
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {Constants} from '../utils/constants';
+
 import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
+import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
@@ -44,10 +45,7 @@ const dismissEvents = [
 
 /** @const {Map<AnalyticsEvent, string>} */
 const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
-  [
-    AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-    Constants.STORAGE_KEY_SURVEY_COMPLETED,
-  ],
+  [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, StorageKeys.SURVEY_COMPLETED],
 ]);
 
 /**
@@ -150,7 +148,7 @@ export class AutoPromptManager {
       this.entitlementsManager_.getEntitlements(),
       this.entitlementsManager_.getArticle(),
       this.storage_.get(
-        Constants.STORAGE_KEY_DISMISSED_PROMPTS,
+        StorageKeys.DISMISSED_PROMPTS,
         /* useLocalStorage */ true
       ),
     ]).then(([clientConfig, entitlements, article, dismissedPrompts]) => {
@@ -391,9 +389,7 @@ export class AutoPromptManager {
           AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
         )
       ),
-      this.storage_.getEvent(
-        Constants.STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED
-      ),
+      this.storage_.getEvent(StorageKeys.EVENT_SURVEY_DATA_TRANSFER_FAILED),
     ]).then(
       ([surveyCompletionTimestamps, surveyDataTransferFailureTimestamps]) => {
         const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
@@ -588,12 +584,12 @@ export class AutoPromptManager {
       impressionEvents.includes(event.eventType)
     ) {
       this.hasStoredImpression = true;
-      return this.storage_.storeEvent(Constants.STORAGE_KEY_IMPRESSIONS);
+      return this.storage_.storeEvent(StorageKeys.IMPRESSIONS);
     }
 
     if (dismissEvents.includes(event.eventType)) {
       return Promise.all([
-        this.storage_.storeEvent(Constants.STORAGE_KEY_DISMISSALS),
+        this.storage_.storeEvent(StorageKeys.DISMISSALS),
         // If we need to keep track of the prompt that was dismissed, make sure to
         // record it.
         this.storeLastDismissal_(),
@@ -616,14 +612,11 @@ export class AutoPromptManager {
   storeLastDismissal_() {
     return this.promptDisplayed_
       ? this.storage_
-          .get(
-            Constants.STORAGE_KEY_DISMISSED_PROMPTS,
-            /* useLocalStorage */ true
-          )
+          .get(StorageKeys.DISMISSED_PROMPTS, /* useLocalStorage */ true)
           .then((value) => {
             const prompt = /** @type {string} */ (this.promptDisplayed_);
             this.storage_.set(
-              Constants.STORAGE_KEY_DISMISSED_PROMPTS,
+              StorageKeys.DISMISSED_PROMPTS,
               value ? value + ',' + prompt : prompt,
               /* useLocalStorage */ true
             );
@@ -637,7 +630,7 @@ export class AutoPromptManager {
    * @return {!Promise<!Array<number>>}
    */
   getImpressions_() {
-    return this.storage_.getEvent(Constants.STORAGE_KEY_IMPRESSIONS);
+    return this.storage_.getEvent(StorageKeys.IMPRESSIONS);
   }
 
   /**
@@ -646,7 +639,7 @@ export class AutoPromptManager {
    * @return {!Promise<!Array<number>>}
    */
   getDismissals_() {
-    return this.storage_.getEvent(Constants.STORAGE_KEY_DISMISSALS);
+    return this.storage_.getEvent(StorageKeys.DISMISSALS);
   }
 
   /**

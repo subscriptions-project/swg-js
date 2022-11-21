@@ -30,60 +30,62 @@ Constants.USER_TOKEN = 'USER_TOKEN';
  */
 Constants.READ_TIME = 'READ_TIME';
 
+const StorageKeys = {};
+
 /**
  * Local storage key for autoprompt dismissal timestamps.
  * @const {string}
  */
 
-Constants.STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
+StorageKeys.DISMISSALS = 'autopromptdismiss';
 
 /**
  * Local storage key for dismissed prompts.
  * @const {string}
  */
-Constants.STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
+StorageKeys.DISMISSED_PROMPTS = 'dismissedprompts';
 
 /**
  * Local storage key for cacheable entitlements.
  * @const {string}
  */
-Constants.STORAGE_KEY_ENTITLEMENTS = 'ents';
+StorageKeys.ENTITLEMENTS = 'ents';
 
 /**
  * Local storage key for EVENT_SURVEY_DATA_TRANSFER_FAILED.
  * @const {string}
  */
-Constants.STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
+StorageKeys.STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
   'surveydatatransferfailed';
 
 /**
  * Local storage key for autoprompt impression timestamps.
  * @const {string}
  */
-Constants.STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
+StorageKeys.IMPRESSIONS = 'autopromptimp';
 
 /**
  * Local storage key for whether credential isReadyToPay.
  * @const {string}
  */
-Constants.STORAGE_KEY_IS_READY_TO_PAY = 'isreadytopay';
+StorageKeys.IS_READY_TO_PAY = 'isreadytopay';
 
 /**
  * Local storage key for redirect.
  * @const {string}
  */
-Constants.STORAGE_KEY_REDIRECT = 'subscribe.google.com:rk';
+StorageKeys.REDIRECT = 'subscribe.google.com:rk';
 
 /**
  * Local storage key for survey completed timestamps.
  * @const {string}
  */
-Constants.STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
+StorageKeys.SURVEY_COMPLETED = 'surveycompleted';
 
 /**
  * Local storage key for whether toast was shown.
  * @const {string}
  */
-Constants.STORAGE_KEY_TOAST = 'toast';
+StorageKeys.TOAST = 'toast';
 
-export {Constants};
+export {Constants, StorageKeys};
