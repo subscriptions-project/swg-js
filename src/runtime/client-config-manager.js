@@ -113,7 +113,11 @@ export class ClientConfigManager {
    * @return {!../api/basic-subscriptions.ClientTheme}
    */
   getTheme() {
-    const themeDefault = this.doc_.getWin().matchMedia(`(prefers-color-scheme: dark)`).matches ? ClientTheme.DARK : ClientTheme.LIGHT;
+    const themeDefault = this.doc_
+      .getWin()
+      .matchMedia(`(prefers-color-scheme: dark)`).matches
+      ? ClientTheme.DARK 
+      : ClientTheme.LIGHT;
     return this.clientOptions_.theme || themeDefault;
   }
 
