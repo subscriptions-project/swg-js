@@ -1522,12 +1522,10 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       storedSurveyCompleted,
       getUserToken,
     } = {
-      ...{
-        storedImpressions: null,
-        storedDismissals: null,
-        dismissedPrompts: null,
-        storedSurveyCompleted: null,
-      },
+      storedImpressions: null,
+      storedDismissals: null,
+      dismissedPrompts: null,
+      storedSurveyCompleted: null,
       ...setupArgs,
     };
     storageMock
