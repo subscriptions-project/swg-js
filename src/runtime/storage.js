@@ -112,12 +112,9 @@ export class Storage {
    * @param {string} storageKey
    */
   storeEvent(storageKey) {
-    return this.get(storageKey, /* useLocalStorage */ true).then((value) => {
-      const dateValues = this.pruneTimestamps_(
-        this.deserializeTimestamps_(value)
-      );
-      dateValues.push(Date.now());
-      const valueToStore = this.serializeTimestamps_(dateValues);
+    return this.getEvent(storageKey).then((timestamps) => {
+      timestamps.push(Date.now());
+      const valueToStore = this.serializeTimestamps_(timestamps);
       this.set(storageKey, valueToStore, /* useLocalStorage */ true);
     });
   }
