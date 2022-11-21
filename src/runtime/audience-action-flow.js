@@ -303,7 +303,7 @@ export class AudienceActionFlow {
         .eventManager()
         .logSwgEvent(
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          /* isFromUserAction */ true
+          /* isFromUserAction */ false
         );
       this.storage_.storeEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED);
     }
