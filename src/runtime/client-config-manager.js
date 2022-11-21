@@ -36,9 +36,6 @@ export class ClientConfigManager {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-    /** @private @const {!../model/doc.Doc} */
-    this.doc_ = deps.doc();
-
     /** @private @const {!../api/basic-subscriptions.ClientOptions} */
     this.clientOptions_ = clientOptions || {};
 
@@ -113,10 +110,9 @@ export class ClientConfigManager {
    * @return {!../api/basic-subscriptions.ClientTheme}
    */
   getTheme() {
-    const themeDefault = this.doc_
-      .getWin()
-      .matchMedia(`(prefers-color-scheme: dark)`).matches
-      ? ClientTheme.DARK 
+    const themeDefault = window.matchMedia(`(prefers-color-scheme: dark)`)
+      .matches
+      ? ClientTheme.DARK
       : ClientTheme.LIGHT;
     return this.clientOptions_.theme || themeDefault;
   }
