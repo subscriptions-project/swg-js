@@ -1380,12 +1380,10 @@ export class GaaGoogle3pSignInButton {
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = async () => {
-      // TODO(b/259994494): Consider awaiting this promise.
-      sendMessageToParentFnPromise.then((sendMessageToParent) => {
-        sendMessageToParent({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
-        });
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
       });
 
       if (redirectMode) {
