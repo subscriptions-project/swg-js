@@ -1316,13 +1316,13 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     it('should skip survey and show second Audience Action flow if survey was completed', async () => {
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
-      const surveyCompleted = (CURRENT_TIME - 5).toString();
+      const storedSurveyCompleted = (CURRENT_TIME - 5).toString();
       setupPreviousImpressionAndDismissals(storageMock, {
         storedImpressions,
         storedDismissals,
         dismissedPrompts: AutoPromptType.CONTRIBUTION,
         dismissedPromptGetCallCount: 2,
-        surveyCompleted,
+        storedSurveyCompleted,
         getUserToken: true,
       });
       miniPromptApiMock.expects('create').never();
@@ -1525,22 +1525,22 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedImpressions))
+      .returns(Promise.resolve(storedImpressions || null))
       .once();
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedDismissals))
+      .returns(Promise.resolve(storedDismissals || null))
       .once();
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
-      .resolves(dismissedPrompts)
+      .resolves(dismissedPrompts || null)
       .exactly(dismissedPromptGetCallCount);
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedSurveyCompleted))
+      .returns(Promise.resolve(storedSurveyCompleted || null))
       .once();
     if (getUserToken) {
       storageMock
