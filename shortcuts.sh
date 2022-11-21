@@ -137,7 +137,7 @@ function swgjs_create_amp_release_pr() {
   git checkout team/amp
   if [[ `git status --porcelain` ]]; then
     # Avoid building with local changes.
-    return
+    return 1
   fi
 
   # Build Swgjs for AMP.
