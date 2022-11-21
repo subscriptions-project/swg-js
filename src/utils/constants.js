@@ -52,12 +52,6 @@ StorageKeys.DISMISSED_PROMPTS = 'dismissedprompts';
 StorageKeys.ENTITLEMENTS = 'ents';
 
 /**
- * Local storage key for EVENT_SURVEY_DATA_TRANSFER_FAILED.
- * @const {string}
- */
-StorageKeys.EVENT_SURVEY_DATA_TRANSFER_FAILED = 'surveydatatransferfailed';
-
-/**
  * Local storage key for autoprompt impression timestamps.
  * @const {string}
  */
@@ -80,6 +74,12 @@ StorageKeys.REDIRECT = 'subscribe.google.com:rk';
  * @const {string}
  */
 StorageKeys.SURVEY_COMPLETED = 'surveycompleted';
+
+/**
+ * Local storage key for survey data transfer failure timestamps.
+ * @const {string}
+ */
+StorageKeys.SURVEY_DATA_TRANSFER_FAILED = 'surveydatatransferfailed';
 
 /**
  * Local storage key for whether toast was shown.

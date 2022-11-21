@@ -303,7 +303,7 @@ export class AudienceActionFlow {
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
           /* isFromUserAction */ false
         );
-      this.storage_.storeEvent(StorageKeys.EVENT_SURVEY_DATA_TRANSFER_FAILED);
+      this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     surveyDataTransferResponse.setSuccess(gaLoggingSuccess);

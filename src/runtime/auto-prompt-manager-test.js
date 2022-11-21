@@ -1583,7 +1583,7 @@ describes.realWin('AutoPromptManager', {}, (env) => {
     storageMock
       .expects('get')
       .withExactArgs(
-        StorageKeys.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+        StorageKeys.SURVEY_DATA_TRANSFER_FAILED,
         /* useLocalStorage */ true
       )
       .returns(Promise.resolve(storedSurveyFailed))

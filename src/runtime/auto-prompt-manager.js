@@ -388,7 +388,7 @@ export class AutoPromptManager {
           AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
         )
       ),
-      this.storage_.getEvent(StorageKeys.EVENT_SURVEY_DATA_TRANSFER_FAILED),
+      this.storage_.getEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED),
     ]).then(
       ([surveyCompletionTimestamps, surveyDataTransferFailureTimestamps]) => {
         const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
