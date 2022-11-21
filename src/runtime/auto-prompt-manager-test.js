@@ -1521,26 +1521,34 @@ describes.realWin('AutoPromptManager', {}, (env) => {
       dismissedPromptGetCallCount,
       storedSurveyCompleted,
       getUserToken,
-    } = setupArgs;
+    } = {
+      ...{
+        storedImpressions: null,
+        storedDismissals: null,
+        dismissedPrompts: null,
+        storedSurveyCompleted: null,
+      },
+      ...setupArgs,
+    };
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_IMPRESSIONS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedImpressions || null))
+      .returns(Promise.resolve(storedImpressions))
       .once();
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_DISMISSALS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedDismissals || null))
+      .returns(Promise.resolve(storedDismissals))
       .once();
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_DISMISSED_PROMPTS, /* useLocalStorage */ true)
-      .resolves(dismissedPrompts || null)
+      .resolves(dismissedPrompts)
       .exactly(dismissedPromptGetCallCount);
     storageMock
       .expects('get')
       .withExactArgs(STORAGE_KEY_SURVEY_COMPLETED, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedSurveyCompleted || null))
+      .returns(Promise.resolve(storedSurveyCompleted))
       .once();
     if (getUserToken) {
       storageMock
