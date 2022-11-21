@@ -36,8 +36,8 @@ export class ClientConfigManager {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
-   /** @private @const {!../model/doc.Doc} */
-   this.doc_ = deps.doc();
+    /** @private @const {!../model/doc.Doc} */
+    this.doc_ = deps.doc();
 
     /** @private @const {!../api/basic-subscriptions.ClientOptions} */
     this.clientOptions_ = clientOptions || {};
