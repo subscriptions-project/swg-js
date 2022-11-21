@@ -684,7 +684,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .withExactArgs({
         eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
         eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
+        isFromUserAction: false,
         additionalParameters: null,
       })
       .once();
