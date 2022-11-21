@@ -55,8 +55,7 @@ StorageKeys.ENTITLEMENTS = 'ents';
  * Local storage key for EVENT_SURVEY_DATA_TRANSFER_FAILED.
  * @const {string}
  */
-StorageKeys.STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
-  'surveydatatransferfailed';
+StorageKeys.EVENT_SURVEY_DATA_TRANSFER_FAILED = 'surveydatatransferfailed';
 
 /**
  * Local storage key for autoprompt impression timestamps.
