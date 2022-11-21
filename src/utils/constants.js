@@ -44,6 +44,12 @@ Constants.STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
 Constants.STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
 
 /**
+ * Local storage key for cacheable entitlements.
+ * @const {string}
+ */
+Constants.STORAGE_KEY_ENTITLEMENTS = 'ents';
+
+/**
  * Local storage key for EVENT_SURVEY_DATA_TRANSFER_FAILED.
  * @const {string}
  */
@@ -57,24 +63,6 @@ Constants.STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
 Constants.STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
 
 /**
- * Local storage key for survey completed timestamps.
- * @const {string}
- */
-Constants.STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
-
-/**
- * Local storage key for whether toast was shown.
- * @const {string}
- */
-Constants.STORAGE_KEY_TOAST = 'toast';
-
-/**
- * Local storage key for cacheable entitlements.
- * @const {string}
- */
-Constants.STORAGE_KEY_ENTITLEMENTS = 'ents';
-
-/**
  * Local storage key for whether credential isReadyToPay.
  * @const {string}
  */
@@ -85,5 +73,17 @@ Constants.STORAGE_KEY_IS_READY_TO_PAY = 'isreadytopay';
  * @const {string}
  */
 Constants.STORAGE_KEY_REDIRECT = 'subscribe.google.com:rk';
+
+/**
+ * Local storage key for survey completed timestamps.
+ * @const {string}
+ */
+Constants.STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
+
+/**
+ * Local storage key for whether toast was shown.
+ * @const {string}
+ */
+Constants.STORAGE_KEY_TOAST = 'toast';
 
 export {Constants};
