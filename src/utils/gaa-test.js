@@ -1307,9 +1307,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
 
       // Wait for button click post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       // Expect button click post message.
@@ -1369,9 +1367,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
 
       // Wait for post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       expect(self.postMessage).to.be.calledWithExactly(
@@ -1418,9 +1414,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
 
       // Wait for post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       expect(self.postMessage).to.be.calledWithExactly(
@@ -1587,9 +1581,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       self.google.accounts.id.renderButton.args[0][1].click_listener();
 
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       // Expect button click post message.
@@ -1663,9 +1655,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
 
       // Wait for post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       expect(self.postMessage).to.be.calledWithExactly(
@@ -1741,9 +1731,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
 
       // Wait for post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       expect(self.postMessage).to.be.calledWithExactly(
@@ -1776,9 +1764,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
 
       // Wait for post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       expect(self.postMessage).to.be.calledWithExactly(
@@ -1887,9 +1873,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
 
       // Wait for post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       expect(self.postMessage).to.be.calledWith(
@@ -2000,9 +1984,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       });
 
       await new Promise((resolve) => {
-        sandbox.stub(self.parent, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self.parent, 'postMessage').callsFake(resolve);
       });
 
       expect(self.parent.postMessage).to.be.calledWithExactly(
@@ -2038,9 +2020,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
 
       // Wait for button click post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       // Expect button click post message.
@@ -2078,9 +2058,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
 
       // Wait for button click post message.
       await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self, 'postMessage').callsFake(resolve);
       });
 
       // Expect button click post message.
@@ -2123,9 +2101,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       });
 
       await new Promise((resolve) => {
-        sandbox.stub(self.parent, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self.parent, 'postMessage').callsFake(resolve);
       });
 
       expect(self.open).to.have.been.calledWithExactly(GOOGLE_3P_AUTH_URL);
@@ -2162,9 +2138,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       });
 
       await new Promise((resolve) => {
-        sandbox.stub(self.parent, 'postMessage').callsFake(() => {
-          resolve();
-        });
+        sandbox.stub(self.parent, 'postMessage').callsFake(resolve);
       });
 
       expect(self.open).to.have.been.calledWithExactly(
