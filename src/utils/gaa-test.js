@@ -1999,10 +1999,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         command: POST_MESSAGE_COMMAND_USER,
       });
 
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
       await new Promise((resolve) => {
         sandbox.stub(self.parent, 'postMessage').callsFake(() => {
           resolve();
@@ -2126,10 +2122,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         command: POST_MESSAGE_COMMAND_USER,
       });
 
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
       await new Promise((resolve) => {
         sandbox.stub(self.parent, 'postMessage').callsFake(() => {
           resolve();
@@ -2168,10 +2160,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         stamp: POST_MESSAGE_STAMP,
         command: POST_MESSAGE_COMMAND_USER,
       });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
 
       await new Promise((resolve) => {
         sandbox.stub(self.parent, 'postMessage').callsFake(() => {
