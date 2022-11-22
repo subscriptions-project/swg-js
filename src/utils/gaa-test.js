@@ -1969,8 +1969,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
 
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
-      clock.tick(100);
-      await tick(10);
 
       // Send user post message.
       postMessage({
