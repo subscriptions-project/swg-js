@@ -17,7 +17,6 @@
 import {assert} from './log';
 import {parseJson} from './json';
 import {parseUrl} from './url';
-import {utf8EncodeSync} from './bytes';
 
 /**
  * The "init" argument of the Fetch API. Currently, only "credentials: include"
