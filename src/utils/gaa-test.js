@@ -2077,8 +2077,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         allowedOrigins,
         authorizationUrl: GOOGLE_3P_AUTH_URL,
       });
-      clock.tick(100);
-      await tick(10);
 
       // Send intro post message.
       postMessage({
@@ -2086,23 +2084,11 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         command: POST_MESSAGE_COMMAND_INTRODUCTION,
       });
 
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
-      clock.tick(100);
-      await tick(10);
 
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_USER,
-      });
-
-      await new Promise((resolve) => {
-        sandbox.stub(self.parent, 'postMessage').callsFake(resolve);
-      });
+      // Wait for `open` to be called.
+      await new Promise((resolve) => void self.open.callsFake(resolve));
 
       expect(self.open).to.have.been.calledWithExactly(GOOGLE_3P_AUTH_URL);
     });
@@ -2114,8 +2100,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         authorizationUrl: GOOGLE_3P_AUTH_URL,
         redirectMode: true,
       });
-      clock.tick(100);
-      await tick(10);
 
       // Send intro post message.
       postMessage({
@@ -2123,23 +2107,11 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         command: POST_MESSAGE_COMMAND_INTRODUCTION,
       });
 
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
-      clock.tick(100);
-      await tick(100);
 
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_USER,
-      });
-
-      await new Promise((resolve) => {
-        sandbox.stub(self.parent, 'postMessage').callsFake(resolve);
-      });
+      // Wait for `open` to be called.
+      await new Promise((resolve) => void self.open.callsFake(resolve));
 
       expect(self.open).to.have.been.calledWithExactly(
         GOOGLE_3P_AUTH_URL,
