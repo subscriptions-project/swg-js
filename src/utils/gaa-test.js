@@ -2150,6 +2150,34 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         '_parent'
       );
     });
+
+    it('should open window twice when redirectMode is true', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        redirectMode: true,
+      });
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for `open` to be called.
+      await new Promise((resolve) => void self.open.callsFake(resolve));
+
+      expect(self.open).to.have.been.calledOnce;
+
+      // Wait for timeout to complete.
+      clock.tick(100);
+
+      expect(self.open).to.have.been.calledTwice;
+    });
   });
 
   describe('gaaNotifySignIn', () => {
