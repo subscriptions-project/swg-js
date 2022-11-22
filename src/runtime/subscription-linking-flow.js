@@ -46,6 +46,9 @@ export class SubscriptionLinkingFlow {
    */
   start(request) {
     const {publisherProvidedId} = request;
+    if (!publisherProvidedId) {
+      throw new Error('Missing required field: publisherProvidedId');
+    }
     const publicationId = this.pageConfig_.getPublicationId();
     const args = feArgs({
       publicationId,
