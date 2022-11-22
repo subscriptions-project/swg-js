@@ -78,6 +78,13 @@ describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
     });
   });
 
+  it('throws an error if publisherProvidedId is missing', () => {
+    const request = {...REQUEST, publisherProvidedId: undefined};
+    expect(() => {
+      subscriptionLinkingFlow.start(request);
+    }).to.throw(Error, 'publisherProvidedId');
+  });
+
   describe('on SubscriptionLinkingCompleteResponse', () => {
     it('resolves promise with response data', async () => {
       dialogManagerMock.expects('openView').once().returns(Promise.resolve());
