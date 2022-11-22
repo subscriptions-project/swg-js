@@ -32,7 +32,7 @@ export class Fetcher {
 
   /**
    * @param {string} unusedUrl
-   * @param {!Object} unusedInit
+   * @param {!RequestInit} unusedInit
    * @return {!Promise<!Response>}
    */
   fetch(unusedUrl, unusedInit) {}
@@ -67,11 +67,11 @@ export class XhrFetcher {
 
   /** @override */
   fetchCredentialedJson(url) {
-    const init = {
+    const init = /** @type {!RequestInit} */ ({
       method: 'GET',
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
-    };
+    });
     return this.fetch(url, init).then((response) => {
       return response.text().then((text) => {
         // Remove "")]}'\n" XSSI prevention prefix in safe responses.
@@ -83,14 +83,14 @@ export class XhrFetcher {
 
   /** @override */
   sendPost(url, message) {
-    const init = {
+    const init = /** @type {!RequestInit} */ ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       },
       credentials: 'include',
       body: 'f.req=' + serializeProtoMessageForUrl(message),
-    };
+    });
     return this.fetch(url, init).then((response) => {
       if (!response) {
         return {};
