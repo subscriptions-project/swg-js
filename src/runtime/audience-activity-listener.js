@@ -84,6 +84,7 @@ export class AudienceActivityEventListener {
           const pubId = encodeURIComponent(
             this.deps_.pageConfig().getPublicationId()
           );
+          const encodedSwgUserToken = encodeURIComponent(swgUserToken);
           const audienceActivityClientLogsRequest =
             this.createLogRequest_(event);
           const url = serviceUrl(
@@ -91,7 +92,7 @@ export class AudienceActivityEventListener {
               pubId +
               '/audienceactivity' +
               '?sut=' +
-              swgUserToken
+              encodedSwgUserToken
           );
           this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
         }
