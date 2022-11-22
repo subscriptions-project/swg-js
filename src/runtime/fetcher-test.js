@@ -136,6 +136,24 @@ describes.realWin('XhrFetcher', {}, (env) => {
       expect(response).to.deep.equal({});
     });
 
+    it('suggests devs look at Publisher Center setup when a fetch fails', async () => {
+      // Make `fetch` method fail.
+      const errorMessage = 'Woops';
+      sandbox.restore();
+      sandbox.stub(win, 'fetch').callsFake(() => Promise.reject(errorMessage));
+
+      // Pass the `afterEach` expectations.
+      sentInit = null;
+      fetchUrl = sentUrl;
+
+      // Verify original error message is augmented with a mention of Publisher Center.
+      const fetchPromise = fetcher.fetch(sentUrl, CONTEXT);
+      await expect(fetchPromise).to.eventually.be.rejectedWith(
+        'Publisher Center'
+      );
+      await expect(fetchPromise).to.eventually.be.rejectedWith(errorMessage);
+    });
+
     it("should throw error if post json's response cannot be parsed", async () => {
       sandbox.restore();
       const throwAsyncStub = sandbox

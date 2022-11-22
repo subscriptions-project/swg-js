@@ -16,7 +16,7 @@
 
 import {ErrorUtils} from '../utils/errors';
 import {parseJson} from '../utils/json';
-import {serializeProtoMessageForUrl} from '../utils/url';
+import {parseUrl, serializeProtoMessageForUrl} from '../utils/url';
 
 const jsonSaftyPrefix = /^(\)\]\}'\n)/;
 
@@ -35,7 +35,7 @@ export class Fetcher {
    * @param {!RequestInit} unusedInit
    * @return {!Promise<!Response>}
    */
-  fetch(unusedUrl, unusedInit) {}
+  async fetch(unusedUrl, unusedInit) {}
 
   /**
    * POST data to a URL endpoint, do not wait for a response.
@@ -109,8 +109,25 @@ export class XhrFetcher {
   }
 
   /** @override */
-  fetch(url, init) {
-    return this.win_.fetch(url, init);
+  async fetch(url, init) {
+    try {
+      // Wait for the request to succeed before returning the response,
+      // allowing this method to catch failures.
+      const response = await this.win_.fetch(url, init);
+      return response;
+    } catch (reason) {
+      /*
+       * If the domain is not valid for SwG we return 404 without
+       * CORS headers and the browser throws a CORS error.
+       * We include some helpful text in the message to point the
+       * publisher towards the real problem.
+       */
+      const targetOrigin = parseUrl(url).origin;
+      throw new Error(
+        `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this publisher or domain is not configured in Publisher Center. The CORS error happens because 4xx responses do not set CORS headers.)\n\n` +
+          reason
+      );
+    }
   }
 
   /** @override */
