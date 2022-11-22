@@ -329,16 +329,6 @@ export class FetchResponse {
     const text = await this.drainText_();
     return /** @type {!JsonObject} */ (parseJson(text));
   }
-
-  /**
-   * Drains the response and returns a promise that resolves with the response
-   * ArrayBuffer.
-   * @return {!Promise<!Uint8Array>}
-   */
-  async arrayBuffer() {
-    const text = await this.drainText_();
-    return utf8EncodeSync(text);
-  }
 }
 
 /**
