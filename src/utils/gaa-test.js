@@ -1960,8 +1960,6 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         allowedOrigins,
         authorizationUrl: GOOGLE_3P_AUTH_URL,
       });
-      clock.tick(100);
-      await tick(10);
 
       // Send intro post message.
       postMessage({
@@ -1969,20 +1967,18 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         command: POST_MESSAGE_COMMAND_INTRODUCTION,
       });
 
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
       await tick(10);
 
+      // Send user post message.
       postMessage({
         stamp: POST_MESSAGE_STAMP,
         command: POST_MESSAGE_COMMAND_USER,
       });
 
+      // Wait for `postMessage` to be relayed to parent.
       await new Promise((resolve) => {
         sandbox.stub(self.parent, 'postMessage').callsFake(resolve);
       });
@@ -2002,18 +1998,12 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         allowedOrigins,
         authorizationUrl: GOOGLE_3P_AUTH_URL,
       });
-      clock.tick(100);
-      await tick(10);
 
       // Send intro post message.
       postMessage({
         stamp: POST_MESSAGE_STAMP,
         command: POST_MESSAGE_COMMAND_INTRODUCTION,
       });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
 
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
@@ -2040,18 +2030,12 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
         authorizationUrl: GOOGLE_3P_AUTH_URL,
         redirectMode: true,
       });
-      clock.tick(100);
-      await tick(10);
 
       // Send intro post message.
       postMessage({
         stamp: POST_MESSAGE_STAMP,
         command: POST_MESSAGE_COMMAND_INTRODUCTION,
       });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
 
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
