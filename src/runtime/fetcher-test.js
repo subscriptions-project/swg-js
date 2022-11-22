@@ -16,7 +16,6 @@
 
 import {AnalyticsContext} from '../proto/api_messages';
 import {ErrorUtils} from '../utils/errors';
-import {Xhr} from '../utils/xhr';
 import {XhrFetcher} from './fetcher';
 import {serializeProtoMessageForUrl} from '../utils/url';
 import {serviceUrl} from './services';
@@ -46,7 +45,7 @@ describes.realWin('XhrFetcher', {}, (env) => {
     win = env.win;
     fetchInit = null;
     fetchUrl = null;
-    sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+    sandbox.stub(win, 'fetch').callsFake((url, init) => {
       fetchInit = init;
       fetchUrl = url;
       return Promise.resolve({});
@@ -72,22 +71,6 @@ describes.realWin('XhrFetcher', {}, (env) => {
       );
       expect(receivedBody).to.deep.equal(expectedBlob);
       expect(receivedUrl).to.equal(sentUrl);
-    });
-
-    it('should fallback to standard POST', () => {
-      navigator.sendBeacon = null;
-      const url = serviceUrl('clientlogs');
-      fetcher.sendBeacon(url, CONTEXT);
-
-      const type = 'application/x-www-form-urlencoded;charset=UTF-8';
-      const body = 'f.req=' + serializeProtoMessageForUrl(CONTEXT);
-      expect(fetchInit).to.deep.equal({
-        method: 'POST',
-        headers: {'Content-Type': type},
-        credentials: 'include',
-        body,
-      });
-      expect(fetchUrl).to.equal(url);
     });
   });
 
@@ -116,7 +99,7 @@ describes.realWin('XhrFetcher', {}, (env) => {
 
     it('should fetch credentialed JSON with safety prefix', async () => {
       sandbox.restore();
-      sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+      sandbox.stub(win, 'fetch').callsFake((url, init) => {
         fetchInit = init;
         fetchUrl = url;
         return Promise.resolve({
@@ -134,7 +117,7 @@ describes.realWin('XhrFetcher', {}, (env) => {
 
     it('should post json', async () => {
       sandbox.restore();
-      sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+      sandbox.stub(win, 'fetch').callsFake((url, init) => {
         fetchInit = init;
         fetchUrl = url;
         return Promise.resolve({
@@ -158,7 +141,7 @@ describes.realWin('XhrFetcher', {}, (env) => {
       const throwAsyncStub = sandbox
         .stub(ErrorUtils, 'throwAsync')
         .callsFake(() => {});
-      sandbox.stub(Xhr.prototype, 'fetch').callsFake((url, init) => {
+      sandbox.stub(win, 'fetch').callsFake((url, init) => {
         fetchInit = init;
         fetchUrl = url;
         return Promise.resolve({

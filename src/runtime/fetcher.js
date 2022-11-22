@@ -15,7 +15,6 @@
  */
 
 import {ErrorUtils} from '../utils/errors';
-import {Xhr} from '../utils/xhr';
 import {parseJson} from '../utils/json';
 import {serializeProtoMessageForUrl} from '../utils/url';
 
@@ -33,8 +32,8 @@ export class Fetcher {
 
   /**
    * @param {string} unusedUrl
-   * @param {!../utils/xhr.FetchInitDef} unusedInit
-   * @return {!Promise<!../utils/xhr.FetchResponse>}
+   * @param {!Object} unusedInit
+   * @return {!Promise<!Response>}
    */
   fetch(unusedUrl, unusedInit) {}
 
@@ -49,7 +48,7 @@ export class Fetcher {
    * POST data to a URL endpoint, get a Promise for a response
    * @param {!string} unusedUrl
    * @param {!../proto/api_messages.Message} unusedMessage
-   * @return {!Promise<!../utils/xhr.FetchResponse>}
+   * @return {!Promise<!Response>}
    */
   sendPost(unusedUrl, unusedMessage) {}
 }
@@ -62,17 +61,17 @@ export class XhrFetcher {
    * @param {!Window} win
    */
   constructor(win) {
-    /** @const {!Xhr} */
-    this.xhr_ = new Xhr(win);
+    /** @const {!Window} */
+    this.win_ = win;
   }
 
   /** @override */
   fetchCredentialedJson(url) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+    const init = {
       method: 'GET',
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
-    });
+    };
     return this.fetch(url, init).then((response) => {
       return response.text().then((text) => {
         // Remove "")]}'\n" XSSI prevention prefix in safe responses.
@@ -84,14 +83,14 @@ export class XhrFetcher {
 
   /** @override */
   sendPost(url, message) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+    const init = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       },
       credentials: 'include',
       body: 'f.req=' + serializeProtoMessageForUrl(message),
-    });
+    };
     return this.fetch(url, init).then((response) => {
       if (!response) {
         return {};
@@ -111,21 +110,16 @@ export class XhrFetcher {
 
   /** @override */
   fetch(url, init) {
-    return this.xhr_.fetch(url, init);
+    return this.win_.fetch(url, init);
   }
 
   /** @override */
   sendBeacon(url, data) {
-    if (navigator.sendBeacon) {
-      const headers = {type: 'application/x-www-form-urlencoded;charset=UTF-8'};
-      const blob = new Blob(
-        ['f.req=' + serializeProtoMessageForUrl(data)],
-        headers
-      );
-      navigator.sendBeacon(url, blob);
-      return;
-    }
-    // Only newer browsers support beacon.  Fallback to standard XHR POST.
-    this.sendPost(url, data);
+    const headers = {type: 'application/x-www-form-urlencoded;charset=UTF-8'};
+    const blob = new Blob(
+      ['f.req=' + serializeProtoMessageForUrl(data)],
+      headers
+    );
+    navigator.sendBeacon(url, blob);
   }
 }

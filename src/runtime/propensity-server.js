@@ -101,10 +101,10 @@ export class PropensityServer {
    * @param {?string} productsOrSkus
    */
   sendSubscriptionState(state, productsOrSkus) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+    const init = {
       method: 'GET',
       credentials: 'include',
-    });
+    };
     let url = adsUrl('/subopt/data');
     url = addQueryParam(url, 'states', this.publicationId_ + ':' + state);
     if (productsOrSkus) {
@@ -119,10 +119,10 @@ export class PropensityServer {
    * @private
    */
   sendEvent_(event, context) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+    const init = {
       method: 'GET',
       credentials: 'include',
-    });
+    };
     let url = adsUrl('/subopt/data');
     url = addQueryParam(url, 'events', this.publicationId_ + ':' + event);
     if (context) {
@@ -241,10 +241,10 @@ export class PropensityServer {
    * @return {?Promise<../api/propensity-api.PropensityScore>}
    */
   getPropensity(referrer, type) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+    const init = {
       method: 'GET',
       credentials: 'include',
-    });
+    };
     const url =
       adsUrl('/subopt/pts?products=') +
       this.publicationId_ +
