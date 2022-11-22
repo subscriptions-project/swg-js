@@ -90,23 +90,28 @@ export class Xhr {
    * @param {?FetchInitDef} init Fetch options object.
    * @return {!Promise<!FetchResponse>}
    */
-  fetch(input, init) {
+  async fetch(input, init) {
     init = setupInit(init);
-    return this.fetch_(input, init)
-      .catch((reason) => {
-        /*
-         * If the domain is not valid for SwG we return 404 without
-         * CORS headers and the browser throws a CORS error.
-         * We include some helpful text in the message to point the
-         * publisher towards the real problem.
-         */
-        const targetOrigin = parseUrl(input).origin;
-        throw new Error(
-          `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this publisher or domain is not configured in Publisher Center. The CORS error happens becasue 4xx responses do not set CORS headers.)`,
-          reason && reason.message
-        );
-      })
-      .then((response) => assertSuccess(response));
+
+    /** @type {Promise<!FetchResponse>} */
+    let response;
+    try {
+      response = await this.fetch_(input, init);
+    } catch (reason) {
+      /*
+       * If the domain is not valid for SwG we return 404 without
+       * CORS headers and the browser throws a CORS error.
+       * We include some helpful text in the message to point the
+       * publisher towards the real problem.
+       */
+      const targetOrigin = parseUrl(input).origin;
+      throw new Error(
+        `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this publisher or domain is not configured in Publisher Center. The CORS error happens becasue 4xx responses do not set CORS headers.)`,
+        reason && reason.message
+      );
+    }
+
+    return assertSuccess(response);
   }
 }
 
@@ -320,21 +325,19 @@ export class FetchResponse {
    * Drains the response and returns the JSON object.
    * @return {!Promise<!JsonObject>}
    */
-  json() {
-    return /** @type {!Promise<!JsonObject>} */ (
-      this.drainText_().then(parseJson)
-    );
+  async json() {
+    const text = await this.drainText_();
+    return /** @type {!JsonObject} */ (parseJson(text));
   }
 
   /**
    * Drains the response and returns a promise that resolves with the response
    * ArrayBuffer.
-   * @return {!Promise<!ArrayBuffer>}
+   * @return {!Promise<!Uint8Array>}
    */
-  arrayBuffer() {
-    return /** @type {!Promise<!ArrayBuffer>} */ (
-      this.drainText_().then(utf8EncodeSync)
-    );
+  async arrayBuffer() {
+    const text = await this.drainText_();
+    return utf8EncodeSync(text);
   }
 }
 

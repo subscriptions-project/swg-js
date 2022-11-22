@@ -196,7 +196,7 @@ function toHex(buffer) {
  * @param {string} stringToHash
  * @return {!Promise<string>}
  */
-export function hash(stringToHash) {
+export async function hash(stringToHash) {
   const crypto = self.crypto || self.msCrypto;
   const subtle = crypto?.subtle;
 
@@ -206,7 +206,6 @@ export function hash(stringToHash) {
     return Promise.reject(message);
   }
 
-  return subtle
-    .digest('SHA-512', utf8EncodeSync(stringToHash))
-    .then((digest) => toHex(digest));
+  const digest = await subtle.digest('SHA-512', utf8EncodeSync(stringToHash));
+  return toHex(digest);
 }
