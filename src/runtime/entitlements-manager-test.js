@@ -1148,7 +1148,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         self.console.warn.reset();
         manager.clear();
 
-        fetcherMock.expects('fetch').resolves({text: () => Promise.resolve('{}')});
+        fetcherMock
+          .expects('fetch')
+          .resolves({text: () => Promise.resolve('{}')});
         expectGetSwgUserTokenToBeCalled();
 
         await manager.getEntitlements({
@@ -1173,7 +1175,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         self.console.warn.reset();
         manager.clear();
 
-        fetcherMock.expects('fetch').resolves({text: () => Promise.resolve('{}')});
+        fetcherMock
+          .expects('fetch')
+          .resolves({text: () => Promise.resolve('{}')});
         expectGetSwgUserTokenToBeCalled();
 
         await manager.getEntitlements({
