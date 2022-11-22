@@ -206,6 +206,5 @@ export async function hash(stringToHash) {
     return Promise.reject(message);
   }
 
-  const digest = await subtle.digest('SHA-512', utf8EncodeSync(stringToHash));
-  return toHex(digest);
+  return toHex(await subtle.digest('SHA-512', utf8EncodeSync(stringToHash)));
 }
