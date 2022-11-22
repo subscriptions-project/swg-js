@@ -354,6 +354,13 @@ describes.realWin('test', {}, () => {
         expect(result).to.deep.equal(TEST_OBJECT);
       });
 
+      it('should provide ArrayBuffer', async () => {
+        const response = new FetchResponse(mockXhr);
+        const arrayBufferResult = await response.arrayBuffer();
+        const textResult = new TextDecoder().decode(arrayBufferResult);
+        expect(textResult).to.contain(TEST_TEXT);
+      });
+
       it('should give access to get a header', () => {
         const response = new FetchResponse(mockXhr);
         expect(response.headers.get('someHeader')).to.equal(TEST_HEADER_VALUE);
