@@ -105,8 +105,8 @@ export class Xhr {
        */
       const targetOrigin = parseUrl(input).origin;
       throw new Error(
-        `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this publisher or domain is not configured in Publisher Center. The CORS error happens becasue 4xx responses do not set CORS headers.)`,
-        reason && reason.message
+        `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this publisher or domain is not configured in Publisher Center. The CORS error happens because 4xx responses do not set CORS headers.)\n` +
+          reason?.message
       );
     }
 
