@@ -198,28 +198,4 @@ describes.realWin('Dom', {}, (env) => {
       expect(dom.hasNextNodeInDocumentOrder(element, parent)).to.be.false;
     });
   });
-
-  describe('isLegacyEdgeBrowser', () => {
-    it('should return true for legacy Edge browsers', () => {
-      const legacyEdgeWindow = {
-        navigator: {
-          userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36 Edge/40.15063.0',
-        },
-      };
-      const isLegacyEdge = dom.isLegacyEdgeBrowser(legacyEdgeWindow);
-      expect(isLegacyEdge).to.be.true;
-    });
-
-    it('should return false for other browsers', () => {
-      const newEdgeWindow = {
-        navigator: {
-          userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36 Edg/44.18362.449.0',
-        },
-      };
-      const isLegacyEdge = dom.isLegacyEdgeBrowser(newEdgeWindow);
-      expect(isLegacyEdge).to.be.false;
-    });
-  });
 });

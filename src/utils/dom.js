@@ -134,18 +134,3 @@ export function hasNextNodeInDocumentOrder(element, stopNode) {
   );
   return false;
 }
-
-/**
- * Returns true if current browser is a legacy version of Edge.
- *
- * Starting in January 2020, new versions of Edge will use the Chromium engine.
- * These versions won't include the word "Edge" in their useragent.
- * Instead, they'll include the word "Edg".
- * So far, it seems safe to avoid detecting these new versions of Edge.
- * @param {!Window} win
- * @return {boolean}
- */
-export function isLegacyEdgeBrowser(win) {
-  const nav = win.navigator;
-  return /Edge/i.test(nav && nav.userAgent);
-}
