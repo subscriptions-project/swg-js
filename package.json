@@ -31,7 +31,7 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@ampproject/google-closure-compiler": "20210601.0.0",
+    "@ampproject/google-closure-compiler": "20210907.0.0",
     "@babel/core": "7.20.2",
     "@babel/eslint-parser": "7.19.1",
     "@babel/preset-env": "7.20.2",
