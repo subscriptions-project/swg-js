@@ -233,11 +233,11 @@ export class Entitlements {
     );
 
     const subscriptionEntitlement = entitlementsThatUnlockArticle.find(
-      (entitlement) => entitlement.source !== GOOGLE_METERING_SOURCE
+      ({source}) => source !== GOOGLE_METERING_SOURCE
     );
 
     const meteringEntitlement = entitlementsThatUnlockArticle.find(
-      (entitlement) => entitlement.source === GOOGLE_METERING_SOURCE
+      ({source}) => source === GOOGLE_METERING_SOURCE
     );
 
     return subscriptionEntitlement || meteringEntitlement || null;
