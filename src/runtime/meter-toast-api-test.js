@@ -50,6 +50,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   let onConsumeCallbackFake;
   let isMobile;
   const productId = 'pub1:label1';
+  let clientOptions;
 
   beforeEach(() => {
     win = env.win;
@@ -59,7 +60,14 @@ describes.realWin('MeterToastApi', {}, (env) => {
     });
     messageMap = {};
     pageConfig = new PageConfig(productId);
-    runtime = new ConfiguredRuntime(win, pageConfig);
+    clientOptions = {};
+    runtime = new ConfiguredRuntime(
+      win,
+      pageConfig,
+      /* integr */ undefined,
+      /* config */ undefined,
+      clientOptions
+    );
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
@@ -185,6 +193,8 @@ describes.realWin('MeterToastApi', {}, (env) => {
   [
     {userAttribute: 'anonymous_user', meterType: 'UNKNOWN'},
     {userAttribute: 'known_user', meterType: 'KNOWN'},
+    {userAttribute: 'newsletter_user', meterType: 'KNOWN'},
+    {userAttribute: 'registration_user', meterType: 'KNOWN'},
   ].forEach(({userAttribute, meterType}) => {
     it(`should start the flow correctly with METERED_BY_GOOGLE client type with client user attribute ${userAttribute}`, async () => {
       const meterToastApiWithParams = new MeterToastApi(runtime, {
@@ -209,6 +219,16 @@ describes.realWin('MeterToastApi', {}, (env) => {
         .returns(Promise.resolve(port));
       await meterToastApiWithParams.start();
     });
+  });
+
+  it('should exit flow with SUPPRESSED MeterType for survey_user', async () => {
+    const meterToastApiWithParams = new MeterToastApi(runtime, {
+      meterClientType: MeterClientTypes.METERED_BY_GOOGLE,
+      meterClientUserAttribute: 'survey_user',
+    });
+    callbacksMock.expects('triggerFlowStarted').never();
+    activitiesMock.expects('openIframe').never();
+    await meterToastApiWithParams.start();
   });
 
   it('should activate native subscribe request', async () => {
@@ -459,6 +479,57 @@ describes.realWin('MeterToastApi', {}, (env) => {
     const element = runtime.dialogManager().getDialog().getElement();
     expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
   });
+
+  [
+    {
+      description:
+        'should open the iframe without locale set if no language or forceLangInIframes set in clientConfig',
+      expectedPath:
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+    },
+    {
+      description:
+        'should open the iframe without locale set if no language but forceLangInIframes enabled in clientConfig',
+      forceLangInIframes: true,
+      expectedPath:
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+    },
+    {
+      description:
+        'should open the iframe without locale set if language set but forceLangInIframes disabled in clientConfig',
+      lang: 'pt-BR',
+      expectedPath:
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+    },
+    {
+      description:
+        'should open the iframe with locale set if language set and forceLangInIframes enabled in clientConfig',
+      lang: 'pt-BR',
+      forceLangInIframes: true,
+      expectedPath:
+        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
+    },
+  ].forEach(({description, lang, forceLangInIframes, expectedPath}) =>
+    it(description, async () => {
+      clientOptions.lang = lang;
+      clientOptions.forceLangInIframes = forceLangInIframes;
+      const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+        isClosable: true,
+        hasSubscriptionCallback: runtime
+          .callbacks()
+          .hasSubscribeRequestCallback(),
+      });
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(
+          sandbox.match((arg) => arg.tagName == 'IFRAME'),
+          expectedPath,
+          iframeArgs
+        )
+        .returns(Promise.resolve(port));
+      await meterToastApi.start();
+    })
+  );
 
   it('isMobile_ works as expected', async () => {
     let window = {

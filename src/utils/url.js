@@ -116,17 +116,15 @@ function parseUrlWithA(a, url) {
     pathname: a.pathname,
     search: a.search,
     hash: a.hash,
-    origin: '', // Set below.
+    origin: a.protocol + '//' + a.host,
   };
 
   // For data URI a.origin is equal to the string 'null' which is not useful.
   // We instead return the actual origin which is the full URL.
-  if (a.origin && a.origin != 'null') {
+  if (a.origin && a.origin !== 'null') {
     info.origin = a.origin;
-  } else if (info.protocol == 'data:' || !info.host) {
+  } else if (info.protocol === 'data:' || !info.host) {
     info.origin = info.href;
-  } else {
-    info.origin = info.protocol + '//' + info.host;
   }
   return info;
 }
@@ -201,12 +199,17 @@ export function getHostUrl(url) {
 }
 
 /**
+ * Returns the canonical URL from the canonical tag. If the canonical tag is
+ * not present, treat the doc URL itself as canonical.
  * @param {!../model/doc.Doc} doc
  * @return {string}
  */
 export function getCanonicalUrl(doc) {
-  const node = doc.getRootNode().querySelector("link[rel='canonical']");
-  return (node && node.href) || '';
+  const rootNode = doc.getRootNode();
+  const canonicalTag = rootNode.querySelector("link[rel='canonical']");
+  return (
+    canonicalTag?.href || rootNode.location.origin + rootNode.location.pathname
+  );
 }
 
 const PARSED_URL = parseUrl(self.window.location.href);

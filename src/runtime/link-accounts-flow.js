@@ -106,6 +106,9 @@ export class LinkCompleteFlow {
           deps
             .eventManager()
             .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
+          deps
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.EVENT_LINK_ACCOUNT_SUCCESS);
           const flow = new LinkCompleteFlow(deps, response);
           flow.start();
         },
@@ -155,32 +158,11 @@ export class LinkCompleteFlow {
     /** @private @const {!./callbacks.Callbacks} */
     this.callbacks_ = deps.callbacks();
 
-    const index = (response && response['index']) || '0';
-
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
 
-    /** @private @const {!Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfigManager_
-      .getClientConfig()
-      .then(
-        (clientConfig) =>
-          new ActivityIframeView(
-            this.win_,
-            this.activityPorts_,
-            feUrl(
-              '/linkconfirmiframe',
-              {},
-              clientConfig.usePrefixedHostPath,
-              'u/' + index
-            ),
-            feArgs({
-              'productId': deps.pageConfig().getProductId(),
-              'publicationId': deps.pageConfig().getPublicationId(),
-            }),
-            /* shouldFadeBody */ true
-          )
-      );
+    /** @private {!Object} */
+    this.response_ = response || {};
 
     /** @private {?function()} */
     this.completeResolver_ = null;
@@ -196,8 +178,28 @@ export class LinkCompleteFlow {
    * @return {!Promise}
    */
   start() {
-    return this.activityIframeViewPromise_.then((activityIframeView) => {
-      this.activityIframeView_ = activityIframeView;
+    if (this.response_['saveAndRefresh']) {
+      this.complete_(this.response_, this.response_['linked']);
+      return Promise.resolve();
+    }
+
+    return this.clientConfigManager_.getClientConfig().then((clientConfig) => {
+      const index = this.response_['index'] || '0';
+      this.activityIframeView_ = new ActivityIframeView(
+        this.win_,
+        this.activityPorts_,
+        feUrl(
+          '/linkconfirmiframe',
+          {},
+          clientConfig.usePrefixedHostPath,
+          'u/' + index
+        ),
+        feArgs({
+          'productId': this.deps_.pageConfig().getProductId(),
+          'publicationId': this.deps_.pageConfig().getPublicationId(),
+        }),
+        /* shouldFadeBody */ true
+      );
 
       const promise = this.activityIframeView_.acceptResultAndVerify(
         feOrigin(),
@@ -205,8 +207,8 @@ export class LinkCompleteFlow {
         /* requireSecureChannel */ true
       );
       promise
-        .then((response) => {
-          this.complete_(response);
+        .then((response = {}) => {
+          this.complete_(response, !!response['success']);
         })
         .catch((reason) => {
           // Rethrow async.
@@ -229,10 +231,11 @@ export class LinkCompleteFlow {
   }
 
   /**
-   * @param {?Object} response
+   * @param {!Object} response
+   * @param {boolean} success
    * @private
    */
-  complete_(response) {
+  complete_(response, success) {
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
@@ -244,7 +247,7 @@ export class LinkCompleteFlow {
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);
     this.entitlementsManager_.unblockNextNotification();
-    this.entitlementsManager_.reset((response && response['success']) || false);
+    this.entitlementsManager_.reset(success);
     if (response && response['entitlements']) {
       this.entitlementsManager_.pushNextEntitlements(response['entitlements']);
     }
@@ -324,6 +327,9 @@ export class LinkSaveFlow {
       this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
       linkConfirm = new LinkCompleteFlow(this.deps_, result);
       startPromise = linkConfirm.start();
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
     } else {
       startPromise = Promise.reject(createCancelError(this.win_, 'not linked'));
     }
