@@ -78,7 +78,7 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
-      .returns(Promise.resolve('abc')).once;
+      .returns(Promise.resolve('ab+c')).once;
     audienceActivityEventListener.start();
 
     // This triggers an event.
@@ -94,8 +94,9 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
     );
 
     const path = new URL(capturedUrl);
-    expect(path.pathname).to.equal(
-      '/swg/_/api/v1/publication/pub1/audienceactivity'
+    expect(path.toString()).to.equal(
+      '$frontend$/swg/_/api/v1/publication/pub1/audienceactivity?sut=' +
+        encodeURIComponent('ab+c')
     );
   });
 
