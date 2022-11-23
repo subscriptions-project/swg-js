@@ -19,6 +19,7 @@ import {
   AudienceActivityClientLogsRequest,
 } from '../proto/api_messages';
 import {Constants} from '../utils/constants';
+import {addQueryParam} from '../utils/url';
 import {serviceUrl} from './services';
 
 /** @const {!Set<!AnalyticsEvent>} */
@@ -84,17 +85,14 @@ export class AudienceActivityEventListener {
           const pubId = encodeURIComponent(
             this.deps_.pageConfig().getPublicationId()
           );
-          const encodedSwgUserToken = encodeURIComponent(swgUserToken);
           const audienceActivityClientLogsRequest =
             this.createLogRequest_(event);
-          const url = serviceUrl(
-            '/publication/' +
-              pubId +
-              '/audienceactivity' +
-              '?sut=' +
-              encodedSwgUserToken
+          let url = `/publication/${pubId}/audienceactivity`;
+          url = addQueryParam(url, 'sut', swgUserToken);
+          this.fetcher_.sendBeacon(
+            serviceUrl(url),
+            audienceActivityClientLogsRequest
           );
-          this.fetcher_.sendBeacon(url, audienceActivityClientLogsRequest);
         }
       });
     }
