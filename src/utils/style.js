@@ -202,7 +202,7 @@ export function getVendorJsPropertyName(style, camelCase, bypassCache) {
     return camelCase;
   }
   if (!propertyNameCache) {
-    propertyNameCache = map();
+    propertyNameCache = Object.create(null);
   }
   let propertyName = propertyNameCache[camelCase];
   if (!propertyName || bypassCache) {
@@ -375,7 +375,7 @@ export function removeAlphaFromColor(rgbaColor) {
  */
 export function computedStyle(win, el) {
   const style = /** @type {?CSSStyleDeclaration} */ (win.getComputedStyle(el));
-  return /** @type {!Object<string, string>} */ (style) || map();
+  return /** @type {!Object<string, string>} */ (style) || Object.create(null);
 }
 
 /**
