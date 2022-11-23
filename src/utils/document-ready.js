@@ -85,14 +85,3 @@ export function whenDocumentReady(doc) {
     onDocumentReady(doc, resolve);
   });
 }
-
-/**
- * Returns a promise that is resolved when document is complete.
- * @param {!Document} doc
- * @return {!Promise<!Document>}
- */
-export function whenDocumentComplete(doc) {
-  return new Promise((resolve) => {
-    onDocumentState(doc, isDocumentComplete, resolve);
-  });
-}
