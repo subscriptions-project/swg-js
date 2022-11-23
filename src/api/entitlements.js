@@ -16,7 +16,6 @@
 
 import {Timestamp} from '../proto/api_messages';
 import {debugLog} from '../utils/log';
-import {findInArray} from '../utils/object';
 import {getPropertyFromJsonString} from '../utils/json';
 import {warn} from '../utils/log';
 
@@ -233,13 +232,11 @@ export class Entitlements {
         (!source || source === entitlement.source)
     );
 
-    const subscriptionEntitlement = findInArray(
-      entitlementsThatUnlockArticle,
+    const subscriptionEntitlement = entitlementsThatUnlockArticle.find(
       (entitlement) => entitlement.source !== GOOGLE_METERING_SOURCE
     );
 
-    const meteringEntitlement = findInArray(
-      entitlementsThatUnlockArticle,
+    const meteringEntitlement = entitlementsThatUnlockArticle.find(
       (entitlement) => entitlement.source === GOOGLE_METERING_SOURCE
     );
 
