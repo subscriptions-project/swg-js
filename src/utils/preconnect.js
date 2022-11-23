@@ -35,40 +35,21 @@ export class Preconnect {
   /**
    * @param {string} url
    */
-  dnsPrefetch(url) {
-    this.pre_(url, 'dns-prefetch');
-  }
-
-  /**
-   * @param {string} url
-   */
   prefetch(url) {
     this.pre_(url, 'preconnect prefetch');
   }
 
   /**
    * @param {string} url
-   * @param {string} as
-   */
-  preload(url, as) {
-    this.pre_(url, 'preconnect preload', as);
-  }
-
-  /**
-   * @param {string} url
    * @param {string} rel
-   * @param {?string=} as
    * @private
    */
-  pre_(url, rel, as) {
-    // <link rel="prefetch" href="..." as="">
+  pre_(url, rel) {
+    // <link rel="prefetch" href="...">
     const linkEl = createElement(this.doc_, 'link', {
       'rel': rel,
       'href': url,
     });
-    if (as) {
-      linkEl.setAttribute('as', as);
-    }
     this.doc_.head.appendChild(linkEl);
   }
 }

@@ -17,17 +17,8 @@
 import {assert} from './log';
 import {setStyles} from './style';
 
-/** @const @enum{string} */
-export const styleLinkAttrs = {
-  'rel': 'stylesheet',
-  'type': 'text/css',
-};
-
 /** @const {string} */
 export const styleType = 'text/css';
-
-/** @const {string} */
-export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
 /**
  * Add attributes to an element.
