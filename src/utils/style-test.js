@@ -26,18 +26,6 @@ describes.realWin('Types', {}, (env) => {
   });
 
   describe('Style', () => {
-    it('toggle', () => {
-      const element = doc.createElement('div');
-      st.toggle(element);
-      expect(element.style.display).to.equal('none');
-      st.toggle(element);
-      expect(element.style.display).to.equal('');
-      st.toggle(element, true);
-      expect(element.style.display).to.equal('');
-      st.toggle(element, false);
-      expect(element.style.display).to.equal('none');
-    });
-
     it('check defaultStyle for restricted attributes', () => {
       const defaultStyles = st.defaultStyles;
 
@@ -96,16 +84,6 @@ describes.realWin('Types', {}, (env) => {
     it('camelCaseToTitleCase', () => {
       const str = 'theQuickBrownFox';
       expect(st.camelCaseToTitleCase(str)).to.equal('TheQuickBrownFox');
-    });
-
-    it('removeAlphaFromColor', () => {
-      expect(st.removeAlphaFromColor('rgba(1, 1, 1, 0)')).to.equal(
-        'rgba(1, 1, 1, 1)'
-      );
-      expect(st.removeAlphaFromColor('rgb(1, 1, 1)')).to.equal('rgb(1, 1, 1)');
-      expect(st.removeAlphaFromColor('rgba(0, 0, 0,-0.5)')).to.equal(
-        'rgba(0, 0, 0, 1)'
-      );
     });
 
     describe('getVendorJsPropertyName', () => {
