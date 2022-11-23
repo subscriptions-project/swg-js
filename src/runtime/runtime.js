@@ -65,6 +65,10 @@ import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Storage} from './storage';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
+import {
+  convertPotentialTimestampToMilliseconds,
+  toTimestamp,
+} from '../utils/date-utils';
 import {debugLog} from '../utils/log';
 import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
 import {isBoolean} from '../utils/types';
@@ -527,6 +531,13 @@ export class Runtime {
   showBestAudienceAction() {
     warn('Not implemented yet');
   }
+
+  /** @override */
+  setPublisherProvidedId(publisherProvidedId) {
+    return this.configured_(true).then((runtime) =>
+      runtime.setPublisherProvidedId(publisherProvidedId)
+    );
+  }
 }
 
 /**
@@ -601,6 +612,9 @@ export class ConfiguredRuntime {
 
     /** @private {?ContributionsFlow} */
     this.lastContributionsFlow_ = null;
+
+    /** @private {string|undefined} */
+    this.publisherProvidedId_ = undefined;
 
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
@@ -803,6 +817,14 @@ export class ConfiguredRuntime {
             error = 'Unknown skipAccountCreationScreen value: ' + value;
           }
           break;
+        case 'publisherProvidedId':
+          if (
+            value != undefined &&
+            !(typeof value === 'string' && value != '')
+          ) {
+            error = 'publisherProvidedId must be a string, value: ' + value;
+          }
+          break;
         default:
           error = 'Unknown config property: ' + key;
       }
@@ -846,6 +868,9 @@ export class ConfiguredRuntime {
 
   /** @override */
   getEntitlements(params) {
+    if (params?.publisherProvidedId) {
+      params.publisherProvidedId = this.publisherProvidedId_;
+    }
     return this.entitlementsManager_
       .getEntitlements(params)
       .then((entitlements) => {
@@ -1147,6 +1172,15 @@ export class ConfiguredRuntime {
       showcaseEventToAnalyticsEvents(entitlement.entitlement) || [];
     const params = new EventParams();
     params.setIsUserRegistered(entitlement.isUserRegistered);
+    if (entitlement.subscriptionTimestamp) {
+      params.setSubscriptionTimestamp(
+        toTimestamp(
+          convertPotentialTimestampToMilliseconds(
+            entitlement.subscriptionTimestamp
+          )
+        )
+      );
+    }
 
     for (let i = 0; i < eventsToLog.length; i++) {
       this.eventManager().logEvent({
@@ -1171,6 +1205,11 @@ export class ConfiguredRuntime {
   /** @override */
   showBestAudienceAction() {
     warn('Not implemented yet');
+  }
+
+  /** @override */
+  setPublisherProvidedId(publisherProvidedId) {
+    this.publisherProvidedId_ = publisherProvidedId;
   }
 }
 
@@ -1223,5 +1262,6 @@ function createPublicRuntime(runtime) {
     consumeShowcaseEntitlementJwt:
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
+    setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
   });
 }

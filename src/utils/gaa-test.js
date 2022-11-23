@@ -25,9 +25,11 @@ import {
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
   GaaUtils,
-  POST_MESSAGE_COMMAND_BUTTON_CLICK,
+  POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
+  POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_INTRODUCTION,
+  POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
   REGWALL_CONTAINER_ID,
@@ -43,11 +45,11 @@ import {tick} from '../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
-const IFRAME_URL = 'https://localhost/gsi-iframe';
+const GSI_IFRAME_URL = 'https://localhost/gsi-iframe';
+const SIWG_IFRAME_URL = 'https://localhost/gis-iframe';
 const GOOGLE_3P_AUTH_URL = 'https://fabulous-3p-authserver.glitch.me/auth';
 const CASL_URL = 'https://example-casl.com';
-const GOOGLE_API_CLIENT_ID =
-  '520465458218-e9vp957krfk2r0i4ejeh6aklqm7c25p4.apps.googleusercontent.com';
+const GOOGLE_API_CLIENT_ID = 'test123.apps.googleusercontent.com';
 
 /** Article metadata in ld+json form. */
 const ARTICLE_LD_JSON_METADATA = `
@@ -80,7 +82,7 @@ const ARTICLE_LD_JSON_METADATA = `
   }
 }`;
 
-const ARTICLE_LD_JSON_METADATA_FREE_ARTICLE = `
+const ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE = `
 {
   "@context": "http://schema.org",
   "@type": "NewsArticle",
@@ -110,35 +112,11 @@ const ARTICLE_LD_JSON_METADATA_FREE_ARTICLE = `
   }
 }`;
 
-const ARTICLE_LD_JSON_METADATA_NULL = `
-{
-  "@context": "http://schema.org",
-  "@type": "NewsArticle",
-  "headline": "16 Top Spots for Hiking",
-  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
-  "datePublished": "2025-02-05T08:00:00+08:00",
-  "dateModified": "2025-02-05T09:20:00+08:00",
-  "author": {
-    "@type": "Person",
-    "name": "John Doe"
-  },
-  "publisher": {
-      "name": "${PUBLISHER_NAME}",
-      "@type": "Organization",
-      "@id": "scenic-2017.appspot.com",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
-      }
-  },
-  "description": "A most wonderful article",
-  "isAccessibleForFree": null,
-  "isPartOf": {
-    "@type": ["CreativeWork", "Product"],
-    "name" : "Scenic News",
-    "productID": "${PRODUCT_ID}"
-  }
-}`;
+const ARTICLE_LD_JSON_METADATA_THAT_DOES_NOT_SAY_WHETHER_ARTICLE_IS_FREE =
+  ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE.replace(
+    '"isAccessibleForFree": true,',
+    ''
+  );
 
 /** Article metadata in microdata form. */
 const ARTICLE_MICRODATA_METADATA = `
@@ -355,7 +333,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
   describe('render_', () => {
     it('shows regwall with publisher name', () => {
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const descriptionEl = self.document.querySelector(
         '.gaa-metering-regwall--description'
@@ -364,14 +342,17 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('does not render CASL blurb by default', () => {
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
       expect(caslEl).to.be.null;
     });
 
     it('optionally renders CASL blurb', () => {
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL, caslUrl: CASL_URL});
+      GaaMeteringRegwall.render_({
+        iframeUrl: GSI_IFRAME_URL,
+        caslUrl: CASL_URL,
+      });
 
       const caslEl = self.document.querySelector('.gaa-metering-regwall--casl');
       expect(caslEl.textContent).contains("Review The Scenic's CASL terms");
@@ -381,7 +362,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('focuses on modal title after the animation completes', () => {
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       // Mock animation ending.
       const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
@@ -398,7 +379,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Add Microdata.
       microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
 
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const descriptionEl = self.document.querySelector(
         '.gaa-metering-regwall--description'
@@ -411,7 +392,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       script.text = '{}';
 
       const showingRegwall = () =>
-        GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+        GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       expect(showingRegwall).throws(
         'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
@@ -421,7 +402,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('renders supported i18n languages', () => {
       self.document.documentElement.lang = 'pt-br';
 
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const titleEl = self.document.querySelector(
         '.gaa-metering-regwall--title'
@@ -434,7 +415,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('renders "en" for non-supported i18n languages', () => {
       self.document.documentElement.lang = 'non-supported';
 
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const titleEl = self.document.querySelector(
         '.gaa-metering-regwall--title'
@@ -447,7 +428,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     it('adds "lang" URL param to iframe URL', () => {
       self.document.documentElement.lang = 'pt-br';
 
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
       const iframeEl = self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID);
       expect(iframeEl.src).to.contain('?lang=pt-br');
@@ -455,7 +436,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
 
     it('handles clicks on publisher sign in link', async () => {
       // Show Regwall.
-      GaaMeteringRegwall.render_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
       await tick();
       logEvent.resetHistory();
 
@@ -486,25 +467,27 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('passes iframeUrl to GaaMeteringRegwall.render_', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       expect(renderSpy).to.have.been.calledWithExactly({
-        iframeUrl: IFRAME_URL,
+        iframeUrl: GSI_IFRAME_URL,
         caslUrl: undefined,
       });
     });
 
     it('optionally passes caslUrl to GaaMeteringRegwall.render_', () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL, caslUrl: CASL_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL, caslUrl: CASL_URL});
 
       expect(renderSpy).to.have.been.calledWithExactly({
-        iframeUrl: IFRAME_URL,
+        iframeUrl: GSI_IFRAME_URL,
         caslUrl: CASL_URL,
       });
     });
 
     it('returns GAA User', async () => {
       const gaaUser = {name: 'Hello'};
-      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      const gaaUserPromise = GaaMeteringRegwall.show({
+        iframeUrl: GSI_IFRAME_URL,
+      });
 
       postMessage({
         stamp: POST_MESSAGE_STAMP,
@@ -522,7 +505,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         gaaUser: {},
       });
 
-      await GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      await GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
       expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
@@ -531,7 +514,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Remove GAA URL params.
       GaaUtils.getQueryString.restore();
 
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
@@ -547,7 +530,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Move clock a little past 7 seconds.
       clock.tick(7001);
 
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.'
@@ -555,7 +538,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('handles GSI error', async () => {
-      const gaaUserPromise = GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      const gaaUserPromise = GaaMeteringRegwall.show({
+        iframeUrl: GSI_IFRAME_URL,
+      });
 
       // Send intro post message.
       postMessage({
@@ -573,7 +558,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
     });
 
     it('logs Showcase impression events', async () => {
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       await tick();
 
       // Verify analytics events.
@@ -735,8 +720,8 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         googleApiClientId: GOOGLE_API_CLIENT_ID,
       });
 
-      // Click button.
-      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+      // Simulate a click event from SIWG.
+      self.google.accounts.id.renderButton.args[0][1].click_listener();
 
       await tick();
 
@@ -755,7 +740,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
           isFromUserAction: false,
         },
         {
-          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
           isFromUserAction: true,
         },
       ]);
@@ -829,6 +814,29 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         },
       ]);
     });
+
+    it('logs 3P button click event', async () => {
+      // Show button.
+      GaaMeteringRegwall.render_({useNativeMode: true});
+
+      GaaMeteringRegwall.createNative3PRegistrationButton({
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+      clock.tick(100);
+      await tick(10);
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
   });
 
   describe('createNativeRegistrationButton', () => {
@@ -873,6 +881,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
             'theme': 'outline',
             'text': 'continue_with',
             'logo_alignment': 'center',
+            'click_listener': argsRender[0][1].click_listener,
           },
         ],
       ]);
@@ -1026,7 +1035,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
         return self.document.querySelector('.gaa-metering-regwall--dialog');
       }
 
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       expect(findRegwallInDocument()).to.not.be.null;
 
       GaaMeteringRegwall.remove();
@@ -1055,7 +1064,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       self.document.body.appendChild(mockIframeEl);
 
       // Send intro message then trigger mock iframe's onload callback.
-      GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.sendIntroMessageToGsiIframe_({
+        iframeUrl: GSI_IFRAME_URL,
+      });
       mockIframeEl.onload();
 
       expect(mockIframeEl.contentWindow.postMessage).to.be.calledWithExactly(
@@ -1069,16 +1080,16 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 
   describe('logButtonClickEvents_', () => {
-    it('sends button click event', async () => {
+    it('sends GSI button click event', async () => {
       // Show Regwall.
-      GaaMeteringRegwall.show({iframeUrl: IFRAME_URL});
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
       await tick();
       logEvent.resetHistory();
 
       // Send button click post message.
       postMessage({
         stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+        command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
       });
 
       // Wait for logging.
@@ -1090,6 +1101,59 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       expectAnalyticsEvents([
         {
           analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
+
+    it('sends SIWG button click event', async () => {
+      // Show Regwall.
+      GaaMeteringRegwall.show({iframeUrl: SIWG_IFRAME_URL});
+      await tick();
+      logEvent.resetHistory();
+
+      // Send button click post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
+      });
+
+      // Wait for logging.
+      await new Promise((resolve) => {
+        logEvent = sandbox.fake(resolve);
+      });
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
+
+    it('sends 3P button click event', async () => {
+      // Show Regwall.
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
+      await tick();
+      logEvent.resetHistory();
+
+      // Send button click post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+      });
+
+      // Wait for logging.
+      await new Promise((resolve) => {
+        logEvent = sandbox.fake(resolve);
+      });
+
+      // Verify analytics event.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent:
+            AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
           isFromUserAction: true,
         },
       ]);
@@ -1251,7 +1315,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
       // Expect button click post message.
       expect(self.postMessage).to.be.calledWithExactly(
         {
-          command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin
@@ -1439,7 +1503,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
   });
 
   describe('show', () => {
-    it('renders Google Sign-In button', async () => {
+    it('renders Sign-In with Google button', async () => {
       GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
       clock.tick(100);
       await tick(10);
@@ -1473,6 +1537,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
             'logo_alignment': 'center',
             'width': buttonEl.offsetWidth,
             'height': buttonEl.offsetHeight,
+            'click_listener': argsRender[0][1].click_listener,
           },
         ],
       ]);
@@ -1518,10 +1583,9 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
-      // Click button.
-      self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
+      // Simulate a click event from SIWG.
+      self.google.accounts.id.renderButton.args[0][1].click_listener();
 
-      // Wait for button click post message.
       await new Promise((resolve) => {
         sandbox.stub(self, 'postMessage').callsFake(() => {
           resolve();
@@ -1531,7 +1595,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
       // Expect button click post message.
       expect(self.postMessage).to.be.calledWithExactly(
         {
-          command: POST_MESSAGE_COMMAND_BUTTON_CLICK,
+          command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
           stamp: POST_MESSAGE_STAMP,
         },
         location.origin
@@ -1775,6 +1839,11 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
     sandbox.stub(self.console, 'warn');
 
     sandbox.stub(self, 'open');
+    // Makes sure no div elements on the test dom exist.
+    const elements = self.document.getElementsByTagName('div');
+    while (elements[0]) {
+      elements[0].parentNode.removeChild(elements[0]);
+    }
   });
 
   afterEach(() => {
@@ -1789,11 +1858,79 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       style.remove();
     }
 
-    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).remove();
+    self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID)?.remove();
     self.console.warn.restore();
   });
 
   describe('show', () => {
+    it('sends errors to parent', async () => {
+      const invalidOrigin = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        location.origin,
+      ];
+
+      GaaGoogle3pSignInButton.show(
+        {allowedOrigins: invalidOrigin},
+        GOOGLE_3P_AUTH_URL
+      );
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Wait for post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      expect(self.postMessage).to.be.calledWith(
+        {
+          command: POST_MESSAGE_COMMAND_ERROR,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('fails and warns when passed invalid origins', async () => {
+      const invalidOrigins = [
+        // Bad protocol, should be http or https.
+        'ftp://localhost:8080',
+        // Includes path.
+        'http://localhost:8080/',
+      ];
+
+      for (const invalidOrigin of invalidOrigins) {
+        GaaGoogle3pSignInButton.show(
+          {allowedOrigins: [invalidOrigin]},
+          GOOGLE_3P_AUTH_URL
+        );
+
+        // Send intro post message.
+        postMessage({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_INTRODUCTION,
+        });
+
+        // Wait for promises and intervals to resolve.
+        clock.tick(100);
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
+        );
+      }
+    });
+
     it('renders third party Google Sign-In button', async () => {
       GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
       clock.tick(100);
@@ -1873,6 +2010,85 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       );
     });
 
+    it('sends post message with 3p button click event', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for button click post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      // Expect button click post message.
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
+    it('sends post message with 3p button click event when redirectMode is true', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        redirectMode: true,
+      });
+      clock.tick(100);
+      await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Wait for promises and intervals to resolve.
+      clock.tick(100);
+      await tick(10);
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for button click post message.
+      await new Promise((resolve) => {
+        sandbox.stub(self, 'postMessage').callsFake(() => {
+          resolve();
+        });
+      });
+
+      // Expect button click post message.
+      expect(self.postMessage).to.be.calledWithExactly(
+        {
+          command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+          stamp: POST_MESSAGE_STAMP,
+        },
+        location.origin
+      );
+    });
+
     it('should open an authorizationUrl in a new window by default', async () => {
       // Show button.
       GaaGoogle3pSignInButton.show({
@@ -1900,80 +2116,12 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
-      await tick(10);
+      await tick(100);
 
       expect(self.open).to.have.been.calledWithExactly(
         GOOGLE_3P_AUTH_URL,
         '_parent'
       );
-    });
-
-    it('sends errors to parent', async () => {
-      const invalidOrigin = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        location.origin,
-      ];
-
-      GaaGoogle3pSignInButton.show(
-        {allowedOrigins: invalidOrigin},
-        GOOGLE_3P_AUTH_URL
-      );
-
-      // Send intro post message.
-      postMessage({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_INTRODUCTION,
-      });
-
-      // Wait for promises and intervals to resolve.
-      clock.tick(100);
-      await tick(10);
-
-      // Wait for post message.
-      await new Promise((resolve) => {
-        sandbox.stub(self, 'postMessage').callsFake(() => {
-          resolve();
-        });
-      });
-
-      expect(self.postMessage).to.be.calledWith(
-        {
-          command: POST_MESSAGE_COMMAND_ERROR,
-          stamp: POST_MESSAGE_STAMP,
-        },
-        location.origin
-      );
-    });
-
-    it('fails and warns when passed invalid origins', async () => {
-      const invalidOrigins = [
-        // Bad protocol, should be http or https.
-        'ftp://localhost:8080',
-        // Includes path.
-        'http://localhost:8080/',
-      ];
-
-      for (const invalidOrigin of invalidOrigins) {
-        GaaGoogle3pSignInButton.show(
-          {allowedOrigins: [invalidOrigin]},
-          GOOGLE_3P_AUTH_URL
-        );
-
-        // Send intro post message.
-        postMessage({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_INTRODUCTION,
-        });
-
-        // Wait for promises and intervals to resolve.
-        clock.tick(100);
-        await tick(10);
-
-        expect(self.console.warn).to.have.been.calledWithExactly(
-          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${invalidOrigin}`
-        );
-      }
     });
   });
 
@@ -2557,7 +2705,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       self.document.head.innerHTML = `
         <script type="application/ld+json">
-          [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+          [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE}]
         </script>
       `;
 
@@ -2972,6 +3120,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
         isUserRegistered: true,
+        subscriptionTimestamp: 1602763094,
       });
 
       expectAnalyticsEvents([
@@ -3017,6 +3166,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_METER,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
 
       expectAnalyticsEvents([
@@ -3066,6 +3216,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
 
       expectAnalyticsEvents([
@@ -3119,7 +3270,7 @@ describes.realWin('GaaMetering', {}, () => {
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+        [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE}]
       </script>
       `;
 
@@ -3156,6 +3307,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_FREE_PAGE,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
     });
 
@@ -3651,30 +3803,61 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('isArticleFreeFromJsonLdPageConfig_', () => {
-    it('returns true for a JSON isAccessibleFree true', () => {
+    it('returns true if ld+json says the article is free', () => {
       self.document
         .querySelectorAll('script[type="application/ld+json"]')
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_FREE_ARTICLE}]
+        [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE}]
       </script>
       `;
 
       expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.true;
     });
 
-    it('returns false for a JSON isAccessibleFree null', () => {
+    it('returns true if ld+json says the article is free, following ld+json that does not say whether the article is free', () => {
       self.document
         .querySelectorAll('script[type="application/ld+json"]')
         .forEach((e) => e.remove());
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
-        [${ARTICLE_LD_JSON_METADATA_NULL}]
+        [${ARTICLE_LD_JSON_METADATA_THAT_DOES_NOT_SAY_WHETHER_ARTICLE_IS_FREE}]
+      </script>
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE}]
       </script>
       `;
+
+      expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.true;
+    });
+
+    it('returns false if ld+json does not say whether article is free', () => {
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_THAT_DOES_NOT_SAY_WHETHER_ARTICLE_IS_FREE}]
+      </script>
+      `;
+
+      expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
+    });
+
+    it('returns false if ld+json says the article is not free', () => {
+      const ldJsonScript = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>`;
+      self.document
+        .querySelectorAll('script[type="application/ld+json"]')
+        .forEach((e) => e.remove());
+
+      self.document.head.innerHTML = ldJsonScript;
 
       expect(GaaMetering.isArticleFreeFromJsonLdPageConfig_()).to.be.false;
     });
@@ -3786,14 +3969,14 @@ describes.realWin('GaaMetering', {}, () => {
       handleSwGEntitlement = sandbox.fake();
 
       sandbox.stub(GaaMetering, 'isCurrentUserRegistered').returns(true);
-
-      const googleEntitlementsPromise = Promise.resolve({
+      const googleEntitlement = {
         enablesThisWithGoogleMetering: sandbox.fake.returns(false),
         enablesThis: sandbox.fake.returns(true),
         consume: sandbox.fake((callback) => {
           return callback();
         }),
-      });
+      };
+      const googleEntitlementsPromise = Promise.resolve(googleEntitlement);
 
       GaaMetering.setEntitlements(
         googleEntitlementsPromise,
@@ -3805,7 +3988,7 @@ describes.realWin('GaaMetering', {}, () => {
       );
 
       await tick(10);
-      expect(handleSwGEntitlement).to.be.called;
+      expect(handleSwGEntitlement).to.be.calledWithExactly(googleEntitlement);
     });
 
     it("shows regWall if user isn't registered", async () => {
@@ -3865,6 +4048,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
 
       expect(showPaywall).to.be.called;
@@ -3901,6 +4085,7 @@ describes.realWin('GaaMetering', {}, () => {
       expect(subscriptionsMock.setShowcaseEntitlement).to.calledWith({
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
         isUserRegistered: true,
+        subscriptionTimestamp: null,
       });
 
       expect(showPaywall).to.be.called;

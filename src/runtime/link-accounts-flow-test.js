@@ -204,12 +204,20 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
     expect(triggerLinkProgressSpy).to.not.be.called;
     expect(triggerLinkCompleteSpy).to.not.be.called;
 
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_LINK_ACCOUNT_SUCCESS);
+
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
+    const activityResultData = {'index': '1'};
     const result = new ActivityResult(
       ActivityResultCode.OK,
-      {'index': '1'},
+      activityResultData,
       'IFRAME',
       '$frontend$',
       true,
@@ -235,8 +243,8 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
 
     await startPromise;
     expect(startStub).to.be.calledWithExactly();
-    const activityIframeView = await instance.activityIframeViewPromise_;
-    expect(activityIframeView.src_).to.contain('/u/1/swg/');
+    const caughtResponse = instance.response_;
+    expect(caughtResponse).to.equal(activityResultData);
     expect(triggerFlowCancelSpy).to.not.be.called;
   });
 
@@ -278,45 +286,81 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
     expect(startStub).to.not.be.called;
   });
 
-  it('should default index to 0', async () => {
+  [
+    {
+      description: 'should default index to 0',
+      activityResultData: {},
+      expectedPath: '$frontend$/swg/u/0/_/ui/v1/linkconfirmiframe?_=_',
+    },
+    {
+      description: 'should use index in response',
+      activityResultData: {index: '1'},
+      expectedPath: '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
+    },
+  ].forEach(({description, activityResultData, expectedPath}) =>
+    it(description, async () => {
+      dialogManagerMock.expects('popupClosed').once();
+      linkCompleteFlow = new LinkCompleteFlow(runtime, activityResultData);
+      port = new ActivityPort();
+      port.onResizeRequest = () => {};
+      port.whenReady = () => Promise.resolve();
+
+      const activityResult = new ActivityResult(
+        ActivityResultCode.OK,
+        {},
+        'IFRAME',
+        '$frontend$',
+        true,
+        true
+      );
+      port.acceptResult = () => Promise.resolve(activityResult);
+
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(
+          sandbox.match((arg) => arg.tagName === 'IFRAME'),
+          expectedPath,
+          {
+            '_client': 'SwG $internalRuntimeVersion$',
+            'productId': 'pub1:prod1',
+            'publicationId': 'pub1',
+          }
+        )
+        .returns(Promise.resolve(port))
+        .once();
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
+      await linkCompleteFlow.start();
+    })
+  );
+
+  it('should not open linkconfirmiframe if the response came from a saveAndRefresh flow', async () => {
+    const storageMock = sandbox.mock(runtime.storage());
+    linkCompleteFlow = new LinkCompleteFlow(runtime, {
+      linked: true,
+      saveAndRefresh: true,
+      swgUserToken: 'test-token',
+    });
+
     dialogManagerMock.expects('popupClosed').once();
-    linkCompleteFlow = new LinkCompleteFlow(runtime, {});
-    port = new ActivityPort();
-    port.onResizeRequest = () => {};
-    port.whenReady = () => Promise.resolve();
-
-    const activityResult = new ActivityResult(
-      ActivityResultCode.OK,
-      {},
-      'IFRAME',
-      '$frontend$',
-      true,
-      true
-    );
-    port.acceptResult = () => Promise.resolve(activityResult);
-
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/u/0/swg/_/ui/v1/linkconfirmiframe?_=_',
-        {
-          '_client': 'SwG $internalRuntimeVersion$',
-          'productId': 'pub1:prod1',
-          'publicationId': 'pub1',
-        }
-      )
-      .returns(Promise.resolve(port))
-      .once();
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+    activitiesMock.expects('openIframe').never();
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
+    entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
+    entitlementsManagerMock.expects('reset').withExactArgs(true).once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'test-token', true)
+      .exactly(1);
+
     await linkCompleteFlow.start();
   });
 
@@ -334,7 +378,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
+        '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
@@ -390,7 +434,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/u/1/swg/_/ui/v1/linkconfirmiframe?_=_',
+        '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG $internalRuntimeVersion$',
           'productId': 'pub1:prod1',
@@ -681,6 +725,10 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
   });
 
   it('should test linking success', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
+
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -820,6 +868,10 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
   });
 
   it('should test link complete flow start', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
+
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
     LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
@@ -854,6 +906,10 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
   });
 
   it('should test link complete flow start failure', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
+
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     LinkCompleteFlow.prototype.start = () =>
       Promise.reject(createCancelError('unable to open iframe'));
@@ -904,6 +960,10 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
         defaultArguments
       )
       .returns(Promise.resolve(port));
+    // Saving subscription succeeded, but showing the confirmation iframe failed.
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
