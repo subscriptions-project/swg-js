@@ -94,6 +94,6 @@ export class FriendlyIframe {
    * @return {boolean}
    */
   isConnected() {
-    return this.getElement().isConnected();
+    return this.getElement().isConnected;
   }
 }
