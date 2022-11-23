@@ -101,7 +101,7 @@ export class PropensityServer {
    * @param {?string} productsOrSkus
    */
   sendSubscriptionState(state, productsOrSkus) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+    const init = /** @type {!RequestInit} */ ({
       method: 'GET',
       credentials: 'include',
     });
@@ -119,7 +119,7 @@ export class PropensityServer {
    * @private
    */
   sendEvent_(event, context) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+    const init = /** @type {!RequestInit} */ ({
       method: 'GET',
       credentials: 'include',
     });
@@ -241,7 +241,7 @@ export class PropensityServer {
    * @return {?Promise<../api/propensity-api.PropensityScore>}
    */
   getPropensity(referrer, type) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+    const init = /** @type {!RequestInit} */ ({
       method: 'GET',
       credentials: 'include',
     });
