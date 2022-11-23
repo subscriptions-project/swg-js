@@ -17,17 +17,8 @@
 import {assert} from './log';
 import {setStyles} from './style';
 
-/** @const @enum{string} */
-export const styleLinkAttrs = {
-  'rel': 'stylesheet',
-  'type': 'text/css',
-};
-
 /** @const {string} */
 export const styleType = 'text/css';
-
-/** @const {string} */
-export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
 /**
  * Add attributes to an element.
@@ -133,24 +124,6 @@ export function hasNextNodeInDocumentOrder(element, stopNode) {
     currentElement != stopNode
   );
   return false;
-}
-
-/**
- * Polyfill of the `Node.isConnected` API. See
- * https://developer.mozilla.org/en-US/docs/Web/API/Node/isConnected.
- * @param {!Node} node
- * @return {boolean}
- */
-export function isConnected(node) {
-  // Ensure that node is attached if specified. This check uses a new and
-  // fast `isConnected` API and thus only checked on platforms that have it.
-  // See https://www.chromestatus.com/feature/5676110549352448.
-  if ('isConnected' in node) {
-    return node['isConnected'];
-  }
-  // Polyfill.
-  const root = node.ownerDocument && node.ownerDocument.documentElement;
-  return (root && root.contains(node)) || false;
 }
 
 /**

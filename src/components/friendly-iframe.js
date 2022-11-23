@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {createElement, isConnected} from '../utils/dom';
+import {createElement} from '../utils/dom';
 import {resetAllStyles} from '../utils/style';
 
 /** @const {!Object<string|number>} */
@@ -94,6 +94,6 @@ export class FriendlyIframe {
    * @return {boolean}
    */
   isConnected() {
-    return isConnected(this.getElement());
+    return this.getElement().isConnected();
   }
 }
