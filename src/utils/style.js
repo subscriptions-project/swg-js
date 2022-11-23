@@ -15,7 +15,6 @@
  */
 
 // Note: loaded by 3p system. Cannot rely on babel polyfills.
-import {map} from './object.js';
 import {startsWith} from './string';
 
 /** @type {Object<string, string>} */
@@ -202,7 +201,7 @@ export function getVendorJsPropertyName(style, camelCase, bypassCache) {
     return camelCase;
   }
   if (!propertyNameCache) {
-    propertyNameCache = map();
+    propertyNameCache = {};
   }
   let propertyName = propertyNameCache[camelCase];
   if (!propertyName || bypassCache) {
@@ -375,7 +374,7 @@ export function removeAlphaFromColor(rgbaColor) {
  */
 export function computedStyle(win, el) {
   const style = /** @type {?CSSStyleDeclaration} */ (win.getComputedStyle(el));
-  return /** @type {!Object<string, string>} */ (style) || map();
+  return /** @type {!Object<string, string>} */ (style) || {};
 }
 
 /**
