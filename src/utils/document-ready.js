@@ -33,15 +33,6 @@ export function isDocumentReady(doc) {
 }
 
 /**
- * Whether the document has loaded all the css and sub-resources.
- * @param {!Document} doc
- * @return {boolean}
- */
-function isDocumentComplete(doc) {
-  return getReadyState(doc) == 'complete';
-}
-
-/**
  * Calls the callback when document is ready.
  * @param {!Document} doc
  * @param {function(!Document)} callback
