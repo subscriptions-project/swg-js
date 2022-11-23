@@ -16,7 +16,6 @@
 
 // Note: loaded by 3p system. Cannot rely on babel polyfills.
 import {map} from './object.js';
-import {startsWith} from './string';
 
 /** @type {Object<string, string>} */
 let propertyNameCache;
@@ -197,7 +196,7 @@ function getVendorJsPropertyName_(style, titleCase) {
  * @return {string}
  */
 export function getVendorJsPropertyName(style, camelCase, bypassCache) {
-  if (startsWith(camelCase, '--')) {
+  if (camelCase.startsWith('--')) {
     // CSS vars are returned as is.
     return camelCase;
   }
