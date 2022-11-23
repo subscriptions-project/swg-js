@@ -15,22 +15,6 @@
  */
 
 /**
- * Returns a map-like object.
- * If initial is provided, copies its own properties into the
- * newly created object.
- * @param {Object=} initial This should typically be an object literal.
- * @return {!Object}
- * @template T
- */
-export function map(initial) {
-  const obj = Object.create(null);
-  if (initial) {
-    Object.assign(obj, initial);
-  }
-  return obj;
-}
-
-/**
  * Implements `Array.find()` method that's not yet available in all browsers.
  *
  * @param {?Array<T>} array
