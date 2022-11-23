@@ -130,16 +130,6 @@ describes.realWin('Types', {}, (env) => {
         expect(prop).to.equal('MozTransitionDuration');
       });
 
-      it('ms', () => {
-        const element = {style: {msTransitionDuration: ''}};
-        const prop = st.getVendorJsPropertyName(
-          element.style,
-          'transitionDuration',
-          true
-        );
-        expect(prop).to.equal('msTransitionDuration');
-      });
-
       it('O opera', () => {
         const element = {style: {OTransitionDuration: ''}};
         const prop = st.getVendorJsPropertyName(
