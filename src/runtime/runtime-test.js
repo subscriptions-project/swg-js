@@ -71,11 +71,6 @@ import {
 } from './experiments';
 import {parseUrl} from '../utils/url';
 
-const EDGE_USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0)' +
-  ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135' +
-  ' Safari/537.36 Edge/12.10136';
-
 describes.realWin('installRuntime', {}, (env) => {
   let win;
 
@@ -463,19 +458,6 @@ describes.realWin('Runtime', {}, (env) => {
         .stub(ConfiguredRuntime.prototype, 'configure')
         .callsFake(() => {});
       runtime.configure({windowOpenMode: 'redirect'});
-      runtime.init('pub2');
-
-      const cr = await runtime.configured_(true);
-      expect(cr.config().windowOpenMode).to.equal('redirect');
-    });
-
-    it('should force redirect mode on Edge', async () => {
-      Object.defineProperty(win.navigator, 'userAgent', {
-        value: EDGE_USER_AGENT,
-      });
-      sandbox
-        .stub(ConfiguredRuntime.prototype, 'configure')
-        .callsFake(() => {});
       runtime.init('pub2');
 
       const cr = await runtime.configured_(true);
