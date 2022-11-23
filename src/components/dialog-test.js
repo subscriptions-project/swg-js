@@ -16,7 +16,7 @@
 
 import {Dialog} from './dialog';
 import {GlobalDoc} from '../model/doc';
-import {computedStyle, getStyle} from '../utils/style';
+import {getStyle} from '../utils/style';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
