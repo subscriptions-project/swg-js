@@ -15,7 +15,6 @@
  */
 
 // Note: loaded by 3p system. Cannot rely on babel polyfills.
-import {map} from './object.js';
 import {startsWith} from './string';
 
 /** @type {Object<string, string>} */
