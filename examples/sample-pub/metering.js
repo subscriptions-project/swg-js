@@ -51,7 +51,7 @@ const MeteringDemo = {
   },
 
   /** Resets the metering demo. */
-  resetMeteringDemo: () => {
+  resetMeteringDemo: async () => {
     // Forget the existing PPID.
     delete localStorage.meteringPpid;
 
@@ -62,7 +62,10 @@ const MeteringDemo = {
     delete localStorage.meteringUsername;
 
     // Sign out of Google Sign-In.
-    GaaMeteringRegwall.signOut().then(() => void location.reload());
+    await GaaMeteringRegwall.signOut();
+
+    // Reload page.
+    location.reload();
   },
 
   /**
@@ -73,7 +76,7 @@ const MeteringDemo = {
    * so it lives past 7 days in Safari.
    * https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
    */
-  registerUser: (gaaUser) => {
+  registerUser: async (gaaUser) => {
     // Record the registration timestamp in seconds (not milliseconds).
     localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
 
