@@ -17,17 +17,8 @@
 import {assert} from './log';
 import {setStyles} from './style';
 
-/** @const @enum{string} */
-export const styleLinkAttrs = {
-  'rel': 'stylesheet',
-  'type': 'text/css',
-};
-
 /** @const {string} */
 export const styleType = 'text/css';
-
-/** @const {string} */
-export const styleExistsQuerySelector = 'link[rel=stylesheet][href]';
 
 /**
  * Add attributes to an element.
@@ -151,19 +142,4 @@ export function isConnected(node) {
   // Polyfill.
   const root = node.ownerDocument && node.ownerDocument.documentElement;
   return (root && root.contains(node)) || false;
-}
-
-/**
- * Returns true if current browser is a legacy version of Edge.
- *
- * Starting in January 2020, new versions of Edge will use the Chromium engine.
- * These versions won't include the word "Edge" in their useragent.
- * Instead, they'll include the word "Edg".
- * So far, it seems safe to avoid detecting these new versions of Edge.
- * @param {!Window} win
- * @return {boolean}
- */
-export function isLegacyEdgeBrowser(win) {
-  const nav = win.navigator;
-  return /Edge/i.test(nav && nav.userAgent);
 }

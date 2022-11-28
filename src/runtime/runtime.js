@@ -70,7 +70,7 @@ import {
   toTimestamp,
 } from '../utils/date-utils';
 import {debugLog} from '../utils/log';
-import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
+import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {isSecure} from '../utils/url';
@@ -577,11 +577,6 @@ export class ConfiguredRuntime {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
 
-    if (isLegacyEdgeBrowser(this.win_)) {
-      // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
-      // or move it to Web Activities.
-      this.config_.windowOpenMode = WindowOpenMode.REDIRECT;
-    }
     if (config) {
       this.configure_(config);
     }

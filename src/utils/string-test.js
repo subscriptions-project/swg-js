@@ -14,102 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  dashToCamelCase,
-  dashToUnderline,
-  endsWith,
-  expandTemplate,
-  getSwgTransactionId,
-  getUuid,
-  hash,
-  startsWith,
-  stringHash32,
-} from './string';
-
-describe('dashToCamelCase', () => {
-  it('should transform dashes to camel case.', () => {
-    expect(dashToCamelCase('foo')).to.equal('foo');
-    expect(dashToCamelCase('foo-bar')).to.equal('fooBar');
-    expect(dashToCamelCase('foo-bar-baz')).to.equal('fooBarBaz');
-    expect(dashToCamelCase('-foo')).to.equal('Foo');
-  });
-});
-
-describe('endsWith', () => {
-  it('should determine whether string ends with.', () => {
-    expect(endsWith('a', 'a')).to.be.true;
-    expect(endsWith('b', 'a')).to.be.false;
-    expect(endsWith('ab', 'a')).to.be.false;
-    expect(endsWith('aba', 'a')).to.be.true;
-    expect(endsWith('aba', 'aba')).to.be.true;
-    expect(endsWith('Xaba', 'aba')).to.be.true;
-    expect(endsWith('Xaba', '')).to.be.true;
-    expect(endsWith('', 'a')).to.be.false;
-    expect(endsWith('aa', 'aaa')).to.be.false;
-    expect(endsWith('aa', 'aaaa')).to.be.false;
-    expect(endsWith('', '')).to.be.true;
-  });
-});
-
-describe('expandTemplate', () => {
-  const data = {
-    'x': 'Test 1',
-    'y': 'Test 2',
-    'test': 'test value',
-    'test2': 'another test value',
-    'tox': '${x}',
-    'toy': '${y}',
-    'toxy': '${x}${y}',
-    'totoxy': '${toxy}',
-    'loop1': '${loop2}',
-    'loop2': '${loop1}',
-    'loop': '${loop}',
-  };
-
-  function testGetter(key) {
-    return data[key] || 'not found';
-  }
-
-  it('should replace place holders with values.', () => {
-    expect(expandTemplate('${x}', testGetter)).to.equal('Test 1');
-    expect(expandTemplate('${y}', testGetter)).to.equal('Test 2');
-    expect(expandTemplate('${x} ${y}', testGetter)).to.equal('Test 1 Test 2');
-    expect(expandTemplate('a${x}', testGetter)).to.equal('aTest 1');
-    expect(expandTemplate('${x}a', testGetter)).to.equal('Test 1a');
-    expect(expandTemplate('a${x}a', testGetter)).to.equal('aTest 1a');
-    expect(expandTemplate('${unknown}', testGetter)).to.equal('not found');
-  });
-
-  it('should handle malformed place holders.', () => {
-    expect(expandTemplate('${x', testGetter)).to.equal('${x');
-    expect(expandTemplate('${', testGetter)).to.equal('${');
-    expect(expandTemplate('$x}', testGetter)).to.equal('$x}');
-    expect(expandTemplate('$x', testGetter)).to.equal('$x');
-    expect(expandTemplate('{x}', testGetter)).to.equal('{x}');
-    expect(expandTemplate('${{x}', testGetter)).to.equal('not found');
-  });
-
-  it('should default to one iteration.', () => {
-    expect(expandTemplate('${tox}', testGetter)).to.equal('${x}');
-    expect(expandTemplate('${toxy}', testGetter)).to.equal('${x}${y}');
-  });
-
-  it('should handle multiple iterations when asked to.', () => {
-    expect(expandTemplate('${tox}', testGetter, 2)).to.equal('Test 1');
-    expect(expandTemplate('${toxy}', testGetter, 2)).to.equal('Test 1Test 2');
-    expect(expandTemplate('${totoxy}', testGetter, 2)).to.equal('${x}${y}');
-    expect(expandTemplate('${totoxy}', testGetter, 3)).to.equal('Test 1Test 2');
-    expect(expandTemplate('${totoxy}', testGetter, 10)).to.equal(
-      'Test 1Test 2'
-    );
-  });
-
-  it('should handle circular expansions without hanging', () => {
-    expect(expandTemplate('${loop}', testGetter)).to.equal('${loop}');
-    expect(expandTemplate('${loop}', testGetter), 10).to.equal('${loop}');
-    expect(expandTemplate('${loop1}', testGetter), 10).to.equal('${loop2}');
-  });
-});
+import {getSwgTransactionId, getUuid, hash} from './string';
 
 const allowedChars = '0123456789ABCDEF-'.split('');
 const allowChar19 = '89AB'.split('');
@@ -202,9 +107,7 @@ describes.realWin('hash', {}, async () => {
 
     // Temporarily remove the crypto APIs.
     const crypto = self.crypto;
-    const msCrypto = self.msCrypto;
     delete self.crypto;
-    delete self.msCrypto;
 
     // Verify behavior.
     const message = 'Swgjs only works on secure (HTTPS or localhost) pages.';
@@ -213,36 +116,8 @@ describes.realWin('hash', {}, async () => {
 
     // Restore the crypto APIs.
     self.crypto = crypto;
-    self.msCrypto = msCrypto;
 
     // Restore console.warn method.
     self.console.warn.restore();
-  });
-});
-
-describe('dashToUnderline', () => {
-  it('converts dashes to underlines', () => {
-    expect(dashToUnderline('swg-js')).to.equal('swg_js');
-  });
-});
-
-describe('startsWith', () => {
-  it('returns false if prefix is longer than string', () => {
-    expect(startsWith('abc', 'abcd')).to.be.false;
-  });
-
-  it('returns false if string does not start with prefix', () => {
-    expect(startsWith('abc', 'xyz')).to.be.false;
-  });
-
-  it('returns true if string starts with prefix', () => {
-    expect(startsWith('abc', 'a')).to.be.true;
-  });
-});
-
-describe('stringHash32', () => {
-  it('returns simple (not very secure) hash', () => {
-    const hash = stringHash32('hi!');
-    expect(hash).to.equal('193417125');
   });
 });
