@@ -48,31 +48,6 @@ let a;
 let cache;
 
 /**
- * Serializes the passed parameter map into a query string with both keys
- * and values encoded.
- * @param {!JsonObject} params
- * @return {string}
- */
-export function serializeQueryString(params) {
-  const s = [];
-  for (const k in params) {
-    const v = params[k];
-    if (v == null) {
-      continue;
-    } else if (Array.isArray(v)) {
-      for (let i = 0; i < v.length; i++) {
-        const sv = /** @type {string} */ (v[i]);
-        s.push(`${encodeURIComponent(k)}=${encodeURIComponent(sv)}`);
-      }
-    } else {
-      const sv = /** @type {string} */ (v);
-      s.push(`${encodeURIComponent(k)}=${encodeURIComponent(sv)}`);
-    }
-  }
-  return s.join('&');
-}
-
-/**
  * Returns a Location-like object for the given URL. If it is relative,
  * the URL gets resolved.
  * Consider the returned object immutable. This is enforced during
@@ -186,16 +161,6 @@ export function addQueryParam(url, param, value) {
  */
 export function serializeProtoMessageForUrl(message) {
   return JSON.stringify(message.toArray(false));
-}
-
-/**
- * Returns the Url including the path and search, without fregment.
- * @param {string} url
- * @return {string}
- */
-export function getHostUrl(url) {
-  const locationHref = parseUrl(url);
-  return locationHref.origin + locationHref.pathname + locationHref.search;
 }
 
 /**
