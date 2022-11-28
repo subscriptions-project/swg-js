@@ -34,7 +34,6 @@ import {
   wasReferredByGoogle,
 } from './url';
 import {debugLog, warn} from './log';
-import {findInArray} from './object';
 import {getLanguageCodeFromElement, msg} from './i18n';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
@@ -2000,10 +1999,8 @@ export class GaaMetering {
         ldJson = [ldJson];
       }
 
-      const productId = findInArray(
-        ldJson,
-        (entry) => entry?.isPartOf?.productID
-      )?.isPartOf.productID;
+      const productId = ldJson.find((entry) => entry?.isPartOf?.productID)
+        ?.isPartOf.productID;
 
       if (productId) {
         return productId;
@@ -2056,8 +2053,7 @@ export class GaaMetering {
         ldJson = [ldJson];
       }
 
-      const accessibleForFree = findInArray(
-        ldJson,
+      const accessibleForFree = ldJson.find(
         (entry) => entry?.isAccessibleForFree
       )?.isAccessibleForFree;
 

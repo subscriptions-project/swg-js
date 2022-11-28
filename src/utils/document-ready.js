@@ -33,15 +33,6 @@ export function isDocumentReady(doc) {
 }
 
 /**
- * Whether the document has loaded all the css and sub-resources.
- * @param {!Document} doc
- * @return {boolean}
- */
-function isDocumentComplete(doc) {
-  return getReadyState(doc) == 'complete';
-}
-
-/**
  * Calls the callback when document is ready.
  * @param {!Document} doc
  * @param {function(!Document)} callback
@@ -83,16 +74,5 @@ function onDocumentState(doc, condition, callback) {
 export function whenDocumentReady(doc) {
   return new Promise((resolve) => {
     onDocumentReady(doc, resolve);
-  });
-}
-
-/**
- * Returns a promise that is resolved when document is complete.
- * @param {!Document} doc
- * @return {!Promise<!Document>}
- */
-export function whenDocumentComplete(doc) {
-  return new Promise((resolve) => {
-    onDocumentState(doc, isDocumentComplete, resolve);
   });
 }
