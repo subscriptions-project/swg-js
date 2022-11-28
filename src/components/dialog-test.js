@@ -16,7 +16,7 @@
 
 import {Dialog} from './dialog';
 import {GlobalDoc} from '../model/doc';
-import {computedStyle, getStyle} from '../utils/style';
+import {getStyle} from '../utils/style';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
@@ -107,27 +107,27 @@ describes.realWin('Dialog', {}, (env) => {
     it('should build the view', async () => {
       const openedDialog = await dialog.open();
       await openedDialog.openView(view);
-      expect(computedStyle(win, element)['opacity']).to.equal('1');
-      expect(computedStyle(win, element)['max-height']).to.equal('100%');
-      expect(computedStyle(win, element)['max-width']).to.equal('100%');
-      expect(computedStyle(win, element)['min-height']).to.equal('100%');
-      expect(computedStyle(win, element)['min-width']).to.equal('100%');
-      expect(computedStyle(win, element)['height']).to.match(/px$/g);
-      expect(computedStyle(win, element)['width']).to.match(/px$/g);
+      expect(win.getComputedStyle(element)['opacity']).to.equal('1');
+      expect(win.getComputedStyle(element)['max-height']).to.equal('100%');
+      expect(win.getComputedStyle(element)['max-width']).to.equal('100%');
+      expect(win.getComputedStyle(element)['min-height']).to.equal('100%');
+      expect(win.getComputedStyle(element)['min-width']).to.equal('100%');
+      expect(win.getComputedStyle(element)['height']).to.match(/px$/g);
+      expect(win.getComputedStyle(element)['width']).to.match(/px$/g);
       expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
     });
 
     it('should build the view and show hidden iframe', async () => {
       const openedDialog = await dialog.open(HIDDEN);
       await openedDialog.openView(view);
-      expect(computedStyle(win, element)['visibility']).to.equal('visible');
-      expect(computedStyle(win, element)['opacity']).to.equal('1');
-      expect(computedStyle(win, element)['max-height']).to.equal('100%');
-      expect(computedStyle(win, element)['max-width']).to.equal('100%');
-      expect(computedStyle(win, element)['min-height']).to.equal('100%');
-      expect(computedStyle(win, element)['min-width']).to.equal('100%');
-      expect(computedStyle(win, element)['height']).to.match(/px$/g);
-      expect(computedStyle(win, element)['width']).to.match(/px$/g);
+      expect(win.getComputedStyle(element)['visibility']).to.equal('visible');
+      expect(win.getComputedStyle(element)['opacity']).to.equal('1');
+      expect(win.getComputedStyle(element)['max-height']).to.equal('100%');
+      expect(win.getComputedStyle(element)['max-width']).to.equal('100%');
+      expect(win.getComputedStyle(element)['min-height']).to.equal('100%');
+      expect(win.getComputedStyle(element)['min-width']).to.equal('100%');
+      expect(win.getComputedStyle(element)['height']).to.match(/px$/g);
+      expect(win.getComputedStyle(element)['width']).to.match(/px$/g);
       expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
     });
 
@@ -142,7 +142,7 @@ describes.realWin('Dialog', {}, (env) => {
         // Round the measured height to allow for subpixel differences
         // between browsers & environments.
         Math.round(
-          parseFloat(computedStyle(win, dialog.getElement())['height'])
+          parseFloat(win.getComputedStyle(dialog.getElement())['height'])
         ) + 'px';
       expect(measuredDialogHeight).to.equal(`${expectedDialogHeight}px`);
 
@@ -498,7 +498,7 @@ describes.realWin('Dialog', {}, (env) => {
         // Round the measured height to allow for subpixel differences
         // between browsers & environments.
         Math.round(
-          parseFloat(computedStyle(win, dialog.getElement())['height'])
+          parseFloat(win.getComputedStyle(dialog.getElement())['height'])
         ) + 'px';
       const expectedDialogHeight = viewportHeight * MAX_ALLOWED_HEIGHT_RATIO;
       expect(measuredDialogHeight).to.equal(`${expectedDialogHeight}px`);
