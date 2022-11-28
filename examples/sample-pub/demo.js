@@ -50,7 +50,8 @@ DemoPaywallController.prototype.onEntitlements_ = async function (
   }
 
   log('got entitlements: ', entitlements, entitlements.enablesThis());
-  if (this.completeDeferredAccountCreation_(entitlements)) {
+  if (this.shouldCreateAccount_(entitlements)) {
+    this.createAccount_(entitlements);
     return;
   }
 
@@ -112,45 +113,52 @@ DemoPaywallController.prototype.subscribeResponse_ = async function (
 
 /**
  * @param {!Entitlements} entitlements
- * @return {!Promise|undefined}
+ * @return {boolean}
  * @private
  */
-DemoPaywallController.prototype.completeDeferredAccountCreation_ =
-  async function (entitlements) {
-    // TODO(dvoytenko): decide when completion is needed for demo.
-    const accountFound = this.knownAccount || true;
-    if (accountFound) {
-      // Nothing needs to be completed.
-      return;
-    }
-    if (!entitlements.getEntitlementForSource('google')) {
-      // No Google entitlement.
-      return;
-    }
-    log('start deferred account creation');
-    const response = await this.subscriptions.completeDeferredAccountCreation({
-      entitlements,
-    });
+DemoPaywallController.prototype.shouldCreateAccount_ = function (entitlements) {
+  const accountFound = this.knownAccount || true;
+  if (accountFound) {
+    // Nothing needs to be completed.
+    return false;
+  }
+  if (!entitlements.getEntitlementForSource('google')) {
+    // No Google entitlement.
+    return false;
+  }
 
-    // TODO: Start deferred account creation flow.
-    log('got deferred account response', response);
-    this.knownAccount = true;
-    const toast = document.getElementById('creating_account_toast');
-    const userEl = document.getElementById('creating_account_toast_user');
-    userEl.textContent = 'deferred/' + response.userData.email;
-    toast.style.display = 'block';
+  return true;
+};
 
-    // TODO: wait for account creation to be complete.
-    setTimeout(async () => {
-      await response.complete();
-      log('subscription has been confirmed');
+/**
+ * @param {!Entitlements} entitlements
+ * @private
+ */
+DemoPaywallController.prototype.createAccount_ = async function (entitlements) {
+  log('start deferred account creation');
+  const response = await this.subscriptions.completeDeferredAccountCreation({
+    entitlements,
+  });
 
-      // Open the content.
-      this.subscriptions.reset();
-      this.start();
-      toast.style.display = 'none';
-    }, 3000);
-  };
+  // TODO: Start deferred account creation flow.
+  log('got deferred account response', response);
+  this.knownAccount = true;
+  const toast = document.getElementById('creating_account_toast');
+  const userEl = document.getElementById('creating_account_toast_user');
+  userEl.textContent = 'deferred/' + response.userData.email;
+  toast.style.display = 'block';
+
+  // TODO: wait for account creation to be complete.
+  setTimeout(async () => {
+    await response.complete();
+    log('subscription has been confirmed');
+
+    // Open the content.
+    this.subscriptions.reset();
+    this.start();
+    toast.style.display = 'none';
+  }, 3000);
+};
 
 /**
  * Login requested. This sample starts linking flow.
