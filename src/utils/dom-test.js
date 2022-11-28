@@ -198,32 +198,4 @@ describes.realWin('Dom', {}, (env) => {
       expect(dom.hasNextNodeInDocumentOrder(element, parent)).to.be.false;
     });
   });
-
-  describe('isConnected', () => {
-    it('should use native isConnected', () => {
-      expect(dom.isConnected({isConnected: true})).to.be.true;
-      expect(dom.isConnected({isConnected: false})).to.be.false;
-    });
-
-    it('should fallback to polyfill w/o native isConnected', () => {
-      const doc = {
-        documentElement: {
-          contains: (node) => node.connected_,
-        },
-      };
-      expect(dom.isConnected({ownerDocument: doc, connected_: true})).to.be
-        .true;
-      expect(dom.isConnected({ownerDocument: doc, connected_: false})).to.be
-        .false;
-    });
-
-    it('should work on actual nodes', () => {
-      const node = doc.createElement('div');
-      expect(dom.isConnected(node)).to.be.false;
-      doc.body.appendChild(node);
-      expect(dom.isConnected(node)).to.be.true;
-      doc.body.removeChild(node);
-      expect(dom.isConnected(node)).to.be.false;
-    });
-  });
 });
