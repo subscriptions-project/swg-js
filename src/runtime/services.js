@@ -71,10 +71,10 @@ const QUAL = {
 };
 
 /**
- * Operating modes, only runtime switchgable modes are here
- * build time modes set the default and are configured in prepare.sh
+ * Operating modes, only runtime switchable modes are here.
+ * Build time modes set the default and are configured in prepare.sh.
  *
- * IMPORTANT: modes other than prod will only work on google internal networks!
+ * IMPORTANT: modes other than prod will only work on Google internal networks!
  * @type {!Object<Object>}
  * @package Visible for testing only.
  */
@@ -86,7 +86,7 @@ export const MODES = {
 };
 
 /**
- * Check for swg.mode= in url fragemnet if it exists use it
+ * Check for swg.mode= in url fragment. If it exists, use it,
  * otherwise use the default build mode.
  * @returns {Object}
  */
