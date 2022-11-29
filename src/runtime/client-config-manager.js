@@ -90,8 +90,8 @@ export class ClientConfigManager {
     if (!this.responsePromise_) {
       this.fetchClientConfig();
     }
-    const clientConfig = await this.responsePromise_;
-    return clientConfig.autoPromptConfig;
+    const {autoPromptConfig} = await this.responsePromise_;
+    return autoPromptConfig;
   }
 
   /**
