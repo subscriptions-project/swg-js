@@ -16,13 +16,13 @@
 
 import {AnalyticsEvent} from '../../proto/api_messages';
 import {
-  GOOGLE_SIGN_IN_BUTTON_ID,
   GOOGLE_3P_SIGN_IN_BUTTON_ID,
-  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
+  GOOGLE_SIGN_IN_BUTTON_ID,
   GOOGLE_SIGN_IN_IFRAME_ID,
   REGWALL_CONTAINER_ID,
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
+  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
 } from './extended-access-html-templates';
 import {
   GaaGoogle3pSignInButton,
