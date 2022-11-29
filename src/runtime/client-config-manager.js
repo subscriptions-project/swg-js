@@ -84,14 +84,14 @@ export class ClientConfigManager {
   /**
    * Convenience method for retrieving the auto prompt portion of the client
    * configuration.
-   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|undefined>}
+   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|null|undefined>}
    */
   async getAutoPromptConfig() {
     if (!this.responsePromise_) {
       this.fetchClientConfig();
     }
-    const {autoPromptConfig} = await this.responsePromise_;
-    return autoPromptConfig;
+    const clientConfig = await this.responsePromise_;
+    return clientConfig?.autoPromptConfig;
   }
 
   /**
@@ -174,7 +174,7 @@ export class ClientConfigManager {
         '/clientconfiguration'
     );
     const json = await this.fetcher_.fetchCredentialedJson(url);
-    if (json.errorMessages?.length > 0) {
+    if (json.errorMessages && json.errorMessages.length > 0) {
       for (const errorMessage of json.errorMessages) {
         warn('SwG ClientConfigManager: ' + errorMessage);
       }
