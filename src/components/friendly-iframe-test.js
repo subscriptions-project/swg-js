@@ -75,5 +75,11 @@ describes.realWin('FriendlyIframe', {}, (env) => {
     it('throws if doc is missing', () => {
       expect(() => friendlyIframe.getDocument()).to.throw('not loaded');
     });
+
+    it('knows if iframe connected to doc', () => {
+      expect(friendlyIframe.isConnected()).to.be.false;
+      doc.body.appendChild(friendlyIframe.getElement());
+      expect(friendlyIframe.isConnected()).to.be.true;
+    });
   });
 });

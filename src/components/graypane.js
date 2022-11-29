@@ -98,19 +98,18 @@ export class Graypane {
    * @param {boolean=} animated
    * @return {!Promise|undefined}
    */
-  hide(animated = true) {
+  async hide(animated = true) {
     if (animated) {
-      return transition(
+      await transition(
         this.fadeBackground_,
         {
           'opacity': 0,
         },
         300,
         'ease-out'
-      ).then(() => {
-        setImportantStyles(this.fadeBackground_, {'display': 'none'});
-      });
+      );
     }
+
     setImportantStyles(this.fadeBackground_, {'display': 'none'});
   }
 }
