@@ -79,7 +79,10 @@ export class AudienceActivityEventListener {
    */
   async handleClientEvent_(event) {
     // Bail if event is unrelated to Audience Activity.
-    if (!audienceActivityLoggingEvents.has(event.eventType)) {
+    if (
+      !event.eventType ||
+      !audienceActivityLoggingEvents.has(event.eventType)
+    ) {
       return;
     }
 
