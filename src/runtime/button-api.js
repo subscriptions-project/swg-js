@@ -234,10 +234,9 @@ export class ButtonApi {
    * @param {!AnalyticsEvent} eventType
    * @param {boolean=} isFromUserAction
    */
-  logSwgEvent_(eventType, isFromUserAction) {
-    this.configuredRuntimePromise_.then((configuredRuntime) => {
-      configuredRuntime.eventManager().logSwgEvent(eventType, isFromUserAction);
-    });
+  async logSwgEvent_(eventType, isFromUserAction) {
+    const configuredRuntime = await this.configuredRuntimePromise_;
+    configuredRuntime.eventManager().logSwgEvent(eventType, isFromUserAction);
   }
 
   /**
