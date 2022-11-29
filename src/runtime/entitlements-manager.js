@@ -43,7 +43,7 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from '../runtime/services';
 import {hash} from '../utils/string';
-import {queryStringHasFreshGaaParams} from '../utils/gaa';
+import {queryStringHasFreshGaaParams} from './extended-access/gaa';
 import {serviceUrl} from './services';
 import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';

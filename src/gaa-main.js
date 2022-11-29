@@ -25,7 +25,7 @@ import {
   GaaMetering,
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
-} from './utils/gaa';
+} from './runtime/extended-access/gaa';
 import {log} from './utils/log';
 
 log('Subscriptions Showcase Version: $internalRuntimeVersion$');

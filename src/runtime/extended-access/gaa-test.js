@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent} from '../proto/api_messages';
+import {AnalyticsEvent} from '../../proto/api_messages';
 import {
-  GOOGLE_3P_SIGN_IN_BUTTON_ID,
   GOOGLE_SIGN_IN_BUTTON_ID,
+  GOOGLE_3P_SIGN_IN_BUTTON_ID,
+  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
   GOOGLE_SIGN_IN_IFRAME_ID,
+  REGWALL_CONTAINER_ID,
+  REGWALL_DIALOG_ID,
+  REGWALL_TITLE_ID,
+} from './extended-access-html-templates';
+import {
   GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
   GaaMetering,
@@ -32,16 +38,12 @@ import {
   POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
-  REGWALL_CONTAINER_ID,
-  REGWALL_DIALOG_ID,
-  REGWALL_TITLE_ID,
-  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
   queryStringHasFreshGaaParams,
 } from './gaa';
-import {I18N_STRINGS} from '../i18n/strings';
-import {JwtHelper} from './jwt';
-import {ShowcaseEvent} from '../api/subscriptions';
-import {tick} from '../../test/tick';
+import {I18N_STRINGS} from '../../i18n/strings';
+import {JwtHelper} from '../../utils/jwt';
+import {ShowcaseEvent} from '../../api/subscriptions';
+import {tick} from '../../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
