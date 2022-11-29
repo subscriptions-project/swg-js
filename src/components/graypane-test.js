@@ -68,7 +68,6 @@ describes.realWin('Graypane', {}, (env) => {
   it('should show w/animation', async () => {
     graypane.attach();
     const p = graypane.show(ANIMATE);
-    expect(p).to.exist;
     expect(getStyle(element, 'display')).to.equal('block');
     expect(getStyle(element, 'opacity')).to.equal('0');
 
@@ -79,8 +78,7 @@ describes.realWin('Graypane', {}, (env) => {
   it('should hide w/o animation', () => {
     graypane.attach();
     graypane.show(NO_ANIMATE);
-    const p = graypane.hide(NO_ANIMATE);
-    expect(p).to.be.undefined;
+    graypane.hide(NO_ANIMATE);
     expect(getStyle(element, 'display')).to.equal('none');
   });
 
