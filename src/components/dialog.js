@@ -504,7 +504,7 @@ export class Dialog {
           }
           setImportantStyles(this.getElement(), immediateStyles);
 
-          requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
             transition(
               this.getElement(),
               {
@@ -512,8 +512,8 @@ export class Dialog {
               },
               300,
               'ease-out'
-            )
-          );
+            );
+          });
           return Promise.resolve();
         });
       } else {
