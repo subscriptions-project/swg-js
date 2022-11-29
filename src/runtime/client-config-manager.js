@@ -164,22 +164,22 @@ export class ClientConfigManager {
 
     if (article) {
       return this.parseClientConfig_(article['clientConfig']);
-    } else {
-      // If there was no article from the entitlement manager, we need
-      // to fetch our own using the internal version.
-      const url = serviceUrl(
-        '/publication/' +
-          encodeURIComponent(this.publicationId_) +
-          '/clientconfiguration'
-      );
-      const json = await this.fetcher_.fetchCredentialedJson(url);
-      if (json.errorMessages?.length > 0) {
-        for (const errorMessage of json.errorMessages) {
-          warn('SwG ClientConfigManager: ' + errorMessage);
-        }
-      }
-      return this.parseClientConfig_(json);
     }
+
+    // If there was no article from the entitlement manager, we need
+    // to fetch our own using the internal version.
+    const url = serviceUrl(
+      '/publication/' +
+        encodeURIComponent(this.publicationId_) +
+        '/clientconfiguration'
+    );
+    const json = await this.fetcher_.fetchCredentialedJson(url);
+    if (json.errorMessages?.length > 0) {
+      for (const errorMessage of json.errorMessages) {
+        warn('SwG ClientConfigManager: ' + errorMessage);
+      }
+    }
+    return this.parseClientConfig_(json);
   }
 
   /**
