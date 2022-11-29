@@ -86,13 +86,12 @@ export class ClientConfigManager {
    * configuration.
    * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|undefined>}
    */
-  getAutoPromptConfig() {
+  async getAutoPromptConfig() {
     if (!this.responsePromise_) {
       this.fetchClientConfig();
     }
-    return this.responsePromise_.then(
-      (clientConfig) => clientConfig.autoPromptConfig
-    );
+    const clientConfig = await this.responsePromise_;
+    return clientConfig.autoPromptConfig;
   }
 
   /**
@@ -139,7 +138,7 @@ export class ClientConfigManager {
    * Determines whether a subscription or contribution button should be disabled.
    * @returns {!Promise<boolean|undefined>}
    */
-  shouldEnableButton() {
+  async shouldEnableButton() {
     // Disable button if disableButton is set to be true in clientOptions.
     // If disableButton is set to be false or not set, then always enable button.
     // This is for testing purpose.
@@ -150,45 +149,37 @@ export class ClientConfigManager {
     if (!this.responsePromise_) {
       this.fetchClientConfig();
     }
+
     // UI predicates decides whether to enable button.
-    return this.responsePromise_.then((clientConfig) => {
-      if (clientConfig.uiPredicates?.canDisplayButton) {
-        return true;
-      } else {
-        return false;
-      }
-    });
+    const {uiPredicates} = await this.responsePromise_;
+    return uiPredicates?.canDisplayButton;
   }
 
   /**
    * Fetches the client config from the server.
    * @return {!Promise<!ClientConfig>}
    */
-  fetch_() {
-    return this.deps_
-      .entitlementsManager()
-      .getArticle()
-      .then((article) => {
-        if (article) {
-          return this.parseClientConfig_(article['clientConfig']);
-        } else {
-          // If there was no article from the entitlement manager, we need
-          // to fetch our own using the internal version.
-          const url = serviceUrl(
-            '/publication/' +
-              encodeURIComponent(this.publicationId_) +
-              '/clientconfiguration'
-          );
-          return this.fetcher_.fetchCredentialedJson(url).then((json) => {
-            if (json.errorMessages && json.errorMessages.length > 0) {
-              for (const errorMessage of json.errorMessages) {
-                warn('SwG ClientConfigManager: ' + errorMessage);
-              }
-            }
-            return this.parseClientConfig_(json);
-          });
+  async fetch_() {
+    const article = await this.deps_.entitlementsManager().getArticle();
+
+    if (article) {
+      return this.parseClientConfig_(article['clientConfig']);
+    } else {
+      // If there was no article from the entitlement manager, we need
+      // to fetch our own using the internal version.
+      const url = serviceUrl(
+        '/publication/' +
+          encodeURIComponent(this.publicationId_) +
+          '/clientconfiguration'
+      );
+      const json = await this.fetcher_.fetchCredentialedJson(url);
+      if (json.errorMessages?.length > 0) {
+        for (const errorMessage of json.errorMessages) {
+          warn('SwG ClientConfigManager: ' + errorMessage);
         }
-      });
+      }
+      return this.parseClientConfig_(json);
+    }
   }
 
   /**
