@@ -504,14 +504,17 @@ export class Dialog {
           }
           setImportantStyles(this.getElement(), immediateStyles);
 
-          return transition(
-            this.getElement(),
-            {
-              'transform': this.getDefaultTranslateY_(),
-            },
-            300,
-            'ease-out'
+          requestAnimationFrame(() =>
+            transition(
+              this.getElement(),
+              {
+                'transform': this.getDefaultTranslateY_(),
+              },
+              300,
+              'ease-out'
+            )
           );
+          return Promise.resolve();
         });
       } else {
         // Collapse.
