@@ -21,27 +21,7 @@
 //
 // Thanks!
 
-import {I18N_STRINGS} from '../../i18n/strings';
-import {JwtHelper} from '../../utils/jwt';
-import {
-  ShowcaseEvent,
-  Subscriptions as SubscriptionsDef,
-} from '../../api/subscriptions';
-import {
-  addQueryParam,
-  parseQueryString,
-  parseUrl,
-  wasReferredByGoogle,
-} from '../../utils/url';
-import {debugLog, warn} from '../../utils/log';
-import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
-import {parseJson} from '../../utils/json';
-import {setImportantStyles} from '../../utils/style';
 import {AnalyticsEvent, EventOriginator} from '../../proto/api_messages';
-import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
-import {createElement, injectStyleSheet} from '../../utils/dom';
-import {resolveDoc} from '../../model/doc';
-import {showcaseEventToAnalyticsEvents} from '../../runtime/event-type-mapping';
 import {
   CASL_HTML,
   GOOGLE_3P_SIGN_IN_BUTTON_ID,
@@ -59,6 +39,26 @@ import {
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
 } from './extended-access-html-templates';
+import {I18N_STRINGS} from '../../i18n/strings';
+import {JwtHelper} from '../../utils/jwt';
+import {
+  ShowcaseEvent,
+  Subscriptions as SubscriptionsDef,
+} from '../../api/subscriptions';
+import {
+  addQueryParam,
+  parseQueryString,
+  parseUrl,
+  wasReferredByGoogle,
+} from '../../utils/url';
+import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
+import {createElement, injectStyleSheet} from '../../utils/dom';
+import {debugLog, warn} from '../../utils/log';
+import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
+import {parseJson} from '../../utils/json';
+import {resolveDoc} from '../../model/doc';
+import {setImportantStyles} from '../../utils/style';
+import {showcaseEventToAnalyticsEvents} from '../../runtime/event-type-mapping';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
