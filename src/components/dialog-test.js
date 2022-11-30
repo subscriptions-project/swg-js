@@ -44,6 +44,10 @@ describes.realWin('Dialog', {}, (env) => {
       resized: () => {},
       shouldFadeBody: () => true,
     };
+
+    sandbox.stub(self, 'requestAnimationFrame').callsFake((callback) => {
+      callback();
+    });
   });
 
   /** Updates `setTimeout` to immediately call its callback. */
