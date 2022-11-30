@@ -51,8 +51,6 @@ export class ContributionsFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    this.activityIframeView_ = null;
-
     // Default to showing close button.
     const isClosable = options?.isClosable ?? true;
 
@@ -117,43 +115,36 @@ export class ContributionsFlow {
    * Starts the contributions flow or alreadyMember flow.
    * @return {!Promise}
    */
-  start() {
-    return this.activityIframeViewPromise_.then((activityIframeView) => {
-      if (!activityIframeView) {
-        return Promise.resolve();
-      }
+  async start() {
+    const activityIframeView = await this.activityIframeViewPromise_;
+    if (!activityIframeView) {
+      return Promise.resolve();
+    }
 
-      // Start/cancel events.
+    // Start/cancel events.
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+    activityIframeView.onCancel(() => {
       this.deps_
         .callbacks()
-        .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
-      activityIframeView.onCancel(() => {
-        this.deps_
-          .callbacks()
-          .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
-      });
-      activityIframeView.on(
-        AlreadySubscribedResponse,
-        this.handleLinkRequest_.bind(this)
-      );
-      activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
-      this.activityIframeView_ = activityIframeView;
-      return this.clientConfigManager_
-        .getClientConfig()
-        .then((clientConfig) => {
-          if (!this.activityIframeView_) {
-            return;
-          }
-          return this.dialogManager_.openView(
-            this.activityIframeView_,
-            /* hidden */ false,
-            this.getDialogConfig_(
-              clientConfig,
-              this.clientConfigManager_.shouldAllowScroll()
-            )
-          );
-        });
+        .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
+    activityIframeView.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+    activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
+
+    const clientConfig = await this.clientConfigManager_.getClientConfig();
+    return this.dialogManager_.openView(
+      activityIframeView,
+      /* hidden */ false,
+      this.getDialogConfig_(
+        clientConfig,
+        this.clientConfigManager_.shouldAllowScroll()
+      )
+    );
   }
 
   /**
@@ -207,9 +198,8 @@ export class ContributionsFlow {
   /**
    * Shows "no contribution found" on activity iFrame view.
    */
-  showNoEntitlementFoundToast() {
-    if (this.activityIframeView_) {
-      this.activityIframeView_.execute(new EntitlementsResponse());
-    }
+  async showNoEntitlementFoundToast() {
+    const activityIframeView = await this.activityIframeViewPromise_;
+    activityIframeView.execute(new EntitlementsResponse());
   }
 }
