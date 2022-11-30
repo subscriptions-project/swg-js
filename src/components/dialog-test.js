@@ -154,7 +154,7 @@ describes.realWin('Dialog', {}, (env) => {
 
     it('should return null if passed wrong view', async () => {
       const wrongView = {};
-      expect(dialog.resizeView(wrongView)).to.be.null;
+      expect(await dialog.resizeView(wrongView)).to.be.null;
     });
 
     it('resizes the element to expand with an animation', async () => {
@@ -352,16 +352,20 @@ describes.realWin('Dialog', {}, (env) => {
       );
     });
 
-    it('should throw if iframe already connected', async () => {
+    it('throws if iframe already connected', async () => {
       immediate();
       sandbox.stub(dialog.iframe_, 'isConnected').returns(true);
-      expect(() => dialog.open()).to.throw('already opened');
+      await expect(dialog.open()).to.eventually.be.rejectedWith(
+        'already opened'
+      );
     });
 
-    it('throws if iframe already connected when opening in a container', () => {
+    it('throws if iframe already connected when opening in a container', async () => {
       immediate();
       sandbox.stub(dialog.iframe_, 'isConnected').returns(true);
-      expect(() => dialog.openInContainer(doc.body)).to.throw('already opened');
+      await expect(
+        dialog.openInContainer(doc.body)
+      ).to.eventually.be.rejectedWith('already opened');
     });
 
     it('should have Loading view element added', async () => {
