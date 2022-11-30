@@ -51,31 +51,37 @@ export class ContributionsFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    // Default to showing close button.
-    const isClosable = options?.isClosable ?? true;
+    /** @private @const {!Promise<?ActivityIframeView>} */
+    this.activityIframeViewPromise_ = this.getActivityIframeView_();
+  }
 
-    /** @private @const {!Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfigManager_
-      .getClientConfig()
-      .then((clientConfig) => {
-        return this.shouldShow_(clientConfig)
-          ? new ActivityIframeView(
-              this.win_,
-              this.activityPorts_,
-              this.getUrl_(clientConfig, deps.pageConfig()),
-              feArgs({
-                'productId': deps.pageConfig().getProductId(),
-                'publicationId': deps.pageConfig().getPublicationId(),
-                'productType': ProductType.UI_CONTRIBUTION,
-                'list': (options && options.list) || 'default',
-                'skus': (options && options.skus) || null,
-                'isClosable': isClosable,
-                'supportsEventManager': true,
-              }),
-              /* shouldFadeBody */ true
-            )
-          : null;
-      });
+  /**
+   * @return {!Promise<?ActivityIframeView>}
+   */
+  async getActivityIframeView_() {
+    // Default to showing close button.
+    const isClosable = this.options_?.isClosable ?? true;
+
+    const clientConfig = await this.clientConfigManager_.getClientConfig();
+    if (!this.shouldShow_(clientConfig)) {
+      return null;
+    }
+
+    return new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      this.getUrl_(clientConfig, this.deps_.pageConfig()),
+      feArgs({
+        'productId': this.deps_.pageConfig().getProductId(),
+        'publicationId': this.deps_.pageConfig().getPublicationId(),
+        'productType': ProductType.UI_CONTRIBUTION,
+        'list': this.options_?.list || 'default',
+        'skus': this.options_?.skus || null,
+        'isClosable': isClosable,
+        'supportsEventManager': true,
+      }),
+      /* shouldFadeBody */ true
+    );
   }
 
   /**
