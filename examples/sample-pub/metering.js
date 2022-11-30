@@ -76,7 +76,7 @@ const MeteringDemo = {
    * so it lives past 7 days in Safari.
    * https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
    */
-  registerUser: async (gaaUser) => {
+  registerUser: (gaaUser) => {
     // Record the registration timestamp in seconds (not milliseconds).
     localStorage.meteringRegistrationTimestamp = Math.floor(Date.now() / 1000);
 
