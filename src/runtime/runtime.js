@@ -680,7 +680,6 @@ export class ConfiguredRuntime {
 
     preconnect.prefetch('$assets$/loader.svg');
     preconnect.preconnect('https://www.gstatic.com/');
-    preconnect.preconnect('https://fonts.googleapis.com/');
     preconnect.preconnect('https://www.google.com/');
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
