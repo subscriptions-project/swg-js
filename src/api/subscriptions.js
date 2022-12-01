@@ -265,6 +265,13 @@ export class Subscriptions {
   saveSubscription(requestCallback) {}
 
   /**
+   * Starts the subscription linking flow.
+   * @param {!LinkSubscriptionRequest} linkSubscriptionRequest
+   * @return {!Promise<!LinkSubscriptionResult>} promise indicating result of the operation
+   */
+  linkSubscription(linkSubscriptionRequest) {}
+
+  /**
    * Creates an element with the SwG button style and the provided callback.
    * The default theme is "light".
    *
@@ -640,3 +647,18 @@ export let SmartButtonOptions;
  * }}
  */
 export let SubscriptionRequest;
+
+/**
+ * @typedef {{
+ *  publisherProvidedId: string,
+ * }}
+ */
+export let LinkSubscriptionRequest;
+
+/**
+ * @typedef {{
+ *  publisherProvidedId: (?string|undefined),
+ *  success: boolean,
+ * }}
+ */
+export let LinkSubscriptionResult;
