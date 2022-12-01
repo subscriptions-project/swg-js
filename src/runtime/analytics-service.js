@@ -101,10 +101,13 @@ export class AnalyticsService {
     this.setStaticContext_();
 
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
-    this.serviceReady_ = null;
+    this.portPromise_ = null;
 
-    /** @private {?Promise} */
-    this.lastAction_ = null;
+    /**
+     * @type {?Promise}
+     * @visibleForTesting
+     */
+    this.lastSend = null;
 
     /** @private @const {!ClientEventManager} */
     this.eventManager_ = deps.eventManager();
@@ -277,39 +280,55 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise<!../components/activities.ActivityIframePort>}
+   * @return {!Promise<?../components/activities.ActivityIframePort>}
    */
   start() {
-    if (!this.serviceReady_) {
-      // Please note that currently openIframe reads the current analytics
-      // context and that it may not contain experiments activated late during
-      // the publishers code lifecycle.
-      this.addLabels(getOnExperiments(this.doc_.getWin()));
-      this.serviceReady_ = this.activityPorts_
-        .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
-        .then(
-          (port) => {
-            // Register a listener for the logging to code indicate it is
-            // finished logging.
-            port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
-            return port.whenReady().then(() => {
-              // The publisher should be done setting experiments but runtime
-              // will forward them here if they aren't.
-              this.addLabels(getOnExperiments(this.doc_.getWin()));
-              return port;
-            });
-          },
-          (message) => {
-            // If the port doesn't open register that logging is broken so
-            // nothing is just waiting.
-            this.loggingBroken_ = true;
-            this.afterLogging_(
-              createErrorResponse('Could not connect [' + message + ']')
-            );
-          }
-        );
+    // Only prepare port once.
+    if (this.portPromise_) {
+      return this.portPromise_;
     }
-    return this.serviceReady_;
+
+    // Please note that currently openIframe reads the current analytics
+    // context and that it may not contain experiments activated late during
+    // the publishers code lifecycle.
+    this.addLabels(getOnExperiments(this.doc_.getWin()));
+    this.portPromise_ = this.preparePort();
+    return this.portPromise_;
+  }
+
+  /**
+   * @return {!Promise<?../components/activities.ActivityIframePort>}
+   */
+  async preparePort() {
+    // Open iframe.
+    let port;
+    try {
+      port = await this.activityPorts_.openIframe(
+        this.iframe_,
+        feUrl('/serviceiframe'),
+        null,
+        true
+      );
+    } catch (message) {
+      // If the port doesn't open register that logging is broken so
+      // nothing is just waiting.
+      this.loggingBroken_ = true;
+      this.afterLogging_(
+        createErrorResponse('Could not connect [' + message + ']')
+      );
+      return null;
+    }
+
+    // Register a listener for the logging to code indicate it is
+    // finished logging.
+    port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
+    await port.whenReady();
+
+    // The publisher should be done setting experiments but runtime
+    // will forward them here if they aren't.
+    this.addLabels(getOnExperiments(this.doc_.getWin()));
+
+    return port;
   }
 
   /**
@@ -361,24 +380,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @return {boolean}
-   */
-  shouldAlwaysLogEvent_(event) {
-    /* AMP_CLIENT events are considered publisher events and we generally only
-     * log those if the publisher decided to enable publisher event logging for
-     * privacy purposes.  The page load event is not private and is necessary
-     * just so we know the user is in AMP, so we will log it regardless of
-     * configuration.
-     */
-    return (
-      event.eventType === AnalyticsEvent.IMPRESSION_PAGE_LOAD &&
-      event.eventOriginator === EventOriginator.AMP_CLIENT
-    );
-  }
-
-  /**
-   *  Listens for new events from the events manager and handles logging
+   * Listens for new events from the events manager and handles logging
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
@@ -397,27 +399,36 @@ export class AnalyticsService {
 
     if (
       ClientEventManager.isPublisherEvent(event) &&
-      !this.shouldLogPublisherEvents_() &&
-      !this.shouldAlwaysLogEvent_(event)
+      !this.shouldLogPublisherEvents_()
     ) {
       return;
     }
 
-    if (this.readyForLogging_) {
-      // Register we sent a log, the port will call this.afterLogging_ when done.
-      this.unfinishedLogs_++;
-      this.lastAction_ = this.start().then((port) => {
-        const analyticsRequest = this.createLogRequest_(event);
-        port.execute(analyticsRequest);
-        if (
-          isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)
-        ) {
-          this.sendBeacon_(analyticsRequest);
-        }
-      });
-    } else {
-      // If we're not ready to log events yet, store the event so we can log it later.
+    if (!this.readyForLogging_) {
+      // If we're not ready to log events yet,
+      // store the event so we can log it later.
       this.logs_.push(event);
+      return;
+    }
+
+    // Register we sent a log. The port will call this.afterLogging_ when done.
+    this.unfinishedLogs_++;
+
+    // Send log.
+    this.lastSend = this.sendLog_(event);
+  }
+
+  /**
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @return {!Promise}
+   */
+  async sendLog_(event) {
+    const port = await this.start();
+    const analyticsRequest = this.createLogRequest_(event);
+    port.execute(analyticsRequest);
+
+    if (isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)) {
+      this.sendBeacon_(analyticsRequest);
     }
   }
 

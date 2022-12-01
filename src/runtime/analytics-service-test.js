@@ -233,8 +233,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       });
 
       // These wait for analytics server to be ready to send data.
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
       await activityIframePort.whenReady();
 
       // These ensure the right event was communicated.
@@ -254,8 +254,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
       });
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
 
       // This ensures communications were successful
       const call2 = activityIframePort.execute.getCall(1);
@@ -306,8 +306,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
         });
 
         // These wait for analytics server to be ready to send data.
-        expect(analyticsService.lastAction_).to.not.be.null;
-        await analyticsService.lastAction_;
+        expect(analyticsService.lastSend).to.not.be.null;
+        await analyticsService.lastSend;
         await activityIframePort.whenReady();
 
         expectOpenIframe = true;
@@ -326,8 +326,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
         });
 
         // These wait for analytics server to be ready to send data.
-        expect(analyticsService.lastAction_).to.not.be.null;
-        await analyticsService.lastAction_;
+        expect(analyticsService.lastSend).to.not.be.null;
+        await analyticsService.lastSend;
         await activityIframePort.whenReady();
 
         expectOpenIframe = true;
@@ -394,8 +394,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       const loggingResponse = new FinishedLoggingResponse();
       loggingResponse.setComplete(false);
       loggingResponse.setError(err);
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
       await activityIframePort.whenReady();
       const p = analyticsService.getLoggingPromise();
       iframeCallback(loggingResponse);
@@ -412,25 +412,24 @@ describes.realWin('AnalyticsService', {}, (env) => {
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
       });
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
       const loggingResponse = new FinishedLoggingResponse();
       loggingResponse.setComplete(true);
       // Simulate 1 logging response that occurs before anyone calls
       // getLoggingPromise
       iframeCallback(loggingResponse);
       expect(analyticsService.unfinishedLogs_).to.equal(0);
-      return analyticsService.getLoggingPromise().then((val) => {
-        expect(val).to.be.true;
-      });
+      const val = await analyticsService.getLoggingPromise();
+      expect(val).to.be.true;
     });
   });
 
   it('should not log the subscription state change event', () => {
-    analyticsService.lastAction_ = null;
+    analyticsService.lastSend = null;
     event.eventType = AnalyticsEvent.EVENT_SUBSCRIPTION_STATE;
     eventManagerCallback(event);
-    expect(analyticsService.lastAction_).to.be.null;
+    expect(analyticsService.lastSend).to.be.null;
     event.eventType = defEventType;
   });
 
@@ -446,8 +445,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       analyticsService.addLabels(['label']);
       eventManagerCallback(event);
 
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ request =
@@ -483,7 +482,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
       eventManagerCallback(event);
 
-      await analyticsService.lastAction_;
+      await analyticsService.lastSend;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ request =
@@ -499,8 +498,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       setExperimentsStringForTesting('');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       eventManagerCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ request =
@@ -514,8 +513,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       await activityIframePort.whenReady();
       eventManagerCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ request =
           activityIframePort.execute.getCall(0).args[0];
@@ -531,8 +530,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       setExperimentsStringForTesting('E1,E2');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       eventManagerCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
       await activityIframePort.whenReady();
       const /** {?AnalyticsRequest} */ request1 =
           activityIframePort.execute.getCall(0).args[0];
@@ -545,8 +544,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
       analyticsService.addLabels(['L3', 'L4']);
       eventManagerCallback(event);
-      expect(analyticsService.lastAction_).to.not.be.null;
-      await analyticsService.lastAction_;
+      expect(analyticsService.lastSend).to.not.be.null;
+      await analyticsService.lastSend;
       const /** {?AnalyticsRequest} */ request2 =
           activityIframePort.execute.getCall(1).args[0];
       expect(request2.getContext().getLabelList()).to.deep.equal([
@@ -573,11 +572,11 @@ describes.realWin('AnalyticsService', {}, (env) => {
       ]);
     });
 
-    it('should respect custom URL set by AMP', async () => {
+    it('should respect custom URLs', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       analyticsService.setUrl('diffUrl');
       eventManagerCallback(event);
-      await analyticsService.lastAction_;
+      await analyticsService.lastSend;
       await activityIframePort.whenReady();
       expect(activityIframePort.execute).to.be.calledOnce;
       const /* {?AnalyticsRequest} */ request =
@@ -601,13 +600,13 @@ describes.realWin('AnalyticsService', {}, (env) => {
     const testOriginator = function (originator, shouldLog, eventType) {
       const prevOriginator = event.eventOriginator;
       const prevType = event.eventType;
-      analyticsService.lastAction_ = null;
+      analyticsService.lastSend = null;
       event.eventOriginator = originator;
       if (eventType) {
         event.eventType = eventType;
       }
       eventManagerCallback(event);
-      const didLog = analyticsService.lastAction_ !== null;
+      const didLog = analyticsService.lastSend !== null;
       expect(shouldLog).to.equal(didLog);
       event.eventOriginator = prevOriginator;
       if (eventType) {
@@ -630,20 +629,11 @@ describes.realWin('AnalyticsService', {}, (env) => {
     it('should log publisher events if configured', () => {
       runtime.configure({enableSwgAnalytics: true});
       testOriginator(EventOriginator.SWG_CLIENT, true);
-      testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
 
       // Should still not log showcase events
       testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
-    });
-
-    it('should always log page load event in AMP', () => {
-      testOriginator(
-        EventOriginator.AMP_CLIENT,
-        true,
-        AnalyticsEvent.IMPRESSION_PAGE_LOAD
-      );
     });
   });
 
