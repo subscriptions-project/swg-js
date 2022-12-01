@@ -32,7 +32,6 @@ import {getOnExperiments, isExperimentOn} from './experiments';
 import {getSwgTransactionId, getUuid} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
-import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 import {toTimestamp} from '../utils/date-utils';
 
