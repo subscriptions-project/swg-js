@@ -66,7 +66,7 @@ export class DeferredAccountFlow {
    * Starts the deferred account flow.
    * @return {!Promise<!DeferredAccountCreationResponse>}
    */
-  start() {
+  async start() {
     const entitlements = this.options_.entitlements;
 
     // For now, entitlements are required to be present and have the Google
@@ -95,26 +95,23 @@ export class DeferredAccountFlow {
     );
 
     this.openPromise_ = this.dialogManager_.openView(this.activityIframeView_);
-    return this.activityIframeView_.acceptResult().then(
-      (result) => {
-        // The consent part is complete.
-        return this.handleConsentResponse_(
-          /** @type {!Object} */ (result.data)
-        );
-      },
-      (reason) => {
-        if (isCancelError(reason)) {
-          this.deps_
-            .callbacks()
-            .triggerFlowCanceled(
-              SubscriptionFlows.COMPLETE_DEFERRED_ACCOUNT_CREATION
-            );
-        } else {
-          this.dialogManager_.completeView(this.activityIframeView_);
-        }
-        throw reason;
+
+    try {
+      const result = await this.activityIframeView_.acceptResult();
+      // The consent part is complete.
+      return this.handleConsentResponse_(/** @type {!Object} */ (result.data));
+    } catch (reason) {
+      if (isCancelError(reason)) {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(
+            SubscriptionFlows.COMPLETE_DEFERRED_ACCOUNT_CREATION
+          );
+      } else {
+        this.dialogManager_.completeView(this.activityIframeView_);
       }
-    );
+      throw reason;
+    }
   }
 
   /**
