@@ -409,11 +409,6 @@ export class AnalyticsService {
       this.lastAction_ = this.start().then((port) => {
         const analyticsRequest = this.createLogRequest_(event);
         port.execute(analyticsRequest);
-        if (
-          isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)
-        ) {
-          this.sendBeacon_(analyticsRequest);
-        }
       });
     } else {
       // If we're not ready to log events yet, store the event so we can log it later.
@@ -485,18 +480,5 @@ export class AnalyticsService {
     }
 
     return this.promiseToLog_;
-  }
-
-  /**
-   * A beacon is a rapid fire browser request that does not wait for a response
-   * from the server.  It is guaranteed to go out before the page redirects.
-   * @param {!AnalyticsRequest} analyticsRequest
-   */
-  sendBeacon_(analyticsRequest) {
-    const pubId = encodeURIComponent(
-      this.deps_.pageConfig().getPublicationId()
-    );
-    const url = serviceUrl('/publication/' + pubId + '/clientlogs');
-    this.fetcher_.sendBeacon(url, analyticsRequest);
   }
 }

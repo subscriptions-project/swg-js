@@ -84,12 +84,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
       .get(() => 'https://scenic-2017.appspot.com/landing.html');
 
     sandbox
-      .stub(XhrFetcher.prototype, 'sendBeacon')
-      .callsFake((unusedUrl, message) => {
-        eventsLoggedToService.push(message);
-      });
-
-    sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
       .callsFake((callback) => (eventManagerCallback = callback));
 
@@ -312,26 +306,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
         expectOpenIframe = true;
         expect(eventsLoggedToService.length).to.equal(0);
-      });
-
-      it('should log to clearcut if experiment on', async () => {
-        setExperimentsStringForTesting(ExperimentFlags.LOGGING_BEACON);
-
-        // This triggers an event.
-        eventManagerCallback({
-          eventType: AnalyticsEvent.UNKNOWN,
-          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: null,
-        });
-
-        // These wait for analytics server to be ready to send data.
-        expect(analyticsService.lastAction_).to.not.be.null;
-        await analyticsService.lastAction_;
-        await activityIframePort.whenReady();
-
-        expectOpenIframe = true;
-        expect(eventsLoggedToService.length).to.equal(1);
       });
     });
   });

@@ -45,12 +45,6 @@ export const ExperimentFlags = {
    */
   HEJIRA: 'hejira',
 
-  /** Enables logging to both the new SwG Clearcut service and the pre-existing
-   *  Clearcut iframe while we verify the new logging system works.
-   *  Publishers should not activate this experiment.
-   */
-  LOGGING_BEACON: 'logging-beacon',
-
   /** Enables googleTransactionID change. With the experiment on the ID is
    *  changed from '<uuid>' to '<uuid>.swg'.
    */
