@@ -383,9 +383,8 @@ describes.realWin('ClientConfigManager', {}, () => {
       })
       .once();
 
-    clientConfigManager.shouldEnableButton().then((data) => {
-      expect(data).to.equal.to.be.true;
-    });
+    const data = await clientConfigManager.shouldEnableButton();
+    expect(data).to.be.true;
   });
 
   it('shouldEnableButton should return undefined if ClientConfig has UI predicate canDisplayButton is not set', async () => {
@@ -397,9 +396,8 @@ describes.realWin('ClientConfigManager', {}, () => {
       .resolves({})
       .once();
 
-    clientConfigManager.shouldEnableButton().then((data) => {
-      expect(data).to.equal.to.be.undefined;
-    });
+    const data = await clientConfigManager.shouldEnableButton();
+    expect(data).to.be.undefined;
   });
 
   it('getClientConfig should have paySwgVersion after fetch', async () => {
