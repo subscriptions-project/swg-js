@@ -393,7 +393,7 @@ export class Entitlement {
     let subscriptionTimestamp;
     try {
       subscriptionTimestamp = new Timestamp(
-        [timestampJson.seconds_, timestampJson.nanos_],
+        [timestampJson['seconds_'], timestampJson['nanos_']],
         false
       );
     } catch (e) {
