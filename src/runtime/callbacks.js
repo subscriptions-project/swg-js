@@ -324,11 +324,10 @@ export class Callbacks {
    * @param {*} data
    * @private
    */
-  executeCallback_(id, callback, data) {
+  async executeCallback_(id, callback, data) {
     // Always execute callbacks in a microtask.
-    Promise.resolve().then(() => {
-      callback(data);
-      this.resetCallback_(id);
-    });
+    await 0;
+    callback(data);
+    this.resetCallback_(id);
   }
 }

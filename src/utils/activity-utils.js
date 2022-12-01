@@ -21,20 +21,19 @@
  * @param {boolean} requireSecureChannel
  * @return {!Promise<!Object>}
  */
-export function acceptPortResultData(
+export async function acceptPortResultData(
   port,
   requireOrigin,
   requireOriginVerified,
   requireSecureChannel
 ) {
-  return port.acceptResult().then((result) => {
-    if (
-      result.origin != requireOrigin ||
-      (requireOriginVerified && !result.originVerified) ||
-      (requireSecureChannel && !result.secureChannel)
-    ) {
-      throw new Error('channel mismatch');
-    }
-    return result.data;
-  });
+  const result = await port.acceptResult();
+  if (
+    result.origin != requireOrigin ||
+    (requireOriginVerified && !result.originVerified) ||
+    (requireSecureChannel && !result.secureChannel)
+  ) {
+    throw new Error('channel mismatch');
+  }
+  return /** @type {!Object} */ (result.data);
 }
