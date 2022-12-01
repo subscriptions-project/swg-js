@@ -69,7 +69,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   let pageConfig;
   let manager;
   let fetcher;
-  let xhrMock;
+  let fetcherMock;
   let jwtHelperMock;
   let callbacks;
   let storageMock;
@@ -103,7 +103,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     fetcher = new XhrFetcher(win);
     eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
-    xhrMock = sandbox.mock(fetcher.xhr_);
+    fetcherMock = sandbox.mock(fetcher);
     config = defaultConfig();
     deps = new DepsDef();
     sandbox.stub(deps, 'win').returns(win);
@@ -164,7 +164,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     }
 
     storageMock.verify();
-    xhrMock.verify();
+    fetcherMock.verify();
     jwtHelperMock.verify();
     activitiesMock.verify();
     analyticsMock.verify();
@@ -174,7 +174,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   });
 
   function expectNoResponse() {
-    xhrMock
+    fetcherMock
       .expects('fetch')
       .returns(
         Promise.resolve({
@@ -218,7 +218,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       isReadyToPay,
       decryptedDocumentKey
     );
-    xhrMock
+    fetcherMock
       .expects('fetch')
       .returns(
         Promise.resolve({
@@ -250,7 +250,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       isReadyToPay,
       decryptedDocumentKey
     );
-    xhrMock
+    fetcherMock
       .expects('fetch')
       .returns(
         Promise.resolve({
@@ -290,7 +290,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   }
 
   function expectPost(url, message) {
-    xhrMock
+    fetcherMock
       .expects('fetch')
       .withExactArgs(url, {
         body: 'f.req=' + serializeProtoMessageForUrl(message),
@@ -379,7 +379,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should fetch empty response', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
@@ -409,7 +409,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     it('adds dev mode params to request when present on the URL', async () => {
       const scenario = 'TEST_SCENARIO';
       win.location.hash = `#swg.debug=1&swg.deventitlement=${scenario}`;
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?devEnt=' +
@@ -435,7 +435,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should accept encrypted document key', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
@@ -467,7 +467,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should accept swgUserToken from local storage', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
@@ -530,7 +530,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             clientUserAttribute: 'standard_registered_user',
           },
         });
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
@@ -585,7 +585,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             clientUserAttribute: 'standard_registered_user',
           },
         });
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
@@ -628,7 +628,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should handle and store swgUserToken if it exists in the response with plain entitlements', async () => {
-      xhrMock.expects('fetch').returns(
+      fetcherMock.expects('fetch').returns(
         Promise.resolve({
           text: () =>
             Promise.resolve(
@@ -660,7 +660,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should handle and store swgUserToken if no entitlements', async () => {
-      xhrMock.expects('fetch').returns(
+      fetcherMock.expects('fetch').returns(
         Promise.resolve({
           text: () =>
             Promise.resolve(
@@ -703,7 +703,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             clientUserAttribute: 'standard_registered_user',
           },
         });
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
@@ -754,7 +754,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .expects('decode')
         .withExactArgs('token1')
         .returns(testSubscriptionTokenContents);
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
@@ -815,7 +815,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             clientUserAttribute: 'standard_registered_user',
           },
         });
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
@@ -843,7 +843,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should only fetch once', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -861,7 +861,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should re-fetch after reset', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -896,7 +896,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should fetch with positive expectation with one attempt', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -934,7 +934,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         totalTime += timeout;
         callback();
       });
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -950,7 +950,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           })
         )
         .once();
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -988,7 +988,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         totalTime += timeout;
         callback();
       });
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -1018,7 +1018,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should re-fetch after clear', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -1083,7 +1083,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           `{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"${HASHED_CANONICAL_URL}"},"state":{"id":"u1","attributes":[{"name":"standard_att1","timestamp":1234567},{"name":"custom_att2","timestamp":1234567}]},"token":"token"}}`
         )
       );
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${encodedParams}`,
@@ -1148,7 +1148,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         self.console.warn.reset();
         manager.clear();
 
-        xhrMock.expects('fetch').resolves({text: () => Promise.resolve('{}')});
+        fetcherMock
+          .expects('fetch')
+          .resolves({text: () => Promise.resolve('{}')});
         expectGetSwgUserTokenToBeCalled();
 
         await manager.getEntitlements({
@@ -1173,7 +1175,9 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         self.console.warn.reset();
         manager.clear();
 
-        xhrMock.expects('fetch').resolves({text: () => Promise.resolve('{}')});
+        fetcherMock
+          .expects('fetch')
+          .resolves({text: () => Promise.resolve('{}')});
         expectGetSwgUserTokenToBeCalled();
 
         await manager.getEntitlements({
@@ -1191,7 +1195,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should not open metering dialog when metering entitlements are consumed and showToast is not provided', () => {
-      sandbox.stub(fetcher.xhr_, 'fetch').resolves();
+      sandbox.stub(fetcher, 'fetch').resolves();
       dialogManagerMock.expects('openDialog').never();
       expectGetSwgUserTokenToBeCalled();
 
@@ -1219,7 +1223,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should not open metering dialog when metering entitlements are consumed and signJwt throws', () => {
-      sandbox.stub(fetcher.xhr_, 'fetch').resolves();
+      sandbox.stub(fetcher, 'fetch').resolves();
       dialogManagerMock.expects('openDialog').never();
       jwtHelperMock
         .expects('decode')
@@ -1292,7 +1296,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should not open metering dialog when metering entitlements are consumed and showToast is false', () => {
-      sandbox.stub(fetcher.xhr_, 'fetch').resolves();
+      sandbox.stub(fetcher, 'fetch').resolves();
       expectGetSwgUserTokenToBeCalled();
       const ents = new Entitlements(
         'service1',
@@ -1447,7 +1451,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should not send pingback with non-metering entitlements', async () => {
-      xhrMock.expects('fetch').never();
+      fetcherMock.expects('fetch').never();
 
       const ent = new Entitlement(
         'source1',
@@ -1461,7 +1465,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     it('should not send pingback with invalid GAA params for showcase without JWT', async () => {
       // Stub out Date.now() to some time past the URL timestamp expiration.
       nowStub.returns(3600389016959);
-      xhrMock.expects('fetch').never();
+      fetcherMock.expects('fetch').never();
 
       const ent = new Entitlement(GOOGLE_METERING_SOURCE, [
         'product1',
@@ -1474,7 +1478,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     it('should not send pingback with invalid GAA params for showcase with JWT', async () => {
       // Stub out Date.now() to some time past the URL timestamp expiration.
       nowStub.returns(3600389016959);
-      xhrMock.expects('fetch').never();
+      fetcherMock.expects('fetch').never();
 
       const ent = new Entitlement(
         GOOGLE_METERING_SOURCE,
@@ -1527,7 +1531,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should log error messages from entitlements server', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
@@ -1555,7 +1559,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should warn users about deprecated param', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=deprecated',
@@ -1669,7 +1673,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           `{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"${HASHED_CANONICAL_URL}"},"state":{"id":"u1","attributes":[]},"token":"token"}}`
         )
       );
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           `$frontend$/swg/_/api/v1/publication/pub1/article?encodedEntitlementsParams=${encodedParams}`,
@@ -1712,7 +1716,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should only include METERED_BY_GOOGLE client type if explicitly enabled', async () => {
       expectGetSwgUserTokenToBeCalled();
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${defaultGoogleMeteringEncodedParams}`,
@@ -1733,7 +1737,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should add the publisherProvidedId param from the config', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
@@ -1764,7 +1768,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     });
 
     it('should add the publisherProvidedId param from the getEntitlements params', async () => {
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
@@ -1804,7 +1808,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .atLeast(1);
       sandbox.useFakeTimers(CURRENT_TIME);
       expectGetSwgUserTokenToBeCalled();
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           `$frontend$/swg/_/api/v1/publication/pub1/entitlements?interaction_age=2`,
@@ -1834,7 +1838,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .atLeast(1);
       sandbox.useFakeTimers(CURRENT_TIME);
       expectGetSwgUserTokenToBeCalled();
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
@@ -1864,7 +1868,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         .atLeast(1);
       sandbox.useFakeTimers(CURRENT_TIME);
       expectGetSwgUserTokenToBeCalled();
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .withExactArgs(
           `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
@@ -1893,7 +1897,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       originator,
       params = getEventParams(null)
     ) {
-      xhrMock.expects('fetch').never();
+      fetcherMock.expects('fetch').never();
       eventManager.logEvent({
         eventType: event,
         eventOriginator: originator,
@@ -2016,7 +2020,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SWG_CLIENT
         );
-        await xhrMock.verify();
+        await fetcherMock.verify();
       });
 
       it('should NOT pingback other events', async () => {
@@ -2026,7 +2030,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             continue;
           }
           await expectNoPingback(event, EventOriginator.SWG_CLIENT);
-          await xhrMock.verify();
+          await fetcherMock.verify();
         }
       });
     });
@@ -2091,7 +2095,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           AnalyticsEvent.IMPRESSION_PAYWALL,
           EventOriginator.SHOWCASE_CLIENT
         );
-        await xhrMock.verify();
+        await fetcherMock.verify();
       });
 
       it('should NOT pingback other events', async () => {
@@ -2101,7 +2105,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             continue;
           }
           await expectNoPingback(event, EventOriginator.SHOWCASE_CLIENT);
-          await xhrMock.verify();
+          await fetcherMock.verify();
         }
       });
     });
@@ -2123,7 +2127,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
             continue;
           }
           expectNoPingback(AnalyticsEvent[eventKey], origin);
-          xhrMock.verify();
+          fetcherMock.verify();
         }
       }
       return eventManager.lastAction_;
@@ -2325,7 +2329,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         products: ['pub1:label1'],
         subscriptionToken: 's1',
       });
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -2350,7 +2354,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         products: ['pub1:label1'],
         subscriptionToken: 's1',
       });
-      xhrMock
+      fetcherMock
         .expects('fetch')
         .returns(
           Promise.resolve({
@@ -2411,7 +2415,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
               clientType: MeterClientTypes.METERED_BY_GOOGLE.valueOf(),
             },
           });
-        xhrMock
+        fetcherMock
           .expects('fetch')
           .withExactArgs(
             '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
@@ -2439,7 +2443,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         expectGetIsReadyToPayToBeCalled(null);
         expectGetSwgUserTokenToBeCalled();
         expectSignedEntitlementsReturnsGoogleMeter();
-        xhrMock
+        fetcherMock
           .expects('fetch')
           .withArgs(
             '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
@@ -2454,7 +2458,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
         // Verify that the entitlement created should trigger the handler.
         expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
-        xhrMock.verify();
+        fetcherMock.verify();
         jwtHelperMock.verify();
         storageMock.verify();
       });
@@ -2487,7 +2491,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
         // Verify that the entitlement created should trigger the handler.
         expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
-        xhrMock.verify();
+        fetcherMock.verify();
         jwtHelperMock.verify();
         storageMock.verify();
       });

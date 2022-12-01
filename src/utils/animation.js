@@ -24,10 +24,11 @@ import {setImportantStyles} from './style';
  * @param {string} curve - transition function for the animation.
  * @return {!Promise} Promise which resolves once the animation is done playing.
  */
-export function transition(el, props, durationMillis, curve) {
+export async function transition(el, props, durationMillis, curve) {
   const win = el.ownerDocument.defaultView;
   const previousTransitionValue = el.style.transition || '';
-  return new Promise((resolve) => {
+
+  await new Promise((resolve) => {
     win.setTimeout(() => {
       win.setTimeout(resolve, durationMillis);
       const tr = `${durationMillis}ms ${curve}`;
@@ -41,9 +42,9 @@ export function transition(el, props, durationMillis, curve) {
         )
       );
     });
-  }).then(() => {
-    setImportantStyles(el, {
-      'transition': previousTransitionValue,
-    });
+  });
+
+  setImportantStyles(el, {
+    'transition': previousTransitionValue,
   });
 }

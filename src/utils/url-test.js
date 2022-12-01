@@ -18,43 +18,12 @@ import {AnalyticsRequest, ReaderSurfaceType} from '../proto/api_messages';
 import {
   addQueryParam,
   getCanonicalUrl,
-  getHostUrl,
   isSecure,
   parseQueryString,
   parseUrl,
   serializeProtoMessageForUrl,
-  serializeQueryString,
   wasReferredByGoogle,
 } from './url';
-
-describe('serializeQueryString', () => {
-  it('should return empty string for empty params', () => {
-    expect(serializeQueryString({})).to.equal('');
-    expect(
-      serializeQueryString({
-        nullValue: null,
-        undefValue: undefined,
-      })
-    ).to.equal('');
-  });
-  it('should serialize a single value', () => {
-    expect(serializeQueryString({a: 'A'})).to.equal('a=A');
-  });
-  it('should serialize multiple values', () => {
-    expect(serializeQueryString({a: 'A', b: 'B'})).to.equal('a=A&b=B');
-  });
-  it('should coerce to string', () => {
-    expect(serializeQueryString({a: 1, b: true})).to.equal('a=1&b=true');
-  });
-  it('should encode values and keys', () => {
-    expect(serializeQueryString({'a+b': 'A+B'})).to.equal('a%2Bb=A%2BB');
-  });
-  it('should serialize multiple valued parameters', () => {
-    expect(serializeQueryString({a: [1, 2, 3], b: true})).to.equal(
-      'a=1&a=2&a=3&b=true'
-    );
-  });
-});
 
 describes.realWin('parseUrl', {}, () => {
   const currentPort = location.port;
@@ -229,19 +198,6 @@ describes.realWin('parseUrl', {}, () => {
     expect(consoleWarn).to.be.calledWith(
       'SwG could not parse a URL query param: unparseableParam'
     );
-  });
-
-  it('should strip fragment for host url', () => {
-    expect(getHostUrl('https://example.com/abc?a=1#frag')).to.equal(
-      'https://example.com/abc?a=1'
-    );
-    expect(getHostUrl('https://example.com/abc?a=1')).to.equal(
-      'https://example.com/abc?a=1'
-    );
-    expect(getHostUrl('https://example.com/abc')).to.equal(
-      'https://example.com/abc'
-    );
-    expect(getHostUrl('https://example.com/')).to.equal('https://example.com/');
   });
 });
 

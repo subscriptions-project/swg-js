@@ -15,6 +15,8 @@
  */
 
 const PREFIX = 'subscribe.google.com';
+const STORAGE_DELIMITER = ',';
+const WEEK_IN_MILLIS = 604800000;
 
 /**
  * This class is responsible for the storage of data in session storage. If
@@ -102,6 +104,75 @@ export class Storage {
       }
       resolve();
     });
+  }
+
+  /**
+   * Stores the current time to local storage, under the storageKey provided.
+   * Removes times older than a week in the process.
+   * @param {string} storageKey
+   */
+  storeEvent(storageKey) {
+    return this.getEvent(storageKey).then((timestamps) => {
+      timestamps.push(Date.now());
+      const valueToStore = this.serializeTimestamps_(timestamps);
+      this.set(storageKey, valueToStore, /* useLocalStorage */ true);
+    });
+  }
+
+  /**
+   * Retrieves the current time to local storage, under the storageKey provided.
+   * Filters out timestamps older than a week.
+   * @param {string} storageKey
+   * @return {!Promise<!Array<number>>}
+   */
+  getEvent(storageKey) {
+    return this.get(storageKey, /* useLocalStorage */ true).then((value) =>
+      this.pruneTimestamps_(this.deserializeTimestamps_(value))
+    );
+  }
+
+  /**
+   * Converts a stored series of timestamps to an array of numbers.
+   * @param {?string} value
+   * @return {!Array<number>}
+   */
+  deserializeTimestamps_(value) {
+    if (value === null) {
+      return [];
+    }
+    return value
+      .split(STORAGE_DELIMITER)
+      .map((dateStr) => parseInt(dateStr, 10));
+  }
+
+  /**
+   * Converts an array of numbers to a concatenated string of timestamps for
+   * storage.
+   * @param {!Array<number>} timestamps
+   * @return {string}
+   */
+  serializeTimestamps_(timestamps) {
+    return timestamps.join(STORAGE_DELIMITER);
+  }
+
+  /**
+   * Filters out values that are older than a week.
+   * @param {!Array<number>} timestamps
+   * @return {!Array<number>}
+   */
+  pruneTimestamps_(timestamps) {
+    const now = Date.now();
+    let sliceIndex = timestamps.length;
+    for (let i = 0; i < timestamps.length; i++) {
+      // The arrays are sorted in time, so if you find a time in the array
+      // that's within the week boundary, we can skip over the remainder because
+      // the rest of the array else should be too.
+      if (now - timestamps[i] <= WEEK_IN_MILLIS) {
+        sliceIndex = i;
+        break;
+      }
+    }
+    return timestamps.slice(sliceIndex);
   }
 }
 
