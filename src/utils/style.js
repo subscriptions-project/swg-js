@@ -18,7 +18,7 @@
 let propertyNameCache;
 
 /** @const {!Array<string>} */
-const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'ms', 'O', 'o'];
+const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'O', 'o'];
 
 /**
  * Default styles to be set for top level friendly iframe.
@@ -152,10 +152,6 @@ export const defaultStyles = {
   'z-index': 'auto',
 };
 
-/** @const {string} */
-export const googleFontsUrl =
-  'https://fonts.googleapis.com/css?family=Google+Sans';
-
 /**
  * @param {string} camelCase camel cased string
  * @return {string} title cased string
@@ -287,18 +283,6 @@ export function setStyles(element, styles) {
 }
 
 /**
- * Shows or hides the specified element.
- * @param {!Element} element
- * @param {boolean=} display
- */
-export function toggle(element, display) {
-  if (display === undefined) {
-    display = getStyle(element, 'display') == 'none';
-  }
-  setStyle(element, 'display', display ? '' : 'none');
-}
-
-/**
  * Returns a pixel value.
  * @param {number} value
  * @return {string}
@@ -345,33 +329,6 @@ export function translate(x, y) {
  */
 export function scale(value) {
   return `scale(${value})`;
-}
-
-/**
- * Remove alpha value from a rgba color value.
- * Return the new color property with alpha equals if has the alpha value.
- * Caller needs to make sure the input color value is a valid rgba/rgb value
- * @param {string} rgbaColor
- * @return {string}
- */
-export function removeAlphaFromColor(rgbaColor) {
-  return rgbaColor.replace(
-    /\(([^,]+),([^,]+),([^,)]+),[^)]+\)/g,
-    '($1,$2,$3, 1)'
-  );
-}
-
-/**
- * Gets the computed style of the element. The helper is necessary to enforce
- * the possible `null` value returned by a buggy Firefox.
- *
- * @param {!Window} win
- * @param {!Element} el
- * @return {!Object<string, string>}
- */
-export function computedStyle(win, el) {
-  const style = /** @type {?CSSStyleDeclaration} */ (win.getComputedStyle(el));
-  return /** @type {!Object<string, string>} */ (style) || {};
 }
 
 /**
