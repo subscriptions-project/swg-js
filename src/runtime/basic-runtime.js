@@ -74,14 +74,13 @@ export function installBasicRuntime(win) {
    * Executes a callback when the runtime is ready.
    * @param {function(!../api/basic-subscriptions.BasicSubscriptions)} callback
    */
-  function callWhenRuntimeIsReady(callback) {
+  async function callWhenRuntimeIsReady(callback) {
     if (!callback) {
       return;
     }
 
-    basicRuntime.whenReady().then(() => {
-      callback(publicBasicRuntime);
-    });
+    await basicRuntime.whenReady();
+    callback(publicBasicRuntime);
   }
 
   // Queue up any callbacks the publication might have provided.
@@ -236,36 +235,33 @@ export class BasicRuntime {
   }
 
   /** @override */
-  setOnEntitlementsResponse(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnEntitlementsResponse(callback)
-    );
+  async setOnEntitlementsResponse(callback) {
+    const runtime = await this.configured_(false);
+    runtime.setOnEntitlementsResponse(callback);
   }
 
   /** @override */
-  setOnPaymentResponse(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnPaymentResponse(callback)
-    );
+  async setOnPaymentResponse(callback) {
+    const runtime = await this.configured_(false);
+    runtime.setOnPaymentResponse(callback);
   }
 
   /** @override */
-  setOnLoginRequest() {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnLoginRequest()
-    );
+  async setOnLoginRequest() {
+    const runtime = await this.configured_(false);
+    runtime.setOnLoginRequest();
   }
 
   /** @override */
-  setupAndShowAutoPrompt(options) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setupAndShowAutoPrompt(options)
-    );
+  async setupAndShowAutoPrompt(options) {
+    const runtime = await this.configured_(false);
+    runtime.setupAndShowAutoPrompt(options);
   }
 
   /** @override */
-  dismissSwgUI() {
-    return this.configured_(false).then((runtime) => runtime.dismissSwgUI());
+  async dismissSwgUI() {
+    const runtime = await this.configured_(false);
+    runtime.dismissSwgUI();
   }
 
   /** @override */
@@ -279,15 +275,15 @@ export class BasicRuntime {
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
-  setupButtons() {
-    return this.configured_(false).then((runtime) => runtime.setupButtons());
+  async setupButtons() {
+    const runtime = await this.configured_(false);
+    runtime.setupButtons();
   }
 
   /** Process result from checkentitlements view */
-  processEntitlements() {
-    return this.configured_(false).then((runtime) =>
-      runtime.processEntitlements()
-    );
+  async processEntitlements() {
+    const runtime = await this.configured_(false);
+    runtime.processEntitlements();
   }
 }
 
@@ -510,73 +506,71 @@ export class ConfiguredBasicRuntime {
    * Handler function to process EntitlementsResponse.
    * @param {!../components/activities.ActivityPortDef} port
    */
-  entitlementsResponseHandler(port) {
-    const promise = acceptPortResultData(
+  async entitlementsResponseHandler(port) {
+    const response = await acceptPortResultData(
       port,
       feOrigin(),
       /* requireOriginVerified */ true,
       /* requireSecureChannel */ false
     );
-    return promise.then((response) => {
-      const jwt = response['jwt'];
-      if (jwt) {
-        // If entitlements are returned, close the subscription/contribution offers iframe
-        this.configuredClassicRuntime_.closeDialog();
 
-        // Also save the entitlements and user token
-        this.entitlementsManager().pushNextEntitlements(jwt);
-        const userToken = response['usertoken'];
-        if (userToken) {
-          this.storage().set(Constants.USER_TOKEN, userToken, true);
-        }
+    const jwt = response['jwt'];
+    if (jwt) {
+      // If entitlements are returned, close the subscription/contribution offers iframe
+      this.configuredClassicRuntime_.closeDialog();
 
-        // Show 'Signed in as abc@gmail.com' toast on the pub page.
-        new Toast(
-          this,
-          feUrl('/toastiframe', {
-            flavor: 'basic',
-          })
-        ).open();
-      } else {
-        // If no entitlements are returned, subscription/contribution offers or audience
-        // action iframe will show a toast with label "no subscription/contribution found"
-        const lastOffersFlow =
-          this.configuredClassicRuntime_.getLastOffersFlow();
-        if (lastOffersFlow) {
-          lastOffersFlow.showNoEntitlementFoundToast();
-          return;
-        }
-
-        const lastContributionsFlow =
-          this.configuredClassicRuntime_.getLastContributionsFlow();
-        if (lastContributionsFlow) {
-          lastContributionsFlow.showNoEntitlementFoundToast();
-          return;
-        }
-
-        const lastAudienceActionFlow =
-          this.autoPromptManager_.getLastAudienceActionFlow();
-        if (lastAudienceActionFlow) {
-          lastAudienceActionFlow.showNoEntitlementFoundToast();
-          return;
-        }
-
-        // Fallback in case there is no active flow. This occurs when the entitlment check
-        // runs as a redirect.
-        const language = this.clientConfigManager().getLanguage();
-        const customText = msg(
-          SWG_I18N_STRINGS['NO_MEMBERSHIP_FOUND_LANG_MAP'],
-          language
-        );
-        new Toast(
-          this,
-          feUrl('/toastiframe', {
-            flavor: 'custom',
-            customText,
-          })
-        ).open();
+      // Also save the entitlements and user token
+      this.entitlementsManager().pushNextEntitlements(jwt);
+      const userToken = response['usertoken'];
+      if (userToken) {
+        this.storage().set(Constants.USER_TOKEN, userToken, true);
       }
-    });
+
+      // Show 'Signed in as abc@gmail.com' toast on the pub page.
+      new Toast(
+        this,
+        feUrl('/toastiframe', {
+          flavor: 'basic',
+        })
+      ).open();
+    } else {
+      // If no entitlements are returned, subscription/contribution offers or audience
+      // action iframe will show a toast with label "no subscription/contribution found"
+      const lastOffersFlow = this.configuredClassicRuntime_.getLastOffersFlow();
+      if (lastOffersFlow) {
+        lastOffersFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
+      const lastContributionsFlow =
+        this.configuredClassicRuntime_.getLastContributionsFlow();
+      if (lastContributionsFlow) {
+        lastContributionsFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
+      const lastAudienceActionFlow =
+        this.autoPromptManager_.getLastAudienceActionFlow();
+      if (lastAudienceActionFlow) {
+        lastAudienceActionFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
+      // Fallback in case there is no active flow. This occurs when the entitlment check
+      // runs as a redirect.
+      const language = this.clientConfigManager().getLanguage();
+      const customText = msg(
+        SWG_I18N_STRINGS['NO_MEMBERSHIP_FOUND_LANG_MAP'],
+        language
+      );
+      new Toast(
+        this,
+        feUrl('/toastiframe', {
+          flavor: 'custom',
+          customText,
+        })
+      ).open();
+    }
   }
 
   /** @override */
@@ -613,35 +607,29 @@ export class ConfiguredBasicRuntime {
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
-  setupButtons() {
-    this.clientConfigManager()
-      .shouldEnableButton()
-      .then((enable) => {
-        this.buttonApi_.attachButtonsWithAttribute(
-          BUTTON_ATTRIUBUTE,
-          [
-            ButtonAttributeValues.SUBSCRIPTION,
-            ButtonAttributeValues.CONTRIBUTION,
-          ],
-          {
-            theme: this.clientConfigManager().getTheme(),
-            lang: this.clientConfigManager().getLanguage(),
-            enable,
-          },
-          {
-            [ButtonAttributeValues.SUBSCRIPTION]: () => {
-              this.configuredClassicRuntime_.showOffers({
-                isClosable: !this.pageConfig().isLocked(),
-              });
-            },
-            [ButtonAttributeValues.CONTRIBUTION]: () => {
-              this.configuredClassicRuntime_.showContributionOptions({
-                isClosable: !this.pageConfig().isLocked(),
-              });
-            },
-          }
-        );
-      });
+  async setupButtons() {
+    const enable = await this.clientConfigManager().shouldEnableButton();
+    this.buttonApi_.attachButtonsWithAttribute(
+      BUTTON_ATTRIUBUTE,
+      [ButtonAttributeValues.SUBSCRIPTION, ButtonAttributeValues.CONTRIBUTION],
+      {
+        theme: this.clientConfigManager().getTheme(),
+        lang: this.clientConfigManager().getLanguage(),
+        enable,
+      },
+      {
+        [ButtonAttributeValues.SUBSCRIPTION]: () => {
+          this.configuredClassicRuntime_.showOffers({
+            isClosable: !this.pageConfig().isLocked(),
+          });
+        },
+        [ButtonAttributeValues.CONTRIBUTION]: () => {
+          this.configuredClassicRuntime_.showContributionOptions({
+            isClosable: !this.pageConfig().isLocked(),
+          });
+        },
+      }
+    );
   }
 
   /**
