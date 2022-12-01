@@ -31,7 +31,10 @@ app.use(express.static('public'));
  * The endpoint is compatible with the classic Swgjs local demos.
  */
 app.get('/examples/sample-pub/redirect-to/swg-basic.js', (req, res) => {
-  res.redirect('https://news.google.com/swg/js/v1/swg-basic.js');
+  const jsurl = req.get('referrer')?.match('/qual/')
+    ? 'https://news.google.com/swg/js/v1/swg-basic-qual.js'
+    : 'https://news.google.com/swg/js/v1/swg-basic.js';
+  res.redirect(jsurl);
 });
 
 app.listen(port, () => {
