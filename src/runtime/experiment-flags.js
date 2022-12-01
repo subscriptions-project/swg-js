@@ -40,11 +40,6 @@ export const ExperimentFlags = {
    */
   SMARTBOX: 'smartbox',
 
-  /**
-   * Enables using new Activities APIs
-   */
-  HEJIRA: 'hejira',
-
   /** Enables logging to both the new SwG Clearcut service and the pre-existing
    *  Clearcut iframe while we verify the new logging system works.
    *  Publishers should not activate this experiment.
