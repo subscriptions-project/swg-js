@@ -109,7 +109,10 @@ export class ClientConfigManager {
    * @return {!../api/basic-subscriptions.ClientTheme}
    */
   getTheme() {
-    return this.clientOptions_.theme || ClientTheme.LIGHT;
+    const themeDefault = self.matchMedia(`(prefers-color-scheme: dark)`).matches
+      ? ClientTheme.DARK
+      : ClientTheme.LIGHT;
+    return this.clientOptions_.theme || themeDefault;
   }
 
   /**
