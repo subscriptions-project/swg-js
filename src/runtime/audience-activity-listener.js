@@ -77,25 +77,31 @@ export class AudienceActivityEventListener {
    * @param {!../api/client-event-manager-api.ClientEvent} event
    * @private
    */
-  handleClientEvent_(event) {
-    // Checking to see if event classifies as an Audience Activity event before proceeding to promise statement.
-    if (event.eventType && audienceActivityLoggingEvents.has(event.eventType)) {
-      this.storage_.get(Constants.USER_TOKEN, true).then((swgUserToken) => {
-        if (swgUserToken) {
-          const pubId = encodeURIComponent(
-            this.deps_.pageConfig().getPublicationId()
-          );
-          const audienceActivityClientLogsRequest =
-            this.createLogRequest_(event);
-          let url = `/publication/${pubId}/audienceactivity`;
-          url = addQueryParam(url, 'sut', swgUserToken);
-          this.fetcher_.sendBeacon(
-            serviceUrl(url),
-            audienceActivityClientLogsRequest
-          );
-        }
-      });
+  async handleClientEvent_(event) {
+    // Bail if event is unrelated to Audience Activity.
+    if (
+      !event.eventType ||
+      !audienceActivityLoggingEvents.has(event.eventType)
+    ) {
+      return;
     }
+
+    // Bail if SUT is unavailable.
+    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
+    if (!swgUserToken) {
+      return;
+    }
+
+    const pubId = encodeURIComponent(
+      this.deps_.pageConfig().getPublicationId()
+    );
+    const audienceActivityClientLogsRequest = this.createLogRequest_(event);
+    let url = `/publication/${pubId}/audienceactivity`;
+    url = addQueryParam(url, 'sut', swgUserToken);
+    this.fetcher_.sendBeacon(
+      serviceUrl(url),
+      audienceActivityClientLogsRequest
+    );
   }
 
   /**
