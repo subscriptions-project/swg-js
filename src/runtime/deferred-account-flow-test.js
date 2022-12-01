@@ -97,14 +97,14 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
     expect(flow.options_.entitlements).to.equal(ents);
   });
 
-  it('should disallow no entitlement', () => {
+  it('should disallow no entitlement', async () => {
     flow = new DeferredAccountFlow(runtime);
-    expect(() => {
-      flow.start();
-    }).to.throw(/\"google\" source/);
+    await expect(flow.start()).to.eventually.be.rejectedWith(
+      /\"google\" source/
+    );
   });
 
-  it('should disallow empty entitlement', () => {
+  it('should disallow empty entitlement', async () => {
     ents = new Entitlements(
       'subscribe.google.com',
       'RaW',
@@ -115,12 +115,12 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
     flow = new DeferredAccountFlow(runtime, {
       entitlements: ents,
     });
-    expect(() => {
-      flow.start();
-    }).to.throw(/\"google\" source/);
+    await expect(flow.start()).to.eventually.be.rejectedWith(
+      /\"google\" source/
+    );
   });
 
-  it('should require "google" entitlement', () => {
+  it('should require "google" entitlement', async () => {
     ents = new Entitlements(
       'subscribe.google.com',
       'RaW',
@@ -131,9 +131,9 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
     flow = new DeferredAccountFlow(runtime, {
       entitlements: ents,
     });
-    expect(() => {
-      flow.start();
-    }).to.throw(/\"google\" source/);
+    await expect(flow.start()).to.eventually.be.rejectedWith(
+      /\"google\" source/
+    );
   });
 
   it('should start flow', () => {

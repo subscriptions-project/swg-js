@@ -51,33 +51,37 @@ export class ContributionsFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    this.activityIframeView_ = null;
+    /** @private @const {!Promise<?ActivityIframeView>} */
+    this.activityIframeViewPromise_ = this.getActivityIframeView_();
+  }
 
+  /**
+   * @return {!Promise<?ActivityIframeView>}
+   */
+  async getActivityIframeView_() {
     // Default to showing close button.
-    const isClosable = options?.isClosable ?? true;
+    const isClosable = this.options_?.isClosable ?? true;
 
-    /** @private @const {!Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfigManager_
-      .getClientConfig()
-      .then((clientConfig) => {
-        return this.shouldShow_(clientConfig)
-          ? new ActivityIframeView(
-              this.win_,
-              this.activityPorts_,
-              this.getUrl_(clientConfig, deps.pageConfig()),
-              feArgs({
-                'productId': deps.pageConfig().getProductId(),
-                'publicationId': deps.pageConfig().getPublicationId(),
-                'productType': ProductType.UI_CONTRIBUTION,
-                'list': (options && options.list) || 'default',
-                'skus': (options && options.skus) || null,
-                'isClosable': isClosable,
-                'supportsEventManager': true,
-              }),
-              /* shouldFadeBody */ true
-            )
-          : null;
-      });
+    const clientConfig = await this.clientConfigManager_.getClientConfig();
+    if (!this.shouldShow_(clientConfig)) {
+      return null;
+    }
+
+    return new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      this.getUrl_(clientConfig, this.deps_.pageConfig()),
+      feArgs({
+        'productId': this.deps_.pageConfig().getProductId(),
+        'publicationId': this.deps_.pageConfig().getPublicationId(),
+        'productType': ProductType.UI_CONTRIBUTION,
+        'list': this.options_?.list || 'default',
+        'skus': this.options_?.skus || null,
+        'isClosable': isClosable,
+        'supportsEventManager': true,
+      }),
+      /* shouldFadeBody */ true
+    );
   }
 
   /**
@@ -117,43 +121,36 @@ export class ContributionsFlow {
    * Starts the contributions flow or alreadyMember flow.
    * @return {!Promise}
    */
-  start() {
-    return this.activityIframeViewPromise_.then((activityIframeView) => {
-      if (!activityIframeView) {
-        return Promise.resolve();
-      }
+  async start() {
+    const activityIframeView = await this.activityIframeViewPromise_;
+    if (!activityIframeView) {
+      return Promise.resolve();
+    }
 
-      // Start/cancel events.
+    // Start/cancel events.
+    this.deps_
+      .callbacks()
+      .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+    activityIframeView.onCancel(() => {
       this.deps_
         .callbacks()
-        .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
-      activityIframeView.onCancel(() => {
-        this.deps_
-          .callbacks()
-          .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
-      });
-      activityIframeView.on(
-        AlreadySubscribedResponse,
-        this.handleLinkRequest_.bind(this)
-      );
-      activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
-      this.activityIframeView_ = activityIframeView;
-      return this.clientConfigManager_
-        .getClientConfig()
-        .then((clientConfig) => {
-          if (!this.activityIframeView_) {
-            return;
-          }
-          return this.dialogManager_.openView(
-            this.activityIframeView_,
-            /* hidden */ false,
-            this.getDialogConfig_(
-              clientConfig,
-              this.clientConfigManager_.shouldAllowScroll()
-            )
-          );
-        });
+        .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     });
+    activityIframeView.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+    activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
+
+    const clientConfig = await this.clientConfigManager_.getClientConfig();
+    return this.dialogManager_.openView(
+      activityIframeView,
+      /* hidden */ false,
+      this.getDialogConfig_(
+        clientConfig,
+        this.clientConfigManager_.shouldAllowScroll()
+      )
+    );
   }
 
   /**
@@ -207,9 +204,8 @@ export class ContributionsFlow {
   /**
    * Shows "no contribution found" on activity iFrame view.
    */
-  showNoEntitlementFoundToast() {
-    if (this.activityIframeView_) {
-      this.activityIframeView_.execute(new EntitlementsResponse());
-    }
+  async showNoEntitlementFoundToast() {
+    const activityIframeView = await this.activityIframeViewPromise_;
+    activityIframeView.execute(new EntitlementsResponse());
   }
 }

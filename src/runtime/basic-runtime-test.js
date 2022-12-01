@@ -477,6 +477,20 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.dismissSwgUI();
     });
 
+    it('delegates linkSubscription', async () => {
+      const mockResult = {success: true};
+      const request = {};
+      configuredBasicRuntimeMock
+        .expects('linkSubscription')
+        .withExactArgs(request)
+        .returns(Promise.resolve(mockResult))
+        .once();
+
+      const result = await basicRuntime.linkSubscription(request);
+
+      expect(result).to.deep.equal(mockResult);
+    });
+
     it('should call attach on all buttons with the correct attribute if buttons should be enable', async () => {
       // Set up buttons on the doc.
       const subscriptionButton = createElement(doc.getRootNode(), 'button', {
