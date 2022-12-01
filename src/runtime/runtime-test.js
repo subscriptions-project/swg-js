@@ -1472,19 +1472,12 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       const gstatic = win.document.head.querySelector(
         'link[rel="preconnect"][href*="gstatic"]'
       );
-      const fonts = win.document.head.querySelector(
-        'link[rel="preconnect"][href*="fonts"]'
-      );
       const goog = win.document.head.querySelector(
         'link[rel="preconnect"][href*="google.com"]'
       );
       expect(gstatic).to.exist;
-      expect(fonts).to.exist;
       expect(goog).to.exist;
       expect(gstatic.getAttribute('href')).to.equal('https://www.gstatic.com/');
-      expect(fonts.getAttribute('href')).to.equal(
-        'https://fonts.googleapis.com/'
-      );
       expect(goog.getAttribute('href')).to.equal('https://www.google.com/');
     });
 
