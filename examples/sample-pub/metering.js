@@ -51,7 +51,7 @@ const MeteringDemo = {
   },
 
   /** Resets the metering demo. */
-  resetMeteringDemo: () => {
+  resetMeteringDemo: async () => {
     // Forget the existing PPID.
     delete localStorage.meteringPpid;
 
@@ -62,7 +62,10 @@ const MeteringDemo = {
     delete localStorage.meteringUsername;
 
     // Sign out of Google Sign-In.
-    GaaMeteringRegwall.signOut().then(() => void location.reload());
+    await GaaMeteringRegwall.signOut();
+
+    // Reload page.
+    location.reload();
   },
 
   /**

@@ -740,7 +740,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
           isFromUserAction: false,
         },
         {
-          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
           isFromUserAction: true,
         },
       ]);
@@ -1126,7 +1126,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       // Verify analytics event.
       expectAnalyticsEvents([
         {
-          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
           isFromUserAction: true,
         },
       ]);
@@ -3969,14 +3969,14 @@ describes.realWin('GaaMetering', {}, () => {
       handleSwGEntitlement = sandbox.fake();
 
       sandbox.stub(GaaMetering, 'isCurrentUserRegistered').returns(true);
-
-      const googleEntitlementsPromise = Promise.resolve({
+      const googleEntitlement = {
         enablesThisWithGoogleMetering: sandbox.fake.returns(false),
         enablesThis: sandbox.fake.returns(true),
         consume: sandbox.fake((callback) => {
           return callback();
         }),
-      });
+      };
+      const googleEntitlementsPromise = Promise.resolve(googleEntitlement);
 
       GaaMetering.setEntitlements(
         googleEntitlementsPromise,
@@ -3988,7 +3988,7 @@ describes.realWin('GaaMetering', {}, () => {
       );
 
       await tick(10);
-      expect(handleSwGEntitlement).to.be.called;
+      expect(handleSwGEntitlement).to.be.calledWithExactly(googleEntitlement);
     });
 
     it("shows regWall if user isn't registered", async () => {

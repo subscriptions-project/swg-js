@@ -204,6 +204,13 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
     expect(triggerLinkProgressSpy).to.not.be.called;
     expect(triggerLinkCompleteSpy).to.not.be.called;
 
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_LINK_ACCOUNT_SUCCESS);
+
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -718,6 +725,10 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
   });
 
   it('should test linking success', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
+
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     const result = new ActivityResult(
       ActivityResultCode.OK,
@@ -857,6 +868,10 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
   });
 
   it('should test link complete flow start', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
+
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
     LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
@@ -891,6 +906,10 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
   });
 
   it('should test link complete flow start failure', async () => {
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
+
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     LinkCompleteFlow.prototype.start = () =>
       Promise.reject(createCancelError('unable to open iframe'));
@@ -941,6 +960,10 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
         defaultArguments
       )
       .returns(Promise.resolve(port));
+    // Saving subscription succeeded, but showing the confirmation iframe failed.
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);

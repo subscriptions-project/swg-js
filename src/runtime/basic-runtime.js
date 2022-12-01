@@ -268,6 +268,13 @@ export class BasicRuntime {
     return this.configured_(false).then((runtime) => runtime.dismissSwgUI());
   }
 
+  /** @override */
+  linkSubscription(request) {
+    return this.configured_(false).then((runtime) =>
+      runtime.linkSubscription(request)
+    );
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
@@ -645,6 +652,11 @@ export class ConfiguredBasicRuntime {
   setOnOffersFlowRequest_(callback) {
     this.callbacks().setOnOffersFlowRequest(callback);
   }
+
+  /** @override */
+  linkSubscription(request) {
+    return this.configuredClassicRuntime_.linkSubscription(request);
+  }
 }
 
 /**
@@ -662,5 +674,6 @@ function createPublicBasicRuntime(basicRuntime) {
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
+    linkSubscription: basicRuntime.linkSubscription.bind(basicRuntime),
   });
 }
