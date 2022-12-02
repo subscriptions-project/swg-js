@@ -390,15 +390,15 @@ export class EntitlementsManager {
 
     // Set encoded params, once.
     if (!this.encodedParams_) {
-      const hashedCanonicalUrl = await hash(getCanonicalUrl(this.deps_.doc()));
       /** @type {!GetEntitlementsParamsInternalDef} */
       const encodableParams = {
         metering: {
           resource: {
-            hashedCanonicalUrl,
+            hashedCanonicalUrl: await hash(getCanonicalUrl(this.deps_.doc())),
           },
         },
       };
+
       this.encodedParams_ = base64UrlEncodeFromBytes(
         utf8EncodeSync(JSON.stringify(encodableParams))
       );
