@@ -29,42 +29,42 @@ export class JsError {
   }
 
   /**
-   * @param {...*} var_args
+   * @param {...*} args
    * @return {!Promise}
    */
-  error(var_args) {
-    const args = Array.prototype.slice.call(arguments, 0);
-    return this.microTask_.then(() => {
-      const error = createErrorVargs.apply(null, args);
-      if (error.reported) {
-        return;
-      }
-      const img = this.doc_.getWin().document.createElement('img');
-      img.src =
-        '$frontend$/_/SubscribewithgoogleClientUi/jserror' +
-        '?error=' +
-        encodeURIComponent(String(error)) +
-        '&script=' +
-        encodeURIComponent('$frontend$/swg/js/v1/swg.js') +
-        '&line=' +
-        (error.lineNumber || 1) +
-        '&trace=' +
-        encodeURIComponent(error.stack);
-      // Appending this image to DOM is not necessary.
-      error.reported = true;
-    });
+  async error(...args) {
+    await this.microTask_;
+
+    const error = createErrorFromArgs(args);
+    if (error.reported) {
+      return;
+    }
+
+    const img = this.doc_.getWin().document.createElement('img');
+    img.src =
+      '$frontend$/_/SubscribewithgoogleClientUi/jserror' +
+      '?error=' +
+      encodeURIComponent(String(error)) +
+      '&script=' +
+      encodeURIComponent('$frontend$/swg/js/v1/swg.js') +
+      '&line=' +
+      (error.lineNumber || 1) +
+      '&trace=' +
+      encodeURIComponent(error.stack);
+    // Appending this image to DOM is not necessary.
+
+    error.reported = true;
   }
 }
 
 /**
- * @param {...*} var_args
+ * @param {!Array<!Error|string>} args
  * @return {!Error}
  */
-function createErrorVargs(var_args) {
+function createErrorFromArgs(args) {
   let error = null;
   let message = '';
-  for (let i = 0; i < arguments.length; i++) {
-    const arg = arguments[i];
+  for (const arg of args) {
     if (arg instanceof Error && !error) {
       error = duplicateErrorIfNecessary(arg);
     } else {
