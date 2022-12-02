@@ -1042,7 +1042,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     it('should clear all state and cache', () => {
       manager.reset(true);
       manager.blockNextNotification();
-      manager.entitlementsPromise_ = Promise.reject();
+      manager.responsePromise_ = Promise.reject();
       expect(manager.positiveRetries_).to.equal(3);
       expect(manager.blockNextNotification_).to.be.true;
 
@@ -1053,7 +1053,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       manager.clear();
       expect(manager.positiveRetries_).to.equal(0);
       expect(manager.blockNextNotification_).to.be.false;
-      expect(manager.entitlementsPromise_).to.be.null;
+      expect(manager.responsePromise_).to.be.null;
     });
 
     it('should fetch metering entitlements', async () => {

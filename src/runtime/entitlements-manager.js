@@ -112,7 +112,7 @@ export class EntitlementsManager {
     this.jwtHelper_ = new JwtHelper();
 
     /** @private {?Promise<!Entitlements>} */
-    this.entitlementsPromise_ = null;
+    this.responsePromise_ = null;
 
     /** @private {number} */
     this.positiveRetries_ = 0;
@@ -174,7 +174,7 @@ export class EntitlementsManager {
    * @param {boolean=} expectPositive
    */
   reset(expectPositive) {
-    this.entitlementsPromise_ = null;
+    this.responsePromise_ = null;
     this.positiveRetries_ = Math.max(
       this.positiveRetries_,
       expectPositive ? 3 : 0
@@ -189,7 +189,7 @@ export class EntitlementsManager {
    * Clears all of the entitlements state and cache.
    */
   clear() {
-    this.entitlementsPromise_ = null;
+    this.responsePromise_ = null;
     this.positiveRetries_ = 0;
     this.unblockNextNotification();
     this.storage_.remove(ENTS_STORAGE_KEY);
@@ -219,10 +219,10 @@ export class EntitlementsManager {
       };
     }
 
-    if (!this.entitlementsPromise_) {
-      this.entitlementsPromise_ = this.getEntitlementsFlow_(params);
+    if (!this.responsePromise_) {
+      this.responsePromise_ = this.getEntitlementsFlow_(params);
     }
-    const response = await this.entitlementsPromise_;
+    const response = await this.responsePromise_;
     if (response.isReadyToPay != null) {
       this.analyticsService_.setReadyToPay(response.isReadyToPay);
     }
@@ -472,11 +472,11 @@ export class EntitlementsManager {
   async getArticle() {
     // The base manager only fetches from the entitlements endpoint, which does
     // not contain an Article.
-    if (!this.useArticleEndpoint_ || !this.entitlementsPromise_) {
+    if (!this.useArticleEndpoint_ || !this.responsePromise_) {
       return null;
     }
 
-    await this.entitlementsPromise_;
+    await this.responsePromise_;
 
     return this.article_;
   }
@@ -979,13 +979,13 @@ export class EntitlementsManager {
     const json = await this.fetcher_.fetchCredentialedJson(url);
     let response = json;
     if (this.useArticleEndpoint_) {
-      this.article_ = json;
+      this.article_ = /** @type {Article} */ (json);
       response = json['entitlements'];
     }
 
     // Log errors.
-    if (json.errorMessages?.length > 0) {
-      for (const errorMessage of json.errorMessages) {
+    if (json['errorMessages']?.length > 0) {
+      for (const errorMessage of json['errorMessages']) {
         warn('SwG Entitlements: ' + errorMessage);
       }
     }
@@ -1013,7 +1013,7 @@ function addDevModeParamsToUrl(location, url) {
 /**
  * Convert String value of isReadyToPay
  * (from JSON or Cache) to a boolean value.
- * @param {string} value
+ * @param {string|null} value
  * @return {boolean|undefined}
  * @private
  */
