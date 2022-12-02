@@ -394,7 +394,7 @@ export class EntitlementsManager {
       const encodableParams = {
         metering: {
           resource: {
-            hashedCanonicalUrl: await hash(getCanonicalUrl(this.deps_.doc())),
+            hashedCanonicalUrl: await this.getHashedCanonicalUrl_(),
           },
         },
       };
@@ -416,6 +416,14 @@ export class EntitlementsManager {
     );
 
     return this.fetcher_.sendPost(serviceUrl(url), message);
+  }
+
+  /**
+   * @return {!Promise<string>}
+   * @private
+   */
+  async getHashedCanonicalUrl_() {
+    return hash(getCanonicalUrl(this.deps_.doc()));
   }
 
   /**
@@ -838,8 +846,6 @@ export class EntitlementsManager {
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
 
-    const hashedCanonicalUrl = await hash(getCanonicalUrl(this.deps_.doc()));
-
     url = addDevModeParamsToUrl(this.win_.location, url);
 
     // Add encryption param.
@@ -880,6 +886,8 @@ export class EntitlementsManager {
         }
       }
     }
+
+    const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
     /** @type {!GetEntitlementsParamsInternalDef|undefined} */
     let encodableParams = this.enableMeteredByGoogle_
