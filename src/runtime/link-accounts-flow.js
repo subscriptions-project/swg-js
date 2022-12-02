@@ -97,6 +97,7 @@ export class LinkCompleteFlow {
       deps.dialogManager().popupClosed();
 
       try {
+        // Wait for account linking to complete.
         const response = await acceptPortResultData(
           port,
           feOrigin(),
@@ -104,6 +105,7 @@ export class LinkCompleteFlow {
           /* requireSecureChannel */ false
         );
 
+        // Send events.
         deps
           .eventManager()
           .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
@@ -111,6 +113,7 @@ export class LinkCompleteFlow {
           .eventManager()
           .logSwgEvent(AnalyticsEvent.EVENT_LINK_ACCOUNT_SUCCESS);
 
+        // Start flow.
         const flow = new LinkCompleteFlow(deps, response);
         flow.start();
       } catch (reason) {
