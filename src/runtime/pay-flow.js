@@ -264,7 +264,7 @@ export class PayCompleteFlow {
             deps
               .eventManager()
               .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
-            deps.jserror().error('Pay failed', reason);
+            deps.jserror().error('Pay failed', /** @type {!Error} */ (reason));
             throw reason;
           }
         }

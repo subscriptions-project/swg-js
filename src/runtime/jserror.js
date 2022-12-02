@@ -29,13 +29,15 @@ export class JsError {
   }
 
   /**
-   * @param {...*} args
+   * @param {...(!Error|string)} args
    * @return {!Promise}
    */
   async error(...args) {
     await this.microTask_;
 
     const error = createErrorFromArgs(args);
+
+    // Only report errors once.
     if (error.reported) {
       return;
     }
