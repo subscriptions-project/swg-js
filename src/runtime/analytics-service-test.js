@@ -594,7 +594,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
     it('should not log publisher events by default', () => {
       testOriginator(EventOriginator.SWG_CLIENT, true);
       testOriginator(EventOriginator.SWG_SERVER, true);
-      testOriginator(EventOriginator.AMP_CLIENT, false);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, false);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, false);
     });
@@ -602,20 +601,11 @@ describes.realWin('AnalyticsService', {}, (env) => {
     it('should log publisher events if configured', () => {
       runtime.configure({enableSwgAnalytics: true});
       testOriginator(EventOriginator.SWG_CLIENT, true);
-      testOriginator(EventOriginator.AMP_CLIENT, true);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, true);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, true);
 
       // Should still not log showcase events
       testOriginator(EventOriginator.SHOWCASE_CLIENT, false);
-    });
-
-    it('should always log page load event in AMP', () => {
-      testOriginator(
-        EventOriginator.AMP_CLIENT,
-        true,
-        AnalyticsEvent.IMPRESSION_PAGE_LOAD
-      );
     });
   });
 

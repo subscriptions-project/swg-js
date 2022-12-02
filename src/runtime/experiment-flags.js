@@ -40,11 +40,6 @@ export const ExperimentFlags = {
    */
   SMARTBOX: 'smartbox',
 
-  /**
-   * Enables using new Activities APIs
-   */
-  HEJIRA: 'hejira',
-
   /** Enables googleTransactionID change. With the experiment on the ID is
    *  changed from '<uuid>' to '<uuid>.swg'.
    */
