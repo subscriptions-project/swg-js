@@ -361,23 +361,6 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @return {boolean}
-   */
-  shouldAlwaysLogEvent_(event) {
-    /* AMP_CLIENT events are considered publisher events and we generally only
-     * log those if the publisher decided to enable publisher event logging for
-     * privacy purposes.  The page load event is not private and is necessary
-     * just so we know the user is in AMP, so we will log it regardless of
-     * configuration.
-     */
-    return (
-      event.eventType === AnalyticsEvent.IMPRESSION_PAGE_LOAD &&
-      event.eventOriginator === EventOriginator.AMP_CLIENT
-    );
-  }
-
-  /**
    *  Listens for new events from the events manager and handles logging
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
@@ -395,11 +378,10 @@ export class AnalyticsService {
       return;
     }
 
-    if (
+    const blockedByPublisherConfig =
       ClientEventManager.isPublisherEvent(event) &&
-      !this.shouldLogPublisherEvents_() &&
-      !this.shouldAlwaysLogEvent_(event)
-    ) {
+      !this.shouldLogPublisherEvents_();
+    if (blockedByPublisherConfig) {
       return;
     }
 
