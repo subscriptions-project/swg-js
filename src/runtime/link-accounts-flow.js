@@ -103,12 +103,14 @@ export class LinkCompleteFlow {
           /* requireOriginVerified */ false,
           /* requireSecureChannel */ false
         );
+
         deps
           .eventManager()
           .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
         deps
           .eventManager()
           .logSwgEvent(AnalyticsEvent.EVENT_LINK_ACCOUNT_SUCCESS);
+
         const flow = new LinkCompleteFlow(deps, response);
         flow.start();
       } catch (reason) {
