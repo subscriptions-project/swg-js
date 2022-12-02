@@ -325,15 +325,15 @@ export class LinkSaveFlow {
    * @private
    */
   async handleLinkSaveResponse_(result) {
-    // This flow is complete
+    // This flow is complete.
     this.complete_();
 
-    // Handle linking failure
+    // Handle linking failure.
     if (!result['linked']) {
       throw createCancelError(this.win_, 'not linked');
     }
 
-    // Start link confirmation flow
+    // Start link confirmation flow.
     this.dialogManager_.popupClosed();
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
     this.deps_
@@ -342,8 +342,8 @@ export class LinkSaveFlow {
     const flow = new LinkCompleteFlow(this.deps_, result);
     await flow.start();
 
-    // Wait for completion
     this.deps_.callbacks().triggerLinkProgress();
+
     await flow.whenComplete();
 
     return true;
@@ -385,7 +385,7 @@ export class LinkSaveFlow {
    * @return {?Promise}
    */
   /**
-   * Starts the save subscription
+   * Starts the save subscription.
    * @return {!Promise}
    */
   async start() {
@@ -422,10 +422,10 @@ export class LinkSaveFlow {
 
       return await this.handleLinkSaveResponse_(result);
     } catch (reason) {
-      // In case this flow wasn't complete, complete it here
+      // In case this flow wasn't complete, complete it here.
       this.complete_();
 
-      // Handle cancellation from user, link confirm start or completion here
+      // Handle cancellation from user, link confirm start or completion here.
       if (isCancelError(reason)) {
         this.deps_
           .eventManager()
