@@ -362,10 +362,10 @@ export class LinkSaveFlow {
         if (request.authCode) {
           throw new Error('Both authCode and token are available');
         } else {
-          saveRequest.setToken(request.token);
+          saveRequest.setToken(/** @type {string} */ (request.token));
         }
       } else if (request?.authCode) {
-        saveRequest.setAuthCode(request.authCode);
+        saveRequest.setAuthCode(/** @type {string} */ (request.authCode));
       } else {
         throw new Error('Neither token or authCode is available');
       }
@@ -417,9 +417,7 @@ export class LinkSaveFlow {
         /* requireSecureChannel */ true
       );
 
-      /** {boolean} */
-      const success = await this.handleLinkSaveResponse_(result);
-      return success;
+      return await this.handleLinkSaveResponse_(result);
     } catch (reason) {
       // In case this flow wasn't complete, complete it here
       this.complete_();
