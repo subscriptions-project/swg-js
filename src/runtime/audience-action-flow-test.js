@@ -653,7 +653,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       )
       .once();
     eventManagerMock.expects('logEvent').withExactArgs({
-      eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER_COMPLETE,
+      eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: true,
       additionalParameters: null,

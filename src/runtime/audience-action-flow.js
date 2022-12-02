@@ -345,7 +345,7 @@ export class AudienceActionFlow {
       this.deps_.eventManager().logEvent(event, eventParams);
     });
     this.deps_.eventManager().logEvent({
-      eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER_COMPLETE,
+      eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: true,
       additionalParameters: null,
