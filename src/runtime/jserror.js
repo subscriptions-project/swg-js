@@ -23,9 +23,6 @@ export class JsError {
   constructor(doc) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
-
-    /** @private @const {!Promise} */
-    this.microTask_ = Promise.resolve();
   }
 
   /**
@@ -33,15 +30,18 @@ export class JsError {
    * @return {!Promise}
    */
   async error(...args) {
-    await this.microTask_;
+    // Wait for next task.
+    await 0;
 
+    // Combine args to create error.
     const error = createErrorFromArgs(args);
 
-    // Only report errors once.
+    // Only report error once.
     if (error.reported) {
       return;
     }
 
+    // Send error.
     const img = this.doc_.getWin().document.createElement('img');
     img.src =
       '$frontend$/_/SubscribewithgoogleClientUi/jserror' +
@@ -53,8 +53,8 @@ export class JsError {
       (error.lineNumber || 1) +
       '&trace=' +
       encodeURIComponent(error.stack);
-    // Appending this image to DOM is not necessary.
 
+    // Avoid reporting error twice.
     error.reported = true;
   }
 }
