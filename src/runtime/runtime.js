@@ -63,6 +63,7 @@ import {
 import {Propensity} from './propensity';
 import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
 import {Storage} from './storage';
+import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
 import {
@@ -70,7 +71,7 @@ import {
   toTimestamp,
 } from '../utils/date-utils';
 import {debugLog} from '../utils/log';
-import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
+import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {isSecure} from '../utils/url';
@@ -538,6 +539,13 @@ export class Runtime {
       runtime.setPublisherProvidedId(publisherProvidedId)
     );
   }
+
+  /** @override */
+  linkSubscription(request) {
+    return this.configured_(true).then((runtime) =>
+      runtime.linkSubscription(request)
+    );
+  }
 }
 
 /**
@@ -577,11 +585,6 @@ export class ConfiguredRuntime {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
 
-    if (isLegacyEdgeBrowser(this.win_)) {
-      // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
-      // or move it to Web Activities.
-      this.config_.windowOpenMode = WindowOpenMode.REDIRECT;
-    }
     if (config) {
       this.configure_(config);
     }
@@ -677,7 +680,6 @@ export class ConfiguredRuntime {
 
     preconnect.prefetch('$assets$/loader.svg');
     preconnect.preconnect('https://www.gstatic.com/');
-    preconnect.preconnect('https://fonts.googleapis.com/');
     preconnect.preconnect('https://www.google.com/');
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
@@ -1211,6 +1213,13 @@ export class ConfiguredRuntime {
   setPublisherProvidedId(publisherProvidedId) {
     this.publisherProvidedId_ = publisherProvidedId;
   }
+
+  /** @override */
+  linkSubscription(request) {
+    return this.documentParsed_.then(() => {
+      return new SubscriptionLinkingFlow(this).start(request);
+    });
+  }
 }
 
 /**
@@ -1263,5 +1272,6 @@ function createPublicRuntime(runtime) {
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
+    linkSubscription: runtime.linkSubscription.bind(runtime),
   });
 }

@@ -61,6 +61,7 @@ import {PayClient} from './pay-client';
 import {PayStartFlow} from './pay-flow';
 import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
+import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
@@ -70,11 +71,6 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 import {parseUrl} from '../utils/url';
-
-const EDGE_USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0)' +
-  ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135' +
-  ' Safari/537.36 Edge/12.10136';
 
 describes.realWin('installRuntime', {}, (env) => {
   let win;
@@ -463,19 +459,6 @@ describes.realWin('Runtime', {}, (env) => {
         .stub(ConfiguredRuntime.prototype, 'configure')
         .callsFake(() => {});
       runtime.configure({windowOpenMode: 'redirect'});
-      runtime.init('pub2');
-
-      const cr = await runtime.configured_(true);
-      expect(cr.config().windowOpenMode).to.equal('redirect');
-    });
-
-    it('should force redirect mode on Edge', async () => {
-      Object.defineProperty(win.navigator, 'userAgent', {
-        value: EDGE_USER_AGENT,
-      });
-      sandbox
-        .stub(ConfiguredRuntime.prototype, 'configure')
-        .callsFake(() => {});
       runtime.init('pub2');
 
       const cr = await runtime.configured_(true);
@@ -964,6 +947,18 @@ describes.realWin('Runtime', {}, (env) => {
 
       await runtime.waitForSubscriptionLookup();
       expect(configureStub).to.be.calledOnce;
+    });
+
+    it('delegates linkSubscription', async () => {
+      const mockResult = {success: true};
+      configuredRuntimeMock
+        .expects('linkSubscription')
+        .once()
+        .returns(Promise.resolve(mockResult));
+
+      const result = await runtime.linkSubscription({});
+
+      expect(result).to.deep.equal(mockResult);
     });
 
     it('should directly call "attachButton"', () => {
@@ -1477,19 +1472,12 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       const gstatic = win.document.head.querySelector(
         'link[rel="preconnect"][href*="gstatic"]'
       );
-      const fonts = win.document.head.querySelector(
-        'link[rel="preconnect"][href*="fonts"]'
-      );
       const goog = win.document.head.querySelector(
         'link[rel="preconnect"][href*="google.com"]'
       );
       expect(gstatic).to.exist;
-      expect(fonts).to.exist;
       expect(goog).to.exist;
       expect(gstatic.getAttribute('href')).to.equal('https://www.gstatic.com/');
-      expect(fonts.getAttribute('href')).to.equal(
-        'https://fonts.googleapis.com/'
-      );
       expect(goog.getAttribute('href')).to.equal('https://www.google.com/');
     });
 
@@ -2316,6 +2304,21 @@ subscribe() method'
     describe('showBestAudienceAction', () => {
       it('not implemented', () => {
         expect(() => runtime.showBestAudienceAction()).to.not.throw();
+      });
+    });
+
+    describe('linkSubscription', () => {
+      it('starts SubscriptionLinkingFlow', async () => {
+        const request = {publisherPovidedId: 'foo'};
+        const mockResult = {success: true};
+        const start = sandbox
+          .stub(SubscriptionLinkingFlow.prototype, 'start')
+          .returns(mockResult);
+
+        const result = await runtime.linkSubscription(request);
+
+        expect(start).to.be.calledOnceWith(request);
+        expect(result).to.deep.equal(mockResult);
       });
     });
   });

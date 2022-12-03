@@ -34,7 +34,6 @@ import {
   wasReferredByGoogle,
 } from './url';
 import {debugLog, warn} from './log';
-import {findInArray} from './object';
 import {getLanguageCodeFromElement, msg} from './i18n';
 import {parseJson} from './json';
 import {setImportantStyles} from './style';
@@ -504,7 +503,7 @@ export class GaaMeteringRegwall {
    * @param {{ iframeUrl: string, caslUrl: string }} params
    * @return {!Promise<!GaaUserDef|!GoogleIdentityV1|!Object>}
    */
-  static show({iframeUrl, caslUrl}) {
+  static async show({iframeUrl, caslUrl}) {
     const queryString = GaaUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
@@ -521,18 +520,17 @@ export class GaaMeteringRegwall {
     GaaMeteringRegwall.render_({iframeUrl, caslUrl});
     GaaMeteringRegwall.sendIntroMessageToGsiIframe_({iframeUrl});
     GaaMeteringRegwall.logButtonClickEvents_();
-    return GaaMeteringRegwall.getGaaUser_()
-      .then((gaaUser) => {
-        GaaMeteringRegwall.remove();
-        return gaaUser;
-      })
-      .catch((err) => {
-        // Close the Regwall, since the flow failed.
-        GaaMeteringRegwall.remove();
+    try {
+      const gaaUser = await GaaMeteringRegwall.getGaaUser_();
+      GaaMeteringRegwall.remove();
+      return gaaUser;
+    } catch (err) {
+      // Close the Regwall, since the flow failed.
+      GaaMeteringRegwall.remove();
 
-        // Rethrow error.
-        throw err;
-      });
+      // Rethrow error.
+      throw err;
+    }
   }
 
   /**
@@ -543,9 +541,9 @@ export class GaaMeteringRegwall {
    * where users can sign in with Google.
    * @nocollapse
    * @param {{ caslUrl: string, googleApiClientId: string, rawJwt: (boolean|null) }} params
-   * @return {!Promise<!GoogleIdentityV1>}
+   * @return {!Promise<!GoogleIdentityV1|JsonObject|undefined>}
    */
-  static showWithNativeRegistrationButton({
+  static async showWithNativeRegistrationButton({
     caslUrl,
     googleApiClientId,
     rawJwt = true,
@@ -561,24 +559,23 @@ export class GaaMeteringRegwall {
       useNativeMode: true,
     });
 
-    return GaaMeteringRegwall.createNativeRegistrationButton({
-      googleApiClientId,
-    })
-      .then((jwt) => {
-        GaaMeteringRegwall.remove();
-        if (rawJwt) {
-          return jwt;
-        } else {
-          return new JwtHelper().decode(jwt.credential);
-        }
-      })
-      .catch((err) => {
-        // Close the Regwall, since the flow failed.
-        GaaMeteringRegwall.remove();
-
-        // Rethrow error.
-        debugLog(`Regwall failed: ${err}`);
+    try {
+      const jwt = await GaaMeteringRegwall.createNativeRegistrationButton({
+        googleApiClientId,
       });
+      GaaMeteringRegwall.remove();
+      if (rawJwt) {
+        return jwt;
+      } else {
+        return new JwtHelper().decode(jwt.credential);
+      }
+    } catch (err) {
+      // Close the Regwall, since the flow failed.
+      GaaMeteringRegwall.remove();
+
+      // Rethrow error.
+      debugLog(`Regwall failed: ${err}`);
+    }
   }
 
   /**
@@ -623,10 +620,9 @@ export class GaaMeteringRegwall {
    * @nocollapse
    * @return {!Promise}
    */
-  static signOut() {
-    return configureGoogleSignIn().then(() =>
-      self.gapi.auth2.getAuthInstance().signOut()
-    );
+  static async signOut() {
+    await configureGoogleSignIn();
+    await self.gapi.auth2.getAuthInstance().signOut();
   }
 
   /**
@@ -887,7 +883,7 @@ export class GaaMeteringRegwall {
       ) {
         // Log button click event.
         logEvent({
-          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
           isFromUserAction: true,
         });
       }
@@ -953,7 +949,7 @@ export class GaaMeteringRegwall {
 
     function logButtonClicks() {
       logEvent({
-        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SWIG_CLICK,
+        analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_SIWG_CLICK,
         isFromUserAction: true,
       });
     }
@@ -1021,7 +1017,7 @@ export class GaaGoogleSignInButton {
    * @nocollapse
    * @param {{ allowedOrigins: !Array<string> }} params
    */
-  static show({allowedOrigins}) {
+  static async show({allowedOrigins}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -1053,12 +1049,11 @@ export class GaaGoogleSignInButton {
       });
     });
 
-    function sendErrorMessageToParent() {
-      sendMessageToParentFnPromise.then((sendMessageToParent) => {
-        sendMessageToParent({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_ERROR,
-        });
+    async function sendErrorMessageToParent() {
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_ERROR,
       });
     }
 
@@ -1081,67 +1076,66 @@ export class GaaGoogleSignInButton {
     }
 
     // Render the Google Sign-In button.
-    configureGoogleSignIn()
-      .then(
-        // Promise credentials.
-        () =>
-          new Promise((resolve) => {
-            // Render the Google Sign-In button.
-            const buttonEl = createElement(self.document, 'div', {
-              id: GOOGLE_SIGN_IN_BUTTON_ID,
-              tabIndex: 0,
-            });
-            self.document.body.appendChild(buttonEl);
-            self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
-              'longtitle': true,
-              'onsuccess': resolve,
-              'prompt': 'select_account',
-              'scope': 'profile email',
-              'theme': 'dark',
-            });
+    try {
+      await configureGoogleSignIn();
 
-            // Track button clicks.
-            buttonEl.addEventListener('click', () => {
-              // Tell parent frame about button click.
-              sendMessageToParentFnPromise.then((sendMessageToParent) => {
-                sendMessageToParent({
-                  stamp: POST_MESSAGE_STAMP,
-                  command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
-                });
-              });
-            });
-          })
-      )
-      .then((googleUser) => {
-        // Gather GAA user details.
-        const basicProfile = /** @type {!GoogleUserDef} */ (
-          googleUser
-        ).getBasicProfile();
-        // Gather authorization response.
-        const authorizationData = /** @type {!GoogleUserDef} */ (
-          googleUser
-        ).getAuthResponse(true);
-        /** @type {!GaaUserDef} */
-        const gaaUser = {
-          idToken: authorizationData.id_token,
-          name: basicProfile.getName(),
-          givenName: basicProfile.getGivenName(),
-          familyName: basicProfile.getFamilyName(),
-          imageUrl: basicProfile.getImageUrl(),
-          email: basicProfile.getEmail(),
-          authorizationData,
-        };
+      // Render the Google Sign-In button.
+      const buttonEl = createElement(self.document, 'div', {
+        id: GOOGLE_SIGN_IN_BUTTON_ID,
+        tabIndex: 0,
+      });
+      self.document.body.appendChild(buttonEl);
 
-        // Send GAA user to parent frame.
-        sendMessageToParentFnPromise.then((sendMessageToParent) => {
-          sendMessageToParent({
-            stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_USER,
-            gaaUser,
-          });
+      // Track button clicks.
+      buttonEl.addEventListener('click', async () => {
+        // Tell parent frame about button click.
+        const sendMessageToParent = await sendMessageToParentFnPromise;
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
         });
-      })
-      .catch(sendErrorMessageToParent);
+      });
+
+      // Promise credentials.
+      const googleUser = await new Promise((resolve) => {
+        self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
+          'longtitle': true,
+          'onsuccess': resolve,
+          'prompt': 'select_account',
+          'scope': 'profile email',
+          'theme': 'dark',
+        });
+      });
+
+      // Gather GAA user details.
+      const basicProfile = /** @type {!GoogleUserDef} */ (
+        googleUser
+      ).getBasicProfile();
+      // Gather authorization response.
+      const authorizationData = /** @type {!GoogleUserDef} */ (
+        googleUser
+      ).getAuthResponse(true);
+      /** @type {!GaaUserDef} */
+      const gaaUser = {
+        idToken: authorizationData.id_token,
+        name: basicProfile.getName(),
+        givenName: basicProfile.getGivenName(),
+        familyName: basicProfile.getFamilyName(),
+        imageUrl: basicProfile.getImageUrl(),
+        email: basicProfile.getEmail(),
+        authorizationData,
+      };
+
+      // Send GAA user to parent frame.
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        gaaUser,
+      });
+    } catch (err) {
+      sendErrorMessageToParent();
+    }
   }
 }
 
@@ -1151,7 +1145,7 @@ export class GaaSignInWithGoogleButton {
    * @nocollapse
    * @param {{ clientId: string, allowedOrigins: !Array<string>, rawJwt: boolean }} params
    */
-  static show({clientId, allowedOrigins, rawJwt = false}) {
+  static async show({clientId, allowedOrigins, rawJwt = false}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -1183,21 +1177,19 @@ export class GaaSignInWithGoogleButton {
       });
     });
 
-    function sendErrorMessageToParent() {
-      sendMessageToParentFnPromise.then((sendMessageToParent) => {
-        sendMessageToParent({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_ERROR,
-        });
+    async function sendErrorMessageToParent() {
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_ERROR,
       });
     }
 
-    function sendClickMessageToParent() {
-      sendMessageToParentFnPromise.then((sendMessageToParent) => {
-        sendMessageToParent({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
-        });
+    async function sendClickMessageToParent() {
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
       });
     }
 
@@ -1220,51 +1212,52 @@ export class GaaSignInWithGoogleButton {
       }
     }
 
-    new Promise((resolve) => {
+    try {
       const buttonEl = createElement(self.document, 'div', {
         id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
         tabIndex: 0,
       });
       self.document.body.appendChild(buttonEl);
 
-      self.google.accounts.id.initialize({
-        /* eslint-disable google-camelcase/google-camelcase */
-        client_id: clientId,
-        callback: resolve,
-        allowed_parent_origin: allowedOrigins,
-        /* eslint-enable google-camelcase/google-camelcase */
-      });
-      self.google.accounts.id.renderButton(
-        self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
-        {
-          'type': 'standard',
-          'theme': 'outline',
-          'text': 'continue_with',
-          'logo_alignment': 'center',
-          'width': buttonEl.offsetWidth,
-          'height': buttonEl.offsetHeight,
-          'click_listener': sendClickMessageToParent,
-        }
-      );
-    })
-      .then((jwt) => {
-        const jwtPayload = /** @type {!GoogleIdentityV1} */ (
-          new JwtHelper().decode(jwt.credential)
-        );
-        const returnedJwt = rawJwt ? jwt : jwtPayload;
-
-        // Send GAA user to parent frame.
-        sendMessageToParentFnPromise.then((sendMessageToParent) => {
-          sendMessageToParent({
-            stamp: POST_MESSAGE_STAMP,
-            command: POST_MESSAGE_COMMAND_USER,
-            // Note: jwtPayload is deprecated in favor of returnedJwt.
-            jwtPayload,
-            returnedJwt,
-          });
+      const jwt = await new Promise((resolve) => {
+        self.google.accounts.id.initialize({
+          /* eslint-disable google-camelcase/google-camelcase */
+          client_id: clientId,
+          callback: resolve,
+          allowed_parent_origin: allowedOrigins,
+          /* eslint-enable google-camelcase/google-camelcase */
         });
-      })
-      .catch(sendErrorMessageToParent);
+        self.google.accounts.id.renderButton(
+          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+          {
+            'type': 'standard',
+            'theme': 'outline',
+            'text': 'continue_with',
+            'logo_alignment': 'center',
+            'width': buttonEl.offsetWidth,
+            'height': buttonEl.offsetHeight,
+            'click_listener': sendClickMessageToParent,
+          }
+        );
+      });
+
+      const jwtPayload = /** @type {!GoogleIdentityV1} */ (
+        new JwtHelper().decode(jwt.credential)
+      );
+      const returnedJwt = rawJwt ? jwt : jwtPayload;
+
+      // Send GAA user to parent frame.
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        // Note: jwtPayload is deprecated in favor of returnedJwt.
+        jwtPayload,
+        returnedJwt,
+      });
+    } catch (err) {
+      sendErrorMessageToParent();
+    }
   }
 }
 
@@ -1277,26 +1270,23 @@ export class GaaSignInWithGoogleButton {
  *
  * @return {!Promise}
  */
-function configureGoogleSignIn() {
+async function configureGoogleSignIn() {
   // Wait for Google Sign-In API.
-  return (
-    new Promise((resolve) => {
-      const apiCheckInterval = setInterval(() => {
-        if (!!self.gapi) {
-          clearInterval(apiCheckInterval);
-          resolve();
-        }
-      }, 50);
-    })
-      // Load Auth2 module.
-      .then(() => new Promise((resolve) => self.gapi.load('auth2', resolve)))
-      // Specify "redirect" mode. It plays nicer with webviews.
-      .then(
-        () =>
-          // Only initialize Google Sign-In once.
-          self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init()
-      )
-  );
+  await new Promise((resolve) => {
+    const apiCheckInterval = setInterval(() => {
+      if (!!self.gapi) {
+        clearInterval(apiCheckInterval);
+        resolve();
+      }
+    }, 50);
+  });
+
+  // Load Auth2 module.
+  await new Promise((resolve) => self.gapi.load('auth2', resolve));
+
+  // Specify "redirect" mode. It plays nicer with webviews.
+  // Only initialize Google Sign-In once.
+  self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init();
 }
 
 /**
@@ -1388,13 +1378,15 @@ export class GaaGoogle3pSignInButton {
       tabIndex: 0,
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
-    buttonEl.onclick = () => {
+    buttonEl.onclick = async () => {
+      // TODO(b/259994494): Consider awaiting this promise.
       sendMessageToParentFnPromise.then((sendMessageToParent) => {
         sendMessageToParent({
           stamp: POST_MESSAGE_STAMP,
           command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
         });
       });
+
       if (redirectMode) {
         // TODO(b/242998655): Fix the downstream calls for logEvent to be chained to remove the need of delaying redirect.
         self.setTimeout(() => {
@@ -1426,12 +1418,11 @@ export class GaaGoogle3pSignInButton {
       });
     });
 
-    function sendErrorMessageToParent() {
-      sendMessageToParentFnPromise.then((sendMessageToParent) => {
-        sendMessageToParent({
-          stamp: POST_MESSAGE_STAMP,
-          command: POST_MESSAGE_COMMAND_ERROR,
-        });
+    async function sendErrorMessageToParent() {
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_ERROR,
       });
     }
 
@@ -1488,24 +1479,23 @@ export class GaaGoogle3pSignInButton {
  * }} params
  */
 function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
-  callSwg((swg) => {
+  callSwg(async (swg) => {
     // Get reference to event manager.
-    swg.getEventManager().then((eventManager) => {
-      // Get list of analytics events.
-      const eventTypes = showcaseEvent
-        ? showcaseEventToAnalyticsEvents(showcaseEvent)
-        : [analyticsEvent];
+    const eventManager = await swg.getEventManager();
+    // Get list of analytics events.
+    const eventTypes = showcaseEvent
+      ? showcaseEventToAnalyticsEvents(showcaseEvent)
+      : [analyticsEvent];
 
-      // Log each analytics event.
-      for (const eventType of eventTypes) {
-        eventManager.logEvent({
-          eventType,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction,
-          additionalParameters: null,
-        });
-      }
-    });
+    // Log each analytics event.
+    for (const eventType of eventTypes) {
+      eventManager.logEvent({
+        eventType,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction,
+        additionalParameters: null,
+      });
+    }
   });
 }
 
@@ -1617,7 +1607,7 @@ export class GaaMetering {
       return false;
     }
 
-    callSwg((subscriptions) => {
+    callSwg(async (subscriptions) => {
       subscriptions.init(productId);
 
       logEvent({
@@ -1657,48 +1647,46 @@ export class GaaMetering {
         subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
       } else {
         debugLog('resolving publisherEntitlement');
-        publisherEntitlementPromise.then((fetchedPublisherEntitlements) => {
-          if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
-            GaaMetering.userState = fetchedPublisherEntitlements;
+        const fetchedPublisherEntitlements = await publisherEntitlementPromise;
+        if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
+          GaaMetering.userState = fetchedPublisherEntitlements;
 
-            unlockArticleIfGranted();
-          } else {
-            debugLog("Publisher entitlement isn't valid");
-          }
-        });
+          unlockArticleIfGranted();
+        } else {
+          debugLog("Publisher entitlement isn't valid");
+        }
       }
     });
 
     // Show the Google registration intervention.
-    function showGoogleRegwall() {
+    async function showGoogleRegwall() {
       debugLog('show Google Regwall');
       // Don't render the regwall until the window has loaded.
-      GaaMetering.getOnReadyPromise().then(() => {
-        if (googleApiClientId) {
-          GaaMeteringRegwall.showWithNativeRegistrationButton({
-            caslUrl,
-            googleApiClientId,
-            rawJwt,
-          }).then((jwt) => {
-            // Handle registration for new users
-            // Save credentials object so that registerUserPromise can use it using getGaaUser.
-            GaaMetering.setGaaUser(jwt);
-            registerUserPromise.then((registerUserUserState) => {
-              debugLog('registerUserPromise resolved');
-              if (GaaMetering.validateUserState(registerUserUserState)) {
-                GaaMetering.userState = registerUserUserState;
+      await GaaMetering.getOnReadyPromise();
 
-                unlockArticleIfGranted();
-              }
-            });
-          });
-        } else {
-          GaaMeteringRegwall.showWithNative3PRegistrationButton({
-            caslUrl,
-            authorizationUrl,
-          });
+      if (googleApiClientId) {
+        const jwt = await GaaMeteringRegwall.showWithNativeRegistrationButton({
+          caslUrl,
+          googleApiClientId,
+          rawJwt,
+        });
+
+        // Handle registration for new users
+        // Save credentials object so that registerUserPromise can use it using getGaaUser.
+        GaaMetering.setGaaUser(jwt);
+        const registerUserUserState = await registerUserPromise;
+        debugLog('registerUserPromise resolved');
+        if (GaaMetering.validateUserState(registerUserUserState)) {
+          GaaMetering.userState = registerUserUserState;
+
+          unlockArticleIfGranted();
         }
-      });
+      } else {
+        GaaMeteringRegwall.showWithNative3PRegistrationButton({
+          caslUrl,
+          authorizationUrl,
+        });
+      }
     }
 
     function unlockArticleIfGranted() {
@@ -1754,22 +1742,21 @@ export class GaaMetering {
     }
   }
 
-  static handleLoginRequest(handleLoginPromise, unlockArticleIfGranted) {
+  static async handleLoginRequest(handleLoginPromise, unlockArticleIfGranted) {
     GaaMetering.resolveLogin();
-    handleLoginPromise.then((handleLoginUserState) => {
-      if (GaaMetering.validateUserState(handleLoginUserState)) {
-        GaaMetering.userState = handleLoginUserState;
-        GaaMeteringRegwall.remove();
-        debugLog('GaaMeteringRegwall removed');
-        unlockArticleIfGranted();
-      } else {
-        debugLog('invalid handleLoginUserState');
-        return false;
-      }
-    });
+    const handleLoginUserState = await handleLoginPromise;
+    if (GaaMetering.validateUserState(handleLoginUserState)) {
+      GaaMetering.userState = handleLoginUserState;
+      GaaMeteringRegwall.remove();
+      debugLog('GaaMeteringRegwall removed');
+      unlockArticleIfGranted();
+    } else {
+      debugLog('invalid handleLoginUserState');
+      return false;
+    }
   }
 
-  static setEntitlements(
+  static async setEntitlements(
     googleEntitlementsPromise,
     allowedReferrers,
     unlockArticle,
@@ -1778,49 +1765,48 @@ export class GaaMetering {
     showPaywall
   ) {
     // Wait for Google check to finish
-    googleEntitlementsPromise.then((googleEntitlement) => {
-      // Determine Google response from publisher response.
-      if (googleEntitlement.enablesThisWithGoogleMetering()) {
-        // Google returned metering entitlement so grant access
-        googleEntitlement.consume(() => {
-          // Consume the entitlement and trigger a dialog that lets the user
-          // know Google provided them with a free read.
-          unlockArticle();
-        });
-      } else if (googleEntitlement.enablesThis()) {
-        // Google returned a non-metering entitlement
-        // This is only relevant for publishers doing SwG
-        handleSwGEntitlement();
-      } else if (
-        !GaaMetering.isCurrentUserRegistered() &&
-        GaaMetering.isGaa(allowedReferrers)
-      ) {
-        // This is an anonymous user so show the Google registration intervention
-        showGoogleRegwall();
-      } else {
-        // User does not any access from publisher or Google so show the standard paywall
-        callSwg((subscriptions) => {
-          switch (GaaMetering.userState.paywallReason) {
-            case PaywallReasonType.RESERVED_USER:
-              subscriptions.setShowcaseEntitlement({
-                entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
-                isUserRegistered: GaaMetering.isCurrentUserRegistered(),
-                subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
-              });
-              break;
-            default:
-              subscriptions.setShowcaseEntitlement({
-                entitlement:
-                  ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-                isUserRegistered: GaaMetering.isCurrentUserRegistered(),
-                subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
-              });
-          }
-        });
-        // Show the paywall
-        showPaywall();
-      }
-    });
+    const googleEntitlement = await googleEntitlementsPromise;
+
+    // Determine Google response from publisher response.
+    if (googleEntitlement.enablesThisWithGoogleMetering()) {
+      // Google returned metering entitlement so grant access
+      googleEntitlement.consume(() => {
+        // Consume the entitlement and trigger a dialog that lets the user
+        // know Google provided them with a free read.
+        unlockArticle();
+      });
+    } else if (googleEntitlement.enablesThis()) {
+      // Google returned a non-metering entitlement
+      // This is only relevant for publishers doing SwG
+      handleSwGEntitlement(googleEntitlement);
+    } else if (
+      !GaaMetering.isCurrentUserRegistered() &&
+      GaaMetering.isGaa(allowedReferrers)
+    ) {
+      // This is an anonymous user so show the Google registration intervention
+      showGoogleRegwall();
+    } else {
+      // User does not any access from publisher or Google so show the standard paywall
+      callSwg((subscriptions) => {
+        switch (GaaMetering.userState.paywallReason) {
+          case PaywallReasonType.RESERVED_USER:
+            subscriptions.setShowcaseEntitlement({
+              entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
+              isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+              subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
+            });
+            break;
+          default:
+            subscriptions.setShowcaseEntitlement({
+              entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+              isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+              subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
+            });
+        }
+      });
+      // Show the paywall
+      showPaywall();
+    }
   }
 
   static isCurrentUserRegistered() {
@@ -2014,10 +2000,8 @@ export class GaaMetering {
         ldJson = [ldJson];
       }
 
-      const productId = findInArray(
-        ldJson,
-        (entry) => entry?.isPartOf?.productID
-      )?.isPartOf.productID;
+      const productId = ldJson.find((entry) => entry?.isPartOf?.productID)
+        ?.isPartOf.productID;
 
       if (productId) {
         return productId;
@@ -2070,8 +2054,7 @@ export class GaaMetering {
         ldJson = [ldJson];
       }
 
-      const accessibleForFree = findInArray(
-        ldJson,
+      const accessibleForFree = ldJson.find(
         (entry) => entry?.isAccessibleForFree
       )?.isAccessibleForFree;
 
