@@ -378,6 +378,18 @@ describe('getCanonicalUrl', () => {
     };
     expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
   });
+  it('should return an empty string when canonical tag and location of a doc are undefined', () => {
+    const FAKE_DOC = {
+      getRootNode: function () {
+        return {
+          querySelector: function (unused) {
+            return null;
+          },
+        };
+      },
+    };
+    expect(getCanonicalUrl(FAKE_DOC)).to.equal('');
+  });
 });
 
 describe('isSecure', () => {
