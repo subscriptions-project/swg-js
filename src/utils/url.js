@@ -208,7 +208,9 @@ export function getCanonicalUrl(doc) {
   const rootNode = doc.getRootNode();
   const canonicalTag = rootNode.querySelector("link[rel='canonical']");
   return (
-    canonicalTag?.href || rootNode.location.origin + rootNode.location.pathname
+    canonicalTag?.href ||
+    rootNode.location.origin + rootNode.location.pathname ||
+    ''
   );
 }
 
