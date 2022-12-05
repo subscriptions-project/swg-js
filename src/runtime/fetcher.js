@@ -48,7 +48,7 @@ export class Fetcher {
    * POST data to a URL endpoint, get a Promise for a response
    * @param {!string} unusedUrl
    * @param {!../proto/api_messages.Message} unusedMessage
-   * @return {!Promise<!Response>}
+   * @return {!Promise<!Object>}
    */
   sendPost(unusedUrl, unusedMessage) {}
 }
@@ -66,23 +66,21 @@ export class XhrFetcher {
   }
 
   /** @override */
-  fetchCredentialedJson(url) {
+  async fetchCredentialedJson(url) {
     const init = /** @type {!RequestInit} */ ({
       method: 'GET',
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-    return this.fetch(url, init).then((response) => {
-      return response.text().then((text) => {
-        // Remove "")]}'\n" XSSI prevention prefix in safe responses.
-        const cleanedText = text.replace(jsonSaftyPrefix, '');
-        return parseJson(cleanedText);
-      });
-    });
+    const response = await this.fetch(url, init);
+    const text = await response.text();
+    // Remove "")]}'\n" XSSI prevention prefix in safe responses.
+    const cleanedText = text.replace(jsonSaftyPrefix, '');
+    return /** @type {!Object} */ (parseJson(cleanedText));
   }
 
   /** @override */
-  sendPost(url, message) {
+  async sendPost(url, message) {
     const init = /** @type {!RequestInit} */ ({
       method: 'POST',
       headers: {
@@ -91,21 +89,20 @@ export class XhrFetcher {
       credentials: 'include',
       body: 'f.req=' + serializeProtoMessageForUrl(message),
     });
-    return this.fetch(url, init).then((response) => {
-      if (!response) {
-        return {};
-      }
-      return response.text().then((text) => {
-        try {
-          // Remove "")]}'\n" XSSI prevention prefix in safe responses.
-          const cleanedText = text.replace(jsonSaftyPrefix, '');
-          return parseJson(cleanedText);
-        } catch (e) {
-          ErrorUtils.throwAsync(e);
-          return {};
-        }
-      });
-    });
+    const response = await this.fetch(url, init);
+    if (!response) {
+      return {};
+    }
+
+    const text = await response.text();
+    try {
+      // Remove "")]}'\n" XSSI prevention prefix in safe responses.
+      const cleanedText = text.replace(jsonSaftyPrefix, '');
+      return /** @type {!Object} */ (parseJson(cleanedText));
+    } catch (e) {
+      ErrorUtils.throwAsync(e);
+      return {};
+    }
   }
 
   /** @override */

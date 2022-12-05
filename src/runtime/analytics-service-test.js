@@ -25,9 +25,7 @@ import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
-import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
-import {XhrFetcher} from './fetcher';
 import {feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
@@ -82,12 +80,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
     sandbox
       .stub(env.win.document, 'referrer')
       .get(() => 'https://scenic-2017.appspot.com/landing.html');
-
-    sandbox
-      .stub(XhrFetcher.prototype, 'sendBeacon')
-      .callsFake((unusedUrl, message) => {
-        eventsLoggedToService.push(message);
-      });
 
     sandbox
       .stub(ClientEventManager.prototype, 'registerEventListener')
@@ -312,26 +304,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
         expectOpenIframe = true;
         expect(eventsLoggedToService.length).to.equal(0);
-      });
-
-      it('should log to clearcut if experiment on', async () => {
-        setExperimentsStringForTesting(ExperimentFlags.LOGGING_BEACON);
-
-        // This triggers an event.
-        eventManagerCallback({
-          eventType: AnalyticsEvent.UNKNOWN,
-          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: null,
-        });
-
-        // These wait for analytics server to be ready to send data.
-        expect(analyticsService.lastSend).to.not.be.null;
-        await analyticsService.lastSend;
-        await activityIframePort.whenReady();
-
-        expectOpenIframe = true;
-        expect(eventsLoggedToService.length).to.equal(1);
       });
     });
   });
@@ -621,7 +593,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
     it('should not log publisher events by default', () => {
       testOriginator(EventOriginator.SWG_CLIENT, true);
       testOriginator(EventOriginator.SWG_SERVER, true);
-      testOriginator(EventOriginator.AMP_CLIENT, false);
       testOriginator(EventOriginator.PROPENSITY_CLIENT, false);
       testOriginator(EventOriginator.PUBLISHER_CLIENT, false);
     });
