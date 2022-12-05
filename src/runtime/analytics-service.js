@@ -422,10 +422,6 @@ export class AnalyticsService {
     const port = await this.start();
     const analyticsRequest = this.createLogRequest_(event);
     port.execute(analyticsRequest);
-
-    if (isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)) {
-      this.sendBeacon_(analyticsRequest);
-    }
   }
 
   /**
