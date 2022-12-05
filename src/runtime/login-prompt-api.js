@@ -58,7 +58,7 @@ export class LoginPromptApi {
    * Prompts the user to login.
    * @return {!Promise}
    */
-  start() {
+  async start() {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_LOGIN_PROMPT);
@@ -67,21 +67,19 @@ export class LoginPromptApi {
       this.activityIframeView_
     );
 
-    return this.activityIframeView_.acceptResult().then(
-      () => {
-        // The consent part is complete.
+    try {
+      await this.activityIframeView_.acceptResult();
+    } catch (reason) {
+      if (isCancelError(reason)) {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_LOGIN_PROMPT);
+      } else {
         this.dialogManager_.completeView(this.activityIframeView_);
-      },
-      (reason) => {
-        if (isCancelError(reason)) {
-          this.deps_
-            .callbacks()
-            .triggerFlowCanceled(SubscriptionFlows.SHOW_LOGIN_PROMPT);
-        } else {
-          this.dialogManager_.completeView(this.activityIframeView_);
-        }
-        throw reason;
       }
-    );
+      throw reason;
+    }
+
+    this.dialogManager_.completeView(this.activityIframeView_);
   }
 }
