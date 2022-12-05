@@ -121,10 +121,10 @@ export class OffersFlow {
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
     /** @private @const {!Promise<!../model/client-config.ClientConfig>} */
-    this.clientConfig_ = this.clientConfigManager_.getClientConfig();
+    this.clientConfigPromise_ = this.clientConfigManager_.getClientConfig();
 
     /** @private @const {!Promise<?ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfig_.then(
+    this.activityIframeViewPromise_ = this.clientConfigPromise_.then(
       (clientConfig) => {
         return this.shouldShow_(clientConfig)
           ? new ActivityIframeView(
@@ -199,8 +199,8 @@ export class OffersFlow {
       return;
     }
 
-    const activityIframeView = await this.activityIframeViewPromise_;
-    if (!activityIframeView) {
+    this.activityIframeView_ = await this.activityIframeViewPromise_;
+    if (!this.activityIframeView_) {
       return;
     }
 
@@ -211,20 +211,23 @@ export class OffersFlow {
       skus: this.skus_,
       source: 'SwG',
     });
-    activityIframeView.onCancel(() => {
+    this.activityIframeView_.onCancel(() => {
       this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
     });
-    activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
-    activityIframeView.on(
+    this.activityIframeView_.on(
+      SkuSelectedResponse,
+      this.startPayFlow_.bind(this)
+    );
+    this.activityIframeView_.on(
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
-    activityIframeView.on(
+    this.activityIframeView_.on(
       ViewSubscriptionsResponse,
       this.startNativeFlow_.bind(this)
     );
-    this.activityIframeView_ = activityIframeView;
-    const clientConfig = await this.clientConfig_;
+
+    const clientConfig = await this.clientConfigPromise_;
     return this.dialogManager_.openView(
       this.activityIframeView_,
       /* hidden */ false,
