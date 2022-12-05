@@ -296,7 +296,14 @@ export class AudienceActionFlow {
     // @TODO(justinchou): execute callback with setOnInterventionComplete
     // then check for success
     const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
-    if (!gaLoggingSuccess) {
+    if (gaLoggingSuccess) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+          /* isFromUserAction */ true
+        );
+    } else {
       this.deps_
         .eventManager()
         .logSwgEvent(
