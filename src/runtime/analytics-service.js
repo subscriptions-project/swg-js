@@ -99,7 +99,7 @@ export class AnalyticsService {
     this.context_ = new AnalyticsContext();
     this.setStaticContext_();
 
-    /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
+    /** @private {?Promise<?../components/activities.ActivityIframePort>} */
     this.portPromise_ = null;
 
     /** @private {?Promise} */
@@ -280,15 +280,14 @@ export class AnalyticsService {
    */
   start() {
     // Only prepare port once.
-    if (this.portPromise_) {
-      return this.portPromise_;
+    if (!this.portPromise_) {
+      // Please note that currently openIframe reads the current analytics
+      // context and that it may not contain experiments activated late during
+      // the publisher's code lifecycle.
+      this.addLabels(getOnExperiments(this.doc_.getWin()));
+      this.portPromise_ = this.preparePort();
     }
 
-    // Please note that currently openIframe reads the current analytics
-    // context and that it may not contain experiments activated late during
-    // the publisher's code lifecycle.
-    this.addLabels(getOnExperiments(this.doc_.getWin()));
-    this.portPromise_ = this.preparePort();
     return this.portPromise_;
   }
 
