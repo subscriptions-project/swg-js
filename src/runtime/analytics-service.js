@@ -286,7 +286,7 @@ export class AnalyticsService {
 
     // Please note that currently openIframe reads the current analytics
     // context and that it may not contain experiments activated late during
-    // the publishers code lifecycle.
+    // the publisher's code lifecycle.
     this.addLabels(getOnExperiments(this.doc_.getWin()));
     this.portPromise_ = this.preparePort();
     return this.portPromise_;
