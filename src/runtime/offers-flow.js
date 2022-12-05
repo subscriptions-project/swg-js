@@ -201,7 +201,7 @@ export class OffersFlow {
 
     const activityIframeView = await this.activityIframeViewPromise_;
     if (!activityIframeView) {
-      return Promise.resolve();
+      return;
     }
 
     // So no error if skipped to payment screen.
