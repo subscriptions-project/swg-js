@@ -102,11 +102,8 @@ export class AnalyticsService {
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.portPromise_ = null;
 
-    /**
-     * @type {?Promise}
-     * @visibleForTesting
-     */
-    this.lastSend = null;
+    /** @type {?Promise} */
+    this.lastAction_ = null;
 
     /** @private @const {!ClientEventManager} */
     this.eventManager_ = deps.eventManager();
@@ -414,7 +411,7 @@ export class AnalyticsService {
     this.unfinishedLogs_++;
 
     // Send log.
-    this.lastSend = this.sendLog_(event);
+    this.lastAction_ = this.sendLog_(event);
   }
 
   /**
