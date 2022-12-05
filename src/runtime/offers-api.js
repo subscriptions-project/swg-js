@@ -45,7 +45,7 @@ export class OffersApi {
    * @return {!Promise<!Array<!../api/offer.Offer>>}
    * @private
    */
-  fetch_(productId) {
+  async fetch_(productId) {
     const url = serviceUrl(
       '/publication/' +
         encodeURIComponent(this.config_.getPublicationId()) +
@@ -54,8 +54,7 @@ export class OffersApi {
         encodeURIComponent(productId)
     );
     // TODO(dvoytenko): switch to a non-credentialed request after launch.
-    return this.fetcher_.fetchCredentialedJson(url).then((json) => {
-      return json['offers'] || [];
-    });
+    const json = await this.fetcher_.fetchCredentialedJson(url);
+    return json['offers'] || [];
   }
 }
