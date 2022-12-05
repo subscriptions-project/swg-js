@@ -392,9 +392,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       // getLoggingPromise
       iframeCallback(loggingResponse);
       expect(analyticsService.unfinishedLogs_).to.equal(0);
-      return analyticsService.getLoggingPromise().then((val) => {
-        expect(val).to.be.true;
-      });
+      const val = await analyticsService.getLoggingPromise();
+      expect(val).to.be.true;
     });
   });
 
@@ -545,7 +544,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       ]);
     });
 
-    it('should respect custom URL set by AMP', async () => {
+    it('should respect custom URLs', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       analyticsService.setUrl('diffUrl');
       eventManagerCallback(event);
