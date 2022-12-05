@@ -409,11 +409,10 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
     expect(helper.restoreKey()).to.equal(TEST_KEY);
   });
 
-  it('should resolve verifier sync after prepare', () => {
-    return helper.prepare().then(() => {
-      expect(useVerifierSync()).to.equal(TEST_VERIFIER);
-      expect(helper.restoreKey()).to.equal(TEST_KEY);
-    });
+  it('should resolve verifier sync after prepare', async () => {
+    await helper.prepare();
+    expect(useVerifierSync()).to.equal(TEST_VERIFIER);
+    expect(helper.restoreKey()).to.equal(TEST_KEY);
   });
 
   it('should tolerate storage failures', async () => {
@@ -427,9 +426,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate random values failures', async () => {
-    sandbox.stub(crypto, 'getRandomValues').callsFake(() => {
-      throw new Error('intentional');
-    });
+    sandbox.stub(crypto, 'getRandomValues').throws(new Error('intentional'));
 
     const verifier = await useVerifierPromise();
     expect(verifier).to.be.null;
@@ -437,9 +434,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate hashing failures', async () => {
-    sandbox
-      .stub(subtle, 'digest')
-      .callsFake(() => Promise.reject('intentional'));
+    sandbox.stub(subtle, 'digest').rejects('intentional');
 
     const verifier = await useVerifierPromise();
     expect(verifier).to.be.null;
@@ -447,9 +442,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate storage retrieval failures', () => {
-    sandbox.stub(localStorage, 'getItem').callsFake(() => {
-      throw new Error('intentional');
-    });
+    sandbox.stub(localStorage, 'getItem').throws(new Error('intentional'));
     expect(helper.restoreKey()).to.be.null;
   });
 
