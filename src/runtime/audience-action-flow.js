@@ -35,7 +35,7 @@ import {
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {Constants} from '../utils/constants';
+import {Constants, StorageKeys} from '../utils/constants';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
@@ -69,8 +69,6 @@ const autopromptTypeToProductTypeMapping = {
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
 const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
-const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
-  'surveydatatransferfailed';
 
 /**
  * The flow to initiate and manage handling an audience action.
@@ -305,7 +303,7 @@ export class AudienceActionFlow {
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
           /* isFromUserAction */ false
         );
-      this.storage_.storeEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED);
+      this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
