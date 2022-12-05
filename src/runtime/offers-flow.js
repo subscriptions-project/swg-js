@@ -124,18 +124,27 @@ export class OffersFlow {
     this.clientConfigPromise_ = this.clientConfigManager_.getClientConfig();
 
     /** @private @const {!Promise<?ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfigPromise_.then(
-      (clientConfig) => {
-        return this.shouldShow_(clientConfig)
-          ? new ActivityIframeView(
-              this.win_,
-              this.activityPorts_,
-              this.getUrl_(clientConfig, deps.pageConfig()),
-              feArgsObj,
-              /* shouldFadeBody */ true
-            )
-          : null;
-      }
+    this.activityIframeViewPromise_ = this.createActivityIframeView_(feArgsObj);
+  }
+
+  /**
+   * @param {!Object} args
+   * @return {!Promise<?ActivityIframeView>}
+   * @private
+   */
+  async createActivityIframeView_(args) {
+    const clientConfig = await this.clientConfigPromise_;
+
+    if (!this.shouldShow_(clientConfig)) {
+      return null;
+    }
+
+    return new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      this.getUrl_(clientConfig, this.deps_.pageConfig()),
+      args,
+      /* shouldFadeBody */ true
     );
   }
 
