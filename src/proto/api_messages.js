@@ -22,7 +22,7 @@
 /**
  * @interface
  */
- class Message {
+class Message {
   /**
    * @return {string}
    */
