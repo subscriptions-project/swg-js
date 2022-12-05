@@ -204,10 +204,6 @@ export class OffersFlow {
    * @return {!Promise}
    */
   async start() {
-    if (!this.activityIframeViewPromise_) {
-      return;
-    }
-
     this.activityIframeView_ = await this.activityIframeViewPromise_;
     if (!this.activityIframeView_) {
       return;
