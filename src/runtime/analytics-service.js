@@ -99,8 +99,8 @@ export class AnalyticsService {
     this.context_ = new AnalyticsContext();
     this.setStaticContext_();
 
-    /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
-    this.serviceReady_ = null;
+    /** @private {?Promise<?../components/activities.ActivityIframePort>} */
+    this.portPromise_ = null;
 
     /** @private {?Promise} */
     this.lastAction_ = null;
@@ -276,39 +276,54 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise<!../components/activities.ActivityIframePort>}
+   * @return {!Promise<?../components/activities.ActivityIframePort>}
    */
   start() {
-    if (!this.serviceReady_) {
+    // Only prepare port once.
+    if (!this.portPromise_) {
       // Please note that currently openIframe reads the current analytics
       // context and that it may not contain experiments activated late during
-      // the publishers code lifecycle.
+      // the publisher's code lifecycle.
       this.addLabels(getOnExperiments(this.doc_.getWin()));
-      this.serviceReady_ = this.activityPorts_
-        .openIframe(this.iframe_, feUrl('/serviceiframe'), null, true)
-        .then(
-          (port) => {
-            // Register a listener for the logging to code indicate it is
-            // finished logging.
-            port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
-            return port.whenReady().then(() => {
-              // The publisher should be done setting experiments but runtime
-              // will forward them here if they aren't.
-              this.addLabels(getOnExperiments(this.doc_.getWin()));
-              return port;
-            });
-          },
-          (message) => {
-            // If the port doesn't open register that logging is broken so
-            // nothing is just waiting.
-            this.loggingBroken_ = true;
-            this.afterLogging_(
-              createErrorResponse('Could not connect [' + message + ']')
-            );
-          }
-        );
+      this.portPromise_ = this.preparePort();
     }
-    return this.serviceReady_;
+
+    return this.portPromise_;
+  }
+
+  /**
+   * @return {!Promise<?../components/activities.ActivityIframePort>}
+   */
+  async preparePort() {
+    // Open iframe.
+    let port;
+    try {
+      port = await this.activityPorts_.openIframe(
+        this.iframe_,
+        feUrl('/serviceiframe'),
+        null,
+        true
+      );
+    } catch (message) {
+      // If the port doesn't open register that logging is broken so
+      // nothing is just waiting.
+      this.loggingBroken_ = true;
+      this.afterLogging_(
+        createErrorResponse('Could not connect [' + message + ']')
+      );
+      return null;
+    }
+
+    // Register a listener for the logging to code indicate it is
+    // finished logging.
+    port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
+    await port.whenReady();
+
+    // The publisher should be done setting experiments but runtime
+    // will forward them here if they aren't.
+    this.addLabels(getOnExperiments(this.doc_.getWin()));
+
+    return port;
   }
 
   /**
@@ -360,7 +375,7 @@ export class AnalyticsService {
   }
 
   /**
-   *  Listens for new events from the events manager and handles logging
+   * Listens for new events from the events manager and handles logging
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
@@ -384,17 +399,28 @@ export class AnalyticsService {
       return;
     }
 
-    if (this.readyForLogging_) {
-      // Register we sent a log, the port will call this.afterLogging_ when done.
-      this.unfinishedLogs_++;
-      this.lastAction_ = this.start().then((port) => {
-        const analyticsRequest = this.createLogRequest_(event);
-        port.execute(analyticsRequest);
-      });
-    } else {
-      // If we're not ready to log events yet, store the event so we can log it later.
+    if (!this.readyForLogging_) {
+      // If we're not ready to log events yet,
+      // store the event so we can log it later.
       this.logs_.push(event);
+      return;
     }
+
+    // Register we sent a log. The port will call this.afterLogging_ when done.
+    this.unfinishedLogs_++;
+
+    // Send log.
+    this.lastAction_ = this.sendLog_(event);
+  }
+
+  /**
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @return {!Promise}
+   */
+  async sendLog_(event) {
+    const port = await this.start();
+    const analyticsRequest = this.createLogRequest_(event);
+    port.execute(analyticsRequest);
   }
 
   /**
