@@ -102,7 +102,7 @@ export class AnalyticsService {
     /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
     this.portPromise_ = null;
 
-    /** @type {?Promise} */
+    /** @private {?Promise} */
     this.lastAction_ = null;
 
     /** @private @const {!ClientEventManager} */
