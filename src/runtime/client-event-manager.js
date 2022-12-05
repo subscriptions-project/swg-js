@@ -126,25 +126,36 @@ export class ClientEventManager {
    */
   logEvent(event, eventParams = undefined) {
     validateEvent(event);
-    this.lastAction_ = this.isReadyPromise_.then(() => {
-      for (let filterer = 0; filterer < this.filterers_.length; filterer++) {
-        try {
-          if (this.filterers_[filterer](event) === FilterResult.CANCEL_EVENT) {
-            return Promise.resolve();
-          }
-        } catch (e) {
-          log(e);
+    this.lastAction_ = this.handleEvent_(event, eventParams);
+  }
+
+  /**
+   * Triggers event listeners, unless filterers cancel the event.
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
+   */
+  async handleEvent_(event, eventParams = undefined) {
+    await this.isReadyPromise_;
+
+    // Bail if a filterer cancels the event.
+    for (const filterer of this.filterers_) {
+      try {
+        if (filterer(event) === FilterResult.CANCEL_EVENT) {
+          return;
         }
+      } catch (e) {
+        log(e);
       }
-      for (let listener = 0; listener < this.listeners_.length; listener++) {
-        try {
-          this.listeners_[listener](event, eventParams);
-        } catch (e) {
-          log(e);
-        }
+    }
+
+    // Trigger listeners.
+    for (const listener of this.listeners_) {
+      try {
+        listener(event, eventParams);
+      } catch (e) {
+        log(e);
       }
-      return Promise.resolve();
-    });
+    }
   }
 
   /**
