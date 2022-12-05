@@ -265,10 +265,9 @@ export class BasicRuntime {
   }
 
   /** @override */
-  linkSubscription(request) {
-    return this.configured_(false).then((runtime) =>
-      runtime.linkSubscription(request)
-    );
+  async linkSubscription(request) {
+    const runtime = await this.configured_(false);
+    return runtime.linkSubscription(request);
   }
 
   /**
