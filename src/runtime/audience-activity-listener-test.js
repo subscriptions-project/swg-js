@@ -24,7 +24,7 @@ import {PageConfig} from '../model/page-config';
 import {XhrFetcher} from './fetcher';
 import {setExperimentsStringForTesting} from './experiments';
 
-describes.realWin('AudienceActivityEventListener', {}, (env) => {
+describes.realWin('AudienceActivityEventListener', (env) => {
   let audienceActivityEventListener;
   let capturedUrl;
   let eventManagerCallback;

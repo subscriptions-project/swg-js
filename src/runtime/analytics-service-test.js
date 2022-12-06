@@ -33,7 +33,7 @@ import {toTimestamp} from '../utils/date-utils';
 
 const URL = 'www.news.com';
 
-describes.realWin('AnalyticsService', {}, (env) => {
+describes.realWin('AnalyticsService', (env) => {
   let src;
   let activityPorts;
   let activityIframePort;

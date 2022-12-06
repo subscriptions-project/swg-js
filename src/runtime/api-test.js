@@ -19,7 +19,7 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 
-describes.sandboxed('Entitlements', {}, () => {
+describes.sandboxed('Entitlements', () => {
   let ackSpy;
 
   beforeEach(() => {
@@ -283,7 +283,7 @@ describe('PurchaseData', () => {
   });
 });
 
-describes.sandboxed('SubscribeResponse', {}, () => {
+describes.sandboxed('SubscribeResponse', () => {
   let sr, pd, ud, entitlements, complete, promise;
 
   beforeEach(() => {
@@ -401,7 +401,7 @@ describe('UserData', () => {
   });
 });
 
-describes.sandboxed('DeferredAccountCreationResponse', {}, () => {
+describes.sandboxed('DeferredAccountCreationResponse', () => {
   let ents, dacr, pd, pd2, ud, complete, promise;
 
   beforeEach(() => {

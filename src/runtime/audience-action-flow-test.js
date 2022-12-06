@@ -70,7 +70,7 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_2,
 ]);
 
-describes.realWin('AudienceActionFlow', {}, (env) => {
+describes.realWin('AudienceActionFlow', (env) => {
   let win;
   let runtime;
   let activitiesMock;

@@ -27,7 +27,7 @@ import {
 import {Event} from '../api/propensity-api';
 import {ShowcaseEvent, SubscriptionFlows} from '../api/subscriptions';
 
-describes.realWin('Logger and Propensity events', {}, () => {
+describes.realWin('Logger and Propensity events', () => {
   it('propensity to analytics to propensity should be identical', () => {
     let analyticsEvent;
     let propensityEvent;
@@ -70,7 +70,7 @@ describes.realWin('Logger and Propensity events', {}, () => {
   });
 });
 
-describes.realWin('showcaseEventToAnalyticsEvents', {}, () => {
+describes.realWin('showcaseEventToAnalyticsEvents', () => {
   it('all types mapped', () => {
     for (const publisherEvent in ShowcaseEvent) {
       const converted = showcaseEventToAnalyticsEvents(
@@ -84,7 +84,7 @@ describes.realWin('showcaseEventToAnalyticsEvents', {}, () => {
   });
 });
 
-describes.realWin('analyticsEventToEntitlementResult', {}, () => {
+describes.realWin('analyticsEventToEntitlementResult', () => {
   let mapped;
 
   beforeEach(() => {
@@ -117,7 +117,7 @@ describes.realWin('analyticsEventToEntitlementResult', {}, () => {
   });
 });
 
-describes.realWin('analyticsEventToGoogleAnalyticsEvent', {}, () => {
+describes.realWin('analyticsEventToGoogleAnalyticsEvent', () => {
   it('not allow the same event to be mapped to twice', () => {
     const mapped = {};
     for (const event in AnalyticsEvent) {

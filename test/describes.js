@@ -68,29 +68,21 @@ const SUB = ' ';
 let iframeCount = 0;
 
 /**
- * @typedef {{
- * }}
- */
-export let TestSpec;
-
-/**
  * A test with a sandbox.
  * @param {string} name
- * @param {!TestSpec} spec
  * @param {function()} fn
  */
-export const sandboxed = describeEnv((spec) => []);
+export const sandboxed = describeEnv(() => []);
 
 /**
  * A test with a real (iframed) window.
  * @param {string} name
- * @param {{}} spec
  * @param {function({
  *   win: !Window,
  *   iframe: !HTMLIFrameElement,
  * })} fn
  */
-export const realWin = describeEnv((spec) => [new RealWinFixture(spec)]);
+export const realWin = describeEnv(() => [new RealWinFixture()]);
 
 /**
  * Returns a wrapped version of Mocha's describe(), it() and only() methods
@@ -101,13 +93,12 @@ export const realWin = describeEnv((spec) => [new RealWinFixture(spec)]);
 function describeEnv(factory) {
   /**
    * @param {string} name
-   * @param {!Object} spec
    * @param {function(!Object)} fn
    * @param {function(string, function())} describeFunc
    */
-  const templateFunc = function (name, spec, fn, describeFunc) {
-    const fixtures = [new SandboxFixture(spec)];
-    factory(spec).forEach((fixture) => {
+  const templateFunc = function (name, fn, describeFunc) {
+    const fixtures = [new SandboxFixture()];
+    factory().forEach((fixture) => {
       if (fixture && fixture.isOn()) {
         fixtures.push(fixture);
       }
@@ -143,24 +134,22 @@ function describeEnv(factory) {
 
   /**
    * @param {string} name
-   * @param {!Object} spec
    * @param {function(!Object)} fn
    */
-  const mainFunc = function (name, spec, fn) {
-    return templateFunc(name, spec, fn, describe);
+  const mainFunc = (name, fn) => {
+    return templateFunc(name, fn, describe);
   };
 
   /**
    * @param {string} name
-   * @param {!Object} spec
    * @param {function(!Object)} fn
    */
-  mainFunc.only = function (name, spec, fn) {
-    return templateFunc(name, spec, fn, describe./*OK*/ only);
+  mainFunc.only = (name, fn) => {
+    return templateFunc(name, fn, describe./*OK*/ only);
   };
 
-  mainFunc.skip = function (name, variants, fn) {
-    return templateFunc(name, variants, fn, describe.skip);
+  mainFunc.skip = (name, fn) => {
+    return templateFunc(name, fn, describe.skip);
   };
 
   return mainFunc;
@@ -231,7 +220,7 @@ class RealWinFixture {
       env.iframe = iframe;
       iframe.name = 'test_' + iframeCount++;
       iframe.srcdoc = '<!doctype><html><head><body style="margin:0">';
-      iframe.onload = function () {
+      iframe.onload = () => {
         const win = iframe.contentWindow;
         env.win = win;
 
