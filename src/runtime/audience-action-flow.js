@@ -43,6 +43,7 @@ import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 
 /**
  * @typedef {{
@@ -109,6 +110,7 @@ export class AudienceActionFlow {
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
         'hl': this.clientConfigManager_.getLanguage(),
+        'isClosable': deps.pageConfig().isLocked(),
       }),
       feArgs({
         'supportsEventManager': true,
