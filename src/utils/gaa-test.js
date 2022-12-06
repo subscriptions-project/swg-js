@@ -2986,7 +2986,6 @@ describes.realWin('GaaMetering', {}, () => {
   });
 
   describe('getLoginPromise', () => {
-    beforeEach(() => {});
     it('sets up the promise', async () => {
       const promise = GaaMetering.getLoginPromise();
       sandbox.spy(GaaMetering, 'loginPromiseResolve_');
