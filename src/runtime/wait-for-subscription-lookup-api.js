@@ -62,21 +62,19 @@ export class WaitForSubscriptionLookupApi {
    * Starts the Login Flow.
    * @return {!Promise}
    */
-  start() {
+  async start() {
     this.openViewPromise_ = this.dialogManager_.openView(
       this.activityIframeView_
     );
 
-    return this.accountPromise_.then(
-      (account) => {
-        // Account was found.
-        this.dialogManager_.completeView(this.activityIframeView_);
-        return account;
-      },
-      (reason) => {
-        this.dialogManager_.completeView(this.activityIframeView_);
-        throw reason;
-      }
-    );
+    try {
+      const account = await this.accountPromise_;
+      // Account was found.
+      this.dialogManager_.completeView(this.activityIframeView_);
+      return account;
+    } catch (reason) {
+      this.dialogManager_.completeView(this.activityIframeView_);
+      throw reason;
+    }
   }
 }
