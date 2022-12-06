@@ -109,7 +109,7 @@ export class AudienceActionFlow {
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
         'hl': this.clientConfigManager_.getLanguage(),
-        'isClosable': deps.pageConfig().isLocked(),
+        'isClosable': !deps.pageConfig().isLocked(),
       }),
       feArgs({
         'supportsEventManager': true,

@@ -94,7 +94,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       }
     );
     messageMap = {};
-    pageConfig = new PageConfig('pub1:label1', /**locked=*/ false);
+    pageConfig = new PageConfig('pub1:label1', /**locked=*/ true);
     clientOptions = {};
     runtime = new ConfiguredRuntime(
       env.win,
