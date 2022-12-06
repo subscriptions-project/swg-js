@@ -233,7 +233,7 @@ export class Runtime {
     );
     this.configuredRuntimeResolver_(configuredRuntime);
 
-    return this.configuredRuntimePromise_;
+    return configuredRuntime;
   }
 
   /**
