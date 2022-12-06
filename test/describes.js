@@ -97,12 +97,9 @@ function describeEnv(factory) {
    * @param {function(string, function())} describeFunc
    */
   const templateFunc = function (name, fn, describeFunc) {
-    const fixtures = [new SandboxFixture()];
-    factory().forEach((fixture) => {
-      if (fixture && fixture.isOn()) {
-        fixtures.push(fixture);
-      }
-    });
+    const fixtures = factory().filter((fixture) => fixture && fixture.isOn());
+    fixtures.push(new SandboxFixture());
+
     return describeFunc(name, function () {
       const env = Object.create(null);
 
@@ -113,12 +110,9 @@ function describeEnv(factory) {
 
       afterEach(() => {
         // Tear down all fixtures.
-        fixtures
-          .slice(0)
-          .reverse()
-          .forEach((fixture) => {
-            fixture.teardown(env);
-          });
+        for (const fixture of fixtures.slice(0).reverse()) {
+          fixture.teardown(env);
+        }
 
         // Delete all other keys.
         for (const key in env) {
