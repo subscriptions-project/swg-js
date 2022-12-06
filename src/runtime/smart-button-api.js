@@ -101,7 +101,7 @@ export class SmartSubscriptionButtonApi {
    * Make a call to build button content and listens for the 'click' message.
    * @return {!Element}
    */
-  start() {
+  async start() {
     setImportantStyles(this.iframe_, {
       'opacity': 1,
       'position': 'absolute',
@@ -114,11 +114,12 @@ export class SmartSubscriptionButtonApi {
     });
     this.button_.appendChild(this.iframe_);
     const args = this.activityPorts_.addDefaultArguments(this.args_);
-    this.activityPorts_
-      .openIframe(this.iframe_, this.src_, args)
-      .then((port) => {
-        port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
-      });
+    const port = await this.activityPorts_.openIframe(
+      this.iframe_,
+      this.src_,
+      args
+    );
+    port.on(SmartBoxMessage, this.handleSmartBoxClick_.bind(this));
     return this.iframe_;
   }
 }
