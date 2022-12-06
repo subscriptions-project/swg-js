@@ -44,7 +44,7 @@ export class SubscriptionLinkingFlow {
    * @param {!../api/subscriptions.LinkSubscriptionRequest} request
    * @return {!Promise<!../api/subscriptions.LinkSubscriptionResult>}
    */
-  start(request) {
+  async start(request) {
     const {publisherProvidedId} = request;
     if (!publisherProvidedId) {
       throw new Error('Missing required field: publisherProvidedId');
@@ -77,10 +77,14 @@ export class SubscriptionLinkingFlow {
       this.completionResolver_ = resolve;
     });
 
-    return this.dialogManager_
-      .openView(activityIframeView, /* hidden= */ false, {
+    await this.dialogManager_.openView(
+      activityIframeView,
+      /* hidden= */ false,
+      {
         desktopConfig: {isCenterPositioned: true},
-      })
-      .then(() => completionPromise);
+      }
+    );
+
+    return completionPromise;
   }
 }
