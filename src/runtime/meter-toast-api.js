@@ -33,17 +33,6 @@ export const IFRAME_BOX_SHADOW =
 export const MINIMIZED_IFRAME_SIZE = '420px';
 export const DEFAULT_IFRAME_URL = '/metertoastiframe';
 export const ANONYMOUS_USER_ATTRIBUTE = 'anonymous_user';
-
-/**
- * Values of meterClientUserAttribute for which to show the Known MeterType.
- * @const {Array<string>}
- */
-export const KNOWN_USER_ATTRIBUTES = [
-  'known_user',
-  'newsletter_user',
-  'registration_user',
-];
-
 /**
  * The iframe URLs to be used per MeterClientType
  * @type {Object.<MeterClientTypes, string>}
@@ -56,7 +45,6 @@ export const IframeUrlByMeterClientType = {
 const MeterType = {
   UNKNOWN: 'UNKNOWN',
   KNOWN: 'KNOWN',
-  SUPPRESSED: 'SUPPRESSED',
 };
 
 /**
@@ -123,7 +111,7 @@ export class MeterToastApi {
    * Shows the user the metering toast.
    * @return {!Promise}
    */
-  start() {
+  async start() {
     const additionalArguments = {
       isClosable: true,
       hasSubscriptionCallback: this.deps_
@@ -134,16 +122,8 @@ export class MeterToastApi {
       additionalArguments['meterType'] =
         this.meterClientUserAttribute_ === ANONYMOUS_USER_ATTRIBUTE
           ? MeterType.UNKNOWN
-          : KNOWN_USER_ATTRIBUTES.includes(this.meterClientUserAttribute_)
-          ? MeterType.KNOWN
-          : MeterType.SUPPRESSED;
+          : MeterType.KNOWN;
     }
-
-    // Exit flow and do not show prompt for Suppressed MeterType
-    if (additionalArguments['meterType'] === MeterType.SUPPRESSED) {
-      return Promise.resolve();
-    }
-
     const iframeArgs =
       this.activityPorts_.addDefaultArguments(additionalArguments);
 
@@ -231,44 +211,41 @@ export class MeterToastApi {
         }
       });
 
-    return this.dialogManager_.openDialog().then((dialog) => {
-      this.setDialogBoxShadow_();
-      this.setLoadingViewWidth_();
-      return dialog.openView(this.activityIframeView_).then(() => {
-        // Allow closing of the iframe with any scroll or click event.
-        this.win_.addEventListener('click', this.sendCloseRequestFunction_);
-        this.win_.addEventListener(
-          'touchstart',
-          this.sendCloseRequestFunction_
-        );
-        this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
-        // Making body's overflow property 'hidden' to prevent scrolling
-        // while swiping on the iframe only on mobile.
-        if (this.isMobile_()) {
-          const $body = this.win_.document.body;
-          setStyle($body, 'overflow', 'hidden');
-        } else {
-          let start, scrollTimeout;
-          this.scrollEventListener_ = () => {
-            start = start || this.win_./*REVIEW*/ pageYOffset;
-            this.win_.clearTimeout(scrollTimeout);
-            scrollTimeout = this.win_.setTimeout(() => {
-              // If the scroll is longer than 100, close the toast.
-              if (Math.abs(this.win_./*REVIEW*/ pageYOffset - start) > 100) {
-                this.sendCloseRequestFunction_();
-              }
-            }, 100);
-          };
-          this.win_.addEventListener('scroll', this.scrollEventListener_);
-        }
-        this.deps_
-          .eventManager()
-          .logSwgEvent(AnalyticsEvent.IMPRESSION_METER_TOAST);
-        this.deps_
-          .eventManager()
-          .logSwgEvent(AnalyticsEvent.EVENT_OFFERED_METER);
-      });
-    });
+    const dialog = await this.dialogManager_.openDialog();
+
+    this.setDialogBoxShadow_();
+    this.setLoadingViewWidth_();
+
+    await dialog.openView(this.activityIframeView_);
+
+    // Allow closing of the iframe with any scroll or click event.
+    this.win_.addEventListener('click', this.sendCloseRequestFunction_);
+    this.win_.addEventListener('touchstart', this.sendCloseRequestFunction_);
+    this.win_.addEventListener('mousedown', this.sendCloseRequestFunction_);
+    // Making body's overflow property 'hidden' to prevent scrolling
+    // while swiping on the iframe only on mobile.
+    if (this.isMobile_()) {
+      const $body = this.win_.document.body;
+      setStyle($body, 'overflow', 'hidden');
+    } else {
+      let start, scrollTimeout;
+      this.scrollEventListener_ = () => {
+        start = start || this.win_./*REVIEW*/ pageYOffset;
+        this.win_.clearTimeout(scrollTimeout);
+        scrollTimeout = this.win_.setTimeout(() => {
+          // If the scroll is longer than 100, close the toast.
+          if (Math.abs(this.win_./*REVIEW*/ pageYOffset - start) > 100) {
+            this.sendCloseRequestFunction_();
+          }
+        }, 100);
+      };
+      this.win_.addEventListener('scroll', this.scrollEventListener_);
+    }
+
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_METER_TOAST);
+    this.deps_.eventManager().logSwgEvent(AnalyticsEvent.EVENT_OFFERED_METER);
   }
 
   /**

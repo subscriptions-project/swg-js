@@ -81,11 +81,10 @@ export class DialogManager {
    *    dialog.
    * @return {!Promise}
    */
-  openView(view, hidden = false, dialogConfig = {}) {
+  async openView(view, hidden = false, dialogConfig = {}) {
     this.handleCancellations(view);
-    return this.openDialog(hidden, dialogConfig).then((dialog) => {
-      return dialog.openView(view);
-    });
+    const dialog = await this.openDialog(hidden, dialogConfig);
+    return dialog.openView(view);
   }
 
   /**

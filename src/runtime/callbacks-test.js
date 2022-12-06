@@ -179,12 +179,9 @@ describes.sandboxed('Callbacks', {}, () => {
     it('should throw other errors', async () => {
       await failer({name: 'OtherError'});
       let receivedReason = null;
-      await callbacks.paymentResponsePromise_.then(
-        () => {},
-        (reason) => {
-          receivedReason = reason;
-        }
-      );
+      await callbacks.paymentResponsePromise_.catch((reason) => {
+        receivedReason = reason;
+      });
       await tick();
       // Now everything should execute
       expect(spy).to.not.be.called;
