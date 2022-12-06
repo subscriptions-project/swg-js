@@ -97,7 +97,7 @@
 html > body.swg-disable-scroll {
   height: 100vh !important;
   overflow: hidden !important;
-  touch-action: none;
+  position: fixed !important;
 }
 
 html > body.swg-disable-scroll * {
