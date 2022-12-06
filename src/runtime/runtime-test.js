@@ -401,7 +401,7 @@ describes.realWin('Runtime', {}, (env) => {
       resolveStub = sandbox
         .stub(PageConfigResolver.prototype, 'resolveConfig')
         .callsFake(() => configPromise);
-      runtime.configuredPromise_.then((configuredRuntime) => {
+      runtime.configuredRuntimePromise_.then((configuredRuntime) => {
         analyticsMock = sandbox.mock(configuredRuntime.analytics());
       });
     });
@@ -1293,7 +1293,7 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       setExperimentsStringForTesting('');
     });
 
-    function returnActivity(requestId, code, dataOrError, origin) {
+    async function returnActivity(requestId, code, dataOrError, origin) {
       const activityResult = new ActivityResult(
         code,
         dataOrError,
@@ -1308,10 +1308,9 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
           return activityResultPromise;
         },
       });
-      return activityResultPromise.then(() => {
-        // Skip microtask.
-        return promise;
-      });
+      await activityResultPromise;
+      // Skip microtask.
+      return promise;
     }
 
     describe('callbacks', () => {
