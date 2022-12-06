@@ -208,15 +208,14 @@ export class Runtime {
    */
   async configured_(startConfiguringRuntime) {
     if (!startConfiguringRuntime) {
-      // Immediately return promise if the runtime
-      // doesn't need to be configured yet.
+      // Configuration isn't necessary yet, so lets wait.
       return this.configuredRuntimePromise_;
     }
 
     if (this.startedConfiguringRuntime_) {
       // Runtime configuration has already started.
       if (this.pageConfigResolver_) {
-        // Page resolution has started, but hasn't completed.
+        // Page config resolution has already started, but hasn't completed.
         // Kick off additional checks for the page config.
         this.pageConfigResolver_.check();
       }
