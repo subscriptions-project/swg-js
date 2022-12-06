@@ -253,7 +253,7 @@ export class PropensityServer {
       '&ref=' +
       referrer;
     const response = await this.fetcher_.fetch(this.propensityUrl_(url), init);
-    const responseJson = await response.json();
+    const responseJson = /** @type {JsonObject} */ (await response.json());
     return this.parsePropensityResponse_(responseJson);
   }
 }
