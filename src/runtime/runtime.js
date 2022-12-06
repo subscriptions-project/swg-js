@@ -207,22 +207,32 @@ export class Runtime {
    * @private
    */
   async configured_(startConfiguringRuntime) {
-    if (!this.startedConfiguringRuntime_ && startConfiguringRuntime) {
-      this.startedConfiguringRuntime_ = true;
-
-      const pageConfig = await this.determinePageConfig_();
-      const configuredRuntime = new ConfiguredRuntime(
-        this.doc_,
-        pageConfig,
-        /* integr */ {configPromise: this.configuredRuntimePromise_},
-        this.config_
-      );
-      this.configuredRuntimeResolver_(configuredRuntime);
-      this.configuredRuntimeResolver_ = null;
-    } else if (startConfiguringRuntime && this.pageConfigResolver_) {
-      // Kick off extra checks for the page config.
-      this.pageConfigResolver_.check();
+    if (!startConfiguringRuntime) {
+      // Immediately return promise if the runtime
+      // doesn't need to be configured yet.
+      return this.configuredRuntimePromise_;
     }
+
+    if (this.startedConfiguringRuntime_) {
+      // Runtime configuration has already started.
+      if (this.pageConfigResolver_) {
+        // Page resolution has started, but hasn't completed.
+        // Kick off additional checks for the page config.
+        this.pageConfigResolver_.check();
+      }
+      return this.configuredRuntimePromise_;
+    }
+
+    // Configure runtime.
+    this.startedConfiguringRuntime_ = true;
+    const pageConfig = await this.determinePageConfig_();
+    const configuredRuntime = new ConfiguredRuntime(
+      this.doc_,
+      pageConfig,
+      /* integr */ {configPromise: this.configuredRuntimePromise_},
+      this.config_
+    );
+    this.configuredRuntimeResolver_(configuredRuntime);
 
     return this.configuredRuntimePromise_;
   }
