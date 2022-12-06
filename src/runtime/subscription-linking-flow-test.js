@@ -78,11 +78,11 @@ describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
     });
   });
 
-  it('throws an error if publisherProvidedId is missing', () => {
+  it('throws an error if publisherProvidedId is missing', async () => {
     const request = {...REQUEST, publisherProvidedId: undefined};
-    expect(() => {
-      subscriptionLinkingFlow.start(request);
-    }).to.throw(Error, 'publisherProvidedId');
+    await expect(
+      subscriptionLinkingFlow.start(request)
+    ).to.eventually.be.rejectedWith(Error, 'publisherProvidedId');
   });
 
   describe('on SubscriptionLinkingCompleteResponse', () => {

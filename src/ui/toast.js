@@ -95,39 +95,38 @@ export class Toast {
   /**
    * Builds the content of the iframe. On load, animates the toast.
    */
-  buildToast_() {
+  async buildToast_() {
     const toastDurationSeconds = 7;
-    return this.activityPorts_
-      .openIframe(this.iframe_, this.src_, this.args_)
-      .then((port) => {
-        return port.whenReady();
-      })
-      .then(() => {
-        resetStyles(this.iframe_, ['height']);
+    const port = await this.activityPorts_.openIframe(
+      this.iframe_,
+      this.src_,
+      this.args_
+    );
+    await port.whenReady();
+    resetStyles(this.iframe_, ['height']);
 
-        this.animate_(() => {
-          setImportantStyles(this.iframe_, {
-            'transform': 'translateY(100%)',
-            'opactiy': 1,
-            'visibility': 'visible',
-          });
-          return transition(
-            this.iframe_,
-            {
-              'transform': 'translateY(0)',
-              'opacity': 1,
-              'visibility': 'visible',
-            },
-            400,
-            'ease-out'
-          );
-        });
-
-        // Close the Toast after the specified duration.
-        this.doc_.getWin().setTimeout(() => {
-          this.close();
-        }, (toastDurationSeconds + 1) * 1000);
+    this.animating_ = this.animate_(() => {
+      setImportantStyles(this.iframe_, {
+        'transform': 'translateY(100%)',
+        'opacity': 1,
+        'visibility': 'visible',
       });
+      return transition(
+        this.iframe_,
+        {
+          'transform': 'translateY(0)',
+          'opacity': 1,
+          'visibility': 'visible',
+        },
+        400,
+        'ease-out'
+      );
+    });
+
+    // Close the Toast after the specified duration.
+    this.doc_.getWin().setTimeout(() => {
+      this.close();
+    }, (toastDurationSeconds + 1) * 1000);
   }
 
   /**
@@ -135,15 +134,15 @@ export class Toast {
    * @return {!Promise}
    * @private
    */
-  animate_(callback) {
-    const wait = this.animating_ || Promise.resolve();
-    return (this.animating_ = wait
-      .then(() => callback())
+  async animate_(callback) {
+    // Wait for previous animations to finish.
+    await this.animating_;
+
+    try {
+      await callback();
+    } catch (err) {
       // Ignore errors to make sure animations don't get stuck.
-      .catch(() => {})
-      .then(() => {
-        this.animating_ = null;
-      }));
+    }
   }
 
   /**
@@ -151,11 +150,10 @@ export class Toast {
    * @return {!Promise}
    */
   close() {
-    return this.animate_(() => {
+    this.animating_ = this.animate_(() => {
       // Remove the toast from the DOM after animation is complete.
       this.doc_.getWin().setTimeout(() => {
         this.doc_.getBody().removeChild(this.iframe_);
-        return Promise.resolve();
       }, 500);
 
       return transition(
@@ -169,5 +167,7 @@ export class Toast {
         'ease-out'
       );
     });
+
+    return this.animating_;
   }
 }
