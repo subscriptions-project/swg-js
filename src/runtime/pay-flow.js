@@ -399,7 +399,11 @@ export class PayCompleteFlow {
     this.readyPromise_ = this.dialogManager_.openView(this.activityIframeView_);
 
     this.readyPromise_.then(() => {
-      this.deps_.callbacks().triggerPayConfirmOpened(this.activityIframeView_);
+      this.deps_
+        .callbacks()
+        .triggerPayConfirmOpened(
+          /** @type {!ActivityIframeView} */ (this.activityIframeView_)
+        );
     });
   }
 
