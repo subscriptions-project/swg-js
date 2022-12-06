@@ -108,7 +108,7 @@ export class Toast {
     this.animating_ = this.animate_(() => {
       setImportantStyles(this.iframe_, {
         'transform': 'translateY(100%)',
-        'opactiy': 1,
+        'opacity': 1,
         'visibility': 'visible',
       });
       return transition(
