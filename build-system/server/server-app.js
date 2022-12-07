@@ -91,7 +91,7 @@ app.use(
 
 app.use(
   '/test/auth-header/service',
-  require('../../test/auth-header/service-app')
+  require('../../test/e2e/auth-header-service')
 );
 
 module.exports = app;
