@@ -660,7 +660,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnEntitlementsResponse"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -671,7 +671,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnNativeSubscribeRequest"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnNativeSubscribeRequest')
         .withExactArgs(callback)
@@ -682,7 +682,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnSubscribeResponse"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnSubscribeResponse')
         .withExactArgs(callback)
@@ -693,7 +693,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnLoginRequest"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnLoginRequest')
         .withExactArgs(callback)
@@ -715,7 +715,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnLinkComplete"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnLinkComplete')
         .withExactArgs(callback)
@@ -726,7 +726,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnFlowStarted"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnFlowStarted')
         .withExactArgs(callback)
@@ -737,7 +737,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnFlowCanceled"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnFlowCanceled')
         .withExactArgs(callback)
@@ -1418,7 +1418,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
     describe('Entitlements Success', () => {
       let entitlements;
 
-      afterEach(async function () {
+      afterEach(async () => {
         const promise = Promise.resolve(
           new Entitlements('service', 'raw', entitlements, 'product1', () => {})
         );
@@ -1931,7 +1931,7 @@ subscribe() method'
       expect(count).to.equal(1);
     });
 
-    it('should create a working logger', async function () {
+    it('should create a working logger', async () => {
       let receivedEvent = null;
       sandbox
         .stub(ClientEventManager.prototype, 'logEvent')
