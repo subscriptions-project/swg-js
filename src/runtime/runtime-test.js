@@ -72,7 +72,7 @@ import {
 } from './experiments';
 import {parseUrl} from '../utils/url';
 
-describes.realWin('installRuntime', {}, (env) => {
+describes.realWin('installRuntime', (env) => {
   let win;
 
   beforeEach(() => {
@@ -216,7 +216,7 @@ describes.realWin('installRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('installRuntime legacy', {}, (env) => {
+describes.realWin('installRuntime legacy', (env) => {
   let win;
 
   beforeEach(() => {
@@ -338,7 +338,7 @@ describes.realWin('installRuntime legacy', {}, (env) => {
   });
 });
 
-describes.realWin('Runtime', {}, (env) => {
+describes.realWin('Runtime', (env) => {
   let win;
   let runtime;
   let loggedEvents = [];
@@ -393,7 +393,6 @@ describes.realWin('Runtime', {}, (env) => {
     let config;
     let configPromise;
     let resolveStub;
-    let analyticsMock;
 
     beforeEach(() => {
       config = new PageConfig('pub1', true);
@@ -401,9 +400,6 @@ describes.realWin('Runtime', {}, (env) => {
       resolveStub = sandbox
         .stub(PageConfigResolver.prototype, 'resolveConfig')
         .callsFake(() => configPromise);
-      runtime.configuredPromise_.then((configuredRuntime) => {
-        analyticsMock = sandbox.mock(configuredRuntime.analytics());
-      });
     });
 
     it('should initialize correctly with config lookup', async () => {
@@ -504,12 +500,11 @@ describes.realWin('Runtime', {}, (env) => {
       expect(logger).to.be.instanceOf(Logger);
     });
 
-    it('should call analytics service start and setReadyForLogging once configured', async () => {
+    it('sets up analytics', async () => {
       runtime.init('pub2');
-      await runtime.configured_(true);
-
-      analyticsMock.expects('start').once();
-      analyticsMock.expects('setReadyForLogging').once();
+      const configuredRuntime = await runtime.configured_(true);
+      const analytics = configuredRuntime.analytics();
+      expect(analytics.readyForLogging_).to.be.true;
     });
   });
 
@@ -1061,7 +1056,7 @@ describes.realWin('Runtime', {}, (env) => {
   });
 });
 
-describes.realWin('ConfiguredRuntime', {}, (env) => {
+describes.realWin('ConfiguredRuntime', (env) => {
   let win;
   let config;
   let runtime;
@@ -1293,7 +1288,7 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
       setExperimentsStringForTesting('');
     });
 
-    function returnActivity(requestId, code, dataOrError, origin) {
+    async function returnActivity(requestId, code, dataOrError, origin) {
       const activityResult = new ActivityResult(
         code,
         dataOrError,
@@ -1308,10 +1303,9 @@ describes.realWin('ConfiguredRuntime', {}, (env) => {
           return activityResultPromise;
         },
       });
-      return activityResultPromise.then(() => {
-        // Skip microtask.
-        return promise;
-      });
+      await activityResultPromise;
+      // Skip microtask.
+      return promise;
     }
 
     describe('callbacks', () => {

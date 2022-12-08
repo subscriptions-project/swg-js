@@ -38,7 +38,7 @@ import {PageConfig} from '../model/page-config';
 import {createCancelError} from '../utils/errors';
 import {tick} from '../../test/tick';
 
-describes.realWin('LinkbackFlow', {}, (env) => {
+describes.realWin('LinkbackFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -140,7 +140,7 @@ describes.realWin('LinkbackFlow', {}, (env) => {
   });
 });
 
-describes.realWin('LinkCompleteFlow', {}, (env) => {
+describes.realWin('LinkCompleteFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -595,7 +595,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
   });
 });
 
-describes.realWin('LinkSaveFlow', {}, (env) => {
+describes.realWin('LinkSaveFlow', (env) => {
   let win;
   let runtime;
   let activitiesMock;

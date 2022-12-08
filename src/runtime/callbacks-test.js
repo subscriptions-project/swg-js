@@ -18,7 +18,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {Callbacks} from './callbacks';
 import {tick} from '../../test/tick';
 
-describes.sandboxed('Callbacks', {}, () => {
+describes.sandboxed('Callbacks', () => {
   let callbacks;
 
   beforeEach(() => {

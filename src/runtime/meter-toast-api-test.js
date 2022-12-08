@@ -35,7 +35,7 @@ const AUTO_PINGBACK_TIMEOUT = 10000;
 const TOAST_CLOSE_REQUEST = new ToastCloseRequest();
 TOAST_CLOSE_REQUEST.setClose(true);
 
-describes.realWin('MeterToastApi', {}, (env) => {
+describes.realWin('MeterToastApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;

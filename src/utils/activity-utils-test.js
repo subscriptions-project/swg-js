@@ -38,7 +38,7 @@ const NOT_SECURE = false;
 const REQUIRE_SECURE = true;
 const DONT_REQUIRE_SECURE = false;
 
-describes.sandboxed('acceptPortResultData', {}, () => {
+describes.sandboxed('acceptPortResultData', () => {
   let port;
 
   beforeEach(() => {

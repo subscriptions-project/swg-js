@@ -18,7 +18,7 @@ import {JsError} from './jserror';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {resolveDoc} from '../model/doc';
 
-describes.realWin('JsError', {}, (env) => {
+describes.realWin('JsError', (env) => {
   let doc;
   let jsError;
   let elements;

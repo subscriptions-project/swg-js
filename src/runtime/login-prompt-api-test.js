@@ -19,7 +19,7 @@ import {ConfiguredRuntime} from './runtime';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('LoginPromptApi', {}, (env) => {
+describes.realWin('LoginPromptApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;

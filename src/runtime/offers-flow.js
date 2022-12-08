@@ -121,21 +121,30 @@ export class OffersFlow {
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
     /** @private @const {!Promise<!../model/client-config.ClientConfig>} */
-    this.clientConfig_ = this.clientConfigManager_.getClientConfig();
+    this.clientConfigPromise_ = this.clientConfigManager_.getClientConfig();
 
     /** @private @const {!Promise<?ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfig_.then(
-      (clientConfig) => {
-        return this.shouldShow_(clientConfig)
-          ? new ActivityIframeView(
-              this.win_,
-              this.activityPorts_,
-              this.getUrl_(clientConfig, deps.pageConfig()),
-              feArgsObj,
-              /* shouldFadeBody */ true
-            )
-          : null;
-      }
+    this.activityIframeViewPromise_ = this.createActivityIframeView_(feArgsObj);
+  }
+
+  /**
+   * @param {!Object} args
+   * @return {!Promise<?ActivityIframeView>}
+   * @private
+   */
+  async createActivityIframeView_(args) {
+    const clientConfig = await this.clientConfigPromise_;
+
+    if (!this.shouldShow_(clientConfig)) {
+      return null;
+    }
+
+    return new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      this.getUrl_(clientConfig, this.deps_.pageConfig()),
+      args,
+      /* shouldFadeBody */ true
     );
   }
 
@@ -194,56 +203,44 @@ export class OffersFlow {
    * Starts the offers flow or alreadySubscribed flow.
    * @return {!Promise}
    */
-  start() {
-    if (this.activityIframeViewPromise_) {
-      return this.activityIframeViewPromise_.then((activityIframeView) => {
-        if (!activityIframeView) {
-          return Promise.resolve();
-        }
-
-        // So no error if skipped to payment screen.
-        // Start/cancel events.
-        // The second parameter is required by Propensity in AMP.
-        this.deps_
-          .callbacks()
-          .triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
-            skus: this.skus_,
-            source: 'SwG',
-          });
-        activityIframeView.onCancel(() => {
-          this.deps_
-            .callbacks()
-            .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
-        });
-        activityIframeView.on(
-          SkuSelectedResponse,
-          this.startPayFlow_.bind(this)
-        );
-        activityIframeView.on(
-          AlreadySubscribedResponse,
-          this.handleLinkRequest_.bind(this)
-        );
-        activityIframeView.on(
-          ViewSubscriptionsResponse,
-          this.startNativeFlow_.bind(this)
-        );
-        this.activityIframeView_ = activityIframeView;
-        return this.clientConfig_.then((clientConfig) => {
-          if (!this.activityIframeView_) {
-            return;
-          }
-          return this.dialogManager_.openView(
-            this.activityIframeView_,
-            /* hidden */ false,
-            this.getDialogConfig_(
-              clientConfig,
-              this.clientConfigManager_.shouldAllowScroll()
-            )
-          );
-        });
-      });
+  async start() {
+    this.activityIframeView_ = await this.activityIframeViewPromise_;
+    if (!this.activityIframeView_) {
+      return;
     }
-    return Promise.resolve();
+
+    // So no error if skipped to payment screen.
+    // Start/cancel events.
+    // The second parameter is required by Propensity in AMP.
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
+      skus: this.skus_,
+      source: 'SwG',
+    });
+    this.activityIframeView_.onCancel(() => {
+      this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+    });
+    this.activityIframeView_.on(
+      SkuSelectedResponse,
+      this.startPayFlow_.bind(this)
+    );
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+    this.activityIframeView_.on(
+      ViewSubscriptionsResponse,
+      this.startNativeFlow_.bind(this)
+    );
+
+    const clientConfig = await this.clientConfigPromise_;
+    return this.dialogManager_.openView(
+      this.activityIframeView_,
+      /* hidden */ false,
+      this.getDialogConfig_(
+        clientConfig,
+        this.clientConfigManager_.shouldAllowScroll()
+      )
+    );
   }
 
   /**

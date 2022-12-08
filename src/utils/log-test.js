@@ -18,7 +18,7 @@
 
 import {assert, debugLog, warn} from './log';
 
-describes.realWin('warn', {}, () => {
+describes.realWin('warn', () => {
   let warnFn;
 
   beforeEach(() => {
@@ -35,7 +35,7 @@ describes.realWin('warn', {}, () => {
   });
 });
 
-describes.realWin('debug log', {}, () => {
+describes.realWin('debug log', () => {
   let log;
 
   beforeEach(() => {
@@ -66,7 +66,7 @@ describes.realWin('debug log', {}, () => {
   });
 });
 
-describes.realWin('asserts', {}, env => {
+describes.realWin('asserts', (env) => {
   let win;
 
   beforeEach(() => {
