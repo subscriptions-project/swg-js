@@ -17,13 +17,13 @@
 
 const compile = require('./compile').compile;
 const compileCheckTypes = require('./compile').checkTypes;
-const {default: del} = await import('del');
 
 /**
  * Clean up the build artifacts.
  * @return {!Promise}
  */
-function clean() {
+async function clean() {
+  const {default: del} = await import('del');
   return del(['dist', 'build']);
 }
 
