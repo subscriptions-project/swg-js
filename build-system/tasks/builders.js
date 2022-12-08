@@ -17,7 +17,7 @@
 
 const compile = require('./compile').compile;
 const compileCheckTypes = require('./compile').checkTypes;
-const del = require('del');
+const {default: del} = await import('del');
 
 /**
  * Clean up the build artifacts.
@@ -48,16 +48,13 @@ function build() {
  * Dist build for prod.
  * @return {!Promise}
  */
-function dist() {
+async function dist() {
   process.env.NODE_ENV = 'production';
-  return clean().then(() => {
-    return Promise.all([
-      compile({minify: true, checkTypes: false, isProdBuild: true}),
-    ]).then(() => {
-      // Check types now.
-      return compile({minify: true, checkTypes: true});
-    });
-  });
+  await clean();
+  await compile({minify: true, checkTypes: false, isProdBuild: true});
+
+  // Check types now.
+  return compile({minify: true, checkTypes: true});
 }
 
 /**
