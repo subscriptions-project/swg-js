@@ -21,7 +21,7 @@ import {isFunction} from '../utils/types';
 /** @typedef {?function(string, string, Object)} */
 let AnalyticsMethod;
 
-/** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod}} */
+/** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod, dataLayer: Object}} */
 let WindowWithAnalyticsMethods;
 /* eslint-enable no-unused-vars */
 
@@ -52,18 +52,22 @@ export class GoogleAnalyticsEventListener {
    * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
   handleClientEvent_(event, eventParams = undefined) {
-    // Require either ga function (analytics.js) or gtag function (gtag.js).
+    // Require either ga function (analytics.js) or gtag function (gtag.js) or dataLayer.push function (gtm.js).
     const gaIsEligible = GoogleAnalyticsEventListener.isGaEligible(this.deps_);
     const gtagIsEligible = GoogleAnalyticsEventListener.isGtagEligible(
       this.deps_
     );
-    const neitherIsEligible = !gaIsEligible && !gtagIsEligible;
-    if (neitherIsEligible) {
+    const gtmIsEligible = GoogleAnalyticsEventListener.isGtmEligible(
+      this.deps_
+    );
+    const anyGoogleAnalyticsLoggingIsEligible =
+      gaIsEligible || gtagIsEligible || gtmIsEligible;
+    if (!anyGoogleAnalyticsLoggingIsEligible) {
       return;
     }
 
     // Extract methods from window.
-    const {ga, gtag} = /** @type {!WindowWithAnalyticsMethods} */ (
+    const {ga, gtag, dataLayer} = /** @type {!WindowWithAnalyticsMethods} */ (
       this.deps_.win()
     );
 
@@ -105,9 +109,8 @@ export class GoogleAnalyticsEventListener {
     }
 
     // Support google tag manager.
-    const gtmEventPushFn = this.deps_.win().dataLayer?.push;
-    if (isFunction(gtmEventPushFn)) {
-      gtmEventPushFn({
+    if (gtmIsEligible) {
+      dataLayer.push({
         'event': gaEvent.eventAction,
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
@@ -137,5 +140,14 @@ export class GoogleAnalyticsEventListener {
     return isFunction(
       /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).gtag
     );
+  }
+
+  /**
+   * Function to determine whether event is eligible for GTM logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGtmEligible(deps) {
+    return isFunction(deps.win().dataLayer?.push);
   }
 }
