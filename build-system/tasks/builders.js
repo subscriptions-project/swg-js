@@ -23,8 +23,8 @@ const compileCheckTypes = require('./compile').checkTypes;
  * @return {!Promise}
  */
 async function clean() {
-  const {default: del} = await import('del');
-  return del(['dist', 'build']);
+  const {deleteAsync} = await import('del');
+  return deleteAsync(['dist', 'build']);
 }
 
 /**
