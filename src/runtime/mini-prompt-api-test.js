@@ -23,7 +23,7 @@ import {Fetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 
-describes.realWin('MiniPromptApi', {}, (env) => {
+describes.realWin('MiniPromptApi', (env) => {
   let miniPromptApi;
   let deps;
   let doc;

@@ -38,7 +38,7 @@ const SHOW_OFFERS_ARGS = {
   source: 'SwG',
 };
 
-describes.realWin('OffersFlow', {}, (env) => {
+describes.realWin('OffersFlow', (env) => {
   let win;
   let offersFlow;
   let runtime;
@@ -553,7 +553,7 @@ describes.realWin('OffersFlow', {}, (env) => {
   });
 });
 
-describes.realWin('SubscribeOptionFlow', {}, (env) => {
+describes.realWin('SubscribeOptionFlow', (env) => {
   let win;
   let offersFlow;
   let runtime;
@@ -724,7 +724,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
   });
 });
 
-describes.realWin('AbbrvOfferFlow', {}, (env) => {
+describes.realWin('AbbrvOfferFlow', (env) => {
   let win;
   let runtime;
   let activitiesMock;

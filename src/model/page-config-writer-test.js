@@ -18,7 +18,7 @@ import {GlobalDoc} from './doc';
 import {PageConfigWriter} from './page-config-writer';
 import {createElement} from '../utils/dom';
 
-describes.realWin('PageConfigWriter', {}, (env) => {
+describes.realWin('PageConfigWriter', (env) => {
   let win, doc, gd, markupConfig;
 
   beforeEach(() => {

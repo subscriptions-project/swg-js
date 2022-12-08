@@ -170,7 +170,7 @@ const SIGN_IN_WITH_GOOGLE_DECODED_JWT = {
   },
 };
 
-describes.realWin('queryStringHasFreshGaaParams', {}, () => {
+describes.realWin('queryStringHasFreshGaaParams', () => {
   let clock;
 
   beforeEach(() => {
@@ -220,7 +220,7 @@ describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   });
 });
 
-describes.realWin('GaaMeteringRegwall', {}, () => {
+describes.realWin('GaaMeteringRegwall', () => {
   let clock;
   let logEvent;
   let microdata;
@@ -1195,7 +1195,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 });
 
-describes.realWin('GaaGoogleSignInButton', {}, () => {
+describes.realWin('GaaGoogleSignInButton', () => {
   const allowedOrigins = [location.origin];
 
   let clock;
@@ -1460,7 +1460,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
   });
 });
 
-describes.realWin('GaaSignInWithGoogleButton', {}, () => {
+describes.realWin('GaaSignInWithGoogleButton', () => {
   const allowedOrigins = [location.origin];
   const clientId = 'client_id';
 
@@ -1821,7 +1821,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
   });
 });
 
-describes.realWin('GaaGoogle3pSignInButton', {}, () => {
+describes.realWin('GaaGoogle3pSignInButton', () => {
   const allowedOrigins = [location.origin];
 
   let clock;
@@ -2157,7 +2157,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
   });
 });
 
-describes.realWin('GaaMetering', {}, () => {
+describes.realWin('GaaMetering', () => {
   let microdata;
   let script;
   let logEvent;

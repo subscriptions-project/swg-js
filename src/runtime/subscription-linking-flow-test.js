@@ -20,7 +20,7 @@ import {PageConfig} from '../model/page-config';
 import {SubscriptionLinkingCompleteResponse} from '../proto/api_messages';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 
-describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
+describes.realWin('SubscriptionLinkingFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
