@@ -453,6 +453,57 @@ describes.realWin('GoogleAnalyticsEventListener', (env) => {
     expect(GoogleAnalyticsEventListener.isGtagEligible(deps)).to.be.false;
   });
 
+  it('Should be gtm eligible', async () => {
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+        dataLayer: {
+          push: () => {},
+        },
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtmEligible(deps)).to.be.true;
+
+    deps.win.restore();
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        dataLayer: {
+          push: () => {},
+        },
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtmEligible(deps)).to.be.true;
+  });
+
+  it('Should be gtm ineligible without valid dataLayer', async () => {
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtmEligible(deps)).to.be.false;
+
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+        dataLayer: {},
+      })
+    );
+    expect(GoogleAnalyticsEventListener.isGtmEligible(deps)).to.be.false;
+
+    deps.win.restore();
+    deps = new DepsDef();
+    sandbox.stub(deps, 'win').returns(Object.assign({}, env.win));
+    expect(GoogleAnalyticsEventListener.isGtmEligible(deps)).to.be.false;
+  });
+
   function expectEventLoggedToGa(gaEvent) {
     winMock.expects('ga').withExactArgs('send', 'event', gaEvent).once();
   }
