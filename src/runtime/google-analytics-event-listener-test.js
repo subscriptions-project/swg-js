@@ -25,7 +25,7 @@ import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 
-describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
+describes.realWin('GoogleAnalyticsEventListener', (env) => {
   let win;
   let winMock;
   let eventManager;

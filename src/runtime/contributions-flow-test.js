@@ -27,7 +27,7 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 
-describes.realWin('ContributionsFlow', {}, (env) => {
+describes.realWin('ContributionsFlow', (env) => {
   let win;
   let contributionsFlow;
   let runtime;

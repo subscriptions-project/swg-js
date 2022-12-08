@@ -22,7 +22,7 @@ const NO_ANIMATE = false;
 const ANIMATE = true;
 const HIDDEN = true;
 
-describes.realWin('Dialog', {}, (env) => {
+describes.realWin('Dialog', (env) => {
   let win;
   let doc;
   let dialog;

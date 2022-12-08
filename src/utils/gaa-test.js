@@ -170,7 +170,7 @@ const SIGN_IN_WITH_GOOGLE_DECODED_JWT = {
   },
 };
 
-describes.realWin('queryStringHasFreshGaaParams', {}, () => {
+describes.realWin('queryStringHasFreshGaaParams', () => {
   let clock;
 
   beforeEach(() => {
@@ -220,7 +220,7 @@ describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   });
 });
 
-describes.realWin('GaaMeteringRegwall', {}, () => {
+describes.realWin('GaaMeteringRegwall', () => {
   let clock;
   let logEvent;
   let microdata;
@@ -1195,7 +1195,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 });
 
-describes.realWin('GaaGoogleSignInButton', {}, () => {
+describes.realWin('GaaGoogleSignInButton', () => {
   const allowedOrigins = [location.origin];
 
   let clock;
@@ -1460,7 +1460,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
   });
 });
 
-describes.realWin('GaaSignInWithGoogleButton', {}, () => {
+describes.realWin('GaaSignInWithGoogleButton', () => {
   const allowedOrigins = [location.origin];
   const clientId = 'client_id';
 
@@ -1821,7 +1821,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
   });
 });
 
-describes.realWin('GaaGoogle3pSignInButton', {}, () => {
+describes.realWin('GaaGoogle3pSignInButton', () => {
   const allowedOrigins = [location.origin];
 
   let clock;
@@ -1978,13 +1978,18 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
       await tick(10);
 
-      expect(self.open).to.have.been.calledOnce;
-
+      // Send user post message.
       postMessage({
         stamp: POST_MESSAGE_STAMP,
         command: POST_MESSAGE_COMMAND_USER,
@@ -1994,6 +1999,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       clock.tick(100);
       await tick(10);
 
+      // Wait for `postMessage` to be relayed to parent.
       await new Promise((resolve) => {
         sandbox.stub(self.parent, 'postMessage').callsFake(() => {
           resolve();
@@ -2096,10 +2102,21 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       });
       clock.tick(100);
       await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
       await tick(10);
+
+      // Wait for `open` to be called.
+      await new Promise((resolve) => void self.open.callsFake(resolve));
+
       expect(self.open).to.have.been.calledWithExactly(GOOGLE_3P_AUTH_URL);
     });
 
@@ -2112,15 +2129,53 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
       });
       clock.tick(100);
       await tick(10);
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
       // Click button.
       self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
       clock.tick(100);
       await tick(100);
 
+      // Wait for `open` to be called.
+      await new Promise((resolve) => void self.open.callsFake(resolve));
+
       expect(self.open).to.have.been.calledWithExactly(
         GOOGLE_3P_AUTH_URL,
         '_parent'
       );
+    });
+
+    it('should open window twice when redirectMode is true', async () => {
+      // Show button.
+      GaaGoogle3pSignInButton.show({
+        allowedOrigins,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
+        redirectMode: true,
+      });
+
+      // Send intro post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_INTRODUCTION,
+      });
+
+      // Click button.
+      self.document.getElementById(GOOGLE_3P_SIGN_IN_BUTTON_ID).click();
+
+      // Wait for `open` to be called.
+      await new Promise((resolve) => void self.open.callsFake(resolve));
+
+      expect(self.open).to.have.been.calledOnce;
+
+      // Wait for timeout to complete.
+      clock.tick(100);
+
+      expect(self.open).to.have.been.calledTwice;
     });
   });
 
@@ -2157,7 +2212,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
   });
 });
 
-describes.realWin('GaaMetering', {}, () => {
+describes.realWin('GaaMetering', () => {
   let microdata;
   let script;
   let logEvent;

@@ -16,7 +16,7 @@
 
 import * as types from './types';
 
-describes.realWin('Types', {}, () => {
+describes.realWin('Types', () => {
   describe('isEnumValue', () => {
     /** @enum {string} */
     const enumObj = {

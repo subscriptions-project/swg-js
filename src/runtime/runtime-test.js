@@ -72,7 +72,7 @@ import {
 } from './experiments';
 import {parseUrl} from '../utils/url';
 
-describes.realWin('installRuntime', {}, (env) => {
+describes.realWin('installRuntime', (env) => {
   let win;
 
   beforeEach(() => {
@@ -216,7 +216,7 @@ describes.realWin('installRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('installRuntime legacy', {}, (env) => {
+describes.realWin('installRuntime legacy', (env) => {
   let win;
 
   beforeEach(() => {
@@ -338,7 +338,7 @@ describes.realWin('installRuntime legacy', {}, (env) => {
   });
 });
 
-describes.realWin('Runtime', {}, (env) => {
+describes.realWin('Runtime', (env) => {
   let win;
   let runtime;
   let loggedEvents = [];
@@ -1056,7 +1056,7 @@ describes.realWin('Runtime', {}, (env) => {
   });
 });
 
-describes.realWin('ConfiguredRuntime', {}, (env) => {
+describes.realWin('ConfiguredRuntime', (env) => {
   let win;
   let config;
   let runtime;
