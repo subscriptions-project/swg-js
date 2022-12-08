@@ -103,6 +103,18 @@ export class GoogleAnalyticsEventListener {
       };
       gtag('event', gaEvent.eventAction, gtagEvent);
     }
+
+    // Support google tag manager.
+    const gtmEventPushFn = this.deps_.win().dataLayer?.push;
+    if (isFunction(gtmEventPushFn)) {
+      gtmEventPushFn({
+        'event': gaEvent.eventAction,
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+        ...analyticsParams,
+      });
+    }
   }
 
   /**

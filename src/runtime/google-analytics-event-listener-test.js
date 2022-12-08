@@ -28,12 +28,16 @@ import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
   let win;
   let winMock;
+  let dataLayerMock;
   let eventManager;
   let deps;
   let listener;
 
   beforeEach(() => {
     sandbox.stub(self.console, 'log');
+    dataLayerMock = sandbox.mock({
+      push: () => {},
+    });
   });
 
   afterEach(() => {
@@ -41,8 +45,11 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     self.console.log.restore();
   });
 
-  function setupEnvironment(wind, callStart) {
+  function setupEnvironment(wind, callStart, addDataLayer) {
     win = wind;
+    if (addDataLayer) {
+      win.dataLayer = dataLayerMock;
+    }
     winMock = sandbox.mock(win);
     eventManager = new ClientEventManager(Promise.resolve());
     deps = new DepsDef();
@@ -60,13 +67,15 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
         ga: () => {},
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.IMPRESSION_OFFERS
     );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
+    expectEventLoggedToGtm(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -80,13 +89,15 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
         ga: () => {},
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK
     );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
+    expectEventLoggedToGtm(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLICK,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -100,7 +111,8 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
         ga: () => {},
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
@@ -108,6 +120,7 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
+    expectEventLoggedToGtm(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -125,7 +138,8 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
         ga: () => {},
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
@@ -133,6 +147,7 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
+    expectEventLoggedToGtm(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -150,7 +165,8 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
         ga: () => {},
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
@@ -158,6 +174,7 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     );
     expectEventLoggedToGa(gaEvent);
     expectEventLoggedToGtag(gaEvent);
+    expectEventLoggedToGtm(gaEvent);
     const eventParams = new EventParams();
     eventParams.setSubscriptionFlow(SubscriptionFlows.CONTRIBUTE);
     eventParams.setIsUserRegistered(true);
@@ -169,13 +186,14 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     await eventManager.lastAction_;
   });
 
-  it('Should log ga and gtag event with additional gaParams and gtagParams', async () => {
+  it('Should log with additional gaParams and gtagParams', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.IMPRESSION_OFFERS
@@ -188,6 +206,17 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     winMock
       .expects('gtag')
       .withExactArgs('event', gaEvent.eventAction, {
+        'event_category': 'TEST CATEGORY',
+        'survey_question': 'TEST QUESTION',
+        'survey_answer_category': 'TEST CATEGORY',
+        'event_label': 'TEST LABEL',
+        'non_interaction': gaEvent.nonInteraction,
+      })
+      .once();
+    dataLayerMock
+      .expects('push')
+      .withExactArgs({
+        'event': gaEvent.eventAction,
         'event_category': 'TEST CATEGORY',
         'survey_question': 'TEST QUESTION',
         'survey_answer_category': 'TEST CATEGORY',
@@ -220,7 +249,8 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
         ga: () => {},
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     winMock.expects('ga').never();
     winMock.expects('gtag').never();
@@ -237,7 +267,8 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
         ga: () => {},
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     winMock.expects('ga').never();
     winMock.expects('gtag').never();
@@ -253,12 +284,14 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       Object.assign({}, env.win, {
         gtag: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.IMPRESSION_OFFERS
     );
     expectEventLoggedToGtag(gaEvent);
+    expectEventLoggedToGtm(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -273,12 +306,14 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
       Object.assign({}, env.win, {
         ga: () => {},
       }),
-      true
+      /* callStart= */ true,
+      /* addDataLayer= */ true
     );
     const gaEvent = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.IMPRESSION_OFFERS
     );
     expectEventLoggedToGa(gaEvent);
+    expectEventLoggedToGtm(gaEvent);
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -288,16 +323,42 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     expect(self.console.log).to.not.have.been.called;
   });
 
-  it('Should not log to neither ga nor gtag if start has not been called', async () => {
+  it('Should not log to gtm if not present', async () => {
     setupEnvironment(
       Object.assign({}, env.win, {
         ga: () => {},
         gtag: () => {},
       }),
-      false
+      /* callStart= */ true,
+      /* addDataLayer= */ false
+    );
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_OFFERS
+    );
+    expectEventLoggedToGtag(gaEvent);
+    expectEventLoggedToGa(gaEvent);
+    dataLayerMock.expects('push').never();
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+    });
+    await eventManager.lastAction_;
+    // Expect that a TypeError hasn't been thrown.
+    expect(self.console.log).to.not.have.been.called;
+  });
+
+  it('Should not log if start has not been called', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      }),
+      /* callStart= */ false,
+      /* addDataLayer= */ true
     );
     winMock.expects('ga').never();
     winMock.expects('gtag').never();
+    dataLayerMock.expects('push').never();
     eventManager.logEvent({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -378,6 +439,18 @@ describes.realWin('GoogleAnalyticsEventListener', {}, (env) => {
     winMock
       .expects('gtag')
       .withExactArgs('event', gaEvent.eventAction, {
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+      })
+      .once();
+  }
+
+  function expectEventLoggedToGtm(gaEvent) {
+    dataLayerMock
+      .expects('push')
+      .withExactArgs({
+        'event': gaEvent.eventAction,
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
         'non_interaction': gaEvent.nonInteraction,
