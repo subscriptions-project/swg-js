@@ -1842,9 +1842,9 @@
     webpack-hot-middleware "^2.25.1"
     webpack-virtual-modules "^0.2.2"
 
-"@storybook/builder-webpack5@^6.5.14":
+"@storybook/builder-webpack5@6.5.14":
   version "6.5.14"
-  resolved "https://registry.npmjs.org/@storybook/builder-webpack5/-/builder-webpack5-6.5.14.tgz"
+  resolved "https://registry.yarnpkg.com/@storybook/builder-webpack5/-/builder-webpack5-6.5.14.tgz#d200bfed3f45b631e417299024e335905429fb2c"
   integrity sha512-Ukj7Wwxz/3mKn5TI5mkm2mIm583LxOz78ZrpcOgI+vpjeRlMFXmGGEb68R47SiCdZoVCfIeCXXXzBd6Q6As6QQ==
   dependencies:
     "@babel/core" "^7.12.10"
@@ -2220,9 +2220,9 @@
     webpack-dev-middleware "^3.7.3"
     webpack-virtual-modules "^0.2.2"
 
-"@storybook/manager-webpack5@^6.5.14":
+"@storybook/manager-webpack5@6.5.14":
   version "6.5.14"
-  resolved "https://registry.npmjs.org/@storybook/manager-webpack5/-/manager-webpack5-6.5.14.tgz"
+  resolved "https://registry.yarnpkg.com/@storybook/manager-webpack5/-/manager-webpack5-6.5.14.tgz#a45e9400ff9e8af96e989bedcf2a68c78b4c55cd"
   integrity sha512-Z9uXhaBPpUhbLEYkZVm95vKSmyxXk+DLqa1apAQEmHz3EBMTNk/2n0aZnNnsspYzjNP6wvXWT0sGyXG6yhX2cw==
   dependencies:
     "@babel/core" "^7.12.10"
@@ -13602,9 +13602,9 @@ react-dom@16.14.0:
     prop-types "^15.6.2"
     scheduler "^0.19.1"
 
-react-dom@^18.2.0:
+react-dom@18.2.0:
   version "18.2.0"
-  resolved "https://registry.npmjs.org/react-dom/-/react-dom-18.2.0.tgz"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-18.2.0.tgz#22aaf38708db2674ed9ada224ca4aa708d821e3d"
   integrity sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==
   dependencies:
     loose-envify "^1.1.0"
@@ -13633,9 +13633,9 @@ react@16.14.0:
     object-assign "^4.1.1"
     prop-types "^15.6.2"
 
-react@^18.2.0:
+react@18.2.0:
   version "18.2.0"
-  resolved "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
+  resolved "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#555bd98592883255fa00de14f1151a917b5d77d5"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
   dependencies:
     loose-envify "^1.1.0"
