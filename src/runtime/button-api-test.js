@@ -33,7 +33,7 @@ function expectOpenIframe(activitiesMock, port, args) {
     .returns(Promise.resolve(port));
 }
 
-describes.realWin('ButtonApi', {}, (env) => {
+describes.realWin('ButtonApi', (env) => {
   let win;
   let doc;
   let runtime;

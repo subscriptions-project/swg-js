@@ -21,7 +21,7 @@ import {
 } from './document-ready';
 import {tick} from '../../test/tick';
 
-describes.sandboxed('documentReady', {}, () => {
+describes.sandboxed('documentReady', () => {
   let testDoc;
   let eventListeners;
 

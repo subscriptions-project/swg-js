@@ -44,7 +44,7 @@ function getPropensityEventFromUrl(capturedUrl) {
   };
 }
 
-describes.realWin('PropensityServer', {}, (env) => {
+describes.realWin('PropensityServer', (env) => {
   let win;
   let propensityServer;
   let eventManager;

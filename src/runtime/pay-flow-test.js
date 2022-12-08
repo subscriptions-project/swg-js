@@ -131,7 +131,7 @@ function createDefaultSubscribeResponse() {
   );
 }
 
-describes.realWin('PayStartFlow', {}, (env) => {
+describes.realWin('PayStartFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -563,7 +563,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 });
 
-describes.realWin('PayCompleteFlow', {}, (env) => {
+describes.realWin('PayCompleteFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -1705,7 +1705,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   });
 });
 
-describes.realWin('parseSubscriptionResponse', {}, (env) => {
+describes.realWin('parseSubscriptionResponse', (env) => {
   let pageConfig;
   let runtime;
 

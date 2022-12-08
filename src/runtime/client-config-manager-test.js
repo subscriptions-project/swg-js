@@ -21,7 +21,7 @@ import {ClientTheme} from '../api/basic-subscriptions';
 import {DepsDef} from './deps';
 import {Fetcher} from './fetcher';
 
-describes.realWin('ClientConfigManager', {}, () => {
+describes.realWin('ClientConfigManager', () => {
   let clientConfigManager;
   let fetcher;
   let fetcherMock;

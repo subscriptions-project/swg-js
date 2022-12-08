@@ -22,7 +22,7 @@ import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';
 import {setExperimentsStringForTesting} from '../runtime/experiments';
 
-describes.realWin('ActivityIframeView', {}, (env) => {
+describes.realWin('ActivityIframeView', (env) => {
   let win;
   let src;
   let activityPorts;

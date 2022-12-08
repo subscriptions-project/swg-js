@@ -16,7 +16,7 @@
 
 import {Offer} from './offer';
 
-describes.realWin('Offer', {}, () => {
+describes.realWin('Offer', () => {
   it('should be constructed correctly', () => {
     const offer = new Offer('si1', 't1', 'd1', 'p1');
     expect(offer.description).to.equal('d1');

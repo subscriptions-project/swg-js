@@ -37,7 +37,7 @@ import {tick} from '../../test/tick';
 
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 
-describes.realWin('AutoPromptManager', {}, (env) => {
+describes.realWin('AutoPromptManager', (env) => {
   let autoPromptManager;
   let win;
   let deps;

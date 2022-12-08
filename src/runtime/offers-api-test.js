@@ -18,7 +18,7 @@ import {Fetcher} from './fetcher';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('OffersApi', {}, () => {
+describes.realWin('OffersApi', () => {
   let offersApi;
   let pageConfig;
   let fetcherMock;

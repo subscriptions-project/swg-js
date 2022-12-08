@@ -52,7 +52,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 
-describes.realWin('installBasicRuntime', {}, (env) => {
+describes.realWin('installBasicRuntime', (env) => {
   let win;
 
   beforeEach(() => {
@@ -189,7 +189,7 @@ describes.realWin('installBasicRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('BasicRuntime', {}, (env) => {
+describes.realWin('BasicRuntime', (env) => {
   let win;
   let doc;
   let basicRuntime;
@@ -603,7 +603,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('BasicConfiguredRuntime', {}, (env) => {
+describes.realWin('BasicConfiguredRuntime', (env) => {
   let win;
   let pageConfig;
 
@@ -978,14 +978,20 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       );
     });
 
-    it('should pass getEntitlemnts to fetchClientConfig if useArticleEndpoint is enabled', () => {
+    it('passes getEntitlements to fetchClientConfig if useArticleEndpoint is enabled', async () => {
       setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT, true);
-      const entitlements = new Entitlements('foo.service');
+      const entitlements = new Entitlements(
+        'foo.service',
+        'RaW',
+        [],
+        null,
+        null
+      );
       const entitlementsStub = sandbox.stub(
         EntitlementsManager.prototype,
         'getEntitlements'
       );
-      entitlementsStub.returns(Promise.resolve(entitlements));
+      entitlementsStub.resolves(entitlements);
       const clientConfigManagerStub = sandbox.stub(
         ClientConfigManager.prototype,
         'fetchClientConfig'
@@ -996,7 +1002,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       expect(isExperimentOn(win, ExperimentFlags.USE_ARTICLE_ENDPOINT)).to.be
         .true;
       expect(clientConfigManagerStub).to.be.calledOnce;
-      expect(clientConfigManagerStub.args[0][0]).to.eventually.be.equal(
+      expect(await clientConfigManagerStub.args[0][0]).to.deep.equal(
         entitlements
       );
     });
