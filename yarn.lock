@@ -3599,7 +3599,7 @@
     webpack-hot-middleware "^2.25.1"
     webpack-virtual-modules "^0.2.2"
 
-"@storybook/builder-webpack5@^6.5.14":
+"@storybook/builder-webpack5@6.5.14":
   version "6.5.14"
   resolved "https://registry.yarnpkg.com/@storybook/builder-webpack5/-/builder-webpack5-6.5.14.tgz#d200bfed3f45b631e417299024e335905429fb2c"
   integrity sha512-Ukj7Wwxz/3mKn5TI5mkm2mIm583LxOz78ZrpcOgI+vpjeRlMFXmGGEb68R47SiCdZoVCfIeCXXXzBd6Q6As6QQ==
@@ -3977,7 +3977,7 @@
     webpack-dev-middleware "^3.7.3"
     webpack-virtual-modules "^0.2.2"
 
-"@storybook/manager-webpack5@^6.5.14":
+"@storybook/manager-webpack5@6.5.14":
   version "6.5.14"
   resolved "https://registry.yarnpkg.com/@storybook/manager-webpack5/-/manager-webpack5-6.5.14.tgz#a45e9400ff9e8af96e989bedcf2a68c78b4c55cd"
   integrity sha512-Z9uXhaBPpUhbLEYkZVm95vKSmyxXk+DLqa1apAQEmHz3EBMTNk/2n0aZnNnsspYzjNP6wvXWT0sGyXG6yhX2cw==
