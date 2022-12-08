@@ -107,28 +107,26 @@ export class Storage {
   }
 
   /**
-   * Stores the current time to local storage, under the storageKey provided.
-   * Removes times older than a week in the process.
+   * Stores the current timestamp to local storage, under the storageKey provided.
+   * Removes timestamps older than a week in the process.
    * @param {string} storageKey
    */
-  storeEvent(storageKey) {
-    return this.getEvent(storageKey).then((timestamps) => {
-      timestamps.push(Date.now());
-      const valueToStore = this.serializeTimestamps_(timestamps);
-      this.set(storageKey, valueToStore, /* useLocalStorage */ true);
-    });
+  async storeEvent(storageKey) {
+    const timestamps = await this.getEvent(storageKey);
+    timestamps.push(Date.now());
+    const valueToStore = this.serializeTimestamps_(timestamps);
+    this.set(storageKey, valueToStore, /* useLocalStorage */ true);
   }
 
   /**
-   * Retrieves the current time to local storage, under the storageKey provided.
+   * Retrieves timestamps from local storage, under the storageKey provided.
    * Filters out timestamps older than a week.
    * @param {string} storageKey
    * @return {!Promise<!Array<number>>}
    */
-  getEvent(storageKey) {
-    return this.get(storageKey, /* useLocalStorage */ true).then((value) =>
-      this.pruneTimestamps_(this.deserializeTimestamps_(value))
-    );
+  async getEvent(storageKey) {
+    const value = await this.get(storageKey, /* useLocalStorage */ true);
+    return this.pruneTimestamps_(this.deserializeTimestamps_(value));
   }
 
   /**

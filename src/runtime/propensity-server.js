@@ -240,7 +240,7 @@ export class PropensityServer {
    * @param {string} type
    * @return {?Promise<../api/propensity-api.PropensityScore>}
    */
-  getPropensity(referrer, type) {
+  async getPropensity(referrer, type) {
     const init = /** @type {!RequestInit} */ ({
       method: 'GET',
       credentials: 'include',
@@ -252,11 +252,8 @@ export class PropensityServer {
       type +
       '&ref=' +
       referrer;
-    return this.fetcher_
-      .fetch(this.propensityUrl_(url), init)
-      .then((result) => result.json())
-      .then((response) => {
-        return this.parsePropensityResponse_(response);
-      });
+    const response = await this.fetcher_.fetch(this.propensityUrl_(url), init);
+    const responseJson = /** @type {JsonObject} */ (await response.json());
+    return this.parsePropensityResponse_(responseJson);
   }
 }

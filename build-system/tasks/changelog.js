@@ -46,51 +46,55 @@ const {blue, red, yellow} = require('ansi-colors');
 /**
  * @return {!Promise<!ReleaseMetadata>}
  */
-function changelog() {
-  return getLastGithubRelease()
-    .then(getGitLog)
-    .then(getGithubPullRequestsMetadata)
-    .then(buildChangelog)
-    .then((response) => {
-      logger(blue('\n' + response.changelog));
-      return response;
-    })
-    .catch(errHandler);
+async function changelog() {
+  try {
+    let release = await getLastGithubRelease();
+    release = await getGitLog(release);
+    release = await getGithubPullRequestsMetadata(release);
+    release = buildChangelogAndIncrementVersion(release);
+    logger(blue('\n' + release.changelog));
+    return release;
+  } catch (err) {
+    return errHandler(err);
+  }
 }
 
 /**
  * Get the latest git tag from a normal release.
  * @return {!Promise<!ReleaseMetadata>}
  */
-function getLastGithubRelease() {
-  return githubRequest({
+async function getLastGithubRelease() {
+  const latestRelease = await githubRequest({
     path: '/releases/latest',
-  }).then((res) => {
-    const id = res['id'];
-    const tag = res['tag_name'];
-    if (res['draft']) {
-      throw new Error('This is a draft release: ' + id);
-    }
-    if (res['prerelease']) {
-      throw new Error('This is a prerelease: ' + id);
-    }
-    if (!tag) {
-      if (!process.env.GITHUB_ACCESS_TOKEN) {
-        throw new Error(
-          'Please add your GitHub personal access token as an environment variable named `GITHUB_ACCESS_TOKEN`. For more details, see https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token'
-        );
-      }
-
-      throw new Error('No tag: ' + id);
-    }
-    return {
-      id,
-      tag,
-      publishedAt: res['published_at'],
-      name: res['name'],
-      author: res['author'] && res['author']['login'],
-    };
   });
+  const id = latestRelease['id'];
+  const tag = latestRelease['tag_name'];
+
+  if (latestRelease['draft']) {
+    throw new Error('This is a draft release: ' + id);
+  }
+
+  if (latestRelease['prerelease']) {
+    throw new Error('This is a prerelease: ' + id);
+  }
+
+  if (!tag) {
+    if (!process.env.GITHUB_ACCESS_TOKEN) {
+      throw new Error(
+        'Please add your GitHub personal access token as an environment variable named `GITHUB_ACCESS_TOKEN`. For more details, see https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token'
+      );
+    }
+
+    throw new Error('No tag: ' + id);
+  }
+
+  return {
+    id,
+    tag,
+    publishedAt: latestRelease['published_at'],
+    name: latestRelease['name'],
+    author: latestRelease['author'] && latestRelease['author']['login'],
+  };
 }
 
 /**
@@ -98,38 +102,37 @@ function getLastGithubRelease() {
  * @param {!ReleaseMetadata} release
  * @return {!Promise<!ReleaseMetadata>}
  */
-function getGitLog(release) {
+async function getGitLog(release) {
   const tag = release.tag;
-  return gitExec({
+  const logs = await gitExec({
     args: `log ${tag}... --pretty=oneline --first-parent`,
-  }).then((logs) => {
-    if (!logs) {
-      throw new Error(
-        'No logs found "git log ' +
-          tag +
-          '...".\n' +
-          'Is it possible that there is no delta?\n' +
-          'Make sure to fetch and rebase (or reset --hard) the latest ' +
-          'from remote upstream.'
-      );
-    }
-    const commits = logs.split('\n').filter((log) => !!log.length);
-    release.logs = commits.map((log) => {
-      const words = log.split(' ');
-      return {
-        sha: words.shift(),
-        title: words.join(' '),
-      };
-    });
-    return release;
   });
+  if (!logs) {
+    throw new Error(
+      'No logs found "git log ' +
+        tag +
+        '...".\n' +
+        'Is it possible that there is no delta?\n' +
+        'Make sure to fetch and rebase (or reset --hard) the latest ' +
+        'from remote upstream.'
+    );
+  }
+  const commits = logs.split('\n').filter((log) => !!log.length);
+  release.logs = commits.map((log) => {
+    const words = log.split(' ');
+    return {
+      sha: words.shift(),
+      title: words.join(' '),
+    };
+  });
+  return release;
 }
 
 /**
  * @param {!ReleaseMetadata} release
  * @return {!Promise<!GitMetadataDef>}
  */
-function getGithubPullRequestsMetadata(release) {
+async function getGithubPullRequestsMetadata(release) {
   /**
    * Fetches pulls?page=${page}
    * @param {number} page
@@ -147,42 +150,40 @@ function getGithubPullRequestsMetadata(release) {
 
   // TODO(erwinm): Github seems to only return data for the first 3 pages
   // from my manual testing.
-  return BBPromise.all([
+  const requests = await BBPromise.all([
     getClosedPullRequests(1),
     getClosedPullRequests(2),
     getClosedPullRequests(3),
-  ])
-    .then((requests) => {
-      return [].concat.apply([], requests);
-    })
-    .then((prs) => {
-      release.prs = prs;
-      const githubPrRequest = release.logs.map((log) => {
-        const pr = prs.filter((pr) => pr.merge_commit_sha == log.sha)[0];
-        if (pr) {
-          log.pr = {
-            id: pr['number'],
-            title: pr['title'],
-            body: pr['body'],
-            // eslint-disable-next-line google-camelcase/google-camelcase
-            merge_commit_sha: pr['merge_commit_sha'],
-            url: pr['_links']['self']['href'],
-          };
-        } else {
-          // TODO(dvoytenko): try to find PR from the GitHub API.
-          logger.warn(yellow('PR not found for commit: ' + log.sha));
-        }
-        return BBPromise.resolve();
-      });
-      return BBPromise.all(githubPrRequest).then(() => release);
-    });
+  ]);
+  const prs = [].concat.apply([], requests);
+  release.prs = prs;
+  const githubPrRequest = release.logs.map((log) => {
+    // eslint-disable-next-line google-camelcase/google-camelcase
+    const pr = prs.find(({merge_commit_sha}) => merge_commit_sha === log.sha);
+    if (pr) {
+      log.pr = {
+        id: pr['number'],
+        title: pr['title'],
+        body: pr['body'],
+        // eslint-disable-next-line google-camelcase/google-camelcase
+        merge_commit_sha: pr['merge_commit_sha'],
+        url: pr['_links']['self']['href'],
+      };
+    } else {
+      // TODO(dvoytenko): try to find PR from the GitHub API.
+      logger.warn(yellow('PR not found for commit: ' + log.sha));
+    }
+    return BBPromise.resolve();
+  });
+  await BBPromise.all(githubPrRequest);
+  return release;
 }
 
 /**
  * @param {!ReleaseMetadata} release
  * @return {!ReleaseMetadata}
  */
-function buildChangelog(release) {
+function buildChangelogAndIncrementVersion(release) {
   // Suggest a version number.
   let version = '';
   if (argv.swgVersion) {

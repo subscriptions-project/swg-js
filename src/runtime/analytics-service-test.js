@@ -392,9 +392,8 @@ describes.realWin('AnalyticsService', {}, (env) => {
       // getLoggingPromise
       iframeCallback(loggingResponse);
       expect(analyticsService.unfinishedLogs_).to.equal(0);
-      return analyticsService.getLoggingPromise().then((val) => {
-        expect(val).to.be.true;
-      });
+      const val = await analyticsService.getLoggingPromise();
+      expect(val).to.be.true;
     });
   });
 
@@ -545,7 +544,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       ]);
     });
 
-    it('should respect custom URL set by AMP', async () => {
+    it('should respect custom URLs', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       analyticsService.setUrl('diffUrl');
       eventManagerCallback(event);
@@ -568,23 +567,15 @@ describes.realWin('AnalyticsService', {}, (env) => {
      * originator if shouldLog is true.
      * @param {!EventOriginator} originator
      * @param {boolean} shouldLog
-     * @param {AnalyticsEvent=} eventType
      */
-    const testOriginator = function (originator, shouldLog, eventType) {
+    const testOriginator = function (originator, shouldLog) {
       const prevOriginator = event.eventOriginator;
-      const prevType = event.eventType;
       analyticsService.lastAction_ = null;
       event.eventOriginator = originator;
-      if (eventType) {
-        event.eventType = eventType;
-      }
       eventManagerCallback(event);
       const didLog = analyticsService.lastAction_ !== null;
       expect(shouldLog).to.equal(didLog);
       event.eventOriginator = prevOriginator;
-      if (eventType) {
-        event.eventType = prevType;
-      }
     };
 
     it('should never log showcase events', () => {

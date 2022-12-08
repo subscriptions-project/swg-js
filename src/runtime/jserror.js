@@ -23,48 +23,50 @@ export class JsError {
   constructor(doc) {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = doc;
-
-    /** @private @const {!Promise} */
-    this.microTask_ = Promise.resolve();
   }
 
   /**
-   * @param {...*} var_args
+   * @param {...(!Error|string)} args
    * @return {!Promise}
    */
-  error(var_args) {
-    const args = Array.prototype.slice.call(arguments, 0);
-    return this.microTask_.then(() => {
-      const error = createErrorVargs.apply(null, args);
-      if (error.reported) {
-        return;
-      }
-      const img = this.doc_.getWin().document.createElement('img');
-      img.src =
-        '$frontend$/_/SubscribewithgoogleClientUi/jserror' +
-        '?error=' +
-        encodeURIComponent(String(error)) +
-        '&script=' +
-        encodeURIComponent('$frontend$/swg/js/v1/swg.js') +
-        '&line=' +
-        (error.lineNumber || 1) +
-        '&trace=' +
-        encodeURIComponent(error.stack);
-      // Appending this image to DOM is not necessary.
-      error.reported = true;
-    });
+  async error(...args) {
+    // Wait for next task.
+    await 0;
+
+    // Combine args to create error.
+    const error = createErrorFromArgs(args);
+
+    // Only report error once.
+    if (error.reported) {
+      return;
+    }
+
+    // Send error.
+    const img = this.doc_.getWin().document.createElement('img');
+    img.src =
+      '$frontend$/_/SubscribewithgoogleClientUi/jserror' +
+      '?error=' +
+      encodeURIComponent(String(error)) +
+      '&script=' +
+      encodeURIComponent('$frontend$/swg/js/v1/swg.js') +
+      '&line=' +
+      (error.lineNumber || 1) +
+      '&trace=' +
+      encodeURIComponent(error.stack);
+
+    // Avoid reporting error twice.
+    error.reported = true;
   }
 }
 
 /**
- * @param {...*} var_args
+ * @param {!Array<!Error|string>} args
  * @return {!Error}
  */
-function createErrorVargs(var_args) {
+function createErrorFromArgs(args) {
   let error = null;
   let message = '';
-  for (let i = 0; i < arguments.length; i++) {
-    const arg = arguments[i];
+  for (const arg of args) {
     if (arg instanceof Error && !error) {
       error = duplicateErrorIfNecessary(arg);
     } else {
