@@ -393,7 +393,6 @@ describes.realWin('Runtime', {}, (env) => {
     let config;
     let configPromise;
     let resolveStub;
-    let analyticsMock;
 
     beforeEach(() => {
       config = new PageConfig('pub1', true);
@@ -401,9 +400,6 @@ describes.realWin('Runtime', {}, (env) => {
       resolveStub = sandbox
         .stub(PageConfigResolver.prototype, 'resolveConfig')
         .callsFake(() => configPromise);
-      runtime.configuredRuntimePromise_.then((configuredRuntime) => {
-        analyticsMock = sandbox.mock(configuredRuntime.analytics());
-      });
     });
 
     it('should initialize correctly with config lookup', async () => {
@@ -504,12 +500,16 @@ describes.realWin('Runtime', {}, (env) => {
       expect(logger).to.be.instanceOf(Logger);
     });
 
-    it('should call analytics service start and setReadyForLogging once configured', async () => {
+    it('sets up analytics', async () => {
       runtime.init('pub2');
-      await runtime.configured_(true);
+      const configuredRuntime = await runtime.configured_(true);
 
-      analyticsMock.expects('start').once();
-      analyticsMock.expects('setReadyForLogging').once();
+      const analytics = configuredRuntime.analytics();
+
+      expect(analytics.readyForLogging_).to.be.true;
+
+      const labels = analytics.getContext().getLabelList();
+      expect(labels).to.deep.equal(['$experiments$']);
     });
   });
 
