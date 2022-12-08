@@ -170,7 +170,7 @@ const SIGN_IN_WITH_GOOGLE_DECODED_JWT = {
   },
 };
 
-describes.realWin('queryStringHasFreshGaaParams', {}, () => {
+describes.realWin('queryStringHasFreshGaaParams', () => {
   let clock;
 
   beforeEach(() => {
@@ -220,7 +220,7 @@ describes.realWin('queryStringHasFreshGaaParams', {}, () => {
   });
 });
 
-describes.realWin('GaaMeteringRegwall', {}, () => {
+describes.realWin('GaaMeteringRegwall', () => {
   let clock;
   let logEvent;
   let microdata;
@@ -607,7 +607,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       });
     });
 
-    it('resolves with a gaaUser removes Regwall from DOM on click', () => {
+    it('resolves with a gaaUser removes Regwall from DOM on click', async () => {
       const gaaUserPromise =
         GaaMeteringRegwall.showWithNativeRegistrationButton({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -621,10 +621,9 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
-      gaaUserPromise.then((gaaUser) => {
-        expect(gaaUser).to.deep.equal(SIGN_IN_WITH_GOOGLE_JWT);
-        expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
-      });
+      const gaaUser = await gaaUserPromise;
+      expect(gaaUser).to.deep.equal(SIGN_IN_WITH_GOOGLE_JWT);
+      expect(self.document.getElementById(REGWALL_CONTAINER_ID)).to.be.null;
     });
 
     it('resolves with a decoded jwt if rawJwt is false', async () => {
@@ -1196,7 +1195,7 @@ describes.realWin('GaaMeteringRegwall', {}, () => {
   });
 });
 
-describes.realWin('GaaGoogleSignInButton', {}, () => {
+describes.realWin('GaaGoogleSignInButton', () => {
   const allowedOrigins = [location.origin];
 
   let clock;
@@ -1461,7 +1460,7 @@ describes.realWin('GaaGoogleSignInButton', {}, () => {
   });
 });
 
-describes.realWin('GaaSignInWithGoogleButton', {}, () => {
+describes.realWin('GaaSignInWithGoogleButton', () => {
   const allowedOrigins = [location.origin];
   const clientId = 'client_id';
 
@@ -1822,7 +1821,7 @@ describes.realWin('GaaSignInWithGoogleButton', {}, () => {
   });
 });
 
-describes.realWin('GaaGoogle3pSignInButton', {}, () => {
+describes.realWin('GaaGoogle3pSignInButton', () => {
   const allowedOrigins = [location.origin];
 
   let clock;
@@ -2213,7 +2212,7 @@ describes.realWin('GaaGoogle3pSignInButton', {}, () => {
   });
 });
 
-describes.realWin('GaaMetering', {}, () => {
+describes.realWin('GaaMetering', () => {
   let microdata;
   let script;
   let logEvent;
@@ -3032,23 +3031,20 @@ describes.realWin('GaaMetering', {}, () => {
     beforeEach(() => {
       GaaMetering.gaaUserPromiseResolve_ = undefined;
     });
-    it('sets up the promise to return the gaaUser', () => {
-      GaaMetering.getGaaUserPromise().then((gaaUser) => {
-        expect(gaaUser).to.equal('test gaaUser');
-      });
-      GaaMetering.setGaaUser('test gaaUser');
+
+    it('sets up the promise to return the gaaUser', async () => {
+      const gaaUser = 'test gaaUser';
+      const gaaUserPromise = GaaMetering.getGaaUserPromise();
+      GaaMetering.setGaaUser(gaaUser);
+      expect(await gaaUserPromise).to.equal(gaaUser);
     });
   });
 
   describe('getLoginPromise', () => {
-    beforeEach(() => {
-      GaaMetering.loginPromiseResolve_ = undefined;
-    });
-    it('sets up the promise', () => {
-      GaaMetering.getLoginPromise().then(() => {
-        expect(GaaMetering.loginPromiseResolve_).to.have.been.called();
-      });
+    it('sets up the promise', async () => {
+      const promise = GaaMetering.getLoginPromise();
       GaaMetering.resolveLogin();
+      await expect(promise).to.be.fulfilled;
     });
   });
 
@@ -3604,12 +3600,11 @@ describes.realWin('GaaMetering', {}, () => {
 
       await tick();
 
-      GaaMetering.getOnReadyPromise().then(() => {
-        expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
-          caslUrl: undefined,
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          rawJwt: undefined,
-        });
+      await GaaMetering.getOnReadyPromise();
+      expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
+        caslUrl: undefined,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        rawJwt: undefined,
       });
     });
 
@@ -3644,12 +3639,11 @@ describes.realWin('GaaMetering', {}, () => {
 
       await tick();
 
-      GaaMetering.getOnReadyPromise().then(() => {
-        expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
-          caslUrl: CASL_URL,
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          rawJwt: undefined,
-        });
+      await GaaMetering.getOnReadyPromise();
+      expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
+        caslUrl: CASL_URL,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        rawJwt: undefined,
       });
     });
 
@@ -3684,12 +3678,11 @@ describes.realWin('GaaMetering', {}, () => {
 
       await tick();
 
-      GaaMetering.getOnReadyPromise().then(() => {
-        expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
-          caslUrl: undefined,
-          googleApiClientId: GOOGLE_API_CLIENT_ID,
-          rawJwt: false,
-        });
+      await GaaMetering.getOnReadyPromise();
+      expect(showWithNativeRegistrationButtonSpy).to.be.calledWith({
+        caslUrl: undefined,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        rawJwt: false,
       });
     });
 
@@ -3704,10 +3697,9 @@ describes.realWin('GaaMetering', {}, () => {
         GaaMetering,
         'validateUserState'
       );
-      const registerUserPromise = new Promise((resolve) => {
-        GaaMetering.getGaaUserPromise().then(() => {
-          resolve(returnedUserState);
-        });
+      const registerUserPromise = new Promise(async (resolve) => {
+        await GaaMetering.getGaaUserPromise();
+        resolve(returnedUserState);
       });
 
       // Mock showWithNativeRegistrationButton to return jwt
@@ -3777,11 +3769,10 @@ describes.realWin('GaaMetering', {}, () => {
 
       await tick();
 
-      GaaMetering.getOnReadyPromise().then(() => {
-        expect(showWithNative3PRegistrationButtonSpy).to.calledWith({
-          caslUrl: undefined,
-          authorizationUrl: GOOGLE_3P_AUTH_URL,
-        });
+      await GaaMetering.getOnReadyPromise();
+      expect(showWithNative3PRegistrationButtonSpy).to.calledWith({
+        caslUrl: undefined,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
       });
     });
 
@@ -3816,11 +3807,10 @@ describes.realWin('GaaMetering', {}, () => {
 
       await tick(10);
 
-      GaaMetering.getOnReadyPromise().then(() => {
-        expect(showWithNative3PRegistrationButtonSpy).to.calledWith({
-          caslUrl: CASL_URL,
-          authorizationUrl: GOOGLE_3P_AUTH_URL,
-        });
+      await GaaMetering.getOnReadyPromise();
+      expect(showWithNative3PRegistrationButtonSpy).to.calledWith({
+        caslUrl: CASL_URL,
+        authorizationUrl: GOOGLE_3P_AUTH_URL,
       });
     });
   });
@@ -3922,32 +3912,30 @@ describes.realWin('GaaMetering', {}, () => {
     beforeEach(() => {
       GaaMetering.loginPromiseResolve_ = undefined;
       location.hash = `#swg.debug=1`;
+      sandbox.spy(GaaMetering, 'resolveLogin');
     });
 
-    it('resolves the loginPromise', () => {
-      const unlockArticleIfGranted = function () {};
-      const handleLoginPromise = new Promise(() => {
-        GaaMetering.getLoginPromise().then(() => {
-          expect(GaaMetering.resolveLogin).to.have.been.called;
-        });
-      });
+    it('resolves the loginPromise', async () => {
+      const unlockArticleIfGranted = () => {};
+      const handleLoginPromise = GaaMetering.getLoginPromise();
       GaaMetering.handleLoginRequest(
         handleLoginPromise,
         unlockArticleIfGranted
       );
+      await handleLoginPromise;
+      expect(GaaMetering.resolveLogin).to.have.been.called;
     });
 
     it('calls unlockArticleIfGranted if handleLoginUserState is valid', async () => {
       const unlockArticleIfGranted = sandbox.fake();
-      const handleLoginPromise = new Promise((resolve) => {
-        GaaMetering.getLoginPromise().then(() => {
-          const handleLoginUserState = {
-            id: 12345,
-            registrationTimestamp: Date.now() / 1000,
-            granted: false,
-          };
-          resolve(handleLoginUserState);
-        });
+      const handleLoginPromise = new Promise(async (resolve) => {
+        await GaaMetering.getLoginPromise();
+        const handleLoginUserState = {
+          id: 12345,
+          registrationTimestamp: Date.now() / 1000,
+          granted: false,
+        };
+        resolve(handleLoginUserState);
       });
       GaaMetering.handleLoginRequest(
         handleLoginPromise,
@@ -3964,13 +3952,12 @@ describes.realWin('GaaMetering', {}, () => {
 
     it("doens't unlock article if handleLoginUserState is invalid", async () => {
       const unlockArticleIfGranted = sandbox.fake();
-      const handleLoginPromise = new Promise((resolve) => {
-        GaaMetering.getLoginPromise().then(() => {
-          const userStateInvalid = {
-            id: 12345,
-          };
-          resolve(userStateInvalid);
-        });
+      const handleLoginPromise = new Promise(async (resolve) => {
+        await GaaMetering.getLoginPromise();
+        const userStateInvalid = {
+          id: 12345,
+        };
+        resolve(userStateInvalid);
       });
 
       GaaMetering.handleLoginRequest(

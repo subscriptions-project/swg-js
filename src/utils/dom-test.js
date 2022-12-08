@@ -17,7 +17,7 @@
 import * as dom from './dom';
 import {resolveDoc} from '../model/doc';
 
-describes.realWin('Dom', {}, (env) => {
+describes.realWin('Dom', (env) => {
   let doc;
 
   beforeEach(() => {

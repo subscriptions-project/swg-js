@@ -70,7 +70,7 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_2,
 ]);
 
-describes.realWin('AudienceActionFlow', {}, (env) => {
+describes.realWin('AudienceActionFlow', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -94,7 +94,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       }
     );
     messageMap = {};
-    pageConfig = new PageConfig('pub1:label1');
+    pageConfig = new PageConfig('pub1:label1', /**locked=*/ true);
     clientOptions = {};
     runtime = new ConfiguredRuntime(
       env.win,
@@ -149,7 +149,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
           `$frontend$/swg/_/ui/v1/${path}?_=_&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
-          )}&hl=en`,
+          )}&hl=en&isClosable=false`,
           {
             _client: 'SwG $internalRuntimeVersion$',
             productType: ProductType.SUBSCRIPTION,
@@ -179,7 +179,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `$frontend$/swg/_/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&hl=pt-BR`,
+        )}&hl=pt-BR&isClosable=false`,
         {
           _client: 'SwG $internalRuntimeVersion$',
           productType: ProductType.SUBSCRIPTION,

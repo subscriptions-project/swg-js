@@ -18,7 +18,7 @@ import {Dialog} from './dialog';
 import {DialogManager} from './dialog-manager';
 import {GlobalDoc} from '../model/doc';
 
-describes.realWin('DialogManager', {}, (env) => {
+describes.realWin('DialogManager', (env) => {
   let clock;
   let win;
   let dialogManager;

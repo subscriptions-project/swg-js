@@ -19,7 +19,7 @@ import {PageConfig} from './page-config';
 import {PageConfigResolver, getControlFlag} from './page-config-resolver';
 import {createElement} from '../utils/dom';
 
-describes.realWin('PageConfigResolver', {}, (env) => {
+describes.realWin('PageConfigResolver', (env) => {
   let win, doc, gd;
 
   beforeEach(() => {
@@ -695,7 +695,7 @@ describes.realWin('PageConfigResolver', {}, (env) => {
   });
 });
 
-describes.sandboxed('PageConfig', {}, () => {
+describes.sandboxed('PageConfig', () => {
   it('should create from product id', () => {
     const config = new PageConfig('a.b.c.pub1:d.e.f');
     expect(config.getPublicationId()).to.equal('a.b.c.pub1');

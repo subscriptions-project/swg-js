@@ -16,7 +16,7 @@
 
 import {Entitlement, Entitlements} from './entitlements';
 
-describes.realWin('Entitlements', {}, () => {
+describes.realWin('Entitlements', () => {
   const CURRENT_PRODUCT = 'testpub:product_id';
 
   let entitlement;

@@ -97,10 +97,13 @@ export class ActivityIframeView extends View {
   }
 
   /** @override */
-  init(dialog) {
-    return this.activityPorts_
-      .openIframe(this.iframe_, this.src_, this.args_)
-      .then((port) => this.onOpenIframeResponse_(port, dialog));
+  async init(dialog) {
+    const port = await this.activityPorts_.openIframe(
+      this.iframe_,
+      this.src_,
+      this.args_
+    );
+    return this.onOpenIframeResponse_(port, dialog);
   }
 
   /**
@@ -148,27 +151,26 @@ export class ActivityIframeView extends View {
    * @param {function(?)} callback
    * @template T
    */
-  on(message, callback) {
-    this.getPortPromise_().then((port) => {
-      port.on(message, callback);
-    });
+  async on(message, callback) {
+    const port = await this.getPortPromise_();
+    port.on(message, callback);
   }
 
   /**
    * @param {!../proto/api_messages.Message} request
    */
-  execute(request) {
-    this.getPortPromise_().then((port) => {
-      port.execute(request);
-    });
+  async execute(request) {
+    const port = await this.getPortPromise_();
+    port.execute(request);
   }
 
   /**
    * Accepts results from the caller.
    * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
    */
-  acceptResult() {
-    return this.getPortPromise_().then((port) => port.acceptResult());
+  async acceptResult() {
+    const port = await this.getPortPromise_();
+    return port.acceptResult();
   }
 
   /**
@@ -178,19 +180,18 @@ export class ActivityIframeView extends View {
    * @param {boolean} requireSecureChannel
    * @return {!Promise<!Object>}
    */
-  acceptResultAndVerify(
+  async acceptResultAndVerify(
     requireOrigin,
     requireOriginVerified,
     requireSecureChannel
   ) {
-    return this.getPortPromise_().then((port) => {
-      return acceptPortResultData(
-        port,
-        requireOrigin,
-        requireOriginVerified,
-        requireSecureChannel
-      );
-    });
+    const port = await this.getPortPromise_();
+    return acceptPortResultData(
+      port,
+      requireOrigin,
+      requireOriginVerified,
+      requireSecureChannel
+    );
   }
 
   /**

@@ -22,7 +22,7 @@ import {Propensity} from './propensity';
 import {PropensityServer} from './propensity-server';
 import {XhrFetcher} from './fetcher';
 
-describes.realWin('Propensity', {}, (env) => {
+describes.realWin('Propensity', (env) => {
   let win;
   let propensity;
   let pageConfig;

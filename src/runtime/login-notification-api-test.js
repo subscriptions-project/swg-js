@@ -19,7 +19,7 @@ import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('LoginNotificationApi', {}, (env) => {
+describes.realWin('LoginNotificationApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;

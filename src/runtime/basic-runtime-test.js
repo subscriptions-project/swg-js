@@ -52,7 +52,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 
-describes.realWin('installBasicRuntime', {}, (env) => {
+describes.realWin('installBasicRuntime', (env) => {
   let win;
 
   beforeEach(() => {
@@ -189,7 +189,7 @@ describes.realWin('installBasicRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('BasicRuntime', {}, (env) => {
+describes.realWin('BasicRuntime', (env) => {
   let win;
   let doc;
   let basicRuntime;
@@ -603,7 +603,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('BasicConfiguredRuntime', {}, (env) => {
+describes.realWin('BasicConfiguredRuntime', (env) => {
   let win;
   let pageConfig;
 
