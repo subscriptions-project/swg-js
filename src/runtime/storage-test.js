@@ -58,7 +58,7 @@ describes.realWin('Storage', (env) => {
         .returns('one')
         .once();
 
-      await expect(storage.get('a')).to.be.eventually.equal('one');
+      expect(await storage.get('a')).to.equal('one');
     });
 
     it('should return null value if not in the storage', async () => {
@@ -68,7 +68,7 @@ describes.realWin('Storage', (env) => {
         .returns(null)
         .once();
 
-      await expect(storage.get('a')).to.be.eventually.be.null;
+      expect(await storage.get('a')).to.be.null;
     });
 
     it('should return cached value from the storage', async () => {
@@ -78,14 +78,14 @@ describes.realWin('Storage', (env) => {
         .returns('one')
         .once(); // Only executed once.
 
-      await expect(storage.get('a')).to.eventually.equal('one');
-      await expect(storage.get('a')).to.eventually.equal('one');
+      expect(await storage.get('a')).to.equal('one');
+      expect(await storage.get('a')).to.equal('one');
     });
 
     it('should return null if storage is not available', async () => {
       Object.defineProperty(win, 'sessionStorage', {value: null});
       sessionStorageMock.expects('getItem').never();
-      await expect(storage.get('a')).to.be.eventually.be.null;
+      expect(await storage.get('a')).to.be.null;
     });
 
     it('should return null value if storage fails', async () => {
@@ -95,7 +95,7 @@ describes.realWin('Storage', (env) => {
         .throws(new Error('intentional'))
         .once();
 
-      await expect(storage.get('a')).to.be.eventually.be.null;
+      expect(await storage.get('a')).to.be.null;
     });
 
     it('should set a value', async () => {
@@ -103,8 +103,9 @@ describes.realWin('Storage', (env) => {
         .expects('setItem')
         .withExactArgs('subscribe.google.com:a', 'one')
         .once();
+      storage.set('a', 'one');
 
-      await expect(storage.set('a', 'one')).to.be.eventually.be.undefined;
+      expect(await storage.get('a')).to.equal('one');
     });
 
     it('should set a value with no storage', async () => {
@@ -113,7 +114,7 @@ describes.realWin('Storage', (env) => {
       Object.defineProperty(win, 'sessionStorage', {value: null});
       storage.set('a', 'one');
 
-      await expect(storage.get('a')).to.be.eventually.equal('one');
+      expect(await storage.get('a')).to.equal('one');
     });
 
     it('should set a value with failing storage', async () => {
@@ -122,9 +123,9 @@ describes.realWin('Storage', (env) => {
         .withExactArgs('subscribe.google.com:a', 'one')
         .throws(new Error('intentional'))
         .once();
+      storage.set('a', 'one');
 
-      await storage.set('a', 'one');
-      await expect(storage.get('a')).to.be.eventually.equal('one');
+      expect(await storage.get('a')).to.equal('one');
     });
 
     it('should remove a value', async () => {
@@ -138,9 +139,9 @@ describes.realWin('Storage', (env) => {
         .expects('removeItem')
         .withExactArgs('subscribe.google.com:a')
         .once();
+      storage.remove('a');
 
-      await storage.remove('a');
-      await expect(storage.get('a')).to.be.eventually.be.null;
+      expect(await storage.get('a')).to.be.null;
     });
 
     it('should remove a value with no storage', async () => {
@@ -150,7 +151,7 @@ describes.realWin('Storage', (env) => {
       storage.set('a', 'one');
       storage.remove('a');
 
-      await expect(storage.get('a')).to.be.eventually.null;
+      expect(await storage.get('a')).to.be.null;
     });
 
     it('should remove a value with failing storage', async () => {
@@ -165,9 +166,9 @@ describes.realWin('Storage', (env) => {
         .returns(null)
         .once();
       storage.set('a', 'one');
+      storage.remove('a');
 
-      await storage.remove('a');
-      await expect(storage.get('a')).to.be.eventually.null;
+      expect(await storage.get('a')).to.be.null;
     });
   });
 
@@ -190,9 +191,9 @@ describes.realWin('Storage', (env) => {
         .returns('one')
         .once();
 
-      await expect(
-        storage.get('a', /* useLocalStorage */ true)
-      ).to.be.eventually.equal('one');
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
+        'one'
+      );
     });
 
     it('should return null value if not in the storage', async () => {
@@ -202,8 +203,7 @@ describes.realWin('Storage', (env) => {
         .returns(null)
         .once();
 
-      await expect(storage.get('a', /* useLocalStorage */ true)).to.be
-        .eventually.be.null;
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
     });
 
     it('should return cached value from the storage', async () => {
@@ -213,19 +213,19 @@ describes.realWin('Storage', (env) => {
         .returns('one')
         .once(); // Only executed once.
 
-      await expect(
-        storage.get('a', /* useLocalStorage */ true)
-      ).to.eventually.equal('one');
-      await expect(
-        storage.get('a', /* useLocalStorage */ true)
-      ).to.eventually.equal('one');
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
+        'one'
+      );
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
+        'one'
+      );
     });
 
     it('should return null if storage is not available', async () => {
       Object.defineProperty(win, 'localStorage', {value: null});
       localStorageMock.expects('getItem').never();
-      await expect(storage.get('a', /* useLocalStorage */ true)).to.be
-        .eventually.be.null;
+
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
     });
 
     it('should return null value if storage fails', async () => {
@@ -235,8 +235,7 @@ describes.realWin('Storage', (env) => {
         .throws(new Error('intentional'))
         .once();
 
-      await expect(storage.get('a', /* useLocalStorage */ true)).to.be
-        .eventually.be.null;
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
     });
 
     it('should set a value', async () => {
@@ -244,9 +243,11 @@ describes.realWin('Storage', (env) => {
         .expects('setItem')
         .withExactArgs('subscribe.google.com:a', 'one')
         .once();
+      storage.set('a', 'one', /* useLocalStorage */ true);
 
-      await expect(storage.set('a', 'one', /* useLocalStorage */ true)).to.be
-        .eventually.be.undefined;
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
+        'one'
+      );
     });
 
     it('should set a value with no storage', async () => {
@@ -255,9 +256,9 @@ describes.realWin('Storage', (env) => {
       Object.defineProperty(win, 'localStorage', {value: null});
       storage.set('a', 'one', /* useLocalStorage */ true);
 
-      await expect(
-        storage.get('a', /* useLocalStorage */ true)
-      ).to.be.eventually.equal('one');
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
+        'one'
+      );
     });
 
     it('should set a value with failing storage', async () => {
@@ -266,11 +267,11 @@ describes.realWin('Storage', (env) => {
         .withExactArgs('subscribe.google.com:a', 'one')
         .throws(new Error('intentional'))
         .once();
+      storage.set('a', 'one', /* useLocalStorage */ true);
 
-      await storage.set('a', 'one', /* useLocalStorage */ true);
-      await expect(
-        storage.get('a', /* useLocalStorage */ true)
-      ).to.be.eventually.equal('one');
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
+        'one'
+      );
     });
 
     it('should remove a value', async () => {
@@ -284,10 +285,9 @@ describes.realWin('Storage', (env) => {
         .expects('removeItem')
         .withExactArgs('subscribe.google.com:a')
         .once();
+      storage.remove('a', /* useLocalStorage */ true);
 
-      await storage.remove('a', /* useLocalStorage */ true);
-      await expect(storage.get('a', /* useLocalStorage */ true)).to.be
-        .eventually.be.null;
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
     });
 
     it('should remove a value with no storage', async () => {
@@ -297,8 +297,7 @@ describes.realWin('Storage', (env) => {
       storage.set('a', 'one', /* useLocalStorage */ true);
       storage.remove('a', /* useLocalStorage */ true);
 
-      await expect(storage.get('a', /* useLocalStorage */ true)).to.be
-        .eventually.null;
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
     });
 
     it('should remove a value with failing storage', async () => {
@@ -313,10 +312,9 @@ describes.realWin('Storage', (env) => {
         .returns(null)
         .once();
       storage.set('a', 'one', /* useLocalStorage */ true);
+      storage.remove('a', /* useLocalStorage */ true);
 
-      await storage.remove('a', /* useLocalStorage */ true);
-      await expect(storage.get('a', /* useLocalStorage */ true)).to.be
-        .eventually.null;
+      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
     });
   });
 });
