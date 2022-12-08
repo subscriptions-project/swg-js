@@ -503,13 +503,8 @@ describes.realWin('Runtime', {}, (env) => {
     it('sets up analytics', async () => {
       runtime.init('pub2');
       const configuredRuntime = await runtime.configured_(true);
-
       const analytics = configuredRuntime.analytics();
-
       expect(analytics.readyForLogging_).to.be.true;
-
-      const labels = analytics.getContext().getLabelList();
-      expect(labels).to.deep.equal(['$experiments$']);
     });
   });
 
