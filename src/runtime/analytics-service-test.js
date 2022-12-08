@@ -567,23 +567,15 @@ describes.realWin('AnalyticsService', {}, (env) => {
      * originator if shouldLog is true.
      * @param {!EventOriginator} originator
      * @param {boolean} shouldLog
-     * @param {AnalyticsEvent=} eventType
      */
-    const testOriginator = function (originator, shouldLog, eventType) {
+    const testOriginator = function (originator, shouldLog) {
       const prevOriginator = event.eventOriginator;
-      const prevType = event.eventType;
       analyticsService.lastAction_ = null;
       event.eventOriginator = originator;
-      if (eventType) {
-        event.eventType = eventType;
-      }
       eventManagerCallback(event);
       const didLog = analyticsService.lastAction_ !== null;
       expect(shouldLog).to.equal(didLog);
       event.eventOriginator = prevOriginator;
-      if (eventType) {
-        event.eventType = prevType;
-      }
     };
 
     it('should never log showcase events', () => {
