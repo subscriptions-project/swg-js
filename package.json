@@ -111,6 +111,8 @@
     "postcss-import": "15.1.0",
     "prettier": "2.7.1",
     "pumpify": "2.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "regenerator-runtime": "0.13.11",
     "request": "2.88.2",
     "rollup": "3.6.0",
