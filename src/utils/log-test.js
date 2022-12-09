@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-/* eslint-disable */
-
 import {assert, debugLog, warn} from './log';
 
 describes.realWin('warn', () => {
@@ -77,13 +75,6 @@ describes.realWin('asserts', (env) => {
     expect(() => {
       assert(false, 'xyz');
     }).to.throw(/xyz/);
-
-    try {
-      assert(false, '123');
-      throw 'must have failed';
-    } catch (e) {
-      expect(e.message).to.equal('123');
-    }
   });
 
   it('should not fail', () => {
