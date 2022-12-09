@@ -20,7 +20,7 @@ describes.realWin('warn', () => {
   let warnFn;
 
   beforeEach(() => {
-    warnFn = sandbox.spy(console, 'warn');
+    warnFn = sandbox.spy(self.console, 'warn');
   });
 
   afterEach(() => {
@@ -29,7 +29,7 @@ describes.realWin('warn', () => {
 
   it('should log a warning', () => {
     warn('Hello World');
-    expect(console.warn.calledWith('Hello World')).to.be.true;
+    expect(self.console.warn.calledWith('Hello World')).to.be.true;
   });
 });
 
@@ -37,7 +37,7 @@ describes.realWin('debug log', () => {
   let log;
 
   beforeEach(() => {
-    log = sandbox.spy(console, 'log');
+    log = sandbox.spy(self.console, 'log');
   });
 
   afterEach(() => {
@@ -47,20 +47,21 @@ describes.realWin('debug log', () => {
   it('should log if swg.debug=1', () => {
     self.location.hash = 'swg.debug=1';
     debugLog('Hello World');
-    expect(console.log.calledWith('[Subscriptions]', 'Hello World')).to.be.true;
+    expect(self.console.log.calledWith('[Subscriptions]', 'Hello World')).to.be
+      .true;
   });
 
   it('should handle multiple arguments', () => {
     self.location.hash = 'swg.debug=1';
     debugLog('Hello', 'World');
-    expect(console.log.calledWith('[Subscriptions]', 'Hello', 'World')).to.be
-      .true;
+    expect(self.console.log.calledWith('[Subscriptions]', 'Hello', 'World')).to
+      .be.true;
   });
 
   it('should not log if swg.debug=1 is not present', () => {
     self.location.hash = '';
     debugLog('Hello World');
-    expect(console.log.notCalled).to.be.true;
+    expect(self.console.log.notCalled).to.be.true;
   });
 });
 
