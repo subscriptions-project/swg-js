@@ -56,6 +56,12 @@ describes.realWin('Types', (env) => {
       expect(element.style.height).to.equal('102px');
     });
 
+    it('getStyle hands missing property', () => {
+      const element = doc.createElement('div');
+      const style = st.getStyle(element, 'missing-property');
+      expect(style).to.be.undefined;
+    });
+
     it('resetAllStyles', () => {
       const element = doc.createElement('div');
       st.resetAllStyles(element);
@@ -138,6 +144,16 @@ describes.realWin('Types', (env) => {
           true
         );
         expect(prop).to.equal('OTransitionDuration');
+      });
+
+      it('immediately returns properties with -- prefix', () => {
+        const prop = st.getVendorJsPropertyName({}, '--dashDash');
+        expect(prop).to.equal('--dashDash');
+      });
+
+      it('handles missing vendor prefixes', () => {
+        const prop = st.getVendorJsPropertyName({}, 'dashDash');
+        expect(prop).to.equal('dashDash');
       });
     });
   });
