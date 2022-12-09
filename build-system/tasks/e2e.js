@@ -29,7 +29,7 @@ async function e2e() {
     }
 
     const runner = nightwatch.CliRunner(argv);
-    await runner.setup().startWebDriver();
+    await runner.setup();
 
     try {
       await runner.runTests();
