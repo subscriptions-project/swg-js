@@ -39,9 +39,9 @@ function watch() {
  * Main development build.
  * @return {!Promise}
  */
-function build() {
+function build(options = {}) {
   process.env.NODE_ENV = 'development';
-  return Promise.all([compile()]);
+  return Promise.all([compile(options)]);
 }
 
 /**
