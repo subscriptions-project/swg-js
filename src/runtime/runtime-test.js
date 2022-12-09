@@ -1415,6 +1415,17 @@ describes.realWin('ConfiguredRuntime', (env) => {
       expect(triggerStub).to.not.be.called;
     });
 
+    it('(optionally) sends publisher provided ID', async () => {
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .withExactArgs({publisherProvidedId: 'publisherProvidedId'})
+        .resolves({clone: () => null})
+        .once();
+
+      await runtime.setPublisherProvidedId('publisherProvidedId');
+      await runtime.getEntitlements({publisherProvidedId: true});
+    });
+
     describe('Entitlements Success', () => {
       let entitlements;
 
