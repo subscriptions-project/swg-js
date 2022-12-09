@@ -17,7 +17,6 @@
 import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
-import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {PageConfig} from '../model/page-config';
