@@ -82,7 +82,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
     const request = {...REQUEST, publisherProvidedId: undefined};
     await expect(
       subscriptionLinkingFlow.start(request)
-    ).to.eventually.be.rejectedWith(Error, 'publisherProvidedId');
+    ).to.eventually.be.rejectedWith('publisherProvidedId');
   });
 
   describe('on SubscriptionLinkingCompleteResponse', () => {

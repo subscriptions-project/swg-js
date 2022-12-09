@@ -90,27 +90,23 @@ describes.realWin('installRuntime', (env) => {
     (win.SWG = win.SWG || []).push(callback);
   }
 
-  it('should chain and execute dependencies in order', async () => {
+  it('chains and executes dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
-    dep(function () {
+    dep(() => {
       progress += '1';
     });
-    dep(function () {
+    dep(() => {
       progress += '2';
     });
     expect(progress).to.equal('');
 
     // Install runtime and schedule few more dependencies.
-    try {
-      installRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
-    dep(function () {
+    installRuntime(win);
+    dep(() => {
       progress += '3';
     });
-    dep(function () {
+    dep(() => {
       progress += '4';
     });
 
@@ -119,28 +115,24 @@ describes.realWin('installRuntime', (env) => {
     expect(progress).to.equal('1234');
 
     // Few more.
-    dep(function () {
+    dep(() => {
       progress += '5';
     });
-    dep(function () {
+    dep(() => {
       progress += '6';
     });
     await getRuntime().whenReady();
     expect(progress).to.equal('123456');
   });
 
-  it('should reuse the same runtime on multiple runs', () => {
-    try {
-      installRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+  it('reuses the same runtime on multiple runs', () => {
+    installRuntime(win);
     const runtime1 = getRuntime();
     installRuntime(win);
     expect(getRuntime()).to.equal(runtime1);
   });
 
-  it('should implement Subscriptions interface', async () => {
+  it('implements Subscriptions interface', async () => {
     const promise = new Promise((resolve) => {
       dep(resolve);
     });
@@ -154,11 +146,8 @@ describes.realWin('installRuntime', (env) => {
   });
 
   it('handles recursive calls after installation', async () => {
-    try {
-      installRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installRuntime(win);
+
     let progress = '';
     dep(() => {
       progress += '1';
@@ -187,11 +176,8 @@ describes.realWin('installRuntime', (env) => {
         });
       });
     });
-    try {
-      installRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+
+    installRuntime(win);
 
     await getRuntime().whenReady();
     await getRuntime().whenReady();
@@ -199,135 +185,13 @@ describes.realWin('installRuntime', (env) => {
     expect(progress).to.equal('123');
   });
 
-  it('should implement all APIs', async () => {
+  it('implements all APIs', async () => {
     installRuntime(win);
 
     const subscriptions = await new Promise((resolve) => {
       dep(resolve);
     });
 
-    const names = Object.getOwnPropertyNames(Subscriptions.prototype);
-    for (const name of names) {
-      if (name == 'constructor') {
-        continue;
-      }
-      expect(subscriptions).to.have.property(name);
-    }
-  });
-});
-
-describes.realWin('installRuntime legacy', (env) => {
-  let win;
-
-  beforeEach(() => {
-    win = env.win;
-  });
-
-  function dep(callback) {
-    (win.SUBSCRIPTIONS = win.SUBSCRIPTIONS || []).push(callback);
-  }
-
-  it('should chain and execute dependencies in order', async () => {
-    // Before runtime is installed.
-    let progress = '';
-    dep(function () {
-      progress += '1';
-    });
-    dep(function () {
-      progress += '2';
-    });
-    expect(progress).to.equal('');
-
-    // Install runtime and schedule few more dependencies.
-    try {
-      installRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
-    dep(function () {
-      progress += '3';
-    });
-    dep(function () {
-      progress += '4';
-    });
-
-    // Wait for ready signal.
-    await getRuntime().whenReady();
-    expect(progress).to.equal('1234');
-
-    // Few more.
-    dep(function () {
-      progress += '5';
-    });
-    dep(function () {
-      progress += '6';
-    });
-    await getRuntime().whenReady();
-    expect(progress).to.equal('123456');
-  });
-
-  it('should reuse the same runtime on multiple runs', () => {
-    try {
-      installRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
-    const runtime1 = getRuntime();
-    installRuntime(win);
-    expect(getRuntime()).to.equal(runtime1);
-  });
-
-  it('handles recursive calls after installation', async () => {
-    try {
-      installRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
-    let progress = '';
-    dep(() => {
-      progress += '1';
-      dep(() => {
-        progress += '2';
-        dep(() => {
-          progress += '3';
-        });
-      });
-    });
-
-    await getRuntime().whenReady();
-    await getRuntime().whenReady();
-    await getRuntime().whenReady();
-    expect(progress).to.equal('123');
-  });
-
-  it('handles recursive calls before installation', async () => {
-    let progress = '';
-    dep(() => {
-      progress += '1';
-      dep(() => {
-        progress += '2';
-        dep(() => {
-          progress += '3';
-        });
-      });
-    });
-    try {
-      installRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
-
-    await getRuntime().whenReady();
-    await getRuntime().whenReady();
-    await getRuntime().whenReady();
-    expect(progress).to.equal('123');
-  });
-
-  it('should implement all APIs', async () => {
-    installRuntime(win);
-    const subscriptions = await new Promise((resolve) => {
-      dep(resolve);
-    });
     const names = Object.getOwnPropertyNames(Subscriptions.prototype);
     for (const name of names) {
       if (name == 'constructor') {
@@ -796,7 +660,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnEntitlementsResponse"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -807,7 +671,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnNativeSubscribeRequest"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnNativeSubscribeRequest')
         .withExactArgs(callback)
@@ -818,7 +682,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnSubscribeResponse"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnSubscribeResponse')
         .withExactArgs(callback)
@@ -829,7 +693,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnLoginRequest"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnLoginRequest')
         .withExactArgs(callback)
@@ -851,7 +715,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnLinkComplete"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnLinkComplete')
         .withExactArgs(callback)
@@ -862,7 +726,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnFlowStarted"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnFlowStarted')
         .withExactArgs(callback)
@@ -873,7 +737,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "setOnFlowCanceled"', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredRuntimeMock
         .expects('setOnFlowCanceled')
         .withExactArgs(callback)
@@ -1176,7 +1040,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
       winMock.verify();
     });
 
-    it('should hold events until config resolved', async () => {
+    it('holds events until config resolved', async () => {
       eventManager.logEvent(event);
 
       //register after declaring the event, then resolve the promise
@@ -1185,9 +1049,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
       eventManager.registerEventListener(() => eventCount++);
       resolveConfig();
 
-      try {
-        await configPromise;
-      } catch (e) {}
+      await configPromise;
       expect(eventCount).to.equal(2);
     });
 
@@ -1199,9 +1061,8 @@ describes.realWin('ConfiguredRuntime', (env) => {
       expect(eventCount).to.equal(0);
       rejectConfig();
 
-      try {
-        await configPromise;
-      } catch (e) {}
+      await expect(configPromise).to.be.rejected;
+
       expect(eventCount).to.equal(0);
     });
 
@@ -1557,7 +1418,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
     describe('Entitlements Success', () => {
       let entitlements;
 
-      afterEach(async function () {
+      afterEach(async () => {
         const promise = Promise.resolve(
           new Entitlements('service', 'raw', entitlements, 'product1', () => {})
         );
@@ -1834,44 +1695,26 @@ new subscribers. Use the showOffers() method instead.'
       expect(flowInstance.productType_).to.equal(ProductType.SUBSCRIPTION);
     });
 
-    it(
-      'should throw an error if subscribe() is used to replace ' +
-        'a subscription',
-      () => {
-        try {
-          runtime.subscribe({skuId: 'newSku', oldSku: 'oldSku'});
-        } catch (err) {
-          expect(err)
-            .to.be.an.instanceOf(Error)
-            .with.property(
-              'message',
-              'The subscribe() method can only take a \
+    it('throws if subscribe() is used to replace a subscription', async () => {
+      await expect(
+        runtime.subscribe({skuId: 'newSku', oldSku: 'oldSku'})
+      ).to.eventually.be.rejectedWith(
+        'The subscribe() method can only take a \
 sku as its parameter; for subscription updates please use the \
 updateSubscription() method'
-            );
-        }
-      }
-    );
+      );
+    });
 
-    it(
-      'should throw an error if updateSubscription is used to initiate ' +
-        'a new subscription',
-      () => {
-        setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
-        try {
-          runtime.updateSubscription({skuId: 'newSku'});
-        } catch (err) {
-          expect(err)
-            .to.be.an.instanceOf(Error)
-            .with.property(
-              'message',
-              'The updateSubscription() method should \
+    it('throws if updateSubscription is used to initiate a new subscription', async () => {
+      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
+      await expect(
+        runtime.updateSubscription({skuId: 'newSku'})
+      ).to.eventually.be.rejectedWith(
+        'The updateSubscription() method should \
 be used for subscription updates; for new subscriptions please use the \
 subscribe() method'
-            );
-        }
-      }
-    );
+      );
+    });
 
     it(
       'should start PayStartFlow for replaceSubscription ' +
@@ -2088,7 +1931,7 @@ subscribe() method'
       expect(count).to.equal(1);
     });
 
-    it('should create a working logger', async function () {
+    it('should create a working logger', async () => {
       let receivedEvent = null;
       sandbox
         .stub(ClientEventManager.prototype, 'logEvent')
