@@ -17,7 +17,6 @@
 import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
-import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {PageConfig} from '../model/page-config';
@@ -26,7 +25,7 @@ import {PayCompleteFlow} from './pay-flow';
 const EMPTY_ID_TOK =
   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJRF9UT0sifQ.SIG';
 
-describes.realWin('DeferredAccountFlow', {}, (env) => {
+describes.realWin('DeferredAccountFlow', (env) => {
   const ack = function () {};
   let win;
   let pageConfig;

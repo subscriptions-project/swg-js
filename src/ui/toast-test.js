@@ -27,7 +27,7 @@ const args = {
   source: 'google',
 };
 
-describes.realWin('Toast', {}, (env) => {
+describes.realWin('Toast', (env) => {
   let win;
   let runtime;
   let activitiesMock;

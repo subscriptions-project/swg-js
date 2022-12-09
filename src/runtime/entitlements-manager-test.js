@@ -63,7 +63,7 @@ const HASHED_CANONICAL_URL =
 
 const SUBSCRIPTION_TIMESTAMP = toTimestamp(1665445119);
 
-describes.realWin('EntitlementsManager', {}, (env) => {
+describes.realWin('EntitlementsManager', (env) => {
   let win;
   let nowStub;
   let pageConfig;

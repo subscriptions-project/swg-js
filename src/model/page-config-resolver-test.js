@@ -19,7 +19,7 @@ import {PageConfig} from './page-config';
 import {PageConfigResolver, getControlFlag} from './page-config-resolver';
 import {createElement} from '../utils/dom';
 
-describes.realWin('PageConfigResolver', {}, (env) => {
+describes.realWin('PageConfigResolver', (env) => {
   let win, doc, gd;
 
   beforeEach(() => {
@@ -124,7 +124,7 @@ describes.realWin('PageConfigResolver', {}, (env) => {
       config = resolver.check();
       expect(config).to.be.ok;
       expect(config.getProductId()).to.equal('pub1:basic');
-      await expect(resolver.resolveConfig()).to.eventually.equal(config);
+      expect(await resolver.resolveConfig()).to.equal(config);
     });
 
     it('should wait until the element is ready (next sibling)', async () => {
@@ -140,7 +140,7 @@ describes.realWin('PageConfigResolver', {}, (env) => {
       config = resolver.check();
       expect(config).to.be.ok;
       expect(config.getProductId()).to.equal('pub1:basic');
-      await expect(resolver.resolveConfig()).to.eventually.equal(config);
+      expect(await resolver.resolveConfig()).to.equal(config);
     });
 
     it('should wait until the element is ready (dom ready)', async () => {
@@ -156,7 +156,7 @@ describes.realWin('PageConfigResolver', {}, (env) => {
       config = resolver.check();
       expect(config).to.be.ok;
       expect(config.getProductId()).to.equal('pub1:basic');
-      await expect(resolver.resolveConfig()).to.eventually.equal(config);
+      expect(await resolver.resolveConfig()).to.equal(config);
     });
 
     it('should ignore wrong script type', () => {
@@ -522,7 +522,7 @@ describes.realWin('PageConfigResolver', {}, (env) => {
       expect(config).to.be.ok;
       expect(config.isLocked()).to.be.true;
       expect(config.getProductId()).to.equal('pub1:premium');
-      await expect(resolver.resolveConfig()).to.eventually.equal(config);
+      expect(await resolver.resolveConfig()).to.equal(config);
     });
 
     it('malformed microdata no productId', () => {
@@ -695,7 +695,7 @@ describes.realWin('PageConfigResolver', {}, (env) => {
   });
 });
 
-describes.sandboxed('PageConfig', {}, () => {
+describes.sandboxed('PageConfig', () => {
   it('should create from product id', () => {
     const config = new PageConfig('a.b.c.pub1:d.e.f');
     expect(config.getPublicationId()).to.equal('a.b.c.pub1');

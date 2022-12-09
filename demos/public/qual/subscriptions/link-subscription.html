@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Link Subscription - Swgjs Demos</title>
-  <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+  <link rel="shortcut icon" href="../../images/favicon.png" type="image/x-icon">
 
   <link rel="stylesheet" href="../../demos.css">
 
@@ -20,14 +20,6 @@
         isPartOfProductId: "CAow64SFCw",
       });
     });
-    function linkSubscription() {
-        self.SWG_BASIC.push(async (basicSubscriptions) => {
-          const element = document.getElementById('link-result');
-          element.innerText = '';
-          const result = await basicSubscriptions.linkSubscription({publisherProvidedId: 'testPpid'});
-          element.innerText = JSON.stringify(result, null, 2);
-        });
-      }
   </script>
 </head>
 
@@ -41,14 +33,11 @@
         caramels pie.
       </p>
 
-      <p>
-        <button onclick="linkSubscription();">Link Subscription</button>
-      </p>
-      <p>Result</p>
-      <code id="link-result" style="white-space: pre"></code>
+      <div class="subscription-linking"></div>
     </article>
   </div>
 
+  <script src="../../subscription-linking.js"></script>
   <script src="../../demos.js"></script>
 </body>
 

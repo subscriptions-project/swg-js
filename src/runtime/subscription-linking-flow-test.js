@@ -20,7 +20,7 @@ import {PageConfig} from '../model/page-config';
 import {SubscriptionLinkingCompleteResponse} from '../proto/api_messages';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 
-describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
+describes.realWin('SubscriptionLinkingFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -78,11 +78,11 @@ describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
     });
   });
 
-  it('throws an error if publisherProvidedId is missing', () => {
+  it('throws an error if publisherProvidedId is missing', async () => {
     const request = {...REQUEST, publisherProvidedId: undefined};
-    expect(() => {
-      subscriptionLinkingFlow.start(request);
-    }).to.throw(Error, 'publisherProvidedId');
+    await expect(
+      subscriptionLinkingFlow.start(request)
+    ).to.eventually.be.rejectedWith('publisherProvidedId');
   });
 
   describe('on SubscriptionLinkingCompleteResponse', () => {

@@ -23,7 +23,7 @@ import {
   serviceUrl,
 } from './services';
 
-describes.sandboxed('services', {}, () => {
+describes.sandboxed('services', () => {
   beforeEach(() => {
     self.location.hash = '';
   });

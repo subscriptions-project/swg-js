@@ -127,12 +127,10 @@ export class PayStartFlow {
    * Starts the payments flow.
    * @return {!Promise}
    */
-  start() {
+  async start() {
     // Get the paySwgVersion for buyflow.
-    const promise = this.clientConfigManager_.getClientConfig();
-    return promise.then((clientConfig) => {
-      this.start_(clientConfig.paySwgVersion);
-    });
+    const clientConfig = await this.clientConfigManager_.getClientConfig();
+    this.start_(clientConfig.paySwgVersion);
   }
 
   /**
@@ -224,7 +222,7 @@ export class PayCompleteFlow {
     /** @const @type {./client-event-manager.ClientEventManager} */
     const eventManager = deps.eventManager();
 
-    deps.payClient().onResponse((payPromise) => {
+    deps.payClient().onResponse(async (payPromise) => {
       deps.entitlementsManager().blockNextNotification();
       const flow = new PayCompleteFlow(deps);
       const promise = validatePayResponse(
@@ -233,42 +231,41 @@ export class PayCompleteFlow {
         flow.complete.bind(flow)
       );
       deps.callbacks().triggerPaymentResponse(promise);
-      return promise.then(
-        (response) => {
-          const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
-          deps.analytics().setSku(sku || '');
-          eventManager.logSwgEvent(
-            AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
-            true,
-            getEventParams(
-              sku || '',
-              response.productType == ProductType.UI_CONTRIBUTION
-                ? SubscriptionFlows.CONTRIBUTE
-                : SubscriptionFlows.SUBSCRIBE
-            )
-          );
-          flow.start(response);
-        },
-        (reason) => {
-          if (isCancelError(reason)) {
-            const productType = /** @type {!Object} */ (reason)['productType'];
-            const flow =
-              productType == ProductType.UI_CONTRIBUTION
-                ? SubscriptionFlows.CONTRIBUTE
-                : SubscriptionFlows.SUBSCRIBE;
-            deps.callbacks().triggerFlowCanceled(flow);
-            deps
-              .eventManager()
-              .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
-          } else {
-            deps
-              .eventManager()
-              .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
-            deps.jserror().error('Pay failed', reason);
-            throw reason;
-          }
+
+      try {
+        const response = await promise;
+        const sku = parseSkuFromPurchaseDataSafe(response.purchaseData);
+        deps.analytics().setSku(sku || '');
+        eventManager.logSwgEvent(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams(
+            sku || '',
+            response.productType == ProductType.UI_CONTRIBUTION
+              ? SubscriptionFlows.CONTRIBUTE
+              : SubscriptionFlows.SUBSCRIBE
+          )
+        );
+        flow.start(response);
+      } catch (reason) {
+        if (isCancelError(reason)) {
+          const productType = /** @type {!Object} */ (reason)['productType'];
+          const flow =
+            productType == ProductType.UI_CONTRIBUTION
+              ? SubscriptionFlows.CONTRIBUTE
+              : SubscriptionFlows.SUBSCRIBE;
+          deps.callbacks().triggerFlowCanceled(flow);
+          deps
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
+        } else {
+          deps
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
+          deps.jserror().error('Pay failed', /** @type {!Error} */ (reason));
+          throw reason;
         }
-      );
+      }
     });
   }
 
@@ -288,8 +285,8 @@ export class PayCompleteFlow {
     /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {?Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = null;
+    /** @private {?ActivityIframeView} */
+    this.activityIframeView_ = null;
 
     /** @private {?Promise} */
     this.readyPromise_ = null;
@@ -316,7 +313,7 @@ export class PayCompleteFlow {
    * }} response
    * @return {!Promise}
    */
-  start(response) {
+  async start(response) {
     this.sku_ = parseSkuFromPurchaseDataSafe(response.purchaseData);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
@@ -378,39 +375,36 @@ export class PayCompleteFlow {
     }
     const confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
 
-    return (this.activityIframeViewPromise_ = this.clientConfigManager_
-      .getClientConfig()
-      .then((clientConfig) => {
-        args['useUpdatedConfirmUi'] = clientConfig.useUpdatedOfferFlows;
-        args['skipAccountCreationScreen'] =
-          clientConfig.skipAccountCreationScreen;
-        return new ActivityIframeView(
-          this.win_,
-          this.activityPorts_,
-          confirmFeUrl,
-          feArgs(args),
-          /* shouldFadeBody */ true
+    const clientConfig = await this.clientConfigManager_.getClientConfig();
+
+    args['useUpdatedConfirmUi'] = clientConfig.useUpdatedOfferFlows;
+    args['skipAccountCreationScreen'] = clientConfig.skipAccountCreationScreen;
+    this.activityIframeView_ = new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      confirmFeUrl,
+      feArgs(args),
+      /* shouldFadeBody */ true
+    );
+    this.activityIframeView_.on(
+      EntitlementsResponse,
+      this.handleEntitlementsResponse_.bind(this)
+    );
+
+    this.activityIframeView_.acceptResult().then(() => {
+      // The flow is complete.
+      this.dialogManager_.completeView(this.activityIframeView_);
+    });
+
+    this.readyPromise_ = this.dialogManager_.openView(this.activityIframeView_);
+
+    this.readyPromise_.then(() => {
+      this.deps_
+        .callbacks()
+        .triggerPayConfirmOpened(
+          /** @type {!ActivityIframeView} */ (this.activityIframeView_)
         );
-      })
-      .then((activityIframeView) => {
-        activityIframeView.on(
-          EntitlementsResponse,
-          this.handleEntitlementsResponse_.bind(this)
-        );
-
-        activityIframeView.acceptResult().then(() => {
-          // The flow is complete.
-          this.dialogManager_.completeView(activityIframeView);
-        });
-
-        this.readyPromise_ = this.dialogManager_.openView(activityIframeView);
-
-        this.readyPromise_.then(() => {
-          this.deps_.callbacks().triggerPayConfirmOpened(activityIframeView);
-        });
-
-        return activityIframeView;
-      }));
+    });
   }
 
   /**
@@ -427,46 +421,46 @@ export class PayCompleteFlow {
   /**
    * @return {!Promise}
    */
-  complete() {
+  async complete() {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_ACCOUNT_CREATED,
       true,
       getEventParams(this.sku_ || '')
     );
+
     const now = Date.now().toString();
     this.deps_
       .storage()
       .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+
     this.deps_.entitlementsManager().unblockNextNotification();
-    return Promise.all([
-      this.activityIframeViewPromise_,
-      this.readyPromise_,
-      this.clientConfigManager_.getClientConfig(),
-    ]).then((values) => {
-      const activityIframeView = values[0];
-      const clientConfig = values[2];
-      // Skip account creation screen if requested (needed for AMP)
-      if (!clientConfig.skipAccountCreationScreen) {
-        const accountCompletionRequest = new AccountCreationRequest();
-        accountCompletionRequest.setComplete(true);
-        activityIframeView.execute(accountCompletionRequest);
-      }
-      return activityIframeView
-        .acceptResult()
-        .catch(() => {
-          // Ignore errors.
-        })
-        .then(() => {
-          if (!clientConfig.skipAccountCreationScreen) {
-            this.eventManager_.logSwgEvent(
-              AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
-              true,
-              getEventParams(this.sku_ || '')
-            );
-          }
-          this.deps_.entitlementsManager().setToastShown(true);
-        });
-    });
+
+    const clientConfig = await this.clientConfigManager_.getClientConfig();
+
+    await this.readyPromise_;
+
+    // Skip account creation screen if requested (needed for AMP)
+    if (!clientConfig.skipAccountCreationScreen) {
+      const accountCompletionRequest = new AccountCreationRequest();
+      accountCompletionRequest.setComplete(true);
+      this.activityIframeView_.execute(accountCompletionRequest);
+    }
+
+    try {
+      await this.activityIframeView_.acceptResult();
+    } catch (err) {
+      // Ignore errors.
+    }
+
+    if (!clientConfig.skipAccountCreationScreen) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
+        true,
+        getEventParams(this.sku_ || '')
+      );
+    }
+
+    this.deps_.entitlementsManager().setToastShown(true);
   }
 }
 
@@ -479,51 +473,50 @@ PayCompleteFlow.waitingForPayClient_ = false;
  * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
  */
-function validatePayResponse(deps, payPromise, completeHandler) {
+async function validatePayResponse(deps, payPromise, completeHandler) {
   const wasRedirect = !PayCompleteFlow.waitingForPayClient_;
   PayCompleteFlow.waitingForPayClient_ = false;
-  return payPromise.then((data) => {
-    // 1) We log against a random TX ID which is how we track a specific user
-    //    anonymously.
-    // 2) If there was a redirect to gPay, we may have lost our stored TX ID.
-    // 3) Pay service is supposed to give us the TX ID it logged against.
-    let eventType = AnalyticsEvent.UNKNOWN;
-    let eventParams = undefined;
-    if (typeof data !== 'object' || !data['googleTransactionId']) {
-      // If gPay doesn't give us a TX ID it means that something may
-      // be wrong.  If we previously logged then we are at least continuing to
-      // log against the same TX ID.  If we didn't previously log then we have
-      // lost all connection to the events that preceded the payment event and
-      // we at least want to know why that data was lost.
-      eventParams = new EventParams();
-      eventParams.setHadLogged(!wasRedirect);
-      eventType = AnalyticsEvent.EVENT_GPAY_NO_TX_ID;
-    } else {
-      const oldTxId = deps.analytics().getTransactionId();
-      const newTxId = data['googleTransactionId'];
+  const data = await payPromise;
+  // 1) We log against a random TX ID which is how we track a specific user
+  //    anonymously.
+  // 2) If there was a redirect to gPay, we may have lost our stored TX ID.
+  // 3) Pay service is supposed to give us the TX ID it logged against.
+  let eventType = AnalyticsEvent.UNKNOWN;
+  let eventParams = undefined;
+  if (typeof data !== 'object' || !data['googleTransactionId']) {
+    // If gPay doesn't give us a TX ID it means that something may
+    // be wrong.  If we previously logged then we are at least continuing to
+    // log against the same TX ID.  If we didn't previously log then we have
+    // lost all connection to the events that preceded the payment event and
+    // we at least want to know why that data was lost.
+    eventParams = new EventParams();
+    eventParams.setHadLogged(!wasRedirect);
+    eventType = AnalyticsEvent.EVENT_GPAY_NO_TX_ID;
+  } else {
+    const oldTxId = deps.analytics().getTransactionId();
+    const newTxId = data['googleTransactionId'];
 
-      if (wasRedirect) {
-        // This is the expected case for full redirects.  It may be happening
-        // unexpectedly at other times too though and we want to be aware of
-        // it if it does.
-        deps.analytics().setTransactionId(newTxId);
-        eventType = AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID;
+    if (wasRedirect) {
+      // This is the expected case for full redirects.  It may be happening
+      // unexpectedly at other times too though and we want to be aware of
+      // it if it does.
+      deps.analytics().setTransactionId(newTxId);
+      eventType = AnalyticsEvent.EVENT_GPAY_CANNOT_CONFIRM_TX_ID;
+    } else {
+      if (oldTxId === newTxId) {
+        // This is the expected case for non-redirect pay events
+        eventType = AnalyticsEvent.EVENT_CONFIRM_TX_ID;
       } else {
-        if (oldTxId === newTxId) {
-          // This is the expected case for non-redirect pay events
-          eventType = AnalyticsEvent.EVENT_CONFIRM_TX_ID;
-        } else {
-          // This is an unexpected case: gPay rejected our TX ID and created
-          // its own.  Log the gPay TX ID but keep our logging consistent.
-          eventParams = new EventParams();
-          eventParams.setGpayTransactionId(newTxId);
-          eventType = AnalyticsEvent.EVENT_CHANGED_TX_ID;
-        }
+        // This is an unexpected case: gPay rejected our TX ID and created
+        // its own.  Log the gPay TX ID but keep our logging consistent.
+        eventParams = new EventParams();
+        eventParams.setGpayTransactionId(newTxId);
+        eventType = AnalyticsEvent.EVENT_CHANGED_TX_ID;
       }
     }
-    deps.eventManager().logSwgEvent(eventType, true, eventParams);
-    return parseSubscriptionResponse(deps, data, completeHandler);
-  });
+  }
+  deps.eventManager().logSwgEvent(eventType, true, eventParams);
+  return parseSubscriptionResponse(deps, data, completeHandler);
 }
 
 /**

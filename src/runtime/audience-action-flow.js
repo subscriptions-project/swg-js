@@ -35,7 +35,7 @@ import {
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {Constants} from '../utils/constants';
+import {Constants, StorageKeys} from '../utils/constants';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
@@ -69,8 +69,6 @@ const autopromptTypeToProductTypeMapping = {
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
 const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
-const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
-  'surveydatatransferfailed';
 
 /**
  * The flow to initiate and manage handling an audience action.
@@ -104,13 +102,14 @@ export class AudienceActionFlow {
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
 
-    /** @private {?ActivityIframeView} */
+    /** @private {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       deps.win(),
       deps.activities(),
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
         'hl': this.clientConfigManager_.getLanguage(),
+        'isClosable': !deps.pageConfig().isLocked(),
       }),
       feArgs({
         'supportsEventManager': true,
@@ -126,10 +125,6 @@ export class AudienceActionFlow {
    * @return {!Promise}
    */
   start() {
-    if (!this.activityIframeView_) {
-      return Promise.resolve();
-    }
-
     this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
       this.handleCompleteAudienceActionResponse_(response)
     );
@@ -298,14 +293,21 @@ export class AudienceActionFlow {
     // @TODO(justinchou): execute callback with setOnInterventionComplete
     // then check for success
     const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
-    if (!gaLoggingSuccess) {
+    if (gaLoggingSuccess) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+          /* isFromUserAction */ true
+        );
+    } else {
       this.deps_
         .eventManager()
         .logSwgEvent(
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
           /* isFromUserAction */ false
         );
-      this.storage_.storeEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED);
+      this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
@@ -352,8 +354,6 @@ export class AudienceActionFlow {
    * @public
    */
   showNoEntitlementFoundToast() {
-    if (this.activityIframeView_) {
-      this.activityIframeView_.execute(new EntitlementsResponse());
-    }
+    this.activityIframeView_.execute(new EntitlementsResponse());
   }
 }

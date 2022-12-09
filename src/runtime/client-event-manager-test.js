@@ -34,7 +34,7 @@ const DEFAULT_EVENT = {
   additionalParameters: {},
 };
 
-describes.sandboxed('EventManager', {}, () => {
+describes.sandboxed('EventManager', () => {
   describe('configuration', () => {
     let eventManager;
     let indicateConfigurationSucceeded;

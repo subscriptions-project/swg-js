@@ -38,7 +38,7 @@ import {PageConfig} from '../model/page-config';
 import {createCancelError} from '../utils/errors';
 import {tick} from '../../test/tick';
 
-describes.realWin('LinkbackFlow', {}, (env) => {
+describes.realWin('LinkbackFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -140,7 +140,7 @@ describes.realWin('LinkbackFlow', {}, (env) => {
   });
 });
 
-describes.realWin('LinkCompleteFlow', {}, (env) => {
+describes.realWin('LinkCompleteFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -595,7 +595,7 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
   });
 });
 
-describes.realWin('LinkSaveFlow', {}, (env) => {
+describes.realWin('LinkSaveFlow', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -831,7 +831,7 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
     expect(messageStub).to.be.calledOnce.calledWith(saveToken);
   });
 
-  it('should callback promise rejected should close dialog', async () => {
+  it('closes dialog when callback returns rejected promise', async () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => Promise.reject('no token'));
     activitiesMock.expects('openIframe').returns(Promise.resolve(port));
     linkSaveFlow.start();
@@ -840,15 +840,15 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
     const response = new LinkingInfoResponse();
     response.setRequested(true);
     const cb = messageMap[response.label()];
-    cb(response);
     dialogManagerMock.expects('completeView').once();
+    cb(response);
 
     await expect(linkSaveFlow.getRequestPromise()).to.be.rejectedWith(
       /no token/
     );
   });
 
-  it('should callback synchronous error should close dialog', async () => {
+  it('closes dialog when callback throws synchronous error', async () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {
       throw new Error('callback failed');
     });
@@ -859,8 +859,8 @@ describes.realWin('LinkSaveFlow', {}, (env) => {
     const response = new LinkingInfoResponse();
     response.setRequested(true);
     const cb = messageMap[response.label()];
-    cb(response);
     dialogManagerMock.expects('completeView').once();
+    cb(response);
 
     await expect(linkSaveFlow.getRequestPromise()).to.be.rejectedWith(
       /callback failed/

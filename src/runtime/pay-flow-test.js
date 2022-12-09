@@ -131,7 +131,7 @@ function createDefaultSubscribeResponse() {
   );
 }
 
-describes.realWin('PayStartFlow', {}, (env) => {
+describes.realWin('PayStartFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -202,8 +202,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('sku1')
       );
-    const flowPromise = flow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await flow.start();
   });
 
   it('should trigger the contribution flow if given contribution productType', async () => {
@@ -248,8 +247,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('sku1')
       );
-    const flowPromise = contribFlow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await contribFlow.start();
   });
 
   it('should have valid flow constructed for one time', async () => {
@@ -295,8 +293,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('newSku')
       );
-    const flowPromise = oneTimeFlow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await oneTimeFlow.start();
   });
 
   it('should have valid flow constructed with metadata', async () => {
@@ -346,8 +343,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('newSku')
       );
-    const flowPromise = metadataFlow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await metadataFlow.start();
   });
 
   it('should have valid replace flow constructed', async () => {
@@ -398,8 +394,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('newSku1')
       );
-    const flowPromise = replaceFlow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await replaceFlow.start();
   });
 
   it('should have valid replace flow constructed (no proration mode)', async () => {
@@ -448,8 +443,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('newSku2')
       );
-    const flowPromise = replaceFlowNoProrationMode.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await replaceFlowNoProrationMode.start();
   });
 
   it('should force redirect mode', async () => {
@@ -563,7 +557,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   });
 });
 
-describes.realWin('PayCompleteFlow', {}, (env) => {
+describes.realWin('PayCompleteFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -1418,9 +1412,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         .withExactArgs('contribute')
         .once();
 
-      await expect(responseCallback(Promise.reject(error))).to.eventually.equal(
-        undefined
-      );
+      await responseCallback(Promise.reject(error));
 
       expect(startStub).to.not.be.called;
 
@@ -1705,7 +1697,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   });
 });
 
-describes.realWin('parseSubscriptionResponse', {}, (env) => {
+describes.realWin('parseSubscriptionResponse', (env) => {
   let pageConfig;
   let runtime;
 

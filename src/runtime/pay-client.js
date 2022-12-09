@@ -17,13 +17,12 @@
 import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
+import {StorageKeys} from '../utils/constants';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
 import {getSwgMode} from './services';
 import {isExperimentOn} from './experiments';
-
-const REDIRECT_STORAGE_KEY = 'subscribe.google.com:rk';
 
 /**
  * @typedef {{
@@ -176,11 +175,13 @@ export class PayClient {
       this.preconnect(this.preconnect_);
       this.initializePaymentsClient_();
     }
+
     if (options.forceRedirect) {
       paymentRequest = Object.assign(paymentRequest, {
         'forceRedirect': options.forceRedirect || false,
       });
     }
+
     setInternalParam(
       paymentRequest,
       'disableNative',
@@ -188,42 +189,42 @@ export class PayClient {
       // for AMP and similar contexts.
       options.forceDisableNative || this.win_ != this.top_()
     );
+
     let resolver = null;
     const promise = new Promise((resolve) => (resolver = resolve));
+
     // Notice that the callback for verifier may execute asynchronously.
-    this.redirectVerifierHelper_.useVerifier((verifier) => {
+    this.redirectVerifierHelper_.useVerifier(async (verifier) => {
       if (verifier) {
         setInternalParam(paymentRequest, 'redirectVerifier', verifier);
       }
+
       if (options.forceRedirect) {
-        const client = this.client_;
-        this.eventManager_.getReadyPromise().then(() => {
-          this.analytics_.getLoggingPromise().then(() => {
-            client.loadPaymentData(paymentRequest);
-            resolver(true);
-          });
-        });
-      } else {
-        this.client_.loadPaymentData(paymentRequest);
-        resolver(true);
+        await this.eventManager_.getReadyPromise();
+        await this.analytics_.getLoggingPromise();
       }
+
+      this.client_.loadPaymentData(paymentRequest);
+      resolver(true);
     });
+
     return promise;
   }
 
   /**
    * @param {function(!Promise<!PaymentData>)} callback
    */
-  onResponse(callback) {
+  async onResponse(callback) {
     this.responseCallback_ = callback;
-    const response = this.response_;
-    if (response) {
-      Promise.resolve().then(() => {
-        if (response) {
-          callback(this.convertResponse_(response, this.request_));
-        }
-      });
+
+    if (!this.response_) {
+      return;
     }
+
+    // Wait for next task.
+    await 0;
+
+    callback(this.convertResponse_(this.response_, this.request_));
   }
 
   /**
@@ -245,33 +246,31 @@ export class PayClient {
    * @return {!Promise<!PaymentData>}
    * @private
    */
-  convertResponse_(response, request) {
-    return response
-      .then(
-        // Temporary client side solution to remember the
-        // input params. TODO: Remove this once server-side
-        // input preservation is done and is part of the response.
-        (res) => {
-          if (request) {
-            res['paymentRequest'] = request;
-          }
-          return res;
+  async convertResponse_(response, request) {
+    try {
+      const res = await response;
+      // Temporary client side solution to remember the
+      // input params. TODO: Remove this once server-side
+      // input preservation is done and is part of the response.
+      if (request) {
+        res['paymentRequest'] = request;
+      }
+      return res;
+    } catch (reason) {
+      if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
+        const error = createCancelError(this.win_);
+        if (request) {
+          error['productType'] = /** @type {!PaymentDataRequest} */ (request)[
+            'i'
+          ]['productType'];
+        } else {
+          error['productType'] = null;
         }
-      )
-      .catch((reason) => {
-        if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
-          const error = createCancelError(this.win_);
-          if (request) {
-            error['productType'] = /** @type {!PaymentDataRequest} */ (request)[
-              'i'
-            ]['productType'];
-          } else {
-            error['productType'] = null;
-          }
-          return Promise.reject(error);
-        }
-        return Promise.reject(reason);
-      });
+        throw error;
+      }
+
+      throw reason;
+    }
   }
 
   /**
@@ -310,14 +309,11 @@ export class RedirectVerifierHelper {
     /** @private @const {!Window} */
     this.win_ = win;
 
-    /** @private {boolean} */
-    this.pairCreated_ = false;
+    /** @private {?Promise<?RedirectVerifierPairDef>} */
+    this.pairPromise_ = null;
 
     /** @private {?RedirectVerifierPairDef} */
     this.pair_ = null;
-
-    /** @private {?Promise<?RedirectVerifierPairDef>} */
-    this.pairPromise_ = null;
   }
 
   /**
@@ -351,7 +347,7 @@ export class RedirectVerifierHelper {
     this.getOrCreatePair_((pair) => {
       if (pair) {
         try {
-          this.win_.localStorage.setItem(REDIRECT_STORAGE_KEY, pair.key);
+          this.win_.localStorage.setItem(StorageKeys.REDIRECT, pair.key);
         } catch (e) {
           // If storage has failed, there's no point in using the verifer.
           // However, there are other ways to recover the redirect, so it's
@@ -371,7 +367,7 @@ export class RedirectVerifierHelper {
     try {
       return (
         (this.win_.localStorage &&
-          this.win_.localStorage.getItem(REDIRECT_STORAGE_KEY)) ||
+          this.win_.localStorage.getItem(StorageKeys.REDIRECT)) ||
         null
       );
     } catch (e) {
@@ -384,85 +380,85 @@ export class RedirectVerifierHelper {
    * @return {?Promise}
    * @private
    */
-  getOrCreatePair_(callback) {
-    this.createPair_();
-    if (this.pairCreated_) {
-      // Already created.
-      callback(this.pair_);
-    } else if (this.pairPromise_) {
-      // Otherwise wait for it to be created.
-      this.pairPromise_.then((pair) => callback(pair));
+  async getOrCreatePair_(callback) {
+    // Only create pair once.
+    if (!this.pairPromise_) {
+      if (this.supportsVerification_()) {
+        this.pairPromise_ = this.createPair_();
+        this.pair_ = await this.pairPromise_;
+      } else {
+        // Handle lack of verification support immediately.
+        this.pairPromise_ = Promise.resolve();
+        this.pair_ = null;
+      }
     }
-    return this.pairPromise_;
+
+    callback(this.pair_);
   }
 
   /**
+   * @return {boolean}
    * @private
    */
-  createPair_() {
-    // Either already created or already started.
-    if (this.pairCreated_ || this.pairPromise_) {
-      return;
-    }
-
+  supportsVerification_() {
     // Check that the platform can fully support verification. That means
     // that it's expected to implement the following APIs:
     // a. Local storage (localStorage);
     // b. WebCrypto (crypto.subtle);
     // c. Crypto random (crypto.getRandomValues);
-    // d. SHA284 (crypto.subtle.digest).
+    // d. SHA384 (crypto.subtle.digest).
     let supportsLocalStorage;
     try {
       supportsLocalStorage = !!this.win_.localStorage;
     } catch (e) {
       // Note: This can happen when cookies are disabled.
-      supportsLocalStorage = false;
+      return false;
     }
+
+    // Support test mocks.
     const crypto = this.win_.crypto;
-    if (
+
+    return !!(
       supportsLocalStorage &&
       crypto &&
       crypto.getRandomValues &&
       crypto.subtle &&
       crypto.subtle.digest
-    ) {
-      this.pairPromise_ = new Promise((resolve, reject) => {
-        // 1. Use crypto random to create a 128-bit (16 byte) redirect key.
-        const keyBytes = new Uint8Array(16);
-        crypto.getRandomValues(keyBytes);
+    );
+  }
 
-        // 2. Encode key as base64.
-        const key = btoa(bytesToString(keyBytes));
+  /**
+   * @return {!Promise<?RedirectVerifierPairDef>}
+   * @private
+   */
+  async createPair_() {
+    // Support test mocks.
+    const crypto = this.win_.crypto;
 
-        // 3. Create a hash.
-        crypto.subtle.digest({name: 'SHA-384'}, stringToBytes(key)).then(
-          (buffer) => {
-            const verifier = btoa(
-              bytesToString(
-                new Uint8Array(/** @type {!ArrayBuffer} */ (buffer))
-              )
-            );
-            resolve({key, verifier});
-          },
-          (reason) => {
-            reject(reason);
-          }
-        );
-      })
-        .catch(() => {
-          // Ignore failures. A failure to create a redirect verifier is often
-          // recoverable.
-          return null;
-        })
-        .then((pair) => {
-          this.pairCreated_ = true;
-          this.pair_ = pair;
-          return pair;
-        });
-    } else {
-      // Not supported.
-      this.pairCreated_ = true;
-      this.pair_ = null;
+    try {
+      // 1. Use crypto random to create a 128-bit (16 byte) redirect key.
+      const keyBytes = new Uint8Array(16);
+      crypto.getRandomValues(keyBytes);
+
+      // 2. Encode key as base64.
+      const key = btoa(bytesToString(keyBytes));
+
+      // 3. Create a hash.
+      const buffer = await crypto.subtle.digest(
+        {name: 'SHA-384'},
+        stringToBytes(key)
+      );
+
+      // 4. Create a verifier.
+      const verifier = btoa(
+        bytesToString(new Uint8Array(/** @type {!ArrayBuffer} */ (buffer)))
+      );
+
+      return {key, verifier};
+    } catch (reason) {
+      // Ignore failures. A failure to create a redirect verifier is often
+      // recoverable.
+      return null;
     }
   }
 }

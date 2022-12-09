@@ -20,15 +20,10 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
+import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
-const STORAGE_KEY_IMPRESSIONS = 'autopromptimp';
-const STORAGE_KEY_DISMISSALS = 'autopromptdismiss';
-const STORAGE_KEY_DISMISSED_PROMPTS = 'dismissedprompts';
-const STORAGE_KEY_SURVEY_COMPLETED = 'surveycompleted';
-const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
-  'surveydatatransferfailed';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const SECOND_IN_MILLIS = 1000;
 
@@ -49,7 +44,7 @@ const dismissEvents = [
 
 /** @const {Map<AnalyticsEvent, string>} */
 const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
-  [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, STORAGE_KEY_SURVEY_COMPLETED],
+  [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, StorageKeys.SURVEY_COMPLETED],
 ]);
 
 /**
@@ -153,7 +148,7 @@ export class AutoPromptManager {
         this.entitlementsManager_.getEntitlements(),
         this.entitlementsManager_.getArticle(),
         this.storage_.get(
-          STORAGE_KEY_DISMISSED_PROMPTS,
+          StorageKeys.DISMISSED_PROMPTS,
           /* useLocalStorage */ true
         ),
       ]);
@@ -389,7 +384,7 @@ export class AutoPromptManager {
             AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
           )
         ),
-        this.storage_.getEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED),
+        this.storage_.getEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED),
       ]);
 
     const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
@@ -582,12 +577,12 @@ export class AutoPromptManager {
       impressionEvents.includes(event.eventType)
     ) {
       this.hasStoredImpression = true;
-      return this.storage_.storeEvent(STORAGE_KEY_IMPRESSIONS);
+      return this.storage_.storeEvent(StorageKeys.IMPRESSIONS);
     }
 
     if (dismissEvents.includes(event.eventType)) {
       return Promise.all([
-        this.storage_.storeEvent(STORAGE_KEY_DISMISSALS),
+        this.storage_.storeEvent(StorageKeys.DISMISSALS),
         // If we need to keep track of the prompt that was dismissed, make sure to
         // record it.
         this.storeLastDismissal_(),
@@ -613,12 +608,12 @@ export class AutoPromptManager {
     }
 
     const value = await this.storage_.get(
-      STORAGE_KEY_DISMISSED_PROMPTS,
+      StorageKeys.DISMISSED_PROMPTS,
       /* useLocalStorage */ true
     );
     const prompt = /** @type {string} */ (this.promptDisplayed_);
     this.storage_.set(
-      STORAGE_KEY_DISMISSED_PROMPTS,
+      StorageKeys.DISMISSED_PROMPTS,
       value ? value + ',' + prompt : prompt,
       /* useLocalStorage */ true
     );
@@ -630,7 +625,7 @@ export class AutoPromptManager {
    * @return {!Promise<!Array<number>>}
    */
   getImpressions_() {
-    return this.storage_.getEvent(STORAGE_KEY_IMPRESSIONS);
+    return this.storage_.getEvent(StorageKeys.IMPRESSIONS);
   }
 
   /**
@@ -639,7 +634,7 @@ export class AutoPromptManager {
    * @return {!Promise<!Array<number>>}
    */
   getDismissals_() {
-    return this.storage_.getEvent(STORAGE_KEY_DISMISSALS);
+    return this.storage_.getEvent(StorageKeys.DISMISSALS);
   }
 
   /**
@@ -652,7 +647,8 @@ export class AutoPromptManager {
     if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
-        GoogleAnalyticsEventListener.isGtagEligible(this.deps_);
+        GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
+        GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
       return isSurveyEligible && isAnalyticsEligible;
     }
     return true;

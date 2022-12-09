@@ -19,7 +19,7 @@ import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 
-describes.realWin('WaitForSubscriptionLookupApi', {}, (env) => {
+describes.realWin('WaitForSubscriptionLookupApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;

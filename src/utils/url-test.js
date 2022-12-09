@@ -25,7 +25,7 @@ import {
   wasReferredByGoogle,
 } from './url';
 
-describes.realWin('parseUrl', {}, () => {
+describes.realWin('parseUrl', () => {
   const currentPort = location.port;
 
   function compareParse(url, result) {
