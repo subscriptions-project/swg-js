@@ -102,7 +102,7 @@ export class AudienceActionFlow {
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
 
-    /** @private {?ActivityIframeView} */
+    /** @private {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       deps.win(),
       deps.activities(),
@@ -125,10 +125,6 @@ export class AudienceActionFlow {
    * @return {!Promise}
    */
   start() {
-    if (!this.activityIframeView_) {
-      return Promise.resolve();
-    }
-
     this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
       this.handleCompleteAudienceActionResponse_(response)
     );
@@ -358,8 +354,6 @@ export class AudienceActionFlow {
    * @public
    */
   showNoEntitlementFoundToast() {
-    if (this.activityIframeView_) {
-      this.activityIframeView_.execute(new EntitlementsResponse());
-    }
+    this.activityIframeView_.execute(new EntitlementsResponse());
   }
 }

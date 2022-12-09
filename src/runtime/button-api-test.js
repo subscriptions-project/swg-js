@@ -89,6 +89,18 @@ describes.realWin('ButtonApi', (env) => {
       );
       expect(links).to.have.length(1);
     });
+
+    it('bails gracefully if document is headless', () => {
+      const headlessDoc = {...resolveDoc(doc), getHead: () => null};
+      const buttonApi = new ButtonApi(headlessDoc, Promise.resolve(runtime));
+
+      buttonApi.init();
+      const links = doc.querySelectorAll(
+        'link[href="$assets$/swg-button.css"]'
+      );
+
+      expect(links).to.have.length(0);
+    });
   });
 
   describe('Create and Attach', () => {
