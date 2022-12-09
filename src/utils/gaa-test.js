@@ -4014,9 +4014,7 @@ describes.realWin('GaaMetering', () => {
       const googleEntitlement = {
         enablesThisWithGoogleMetering: sandbox.fake.returns(false),
         enablesThis: sandbox.fake.returns(true),
-        consume: sandbox.fake((callback) => {
-          return callback();
-        }),
+        consume: sandbox.fake(),
       };
       const googleEntitlementsPromise = Promise.resolve(googleEntitlement);
 
@@ -4044,9 +4042,7 @@ describes.realWin('GaaMetering', () => {
       const googleEntitlementsPromise = Promise.resolve({
         enablesThisWithGoogleMetering: sandbox.fake.returns(false),
         enablesThis: sandbox.fake.returns(false),
-        consume: sandbox.fake((callback) => {
-          return callback();
-        }),
+        consume: sandbox.fake(),
       });
 
       GaaMetering.setEntitlements(
@@ -4071,9 +4067,7 @@ describes.realWin('GaaMetering', () => {
       const googleEntitlementsPromise = Promise.resolve({
         enablesThisWithGoogleMetering: sandbox.fake.returns(false),
         enablesThis: sandbox.fake.returns(false),
-        consume: sandbox.fake((callback) => {
-          return callback();
-        }),
+        consume: sandbox.fake(),
       });
 
       GaaMetering.setEntitlements(
@@ -4108,9 +4102,7 @@ describes.realWin('GaaMetering', () => {
       const googleEntitlementsPromise = Promise.resolve({
         enablesThisWithGoogleMetering: sandbox.fake.returns(false),
         enablesThis: sandbox.fake.returns(false),
-        consume: sandbox.fake((callback) => {
-          return callback();
-        }),
+        consume: sandbox.fake(),
       });
 
       GaaMetering.setEntitlements(
