@@ -56,7 +56,7 @@ describes.realWin('Types', (env) => {
       expect(element.style.height).to.equal('102px');
     });
 
-    it('getStyle hands missing property', () => {
+    it('getStyle handles missing property', () => {
       const element = doc.createElement('div');
       const style = st.getStyle(element, 'missing-property');
       expect(style).to.be.undefined;
