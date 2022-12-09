@@ -58,7 +58,7 @@ describes.realWin('Types', (env) => {
 
     it('getStyle handles missing property', () => {
       const element = doc.createElement('div');
-      const style = st.getStyle(element, 'missing-property');
+      const style = st.getStyle(element, '');
       expect(style).to.be.undefined;
     });
 
