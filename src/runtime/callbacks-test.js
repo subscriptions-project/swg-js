@@ -133,6 +133,48 @@ describes.sandboxed('Callbacks', () => {
     expect(callbacks.hasOffersFlowRequestCallback()).to.be.true;
   });
 
+  describe('warnings', () => {
+    let warnFn;
+
+    beforeEach(() => {
+      warnFn = sandbox.spy(self.console, 'warn');
+    });
+
+    afterEach(() => {
+      warnFn.restore();
+    });
+
+    function getLastWarningMessage() {
+      const calls = warnFn.getCalls();
+      const lastCall = calls[calls.length - 1];
+      return lastCall.args[0];
+    }
+
+    it('warns setOnSubscribeResponse is deprecated', () => {
+      callbacks.setOnSubscribeResponse();
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain('This method has been deprecated');
+    });
+
+    it('warns setOnContributionResponse is deprecated', () => {
+      callbacks.setOnContributionResponse();
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain('This method has been deprecated');
+    });
+
+    it('warns about multiple callbacks for the same response', () => {
+      // Set two callbacks.
+      for (let i = 0; i < 2; i++) {
+        callbacks.setOnContributionResponse(() => {});
+      }
+
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain(
+        'You have registered multiple callbacks for the same response'
+      );
+    });
+  });
+
   describe('paymentResponse triggering', () => {
     let spy;
     let resolver;
