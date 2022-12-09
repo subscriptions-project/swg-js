@@ -115,7 +115,7 @@ describes.realWin('AudienceActivityEventListener', (env) => {
       additionalParameters: null,
     });
 
-    // Without a SUT, the service avoids logging the event.
+    // If the SUT is missing, the listener bails before logging events.
     expect(eventsLoggedToService.length).to.equal(0);
   });
 
