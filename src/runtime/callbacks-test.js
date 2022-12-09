@@ -140,10 +140,6 @@ describes.sandboxed('Callbacks', () => {
       warnFn = sandbox.spy(self.console, 'warn');
     });
 
-    afterEach(() => {
-      warnFn.restore();
-    });
-
     function getLastWarningMessage() {
       const calls = warnFn.getCalls();
       const lastCall = calls[calls.length - 1];
