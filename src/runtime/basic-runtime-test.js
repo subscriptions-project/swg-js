@@ -711,6 +711,15 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredBasicRuntime.jserror();
     });
 
+    it('delegates linkSubscription to ConfiguredRuntime', () => {
+      const arg = {};
+      configuredClassicRuntimeMock
+        .expects('linkSubscription')
+        .withExactArgs(arg)
+        .once();
+      configuredBasicRuntime.linkSubscription(arg);
+    });
+
     it('should configure subscription auto prompts to show offers for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();

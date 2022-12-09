@@ -323,15 +323,6 @@ export function translate(x, y) {
 }
 
 /**
- * Returns a "scale" for CSS "transform" property.
- * @param {number|string} value
- * @return {string}
- */
-export function scale(value) {
-  return `scale(${value})`;
-}
-
-/**
  * Resets styles that were set dynamically (i.e. inline)
  * @param {!Element} element
  * @param {!Array<string>} properties
