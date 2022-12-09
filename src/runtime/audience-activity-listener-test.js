@@ -99,6 +99,26 @@ describes.realWin('AudienceActivityEventListener', (env) => {
     );
   });
 
+  it('bails if SUT is unavailable', async () => {
+    setExperimentsStringForTesting(ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY);
+    storageMock
+      .expects('get')
+      .withExactArgs(Constants.USER_TOKEN, true)
+      .resolves(null).once;
+    audienceActivityEventListener.start();
+
+    // This triggers an event.
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    // Without a SUT, the service avoids logging the event.
+    expect(eventsLoggedToService.length).to.equal(0);
+  });
+
   it('should not log an event that is not classified as an audience activity event', async () => {
     setExperimentsStringForTesting(ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY);
     audienceActivityEventListener.start();
