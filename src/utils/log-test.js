@@ -29,7 +29,7 @@ describes.realWin('warn', () => {
 
   it('should log a warning', () => {
     warn('Hello World');
-    expect(self.console.warn.calledWith('Hello World')).to.be.true;
+    expect(self.console.warn).to.be.calledWith('Hello World');
   });
 });
 
@@ -47,21 +47,23 @@ describes.realWin('debug log', () => {
   it('should log if swg.debug=1', () => {
     self.location.hash = 'swg.debug=1';
     debugLog('Hello World');
-    expect(self.console.log.calledWith('[Subscriptions]', 'Hello World')).to.be
-      .true;
+    expect(self.console.log).to.be.calledWith('[Subscriptions]', 'Hello World');
   });
 
   it('should handle multiple arguments', () => {
     self.location.hash = 'swg.debug=1';
     debugLog('Hello', 'World');
-    expect(self.console.log.calledWith('[Subscriptions]', 'Hello', 'World')).to
-      .be.true;
+    expect(self.console.log).to.be.calledWith(
+      '[Subscriptions]',
+      'Hello',
+      'World'
+    );
   });
 
   it('should not log if swg.debug=1 is not present', () => {
     self.location.hash = '';
     debugLog('Hello World');
-    expect(self.console.log.notCalled).to.be.true;
+    expect(self.console.log).to.not.be.called;
   });
 });
 
