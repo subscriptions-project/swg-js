@@ -32,7 +32,7 @@ async function clean() {
  * @return {!Promise}
  */
 function watch() {
-  return Promise.all([compile({watch: true})]);
+  return compile({watch: true});
 }
 
 /**
@@ -41,7 +41,7 @@ function watch() {
  */
 function build(options = {}) {
   process.env.NODE_ENV = 'development';
-  return Promise.all([compile(options)]);
+  return compile(options);
 }
 
 /**
