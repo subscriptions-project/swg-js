@@ -10,6 +10,8 @@ module.exports = {
     '../src/stories/static',
     // CSS
     '../assets',
+    // JS files
+    '../dist',
   ],
   core: {
     builder: 'webpack5',
