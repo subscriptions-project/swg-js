@@ -38,7 +38,7 @@ const {red} = require('ansi-colors');
 /**
  * @return {!Promise}
  */
-exports.compile = async function (options = {}) {
+exports.compile = async (options = {}) => {
   mkdirSync('build');
   mkdirSync('build/cc');
   mkdirSync('build/fake-module');
@@ -47,6 +47,11 @@ exports.compile = async function (options = {}) {
 
   // Compile CSS because we need the css files in compileJs step.
   await compileCss('./src/', './build/css', options);
+
+  // Optionally skip JavaScript compilation.
+  if (options.skipJs) {
+    return;
+  }
 
   // For compilation with babel we start with the main-babel entry point,
   // but then rename to the subscriptions.js which we've been using all along.

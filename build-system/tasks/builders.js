@@ -32,16 +32,16 @@ async function clean() {
  * @return {!Promise}
  */
 function watch() {
-  return Promise.all([compile({watch: true})]);
+  return compile({watch: true});
 }
 
 /**
  * Main development build.
  * @return {!Promise}
  */
-function build() {
+function build(options = {}) {
   process.env.NODE_ENV = 'development';
-  return Promise.all([compile()]);
+  return compile(options);
 }
 
 /**
