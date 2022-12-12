@@ -75,11 +75,7 @@ describes.realWin('installBasicRuntime', (env) => {
     expect(progress).to.equal('');
 
     // Install runtime and schedule few more dependencies.
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
     dep(function () {
       progress += '3';
     });
@@ -103,11 +99,7 @@ describes.realWin('installBasicRuntime', (env) => {
   });
 
   it('should reuse the same runtime on multiple runs', () => {
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
     const runtime1 = getBasicRuntime();
     installBasicRuntime(win);
     expect(getBasicRuntime()).to.equal(runtime1);
@@ -127,11 +119,7 @@ describes.realWin('installBasicRuntime', (env) => {
   });
 
   it('handles recursive calls after installation', async () => {
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
     let progress = '';
     dep(() => {
       progress += '1';
@@ -160,11 +148,7 @@ describes.realWin('installBasicRuntime', (env) => {
         });
       });
     });
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
 
     await getBasicRuntime().whenReady();
     await getBasicRuntime().whenReady();

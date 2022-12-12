@@ -2761,14 +2761,8 @@ describes.realWin('EntitlementsManager', (env) => {
 
     it('should tolerate malformed cache', async () => {
       // Handle async error caused by invalid token.
-      let threwErrorAfterTimeout = false;
       sandbox.stub(win, 'setTimeout').callsFake((callback) => {
-        try {
-          callback();
-        } catch (err) {
-          expect(err.toString()).to.contain('Invalid token: "VeRy BroKen"');
-          threwErrorAfterTimeout = true;
-        }
+        expect(callback).to.throw('Invalid token: "VeRy BroKen"');
       });
 
       expectGetIsReadyToPayToBeCalled(null);
@@ -2786,7 +2780,7 @@ describes.realWin('EntitlementsManager', (env) => {
       expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
 
       // Expect async error.
-      expect(threwErrorAfterTimeout).to.be.true;
+      expect(win.setTimeout).to.be.calledOnce;
     });
 
     it('should push entitlements', () => {
