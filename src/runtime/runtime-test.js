@@ -395,10 +395,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "configure"', async () => {
-      configuredRuntimeMock
-        .expects('configure')
-        .resolves((11))
-        .once();
+      configuredRuntimeMock.expects('configure').resolves(11).once();
 
       const v = await runtime.configure();
       expect(v).to.equal(11); // Ensure that the result is propagated back.
@@ -413,9 +410,7 @@ describes.realWin('Runtime', (env) => {
 
     it('should delegate "getEntitlements"', async () => {
       const ents = {};
-      configuredRuntimeMock
-        .expects('getEntitlements')
-        .resolves((ents));
+      configuredRuntimeMock.expects('getEntitlements').resolves(ents);
 
       const value = await runtime.getEntitlements();
       expect(value).to.equal(ents);
@@ -427,9 +422,7 @@ describes.realWin('Runtime', (env) => {
       const encryptedDocumentKey =
         '{"accessRequirements": ' +
         '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';
-      configuredRuntimeMock
-        .expects('getEntitlements')
-        .resolves((ents));
+      configuredRuntimeMock.expects('getEntitlements').resolves(ents);
 
       const value = await runtime.getEntitlements({
         encryption: {encryptedDocumentKey},
@@ -651,7 +644,7 @@ describes.realWin('Runtime', (env) => {
         .expects('completeDeferredAccountCreation')
         .once()
         .withExactArgs(request)
-        .resolves((response))
+        .resolves(response)
         .once();
 
       const result = await runtime.completeDeferredAccountCreation(request);
@@ -753,7 +746,7 @@ describes.realWin('Runtime', (env) => {
         .expects('saveSubscription')
         .once()
         .withExactArgs(requestCallback)
-        .resolves((true));
+        .resolves(true);
 
       const value = await runtime.saveSubscription(requestCallback);
       expect(configureStub).to.be.calledOnce.calledWith(true);
@@ -769,7 +762,7 @@ describes.realWin('Runtime', (env) => {
         .expects('saveSubscription')
         .once()
         .withExactArgs(requestCallback)
-        .resolves((true));
+        .resolves(true);
 
       const value = await runtime.saveSubscription(requestCallback);
       expect(configureStub).to.be.calledOnce.calledWith(true);
@@ -777,10 +770,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "showLoginPrompt" and call the "start" method', async () => {
-      configuredRuntimeMock
-        .expects('showLoginPrompt')
-        .once()
-        .resolves(());
+      configuredRuntimeMock.expects('showLoginPrompt').once().resolves();
 
       await runtime.showLoginPrompt();
       expect(configureStub).to.be.calledOnce;
@@ -802,7 +792,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock
         .expects('waitForSubscriptionLookup')
         .once()
-        .resolves(());
+        .resolves();
 
       await runtime.waitForSubscriptionLookup();
       expect(configureStub).to.be.calledOnce;
@@ -813,7 +803,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock
         .expects('linkSubscription')
         .once()
-        .resolves((mockResult));
+        .resolves(mockResult);
 
       const result = await runtime.linkSubscription({});
 
@@ -1433,7 +1423,15 @@ describes.realWin('ConfiguredRuntime', (env) => {
         entitlementsManagerMock
           .expects('getEntitlements')
           .withExactArgs(undefined)
-          .resolves(new Entitlements('service', 'raw', entitlements, 'product1', () => {}))
+          .resolves(
+            new Entitlements(
+              'service',
+              'raw',
+              entitlements,
+              'product1',
+              () => {}
+            )
+          )
           .once();
         await runtime.start();
       });
