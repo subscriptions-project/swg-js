@@ -87,7 +87,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
 
   describe('on SubscriptionLinkingCompleteResponse', () => {
     it('resolves promise with response data', async () => {
-      dialogManagerMock.expects('openView').once().returns(Promise.resolve());
+      dialogManagerMock.expects('openView').once().resolves(());
       const response = new SubscriptionLinkingCompleteResponse();
       response.setPublisherProvidedId('abc');
       response.setSuccess(true);
@@ -101,7 +101,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
     });
 
     it('resolves with success=false if missing from response', async () => {
-      dialogManagerMock.expects('openView').once().returns(Promise.resolve());
+      dialogManagerMock.expects('openView').once().resolves(());
       const response = new SubscriptionLinkingCompleteResponse();
       response.setPublisherProvidedId('abc');
 

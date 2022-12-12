@@ -397,7 +397,7 @@ describes.realWin('Runtime', (env) => {
     it('should delegate "configure"', async () => {
       configuredRuntimeMock
         .expects('configure')
-        .returns(Promise.resolve(11))
+        .resolves((11))
         .once();
 
       const v = await runtime.configure();
@@ -415,7 +415,7 @@ describes.realWin('Runtime', (env) => {
       const ents = {};
       configuredRuntimeMock
         .expects('getEntitlements')
-        .returns(Promise.resolve(ents));
+        .resolves((ents));
 
       const value = await runtime.getEntitlements();
       expect(value).to.equal(ents);
@@ -429,7 +429,7 @@ describes.realWin('Runtime', (env) => {
         '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';
       configuredRuntimeMock
         .expects('getEntitlements')
-        .returns(Promise.resolve(ents));
+        .resolves((ents));
 
       const value = await runtime.getEntitlements({
         encryption: {encryptedDocumentKey},
@@ -651,7 +651,7 @@ describes.realWin('Runtime', (env) => {
         .expects('completeDeferredAccountCreation')
         .once()
         .withExactArgs(request)
-        .returns(Promise.resolve(response))
+        .resolves((response))
         .once();
 
       const result = await runtime.completeDeferredAccountCreation(request);
@@ -753,7 +753,7 @@ describes.realWin('Runtime', (env) => {
         .expects('saveSubscription')
         .once()
         .withExactArgs(requestCallback)
-        .returns(Promise.resolve(true));
+        .resolves((true));
 
       const value = await runtime.saveSubscription(requestCallback);
       expect(configureStub).to.be.calledOnce.calledWith(true);
@@ -769,7 +769,7 @@ describes.realWin('Runtime', (env) => {
         .expects('saveSubscription')
         .once()
         .withExactArgs(requestCallback)
-        .returns(Promise.resolve(true));
+        .resolves((true));
 
       const value = await runtime.saveSubscription(requestCallback);
       expect(configureStub).to.be.calledOnce.calledWith(true);
@@ -780,7 +780,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock
         .expects('showLoginPrompt')
         .once()
-        .returns(Promise.resolve());
+        .resolves(());
 
       await runtime.showLoginPrompt();
       expect(configureStub).to.be.calledOnce;
@@ -802,7 +802,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock
         .expects('waitForSubscriptionLookup')
         .once()
-        .returns(Promise.resolve());
+        .resolves(());
 
       await runtime.waitForSubscriptionLookup();
       expect(configureStub).to.be.calledOnce;
@@ -813,7 +813,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock
         .expects('linkSubscription')
         .once()
-        .returns(Promise.resolve(mockResult));
+        .resolves((mockResult));
 
       const result = await runtime.linkSubscription({});
 
@@ -1430,13 +1430,10 @@ describes.realWin('ConfiguredRuntime', (env) => {
       let entitlements;
 
       afterEach(async () => {
-        const promise = Promise.resolve(
-          new Entitlements('service', 'raw', entitlements, 'product1', () => {})
-        );
         entitlementsManagerMock
           .expects('getEntitlements')
           .withExactArgs(undefined)
-          .returns(promise)
+          .resolves(new Entitlements('service', 'raw', entitlements, 'product1', () => {}))
           .once();
         await runtime.start();
       });
@@ -1487,7 +1484,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
       entitlementsManagerMock
         .expects('getEntitlements')
         .withExactArgs(undefined)
-        .returns(Promise.reject(error))
+        .rejects(error)
         .once();
       await runtime.start();
     });

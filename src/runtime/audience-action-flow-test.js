@@ -137,7 +137,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     {action: 'TYPE_REWARDED_SURVEY', path: 'surveyiframe'},
   ].forEach(({action, path}) => {
     it(`opens an AudienceActionFlow constructed with params for ${action}`, async () => {
-      sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
+      sandbox.stub(runtime.storage(), 'get').resolves(null);
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
         onCancel: onCancelSpy,
@@ -167,7 +167,7 @@ describes.realWin('AudienceActionFlow', (env) => {
 
   it('opens an AudienceActionFlow with query param locale set to client configuration language', async () => {
     clientOptions.lang = 'pt-BR';
-    sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
+    sandbox.stub(runtime.storage(), 'get').resolves(null);
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       onCancel: onCancelSpy,
