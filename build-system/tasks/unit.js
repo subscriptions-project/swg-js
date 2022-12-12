@@ -231,8 +231,10 @@ async function unit() {
   printArgvMessages();
 
   if (!argv.nobuild) {
-    await build();
+    // Build CSS.
+    await build({skipJs: true});
   }
+
   runTests();
 }
 
