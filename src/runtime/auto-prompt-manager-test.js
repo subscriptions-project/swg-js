@@ -144,7 +144,7 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
+      .resolves(null)
       .once();
     storageMock
       .expects('set')
@@ -153,7 +153,7 @@ describes.realWin('AutoPromptManager', (env) => {
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
-      .returns(Promise.resolve())
+      .resolves()
       .once();
 
     await eventManagerCallback({
@@ -168,7 +168,7 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
+      .resolves(null)
       .once();
     storageMock
       .expects('set')
@@ -177,7 +177,7 @@ describes.realWin('AutoPromptManager', (env) => {
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
-      .returns(Promise.resolve())
+      .resolves()
       .once();
 
     await eventManagerCallback({
@@ -214,7 +214,7 @@ describes.realWin('AutoPromptManager', (env) => {
         storageMock
           .expects('get')
           .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
-          .returns(Promise.resolve(null))
+          .resolves(null)
           .once();
         storageMock
           .expects('set')
@@ -223,12 +223,12 @@ describes.realWin('AutoPromptManager', (env) => {
             sandbox.match.any,
             /* useLocalStorage */ true
           )
-          .returns(Promise.resolve())
+          .resolves()
           .exactly(1);
         storageMock
           .expects('get')
           .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
-          .returns(Promise.resolve(null))
+          .resolves(null)
           .once();
         storageMock
           .expects('set')
@@ -237,7 +237,7 @@ describes.realWin('AutoPromptManager', (env) => {
             sandbox.match.any,
             /* useLocalStorage */ true
           )
-          .returns(Promise.resolve())
+          .resolves()
           .once();
 
         await eventManagerCallback({
@@ -268,7 +268,7 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
+      .resolves(null)
       .once();
     storageMock
       .expects('set')
@@ -277,7 +277,7 @@ describes.realWin('AutoPromptManager', (env) => {
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
-      .returns(Promise.resolve())
+      .resolves()
       .once();
 
     await eventManagerCallback({
@@ -292,7 +292,7 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
+      .resolves(null)
       .once();
     storageMock
       .expects('set')
@@ -301,7 +301,7 @@ describes.realWin('AutoPromptManager', (env) => {
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
-      .returns(Promise.resolve())
+      .resolves()
       .once();
 
     await eventManagerCallback({
@@ -317,12 +317,12 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
+      .resolves(null)
       .once();
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.DISMISSED_PROMPTS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(null))
+      .resolves(null)
       .once();
 
     storageMock
@@ -332,7 +332,7 @@ describes.realWin('AutoPromptManager', (env) => {
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
-      .returns(Promise.resolve())
+      .resolves()
       .once();
     storageMock
       .expects('set')
@@ -341,7 +341,7 @@ describes.realWin('AutoPromptManager', (env) => {
         AutoPromptType.CONTRIBUTION,
         /* useLocalStorage */ true
       )
-      .returns(Promise.resolve())
+      .resolves()
       .once();
 
     await eventManagerCallback({
@@ -361,7 +361,7 @@ describes.realWin('AutoPromptManager', (env) => {
         CURRENT_TIME.toString(),
         /* useLocalStorage */ true
       )
-      .returns(Promise.resolve())
+      .resolves()
       .once();
     await eventManagerCallback({
       eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
@@ -407,12 +407,12 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const clientConfig = new ClientConfig();
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // alwaysShow is false
     miniPromptApiMock.expects('create').never();
@@ -455,12 +455,12 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const clientConfig = new ClientConfig();
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -476,12 +476,12 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const clientConfig = new ClientConfig();
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -497,7 +497,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const clientConfig = new ClientConfig();
     clientConfigManagerMock
@@ -518,12 +518,12 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const clientConfig = new ClientConfig();
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // alwaysShow is false
     miniPromptApiMock.expects('create').never();
@@ -540,7 +540,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
@@ -549,7 +549,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // Two stored impressions.
     const storedImpressions =
@@ -573,7 +573,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
@@ -582,7 +582,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // Two stored impressions.
     const storedImpressions =
@@ -608,7 +608,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
@@ -617,7 +617,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // One stored impression.
     const storedImpressions = CURRENT_TIME.toString();
@@ -640,7 +640,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       impressionBackOffSeconds: 10,
@@ -650,7 +650,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // One stored impression.
     const storedImpressions = (CURRENT_TIME - 6000).toString();
@@ -673,7 +673,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
@@ -682,7 +682,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     setupPreviousImpressionAndDismissals(storageMock, {
       dismissedPromptGetCallCount: 1,
@@ -704,7 +704,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
@@ -713,7 +713,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // Two stored impressions, the first from 2 weeks ago.
     const twoWeeksInMs = 1209600000;
@@ -738,7 +738,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
@@ -751,7 +751,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // One stored impression from 10ms ago and one dismissal from 5ms ago.
     const storedImpressions = (CURRENT_TIME - 10).toString();
@@ -776,7 +776,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
@@ -789,7 +789,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // One stored impression from 20s ago and one dismissal from 11s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
@@ -814,7 +814,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
@@ -827,7 +827,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // One stored impression from 20s ago and one dismissal from 6s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
@@ -852,7 +852,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
@@ -865,7 +865,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     // One stored impression from 20s ago and one dismissal from 6s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
@@ -891,12 +891,12 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const clientConfig = new ClientConfig();
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -913,12 +913,12 @@ describes.realWin('AutoPromptManager', (env) => {
     sandbox.stub(entitlements, 'enablesThis').returns(true);
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const clientConfig = new ClientConfig();
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -935,12 +935,12 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
     const clientConfig = new ClientConfig();
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -960,7 +960,7 @@ describes.realWin('AutoPromptManager', (env) => {
     sandbox.stub(entitlements, 'enablesThis').returns(true);
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
 
     const autoPromptConfig = new AutoPromptConfig();
@@ -975,7 +975,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     miniPromptApiMock.expects('create').never();
 
@@ -991,7 +991,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
-      .returns(Promise.resolve(entitlements))
+      .resolves(entitlements)
       .once();
 
     const autoPromptConfig = new AutoPromptConfig();
@@ -1006,7 +1006,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(clientConfig))
+      .resolves(clientConfig)
       .once();
     miniPromptApiMock.expects('create').once();
 
@@ -1096,12 +1096,12 @@ describes.realWin('AutoPromptManager', (env) => {
       const entitlements = new Entitlements();
       entitlementsManagerMock
         .expects('getEntitlements')
-        .returns(Promise.resolve(entitlements))
+        .resolves(entitlements)
         .once();
       const clientConfig = new ClientConfig();
       clientConfigManagerMock
         .expects('getClientConfig')
-        .returns(Promise.resolve(clientConfig))
+        .resolves(clientConfig)
         .once();
       articleExpectation = entitlementsManagerMock.expects('getArticle');
       articleExpectation
@@ -1197,14 +1197,14 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       clientConfigManagerMock
         .expects('getClientConfig')
-        .returns(Promise.resolve(clientConfig))
+        .resolves(clientConfig)
         .once();
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       const entitlements = new Entitlements();
       sandbox.stub(entitlements, 'enablesThis').returns(false);
       entitlementsManagerMock
         .expects('getEntitlements')
-        .returns(Promise.resolve(entitlements))
+        .resolves(entitlements)
         .once();
       articleExpectation = entitlementsManagerMock.expects('getArticle');
       articleExpectation
@@ -1563,12 +1563,12 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedImpressions))
+      .resolves(storedImpressions)
       .once();
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedDismissals))
+      .resolves(storedDismissals)
       .once();
     storageMock
       .expects('get')
@@ -1578,7 +1578,7 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.SURVEY_COMPLETED, /* useLocalStorage */ true)
-      .returns(Promise.resolve(storedSurveyCompleted))
+      .resolves(storedSurveyCompleted)
       .once();
     storageMock
       .expects('get')
@@ -1586,13 +1586,13 @@ describes.realWin('AutoPromptManager', (env) => {
         StorageKeys.SURVEY_DATA_TRANSFER_FAILED,
         /* useLocalStorage */ true
       )
-      .returns(Promise.resolve(storedSurveyFailed))
+      .resolves(storedSurveyFailed)
       .once();
     if (getUserToken) {
       storageMock
         .expects('get')
         .withExactArgs(Constants.USER_TOKEN, /* useLocalStorage */ true)
-        .returns(Promise.resolve('token'))
+        .resolves('token')
         .atMost(1);
     }
   }

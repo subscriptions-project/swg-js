@@ -58,7 +58,7 @@ describes.realWin('Toast', (env) => {
           source: 'google',
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
   });
 
   it('should have created Notification View', async () => {

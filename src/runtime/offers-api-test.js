@@ -40,7 +40,7 @@ describes.realWin('OffersApi', () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({offers: [{skuId: '1'}, {skuId: '2'}]}))
+      .resolves({offers: [{skuId: '1'}, {skuId: '2'}]})
       .once();
 
     const offers = await offersApi.getOffers();
@@ -53,7 +53,7 @@ describes.realWin('OffersApi', () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({offers: [{skuId: '1'}, {skuId: '2'}]}))
+      .resolves({offers: [{skuId: '1'}, {skuId: '2'}]})
       .once();
 
     const offers = await offersApi.getOffers('pub1:label2');
@@ -66,7 +66,7 @@ describes.realWin('OffersApi', () => {
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({}))
+      .resolves({})
       .once();
 
     const offers = await offersApi.getOffers();
