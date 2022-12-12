@@ -209,16 +209,16 @@ function runTests() {
       host: 'localhost',
       directoryListing: true,
       middleware: [app],
-    }).on('kill', function () {
+    }).on('kill', () => {
       log(yellow('Shutting down test responses server on localhost:31862'));
-      process.nextTick(function () {
+      process.nextTick(() => {
         process.exit();
       });
     })
   );
   log(yellow('Started test responses server on localhost:31862'));
 
-  new Karma(c, function (exitCode) {
+  new Karma(c, (exitCode) => {
     server.emit('kill');
     if (exitCode) {
       log(red('ERROR:'), yellow('Karma test failed with exit code', exitCode));

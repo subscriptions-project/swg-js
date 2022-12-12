@@ -26,7 +26,7 @@ const EMPTY_ID_TOK =
   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJRF9UT0sifQ.SIG';
 
 describes.realWin('DeferredAccountFlow', (env) => {
-  const ack = function () {};
+  const ack = () => {};
   let win;
   let pageConfig;
   let runtime;

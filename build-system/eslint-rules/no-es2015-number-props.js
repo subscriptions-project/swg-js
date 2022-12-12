@@ -31,18 +31,13 @@ function isInvalidProperty(property) {
   return INVALID_PROPS.indexOf(property) != -1;
 }
 
-module.exports = function (context) {
-  return {
-    MemberExpression: function (node) {
-      if (
-        node.object.name == 'Number' &&
-        isInvalidProperty(node.property.name)
-      ) {
-        context.report(
-          node,
-          'no ES2015 "Number" methods and properties allowed to be used.'
-        );
-      }
-    },
-  };
-};
+module.exports = (context) => ({
+  MemberExpression: (node) => {
+    if (node.object.name == 'Number' && isInvalidProperty(node.property.name)) {
+      context.report(
+        node,
+        'no ES2015 "Number" methods and properties allowed to be used.'
+      );
+    }
+  },
+});

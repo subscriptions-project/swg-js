@@ -66,10 +66,10 @@ describes.realWin('installBasicRuntime', (env) => {
   it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
-    dep(function () {
+    dep(() => {
       progress += '1';
     });
-    dep(function () {
+    dep(() => {
       progress += '2';
     });
     expect(progress).to.equal('');
@@ -80,10 +80,10 @@ describes.realWin('installBasicRuntime', (env) => {
     } catch (e) {
       // Page doesn't have valid subscription and hence this function throws.
     }
-    dep(function () {
+    dep(() => {
       progress += '3';
     });
-    dep(function () {
+    dep(() => {
       progress += '4';
     });
 
@@ -92,10 +92,10 @@ describes.realWin('installBasicRuntime', (env) => {
     expect(progress).to.equal('1234');
 
     // Few more.
-    dep(function () {
+    dep(() => {
       progress += '5';
     });
-    dep(function () {
+    dep(() => {
       progress += '6';
     });
     await getBasicRuntime().whenReady();
@@ -345,7 +345,7 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should delegate "setOnEntitlementsResponse" to ConfiguredBasicRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredBasicRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -355,7 +355,7 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should delegate "setOnEntitlementsResponse" to the shared ConfiguredRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredClassicRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -365,7 +365,7 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should delegate "setOnPaymentResponse" to ConfiguredBasicRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredBasicRuntimeMock
         .expects('setOnPaymentResponse')
         .withExactArgs(callback)
@@ -375,7 +375,7 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should delegate "setOnPaymentResponse" to ConfiguredRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredClassicRuntimeMock
         .expects('setOnPaymentResponse')
         .withExactArgs(callback)

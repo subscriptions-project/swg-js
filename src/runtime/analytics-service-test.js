@@ -308,7 +308,7 @@ describes.realWin('AnalyticsService', (env) => {
         });
     });
 
-    it('should not wait forever when port is broken', async function () {
+    it('should not wait forever when port is broken', async () => {
       pretendPortWorks = false;
       // This sends another event and waits for it to be sent
       eventManagerCallback({
@@ -322,7 +322,7 @@ describes.realWin('AnalyticsService', (env) => {
       expect(analyticsService.loggingBroken_).to.be.true;
     });
 
-    it('should not wait forever when things seem functional', async function () {
+    it('should not wait forever when things seem functional', async () => {
       // This sends another event and waits for it to be sent
       eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -337,7 +337,7 @@ describes.realWin('AnalyticsService', (env) => {
       expect(loggedErrors.length).to.equal(1);
     });
 
-    it('should report error with log', async function () {
+    it('should report error with log', async () => {
       const err = 'Fake error';
       eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -550,7 +550,7 @@ describes.realWin('AnalyticsService', (env) => {
      * @param {!EventOriginator} originator
      * @param {boolean} shouldLog
      */
-    const testOriginator = function (originator, shouldLog) {
+    const testOriginator = (originator, shouldLog) => {
       const prevOriginator = event.eventOriginator;
       analyticsService.lastAction_ = null;
       event.eventOriginator = originator;

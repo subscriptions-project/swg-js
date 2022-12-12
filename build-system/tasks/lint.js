@@ -80,13 +80,13 @@ function runLinter(filePath, stream, options) {
   return stream
     .pipe(eslint(options))
     .pipe(
-      eslint.formatEach(function (msg) {
+      eslint.formatEach((msg) => {
         logOnSameLine(msg.trim() + '\n');
       })
     )
     .pipe(eslintIfFixed(filePath))
     .pipe(
-      eslint.result(function (result) {
+      eslint.result((result) => {
         if (!isCiBuild()) {
           logOnSameLine(green('Linted: ') + result.filePath);
         }
@@ -102,7 +102,7 @@ function runLinter(filePath, stream, options) {
       })
     )
     .pipe(
-      eslint.results(function (results) {
+      eslint.results((results) => {
         if (results.errorCount == 0 && results.warningCount == 0) {
           if (!isCiBuild()) {
             logOnSameLine(green('SUCCESS: ') + 'No linter warnings or errors.');
@@ -159,7 +159,7 @@ function runLinter(filePath, stream, options) {
  * @return {!Array<string>}
  */
 function jsFilesChanged() {
-  return gitDiffNameOnlyMain().filter(function (file) {
+  return gitDiffNameOnlyMain().filter((file) => {
     return fs.existsSync(file) && path.extname(file) == '.js';
   });
 }
@@ -172,7 +172,7 @@ function jsFilesChanged() {
  */
 function eslintRulesChanged() {
   return (
-    gitDiffNameOnlyMain().filter(function (file) {
+    gitDiffNameOnlyMain().filter((file) => {
       return (
         path.basename(file).includes('.eslintrc') ||
         path.dirname(file) === 'build-system/eslint-rules'

@@ -17,7 +17,7 @@
 module.exports = {
   '@tags': ['contribution'],
 
-  'Show contribution options': function (browser) {
+  'Show contribution options': (browser) => {
     const contribution = browser.page.contribution();
     contribution
       .navigate()

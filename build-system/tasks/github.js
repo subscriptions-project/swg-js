@@ -24,7 +24,7 @@ const GITHUB_BASE = 'https://api.github.com/repos/subscriptions-project/swg-js';
 /**
  * @param {!{path: string, qs: Object, json: Object, method: string | undefined}} req
  */
-exports.githubRequest = function (req) {
+exports.githubRequest = (req) => {
   return request({
     url: GITHUB_BASE + req.path,
     qs: req.qs || {},

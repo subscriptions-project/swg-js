@@ -15,30 +15,28 @@
  */
 'use strict';
 
-module.exports = function (context) {
-  return {
-    CallExpression: function (node) {
-      if (node.callee.name === 'dict') {
-        if (node.arguments[0]) {
-          const arg1 = node.arguments[0];
-          if (arg1.type !== 'ObjectExpression') {
-            context.report(
-              node,
-              'calls to `dict` must have an Object Literal Expression as ' +
-                'the first argument'
-            );
-            return;
-          }
-          checkNode(arg1, context);
+module.exports = (context) => ({
+  CallExpression: (node) => {
+    if (node.callee.name === 'dict') {
+      if (node.arguments[0]) {
+        const arg1 = node.arguments[0];
+        if (arg1.type !== 'ObjectExpression') {
+          context.report(
+            node,
+            'calls to `dict` must have an Object Literal Expression as ' +
+              'the first argument'
+          );
+          return;
         }
+        checkNode(arg1, context);
       }
-    },
-  };
-};
+    }
+  },
+});
 
 function checkNode(node, context) {
   if (node.type === 'ObjectExpression') {
-    node.properties.forEach(function (prop) {
+    node.properties.forEach((prop) => {
       if (!prop.key.raw) {
         context.report(
           node,
@@ -52,7 +50,7 @@ function checkNode(node, context) {
       checkNode(prop.value, context);
     });
   } else if (node.type === 'ArrayExpression') {
-    node.elements.forEach(function (elem) {
+    node.elements.forEach((elem) => {
       checkNode(elem, context);
     });
   }

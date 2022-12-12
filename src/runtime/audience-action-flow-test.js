@@ -114,7 +114,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    sandbox.stub(port, 'on').callsFake(function (ctor, cb) {
+    sandbox.stub(port, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
       const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;

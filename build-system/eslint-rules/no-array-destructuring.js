@@ -15,10 +15,8 @@
  */
 'use strict';
 
-module.exports = function (context) {
-  return {
-    ArrayPattern: function (node) {
-      context.report(node, 'No Array destructuring allowed.');
-    },
-  };
-};
+module.exports = (context) => ({
+  ArrayPattern: (node) => {
+    context.report(node, 'No Array destructuring allowed.');
+  },
+});
