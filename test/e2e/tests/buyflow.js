@@ -38,12 +38,4 @@ module.exports = {
 
     browser.checkPayment().end();
   },
-
-  'Show offers on AMP': function (browser) {
-    const amp = browser.page.amp();
-    amp
-      .navigate()
-      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-      .end();
-  },
 };
