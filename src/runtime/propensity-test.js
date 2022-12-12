@@ -171,7 +171,7 @@ describes.realWin('Propensity', (env) => {
       propensity.sendEvent({
         name: 'invalid name',
       })
-    ).to.throw;
+    ).to.throw('Invalid user event provided(invalid name)');
 
     //ensure it rejects invalid data objects
     expect(() =>
@@ -180,7 +180,7 @@ describes.realWin('Propensity', (env) => {
         active: true,
         data: 'all_offers',
       })
-    ).to.throw;
+    ).to.throw('Event data must be an Object(all_offers)');
 
     const testSend = (event) => {
       receivedEvent = null;
