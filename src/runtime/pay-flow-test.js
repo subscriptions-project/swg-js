@@ -477,7 +477,7 @@ describes.realWin('PayStartFlow', (env) => {
   it('should have paySwgVersion from clientConfig', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '1'})))
+      .resolves(new ClientConfig({paySwgVersion: '1'}))
       .once();
 
     payClientMock
@@ -510,7 +510,7 @@ describes.realWin('PayStartFlow', (env) => {
   it('should forceDisableNative for basic paySwgVersion', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '2'})))
+      .resolves(new ClientConfig({paySwgVersion: '2'}))
       .once();
 
     payClientMock
@@ -543,7 +543,7 @@ describes.realWin('PayStartFlow', (env) => {
   it('should forceDisableNative for paySwgVersion 3', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '3'})))
+      .resolves(new ClientConfig({paySwgVersion: '3'}))
       .once();
 
     payClientMock
@@ -654,7 +654,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
@@ -686,7 +686,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       activitiesMock
         .expects('openIframe')
         .withExactArgs(sandbox.match.any, sandbox.match.any, sandbox.match.any)
-        .returns(Promise.resolve(port));
+        .resolves(port);
 
       await flow.start(response);
       await flow.readyPromise_;
@@ -731,7 +731,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -775,7 +775,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -821,7 +821,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -878,7 +878,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
 
     storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
 
@@ -890,7 +890,7 @@ describes.realWin('PayCompleteFlow', (env) => {
   it('should have valid flow constructed w/ useUpdatedConfirmUi set to true', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true})))
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}))
       .once();
 
     const response = createDefaultSubscribeResponse();
@@ -925,7 +925,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
@@ -970,7 +970,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
@@ -1049,7 +1049,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -1092,7 +1092,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -1103,7 +1103,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(true) // Expected positive.
@@ -1148,7 +1148,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(true) // Expected positive.
@@ -1189,7 +1189,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(true) // Expected positive.
@@ -1240,7 +1240,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     };
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     const order = [];
     entitlementsManagerMock
       .expects('reset')
@@ -1317,7 +1317,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -1347,7 +1347,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(

@@ -192,7 +192,7 @@ describes.realWin('AnalyticsService', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(Constants.USER_TOKEN)
-        .returns(Promise.resolve('swgUserToken'))
+        .resolves('swgUserToken')
         .once();
       analyticsService.start();
       expectOpenIframe = true;

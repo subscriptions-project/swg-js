@@ -243,10 +243,7 @@ describes.realWin('PropensityServer', (env) => {
       };
       const response = new Response();
       const mockResponse = sandbox.mock(response);
-      mockResponse
-        .expects('json')
-        .returns(Promise.resolve(propensityResponse))
-        .once();
+      mockResponse.expects('json').resolves(propensityResponse).once();
       sandbox.stub(fetcher, 'fetch').callsFake(() => Promise.resolve(response));
 
       const actualResponse = await propensityServer.getPropensity(
@@ -283,10 +280,7 @@ describes.realWin('PropensityServer', (env) => {
       };
       const response = new Response();
       const mockResponse = sandbox.mock(response);
-      mockResponse
-        .expects('json')
-        .returns(Promise.resolve(propensityResponse))
-        .once();
+      mockResponse.expects('json').resolves(propensityResponse).once();
       sandbox.stub(fetcher, 'fetch').callsFake(() => Promise.resolve(response));
 
       const actualResponse = await propensityServer.getPropensity(
@@ -316,10 +310,7 @@ describes.realWin('PropensityServer', (env) => {
       };
       const response = new Response();
       const mockResponse = sandbox.mock(response);
-      mockResponse
-        .expects('json')
-        .returns(Promise.resolve(propensityResponse))
-        .once();
+      mockResponse.expects('json').resolves(propensityResponse).once();
       sandbox.stub(fetcher, 'fetch').callsFake(() => Promise.resolve(response));
 
       const actualResponse = await propensityServer.getPropensity(
