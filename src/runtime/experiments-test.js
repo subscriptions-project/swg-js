@@ -40,12 +40,9 @@ describes.realWin('experiments', (env) => {
     throwAsyncStub = sandbox.stub(ErrorUtils, 'throwAsync').callsFake(() => {});
     randomResults = [];
     randomCall = 0;
-    sandbox.stub(win.Math, 'random').callsFake(() => {
-      if (randomCall >= randomResults.length) {
-        throw new Error('random not allowed');
-      }
-      return randomResults[randomCall++];
-    });
+    sandbox
+      .stub(win.Math, 'random')
+      .callsFake(() => randomResults[randomCall++]);
   });
 
   afterEach(() => {

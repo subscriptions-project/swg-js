@@ -184,8 +184,9 @@ function runTests() {
       {
         exclude: [
           'build-system/**/*.js',
-          'third_party/**/*.js',
+          'src/**/*-test.js',
           'test/**/*.js',
+          'third_party/**/*.js',
         ],
       },
     ];

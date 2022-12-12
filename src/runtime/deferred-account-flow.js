@@ -88,7 +88,7 @@ export class DeferredAccountFlow {
       feArgs({
         'publicationId': this.deps_.pageConfig().getPublicationId(),
         'productId': this.deps_.pageConfig().getProductId(),
-        'entitlements': (entitlements && entitlements.raw) || null,
+        'entitlements': entitlements?.raw || null,
         'consent': this.options_.consent,
       }),
       /* shouldFadeBody */ true
@@ -162,6 +162,7 @@ export class DeferredAccountFlow {
       .logSwgEvent(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true);
 
     // Start the "sync" flow.
+    const dummyCompleteHandler = Promise.resolve.bind(Promise);
     creatingFlow.start(
       new SubscribeResponse(
         '', // raw field doesn't matter in this case
@@ -169,7 +170,7 @@ export class DeferredAccountFlow {
         userData,
         entitlements,
         productType,
-        () => Promise.resolve() // completeHandler doesn't matter in this case
+        dummyCompleteHandler // completeHandler doesn't matter in this case
       )
     );
     return response;
