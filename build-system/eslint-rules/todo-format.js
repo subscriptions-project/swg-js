@@ -21,7 +21,7 @@ module.exports = (context) => ({
       return;
     }
 
-    node.comments.forEach((comment) => {
+    comments.forEach((comment) => {
       if (
         /TODO/.test(comment.value) &&
         !/TODO\(@?\w+,\s*#\d{1,}\)/.test(comment.value) &&
