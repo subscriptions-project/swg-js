@@ -113,8 +113,8 @@ exports.compile = async (options = {}) => {
 /**
  * @return {!Promise}
  */
-exports.checkTypes = function (opts) {
-  return exports.compile(
+exports.checkTypes = (opts) =>
+  exports.compile(
     Object.assign(opts || {}, {
       toName: 'check-types.max.js',
       minifiedName: 'check-types.js',
@@ -122,7 +122,6 @@ exports.checkTypes = function (opts) {
       checkTypes: true,
     })
   );
-};
 
 /**
  * Bundles (max) or compiles (min) a javascript file.
@@ -221,7 +220,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   }
 
   if (options.watch) {
-    bundler.on('update', function () {
+    bundler.on('update', () => {
       rebundle();
       // Touch file in unit test set. This triggers rebundling of tests because
       // karma only considers changes to tests files themselves re-bundle
@@ -255,14 +254,14 @@ function compileCss(srcDir, outputDir, options) {
   options = options || {};
 
   if (options.watch) {
-    $$.watch(srcDir + '**/*.css', function () {
+    $$.watch(srcDir + '**/*.css', () => {
       compileCss(srcDir, outputDir, Object.assign({}, options, {watch: false}));
     });
   }
 
   const startTime = Date.now();
   return new Promise((resolve) => {
-    glob('**/*.css', {cwd: srcDir}, function (er, files) {
+    glob('**/*.css', {cwd: srcDir}, (er, files) => {
       resolve(files);
     });
   })
@@ -286,7 +285,7 @@ function compileCss(srcDir, outputDir, options) {
 }
 
 function toPromise(readable) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     readable.on('error', reject).on('end', resolve);
   });
 }

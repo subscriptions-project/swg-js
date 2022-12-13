@@ -794,7 +794,7 @@ describes.realWin('AbbrvOfferFlow', (env) => {
   });
 
   it('should have valid AbbrvOfferFlow constructed w/native', async () => {
-    runtime.callbacks().setOnSubscribeRequest(function () {});
+    runtime.callbacks().setOnSubscribeRequest(() => {});
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
     activitiesMock
       .expects('openIframe')

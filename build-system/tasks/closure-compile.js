@@ -38,19 +38,19 @@ const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
 // Compiles code with the closure compiler. This is intended only for
 // production use. During development we intent to continue using
 // babel, as it has much faster incremental compilation.
-exports.closureCompile = function (
+exports.closureCompile = (
   entryModuleFilename,
   outputDir,
   outputFilename,
   options
-) {
+) => {
   // Rate limit closure compilation to MAX_PARALLEL_CLOSURE_INVOCATIONS
   // concurrent processes.
-  return new Promise(function (resolve) {
+  return new Promise((resolve) => {
     function start() {
       inProgress++;
       compile(entryModuleFilename, outputDir, outputFilename, options).then(
-        function () {
+        () => {
           if (isCiBuild()) {
             // When printing simplified log in CI, use dot for each task.
             process.stdout.write('.');
@@ -59,7 +59,7 @@ exports.closureCompile = function (
           next();
           resolve();
         },
-        function (e) {
+        (e) => {
           console./*OK*/ error(red('Compilation error', e.message));
           process.exit(1);
         }
@@ -126,7 +126,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     if (options.extraGlobs) {
       srcs.push.apply(srcs, options.extraGlobs);
     }
-    unneededFiles.forEach(function (fake) {
+    unneededFiles.forEach((fake) => {
       if (!fs.existsSync(fake)) {
         fs.writeFileSync(
           fake,
@@ -208,7 +208,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       .pipe(makeSourcemapsRelative(closureCompiler.gulp()(compilerOptions)))
       .pipe(rename(intermediateFilename))
       .pipe(gulp.dest('build/cc/'))
-      .on('error', function (err) {
+      .on('error', (err) => {
         console./*OK*/ error(red('Error compiling', entryModuleFilenames));
         console./*OK*/ error(red(err.message));
         process.exit(1);

@@ -219,7 +219,7 @@ describes.realWin('PayClient', (env) => {
     });
   });
 
-  it('should force redirect mode', async function () {
+  it('should force redirect mode', async () => {
     await payClient.start(
       {
         'paymentArgs': {'a': 1},

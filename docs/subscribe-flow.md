@@ -23,11 +23,11 @@ _Important!_ Please ensure you set up the `setOnPaymentResponse` on any page whe
 First, please setup the subscription response callback via `setOnPaymentResponse`:
 
 ```js
-subscriptions.setOnPaymentResponse(function (paymentResponse) {
-  paymentResponse.then(function (response) {
+subscriptions.setOnPaymentResponse((paymentResponse) => {
+  paymentResponse.then((response) => {
     // Handle the payment response.
     // Some websites would create or update a user at this point.
-    response.complete().then(function () {
+    response.complete().then(() => {
       // The payment is fully processed.
       // Some websites would update their UI at this point,
       // if the purchase unlocked content.

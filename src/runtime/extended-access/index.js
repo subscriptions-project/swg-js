@@ -1174,8 +1174,8 @@ export const PaywallReasonType = {
 export class GaaMetering {
   constructor() {
     this.userState = {};
-    this.gaaUserPromiseResolve_ = function () {};
-    this.loginPromiseResolve_ = function () {};
+    this.gaaUserPromiseResolve_ = () => {};
+    this.loginPromiseResolve_ = () => {};
   }
 
   /**

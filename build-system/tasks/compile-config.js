@@ -32,7 +32,7 @@ const overrides = {};
 /**
  * @return {!Object<string, string>}
  */
-exports.resolveConfig = function () {
+exports.resolveConfig = () => {
   const swgServerOrigin = argv.frontend || FRONTEND;
 
   console.log(green('Configuration'));
@@ -60,7 +60,7 @@ exports.resolveConfig = function () {
 /**
  * @param {!Object<string, string>} config
  */
-exports.overrideConfig = function (config) {
+exports.overrideConfig = (config) => {
   for (const k in config) {
     overrides[k] = config[k];
   }
