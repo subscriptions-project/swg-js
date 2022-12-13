@@ -197,8 +197,16 @@ describes.realWin('GaaMeteringRegwall', () => {
   });
 
   afterEach(() => {
-    script.remove();
-    microdata.remove();
+    // Remove JSON-LD and Microdata elements.
+    const elements = [
+      ...self.document.head.querySelectorAll(
+        'div[itemscope], script[type="application/ld+json"]'
+      ),
+    ];
+    for (const element of elements) {
+      element.remove();
+    }
+
     GaaMeteringRegwall.remove();
     self.document.documentElement.lang = '';
     // Remove the injected style from GaaMeteringRegwall.createNativeRegistrationButton.
@@ -293,7 +301,7 @@ describes.realWin('GaaMeteringRegwall', () => {
       const showingRegwall = () =>
         GaaMeteringRegwall.render_({iframeUrl: GSI_IFRAME_URL});
 
-      expect(showingRegwall).throws(
+      expect(showingRegwall).to.throw(
         'Showcase articles must define a publisher name with either JSON-LD or Microdata.'
       );
     });
