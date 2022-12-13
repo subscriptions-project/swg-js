@@ -326,7 +326,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
             'publicationId': 'pub1',
           }
         )
-        .returns(Promise.resolve(port))
+        .resolves(port)
         .once();
       eventManagerMock
         .expects('logSwgEvent')
@@ -385,7 +385,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
           'publicationId': 'pub1',
         }
       )
-      .returns(Promise.resolve(port))
+      .resolves(port)
       .once();
     entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock.expects('reset').withExactArgs(true).once();
@@ -441,7 +441,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
           'publicationId': 'pub1',
         }
       )
-      .returns(Promise.resolve(port))
+      .resolves(port)
       .once();
     entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     const order = [];
@@ -513,7 +513,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port)).once();
+    activitiesMock.expects('openIframe').resolves(port).once();
     entitlementsManagerMock.expects('reset').withExactArgs(false).once();
     entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock
@@ -560,7 +560,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       resultResolver = resolve;
     });
     port.acceptResult = () => resultPromise;
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port)).once();
+    activitiesMock.expects('openIframe').resolves(port).once();
     entitlementsManagerMock.expects('setToastShown').withExactArgs(true).once();
     entitlementsManagerMock.expects('reset').withExactArgs(true).once();
     entitlementsManagerMock
@@ -669,7 +669,7 @@ describes.realWin('LinkSaveFlow', (env) => {
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     linkSaveFlow.start();
     await linkSaveFlow.openPromise_;
   });
@@ -677,7 +677,7 @@ describes.realWin('LinkSaveFlow', (env) => {
   it('should open dialog in hidden mode', async () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     const dialog = new Dialog(new GlobalDoc(win));
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     dialogManagerMock
       .expects('openDialog')
       .withExactArgs(/* hidden */ true, {})
@@ -697,7 +697,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       true
     );
     resultResolver(result);
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     dialogManagerMock.expects('completeView').twice();
     eventManagerMock
       .expects('logSwgEvent')
@@ -712,7 +712,7 @@ describes.realWin('LinkSaveFlow', (env) => {
   it('should return false if cancel error occurs', async () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
     resultResolver(Promise.reject(createCancelError('linking failed')));
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     dialogManagerMock.expects('completeView').twice();
     eventManagerMock
       .expects('logSwgEvent')
@@ -739,7 +739,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       true
     );
     resultResolver(result);
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     LinkCompleteFlow.prototype.start = () => Promise.resolve();
     dialogManagerMock.expects('completeView').once();
     LinkCompleteFlow.prototype.whenComplete = () => Promise.resolve();
@@ -757,7 +757,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .withExactArgs(/* hidden */ true, {})
       .returns(dialog.open());
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
     await linkSaveFlow.openPromise_;
@@ -774,7 +774,7 @@ describes.realWin('LinkSaveFlow', (env) => {
 
   it('should fail if neither token nor authCode is present', async () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {});
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
     await linkSaveFlow.openPromise_;
@@ -797,7 +797,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
     const messageStub = sandbox.stub(port, 'execute');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
     await linkSaveFlow.openPromise_;
@@ -818,7 +818,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     });
     linkSaveFlow = new LinkSaveFlow(runtime, () => reqPromise);
     const messageStub = sandbox.stub(port, 'execute');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
     await linkSaveFlow.openPromise_;
@@ -833,7 +833,7 @@ describes.realWin('LinkSaveFlow', (env) => {
 
   it('closes dialog when callback returns rejected promise', async () => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => Promise.reject('no token'));
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
     await linkSaveFlow.openPromise_;
@@ -852,7 +852,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     linkSaveFlow = new LinkSaveFlow(runtime, () => {
       throw new Error('callback failed');
     });
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
     await linkSaveFlow.openPromise_;
@@ -882,7 +882,7 @@ describes.realWin('LinkSaveFlow', (env) => {
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     const startPromise = linkSaveFlow.start();
     linkSaveFlow.openPromise_.then(() => {
       const result = new ActivityResult(
@@ -920,7 +920,7 @@ describes.realWin('LinkSaveFlow', (env) => {
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
@@ -959,7 +959,7 @@ describes.realWin('LinkSaveFlow', (env) => {
         '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     // Saving subscription succeeded, but showing the confirmation iframe failed.
     eventManagerMock
       .expects('logSwgEvent')
