@@ -37,12 +37,8 @@
     "describes": true
   },
   "rules": {
-    "swg-internal/dict-string-keys": 2,
     "swg-internal/enforce-private-props": 2,
-    "swg-internal/no-es2015-number-props": 2,
     "swg-internal/no-export-side-effect": 2,
-    "swg-internal/no-global": 0,
-    "swg-internal/todo-format": 0,
     "curly": 2,
     "google-camelcase/google-camelcase": 2,
     "no-alert": 2,
@@ -91,6 +87,17 @@
     "sort-requires/sort-requires": 2
   },
   "overrides": [
+    {
+      "files": ["src/**/*-test.js"],
+      "rules": {
+        "no-restricted-syntax": [2,
+          {
+            "selector": "TryStatement",
+            "message": "Within unit tests, try/catch can hide silent failures. Explicitly expect errors/rejects instead. Ex: `expect(fn).to.throw` or `await expect(promise).to.eventually.be.rejected`"
+          }
+        ]
+      }
+    },
     {
       "files": ["assets/i18n/strings/*.js"],
       "globals": {

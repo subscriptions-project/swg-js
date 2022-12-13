@@ -389,15 +389,11 @@ describes.realWin('OffersFlow', (env) => {
   });
 
   it('should throw error if calling OffersFlow with oldSku but no skus', () => {
-    try {
-      offersFlow = new OffersFlow(runtime, {
+    const fn = () =>
+      new OffersFlow(runtime, {
         oldSku: 'old_sku',
       });
-    } catch (err) {
-      expect(err)
-        .to.be.an.instanceOf(Error)
-        .with.property('message', 'Need a sku list if old sku is provided!');
-    }
+    expect(fn).to.throw('Need a sku list if old sku is provided!');
   });
 
   it('should remove oldSku if skus contains it', async () => {
