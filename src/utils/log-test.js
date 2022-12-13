@@ -90,9 +90,11 @@ describes.realWin('asserts', (env) => {
     expect(() => {
       assert(false, 'should fail %s', 'XYZ');
     }).to.throw(/should fail XYZ/);
+
     expect(() => {
       assert(false, 'should fail %s %s', 'XYZ', 'YYY');
     }).to.throw(/should fail XYZ YYY/);
+
     const div = win.document.createElement('div');
     div.id = 'abc';
     div.textContent = 'foo';
@@ -100,27 +102,6 @@ describes.realWin('asserts', (env) => {
       assert(false, 'should fail %s', div);
     }).to.throw(/should fail div#abc/);
 
-    let error;
-    try {
-      assert(false, '%s a %s b %s', 1, 2, 3);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).to.be.instanceof(Error);
-    expect(error.message).to.equal('1 a 2 b 3');
-    expect(error.messageArray).to.deep.equal([1, 'a', 2, 'b', 3]);
-  });
-
-  it('should add element and assert info', () => {
-    const div = win.document.createElement('div');
-    let error;
-    try {
-      assert(false, '%s a %s b %s', div, 2, 3);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).to.be.instanceof(Error);
-    expect(error.associatedElement).to.equal(div);
-    expect(error.fromAssert).to.equal(true);
+    expect(() => assert(false, '%s a %s b %s', 1, 2, 3)).to.throw('1 a 2 b 3');
   });
 });

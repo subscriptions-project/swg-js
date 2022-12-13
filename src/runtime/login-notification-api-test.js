@@ -70,14 +70,14 @@ describes.realWin('LoginNotificationApi', (env) => {
           userConsent: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
 
     loginNotificationApi.start();
     await loginNotificationApi.openViewPromise_;
   });
 
   it('should handle failure', async () => {
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
 

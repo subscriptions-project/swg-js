@@ -30,7 +30,7 @@ function expectOpenIframe(activitiesMock, port, args) {
       '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
       args
     )
-    .returns(Promise.resolve(port));
+    .resolves(port);
 }
 
 describes.realWin('ButtonApi', (env) => {

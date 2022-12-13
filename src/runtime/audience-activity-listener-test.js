@@ -78,7 +78,7 @@ describes.realWin('AudienceActivityEventListener', (env) => {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
-      .returns(Promise.resolve('ab+c')).once;
+      .resolves('ab+c').once;
     audienceActivityEventListener.start();
 
     // This triggers an event.
