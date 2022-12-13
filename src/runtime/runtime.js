@@ -75,7 +75,7 @@ import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
 import {isSecure} from '../utils/url';
-import {queryStringHasFreshGaaParams} from './extended-access/gaa';
+import {queryStringHasFreshGaaParams} from './extended-access';
 import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';

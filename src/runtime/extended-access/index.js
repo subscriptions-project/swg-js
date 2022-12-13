@@ -58,7 +58,7 @@ import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
 import {parseJson} from '../../utils/json';
 import {resolveDoc} from '../../model/doc';
 import {setImportantStyles} from '../../utils/style';
-import {showcaseEventToAnalyticsEvents} from '../../runtime/event-type-mapping';
+import {showcaseEventToAnalyticsEvents} from '../event-type-mapping';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';

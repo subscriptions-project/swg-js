@@ -39,7 +39,7 @@ import {
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
   queryStringHasFreshGaaParams,
-} from './gaa';
+} from './';
 import {I18N_STRINGS} from '../../i18n/strings';
 import {JwtHelper} from '../../utils/jwt';
 import {ShowcaseEvent} from '../../api/subscriptions';
