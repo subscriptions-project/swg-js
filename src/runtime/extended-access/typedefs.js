@@ -38,9 +38,9 @@ export let GaaUserDef;
  *   iat: number,
  *   exp: number,
  *   jti: string,
- * }} GoogleIdentityV1
+ * }} GoogleIdentityV1Def
  */
-export let GoogleIdentityV1;
+export let GoogleIdentityV1Def;
 
 /**
  * GoogleUser object that Google Sign-In returns after users sign in.
@@ -89,6 +89,6 @@ export let GoogleUserDef;
  *   registrationTimestamp: number,
  *   subscriptionTimestamp: number
  * }
- * }} InitParams
+ * }} InitParamsDef
  */
-export let InitParams;
+export let InitParamsDef;

@@ -21,27 +21,7 @@
 //
 // Thanks!
 
-import {
-  ShowcaseEvent,
-  Subscriptions as SubscriptionsDef,
-} from '../../api/subscriptions';
-import {I18N_STRINGS} from '../../i18n/strings';
-import {resolveDoc} from '../../model/doc';
 import {AnalyticsEvent, EventOriginator} from '../../proto/api_messages';
-import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
-import {createElement, injectStyleSheet} from '../../utils/dom';
-import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
-import {parseJson} from '../../utils/json';
-import {JwtHelper} from '../../utils/jwt';
-import {debugLog, warn} from '../../utils/log';
-import {setImportantStyles} from '../../utils/style';
-import {
-  addQueryParam,
-  parseQueryString,
-  parseUrl,
-  wasReferredByGoogle,
-} from '../../utils/url';
-import {showcaseEventToAnalyticsEvents} from '../event-type-mapping';
 import {
   CASL_HTML,
   GOOGLE_3P_SIGN_IN_BUTTON_ID,
@@ -61,10 +41,30 @@ import {
 } from './html-templates';
 import {
   GaaUserDef,
-  GoogleIdentityV1,
+  GoogleIdentityV1Def,
   GoogleUserDef,
-  InitParams,
+  InitParamsDef,
 } from './typedefs';
+import {I18N_STRINGS} from '../../i18n/strings';
+import {JwtHelper} from '../../utils/jwt';
+import {
+  ShowcaseEvent,
+  Subscriptions as SubscriptionsDef,
+} from '../../api/subscriptions';
+import {
+  addQueryParam,
+  parseQueryString,
+  parseUrl,
+  wasReferredByGoogle,
+} from '../../utils/url';
+import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
+import {createElement, injectStyleSheet} from '../../utils/dom';
+import {debugLog, warn} from '../../utils/log';
+import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
+import {parseJson} from '../../utils/json';
+import {resolveDoc} from '../../model/doc';
+import {setImportantStyles} from '../../utils/style';
+import {showcaseEventToAnalyticsEvents} from '../event-type-mapping';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -136,14 +136,14 @@ export class GaaMeteringRegwall {
    * Returns a promise for a Google user object.
    * The user object will be a:
    * - GaaUserDef, if you use the GaaGoogleSignInButton
-   * - GoogleIdentityV1, if you use the GaaSignInWithGoogleButton
+   * - GoogleIdentityV1Def, if you use the GaaSignInWithGoogleButton
    * - Custom object, if you use the GaaGoogle3pSignInButton
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
    * @param {{ iframeUrl: string, caslUrl: string }} params
-   * @return {!Promise<!GaaUserDef|!GoogleIdentityV1|!Object>}
+   * @return {!Promise<!GaaUserDef|!GoogleIdentityV1Def|!Object>}
    */
   static async show({iframeUrl, caslUrl}) {
     const queryString = GaaUtils.getQueryString();
@@ -177,13 +177,13 @@ export class GaaMeteringRegwall {
 
   /**
    * Returns a promise for a Google user object.
-   * The user object will be a GoogleIdentityV1
+   * The user object will be a GoogleIdentityV1Def
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
    * @param {{ caslUrl: string, googleApiClientId: string, rawJwt: (boolean|null) }} params
-   * @return {!Promise<!GoogleIdentityV1|JsonObject|undefined>}
+   * @return {!Promise<!GoogleIdentityV1Def|JsonObject|undefined>}
    */
   static async showWithNativeRegistrationButton({
     caslUrl,
@@ -883,7 +883,7 @@ export class GaaSignInWithGoogleButton {
         );
       });
 
-      const jwtPayload = /** @type {!GoogleIdentityV1} */ (
+      const jwtPayload = /** @type {!GoogleIdentityV1Def} */ (
         new JwtHelper().decode(jwt.credential)
       );
       const returnedJwt = rawJwt ? jwt : jwtPayload;
@@ -1211,7 +1211,7 @@ export class GaaMetering {
   /**
    * Initialize GaaMetering flow
    * @nocollapse
-   * @param {InitParams} params
+   * @param {InitParamsDef} params
    */
   static init(params) {
     // Validate GaaMetering parameters
@@ -1461,7 +1461,7 @@ export class GaaMetering {
   /**
    * Validates parameters for GaaMetering.init flow
    * @nocollapse
-   * @param {InitParams} params
+   * @param {InitParamsDef} params
    */
   static validateParameters(params) {
     let noIssues = true;
