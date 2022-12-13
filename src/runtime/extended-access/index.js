@@ -21,10 +21,12 @@
 //
 // Thanks!
 
-import {AnalyticsEvent, EventOriginator} from '../../proto/api_messages';
+import {AnalyticsEvent} from '../../proto/api_messages';
 import {
   CASL_HTML,
+  GOOGLE_3P_SIGN_IN_BUTTON_HTML,
   GOOGLE_3P_SIGN_IN_BUTTON_ID,
+  GOOGLE_3P_SIGN_IN_IFRAME_STYLES,
   GOOGLE_SIGN_IN_BUTTON_ID,
   GOOGLE_SIGN_IN_BUTTON_STYLES,
   GOOGLE_SIGN_IN_IFRAME_ID,
@@ -48,9 +50,18 @@ import {
 import {I18N_STRINGS} from '../../i18n/strings';
 import {JwtHelper} from '../../utils/jwt';
 import {
-  ShowcaseEvent,
-  Subscriptions as SubscriptionsDef,
-} from '../../api/subscriptions';
+  GrantReasonType,
+  PaywallReasonType,
+  POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
+  POST_MESSAGE_COMMAND_ERROR,
+  POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
+  POST_MESSAGE_COMMAND_INTRODUCTION,
+  POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
+  POST_MESSAGE_COMMAND_USER,
+  POST_MESSAGE_STAMP,
+  REDIRECT_DELAY,
+} from './constants';
+import {ShowcaseEvent} from '../../api/subscriptions';
 import {
   addQueryParam,
   parseQueryString,
@@ -62,73 +73,15 @@ import {createElement, injectStyleSheet} from '../../utils/dom';
 import {debugLog, warn} from '../../utils/log';
 import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
 import {parseJson} from '../../utils/json';
+import {
+  callSwg,
+  configureGoogleSignIn,
+  logEvent,
+  queryStringHasFreshGaaParams,
+  QueryStringUtils,
+} from './utils';
 import {resolveDoc} from '../../model/doc';
 import {setImportantStyles} from '../../utils/style';
-import {showcaseEventToAnalyticsEvents} from '../event-type-mapping';
-
-/** Stamp for post messages. */
-export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
-
-/** Introduction command for post messages. */
-export const POST_MESSAGE_COMMAND_INTRODUCTION = 'introduction';
-
-/** User command for post messages. */
-export const POST_MESSAGE_COMMAND_USER = 'user';
-
-/** Error command for post messages. */
-export const POST_MESSAGE_COMMAND_ERROR = 'error';
-
-/** GSI Button click command for post messages. */
-export const POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK = 'gsi-button-click';
-
-/** SIWG Button click command for post messages. */
-export const POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK = 'siwg-button-click';
-
-/** 3P button click command for post messages. */
-export const POST_MESSAGE_COMMAND_3P_BUTTON_CLICK = '3p-button-click';
-
-/** Delay used to log 3P button click before redirect */
-const REDIRECT_DELAY = 10;
-
-/**
- * Returns true if the query string contains fresh Google Article Access (GAA) params.
- * @param {string} queryString
- * @param {boolean} allowAllAccessTypes
- * @return {boolean}
- */
-export function queryStringHasFreshGaaParams(
-  queryString,
-  allowAllAccessTypes = false
-) {
-  const params = parseQueryString(queryString);
-
-  // Verify GAA params exist.
-  if (
-    !params['gaa_at'] ||
-    !params['gaa_n'] ||
-    !params['gaa_sig'] ||
-    !params['gaa_ts']
-  ) {
-    return false;
-  }
-
-  if (!allowAllAccessTypes) {
-    // Verify access type.
-    const noAccess = params['gaa_at'] === 'na';
-    if (noAccess) {
-      return false;
-    }
-  }
-
-  // Verify timestamp isn't stale.
-  const expirationTimestamp = parseInt(params['gaa_ts'], 16);
-  const currentTimestamp = Date.now() / 1000;
-  if (expirationTimestamp < currentTimestamp) {
-    return false;
-  }
-
-  return true;
-}
 
 /** Renders Google Article Access (GAA) Metering Regwall. */
 export class GaaMeteringRegwall {
@@ -146,7 +99,7 @@ export class GaaMeteringRegwall {
    * @return {!Promise<!GaaUserDef|!GoogleIdentityV1Def|!Object>}
    */
   static async show({iframeUrl, caslUrl}) {
-    const queryString = GaaUtils.getQueryString();
+    const queryString = QueryStringUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
         '[swg-gaa.js:GaaMeteringRegwall.show]: URL needs fresh GAA params.';
@@ -661,7 +614,7 @@ export class GaaGoogleSignInButton {
    */
   static async show({allowedOrigins}) {
     // Optionally grab language code from URL.
-    const queryString = GaaUtils.getQueryString();
+    const queryString = QueryStringUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
     const languageCode = queryParams['lang'] || 'en';
 
@@ -789,7 +742,7 @@ export class GaaSignInWithGoogleButton {
    */
   static async show({clientId, allowedOrigins, rawJwt = false}) {
     // Optionally grab language code from URL.
-    const queryString = GaaUtils.getQueryString();
+    const queryString = QueryStringUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
     const languageCode = queryParams['lang'] || 'en';
 
@@ -903,90 +856,6 @@ export class GaaSignInWithGoogleButton {
   }
 }
 
-/**
- * Loads the Google Sign-In API.
- *
- * This function is used in two places.
- * 1. The publisher's Google Sign-In iframe.
- * 2. (Optional) Demos that allow users to sign out.
- *
- * @return {!Promise}
- */
-async function configureGoogleSignIn() {
-  // Wait for Google Sign-In API.
-  await new Promise((resolve) => {
-    const apiCheckInterval = setInterval(() => {
-      if (!!self.gapi) {
-        clearInterval(apiCheckInterval);
-        resolve();
-      }
-    }, 50);
-  });
-
-  // Load Auth2 module.
-  await new Promise((resolve) => self.gapi.load('auth2', resolve));
-
-  // Specify "redirect" mode. It plays nicer with webviews.
-  // Only initialize Google Sign-In once.
-  self.gapi.auth2.getAuthInstance() || self.gapi.auth2.init();
-}
-
-/**
- * Calls Swgjs.
- * @param { function(!SubscriptionsDef) } callback
- */
-function callSwg(callback) {
-  (self.SWG = self.SWG || []).push(callback);
-}
-
-/** Styles for the third party Google Sign-In button iframe. */
-const GOOGLE_3P_SIGN_IN_IFRAME_STYLES =
-  GOOGLE_SIGN_IN_IFRAME_STYLES +
-  `
-  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButtonContents {
-    font-family: Roboto,arial,sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: .21px;
-    margin-left: 6px;
-    margin-right: 6px;
-    vertical-align: top;
-  }
-  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton {
-    border-radius: 1px;
-    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 25%);
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    -webkit-transition: background-color .218s,border-color .218s,box-shadow .218s;
-    transition: background-color .218s,border-color .218s,box-shadow .218s;
-    -webkit-user-select: none;
-    -webkit-appearance: none;
-    background-color: #fff;
-    background-image: none;
-    color: #262626;
-    cursor: pointer;
-    outline: none;
-    overflow: hidden;
-    position: relative;
-    text-align: center;
-    vertical-align: middle;
-    white-space: nowrap;
-    width: auto;
-  }
-  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButtonBlue {
-    border: none;
-    color: #fff;
-  }
-  `;
-
-const GOOGLE_3P_SIGN_IN_BUTTON_HTML = `
-<div style="height:36px;width:180px;" class="abcRioButton abcRioButtonBlue">
-  <span style="font-size:15px;line-height:34px;" class="abcRioButtonContents">
-    <span id="not_signed_in">Sign in with Google</span>
-  </span>
-</div>
-`;
-
 export class GaaGoogle3pSignInButton {
   /**
    * Renders the third party Google Sign-In button for external authentication.
@@ -1003,7 +872,7 @@ export class GaaGoogle3pSignInButton {
    */
   static show({allowedOrigins, authorizationUrl, redirectMode = false}) {
     // Optionally grab language code from URL.
-    const queryString = GaaUtils.getQueryString();
+    const queryString = QueryStringUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
     const languageCode = queryParams['lang'] || 'en';
 
@@ -1110,66 +979,6 @@ export class GaaGoogle3pSignInButton {
     });
   }
 }
-
-/**
- * Logs Showcase events.
- * @param {{
- *   analyticsEvent: (AnalyticsEvent|undefined),
- *   showcaseEvent: (ShowcaseEvent|undefined),
- *   isFromUserAction: boolean,
- * }} params
- */
-function logEvent({analyticsEvent, showcaseEvent, isFromUserAction} = {}) {
-  callSwg(async (swg) => {
-    // Get reference to event manager.
-    const eventManager = await swg.getEventManager();
-    // Get list of analytics events.
-    const eventTypes = showcaseEvent
-      ? showcaseEventToAnalyticsEvents(showcaseEvent)
-      : [analyticsEvent];
-
-    // Log each analytics event.
-    for (const eventType of eventTypes) {
-      eventManager.logEvent({
-        eventType,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction,
-        additionalParameters: null,
-      });
-    }
-  });
-}
-
-export class GaaUtils {
-  /**
-   * Returns query string from current URL.
-   * Tests can override this method to return different URLs.
-   * @return {string}
-   */
-  static getQueryString() {
-    return self.location.search;
-  }
-}
-
-/**
- * Types of grantReason that can be specified by the user as part of
- * the userState object
- * @enum {string}
- */
-export const GrantReasonType = {
-  FREE: 'FREE',
-  SUBSCRIBER: 'SUBSCRIBER',
-  METERING: 'METERING',
-};
-
-/**
- * Types of paywallReason that can be specified by the user as part of
- * the userState object
- * @enum {string}
- */
-export const PaywallReasonType = {
-  RESERVED_USER: 'RESERVED_USER',
-};
 
 export class GaaMetering {
   constructor() {
@@ -1582,7 +1391,7 @@ export class GaaMetering {
 
   static isGaa(publisherReferrers = []) {
     // Validate GAA params.
-    const queryString = GaaUtils.getQueryString();
+    const queryString = QueryStringUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString, true)) {
       return false;
     }
@@ -1900,3 +1709,6 @@ export class GaaMetering {
     return GaaMetering?.userState?.subscriptionTimestamp || null;
   }
 }
+
+// Re-exports.
+export {queryStringHasFreshGaaParams};

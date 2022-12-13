@@ -297,3 +297,51 @@ export const GOOGLE_SIGN_IN_IFRAME_STYLES = `
     overflow: hidden;
   }${GOOGLE_SIGN_IN_BUTTON_STYLES}
 `;
+
+/** Styles for the third party Google Sign-In button iframe. */
+export const GOOGLE_3P_SIGN_IN_IFRAME_STYLES =
+  GOOGLE_SIGN_IN_IFRAME_STYLES +
+  `
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButtonContents {
+    font-family: Roboto,arial,sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .21px;
+    margin-left: 6px;
+    margin-right: 6px;
+    vertical-align: top;
+  }
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButton {
+    border-radius: 1px;
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 25%);
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-transition: background-color .218s,border-color .218s,box-shadow .218s;
+    transition: background-color .218s,border-color .218s,box-shadow .218s;
+    -webkit-user-select: none;
+    -webkit-appearance: none;
+    background-color: #fff;
+    background-image: none;
+    color: #262626;
+    cursor: pointer;
+    outline: none;
+    overflow: hidden;
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: auto;
+  }
+  #${GOOGLE_3P_SIGN_IN_BUTTON_ID} .abcRioButtonBlue {
+    border: none;
+    color: #fff;
+  }
+  `;
+
+export const GOOGLE_3P_SIGN_IN_BUTTON_HTML = `
+<div style="height:36px;width:180px;" class="abcRioButton abcRioButtonBlue">
+  <span style="font-size:15px;line-height:34px;" class="abcRioButtonContents">
+    <span id="not_signed_in">Sign in with Google</span>
+  </span>
+</div>
+`;

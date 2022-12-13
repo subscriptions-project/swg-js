@@ -30,7 +30,11 @@ import {
   GaaMetering,
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
-  GaaUtils,
+  queryStringHasFreshGaaParams,
+} from './';
+import {I18N_STRINGS} from '../../i18n/strings';
+import {JwtHelper} from '../../utils/jwt';
+import {
   POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
@@ -38,12 +42,10 @@ import {
   POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
-  queryStringHasFreshGaaParams,
-} from './';
-import {I18N_STRINGS} from '../../i18n/strings';
-import {JwtHelper} from '../../utils/jwt';
+} from './constants';
 import {ShowcaseEvent} from '../../api/subscriptions';
 import {tick} from '../../../test/tick';
+import {QueryStringUtils} from './utils';
 
 const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
@@ -276,8 +278,8 @@ describes.realWin('GaaMeteringRegwall', () => {
     };
 
     // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns(
+    sandbox.stub(QueryStringUtils, 'getQueryString');
+    QueryStringUtils.getQueryString.returns(
       '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
     );
 
@@ -514,7 +516,7 @@ describes.realWin('GaaMeteringRegwall', () => {
 
     it('fails if GAA URL params are missing', () => {
       // Remove GAA URL params.
-      GaaUtils.getQueryString.restore();
+      QueryStringUtils.getQueryString.restore();
 
       GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
 
@@ -525,7 +527,7 @@ describes.realWin('GaaMeteringRegwall', () => {
 
     it('fails if GAA URL params are expired', () => {
       // Add GAA URL params with expiration of 7 seconds.
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=7'
       );
 
@@ -1220,8 +1222,8 @@ describes.realWin('GaaGoogleSignInButton', () => {
     };
 
     // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns('?lang=en');
+    sandbox.stub(QueryStringUtils, 'getQueryString');
+    QueryStringUtils.getQueryString.returns('?lang=en');
 
     // Mock console.warn method.
     sandbox.stub(self.console, 'warn');
@@ -1231,7 +1233,7 @@ describes.realWin('GaaGoogleSignInButton', () => {
     if (self.postMessage.restore) {
       self.postMessage.restore();
     }
-    GaaUtils.getQueryString.restore();
+    QueryStringUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogleSignInButton.show.
     for (const style of [...self.document.head.querySelectorAll('style')]) {
@@ -1264,7 +1266,7 @@ describes.realWin('GaaGoogleSignInButton', () => {
     });
 
     it('renders supported i18n languages', async () => {
-      GaaUtils.getQueryString.returns('?lang=pt-br');
+      QueryStringUtils.getQueryString.returns('?lang=pt-br');
 
       GaaGoogleSignInButton.show({allowedOrigins});
       clock.tick(100);
@@ -1277,7 +1279,7 @@ describes.realWin('GaaGoogleSignInButton', () => {
     });
 
     it('renders English by default, if "lang" URL param is missing', async () => {
-      GaaUtils.getQueryString.returns('?');
+      QueryStringUtils.getQueryString.returns('?');
 
       GaaGoogleSignInButton.show({allowedOrigins});
       clock.tick(100);
@@ -1482,8 +1484,8 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
     };
 
     // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns('?lang=en');
+    sandbox.stub(QueryStringUtils, 'getQueryString');
+    QueryStringUtils.getQueryString.returns('?lang=en');
 
     // Mock console.warn method.
     sandbox.stub(self.console, 'warn');
@@ -1493,7 +1495,7 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
     if (self.postMessage.restore) {
       self.postMessage.restore();
     }
-    GaaUtils.getQueryString.restore();
+    QueryStringUtils.getQueryString.restore();
 
     // Remove the injected style from GaaSignInWithGoogleButton.show.
     for (const style of [...self.document.head.querySelectorAll('style')]) {
@@ -1545,7 +1547,7 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
     });
 
     it('renders supported i18n languages', async () => {
-      GaaUtils.getQueryString.returns('?lang=pt-br');
+      QueryStringUtils.getQueryString.returns('?lang=pt-br');
 
       GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
       clock.tick(100);
@@ -1558,7 +1560,7 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
     });
 
     it('renders English by default, if "lang" URL param is missing', async () => {
-      GaaUtils.getQueryString.returns('?');
+      QueryStringUtils.getQueryString.returns('?');
 
       GaaSignInWithGoogleButton.show({clientId, allowedOrigins});
       clock.tick(100);
@@ -1833,8 +1835,8 @@ describes.realWin('GaaGoogle3pSignInButton', () => {
     clock = sandbox.useFakeTimers();
 
     // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns('?lang=en');
+    sandbox.stub(QueryStringUtils, 'getQueryString');
+    QueryStringUtils.getQueryString.returns('?lang=en');
 
     // Mock console.warn method.
     sandbox.stub(self.console, 'warn');
@@ -1852,7 +1854,7 @@ describes.realWin('GaaGoogle3pSignInButton', () => {
       self.postMessage.restore();
     }
 
-    GaaUtils.getQueryString.restore();
+    QueryStringUtils.getQueryString.restore();
 
     // Remove the injected style from GaaGoogle3pSignInButton.show.
     for (const style of [...self.document.head.querySelectorAll('style')]) {
@@ -1946,7 +1948,7 @@ describes.realWin('GaaGoogle3pSignInButton', () => {
     });
 
     it('renders supported i18n languages', async () => {
-      GaaUtils.getQueryString.returns('?lang=pt-br');
+      QueryStringUtils.getQueryString.returns('?lang=pt-br');
 
       GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
       clock.tick(100);
@@ -1959,7 +1961,7 @@ describes.realWin('GaaGoogle3pSignInButton', () => {
     });
 
     it('renders English by default, if "lang" URL param is missing', async () => {
-      GaaUtils.getQueryString.returns('?');
+      QueryStringUtils.getQueryString.returns('?');
 
       GaaGoogle3pSignInButton.show({allowedOrigins}, GOOGLE_3P_AUTH_URL);
       clock.tick(100);
@@ -2226,8 +2228,8 @@ describes.realWin('GaaMetering', () => {
     // clock = sandbox.useFakeTimers();
 
     // Mock query string.
-    sandbox.stub(GaaUtils, 'getQueryString');
-    GaaUtils.getQueryString.returns('?lang=en');
+    sandbox.stub(QueryStringUtils, 'getQueryString');
+    QueryStringUtils.getQueryString.returns('?lang=en');
 
     // Mock console.log method.
     sandbox.stub(self.console, 'log');
@@ -2272,7 +2274,7 @@ describes.realWin('GaaMetering', () => {
   afterEach(() => {
     script.remove();
     microdata.remove();
-    GaaUtils.getQueryString.restore();
+    QueryStringUtils.getQueryString.restore();
     GaaMeteringRegwall.remove();
     self.document.head.querySelectorAll('style').forEach((e) => {
       e.remove();
@@ -3061,7 +3063,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('fails with a warning in debug mode for an invalid referrer', () => {
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       location.hash = `#swg.debug=1`;
@@ -3075,7 +3077,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('succeeds when the gaa parameters are present and the referer is Google', () => {
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
@@ -3083,7 +3085,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it("succeeds when the gaa parameters are present and the referer is in partner's list", () => {
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.examplenews.com';
@@ -3132,7 +3134,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('succeeds for a subscriber', async () => {
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
@@ -3185,7 +3187,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('succeeds for metering', async () => {
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
@@ -3231,7 +3233,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('succeeds for free', async () => {
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
@@ -3281,7 +3283,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('fails for invalid userState', () => {
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
@@ -3327,7 +3329,7 @@ describes.realWin('GaaMetering', () => {
       </script>
       `;
 
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
@@ -3375,7 +3377,7 @@ describes.realWin('GaaMetering', () => {
       </script>
       `;
 
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
@@ -3415,7 +3417,7 @@ describes.realWin('GaaMetering', () => {
       location.hash = `#swg.debug=1`;
       self.document.referrer = 'https://www.google.com';
 
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
 
@@ -3465,7 +3467,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('has invalid publisherEntitlements', async () => {
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
@@ -3527,7 +3529,7 @@ describes.realWin('GaaMetering', () => {
       sandbox
         .stub(GaaMetering, 'getOnReadyPromise')
         .returns(new Promise((resolve) => resolve()));
-      GaaUtils.getQueryString.returns(
+      QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
