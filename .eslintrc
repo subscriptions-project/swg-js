@@ -37,12 +37,8 @@
     "describes": true
   },
   "rules": {
-    "swg-internal/dict-string-keys": 2,
     "swg-internal/enforce-private-props": 2,
-    "swg-internal/no-es2015-number-props": 2,
     "swg-internal/no-export-side-effect": 2,
-    "swg-internal/no-global": 0,
-    "swg-internal/todo-format": 0,
     "curly": 2,
     "google-camelcase/google-camelcase": 2,
     "no-alert": 2,
