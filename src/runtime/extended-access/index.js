@@ -38,7 +38,13 @@ import {
   REGWALL_HTML,
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-} from './extended-access-html-templates';
+} from './html-templates';
+import {
+  GaaUserDef,
+  GoogleIdentityV1Def,
+  GoogleUserDef,
+  InitParamsDef,
+} from './typedefs';
 import {I18N_STRINGS} from '../../i18n/strings';
 import {JwtHelper} from '../../utils/jwt';
 import {
@@ -83,101 +89,6 @@ export const POST_MESSAGE_COMMAND_3P_BUTTON_CLICK = '3p-button-click';
 
 /** Delay used to log 3P button click before redirect */
 const REDIRECT_DELAY = 10;
-
-/**
- * User object that Publisher JS receives after users sign in.
- * @typedef {{
- *   idToken: string,
- *   name: string,
- *   givenName: string,
- *   familyName: string,
- *   imageUrl: string,
- *   email: string,
- *   authorizationData: {
- *     access_token: string,
- *     id_token: string,
- *     scope: string,
- *     expires_in: number,
- *     first_issued_at: number,
- *     expires_at: number,
- *   },
- * }} GaaUserDef
- */
-export let GaaUserDef;
-
-/**
- * Google Identity (V1) that Google Identity Services returns after someone signs in.
- * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
- * @typedef {{
- *   iss: string,
- *   nbf: number,
- *   aud: string,
- *   sub: string,
- *   hd: string,
- *   email: string,
- *   email_verified: boolean,
- *   azp: string,
- *   name: string,
- *   picture: string,
- *   given_name: string,
- *   family_name: string,
- *   iat: number,
- *   exp: number,
- *   jti: string,
- * }} GoogleIdentityV1
- */
-export let GoogleIdentityV1;
-
-/**
- * GoogleUser object that Google Sign-In returns after users sign in.
- * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
- * @typedef {{
- *  getAuthResponse: function(boolean): {
- *     access_token: string,
- *     id_token: string,
- *     scope: string,
- *     expires_in: number,
- *     first_issued_at: number,
- *     expires_at: number,
- *   },
- *   getBasicProfile: function(): {
- *     getName: function(): string,
- *     getGivenName: function(): string,
- *     getFamilyName: function(): string,
- *     getImageUrl: function(): string,
- *     getEmail: function(): string,
- *   },
- * }} GoogleUserDef
- */
-export let GoogleUserDef;
-
-/**
- * InitParams object that GaaMetering.init accepts
- * https://developers.google.com/news/subscribe/extended-access/overview
- * @typedef {{
- * allowedReferrers: (Array<string>|null),
- * googleApiClientId: string,
- * authorizationUrl: string,
- * handleLoginPromise: (Promise|null),
- * caslUrl: string,
- * handleSwGEntitlement: function(): ?,
- * publisherEntitlementPromise: (Promise|null),
- * registerUserPromise: (Promise|null),
- * showPaywall: function(): ?,
- * showcaseEntitlement: string,
- * unlockArticle: function(): ?,
- * rawJwt: (boolean|null),
- * userState: {
- *   paywallReason: string,
- *   grantReason: string,
- *   granted: boolean,
- *   id: string,
- *   registrationTimestamp: number,
- *   subscriptionTimestamp: number
- * }
- * }} InitParams
- */
-export let InitParams;
 
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
@@ -225,14 +136,14 @@ export class GaaMeteringRegwall {
    * Returns a promise for a Google user object.
    * The user object will be a:
    * - GaaUserDef, if you use the GaaGoogleSignInButton
-   * - GoogleIdentityV1, if you use the GaaSignInWithGoogleButton
+   * - GoogleIdentityV1Def, if you use the GaaSignInWithGoogleButton
    * - Custom object, if you use the GaaGoogle3pSignInButton
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
    * @param {{ iframeUrl: string, caslUrl: string }} params
-   * @return {!Promise<!GaaUserDef|!GoogleIdentityV1|!Object>}
+   * @return {!Promise<!GaaUserDef|!GoogleIdentityV1Def|!Object>}
    */
   static async show({iframeUrl, caslUrl}) {
     const queryString = GaaUtils.getQueryString();
@@ -266,13 +177,13 @@ export class GaaMeteringRegwall {
 
   /**
    * Returns a promise for a Google user object.
-   * The user object will be a GoogleIdentityV1
+   * The user object will be a GoogleIdentityV1Def
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
    * @nocollapse
    * @param {{ caslUrl: string, googleApiClientId: string, rawJwt: (boolean|null) }} params
-   * @return {!Promise<!GoogleIdentityV1|JsonObject|undefined>}
+   * @return {!Promise<!GoogleIdentityV1Def|JsonObject|undefined>}
    */
   static async showWithNativeRegistrationButton({
     caslUrl,
@@ -972,7 +883,7 @@ export class GaaSignInWithGoogleButton {
         );
       });
 
-      const jwtPayload = /** @type {!GoogleIdentityV1} */ (
+      const jwtPayload = /** @type {!GoogleIdentityV1Def} */ (
         new JwtHelper().decode(jwt.credential)
       );
       const returnedJwt = rawJwt ? jwt : jwtPayload;
@@ -1300,7 +1211,7 @@ export class GaaMetering {
   /**
    * Initialize GaaMetering flow
    * @nocollapse
-   * @param {InitParams} params
+   * @param {InitParamsDef} params
    */
   static init(params) {
     // Validate GaaMetering parameters
@@ -1550,7 +1461,7 @@ export class GaaMetering {
   /**
    * Validates parameters for GaaMetering.init flow
    * @nocollapse
-   * @param {InitParams} params
+   * @param {InitParamsDef} params
    */
   static validateParameters(params) {
     let noIssues = true;

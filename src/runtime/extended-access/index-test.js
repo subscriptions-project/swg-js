@@ -23,7 +23,7 @@ import {
   REGWALL_DIALOG_ID,
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-} from './extended-access-html-templates';
+} from './html-templates';
 import {
   GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
