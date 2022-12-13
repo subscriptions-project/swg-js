@@ -1826,13 +1826,9 @@ describes.realWin('parseSubscriptionResponse', (env) => {
   });
 
   it('should throw error', () => {
-    let err = null;
-    try {
-      parseSubscriptionResponse(runtime, null);
-    } catch (ex) {
-      err = ex.toString();
-    }
-    expect(err).to.equal('Error: unexpected payment response');
+    expect(() => parseSubscriptionResponse(runtime, null)).to.throw(
+      'unexpected payment response'
+    );
   });
 
   it('should parse complete idToken', () => {

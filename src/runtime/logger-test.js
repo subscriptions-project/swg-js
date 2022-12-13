@@ -28,7 +28,6 @@ describes.realWin('Logger', (env) => {
   let logger;
   let eventManager;
   let propensityServerListener;
-  let thrownError;
   let fakeDeps;
   let fetcher;
   const config = {};
@@ -44,11 +43,7 @@ describes.realWin('Logger', (env) => {
       .stub(eventManager, 'registerEventListener')
       .callsFake((listener) => (propensityServerListener = listener));
     sandbox.stub(eventManager, 'logEvent').callsFake((event) => {
-      try {
-        propensityServerListener(event);
-      } catch (e) {
-        thrownError = e;
-      }
+      propensityServerListener(event);
     });
 
     config.enablePropensity = true;
@@ -142,12 +137,16 @@ describes.realWin('Logger', (env) => {
       const SENT_ERR = new Error('publisher not allowlisted');
       //note that actual event manager will cause the error to be logged to the
       //console instead of being immediately thrown.
-      sandbox.stub(fetcher, 'fetch').callsFake(() => {
-        throw SENT_ERR;
+      sandbox.stub(fetcher, 'fetch').throws(SENT_ERR);
+      eventManager.logEvent.restore();
+      sandbox.stub(eventManager, 'logEvent').callsFake((event) => {
+        expect(() => {
+          propensityServerListener(event);
+        }).to.throw(SENT_ERR);
       });
       logger.sendSubscriptionState(SubscriptionState.UNKNOWN);
       await logger.eventManagerPromise_;
-      expect(thrownError).to.equal(SENT_ERR);
+      expect(eventManager.logEvent).to.be.calledOnce;
     });
   });
 
