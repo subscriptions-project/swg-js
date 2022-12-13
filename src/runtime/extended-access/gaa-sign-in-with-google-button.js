@@ -35,12 +35,12 @@ import {
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
 } from './constants';
-import {parseQueryString} from '../../utils/url';
-import {createElement, injectStyleSheet} from '../../utils/dom';
-import {warn} from '../../utils/log';
-import {msg} from '../../utils/i18n';
 import {QueryStringUtils} from './utils';
+import {createElement, injectStyleSheet} from '../../utils/dom';
+import {msg} from '../../utils/i18n';
+import {parseQueryString} from '../../utils/url';
 import {resolveDoc} from '../../model/doc';
+import {warn} from '../../utils/log';
 
 export class GaaSignInWithGoogleButton {
   /**

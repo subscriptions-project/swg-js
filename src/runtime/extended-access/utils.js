@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent, EventOriginator} from '../../proto/api_messages';
 import {
-  ShowcaseEvent,
+  AnalyticsEvent as AnalyticsEventDef,
+  EventOriginator,
+} from '../../proto/api_messages';
+import {
+  ShowcaseEvent as ShowcaseEventDef,
   Subscriptions as SubscriptionsDef,
 } from '../../api/subscriptions';
 import {parseQueryString} from '../../utils/url';
@@ -101,8 +104,8 @@ export async function configureGoogleSignIn() {
 /**
  * Logs Showcase events.
  * @param {{
- *   analyticsEvent: (AnalyticsEvent|undefined),
- *   showcaseEvent: (ShowcaseEvent|undefined),
+ *   analyticsEvent: (AnalyticsEventDef|undefined),
+ *   showcaseEvent: (ShowcaseEventDef|undefined),
  *   isFromUserAction: boolean,
  * }} params
  */

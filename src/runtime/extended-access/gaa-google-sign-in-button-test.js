@@ -24,8 +24,8 @@ import {
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
 } from './constants';
-import {tick} from '../../../test/tick';
 import {QueryStringUtils} from './utils';
+import {tick} from '../../../test/tick';
 
 describes.realWin('GaaGoogleSignInButton', () => {
   const allowedOrigins = [location.origin];

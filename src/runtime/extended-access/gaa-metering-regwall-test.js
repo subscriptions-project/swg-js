@@ -35,9 +35,9 @@ import {
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
 } from './constants';
-import {ShowcaseEvent} from '../../api/subscriptions';
-import {tick} from '../../../test/tick';
 import {QueryStringUtils} from './utils';
+import {ShowcaseEvent as ShowcaseEventDef} from '../../api/subscriptions';
+import {tick} from '../../../test/tick';
 
 const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
@@ -213,7 +213,7 @@ describes.realWin('GaaMeteringRegwall', () => {
   /**
    * Expects a list of Analytics events.
    * @param {!Array<{
-   *   analyticsEvent: !ShowcaseEvent,
+   *   analyticsEvent: !ShowcaseEventDef,
    *   isFromUserAction: boolean,
    * }>} events
    */

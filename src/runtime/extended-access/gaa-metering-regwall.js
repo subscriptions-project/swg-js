@@ -45,19 +45,19 @@ import {
   POST_MESSAGE_STAMP,
   REDIRECT_DELAY,
 } from './constants';
+import {
+  QueryStringUtils,
+  callSwg,
+  configureGoogleSignIn,
+  logEvent,
+  queryStringHasFreshGaaParams,
+} from './utils';
 import {ShowcaseEvent} from '../../api/subscriptions';
 import {addQueryParam} from '../../utils/url';
 import {createElement, injectStyleSheet} from '../../utils/dom';
 import {debugLog, warn} from '../../utils/log';
 import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
 import {parseJson} from '../../utils/json';
-import {
-  callSwg,
-  configureGoogleSignIn,
-  logEvent,
-  queryStringHasFreshGaaParams,
-  QueryStringUtils,
-} from './utils';
 import {resolveDoc} from '../../model/doc';
 import {setImportantStyles} from '../../utils/style';
 

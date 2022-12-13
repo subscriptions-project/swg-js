@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {SIGN_IN_WITH_GOOGLE_BUTTON_ID} from './html-templates';
 import {GaaSignInWithGoogleButton} from './';
 import {I18N_STRINGS} from '../../i18n/strings';
 import {JwtHelper} from '../../utils/jwt';
@@ -25,8 +24,9 @@ import {
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
 } from './constants';
-import {tick} from '../../../test/tick';
 import {QueryStringUtils} from './utils';
+import {SIGN_IN_WITH_GOOGLE_BUTTON_ID} from './html-templates';
+import {tick} from '../../../test/tick';
 
 describes.realWin('GaaSignInWithGoogleButton', () => {
   const allowedOrigins = [location.origin];

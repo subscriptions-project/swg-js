@@ -23,19 +23,19 @@
 
 import {AnalyticsEvent} from '../../proto/api_messages';
 import {GaaMeteringRegwall} from './gaa-metering-regwall';
-import {InitParamsDef} from './typedefs';
 import {GrantReasonType, PaywallReasonType} from './constants';
-import {ShowcaseEvent} from '../../api/subscriptions';
-import {parseUrl, wasReferredByGoogle} from '../../utils/url';
-import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
-import {debugLog} from '../../utils/log';
-import {parseJson} from '../../utils/json';
+import {InitParamsDef} from './typedefs';
 import {
+  QueryStringUtils,
   callSwg,
   logEvent,
   queryStringHasFreshGaaParams,
-  QueryStringUtils,
 } from './utils';
+import {ShowcaseEvent} from '../../api/subscriptions';
+import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
+import {debugLog} from '../../utils/log';
+import {parseJson} from '../../utils/json';
+import {parseUrl, wasReferredByGoogle} from '../../utils/url';
 
 export class GaaMetering {
   constructor() {

@@ -16,9 +16,9 @@
 
 import {AnalyticsEvent} from '../../proto/api_messages';
 import {GaaMetering, GaaMeteringRegwall} from '.';
+import {QueryStringUtils} from './utils';
 import {ShowcaseEvent} from '../../api/subscriptions';
 import {tick} from '../../../test/tick';
-import {QueryStringUtils} from './utils';
 
 const PUBLISHER_NAME = 'The Scenic';
 const PRODUCT_ID = 'scenic-2017.appspot.com:news';
