@@ -21,7 +21,27 @@
 //
 // Thanks!
 
+import {
+  ShowcaseEvent,
+  Subscriptions as SubscriptionsDef,
+} from '../../api/subscriptions';
+import {I18N_STRINGS} from '../../i18n/strings';
+import {resolveDoc} from '../../model/doc';
 import {AnalyticsEvent, EventOriginator} from '../../proto/api_messages';
+import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
+import {createElement, injectStyleSheet} from '../../utils/dom';
+import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
+import {parseJson} from '../../utils/json';
+import {JwtHelper} from '../../utils/jwt';
+import {debugLog, warn} from '../../utils/log';
+import {setImportantStyles} from '../../utils/style';
+import {
+  addQueryParam,
+  parseQueryString,
+  parseUrl,
+  wasReferredByGoogle,
+} from '../../utils/url';
+import {showcaseEventToAnalyticsEvents} from '../event-type-mapping';
 import {
   CASL_HTML,
   GOOGLE_3P_SIGN_IN_BUTTON_ID,
@@ -38,27 +58,13 @@ import {
   REGWALL_HTML,
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-} from './extended-access-html-templates';
-import {I18N_STRINGS} from '../../i18n/strings';
-import {JwtHelper} from '../../utils/jwt';
+} from './html-templates';
 import {
-  ShowcaseEvent,
-  Subscriptions as SubscriptionsDef,
-} from '../../api/subscriptions';
-import {
-  addQueryParam,
-  parseQueryString,
-  parseUrl,
-  wasReferredByGoogle,
-} from '../../utils/url';
-import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
-import {createElement, injectStyleSheet} from '../../utils/dom';
-import {debugLog, warn} from '../../utils/log';
-import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
-import {parseJson} from '../../utils/json';
-import {resolveDoc} from '../../model/doc';
-import {setImportantStyles} from '../../utils/style';
-import {showcaseEventToAnalyticsEvents} from '../event-type-mapping';
+  GaaUserDef,
+  GoogleIdentityV1,
+  GoogleUserDef,
+  InitParams,
+} from './typedefs';
 
 /** Stamp for post messages. */
 export const POST_MESSAGE_STAMP = 'swg-gaa-post-message-stamp';
@@ -83,101 +89,6 @@ export const POST_MESSAGE_COMMAND_3P_BUTTON_CLICK = '3p-button-click';
 
 /** Delay used to log 3P button click before redirect */
 const REDIRECT_DELAY = 10;
-
-/**
- * User object that Publisher JS receives after users sign in.
- * @typedef {{
- *   idToken: string,
- *   name: string,
- *   givenName: string,
- *   familyName: string,
- *   imageUrl: string,
- *   email: string,
- *   authorizationData: {
- *     access_token: string,
- *     id_token: string,
- *     scope: string,
- *     expires_in: number,
- *     first_issued_at: number,
- *     expires_at: number,
- *   },
- * }} GaaUserDef
- */
-export let GaaUserDef;
-
-/**
- * Google Identity (V1) that Google Identity Services returns after someone signs in.
- * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
- * @typedef {{
- *   iss: string,
- *   nbf: number,
- *   aud: string,
- *   sub: string,
- *   hd: string,
- *   email: string,
- *   email_verified: boolean,
- *   azp: string,
- *   name: string,
- *   picture: string,
- *   given_name: string,
- *   family_name: string,
- *   iat: number,
- *   exp: number,
- *   jti: string,
- * }} GoogleIdentityV1
- */
-export let GoogleIdentityV1;
-
-/**
- * GoogleUser object that Google Sign-In returns after users sign in.
- * https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
- * @typedef {{
- *  getAuthResponse: function(boolean): {
- *     access_token: string,
- *     id_token: string,
- *     scope: string,
- *     expires_in: number,
- *     first_issued_at: number,
- *     expires_at: number,
- *   },
- *   getBasicProfile: function(): {
- *     getName: function(): string,
- *     getGivenName: function(): string,
- *     getFamilyName: function(): string,
- *     getImageUrl: function(): string,
- *     getEmail: function(): string,
- *   },
- * }} GoogleUserDef
- */
-export let GoogleUserDef;
-
-/**
- * InitParams object that GaaMetering.init accepts
- * https://developers.google.com/news/subscribe/extended-access/overview
- * @typedef {{
- * allowedReferrers: (Array<string>|null),
- * googleApiClientId: string,
- * authorizationUrl: string,
- * handleLoginPromise: (Promise|null),
- * caslUrl: string,
- * handleSwGEntitlement: function(): ?,
- * publisherEntitlementPromise: (Promise|null),
- * registerUserPromise: (Promise|null),
- * showPaywall: function(): ?,
- * showcaseEntitlement: string,
- * unlockArticle: function(): ?,
- * rawJwt: (boolean|null),
- * userState: {
- *   paywallReason: string,
- *   grantReason: string,
- *   granted: boolean,
- *   id: string,
- *   registrationTimestamp: number,
- *   subscriptionTimestamp: number
- * }
- * }} InitParams
- */
-export let InitParams;
 
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
