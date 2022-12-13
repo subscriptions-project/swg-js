@@ -88,6 +88,17 @@
   },
   "overrides": [
     {
+      "files": ["src/**/*-test.js"],
+      "rules": {
+        "no-restricted-syntax": [2,
+          {
+            "selector": "TryStatement",
+            "message": "Within unit tests, try/catch can hide silent failures. Explicitly expect errors/rejects instead. Ex: `expect(fn).to.throw` or `await expect(promise).to.eventually.be.rejected`"
+          }
+        ]
+      }
+    },
+    {
       "files": ["assets/i18n/strings/*.js"],
       "globals": {
         "__dirname": false,
