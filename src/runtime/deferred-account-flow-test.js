@@ -154,7 +154,7 @@ describes.realWin('DeferredAccountFlow', (env) => {
           consent: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     flow.start();
     return flow.openPromise_;
   });
@@ -164,7 +164,7 @@ describes.realWin('DeferredAccountFlow', (env) => {
       .expects('triggerFlowCanceled')
       .withExactArgs('completeDeferredAccountCreation')
       .once();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
     await expect(flow.start()).to.be.rejectedWith(/cancel/);
@@ -172,7 +172,7 @@ describes.realWin('DeferredAccountFlow', (env) => {
 
   it('should handle failure', async () => {
     callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
     await expect(flow.start()).to.be.rejectedWith(/broken/);
@@ -186,7 +186,7 @@ describes.realWin('DeferredAccountFlow', (env) => {
       'pub1:product1',
       ack
     );
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('blockNextNotification').once();
     entitlementsManagerMock
       .expects('parseEntitlements')
@@ -245,7 +245,7 @@ describes.realWin('DeferredAccountFlow', (env) => {
       'pub1:product1',
       ack
     );
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('blockNextNotification').once();
     entitlementsManagerMock
       .expects('parseEntitlements')

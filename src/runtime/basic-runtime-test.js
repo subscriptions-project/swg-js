@@ -483,7 +483,7 @@ describes.realWin('BasicRuntime', (env) => {
       configuredBasicRuntimeMock
         .expects('linkSubscription')
         .withExactArgs(request)
-        .returns(Promise.resolve(mockResult))
+        .resolves(mockResult)
         .once();
 
       const result = await basicRuntime.linkSubscription(request);
@@ -504,7 +504,7 @@ describes.realWin('BasicRuntime', (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(true))
+        .resolves(true)
         .once();
 
       await basicRuntime.setupButtons();
@@ -538,7 +538,7 @@ describes.realWin('BasicRuntime', (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(false))
+        .resolves(false)
         .once();
 
       await basicRuntime.setupButtons();
@@ -574,7 +574,7 @@ describes.realWin('BasicRuntime', (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(true))
+        .resolves(true)
         .once();
 
       await basicRuntime.setupButtons();
@@ -723,12 +723,8 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     it('should configure subscription auto prompts to show offers for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .returns(Promise.resolve(entitlements));
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .returns(Promise.resolve({}));
+      entitlementsManagerMock.expects('getEntitlements').resolves(entitlements);
+      clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showOffers')
         .withExactArgs({
@@ -744,12 +740,8 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .returns(Promise.resolve(entitlements));
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .returns(Promise.resolve({}));
+      entitlementsManagerMock.expects('getEntitlements').resolves(entitlements);
+      clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
         .withExactArgs({

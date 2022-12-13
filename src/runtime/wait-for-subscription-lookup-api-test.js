@@ -71,7 +71,7 @@ describes.realWin('WaitForSubscriptionLookupApi', (env) => {
           productId,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     dialogManagerMock.expects('completeView').once();
     waitingApi.start();
     await waitingApi.openViewPromise_;
