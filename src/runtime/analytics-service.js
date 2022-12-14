@@ -142,7 +142,7 @@ export class AnalyticsService {
     this.readyForLogging_ = false;
 
     // Stores log events while we wait to be ready for logging.
-    /** @private {Array<!../api/client-event-manager-api.ClientEvent>}*/
+    /** @private {!Array<!../api/client-event-manager-api.ClientEvent>}*/
     this.logs_ = [];
   }
 
