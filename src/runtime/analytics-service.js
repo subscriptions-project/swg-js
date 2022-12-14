@@ -151,9 +151,9 @@ export class AnalyticsService {
    */
   setReadyForLogging() {
     this.readyForLogging_ = true;
-    this.logs_.forEach((event) => {
+    for (const event of this.logs_) {
       this.handleClientEvent_(event);
-    });
+    }
   }
 
   /**

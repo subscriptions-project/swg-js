@@ -145,6 +145,15 @@ const SIGN_IN_WITH_GOOGLE_DECODED_JWT = {
   },
 };
 
+function removeJsonLdScripts() {
+  const scripts = [
+    ...self.document.querySelectorAll('script[type="application/ld+json"]'),
+  ];
+  for (const script of scripts) {
+    script.remove();
+  }
+}
+
 describes.realWin('GaaMetering', () => {
   let microdata;
   let script;
@@ -205,9 +214,11 @@ describes.realWin('GaaMetering', () => {
     microdata.remove();
     QueryStringUtils.getQueryString.restore();
     GaaMeteringRegwall.remove();
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
+
+    const styles = [...self.document.head.querySelectorAll('style')];
+    for (const style of styles) {
+      style.remove();
+    }
 
     self.document.referrer = currentReferrer;
     self.console.log.restore();
@@ -637,10 +648,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('gets publisher ID from microdata', () => {
-      // Remove JSON-LD
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       // Add Microdata.
       microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
@@ -648,10 +656,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('throws if article metadata lacks a publisher id', () => {
-      // Remove JSON-LD
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
       // Remove microdata
       microdata.innerHTML = '';
 
@@ -670,10 +675,7 @@ describes.realWin('GaaMetering', () => {
     it('gets isAccessibleForFree from array page config', () => {
       location.hash = `#swg.debug=1`;
 
-      // Remove JSON-LD
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
         <script type="application/ld+json">
@@ -685,10 +687,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('gets isAccessibleForFree (true) from array page config', () => {
-      // Remove JSON-LD
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
         <script type="application/ld+json">
@@ -700,10 +699,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('gets isAccessibleForFree from microdata false', () => {
-      // Remove JSON-LD
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       // Add Microdata.
       microdata.innerHTML = ARTICLE_MICRODATA_METADATA;
@@ -711,10 +707,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('gets isAccessibleForFree from microdata', () => {
-      // Remove JSON-LD
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       // Add Microdata.
       microdata.innerHTML = ARTICLE_MICRODATA_METADATA_TRUE;
@@ -722,10 +715,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('if article metadata lacks a isAccessibleForFree value', () => {
-      // Remove JSON-LD
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
       // Remove microdata
       microdata.innerHTML = '';
 
@@ -1248,9 +1238,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('succeeds for free from markup', () => {
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
@@ -1296,9 +1284,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('has showcaseEntitlements', () => {
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
@@ -1350,9 +1336,7 @@ describes.realWin('GaaMetering', () => {
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
 
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
@@ -1402,9 +1386,7 @@ describes.realWin('GaaMetering', () => {
       self.document.referrer = 'https://www.google.com';
       location.hash = `#swg.debug=1`;
 
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
@@ -1782,9 +1764,7 @@ describes.realWin('GaaMetering', () => {
 
   describe('isArticleFreeFromJsonLdPageConfig_', () => {
     it('returns true if ld+json says the article is free', () => {
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
@@ -1796,9 +1776,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('returns true if ld+json says the article is free, following ld+json that does not say whether the article is free', () => {
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
@@ -1813,9 +1791,7 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('returns false if ld+json does not say whether article is free', () => {
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = `
       <script type="application/ld+json">
@@ -1831,9 +1807,7 @@ describes.realWin('GaaMetering', () => {
       <script type="application/ld+json">
         [${ARTICLE_LD_JSON_METADATA}]
       </script>`;
-      self.document
-        .querySelectorAll('script[type="application/ld+json"]')
-        .forEach((e) => e.remove());
+      removeJsonLdScripts();
 
       self.document.head.innerHTML = ldJsonScript;
 
