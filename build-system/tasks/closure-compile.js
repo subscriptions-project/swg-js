@@ -126,15 +126,15 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     if (options.extraGlobs) {
       srcs.push.apply(srcs, options.extraGlobs);
     }
-    unneededFiles.forEach((fake) => {
-      if (!fs.existsSync(fake)) {
+    for (const unneededFile of unneededFiles) {
+      if (!fs.existsSync(unneededFile)) {
         fs.writeFileSync(
-          fake,
+          unneededFile,
           '// Not needed in closure compiler\n' +
             'export function deadCode() {}'
         );
       }
-    });
+    }
 
     let externs = ['build-system/extern.js'];
     if (options.externs) {

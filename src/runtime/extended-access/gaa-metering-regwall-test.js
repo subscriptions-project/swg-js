@@ -209,10 +209,12 @@ describes.realWin('GaaMeteringRegwall', () => {
 
     GaaMeteringRegwall.remove();
     self.document.documentElement.lang = '';
+
     // Remove the injected style from GaaMeteringRegwall.createNativeRegistrationButton.
-    self.document.head.querySelectorAll('style').forEach((e) => {
-      e.remove();
-    });
+    const styles = [...self.document.head.querySelectorAll('style')];
+    for (const style of styles) {
+      style.remove();
+    }
 
     self.console.warn.restore();
     self.console.log.restore();

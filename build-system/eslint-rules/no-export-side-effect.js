@@ -21,14 +21,14 @@ module.exports = (context) => ({
       return;
     }
 
-    declaration.declarations
+    const inits = declaration.declarations
       .map(({init}) => init)
-      .filter((init) => init && /(?:Call|New)Expression/.test(init.type))
-      .forEach((init) => {
-        context.report({
-          node: init,
-          message: 'Cannot export side-effect',
-        });
+      .filter((init) => init && /(?:Call|New)Expression/.test(init.type));
+    for (const init of inits) {
+      context.report({
+        node: init,
+        message: 'Cannot export side-effect',
       });
+    }
   },
 });

@@ -474,13 +474,11 @@ function getAnchorFromUrl(url) {
  */
 function getQueryParams() {
   const queryParams = {};
-  location.search
-    .substring(1)
-    .split('&')
-    .forEach((pair) => {
-      const parts = pair.split('=');
-      queryParams[parts[0]] = parts[1];
-    });
+  const pairs = location.search.substring(1).split('&');
+  for (const pair of pairs) {
+    const [key, value] = pair.split('=');
+    queryParams[key] = value;
+  }
   return queryParams;
 }
 

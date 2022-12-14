@@ -144,9 +144,9 @@ function runLinter(filePath, stream, options) {
         }
         if (options.fix && Object.keys(fixedFiles).length > 0) {
           log(green('INFO: ') + 'Summary of fixes:');
-          Object.keys(fixedFiles).forEach((file) => {
+          for (const file of Object.keys(fixedFiles)) {
             log(fixedFiles[file] + cyan(file));
-          });
+          }
         }
       })
     )
@@ -192,9 +192,9 @@ function setFilesToLint(files) {
     .concat(files);
   if (!isCiBuild()) {
     log(green('INFO: ') + 'Running lint on the following files:');
-    files.forEach((file) => {
+    for (const file of files) {
       log(cyan(file));
-    });
+    }
   }
 }
 

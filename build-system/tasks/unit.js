@@ -97,12 +97,12 @@ function printArgvMessages() {
     log(green('Running tests against unminified code.'));
   }
 
-  Object.keys(argv).forEach((arg) => {
+  for (const arg of Object.keys(argv)) {
     const message = argvMessages[arg];
     if (message) {
       log(yellow('--' + arg + ':'), green(message));
     }
-  });
+  }
 }
 
 /**
@@ -192,14 +192,14 @@ function runTests() {
     ];
 
     // Install Instanbul plugin.
-    c.browserify.transform.forEach((transform) => {
+    for (const transform of c.browserify.transform) {
       if (transform[0] === 'babelify') {
         if (!transform[1].plugins) {
           transform[1].plugins = [];
         }
         transform[1].plugins.push(instanbulPlugin);
       }
-    });
+    }
   }
 
   // Run fake-server to test XHR responses.

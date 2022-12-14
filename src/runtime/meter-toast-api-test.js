@@ -497,7 +497,7 @@ describes.realWin('MeterToastApi', (env) => {
       expectedPath:
         '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
     },
-  ].forEach(({description, lang, forceLangInIframes, expectedPath}) =>
+  ].forEach(({description, lang, forceLangInIframes, expectedPath}) => {
     it(description, async () => {
       clientOptions.lang = lang;
       clientOptions.forceLangInIframes = forceLangInIframes;
@@ -516,8 +516,8 @@ describes.realWin('MeterToastApi', (env) => {
         )
         .resolves(port);
       await meterToastApi.start();
-    })
-  );
+    });
+  });
 
   it('isMobile_ works as expected', async () => {
     let window = {

@@ -203,66 +203,66 @@ describes.realWin('AutoPromptManager', (env) => {
       dismissableEventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     },
-  ].forEach(
-    ({
+  ].forEach((params) => {
+    const {
       miniPromptEventType,
       largePromptEventType,
       dismissableEventType,
       autoPromptType,
-    }) => {
-      it(`should not store a ${autoPromptType} impression if a previous prompt impression has been stored`, async () => {
-        storageMock
-          .expects('get')
-          .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
-          .resolves(null)
-          .once();
-        storageMock
-          .expects('set')
-          .withExactArgs(
-            StorageKeys.IMPRESSIONS,
-            sandbox.match.any,
-            /* useLocalStorage */ true
-          )
-          .resolves()
-          .exactly(1);
-        storageMock
-          .expects('get')
-          .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
-          .resolves(null)
-          .once();
-        storageMock
-          .expects('set')
-          .withExactArgs(
-            StorageKeys.DISMISSALS,
-            sandbox.match.any,
-            /* useLocalStorage */ true
-          )
-          .resolves()
-          .once();
+    } = params;
 
-        await eventManagerCallback({
-          eventType: miniPromptEventType,
-          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: null,
-        });
+    it(`should not store a ${autoPromptType} impression if a previous prompt impression has been stored`, async () => {
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.IMPRESSIONS,
+          sandbox.match.any,
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .exactly(1);
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.DISMISSALS,
+          sandbox.match.any,
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .once();
 
-        await eventManagerCallback({
-          eventType: largePromptEventType,
-          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: null,
-        });
-
-        await eventManagerCallback({
-          eventType: dismissableEventType,
-          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: null,
-        });
+      await eventManagerCallback({
+        eventType: miniPromptEventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
       });
-    }
-  );
+
+      await eventManagerCallback({
+        eventType: largePromptEventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+
+      await eventManagerCallback({
+        eventType: dismissableEventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
 
   it('should locally store contribution dismissals when contribution dismissal events are fired', async () => {
     storageMock

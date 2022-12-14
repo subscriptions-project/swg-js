@@ -297,7 +297,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       activityResultData: {index: '1'},
       expectedPath: '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
     },
-  ].forEach(({description, activityResultData, expectedPath}) =>
+  ].forEach(({description, activityResultData, expectedPath}) => {
     it(description, async () => {
       dialogManagerMock.expects('popupClosed').once();
       linkCompleteFlow = new LinkCompleteFlow(runtime, activityResultData);
@@ -338,8 +338,8 @@ describes.realWin('LinkCompleteFlow', (env) => {
         .expects('logSwgEvent')
         .withExactArgs(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
       await linkCompleteFlow.start();
-    })
-  );
+    });
+  });
 
   it('should not open linkconfirmiframe if the response came from a saveAndRefresh flow', async () => {
     const storageMock = sandbox.mock(runtime.storage());
