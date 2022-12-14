@@ -190,11 +190,10 @@ describes.realWin('MeterToastApi', (env) => {
     await meterToastApi.start();
   });
 
-  const userAttributeTests = [
+  [
     {userAttribute: 'anonymous_user', meterType: 'UNKNOWN'},
     {userAttribute: 'known_user', meterType: 'KNOWN'},
-  ];
-  for (const {userAttribute, meterType} of userAttributeTests) {
+  ].forEach(({userAttribute, meterType}) => {
     it(`should start the flow correctly with METERED_BY_GOOGLE client type with client user attribute ${userAttribute}`, async () => {
       const meterToastApiWithParams = new MeterToastApi(runtime, {
         meterClientType: MeterClientTypes.METERED_BY_GOOGLE,
@@ -218,7 +217,7 @@ describes.realWin('MeterToastApi', (env) => {
         .resolves(port);
       await meterToastApiWithParams.start();
     });
-  }
+  });
 
   it('should activate native subscribe request', async () => {
     const nativeStub = sandbox.stub(
@@ -469,7 +468,7 @@ describes.realWin('MeterToastApi', (env) => {
     expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
   });
 
-  const localeTests = [
+  [
     {
       description:
         'should open the iframe without locale set if no language or forceLangInIframes set in clientConfig',
@@ -498,13 +497,7 @@ describes.realWin('MeterToastApi', (env) => {
       expectedPath:
         '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
     },
-  ];
-  for (const {
-    description,
-    lang,
-    forceLangInIframes,
-    expectedPath,
-  } of localeTests) {
+  ].forEach(({description, lang, forceLangInIframes, expectedPath}) => {
     it(description, async () => {
       clientOptions.lang = lang;
       clientOptions.forceLangInIframes = forceLangInIframes;
@@ -524,7 +517,7 @@ describes.realWin('MeterToastApi', (env) => {
         .resolves(port);
       await meterToastApi.start();
     });
-  }
+  });
 
   it('isMobile_ works as expected', async () => {
     let window = {

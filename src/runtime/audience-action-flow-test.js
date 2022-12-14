@@ -131,12 +131,11 @@ describes.realWin('AudienceActionFlow', (env) => {
     sandbox.stub(runtime, 'win').returns(winWithNoGtag);
   }
 
-  const actionTests = [
+  [
     {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
     {action: 'TYPE_NEWSLETTER_SIGNUP', path: 'newsletteriframe'},
     {action: 'TYPE_REWARDED_SURVEY', path: 'surveyiframe'},
-  ];
-  for (const {action, path} of actionTests) {
+  ].forEach(({action, path}) => {
     it(`opens an AudienceActionFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').resolves(null);
       const audienceActionFlow = new AudienceActionFlow(runtime, {
@@ -164,7 +163,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       activitiesMock.verify();
       expect(onCancelSpy).to.not.be.called;
     });
-  }
+  });
 
   it('opens an AudienceActionFlow with query param locale set to client configuration language', async () => {
     clientOptions.lang = 'pt-BR';

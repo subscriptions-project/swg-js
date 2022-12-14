@@ -188,7 +188,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  const autoPromptTests = [
+  [
     {
       miniPromptEventType:
         AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -203,13 +203,14 @@ describes.realWin('AutoPromptManager', (env) => {
       dismissableEventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     },
-  ];
-  for (const {
-    miniPromptEventType,
-    largePromptEventType,
-    dismissableEventType,
-    autoPromptType,
-  } of autoPromptTests) {
+  ].forEach((params) => {
+    const {
+      miniPromptEventType,
+      largePromptEventType,
+      dismissableEventType,
+      autoPromptType,
+    } = params;
+
     it(`should not store a ${autoPromptType} impression if a previous prompt impression has been stored`, async () => {
       storageMock
         .expects('get')
@@ -261,7 +262,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
       });
     });
-  }
+  });
 
   it('should locally store contribution dismissals when contribution dismissal events are fired', async () => {
     storageMock
