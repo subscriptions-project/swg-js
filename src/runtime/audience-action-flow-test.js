@@ -131,12 +131,12 @@ describes.realWin('AudienceActionFlow', (env) => {
     sandbox.stub(runtime, 'win').returns(winWithNoGtag);
   }
 
-  const actions = [
+  const actionTests = [
     {action: 'TYPE_REGISTRATION_WALL', path: 'regwalliframe'},
     {action: 'TYPE_NEWSLETTER_SIGNUP', path: 'newsletteriframe'},
     {action: 'TYPE_REWARDED_SURVEY', path: 'surveyiframe'},
   ];
-  for (const {action, path} of actions) {
+  for (const {action, path} of actionTests) {
     it(`opens an AudienceActionFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').resolves(null);
       const audienceActionFlow = new AudienceActionFlow(runtime, {

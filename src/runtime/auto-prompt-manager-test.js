@@ -188,7 +188,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  const autoPrompts = [
+  const autoPromptTests = [
     {
       miniPromptEventType:
         AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -209,7 +209,7 @@ describes.realWin('AutoPromptManager', (env) => {
     largePromptEventType,
     dismissableEventType,
     autoPromptType,
-  } of autoPrompts) {
+  } of autoPromptTests) {
     it(`should not store a ${autoPromptType} impression if a previous prompt impression has been stored`, async () => {
       storageMock
         .expects('get')

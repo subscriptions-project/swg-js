@@ -190,11 +190,11 @@ describes.realWin('MeterToastApi', (env) => {
     await meterToastApi.start();
   });
 
-  const clientUserAttributes = [
+  const userAttributeTests = [
     {userAttribute: 'anonymous_user', meterType: 'UNKNOWN'},
     {userAttribute: 'known_user', meterType: 'KNOWN'},
   ];
-  for (const {userAttribute, meterType} of clientUserAttributes) {
+  for (const {userAttribute, meterType} of userAttributeTests) {
     it(`should start the flow correctly with METERED_BY_GOOGLE client type with client user attribute ${userAttribute}`, async () => {
       const meterToastApiWithParams = new MeterToastApi(runtime, {
         meterClientType: MeterClientTypes.METERED_BY_GOOGLE,

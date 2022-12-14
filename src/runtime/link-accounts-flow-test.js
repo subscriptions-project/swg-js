@@ -286,7 +286,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     expect(startStub).to.not.be.called;
   });
 
-  const tests = [
+  const indexTests = [
     {
       description: 'should default index to 0',
       activityResultData: {},
@@ -298,7 +298,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       expectedPath: '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
     },
   ];
-  for (const {description, activityResultData, expectedPath} of tests) {
+  for (const {description, activityResultData, expectedPath} of indexTests) {
     it(description, async () => {
       dialogManagerMock.expects('popupClosed').once();
       linkCompleteFlow = new LinkCompleteFlow(runtime, activityResultData);
