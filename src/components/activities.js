@@ -23,10 +23,12 @@ import {
 import {Constants} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
 
+import activityPorts from 'web-activities/activity-ports';
+
 const {
   ActivityIframePort: WebActivityIframePort,
   ActivityPorts: WebActivityPorts,
-} = require('web-activities/activity-ports');
+} = activityPorts;
 
 /**
  * @interface
