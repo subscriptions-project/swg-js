@@ -526,7 +526,7 @@ describes.realWin('GaaMeteringRegwall', () => {
       // Click button.
       self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
 
-      // Simulate the click resolving
+      // Simulate the click resolving.
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
@@ -767,32 +767,8 @@ describes.realWin('GaaMeteringRegwall', () => {
       clock.tick(100);
       await tick(10);
 
-      const argsInit = self.google.accounts.id.initialize.args;
-      expect(typeof argsInit[0][0].callback).to.equal('function');
-      expect(argsInit).to.deep.equal([
-        [
-          {
-            /* eslint-disable google-camelcase/google-camelcase */
-            client_id: GOOGLE_API_CLIENT_ID,
-            callback: argsInit[0][0].callback,
-            /* eslint-enable google-camelcase/google-camelcase */
-          },
-        ],
-      ]);
-
-      const argsRender = self.google.accounts.id.renderButton.args;
-      expect(argsRender).to.deep.equal([
-        [
-          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
-          {
-            'type': 'standard',
-            'theme': 'outline',
-            'text': 'continue_with',
-            'logo_alignment': 'center',
-            'click_listener': argsRender[0][1].click_listener,
-          },
-        ],
-      ]);
+      expect(self.google.accounts.id.initialize).to.be.calledOnce;
+      expect(self.google.accounts.id.renderButton).to.be.calledOnce;
     });
 
     it('renders supported i18n languages', async () => {
@@ -848,6 +824,7 @@ describes.realWin('GaaMeteringRegwall', () => {
       // Click button.
       self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
 
+      // Simulate the click resolving.
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
