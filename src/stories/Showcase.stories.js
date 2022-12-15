@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {GaaMeteringRegwall} from '../utils/gaa';
+import {GaaMeteringRegwall} from '../runtime/extended-access';
 
 export default {
   title: 'Showcase Regwall',
