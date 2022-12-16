@@ -207,7 +207,18 @@ describes.realWin('GaaMeteringRegwall', () => {
       element.remove();
     }
 
+    // Remove SIWG button, if it exists.
+    const buttonEl = self.document.getElementById(
+      SIGN_IN_WITH_GOOGLE_BUTTON_ID
+    );
+    if (buttonEl) {
+      buttonEl.remove();
+    }
+
+    // Remove regwall.
     GaaMeteringRegwall.remove();
+
+    // Reset language.
     self.document.documentElement.lang = '';
 
     // Remove the injected style from GaaMeteringRegwall.createNativeRegistrationButton.
@@ -526,7 +537,7 @@ describes.realWin('GaaMeteringRegwall', () => {
       // Click button.
       self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
 
-      // Simulate the click resolving
+      // Simulate the click resolving.
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
@@ -848,6 +859,7 @@ describes.realWin('GaaMeteringRegwall', () => {
       // Click button.
       self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID).click();
 
+      // Simulate the click resolving.
       const args = self.google.accounts.id.initialize.args;
       args[0][0].callback(SIGN_IN_WITH_GOOGLE_JWT);
 
