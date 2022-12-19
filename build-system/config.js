@@ -61,12 +61,13 @@ module.exports = {
     '!exports/*.js', // Exports only.
     '!src/api/*.js', // Avoid "unused" prefixes in APIs.
     '!src/proto/*.js', // Auto generated code,
-    '!{node_modules,build,dist,third_party}/**/*.*',
+    '!{node_modules,build,dist,third_party,tests_output}/**/*.*',
     '!{testing,examples}/**/*.*',
     '!eslint-rules/**/*.*',
     '!test/coverage/**/*.*',
     '!test/describes.js',
     '!build-system/extern.js',
+    '!vite.config.js',
   ],
   jsonGlobs: [
     '**/*.json',
