@@ -31,10 +31,6 @@ const {
   dist,
   watch,
 } = require('./build-system/tasks/builders');
-const {
-  runAllExportsToEs,
-  runAllExportsToAmp,
-} = require('./build-system/tasks/export-to-es');
 const {assets} = require('./build-system/tasks/assets');
 const {changelog} = require('./build-system/tasks/changelog');
 const {checkRules} = require('./build-system/tasks/check-rules');
@@ -58,8 +54,6 @@ gulp.task('serve', serve);
 gulp.task('clean', clean);
 gulp.task('e2e', e2e);
 gulp.task('dist', dist);
-gulp.task('export-to-es-all', runAllExportsToEs);
-gulp.task('export-to-amp', runAllExportsToAmp);
 
 gulp.task('default', gulp.series(['watch', 'serve']));
 
