@@ -23,7 +23,6 @@
     "build": "gulp build",
     "build-i18n": "node assets/i18n/strings/compile.js && gulp lint --fix --files='src/i18n/strings.js'",
     "dist": "gulp dist",
-    "export-to-amp": "gulp export-to-amp",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },
@@ -116,9 +115,6 @@
     "pumpify": "2.0.1",
     "regenerator-runtime": "0.13.11",
     "request": "2.88.2",
-    "rollup": "3.7.5",
-    "rollup-plugin-commonjs": "10.1.0",
-    "rollup-plugin-node-resolve": "5.2.0",
     "selenium-server": "3.141.59",
     "selenium-webdriver": "4.7.1",
     "shuffle-seed": "1.1.6",
