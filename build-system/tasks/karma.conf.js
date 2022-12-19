@@ -27,15 +27,21 @@ module.exports = {
 
   preprocessors: {
     'src/**/*.js': ['browserify'],
+    'src/**/*.ts': ['browserify'],
     'test/**/*.js': ['browserify'],
+    'test/**/*.ts': ['browserify'],
   },
 
   browserify: {
     watch: true,
     debug: true,
     fast: true,
+    plugin: ['tsify'],
     transform: [
-      ['babelify', {presets: ['@babel/preset-env']}],
+      [
+        'babelify',
+        {presets: ['@babel/preset-env'], extensions: ['.js', '.ts']},
+      ],
       () =>
         through(function (buf, enc, next) {
           this.push(
