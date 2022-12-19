@@ -27,6 +27,10 @@ export default defineConfig({
       compress: {
         // eslint-disable-next-line google-camelcase/google-camelcase
         computed_props: false,
+
+        // Settled on this count by incrementing number until there was no more
+        // effect on minification quality.
+        passes: 3,
       },
     },
 
