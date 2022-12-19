@@ -58,8 +58,6 @@ gulp.task('serve', serve);
 gulp.task('clean', clean);
 gulp.task('e2e', e2e);
 gulp.task('dist', dist);
-gulp.task('export-to-es-all', runAllExportsToEs);
-gulp.task('export-to-amp', runAllExportsToAmp);
 
 gulp.task('default', gulp.series(['watch', 'serve']));
 
