@@ -204,8 +204,8 @@ export class AutoPromptManager {
       : params.displayLargePromptFn;
 
     const displayDelayMs =
-      (clientConfig?.autoPromptConfig.clientDisplayTrigger
-        .displayDelaySeconds || 0) * SECOND_IN_MILLIS;
+      (clientConfig?.autoPromptConfig?.clientDisplayTrigger
+        ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
     if (!shouldShowAutoPrompt) {
       if (
         this.shouldShowBlockingPrompt_(
