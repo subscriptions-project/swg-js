@@ -203,6 +203,9 @@ export class AutoPromptManager {
         })
       : params.displayLargePromptFn;
 
+    const displayDelayMs =
+      (clientConfig?.autoPromptConfig?.clientDisplayTrigger
+        ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
     if (!shouldShowAutoPrompt) {
       if (
         this.shouldShowBlockingPrompt_(
@@ -211,7 +214,12 @@ export class AutoPromptManager {
         ) &&
         promptFn
       ) {
-        promptFn();
+        const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
+          potentialActionPromptType
+        );
+        this.deps_
+          .win()
+          .setTimeout(promptFn, isBlockingPromptWithDelay ? displayDelayMs : 0);
       }
       return;
     }
@@ -222,7 +230,7 @@ export class AutoPromptManager {
         this.getPromptTypeToDisplay_(params.autoPromptType),
         promptFn
       );
-    }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
+    }, displayDelayMs);
   }
 
   /**
@@ -547,6 +555,18 @@ export class AutoPromptManager {
     return (
       (this.pageConfig_.isLocked() || hasPotentialAudienceAction) &&
       !entitlements.enablesThis()
+    );
+  }
+
+  /**
+   * Determines whether the given prompt type is an action prompt type with display delay.
+   * @param {string|undefined} potentialActionPromptType
+   * @returns {boolean}
+   */
+  isActionPromptWithDelay_(potentialActionPromptType) {
+    return (
+      !this.pageConfig_.isLocked() &&
+      potentialActionPromptType === TYPE_REWARDED_SURVEY
     );
   }
 

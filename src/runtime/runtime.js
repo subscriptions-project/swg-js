@@ -61,7 +61,7 @@ import {
   defaultConfig,
 } from '../api/subscriptions';
 import {Propensity} from './propensity';
-import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
+import {DIALOG_CSS as SWG_DIALOG} from '../ui/ui-css';
 import {Storage} from './storage';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
