@@ -898,13 +898,14 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getClientConfig')
       .resolves(clientConfig)
       .once();
-    miniPromptApiMock.expects('create').never();
+    miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
+    await tick(8);
     expect(alternatePromptSpy).to.not.be.called;
   });
 
