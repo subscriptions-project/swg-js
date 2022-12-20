@@ -42,11 +42,6 @@ exports.compile = async (options = {}) => {
   mkdirSync('build/fake-module/src');
   mkdirSync('build/css');
 
-  // Optionally skip JavaScript compilation.
-  if (options.skipJs) {
-    return;
-  }
-
   // For compilation with babel we start with the main-babel entry point,
   // but then rename to the subscriptions.js which we've been using all along.
   await Promise.all([
