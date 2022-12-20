@@ -25,7 +25,6 @@ const port = argv.port || process.env.PORT || 8000;
 const useHttps = argv.https != undefined;
 const quiet = argv.quiet != undefined;
 const publicationId = argv.publicationId || 'scenic-2017.appspot.com';
-const ampLocal = argv.ampLocal != undefined;
 const useStorybook = argv.storybook === true;
 
 const {green} = require('ansi-colors');
@@ -58,7 +57,6 @@ function startServer({jsTarget} = {}) {
       'SERVE_PROCESS_ID': process.pid,
       'SERVE_QUIET': quiet,
       'SERVE_PUBID': publicationId,
-      'SERVE_AMP_LOCAL': ampLocal,
       'SERVE_JS_TARGET': jsTarget,
     },
   }).once('quit', stopServer);
@@ -84,7 +82,6 @@ serve.flags = {
   'https': '  Use HTTPS server (default: false)',
   'quiet': '  Do not log HTTP requests (default: false)',
   'publicationId': '  Sample publicationId',
-  'ampLocal': '  Run against local AMP installation',
   'storybook': 'Run storybook instead of demo apps',
 };
 
