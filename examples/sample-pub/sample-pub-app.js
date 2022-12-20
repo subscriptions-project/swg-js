@@ -28,7 +28,6 @@ app.use('/oauth', require('./service/sample-pub-oauth-app'));
 app.use('/api', require('./service/authorization-app'));
 
 const PUBLICATION_ID = process.env.SERVE_PUBID || 'scenic-2017.appspot.com';
-const AMP_LOCAL = process.env.SERVE_AMP_LOCAL == 'true';
 const JS_TARGET = process.env.SERVE_JS_TARGET || 'local';
 
 const SWG_JS_URLS = {
@@ -108,43 +107,6 @@ app.get('/((\\d+))', (req, res) => {
 });
 
 /**
- * An AMP Article.
- */
-app.get('/((\\d+)).amp', (req, res) => {
-  const id = parseInt(req.params[0], 10);
-  const article = ARTICLES[id - 1];
-  const prevId = id - 1 >= 0 ? String(id - 1) + '.amp' : false;
-  const nextId = id + 1 < ARTICLES.length ? String(id + 1) + '.amp' : false;
-  const setup = getSetup(req);
-  const ac = req.query['ac'] == '1';
-  // TODO(dvoytenko): eventually only look for rtv value, regardless of ac.
-  const rtv = ac ? req.query['rtv'] || '001523056882788' : null;
-  const amp = {
-    'amp_js': ampJsUrl('amp', rtv),
-    'subscriptions_js': ampJsUrl('amp-subscriptions', rtv),
-    'subscriptions_google_js': ampJsUrl('amp-subscriptions-google', rtv),
-    'mustache_js': ampJsUrl('amp-mustache', rtv),
-  };
-  const baseUrl =
-    process.env.NODE_ENV == 'production'
-      ? 'https://scenic-2017.appspot.com'
-      : '//localhost:8000';
-  res.render('../examples/sample-pub/views/article-amp', {
-    amp,
-    setup,
-    serviceBase: baseUrl,
-    publicationId: PUBLICATION_ID,
-    // TODO(dvoytenko): remove completely.
-    // authConnect: ac,
-    id,
-    article,
-    prev: prevId,
-    next: nextId,
-    testParams: getTestParams(req),
-  });
-});
-
-/**
  * Subscribe page. Format:
  * /signin?return=RETURN_URL
  */
@@ -196,68 +158,6 @@ app.post('/signin', (req, res) => {
 app.get('/signout', (req, res) => {
   setUserInfoInCookies_(res, null);
   res.redirect(302, '/');
-});
-
-/**
- * AMP entitlements request.
- */
-app.get('/amp-entitlements', (req, res) => {
-  const pubId = req.query.pubid;
-  // TODO(dvoytenko): test if the origin is actually allowed.
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader(
-    'Access-Control-Expose-Headers',
-    'AMP-Access-Control-Allow-Source-Origin'
-  );
-  if (req.query.__amp_source_origin) {
-    res.setHeader(
-      'AMP-Access-Control-Allow-Source-Origin',
-      req.query.__amp_source_origin
-    );
-  }
-  const email = getUserInfoFromCookies_(req);
-  if (email) {
-    res.json({
-      'products': [pubId + ':news'],
-      'subscriptionToken': 'subtok-' + pubId + '-' + toBase64(encrypt(email)),
-    });
-  } else if (req.query.meter == '1') {
-    const meter = getMeterFromCookies(req);
-    if (meter > 0) {
-      res.json({
-        'products': [pubId + ':news'],
-        'metering': {
-          'left': meter,
-          'total': MAX_METER,
-        },
-      });
-    } else {
-      res.json({});
-    }
-  } else {
-    res.json({});
-  }
-});
-
-/**
- * AMP pingback request.
- */
-app.post('/amp-pingback', (req, res) => {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader(
-    'Access-Control-Expose-Headers',
-    'AMP-Access-Control-Allow-Source-Origin'
-  );
-  if (req.query.__amp_source_origin) {
-    res.setHeader(
-      'AMP-Access-Control-Allow-Source-Origin',
-      req.query.__amp_source_origin
-    );
-  }
-  decMeterInCookies(req, res);
-  res.json({});
 });
 
 /**
@@ -440,7 +340,6 @@ function cleanupReturnUrl(returnUrl) {
   // Make sure we do not introduce a universal unbound redirector.
   if (
     !returnUrl.startsWith('/') &&
-    !returnUrl.startsWith('https://cdn.ampproject.org') &&
     !returnUrl.startsWith('https://scenic-2017.appspot.com') &&
     !returnUrl.startsWith('http://localhost:') &&
     !returnUrl.startsWith('https://localhost:')
@@ -472,21 +371,4 @@ function decMeterInCookies(req, res) {
   res.cookie(METER_COOKIE, String(newMeter), {
     maxAge: /* 60 minutes */ 1000 * 60 * 60,
   });
-}
-
-/**
- * @param {string} name
- * @param {?string} rtv
- * @return {string}
- */
-function ampJsUrl(name, rtv) {
-  const cdnBase = rtv
-    ? 'https://cdn.ampproject.org/rtv/' + rtv
-    : 'https://cdn.ampproject.org';
-  if (name == 'amp') {
-    return AMP_LOCAL ? 'http://localhost:8001/dist/amp.js' : cdnBase + '/v0.js';
-  }
-  return AMP_LOCAL
-    ? 'http://localhost:8001/dist/v0/' + name + '-0.1.max.js'
-    : cdnBase + '/v0/' + name + '-0.1.js';
 }
