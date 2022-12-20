@@ -203,6 +203,9 @@ export class AutoPromptManager {
         })
       : params.displayLargePromptFn;
 
+    const displayDelayMs =
+      (clientConfig?.autoPromptConfig.clientDisplayTrigger
+        .displayDelaySeconds || 0) * SECOND_IN_MILLIS;
     if (!shouldShowAutoPrompt) {
       if (
         this.shouldShowBlockingPrompt_(
@@ -211,14 +214,12 @@ export class AutoPromptManager {
         ) &&
         promptFn
       ) {
-        const displayDelaySeconds = this.isActionPromptWithDelay_(
+        const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
           potentialActionPromptType
-        )
-          ? 20
-          : 0;
+        );
         this.deps_
           .win()
-          .setTimeout(promptFn, displayDelaySeconds * SECOND_IN_MILLIS);
+          .setTimeout(promptFn, isBlockingPromptWithDelay ? displayDelayMs : 0);
       }
       return;
     }
@@ -229,7 +230,7 @@ export class AutoPromptManager {
         this.getPromptTypeToDisplay_(params.autoPromptType),
         promptFn
       );
-    }, (clientConfig?.autoPromptConfig.clientDisplayTrigger.displayDelaySeconds || 0) * SECOND_IN_MILLIS);
+    }, displayDelayMs);
   }
 
   /**
