@@ -453,14 +453,12 @@ describes.realWin('PropensityServer', (env) => {
 
     it('should not send SwG events to Propensity Service', () => {
       testOriginator(EventOriginator.SWG_CLIENT, false);
-      testOriginator(EventOriginator.AMP_CLIENT, false);
     });
 
     it('should send SwG events to the Propensity Service', () => {
       config.enablePropensity = true;
 
       testOriginator(EventOriginator.SWG_CLIENT, true);
-      testOriginator(EventOriginator.AMP_CLIENT, true);
     });
   });
 
