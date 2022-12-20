@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {CSS as LOADING_VIEW_CSS} from '../../build/css/ui/ui.css';
+import {UI_CSS as LOADING_VIEW_CSS} from '../ui/ui-css';
 import {LoadingView} from './loading-view';
 import {injectStyleSheet} from '../utils/dom';
 import {resolveDoc} from '../model/doc';

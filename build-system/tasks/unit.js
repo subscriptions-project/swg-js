@@ -25,8 +25,6 @@ const karmaDefault = require('./karma.conf');
 const log = require('fancy-log');
 const shuffleSeed = require('shuffle-seed');
 const webserver = require('gulp-webserver');
-
-const {build} = require('./builders');
 const {green, yellow, cyan, red} = require('ansi-colors');
 const {isCiBuild} = require('../ci');
 
@@ -229,12 +227,6 @@ function runTests() {
 
 async function unit() {
   printArgvMessages();
-
-  if (!argv.nobuild) {
-    // Build CSS.
-    await build({skipJs: true});
-  }
-
   runTests();
 }
 
