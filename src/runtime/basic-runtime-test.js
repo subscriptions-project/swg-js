@@ -594,6 +594,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
   beforeEach(() => {
     win = Object.assign({}, env.win, {
       ga: () => {},
+      setTimeout: (callback) => callback(),
     });
     pageConfig = new PageConfig('pub1:label1', true);
   });

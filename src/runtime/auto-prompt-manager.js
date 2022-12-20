@@ -211,7 +211,14 @@ export class AutoPromptManager {
         ) &&
         promptFn
       ) {
-        promptFn();
+        const displayDelaySeconds = this.isActionPromptWithDelay_(
+          potentialActionPromptType
+        )
+          ? 20
+          : 0;
+        this.deps_
+          .win()
+          .setTimeout(promptFn, displayDelaySeconds * SECOND_IN_MILLIS);
       }
       return;
     }
@@ -547,6 +554,18 @@ export class AutoPromptManager {
     return (
       (this.pageConfig_.isLocked() || hasPotentialAudienceAction) &&
       !entitlements.enablesThis()
+    );
+  }
+
+  /**
+   * Determines whether the given prompt type is an action prompt type with display delay.
+   * @param {string|undefined} potentialActionPromptType
+   * @returns {boolean}
+   */
+  isActionPromptWithDelay_(potentialActionPromptType) {
+    return (
+      !this.pageConfig_.isLocked() &&
+      potentialActionPromptType === TYPE_REWARDED_SURVEY
     );
   }
 
