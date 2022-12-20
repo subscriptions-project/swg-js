@@ -22,12 +22,9 @@ const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
 const closureCompile = require('./closure-compile').closureCompile;
 const fs = require('fs-extra');
-const glob = require('glob');
 const gulp = $$.help(require('gulp'));
 const internalRuntimeVersion = require('./internal-version').VERSION;
-const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const lazypipe = require('lazypipe');
-const pathLib = require('path');
 const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
 const touch = require('touch');
@@ -44,9 +41,6 @@ exports.compile = async (options = {}) => {
   mkdirSync('build/fake-module');
   mkdirSync('build/fake-module/src');
   mkdirSync('build/css');
-
-  // Compile CSS because we need the css files in compileJs step.
-  await compileCss('./src/', './build/css', options);
 
   // Optionally skip JavaScript compilation.
   if (options.skipJs) {
@@ -240,48 +234,6 @@ function compileJs(srcDir, srcFilename, destDir, options) {
     // `gulp build` / `gulp dist` cases where options.watch is undefined.
     return rebundle();
   }
-}
-
-/**
- * Compile all the css and drop in the build folder.
- *
- * @param {string} srcDir Path to the src directory.
- * @param {string} outputDir Destination folder for output files.
- * @param {?Object} options
- * @return {!Promise}
- */
-function compileCss(srcDir, outputDir, options) {
-  options = options || {};
-
-  if (options.watch) {
-    $$.watch(srcDir + '**/*.css', () => {
-      compileCss(srcDir, outputDir, Object.assign({}, options, {watch: false}));
-    });
-  }
-
-  const startTime = Date.now();
-  return new Promise((resolve) => {
-    glob('**/*.css', {cwd: srcDir}, (er, files) => {
-      resolve(files);
-    });
-  })
-    .then((files) => {
-      const promises = files.map((file) => {
-        const srcFile = srcDir + file;
-        return jsifyCssAsync(srcFile).then((css) => {
-          const targetFile = outputDir + '/' + file + '.js';
-          mkdirSync(pathLib.dirname(targetFile));
-          fs.writeFileSync(
-            targetFile,
-            'export const CSS = ' + JSON.stringify(css) + ';'
-          );
-        });
-      });
-      return Promise.all(promises);
-    })
-    .then(() => {
-      endBuildStep('Recompiled CSS', '', startTime);
-    });
 }
 
 function toPromise(readable) {
