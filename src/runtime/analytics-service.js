@@ -25,6 +25,7 @@ import {
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {ExperimentFlags} from './experiment-flags';
+import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
 import {getCanonicalUrl} from '../utils/url';
@@ -257,7 +258,7 @@ export class AnalyticsService {
       context.setTransactionId(getUuid());
     }
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
-    context.setClientVersion('SwG $internalRuntimeVersion$');
+    context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
     context.setUrl(getCanonicalUrl(this.doc_));
 
     const utmParams = parseQueryString(this.getQueryString_());

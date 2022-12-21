@@ -71,34 +71,34 @@ describes.realWin('MiniPromptApi', (env) => {
   it('should insert the mini prompt css on init', () => {
     miniPromptApi.init();
     const links = doc.querySelectorAll(
-      'link[href="$assets$/swg-mini-prompt.css"]'
+      'link[href="/assets/swg-mini-prompt.css"]'
     );
     expect(links).to.have.length(1);
     const link = links[0];
     expect(link.getAttribute('rel')).to.equal('stylesheet');
     expect(link.getAttribute('type')).to.equal('text/css');
-    expect(link.getAttribute('href')).to.equal('$assets$/swg-mini-prompt.css');
+    expect(link.getAttribute('href')).to.equal('/assets/swg-mini-prompt.css');
   });
 
   it('should not insert the mini prompt css twice', () => {
     miniPromptApi.init();
     let links = doc.querySelectorAll(
-      'link[href="$assets$/swg-mini-prompt.css"]'
+      'link[href="/assets/swg-mini-prompt.css"]'
     );
     expect(links).to.have.length(1);
     let link = links[0];
     expect(link.getAttribute('rel')).to.equal('stylesheet');
     expect(link.getAttribute('type')).to.equal('text/css');
-    expect(link.getAttribute('href')).to.equal('$assets$/swg-mini-prompt.css');
+    expect(link.getAttribute('href')).to.equal('/assets/swg-mini-prompt.css');
 
     // Try to init a second time.
     miniPromptApi.init();
-    links = doc.querySelectorAll('link[href="$assets$/swg-mini-prompt.css"]');
+    links = doc.querySelectorAll('link[href="/assets/swg-mini-prompt.css"]');
     expect(links).to.have.length(1);
     link = links[0];
     expect(link.getAttribute('rel')).to.equal('stylesheet');
     expect(link.getAttribute('type')).to.equal('text/css');
-    expect(link.getAttribute('href')).to.equal('$assets$/swg-mini-prompt.css');
+    expect(link.getAttribute('href')).to.equal('/assets/swg-mini-prompt.css');
   });
 
   it('should warn when document head is not available', () => {

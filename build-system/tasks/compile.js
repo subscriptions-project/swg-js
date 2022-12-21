@@ -160,6 +160,14 @@ function compileJs(srcDir, srcFilename, destDir, options) {
           },
         ],
       ],
+      'plugins': [
+        [
+          './build-system/transform-define-constants',
+          {
+            'replacements': resolveConfig(),
+          },
+        ],
+      ],
     })
   );
   if (options.watch) {
@@ -171,16 +179,6 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   let lazybuild = lazypipe()
     .pipe(source, srcFilename + '.js')
     .pipe(buffer);
-
-  // Replacements.
-  const replacements = resolveConfig();
-  for (const k in replacements) {
-    lazybuild = lazybuild.pipe(
-      $$.replace,
-      new RegExp('\\$' + k + '\\$', 'g'),
-      replacements[k]
-    );
-  }
 
   // Complete build with wrapper and sourcemaps.
   lazybuild = lazybuild

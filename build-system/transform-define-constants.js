@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-/**
- * @fileoverview
- * The entry point for runtime (swg.js).
- */
-
-import {INTERNAL_RUNTIME_VERSION} from './constants';
-import {installRuntime} from './runtime/runtime';
-import {log} from './utils/log';
-
-log(`Subscriptions Runtime: ${INTERNAL_RUNTIME_VERSION}`);
-
-installRuntime(self);
+module.exports = function () {
+  return {
+    name: 'transform-define-constants',
+    visitor: {
+      VariableDeclarator(path, state) {
+        if (
+          state.opts.replacements &&
+          state.opts.replacements[path.node.id.name]
+        ) {
+          path.node.init.value = state.opts.replacements[path.node.id.name];
+        }
+      },
+    },
+  };
+};

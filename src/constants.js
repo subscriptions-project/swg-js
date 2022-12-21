@@ -15,14 +15,29 @@
  */
 
 /**
- * @fileoverview
- * The entry point for runtime (swg.js).
+ * This file contains a set of variables that can be overriden by the compiler.
  */
 
-import {INTERNAL_RUNTIME_VERSION} from './constants';
-import {installRuntime} from './runtime/runtime';
-import {log} from './utils/log';
+/** @define {string} */
+export const FRONTEND = 'https://news.google.com';
 
-log(`Subscriptions Runtime: ${INTERNAL_RUNTIME_VERSION}`);
+/** @define {string} */
+export const PAY_ENVIRONMENT = 'SANDBOX';
 
-installRuntime(self);
+/** @define {string} */
+export const PLAY_ENVIRONMENT = 'STAGING';
+
+/** @define {string} */
+export const FRONTEND_CACHE = 'nocache';
+
+/** @define {string} */
+export const INTERNAL_RUNTIME_VERSION = '0.0.0';
+
+/** @define {string} */
+export const ASSETS = '/assets';
+
+/** @define {string} */
+export const ADS_SERVER = 'https://pubads.g.doubleclick.net';
+
+/** @define {string} */
+export const EXPERIMENTS = '';
