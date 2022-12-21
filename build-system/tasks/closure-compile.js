@@ -197,13 +197,19 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       compilerOptions.define.push('FORTESTING=true');
     }
 
-    // Replacements.
+    /**
+     * Replacements.
+     *
+     * The format is <name>[=<val>], where <name> is the name of a @define variable and <val> is a boolean,
+     * number, or a single-quoted string that contains no single quotes. If [=<val>] is omitted, the variable is marked true
+     */
     const replacements = resolveConfig();
     for (const k in replacements) {
-      if (replacements[k]) {
-        // compilerOptions.define.push(k + '=' + replacements[k]);
-        compilerOptions.define.push(`${k}=${replacements[k]}`);
-      }
+      const replacement =
+        typeof replacements[k] === 'string'
+          ? `'${replacements[k]}'`
+          : replacements[k];
+      compilerOptions.define.push(`${k}=${replacement}`);
     }
 
     if (compilerOptions.define.length == 0) {
