@@ -280,7 +280,7 @@ export class GaaMetering {
       googleEntitlement.consume(() => {
         // Consume the entitlement and trigger a dialog that lets the user
         // know Google provided them with a free read.
-        unlockArticle();
+        unlockArticle(googleEntitlement);
       });
     } else if (googleEntitlement.enablesThis()) {
       // Google returned a non-metering entitlement
