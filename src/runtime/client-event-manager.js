@@ -76,8 +76,7 @@ export class ClientEventManager {
   static isPublisherEvent(event) {
     return (
       event.eventOriginator === EventOriginator.PROPENSITY_CLIENT ||
-      event.eventOriginator === EventOriginator.PUBLISHER_CLIENT ||
-      event.eventOriginator === EventOriginator.AMP_CLIENT
+      event.eventOriginator === EventOriginator.PUBLISHER_CLIENT
     );
   }
 

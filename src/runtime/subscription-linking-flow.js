@@ -61,7 +61,7 @@ export class SubscriptionLinkingFlow {
         ppid: publisherProvidedId,
       }),
       args,
-      /* shouldFadeBody= */ true
+      /* shouldFadeBody= */ false
     );
     activityIframeView.on(
       SubscriptionLinkingCompleteResponse,
@@ -81,7 +81,7 @@ export class SubscriptionLinkingFlow {
       activityIframeView,
       /* hidden= */ false,
       {
-        desktopConfig: {isCenterPositioned: true},
+        desktopConfig: {isCenterPositioned: false},
       }
     );
 
