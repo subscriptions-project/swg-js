@@ -17,6 +17,7 @@
 import {defineConfig} from 'vite';
 import {resolveConfig} from './build-system/tasks/compile-config';
 import replace from '@rollup/plugin-replace';
+import {visualizer} from 'rollup-plugin-visualizer';
 
 const builds = {
   basic: {output: 'basic-subscriptions.js', input: './src/basic-main.js'},
@@ -62,6 +63,10 @@ export default defineConfig({
         replace({
           delimiters: ['\\$', '\\$'],
           values: resolveConfig(),
+          preventAssignment: false,
+        }),
+        visualizer({
+          filename: './build/rollup-visualization.html',
         }),
       ],
     },
