@@ -19,6 +19,22 @@ import {resolveConfig} from './build-system/tasks/compile-config';
 import replace from '@rollup/plugin-replace';
 import {visualizer} from 'rollup-plugin-visualizer';
 
+// Choose Rollup plugins.
+const rollupPlugins = [
+  replace({
+    delimiters: ['\\$', '\\$'],
+    values: resolveConfig(),
+    preventAssignment: false,
+  }),
+];
+if (process.argv.includes('--visualize')) {
+  rollupPlugins.push(
+    visualizer({
+      filename: './build/rollup-visualization.html',
+    })
+  );
+}
+
 const builds = {
   basic: {output: 'basic-subscriptions.js', input: './src/basic-main.js'},
   classic: {output: 'subscriptions.js', input: './src/main.js'},
@@ -59,16 +75,7 @@ export default defineConfig({
           entryFileNames: output,
         },
       ],
-      plugins: [
-        replace({
-          delimiters: ['\\$', '\\$'],
-          values: resolveConfig(),
-          preventAssignment: false,
-        }),
-        visualizer({
-          filename: './build/rollup-visualization.html',
-        }),
-      ],
+      plugins: rollupPlugins,
     },
   },
 });
