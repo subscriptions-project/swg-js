@@ -69,10 +69,10 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       expect(searchParams.get('ppid')).to.equal(REQUEST.publisherProvidedId);
       const args = activityIframeView.args_;
       expect(args['publicationId']).to.equal(PUBLICATION_ID);
-      expect(activityIframeView.shouldFadeBody_).to.be.true;
+      expect(activityIframeView.shouldFadeBody_).to.be.false;
       expect(hidden).to.be.false;
       expect(dialogConfig).to.deep.equal({
-        desktopConfig: {isCenterPositioned: true},
+        desktopConfig: {isCenterPositioned: false},
       });
       dialogManagerMock.verify();
     });
