@@ -16,7 +16,6 @@
 'use strict';
 
 const argv = require('minimist')(process.argv.slice(2));
-const through2 = require('through2');
 const {isCiBuild} = require('../ci');
 
 /**
@@ -35,26 +34,22 @@ module.exports = {
     debug: true,
     fast: true,
     transform: [
-      () =>
-        through2(function (buf, enc, next) {
-          this.push(
-            buf
-              .toString('utf8')
-              /**
-               * Set Pay environment to indicate we're in a Karma test.
-               *
-               * This string replacement is still necessary even with the babel plugin because of the way the
-               * istanbul plugin modifies the output. At the time of writing, multiple plugins were reported
-               * as being broken with no responses, so this should continue to keep us having coverage.
-               */
-              .replace(
-                "PAY_ENVIRONMENT = 'SANDBOX'",
-                "PAY_ENVIRONMENT = 'TEST'"
-              )
-          );
-          next();
-        }),
-      ['babelify', {presets: ['@babel/preset-env']}],
+      [
+        'babelify',
+        {
+          presets: ['@babel/preset-env'],
+          plugins: [
+            [
+              './build-system/transform-define-constants',
+              {
+                'replacements': {
+                  'PAY_ENVIRONMENT': 'TEST',
+                },
+              },
+            ],
+          ],
+        },
+      ],
     ],
     bundleDelay: 900,
   },
