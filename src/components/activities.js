@@ -19,6 +19,7 @@ import {
   deserialize,
   getLabel,
 } from '../proto/api_messages';
+import {INTERNAL_RUNTIME_VERSION} from '../constants';
 
 import {Constants} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
@@ -288,7 +289,7 @@ export class ActivityPorts {
         'analyticsContext': context.toArray(),
         'publicationId': pageConfig.getPublicationId(),
         'productId': pageConfig.getProductId(),
-        '_client': 'SwG $internalRuntimeVersion$',
+        '_client': `SwG ${INTERNAL_RUNTIME_VERSION}`,
         'supportsEventManager': true,
       },
       args || {}

@@ -42,9 +42,11 @@ describes.realWin('JsError', (env) => {
     expect(elements[0].name).to.equal('img');
     const src = parseUrl(elements[0].src);
     const params = parseQueryString(src.search);
-    expect(src.origin).to.equal('$frontend$');
+    expect(src.origin).to.equal('https://news.google.com');
     expect(src.pathname).to.equal('/_/SubscribewithgoogleClientUi/jserror');
-    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['script']).to.equal(
+      'https://news.google.com/swg/js/v1/swg.js'
+    );
     expect(params['error']).to.equal('Error: broken');
     expect(params['trace']).to.match(/browserify.js/);
     expect(error.reported).to.be.true;
@@ -66,9 +68,11 @@ describes.realWin('JsError', (env) => {
     expect(elements[0].name).to.equal('img');
     const src = parseUrl(elements[0].src);
     const params = parseQueryString(src.search);
-    expect(src.origin).to.equal('$frontend$');
+    expect(src.origin).to.equal('https://news.google.com');
     expect(src.pathname).to.equal('/_/SubscribewithgoogleClientUi/jserror');
-    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['script']).to.equal(
+      'https://news.google.com/swg/js/v1/swg.js'
+    );
     expect(params['error']).to.equal('Error: A B: broken');
     expect(params['trace']).to.match(/browserify.js/);
   });
@@ -79,9 +83,11 @@ describes.realWin('JsError', (env) => {
     expect(elements[0].name).to.equal('img');
     const src = parseUrl(elements[0].src);
     const params = parseQueryString(src.search);
-    expect(src.origin).to.equal('$frontend$');
+    expect(src.origin).to.equal('https://news.google.com');
     expect(src.pathname).to.equal('/_/SubscribewithgoogleClientUi/jserror');
-    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['script']).to.equal(
+      'https://news.google.com/swg/js/v1/swg.js'
+    );
     expect(params['error']).to.equal('Error: A B');
     expect(params['trace']).to.match(/browserify.js/);
   });
@@ -94,9 +100,11 @@ describes.realWin('JsError', (env) => {
     expect(elements[0].name).to.equal('img');
     const src = parseUrl(elements[0].src);
     const params = parseQueryString(src.search);
-    expect(src.origin).to.equal('$frontend$');
+    expect(src.origin).to.equal('https://news.google.com');
     expect(src.pathname).to.equal('/_/SubscribewithgoogleClientUi/jserror');
-    expect(params['script']).to.equal('$frontend$/swg/js/v1/swg.js');
+    expect(params['script']).to.equal(
+      'https://news.google.com/swg/js/v1/swg.js'
+    );
     expect(params['error']).to.equal('Error: whateva');
   });
 });

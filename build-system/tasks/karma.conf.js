@@ -16,7 +16,6 @@
 'use strict';
 
 const argv = require('minimist')(process.argv.slice(2));
-const through = require('through2');
 const {isCiBuild} = require('../ci');
 
 /**
@@ -40,20 +39,21 @@ module.exports = {
     transform: [
       [
         'babelify',
-        {presets: ['@babel/preset-env'], extensions: ['.js', '.ts']},
+        {
+          presets: ['@babel/preset-env'],
+          extensions: ['.js', '.ts'],
+          plugins: [
+            [
+              './build-system/transform-define-constants',
+              {
+                'replacements': {
+                  'PAY_ENVIRONMENT': 'TEST',
+                },
+              },
+            ],
+          ],
+        },
       ],
-      () =>
-        through(function (buf, enc, next) {
-          this.push(
-            buf
-              .toString('utf8')
-              // Set Pay environment to indicate we're in a Karma test.
-              .replace(/\$payEnvironment\$/g, 'TEST')
-              // Some tests need a valid SwG server origin.
-              .replace(/\$frontend\$/g, 'https://news.google.com')
-          );
-          next();
-        }),
     ],
     bundleDelay: 900,
   },
