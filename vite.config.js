@@ -20,14 +20,23 @@ import replace from '@rollup/plugin-replace';
 import {visualizer} from 'rollup-plugin-visualizer';
 
 // Choose Rollup plugins.
+const replacementValues = Object.entries(resolveConfig()).reduce(
+  (obj, [key, value]) => {
+    obj[key] = `export const ${key} = '${value}'; //`;
+    return obj;
+  },
+  {}
+);
 const rollupPlugins = [
   replace({
-    delimiters: ['\\$', '\\$'],
-    values: resolveConfig(),
+    delimiters: ['export const ', ' = '],
+    include: ['./src/constants.js'],
     preventAssignment: false,
+    values: replacementValues,
   }),
 ];
 if (process.argv.includes('--visualize')) {
+  // Visualize bundle to see which modules are taking up space.
   rollupPlugins.push(
     visualizer({
       filename: './build/rollup-visualization.html',
