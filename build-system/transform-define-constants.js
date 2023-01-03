@@ -15,16 +15,42 @@
  */
 'use strict';
 
-module.exports = function () {
+/**
+ * Babel plugin to replace usages of `goog.define` with
+ * either the overrides provided in options or the default
+ * value provided to the caller.
+ */
+module.exports = function (babel) {
+  const {types: t} = babel;
+
+  function isGoogDefine(node) {
+    return (
+      t.isCallExpression(node) &&
+      t.isMemberExpression(node.callee) &&
+      t.isIdentifier(node.callee.object, {
+        name: 'goog',
+      }) &&
+      t.isIdentifier(node.callee.property, {
+        name: 'define',
+      })
+    );
+  }
+
   return {
     name: 'transform-define-constants',
     visitor: {
       VariableDeclarator(path, state) {
-        if (
-          state.opts.replacements &&
-          state.opts.replacements[path.node.id.name]
-        ) {
-          path.node.init.value = state.opts.replacements[path.node.id.name];
+        if (isGoogDefine(path.node.init)) {
+          if (
+            state.opts.replacements &&
+            state.opts.replacements[path.node.id.name] != null
+          ) {
+            path.node.init = t.stringLiteral(
+              state.opts.replacements[path.node.id.name]
+            );
+          } else {
+            path.node.init = path.node.init.arguments[1];
+          }
         }
       },
     },
