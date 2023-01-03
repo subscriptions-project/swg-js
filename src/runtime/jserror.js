@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {FRONTEND} from '../constants';
 
 /**
  */
@@ -44,11 +45,11 @@ export class JsError {
     // Send error.
     const img = this.doc_.getWin().document.createElement('img');
     img.src =
-      '$frontend$/_/SubscribewithgoogleClientUi/jserror' +
+      `${FRONTEND}/_/SubscribewithgoogleClientUi/jserror` +
       '?error=' +
       encodeURIComponent(String(error)) +
       '&script=' +
-      encodeURIComponent('$frontend$/swg/js/v1/swg.js') +
+      encodeURIComponent(`${FRONTEND}/swg/js/v1/swg.js`) +
       '&line=' +
       (error.lineNumber || 1) +
       '&trace=' +

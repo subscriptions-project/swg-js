@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ASSETS} from '../constants';
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
 import {
@@ -667,7 +668,7 @@ export class ConfiguredRuntime {
 
     const preconnect = new Preconnect(this.win_.document);
 
-    preconnect.prefetch('$assets$/loader.svg');
+    preconnect.prefetch(`${ASSETS}/loader.svg`);
     preconnect.preconnect('https://www.gstatic.com/');
     preconnect.preconnect('https://www.google.com/');
     LinkCompleteFlow.configurePending(this);

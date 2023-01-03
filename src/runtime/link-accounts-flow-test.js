@@ -76,10 +76,10 @@ describes.realWin('LinkbackFlow', (env) => {
       .expects('open')
       .withExactArgs(
         'swg-link',
-        '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
+        'https://news.google.com/swg/_/ui/v1/linkbackstart?_=_',
         '_blank',
         {
-          '_client': 'SwG $internalRuntimeVersion$',
+          '_client': 'SwG 0.0.0',
           'publicationId': 'pub1',
         },
         {}
@@ -100,10 +100,10 @@ describes.realWin('LinkbackFlow', (env) => {
       .expects('open')
       .withExactArgs(
         'swg-link',
-        '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
+        'https://news.google.com/swg/_/ui/v1/linkbackstart?_=_',
         '_blank',
         {
-          '_client': 'SwG $internalRuntimeVersion$',
+          '_client': 'SwG 0.0.0',
           'publicationId': 'pub1',
           'ampReaderId': 'ari1',
         },
@@ -125,10 +125,10 @@ describes.realWin('LinkbackFlow', (env) => {
       .expects('open')
       .withExactArgs(
         'swg-link',
-        '$frontend$/swg/_/ui/v1/linkbackstart?_=_',
+        'https://news.google.com/swg/_/ui/v1/linkbackstart?_=_',
         '_top',
         {
-          '_client': 'SwG $internalRuntimeVersion$',
+          '_client': 'SwG 0.0.0',
           'publicationId': 'pub1',
         },
         {}
@@ -219,7 +219,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       ActivityResultCode.OK,
       activityResultData,
       'IFRAME',
-      '$frontend$',
+      'https://news.google.com',
       true,
       true
     );
@@ -290,12 +290,14 @@ describes.realWin('LinkCompleteFlow', (env) => {
     {
       description: 'should default index to 0',
       activityResultData: {},
-      expectedPath: '$frontend$/swg/u/0/_/ui/v1/linkconfirmiframe?_=_',
+      expectedPath:
+        'https://news.google.com/swg/u/0/_/ui/v1/linkconfirmiframe?_=_',
     },
     {
       description: 'should use index in response',
       activityResultData: {index: '1'},
-      expectedPath: '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
+      expectedPath:
+        'https://news.google.com/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
     },
   ].forEach(({description, activityResultData, expectedPath}) => {
     it(description, async () => {
@@ -309,7 +311,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
         ActivityResultCode.OK,
         {},
         'IFRAME',
-        '$frontend$',
+        'https://news.google.com',
         true,
         true
       );
@@ -321,7 +323,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
           sandbox.match((arg) => arg.tagName === 'IFRAME'),
           expectedPath,
           {
-            '_client': 'SwG $internalRuntimeVersion$',
+            '_client': 'SwG 0.0.0',
             'productId': 'pub1:prod1',
             'publicationId': 'pub1',
           }
@@ -378,9 +380,9 @@ describes.realWin('LinkCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
+        'https://news.google.com/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
         {
-          '_client': 'SwG $internalRuntimeVersion$',
+          '_client': 'SwG 0.0.0',
           'productId': 'pub1:prod1',
           'publicationId': 'pub1',
         }
@@ -409,7 +411,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       ActivityResultCode.OK,
       {success: true},
       'IFRAME',
-      '$frontend$',
+      'https://news.google.com',
       true,
       true
     );
@@ -434,9 +436,9 @@ describes.realWin('LinkCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
+        'https://news.google.com/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
         {
-          '_client': 'SwG $internalRuntimeVersion$',
+          '_client': 'SwG 0.0.0',
           'productId': 'pub1:prod1',
           'publicationId': 'pub1',
         }
@@ -490,7 +492,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
         'entitlements': 'ENTITLEMENTS_JWT',
       },
       'IFRAME',
-      '$frontend$',
+      'https://news.google.com',
       true,
       true
     );
@@ -535,7 +537,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       ActivityResultCode.OK,
       {},
       'IFRAME',
-      '$frontend$',
+      'https://news.google.com',
       true,
       true
     );
@@ -583,7 +585,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       ActivityResultCode.OK,
       {success: true, swgUserToken: 'fake user token'},
       'IFRAME',
-      '$frontend$',
+      'https://news.google.com',
       true,
       true
     );
@@ -666,7 +668,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
       .resolves(port);
@@ -692,7 +694,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       ActivityResultCode.OK,
       {'linked': false},
       'IFRAME',
-      '$frontend$',
+      'https://news.google.com',
       true,
       true
     );
@@ -734,7 +736,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       ActivityResultCode.OK,
       {'index': 1, 'linked': true},
       'IFRAME',
-      '$frontend$',
+      'https://news.google.com',
       true,
       true
     );
@@ -879,7 +881,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
       .resolves(port);
@@ -892,7 +894,7 @@ describes.realWin('LinkSaveFlow', (env) => {
           'linked': true,
         },
         'IFRAME',
-        '$frontend$',
+        'https://news.google.com',
         true,
         true
       );
@@ -917,7 +919,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
       .resolves(port);
@@ -933,7 +935,7 @@ describes.realWin('LinkSaveFlow', (env) => {
           'linked': true,
         },
         'IFRAME',
-        '$frontend$',
+        'https://news.google.com',
         true,
         true
       );
@@ -956,7 +958,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/linksaveiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
       .resolves(port);
@@ -976,7 +978,7 @@ describes.realWin('LinkSaveFlow', (env) => {
           'linked': true,
         },
         'IFRAME',
-        '$frontend$',
+        'https://news.google.com',
         true,
         true
       );

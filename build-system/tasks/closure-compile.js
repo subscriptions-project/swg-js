@@ -23,7 +23,6 @@ const os = require('os');
 const path = require('path');
 const pumpify = require('pumpify');
 const rename = require('gulp-rename');
-const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
 const sourcemaps = require('gulp-sourcemaps');
 const through = require('through2');
@@ -198,6 +197,21 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       compilerOptions.define.push('FORTESTING=true');
     }
 
+    /**
+     * Replacements.
+     *
+     * The format is <name>[=<val>], where <name> is the name of a @define variable and <val> is a boolean,
+     * number, or a single-quoted string that contains no single quotes. If [=<val>] is omitted, the variable is marked true
+     */
+    const replacements = resolveConfig();
+    for (const k in replacements) {
+      const replacement =
+        typeof replacements[k] === 'string'
+          ? `'${replacements[k]}'`
+          : replacements[k];
+      compilerOptions.define.push(`${k}=${replacement}`);
+    }
+
     if (compilerOptions.define.length == 0) {
       delete compilerOptions.define;
     }
@@ -222,14 +236,6 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
           includeContent: false,
         })
       );
-
-      // Replacements.
-      const replacements = resolveConfig();
-      for (const k in replacements) {
-        stream = stream.pipe(
-          replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k])
-        );
-      }
 
       // Appends a newline terminator to .map files
       stream = stream.pipe(

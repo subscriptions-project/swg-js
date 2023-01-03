@@ -27,7 +27,7 @@ beforeEach(function () {
   this.timeout(5000);
   window.TEST = true;
   MODES.default['feCache'] = 'zero';
-  PAY_ORIGIN['$payEnvironment$'] = 'PAY_ORIGIN';
+  PAY_ORIGIN['TEST'] = 'PAY_ORIGIN';
 });
 
 // Global cleanup of tags added during tests. Cool to add more
