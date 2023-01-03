@@ -42,7 +42,6 @@ describe('errors', () => {
   describe('createCancelError', () => {
     it('creates error', () => {
       const error = createCancelError(self, 'custom message');
-      expect(error.code).to.equal(20);
       expect(error.message).to.equal('AbortError: custom message');
       expect(error.name).to.equal('AbortError');
     });
