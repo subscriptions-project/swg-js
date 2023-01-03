@@ -330,7 +330,7 @@ export class LinkSaveFlow {
 
     // Handle linking failure.
     if (!result['linked']) {
-      throw createCancelError(this.win_, 'not linked');
+      throw createCancelError('not linked');
     }
 
     // Start link confirmation flow.
