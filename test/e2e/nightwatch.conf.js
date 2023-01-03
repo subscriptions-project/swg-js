@@ -35,15 +35,16 @@ module.exports = {
       desiredCapabilities: {
         browserName: 'chrome',
         chromeOptions: {
-          w3c: false,
           args: ['--headless'],
+          w3c: false,
         },
       },
 
       webdriver: {
-        start_process: true,
-        server_path: require('chromedriver').path,
+        keep_alive: true,
         port: 9515,
+        server_path: require('chromedriver').path,
+        start_process: true,
         timeout_options: {
           timeout: 60000,
           retry_attempts: 3,
