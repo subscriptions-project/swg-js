@@ -19,25 +19,42 @@
  */
 
 /** @define {string} */
-export const FRONTEND = 'https://news.google.com';
+const FRONTEND = goog.define('FRONTEND', 'https://news.google.com');
 
 /** @define {string} */
-export const PAY_ENVIRONMENT = 'SANDBOX';
+const PAY_ENVIRONMENT = goog.define('PAY_ENVIRONMENT', 'SANDBOX');
 
 /** @define {string} */
-export const PLAY_ENVIRONMENT = 'STAGING';
+const PLAY_ENVIRONMENT = goog.define('PLAY_ENVIRONMENT', 'STAGING');
 
 /** @define {string} */
-export const FRONTEND_CACHE = 'nocache';
+const FRONTEND_CACHE = goog.define('FRONTEND_CACHE', 'nocache');
 
 /** @define {string} */
-export const INTERNAL_RUNTIME_VERSION = '0.0.0';
+const INTERNAL_RUNTIME_VERSION = goog.define(
+  'INTERNAL_RUNTIME_VERSION',
+  '0.0.0'
+);
 
 /** @define {string} */
-export const ASSETS = '/assets';
+const ASSETS = goog.define('ASSETS', '/assets');
 
 /** @define {string} */
-export const ADS_SERVER = 'https://pubads.g.doubleclick.net';
+const ADS_SERVER = goog.define(
+  'ADS_SERVER',
+  'https://pubads.g.doubleclick.net'
+);
 
 /** @define {string} */
-export const EXPERIMENTS = '';
+const EXPERIMENTS = goog.define('EXPERIMENTS', '');
+
+export {
+  FRONTEND,
+  PAY_ENVIRONMENT,
+  PLAY_ENVIRONMENT,
+  FRONTEND_CACHE,
+  INTERNAL_RUNTIME_VERSION,
+  ASSETS,
+  ADS_SERVER,
+  EXPERIMENTS,
+};
