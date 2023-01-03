@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {EXPERIMENTS} from '../constants';
 import {ErrorUtils} from '../utils/errors';
 import {parseQueryString} from '../utils/url';
 
@@ -68,10 +69,10 @@ const Selection = {
 };
 
 /**
- * A comma-separated set of experiments.
+ * A mutable copy of the comma-separated set of experiments.
  * @type {string}
  */
-let experimentsString = '$experiments$';
+let experimentsString = EXPERIMENTS;
 
 /**
  * A parsed map of experiments.

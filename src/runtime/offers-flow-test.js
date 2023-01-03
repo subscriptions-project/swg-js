@@ -91,7 +91,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -118,7 +118,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1',
+        'https://news.google.com/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -148,7 +148,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&hl=fr-CA',
+        'https://news.google.com/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&hl=fr-CA',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -181,7 +181,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&purchaseUnavailableRegion=true',
+        'https://news.google.com/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&purchaseUnavailableRegion=true',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -314,7 +314,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -333,7 +333,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -352,7 +352,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -374,7 +374,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -405,7 +405,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -436,7 +436,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: true,
           productType: ProductType.SUBSCRIPTION,
@@ -523,7 +523,7 @@ describes.realWin('OffersFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -598,9 +598,9 @@ describes.realWin('SubscribeOptionFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/optionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -630,9 +630,9 @@ describes.realWin('SubscribeOptionFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/optionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -656,9 +656,9 @@ describes.realWin('SubscribeOptionFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/optionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'other',
@@ -773,9 +773,9 @@ describes.realWin('AbbrvOfferFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -800,9 +800,9 @@ describes.realWin('AbbrvOfferFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -835,9 +835,9 @@ describes.realWin('AbbrvOfferFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -864,9 +864,9 @@ describes.realWin('AbbrvOfferFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'other',

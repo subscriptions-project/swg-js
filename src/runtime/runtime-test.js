@@ -1310,7 +1310,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
         'link[rel="preconnect prefetch"][href*="/loader.svg"]'
       );
       expect(el).to.exist;
-      expect(el.getAttribute('href')).to.equal('$assets$/loader.svg');
+      expect(el.getAttribute('href')).to.equal('/assets/loader.svg');
     });
 
     it('should preconnect to google domains', () => {
@@ -1682,7 +1682,12 @@ new subscribers. Use the showOffers() method instead.'
       const startStub = sandbox
         .stub(LinkCompleteFlow.prototype, 'start')
         .callsFake(() => Promise.resolve());
-      await returnActivity('swg-link', ActivityResultCode.OK, {}, '$frontend$');
+      await returnActivity(
+        'swg-link',
+        ActivityResultCode.OK,
+        {},
+        'https://news.google.com'
+      );
       expect(startStub).to.be.calledOnce;
     });
 

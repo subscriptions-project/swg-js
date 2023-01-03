@@ -19,10 +19,10 @@ import {ConfiguredRuntime} from '../runtime/runtime';
 import {PageConfig} from '../model/page-config';
 import {Toast} from './toast';
 
-const src = '$frontend$/swglib/toastiframe?_=_';
+const src = 'https://news.google.com/swglib/toastiframe?_=_';
 
 const args = {
-  _client: 'SwG $internalRuntimeVersion$',
+  _client: 'SwG 0.0.0',
   publicationId: 'pub1',
   source: 'google',
 };
@@ -51,9 +51,9 @@ describes.realWin('Toast', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swglib/toastiframe?_=_',
+        'https://news.google.com/swglib/toastiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           source: 'google',
         }
