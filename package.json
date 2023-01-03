@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "subscribe-with-google",
-  "version": "0.1.22",
+  "version": "1.0",
   "description": "Subscribe with Google",
   "main": "index.js",
   "engines": {
