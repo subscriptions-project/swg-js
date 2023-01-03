@@ -13,15 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
-
-const CHROME_CAPABILITIES = {
-  browserName: 'chrome',
-  chromeOptions: {
-    w3c: false,
-    args: ['--headless'],
-  },
-};
 
 /* eslint-disable google-camelcase/google-camelcase */
 module.exports = {
@@ -41,7 +32,13 @@ module.exports = {
         webdriverProcess: 'chromedriver',
       },
 
-      desiredCapabilities: CHROME_CAPABILITIES,
+      desiredCapabilities: {
+        browserName: 'chrome',
+        chromeOptions: {
+          w3c: false,
+          args: ['--headless'],
+        },
+      },
 
       webdriver: {
         start_process: true,
