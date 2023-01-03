@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {ASSETS} from '../constants';
+
 /**
  * Template literal helper to enable syntax highliting for our CSS below.
  */
@@ -81,7 +83,7 @@ export const UI_CSS = css`
   }
 
   swg-loading-image {
-    background-image: url('$assets$/loader.svg');
+    background-image: url('${ASSETS}/loader.svg');
     background-size: 100%;
     width: 11664px;
     height: 36px;

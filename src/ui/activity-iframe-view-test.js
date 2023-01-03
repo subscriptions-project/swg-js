@@ -40,7 +40,7 @@ describes.realWin('ActivityIframeView', (env) => {
 
   beforeEach(() => {
     win = env.win;
-    src = '$frontend$/offersiframe';
+    src = 'https://news.google.com/offersiframe';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     deps = {
       win: () => win,
