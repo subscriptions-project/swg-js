@@ -38,6 +38,9 @@ jobs:
       - name: Install dependencies
         run: yarn
 
+      - name: Build Swgjs
+        run: yarn build
+
       - name: E2E Tests
         run: gulp e2e --retries=3
 
