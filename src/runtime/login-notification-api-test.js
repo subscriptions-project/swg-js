@@ -62,9 +62,9 @@ describes.realWin('LoginNotificationApi', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/loginiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId,
           productId,
           userConsent: false,

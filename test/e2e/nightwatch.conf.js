@@ -86,6 +86,10 @@ module.exports = {
         start_process: true,
         server_path: Services.chromeDriver,
         port: 9515,
+        timeout_options: {
+          timeout: 60000,
+          retry_attempts: 3,
+        },
       },
     },
 

@@ -398,7 +398,7 @@ describes.realWin('BasicRuntime', (env) => {
         'CHECK_ENTITLEMENTS',
         'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_&publicationId=pub1',
         '_blank',
-        {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
+        {publicationId: 'pub1', _client: 'SwG 0.0.0'},
         {'width': 600, 'height': 600}
       );
     });

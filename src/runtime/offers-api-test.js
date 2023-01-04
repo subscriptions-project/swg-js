@@ -36,7 +36,7 @@ describes.realWin('OffersApi', () => {
 
   it('should fetch with default product', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
+      'https://news.google.com/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -49,7 +49,7 @@ describes.realWin('OffersApi', () => {
 
   it('should fetch with a different product', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel2';
+      'https://news.google.com/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel2';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -62,7 +62,7 @@ describes.realWin('OffersApi', () => {
 
   it('should fetch empty response', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
+      'https://news.google.com/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)

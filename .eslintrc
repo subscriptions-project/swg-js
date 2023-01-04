@@ -121,6 +121,12 @@
       "rules": {
         "no-console": 0
       }
+    },
+    {
+      "files": ["src/constants.js"],
+      "globals": {
+        "goog": false
+      }
     }
   ]
 }
