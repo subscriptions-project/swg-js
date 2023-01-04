@@ -117,6 +117,7 @@ export class LinkCompleteFlow {
         const flow = new LinkCompleteFlow(deps, response);
         flow.start();
       } catch (reason) {
+        deps.entitlementsManager().unblockNextNotification();
         if (isCancelError(reason)) {
           deps
             .eventManager()
