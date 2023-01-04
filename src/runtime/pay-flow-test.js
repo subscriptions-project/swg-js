@@ -178,8 +178,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             skuId: 'sku1',
             publicationId: 'pub1',
@@ -226,8 +226,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': subscriptionRequest,
           'i': {
             'startTimeMs': sandbox.match.any,
@@ -268,8 +268,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             skuId: 'newSku',
             paymentRecurrence: RecurrenceMapping['ONE_TIME'],
@@ -316,8 +316,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             skuId: 'newSku',
             publicationId: 'pub1',
@@ -367,8 +367,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             skuId: 'newSku1',
             oldSku: 'oldSku1',
@@ -418,8 +418,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': Object.assign({}, subscriptionRequest, {
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
@@ -454,8 +454,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
@@ -486,8 +486,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             'skuId': 'sku1',
             'publicationId': 'pub1',
@@ -519,8 +519,8 @@ describes.realWin('PayStartFlow', (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             'skuId': 'sku1',
             'publicationId': 'pub1',
@@ -642,9 +642,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -719,9 +719,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           loginHint: USER_EMAIL,
           productType: ProductType.SUBSCRIPTION,
@@ -763,9 +763,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           loginHint: USER_EMAIL,
           productType: ProductType.SUBSCRIPTION,
@@ -809,9 +809,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           loginHint: USER_EMAIL,
           productType: ProductType.UI_CONTRIBUTION,
@@ -866,9 +866,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -913,9 +913,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -958,9 +958,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -1028,7 +1028,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
           '&isPaid=true&checkOrderStatus=true' +
@@ -1036,7 +1036,7 @@ describes.realWin('PayCompleteFlow', (env) => {
           expectedCanonicalUrl +
           '&isAnonymous=true',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.VIRTUAL_GIFT,
@@ -1080,9 +1080,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_&hl=fr-CA',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_&hl=fr-CA',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,

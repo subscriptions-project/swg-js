@@ -203,7 +203,7 @@ describes.realWin('PayClient', (env) => {
       'paymentArgs': {'a': 1},
     });
     expect(payClientStubs.create).to.be.calledOnce.calledWith({
-      'environment': '$payEnvironment$',
+      'environment': 'TEST',
       'i': {
         'redirectKey': 'test_restore_key',
       },

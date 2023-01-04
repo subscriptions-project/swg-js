@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ASSETS} from '../constants';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
@@ -66,7 +67,7 @@ export class ButtonApi {
       return;
     }
 
-    const url = '$assets$/swg-button.css';
+    const url = `${ASSETS}/swg-button.css`;
     const existing = head.querySelector(`link[href="${url}"]`);
     if (existing) {
       return;

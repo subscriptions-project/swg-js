@@ -70,7 +70,7 @@ describes.realWin('Activity Components', (env) => {
           'analyticsContext': analytics.getContext().toArray(),
           'publicationId': pageConfig.getPublicationId(),
           'productId': pageConfig.getProductId(),
-          '_client': 'SwG $internalRuntimeVersion$',
+          '_client': 'SwG 0.0.0',
           'supportsEventManager': true,
         };
       });
