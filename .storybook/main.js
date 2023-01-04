@@ -13,6 +13,9 @@ module.exports = {
     // JS files
     '../dist',
   ],
+  'babel': {
+    'plugins': ['./build-system/transform-define-constants'],
+  },
   core: {
     builder: 'webpack5',
   },
