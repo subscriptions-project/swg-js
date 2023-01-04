@@ -699,7 +699,7 @@ export class AutoPromptManager {
    * @return {!Promise<boolean>}
    */
   async isExperimentEnabled_(article, experimentFlag) {
-    if (article === undefined) {
+    if (!article) {
       return false;
     }
 
