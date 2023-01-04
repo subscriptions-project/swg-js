@@ -420,6 +420,7 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
       const surveyTriggeringPriorityEnabled = await this.isExperimentEnabled_(
+        article,
         ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
       );
 
@@ -427,10 +428,13 @@ export class AutoPromptManager {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
         return undefined;
       }
-      const previousPrompts = dismissedPrompts.split(',');
-      potentialActions = potentialActions.filter(
-        (action) => !previousPrompts.includes(action.type)
-      );
+
+      if (dismissedPrompts) {
+        const previousPrompts = dismissedPrompts.split(',');
+        potentialActions = potentialActions.filter(
+          (action) => !previousPrompts.includes(action.type)
+        );
+      }
 
       if (
         surveyTriggeringPriorityEnabled &&
@@ -690,12 +694,15 @@ export class AutoPromptManager {
 
   /**
    * Checks if provided ExperimentFlag is returned in article endpoint.
+   * @param {?./entitlements-manager.Article|undefined} article
    * @param {string} experimentFlag
    * @return {!Promise<boolean>}
    */
-  async isExperimentEnabled_(experimentFlag) {
+  async isExperimentEnabled_(article, experimentFlag) {
     const articleExpFlags =
-      await this.entitlementsManager_.getExperimentConfigFlags();
+      await this.entitlementsManager_.parseArticleExperimentConfigFlags(
+        article
+      );
     return articleExpFlags.includes(experimentFlag);
   }
 }
