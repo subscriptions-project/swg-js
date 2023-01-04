@@ -27,7 +27,7 @@ export function isCancelError(error) {
 /**
  * Creates an Error of AbortError type.
  * See https://heycam.github.io/webidl/#aborterror.
- * @param {string=} message
+ * @param {string} message
  * @return {!Error}
  */
 export function createCancelError(message) {
