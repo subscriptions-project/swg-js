@@ -262,6 +262,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       )
       .once();
     entitlementsManagerMock.expects('blockNextNotification').once();
+    entitlementsManagerMock.expects('unblockNextNotification').once();
     LinkCompleteFlow.configurePending(runtime);
     expect(handler).to.exist;
     expect(triggerLinkProgressSpy).to.not.be.called;
