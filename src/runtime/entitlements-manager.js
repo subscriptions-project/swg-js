@@ -497,7 +497,7 @@ export class EntitlementsManager {
 
   /**
    * Parses the experiment flags from the Article.
-   * @param {?Article}
+   * @param {?Article} article
    * @returns {Array<string>}
    */
   parseArticleExperimentConfigFlags(article) {
