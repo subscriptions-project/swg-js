@@ -419,12 +419,13 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      const surveyTriggeringPriorityEnabled = await this.isExperimentEnabled_(
-        article,
-        ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
-      );
+      const preferSurveyOverContributionPrompt =
+        await this.isExperimentEnabled_(
+          article,
+          ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+        );
 
-      if (!surveyTriggeringPriorityEnabled && !dismissedPrompts) {
+      if (!preferSurveyOverContributionPrompt && !dismissedPrompts) {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
         return undefined;
       }
@@ -437,7 +438,7 @@ export class AutoPromptManager {
       }
 
       if (
-        surveyTriggeringPriorityEnabled &&
+        preferSurveyOverContributionPrompt &&
         potentialActions
           .map((action) => action.type)
           .includes(TYPE_REWARDED_SURVEY)
