@@ -699,6 +699,10 @@ export class AutoPromptManager {
    * @return {!Promise<boolean>}
    */
   async isExperimentEnabled_(article, experimentFlag) {
+    if (article === undefined) {
+      return false;
+    }
+
     const articleExpFlags =
       await this.entitlementsManager_.parseArticleExperimentConfigFlags(
         article
