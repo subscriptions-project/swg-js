@@ -419,7 +419,11 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      if (!dismissedPrompts) {
+      const surveyTriggeringPriorityEnabled = await this.isExperimentEnabled_(
+        ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+      );
+
+      if (!surveyTriggeringPriorityEnabled && !dismissedPrompts) {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
         return undefined;
       }
@@ -427,6 +431,16 @@ export class AutoPromptManager {
       potentialActions = potentialActions.filter(
         (action) => !previousPrompts.includes(action.type)
       );
+
+      if (
+        surveyTriggeringPriorityEnabled &&
+        potentialActions
+          .map((action) => action.type)
+          .includes(TYPE_REWARDED_SURVEY)
+      ) {
+        this.promptDisplayed_ = TYPE_REWARDED_SURVEY;
+        return TYPE_REWARDED_SURVEY;
+      }
 
       // If all actions have been dismissed or the frequency indicates that we
       // should show the Contribution prompt again regardless of previous dismissals,
@@ -672,5 +686,16 @@ export class AutoPromptManager {
       return isSurveyEligible && isAnalyticsEligible;
     }
     return true;
+  }
+
+  /**
+   * Checks if provided ExperimentFlag is returned in article endpoint.
+   * @param {string} experimentFlag
+   * @return {!Promise<boolean>}
+   */
+  async isExperimentEnabled_(experimentFlag) {
+    const articleExpFlags =
+      await this.entitlementsManager_.getExperimentConfigFlags();
+    return articleExpFlags.includes(experimentFlag);
   }
 }
