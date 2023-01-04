@@ -22,14 +22,14 @@ import {visualizer} from 'rollup-plugin-visualizer';
 // Choose Rollup plugins.
 const replacementValues = Object.entries(resolveConfig()).reduce(
   (obj, [key, value]) => {
-    obj[key] = `export const ${key} = '${value}'; //`;
+    obj[key] = `const ${key} = '${value}' ?? `;
     return obj;
   },
   {}
 );
 const rollupPlugins = [
   replace({
-    delimiters: ['export const ', ' = '],
+    delimiters: ['const ', ' = goog.define'],
     include: ['./src/constants.js'],
     preventAssignment: false,
     values: replacementValues,
