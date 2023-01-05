@@ -26,9 +26,7 @@ const channel = addons.getChannel();
 
 const storyListener = (args) => {
   if (args.includes('user-journeys')) {
-    self.__RESET_SWG_TIMEOUT__ = setTimeout(() => {
-      self.window.location.reload();
-    }, 200);
+    self.window.location.reload();
     return '';
   }
 };

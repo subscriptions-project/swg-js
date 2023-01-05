@@ -9,9 +9,7 @@ const channel = addons.getChannel();
 
 const storyListener = () => {
   if (self.SWG_BASIC) {
-    self.__RESET_SWG_TIMEOUT__ = setTimeout(() => {
-      self.window.location.reload();
-    }, 200);
+    self.window.location.reload();
     return '';
   }
 };
@@ -44,7 +42,7 @@ export const AutoPrompt = (args) => {
 };
 AutoPrompt.decorators = [
   (component) => {
-    // Reload window directing outside of this page.
+    // Reload window when directing outside of this page.
     setupEventListener();
     // Since our snippet modifies parts of the page outside of the actual snippet,
     // we need to reload in order for the view to properly reflect changes. This block
