@@ -15,10 +15,25 @@
  */
 
 import {GaaMeteringRegwall} from '../runtime/extended-access';
+import {STORY_CHANGED} from '@storybook/core-events';
+import {addons} from '@storybook/addons';
 
 export default {
   title: 'Showcase Regwall',
 };
+
+const channel = addons.getChannel();
+
+const storyListener = (args) => {
+  if (args.includes('user-journeys')) {
+    self.window.location.reload();
+    return '';
+  }
+};
+
+function setupEventListener() {
+  channel.addListener(STORY_CHANGED, storyListener);
+}
 
 export const Regwall = (args) => {
   // Set language.
@@ -70,3 +85,12 @@ Regwall.args = {
   'Language': 'en',
   'Show CASL terms': false,
 };
+Regwall.decorators = [
+  (component) => {
+    // Reload wouldn't happen after switching to the user journeys pages, therefore
+    // adding a listener here to reload the window when redirecting to user journeys pages.
+    setupEventListener();
+
+    return component();
+  },
+];

@@ -1273,7 +1273,11 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
-      await verifyOnCancelStores('contribution,TYPE_REWARDED_SURVEY');
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REWARDED_SURVEY'
+      );
     });
 
     it('should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
@@ -1306,6 +1310,8 @@ describes.realWin('AutoPromptManager', (env) => {
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
         'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL'
       );
     });
@@ -1341,7 +1347,11 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
-      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REGISTRATION_WALL'
+      );
     });
 
     it('should skip survey and show second Audience Action flow if survey data transfer failed', async () => {
@@ -1375,7 +1385,11 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
-      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REGISTRATION_WALL'
+      );
     });
 
     it('should show nothing if the the last Audience Action was previously dismissed and is not in the next Contribution prompt time', async () => {
@@ -1460,7 +1474,11 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
-      await verifyOnCancelStores('contribution,TYPE_REWARDED_SURVEY');
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REWARDED_SURVEY'
+      );
     });
 
     it('should show survey if TYPE_REWARDED_SURVEY is next and is gtag eligible but not ga eligible', async () => {
@@ -1493,7 +1511,11 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
-      await verifyOnCancelStores('contribution,TYPE_REWARDED_SURVEY');
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REWARDED_SURVEY'
+      );
     });
 
     it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for ga nor gTag', async () => {
@@ -1526,24 +1548,303 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
-      await verifyOnCancelStores('contribution,TYPE_REGISTRATION_WALL');
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REGISTRATION_WALL'
+      );
+    });
+  });
+
+  describe('Contribution Flows with Audience Actions and Experiments', () => {
+    let articleExpectation;
+
+    beforeEach(() => {
+      const autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+      });
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(false);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      articleExpectation = entitlementsManagerMock.expects('getArticle');
+      articleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_REWARDED_SURVEY'},
+              {type: 'TYPE_REGISTRATION_WALL'},
+              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['survey_triggering_priority_experiment'],
+          },
+        })
+        .once();
     });
 
-    async function verifyOnCancelStores(setValue) {
-      storageMock
-        .expects('set')
-        .withExactArgs(
-          StorageKeys.DISMISSED_PROMPTS,
-          setValue,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      const {onCancel} = actionFlowSpy.firstCall.args[1];
-      onCancel();
-      await tick(2);
-    }
+    it('With SurveyTriggeringPriorityExperiment enabled, should show the Survey prompt before any actions', async () => {
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REWARDED_SURVEY'
+      );
+    });
+
+    it('With SurveyTriggeringPriorityExperiment enabled, should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: 'contribution,TYPE_REWARDED_SURVEY',
+        dismissedPromptGetCallCount: 2,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL'
+      );
+    });
+
+    it('With SurveyTriggeringPriorityExperiment enabled, should skip survey and show second Audience Action flow if survey was completed', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      const storedSurveyCompleted = (CURRENT_TIME - 5).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: AutoPromptType.CONTRIBUTION,
+        dismissedPromptGetCallCount: 2,
+        storedSurveyCompleted,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REGISTRATION_WALL'
+      );
+    });
+
+    it('With SurveyTriggeringPriorityExperiment enabled, should skip survey and show second Audience Action flow if survey data transfer failed', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      const storedSurveyFailed = (CURRENT_TIME - 5).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: AutoPromptType.CONTRIBUTION,
+        dismissedPromptGetCallCount: 2,
+        storedSurveyFailed,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REGISTRATION_WALL'
+      );
+    });
+
+    it('With SurveyTriggeringPriorityExperiment enabled, should show nothing if the the last Audience Action was previously dismissed and is not in the next Contribution prompt time', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts:
+          'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP',
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+    });
+
+    it('With SurveyTriggeringPriorityExperiment enabled, should show the Contribution Flow even if there is an available Audience Action that was previously dismissed and is in the next Contribution prompt time', async () => {
+      // One stored impression from 20s ago and one dismissal from 6s ago.
+      const storedImpressions = (CURRENT_TIME - 20000).toString();
+      const storedDismissals = (CURRENT_TIME - 6000).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: 'contribution,TYPE_REWARDED_SURVEY',
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+    });
+
+    it('With SurveyTriggeringPriorityExperiment enabled, should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for ga nor gTag', async () => {
+      setWinWithAnalytics(/* gtag */ false, /* ga */ false);
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: AutoPromptType.CONTRIBUTION,
+        dismissedPromptGetCallCount: 2,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REGISTRATION_WALL'
+      );
+    });
   });
+
+  async function verifyOnCancelStores(storageMock, actionFlowSpy, setValue) {
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.DISMISSED_PROMPTS,
+        setValue,
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+    const {onCancel} = actionFlowSpy.firstCall.args[1];
+    onCancel();
+    await tick(2);
+  }
+
   function setupPreviousImpressionAndDismissals(storageMock, setupArgs) {
     const {
       storedImpressions,
