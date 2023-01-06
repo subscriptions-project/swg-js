@@ -492,7 +492,15 @@ export class EntitlementsManager {
    */
   async getExperimentConfigFlags() {
     const article = await this.getArticle();
+    return this.parseArticleExperimentConfigFlags(article);
+  }
 
+  /**
+   * Parses the experiment flags from the Article.
+   * @param {?Article} article
+   * @returns {Array<string>}
+   */
+  parseArticleExperimentConfigFlags(article) {
     const expConfig = article['experimentConfig'];
     if (expConfig != null) {
       const expFlags = expConfig['experimentFlags'];
