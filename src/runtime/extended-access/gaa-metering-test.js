@@ -1433,13 +1433,13 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('sets onLoginRequest callback', async () => {
+      sandbox.stub(GaaMetering, 'handleLoginRequest');
+
+      // Successfully init, setting a callback in the process.
       QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
-
-      sandbox.stub(GaaMetering, 'handleLoginRequest');
-
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
         allowedReferrers: [
@@ -1459,7 +1459,6 @@ describes.realWin('GaaMetering', () => {
       });
 
       expect(subscriptionsMock.setOnLoginRequest).to.be.called;
-
       expect(GaaMetering.handleLoginRequest).to.not.be.called;
       const callback = subscriptionsMock.setOnLoginRequest.lastCall.firstArg;
       callback();
@@ -1467,13 +1466,13 @@ describes.realWin('GaaMetering', () => {
     });
 
     it('sets onEntitlementsResponse callback', async () => {
+      sandbox.stub(GaaMetering, 'setEntitlements');
+
+      // Successfully init, setting a callback in the process.
       QueryStringUtils.getQueryString.returns(
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
-
-      sandbox.stub(GaaMetering, 'setEntitlements');
-
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
         allowedReferrers: [
@@ -1493,7 +1492,6 @@ describes.realWin('GaaMetering', () => {
       });
 
       expect(subscriptionsMock.setOnEntitlementsResponse).to.be.called;
-
       expect(GaaMetering.setEntitlements).to.not.be.called;
       const callback =
         subscriptionsMock.setOnEntitlementsResponse.lastCall.firstArg;
