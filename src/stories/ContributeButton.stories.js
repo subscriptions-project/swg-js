@@ -1,3 +1,4 @@
+/* eslint-disable swg-internal/no-export-side-effect */
 /**
  * Copyright 2022 The Subscribe with Google Authors. All Rights Reserved.
  *
@@ -22,7 +23,7 @@ export default {
   title: 'Contribute button',
 };
 
-export const Enabled = (args) => {
+const Template = (args) => {
   // Add button CSS.
   const cssHtml = `<link rel="stylesheet" type="text/css" href="/swg-button.css"></link>`;
   self.document.body.insertAdjacentHTML('beforeend', cssHtml);
@@ -30,28 +31,14 @@ export const Enabled = (args) => {
   // Render button.
   const buttonEl = self.document.createElement('div');
   buttonApi.attachContributeButton(buttonEl, {
-    enable: true,
-    lang: args['Language'],
+    enable: args.enable,
+    lang: args.language,
   });
   return buttonEl;
 };
-Enabled.args = {
-  'Language': 'en',
-};
 
-export const Disabled = (args) => {
-  // Add button CSS.
-  const cssHtml = `<link rel="stylesheet" type="text/css" href="/swg-button.css"></link>`;
-  self.document.body.insertAdjacentHTML('beforeend', cssHtml);
+export const Enabled = Template.bind({});
+Enabled.args = {enable: true, language: 'en'};
 
-  // Render button.
-  const buttonEl = self.document.createElement('div');
-  buttonApi.attachContributeButton(buttonEl, {
-    enable: false,
-    lang: args['Language'],
-  });
-  return buttonEl;
-};
-Disabled.args = {
-  'Language': 'en',
-};
+export const Disabled = Template.bind({});
+Disabled.args = {...Enabled.args, enable: false};

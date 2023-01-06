@@ -123,6 +123,12 @@
       }
     },
     {
+      "files": ["src/stories/**/*"],
+      "rules": {
+        "swg-internal/no-export-side-effect": 0
+      }
+    },
+    {
       "files": ["src/constants.js"],
       "globals": {
         "goog": false

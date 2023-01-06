@@ -419,14 +419,33 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      if (!dismissedPrompts) {
+      const preferSurveyOverContributionPrompt =
+        await this.isExperimentEnabled_(
+          article,
+          ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+        );
+
+      if (!preferSurveyOverContributionPrompt && !dismissedPrompts) {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
         return undefined;
       }
-      const previousPrompts = dismissedPrompts.split(',');
-      potentialActions = potentialActions.filter(
-        (action) => !previousPrompts.includes(action.type)
-      );
+
+      if (dismissedPrompts) {
+        const previousPrompts = dismissedPrompts.split(',');
+        potentialActions = potentialActions.filter(
+          (action) => !previousPrompts.includes(action.type)
+        );
+      }
+
+      if (
+        preferSurveyOverContributionPrompt &&
+        potentialActions
+          .map((action) => action.type)
+          .includes(TYPE_REWARDED_SURVEY)
+      ) {
+        this.promptDisplayed_ = TYPE_REWARDED_SURVEY;
+        return TYPE_REWARDED_SURVEY;
+      }
 
       // If all actions have been dismissed or the frequency indicates that we
       // should show the Contribution prompt again regardless of previous dismissals,
@@ -672,5 +691,23 @@ export class AutoPromptManager {
       return isSurveyEligible && isAnalyticsEligible;
     }
     return true;
+  }
+
+  /**
+   * Checks if provided ExperimentFlag is returned in article endpoint.
+   * @param {?./entitlements-manager.Article|undefined} article
+   * @param {string} experimentFlag
+   * @return {!Promise<boolean>}
+   */
+  async isExperimentEnabled_(article, experimentFlag) {
+    if (!article) {
+      return false;
+    }
+
+    const articleExpFlags =
+      await this.entitlementsManager_.parseArticleExperimentConfigFlags(
+        article
+      );
+    return articleExpFlags.includes(experimentFlag);
   }
 }

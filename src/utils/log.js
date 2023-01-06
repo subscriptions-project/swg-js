@@ -71,16 +71,6 @@ export function assert(shouldBeTrueish, message, var_args) {
   return shouldBeTrueish;
 }
 
-/**
- * @param {!Array} array
- * @param {*} val
- */
-function pushIfNonEmpty(array, val) {
-  if (val != '') {
-    array.push(val);
-  }
-}
-
 function toString(val) {
   // Do check equivalent to `val instanceof Element` without cross-window bug
   if (val && val.nodeType == 1) {
