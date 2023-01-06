@@ -21,9 +21,9 @@
  */
 
 const argv = require('minimist')(process.argv.slice(2));
-const {execSync} = require('node:child_process');
 const githubRequest = require('./github').githubRequest;
 const logger = require('fancy-log');
+const {execSync} = require('node:child_process');
 
 const {blue, red, yellow} = require('ansi-colors');
 

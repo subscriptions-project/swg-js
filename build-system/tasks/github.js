@@ -15,8 +15,10 @@
  */
 'use strict';
 
+const requestWithCallback = require('request');
 const {promisify} = require('node:util');
-const request = promisify(require('request'));
+
+const request = promisify(requestWithCallback);
 
 const GITHUB_ACCESS_TOKEN = process.env.GITHUB_ACCESS_TOKEN;
 const GITHUB_BASE = 'https://api.github.com/repos/subscriptions-project/swg-js';
