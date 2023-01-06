@@ -1,6 +1,22 @@
+import {STORY_CHANGED} from '@storybook/core-events';
+import {addons} from '@storybook/addons';
+
 export default {
   title: 'User Journeys/Auto Prompt',
 };
+
+const channel = addons.getChannel();
+
+const storyListener = () => {
+  if (self.SWG_BASIC) {
+    self.window.location.reload();
+    return '';
+  }
+};
+
+function setupEventListener() {
+  channel.addListener(STORY_CHANGED, storyListener);
+}
 
 export const AutoPrompt = (args) => {
   const el = self.document.createElement('script');
@@ -26,6 +42,8 @@ export const AutoPrompt = (args) => {
 };
 AutoPrompt.decorators = [
   (component) => {
+    // Reload window when directing outside of this page.
+    setupEventListener();
     // Since our snippet modifies parts of the page outside of the actual snippet,
     // we need to reload in order for the view to properly reflect changes. This block
     // is meant to add some debouncing to allow a dev to change params in order to
