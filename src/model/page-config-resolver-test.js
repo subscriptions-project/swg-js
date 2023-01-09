@@ -540,6 +540,29 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(await resolver.resolveConfig()).to.equal(config);
     });
 
+    it('defaults unlocked access when dom is ready', async () => {
+      const resolver = new PageConfigResolver(gd);
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+        '<div itemscope itemtype="http://schema.org/NewsArticle" id="top"> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+            <meta itemprop="name" content="New York Times"/> \
+            <meta itemprop="productID" content="pub1:premium"/> \
+          </div> \
+          <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement"> \
+            <meta itemprop="isAccessibleForFree" content="true"> \
+            <meta itemprop="cssSelector" content=".paywalled-section"/> \
+          </div> \
+          <div itemprop="articleBody" class="paywalled-section"> \
+            Paid content possibly. \
+          </div> \
+        </div>';
+      addMicrodata(divElement);
+      readyState = 'complete';
+      const config = resolver.check();
+      expect(config.isLocked()).to.be.false;
+    });
+
     it('malformed microdata no productId', () => {
       // Add content.
       const divElement = createElement(doc, 'div');
