@@ -421,7 +421,7 @@ export class AutoPromptManager {
     ) {
       const preferSurveyOverContributionPrompt =
         await this.isExperimentEnabled_(
-          article,
+          /** @type {!./entitlements-manager.Article} */ (article),
           ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
         );
 
