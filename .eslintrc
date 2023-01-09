@@ -2,7 +2,6 @@
   "root": true,
   "parser": "@babel/eslint-parser",
   "plugins": [
-    "swg-internal",
     "google-camelcase",
     "prettier",
     "sort-imports-es6-autofix",
@@ -37,8 +36,8 @@
     "describes": true
   },
   "rules": {
-    "swg-internal/enforce-private-props": 2,
-    "swg-internal/no-export-side-effect": 2,
+    "enforce-private-props": 2,
+    "no-export-side-effect": 2,
     "curly": 2,
     "google-camelcase/google-camelcase": 2,
     "no-alert": 2,
@@ -125,7 +124,7 @@
     {
       "files": ["src/stories/**/*"],
       "rules": {
-        "swg-internal/no-export-side-effect": 0
+        "no-export-side-effect": 0
       }
     },
     {

@@ -21,11 +21,9 @@
  */
 
 const argv = require('minimist')(process.argv.slice(2));
-const BBPromise = require('bluebird');
-const git = require('gulp-git');
-const gitExec = BBPromise.promisify(git.exec);
 const githubRequest = require('./github').githubRequest;
 const logger = require('fancy-log');
+const {execSync} = require('node:child_process');
 
 const {blue, red, yellow} = require('ansi-colors');
 
@@ -104,9 +102,9 @@ async function getLastGithubRelease() {
  */
 async function getGitLog(release) {
   const tag = release.tag;
-  const logs = await gitExec({
-    args: `log ${tag}... --pretty=oneline --first-parent`,
-  });
+  const logs = execSync(
+    `git log ${tag}... --pretty=oneline --first-parent`
+  ).toString();
   if (!logs) {
     throw new Error(
       'No logs found "git log ' +
@@ -150,7 +148,7 @@ async function getGithubPullRequestsMetadata(release) {
 
   // TODO(erwinm): Github seems to only return data for the first 3 pages
   // from my manual testing.
-  const requests = await BBPromise.all([
+  const requests = await Promise.all([
     getClosedPullRequests(1),
     getClosedPullRequests(2),
     getClosedPullRequests(3),
@@ -173,9 +171,9 @@ async function getGithubPullRequestsMetadata(release) {
       // TODO(dvoytenko): try to find PR from the GitHub API.
       logger.warn(yellow('PR not found for commit: ' + log.sha));
     }
-    return BBPromise.resolve();
+    return Promise.resolve();
   });
-  await BBPromise.all(githubPrRequest);
+  await Promise.all(githubPrRequest);
   return release;
 }
 
