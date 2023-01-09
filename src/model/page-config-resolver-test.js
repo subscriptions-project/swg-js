@@ -318,6 +318,13 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(new PageConfigResolver(gd).check().isLocked()).to.be.true;
     });
 
+    it('accepts missing value for isAccessibleForFree', () => {
+      schema['isAccessibleForFree'] = '';
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(gd).check().isLocked()).to.be.false;
+    });
+
     it('should handle top level array of objects', () => {
       const productId = 'pub1:basic';
 
@@ -399,6 +406,14 @@ describes.realWin('PageConfigResolver', (env) => {
       const resolver = new PageConfigResolver(gd);
       expect(resolver.check()).to.be.null;
     });
+
+    it('gracefully handles unknown types', () => {
+      schema['@type'] = ['UnknownType1'];
+      schema['isPartOf']['@type'] = ['UnknownType2', 'UnknownType3'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(gd).check()).to.be.null;
+    });
   });
 
   describe('parse microdata', () => {
@@ -429,7 +444,7 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(config.getProductId()).to.equal('pub1:premium');
     });
 
-    it('should retur null for multiple invalid types', () => {
+    it('should return null for multiple invalid types', () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
         '<div itemscope itemtype="http://schema.org/Person http://schema.org/Other"> \
@@ -525,12 +540,72 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(await resolver.resolveConfig()).to.equal(config);
     });
 
+    it('defaults unlocked access when dom is ready', async () => {
+      const resolver = new PageConfigResolver(gd);
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+        '<div itemscope itemtype="http://schema.org/NewsArticle" id="top"> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+            <meta itemprop="name" content="New York Times"/> \
+            <meta itemprop="productID" content="pub1:premium"/> \
+          </div> \
+          <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement"> \
+            <meta itemprop="isAccessibleForFree" content="true"> \
+            <meta itemprop="cssSelector" content=".paywalled-section"/> \
+          </div> \
+          <div itemprop="articleBody" class="paywalled-section"> \
+            Paid content possibly. \
+          </div> \
+        </div>';
+      addMicrodata(divElement);
+      readyState = 'complete';
+      const config = resolver.check();
+      expect(config.isLocked()).to.be.false;
+    });
+
     it('malformed microdata no productId', () => {
       // Add content.
       const divElement = createElement(doc, 'div');
       divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
             <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement">
               <meta itemprop="isAccessibleForFree" content=true/>
+              <meta itemprop="cssSelector" content=".paywalled-section"/>
+            </div>
+            <div itemprop="articleBody" class="paywalled-section">
+              Paid content possibly.
+            </div>
+          </div>`;
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      expect(resolver.check()).to.be.null;
+    });
+
+    it('considers microdata malformed if isAccessibleForFree has no value', async () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+        '<div itemscope itemtype="http://schema.org/NewsArticle"> \
+            <meta itemprop="isAccessibleForFree" content=""/> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+              <meta itemprop="name" content="New York Times"/> \
+              <meta itemprop="productID" content="pub1:premium"/> \
+            </div> \
+            <div itemprop="articleBody" class="paywalled-section"> \
+              Paid content possibly. \
+            </div> \
+          </div>';
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      const config = resolver.check();
+      expect(config).to.be.null;
+    });
+
+    it('ignores productIDs outside of Product itemscopes', () => {
+      // Add content.
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
+            <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement">
+              <meta itemprop="isAccessibleForFree" content=true/>
+              <meta itemprop="productID" content="Hi"/>
               <meta itemprop="cssSelector" content=".paywalled-section"/>
             </div>
             <div itemprop="articleBody" class="paywalled-section">

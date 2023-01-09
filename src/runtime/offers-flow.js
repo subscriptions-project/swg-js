@@ -27,6 +27,7 @@ import {PayStartFlow} from './pay-flow';
 import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
+import {parseQueryString} from '../utils/url';
 
 /**
  * @param {string} sku
@@ -279,7 +280,11 @@ export class OffersFlow {
    */
   getUrl_(clientConfig, pageConfig) {
     if (!clientConfig.useUpdatedOfferFlows) {
-      return feUrl('/offersiframe');
+      const offerCardParam = parseQueryString(this.win_.location.hash)[
+        'swg.newoffercard'
+      ];
+      const params = offerCardParam ? {'useNewOfferCard': offerCardParam} : {};
+      return feUrl('/offersiframe', params);
     }
 
     const params = {'publicationId': pageConfig.getPublicationId()};
