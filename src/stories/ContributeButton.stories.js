@@ -1,4 +1,3 @@
-/* eslint-disable swg-internal/no-export-side-effect */
 /**
  * Copyright 2022 The Subscribe with Google Authors. All Rights Reserved.
  *
