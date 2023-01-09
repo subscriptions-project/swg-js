@@ -480,11 +480,6 @@ class MicrodataParser {
    * @return {?PageConfig} PageConfig found
    */
   tryExtractConfig_() {
-    let config = this.getPageConfig_();
-    if (config) {
-      return config;
-    }
-
     // Grab all the nodes with an itemtype and filter for our allowed types
     const nodeList = Array.prototype.slice
       .call(this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]'))
@@ -495,17 +490,22 @@ class MicrodataParser {
         )
       );
 
-    for (let i = 0; nodeList[i] && config == null; i++) {
-      const element = nodeList[i];
+    for (const element of nodeList) {
       if (this.access_ == null) {
         this.access_ = this.discoverAccess_(element);
       }
+
       if (!this.productId_) {
         this.productId_ = this.discoverProductId_(element);
       }
-      config = this.getPageConfig_();
+
+      const config = this.getPageConfig_();
+      if (config) {
+        return config;
+      }
     }
-    return config;
+
+    return null;
   }
 
   /**
