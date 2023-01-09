@@ -557,7 +557,7 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(resolver.check()).to.be.null;
     });
 
-    it('ignore productIDs outside of Product itemscopes', () => {
+    it('ignores productIDs outside of Product itemscopes', () => {
       // Add content.
       const divElement = createElement(doc, 'div');
       divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
