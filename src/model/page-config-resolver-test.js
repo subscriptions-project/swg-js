@@ -557,6 +557,24 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(resolver.check()).to.be.null;
     });
 
+    it('ignore productIDs outside of Product itemscopes', () => {
+      // Add content.
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML = `<div itemscope itemtype="http://schema.org/NewsArticle">
+            <div itemprop="hasPart" itemscope itemtype="http://schema.org/WebPageElement">
+              <meta itemprop="isAccessibleForFree" content=true/>
+              <meta itemprop="productID" content="Hi"/>
+              <meta itemprop="cssSelector" content=".paywalled-section"/>
+            </div>
+            <div itemprop="articleBody" class="paywalled-section">
+              Paid content possibly.
+            </div>
+          </div>`;
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      expect(resolver.check()).to.be.null;
+    });
+
     it('malformed microdata not news article type', () => {
       // Add content.
       const divElement = createElement(doc, 'div');
