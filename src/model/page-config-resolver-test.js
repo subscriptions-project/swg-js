@@ -580,6 +580,25 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(resolver.check()).to.be.null;
     });
 
+    it('considers microdata malformed if isAccessibleForFree has no value', async () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+        '<div itemscope itemtype="http://schema.org/NewsArticle"> \
+            <meta itemprop="isAccessibleForFree" content=""/> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+              <meta itemprop="name" content="New York Times"/> \
+              <meta itemprop="productID" content="pub1:premium"/> \
+            </div> \
+            <div itemprop="articleBody" class="paywalled-section"> \
+              Paid content possibly. \
+            </div> \
+          </div>';
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      const config = resolver.check();
+      expect(config).to.be.null;
+    });
+
     it('ignores productIDs outside of Product itemscopes', () => {
       // Add content.
       const divElement = createElement(doc, 'div');
