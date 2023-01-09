@@ -318,6 +318,13 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(new PageConfigResolver(gd).check().isLocked()).to.be.true;
     });
 
+    it('accepts missing value for isAccessibleForFree', () => {
+      schema['isAccessibleForFree'] = '';
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(gd).check().isLocked()).to.be.false;
+    });
+
     it('should handle top level array of objects', () => {
       const productId = 'pub1:basic';
 
@@ -437,7 +444,7 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(config.getProductId()).to.equal('pub1:premium');
     });
 
-    it('should retur null for multiple invalid types', () => {
+    it('should return null for multiple invalid types', () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =
         '<div itemscope itemtype="http://schema.org/Person http://schema.org/Other"> \
