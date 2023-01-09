@@ -399,6 +399,14 @@ describes.realWin('PageConfigResolver', (env) => {
       const resolver = new PageConfigResolver(gd);
       expect(resolver.check()).to.be.null;
     });
+
+    it('gracefully handles unknown types', () => {
+      schema['@type'] = ['UnknownType1'];
+      schema['isPartOf']['@type'] = ['UnknownType2', 'UnknownType3'];
+      addJsonLd(schema);
+      readyState = 'complete';
+      expect(new PageConfigResolver(gd).check()).to.be.null;
+    });
   });
 
   describe('parse microdata', () => {
