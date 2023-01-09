@@ -120,14 +120,11 @@ class TypeChecker {
 
   /**
    * Checks space delimited list of types
-   * @param {?string} itemtype
+   * @param {string} itemtype
    * @param {Array<string>} expectedTypes
    * @return {boolean}
    */
   checkString(itemtype, expectedTypes) {
-    if (!itemtype) {
-      return false;
-    }
     return this.checkArray(itemtype.split(/\s+/), expectedTypes);
   }
 
@@ -420,7 +417,11 @@ class MicrodataParser {
     ) {
       node[alreadySeen] = true;
       // document nodes don't have hasAttribute
-      if (node.hasAttribute && node.hasAttribute('itemscope')) {
+      if (
+        node.hasAttribute &&
+        node.hasAttribute('itemscope') &&
+        node.hasAttribute('itemtype')
+      ) {
         /**{?string} */
         const type = node.getAttribute('itemtype');
         return this.checkType_.checkString(type, ALLOWED_TYPES);
