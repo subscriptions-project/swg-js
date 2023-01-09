@@ -8802,9 +8802,6 @@ eslint-plugin-sort-requires@2.1.0:
   resolved "https://registry.yarnpkg.com/eslint-plugin-sort-requires/-/eslint-plugin-sort-requires-2.1.0.tgz#3efad948dc83798219e809f54067c40e55444861"
   integrity sha1-PvrZSNyDeYIZ6An1QGfEDlVESGE=
 
-"eslint-plugin-swg-internal@file:./build-system/eslint-rules":
-  version "0.1.0"
-
 eslint-scope@5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-5.1.1.tgz#e786e59a66cb92b3f6c1fb0d508aab174848f48c"

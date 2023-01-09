@@ -1,5 +1,5 @@
 {
   "rules": {
-    "swg-internal/no-global": 2
+    "no-global": 2
   }
 }
