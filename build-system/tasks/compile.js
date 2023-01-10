@@ -20,7 +20,6 @@ const argv = require('minimist')(process.argv.slice(2));
 const babelify = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
-const closureCompile = require('./closure-compile').closureCompile;
 const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
 const internalRuntimeVersion = require('./internal-version').VERSION;
@@ -126,6 +125,9 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   if (options.minify) {
     const startTime = Date.now();
+
+    // Load this on-demand, making its dependencies optional.
+    const {closureCompile} = require('./closure-compile');
     return closureCompile(
       srcDir + srcFilename + '.js',
       destDir,
