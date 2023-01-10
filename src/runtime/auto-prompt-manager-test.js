@@ -542,6 +542,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -575,6 +576,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -610,6 +612,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -642,6 +645,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       impressionBackOffSeconds: 10,
       maxImpressions: 2,
@@ -675,6 +679,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -706,6 +711,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -740,6 +746,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
       dismissalBackOffSeconds: 0,
@@ -778,6 +785,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
       dismissalBackOffSeconds: 0,
@@ -816,6 +824,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
       dismissalBackOffSeconds: 10,
@@ -854,6 +863,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
       dismissalBackOffSeconds: 5,
