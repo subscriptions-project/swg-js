@@ -20,6 +20,7 @@ const argv = require('minimist')(process.argv.slice(2));
 const babelify = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
+const closureCompile = require('./closure-compile').closureCompile;
 const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
 const internalRuntimeVersion = require('./internal-version').VERSION;
@@ -27,6 +28,7 @@ const lazypipe = require('lazypipe');
 const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
 const touch = require('touch');
+const watchify = require('watchify');
 const {endBuildStep, mkdirSync} = require('./helpers');
 const {red} = require('ansi-colors');
 
@@ -124,9 +126,6 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   if (options.minify) {
     const startTime = Date.now();
-
-    // Import on-demand to support optional dependencies.
-    const {closureCompile} = require('./closure-compile');
     return closureCompile(
       srcDir + srcFilename + '.js',
       destDir,
@@ -172,8 +171,6 @@ function compileJs(srcDir, srcFilename, destDir, options) {
     })
   );
   if (options.watch) {
-    // Import on-demand to support optional dependencies.
-    const watchify = require('watchify');
     bundler = watchify(bundler);
   }
 
