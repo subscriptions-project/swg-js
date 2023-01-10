@@ -258,7 +258,7 @@ export class PayClient {
       return res;
     } catch (reason) {
       if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
-        const error = createCancelError(this.win_);
+        const error = createCancelError('Cancelled');
         if (request) {
           error['productType'] = /** @type {!PaymentDataRequest} */ (request)[
             'i'
