@@ -189,12 +189,14 @@ export class AutoPromptManager {
       params.autoPromptType
     );
 
-    const potentialActionPromptType = await this.getAudienceActionPromptType_({
-      article,
-      autoPromptType: params.autoPromptType,
-      dismissedPrompts,
-      shouldShowAutoPrompt,
-    });
+    const potentialActionPromptType = article
+      ? await this.getAudienceActionPromptType_({
+          article,
+          autoPromptType: params.autoPromptType,
+          dismissedPrompts,
+          shouldShowAutoPrompt,
+        })
+      : undefined;
 
     const promptFn = potentialActionPromptType
       ? this.audienceActionPrompt_({
@@ -369,7 +371,7 @@ export class AutoPromptManager {
    * after the initial Contribution prompt. We also always default to showing the Contribution
    * prompt if the reader is currently inside of the frequency window, indicated by shouldShowAutoPrompt.
    * @param {{
-   *   article: (?./entitlements-manager.Article|undefined),
+   *   article: (!./entitlements-manager.Article),
    *   autoPromptType: (AutoPromptType|undefined),
    *   dismissedPrompts: (?string|undefined),
    *   shouldShowAutoPrompt: (boolean|undefined),
@@ -382,7 +384,7 @@ export class AutoPromptManager {
     dismissedPrompts,
     shouldShowAutoPrompt,
   }) {
-    const audienceActions = article?.audienceActions?.actions || [];
+    const audienceActions = article.audienceActions?.actions || [];
 
     // Count completed surveys.
     const [surveyCompletionTimestamps, surveyDataTransferFailureTimestamps] =
@@ -695,15 +697,11 @@ export class AutoPromptManager {
 
   /**
    * Checks if provided ExperimentFlag is returned in article endpoint.
-   * @param {?./entitlements-manager.Article|undefined} article
+   * @param {!./entitlements-manager.Article} article
    * @param {string} experimentFlag
    * @return {!Promise<boolean>}
    */
   async isExperimentEnabled_(article, experimentFlag) {
-    if (!article) {
-      return false;
-    }
-
     const articleExpFlags =
       await this.entitlementsManager_.parseArticleExperimentConfigFlags(
         article
