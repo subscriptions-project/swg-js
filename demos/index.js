@@ -33,9 +33,10 @@ app.use(express.static('public'));
 app.get('/examples/sample-pub/redirect-to/:jsfile', (req, res) => {
   const jsfile = req.params.jsfile;
   const jsurl =
-    'https://news.google.com/swg/js/v1/' + req.get('referrer')?.match('/qual/')
+    'https://news.google.com/swg/js/v1/' +
+    (req.get('referrer')?.match('/qual/')
       ? `${jsfile.split('.')[0]}-qual.js`
-      : jsfile;
+      : jsfile);
   res.redirect(jsurl);
 });
 
