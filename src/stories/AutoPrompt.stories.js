@@ -17,26 +17,15 @@ export default {
   },
   decorators: [
     (component) => {
-      // Reload window when directing outside of this page.
-      setupEventListener();
+      // Reload window when changing stories.
+      addons.getChannel().addListener(STORY_CHANGED, () => {
+        self.window.location.reload();
+      });
 
       return component();
     },
   ],
 };
-
-const channel = addons.getChannel();
-
-const storyListener = () => {
-  if (self.SWG_BASIC) {
-    self.window.location.reload();
-    return '';
-  }
-};
-
-function setupEventListener() {
-  channel.addListener(STORY_CHANGED, storyListener);
-}
 
 const Template = (args) => {
   const el = self.document.createElement('script');
