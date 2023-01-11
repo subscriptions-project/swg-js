@@ -38,29 +38,31 @@ DemoPaywallController.prototype.start = function () {
 };
 
 /** @private */
-DemoPaywallController.prototype.onEntitlements_ = function (
+DemoPaywallController.prototype.onEntitlements_ = async function (
   entitlementsPromise
 ) {
-  entitlementsPromise.then(
-    function (entitlements) {
-      log('got entitlements: ', entitlements, entitlements.enablesThis());
-      if (this.completeDeferredAccountCreation_(entitlements)) {
-        return;
-      }
-      if (entitlements && entitlements.enablesThis()) {
-        // Entitlements available: open access.
-        this.openPaywall_();
-        entitlements.ack();
-      } else {
-        // In a simplest case, just launch offers flow.
-        this.subscriptions.showOffers();
-      }
-    }.bind(this),
-    function (reason) {
-      log('entitlements failed: ', reason);
-      throw reason;
-    }
-  );
+  let entitlements;
+  try {
+    entitlements = await entitlementsPromise;
+  } catch (reason) {
+    log('entitlements failed: ', reason);
+    throw reason;
+  }
+
+  log('got entitlements: ', entitlements, entitlements.enablesThis());
+  if (this.shouldCreateAccount_(entitlements)) {
+    this.createAccount_(entitlements);
+    return;
+  }
+
+  if (entitlements && entitlements.enablesThis()) {
+    // Entitlements available: open access.
+    this.openPaywall_();
+    entitlements.ack();
+  } else {
+    // In a simplest case, just launch offers flow.
+    this.subscriptions.showOffers();
+  }
 };
 
 /**
@@ -76,90 +78,86 @@ DemoPaywallController.prototype.openPaywall_ = function () {
 
 /**
  * The subscription has been complete.
- * @param {!Promise<!SubscribeResponse>} promise
+ * @param {!Promise<!SubscribeResponse>} responsePromise
  * @private
  */
-DemoPaywallController.prototype.subscribeResponse_ = function (promise) {
-  promise.then(
-    function (response) {
-      // TODO: Start account creation flow.
-      log('got subscription response', response);
-      const toast = document.getElementById('creating_account_toast');
-      const userEl = document.getElementById('creating_account_toast_user');
-      userEl.textContent = response.userData.email;
-      toast.style.display = 'block';
-      // TODO: wait for account creation to be complete.
-      setTimeout(
-        function () {
-          response.complete().then(
-            function () {
-              log('subscription has been confirmed');
-              // Open the content.
-              this.subscriptions.reset();
-              this.start();
-            }.bind(this)
-          );
-          toast.style.display = 'none';
-        }.bind(this),
-        3000
-      );
-    }.bind(this),
-    function (reason) {
-      log('subscription response failed: ', reason);
-      throw reason;
-    }
-  );
+DemoPaywallController.prototype.subscribeResponse_ = async function (
+  responsePromise
+) {
+  let response;
+  try {
+    response = await responsePromise;
+  } catch (reason) {
+    log('subscription response failed: ', reason);
+    throw reason;
+  }
+
+  // TODO: Start account creation flow.
+  log('got subscription response', response);
+  const toast = document.getElementById('creating_account_toast');
+  const userEl = document.getElementById('creating_account_toast_user');
+  userEl.textContent = response.userData.email;
+  toast.style.display = 'block';
+
+  // TODO: wait for account creation to be complete.
+  setTimeout(async () => {
+    await response.complete();
+    log('subscription has been confirmed');
+
+    // Open the content.
+    this.subscriptions.reset();
+    this.start();
+    toast.style.display = 'none';
+  }, 3000);
 };
 
 /**
  * @param {!Entitlements} entitlements
- * @return {!Promise|undefined}
+ * @return {boolean}
  * @private
  */
-DemoPaywallController.prototype.completeDeferredAccountCreation_ = function (
-  entitlements
-) {
-  // TODO(dvoytenko): decide when completion is needed for demo.
+DemoPaywallController.prototype.shouldCreateAccount_ = function (entitlements) {
   const accountFound = this.knownAccount || true;
   if (accountFound) {
     // Nothing needs to be completed.
-    return;
+    return false;
   }
   if (!entitlements.getEntitlementForSource('google')) {
     // No Google entitlement.
-    return;
+    return false;
   }
+
+  return true;
+};
+
+/**
+ * @param {!Entitlements} entitlements
+ * @private
+ */
+DemoPaywallController.prototype.createAccount_ = async function (entitlements) {
   log('start deferred account creation');
-  return this.subscriptions
-    .completeDeferredAccountCreation({
-      entitlements,
-    })
-    .then(
-      function (response) {
-        // TODO: Start deferred account creation flow.
-        log('got deferred account response', response);
-        this.knownAccount = true;
-        const toast = document.getElementById('creating_account_toast');
-        const userEl = document.getElementById('creating_account_toast_user');
-        userEl.textContent = 'deferred/' + response.userData.email;
-        toast.style.display = 'block';
-        // TODO: wait for account creation to be complete.
-        setTimeout(
-          function () {
-            response.complete().then(
-              function () {
-                log('subscription has been confirmed');
-                // Open the content.
-                this.subscriptions.reset();
-                this.start();
-              }.bind(this)
-            );
-            toast.style.display = 'none';
-          }.bind(this),
-          3000
-        );
-      }.bind(this)
-    );
+  const response = await this.subscriptions.completeDeferredAccountCreation({
+    entitlements,
+  });
+
+  // TODO: Start deferred account creation flow.
+  log('got deferred account response', response);
+  this.knownAccount = true;
+  const toast = document.getElementById('creating_account_toast');
+  const userEl = document.getElementById('creating_account_toast_user');
+  userEl.textContent = 'deferred/' + response.userData.email;
+  toast.style.display = 'block';
+
+  // TODO: wait for account creation to be complete.
+  setTimeout(async () => {
+    await response.complete();
+    log('subscription has been confirmed');
+
+    // Open the content.
+    this.subscriptions.reset();
+    this.start();
+    toast.style.display = 'none';
+  }, 3000);
 };
 
 /**

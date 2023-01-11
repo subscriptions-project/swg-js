@@ -265,6 +265,13 @@ export class Subscriptions {
   saveSubscription(requestCallback) {}
 
   /**
+   * Starts the subscription linking flow.
+   * @param {!LinkSubscriptionRequest} linkSubscriptionRequest
+   * @return {!Promise<!LinkSubscriptionResult>} promise indicating result of the operation
+   */
+  linkSubscription(linkSubscriptionRequest) {}
+
+  /**
    * Creates an element with the SwG button style and the provided callback.
    * The default theme is "light".
    *
@@ -337,6 +344,13 @@ export class Subscriptions {
    * @return {?}
    */
   showBestAudienceAction() {}
+
+  /**
+   * Sets the publisherProvidedId.
+   * @param {string} publisherProvidedId
+   * @return {?}
+   */
+  setPublisherProvidedId(publisherProvidedId) {}
 }
 /* eslint-enable no-unused-vars */
 
@@ -367,9 +381,11 @@ export const ShowcaseEvent = {
  * Properties:
  * - isUserRegistered: Is the user registered currently?
  * - entitlement: Publisher entitlement event type.
+ * - subscriptionTimestamp: Timestamp(in millisecond) when the user converted to a subscriber. Null if the user is not a subscriber.
  *  @typedef {{
  *    isUserRegistered:  !boolean,
  *    entitlement: !ShowcaseEvent,
+ *    subscriptionTimestamp: (!number|null),
  * }}
  */
 export let PublisherEntitlement;
@@ -409,6 +425,7 @@ export const SubscriptionFlows = {
  *   analyticsMode: (!AnalyticsMode|undefined),
  *   enableSwgAnalytics: (boolean|undefined),
  *   enablePropensity: (boolean|undefined),
+ *   publisherProvidedId: (string|undefined),
  * }}
  */
 export let Config;
@@ -459,6 +476,7 @@ export let GetEntitlementsMeteringParamsInternal;
  * @typedef {{
  *   encryption: (!GetEntitlementsEncryptionParams|undefined),
  *   metering: (!GetEntitlementsMeteringParamsExternal|undefined),
+ *   publisherProvidedId: (string|undefined),
  * }}
  */
 export let GetEntitlementsParamsExternalDef;
@@ -629,3 +647,18 @@ export let SmartButtonOptions;
  * }}
  */
 export let SubscriptionRequest;
+
+/**
+ * @typedef {{
+ *  publisherProvidedId: string,
+ * }}
+ */
+export let LinkSubscriptionRequest;
+
+/**
+ * @typedef {{
+ *  publisherProvidedId: (?string|undefined),
+ *  success: boolean,
+ * }}
+ */
+export let LinkSubscriptionResult;

@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+import {
+  ADS_SERVER,
+  FRONTEND,
+  FRONTEND_CACHE,
+  INTERNAL_RUNTIME_VERSION,
+  PAY_ENVIRONMENT,
+  PLAY_ENVIRONMENT,
+} from '../constants';
 import {addQueryParam, parseQueryString, parseUrl} from '../utils/url';
 
 /**
@@ -34,10 +42,10 @@ export const CACHE_KEYS = {
  * Default operating Mode
  */
 export const DEFAULT = {
-  frontEnd: '$frontend$',
-  payEnv: '$payEnvironment$',
-  playEnv: '$playEnvironment$',
-  feCache: '$frontendCache$',
+  frontEnd: FRONTEND,
+  payEnv: PAY_ENVIRONMENT,
+  playEnv: PLAY_ENVIRONMENT,
+  feCache: FRONTEND_CACHE,
 };
 
 /**
@@ -71,10 +79,10 @@ const QUAL = {
 };
 
 /**
- * Operating modes, only runtime switchgable modes are here
- * build time modes set the default and are configured in prepare.sh
+ * Operating modes, only runtime switchable modes are here.
+ * Build time modes set the default and are configured in prepare.sh.
  *
- * IMPORTANT: modes other than prod will only work on google internal networks!
+ * IMPORTANT: modes other than prod will only work on Google internal networks!
  * @type {!Object<Object>}
  * @package Visible for testing only.
  */
@@ -86,7 +94,7 @@ export const MODES = {
 };
 
 /**
- * Check for swg.mode= in url fragemnet if it exists use it
+ * Check for swg.mode= in url fragment. If it exists, use it,
  * otherwise use the default build mode.
  * @returns {Object}
  */
@@ -126,19 +134,20 @@ export function serviceUrl(url) {
  * @return {string} The complete URL.
  */
 export function adsUrl(url) {
-  return '$adsServer$' + url;
+  return ADS_SERVER + url;
 }
 
 /**
  * @param {string} url Relative URL, e.g. "/offersiframe".
- * @param {string=} prefix
  * @param {Object<string, string>=} params List of extra params to append to the URL.
+ * @param {boolean=} usePrefixedHostPath
+ * @param {string=} prefix
  * @return {string} The complete URL.
  */
 export function feUrl(
   url,
   params = {},
-  usePrefixedHostPath = false,
+  usePrefixedHostPath = true,
   prefix = ''
 ) {
   // Add cache param.
@@ -183,7 +192,7 @@ export function feCached(url) {
  */
 export function feArgs(args) {
   return Object.assign(args, {
-    '_client': 'SwG $internalRuntimeVersion$',
+    '_client': `SwG ${INTERNAL_RUNTIME_VERSION}`,
   });
 }
 

@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
+const {createAbortError} = require('web-activities/activity-ports');
+
 import {ErrorUtils, createCancelError, isCancelError} from './errors';
 
 describe('errors', () => {
   describe('isCancelError', () => {
-    it('should return true for an abort error', () => {
-      const e = new DOMException('cancel', 'AbortError');
-      expect(isCancelError(e)).to.be.true;
+    it('should return true for a cancel error', () => {
+      const error = createCancelError('custom message');
+      expect(isCancelError(error)).to.be.true;
+    });
+
+    it('should return true for an abort error (from web-activities)', () => {
+      const error = createAbortError(self, 'cancel');
+      expect(isCancelError(error)).to.be.true;
     });
 
     it('should return false for non-errors', () => {
@@ -41,8 +48,7 @@ describe('errors', () => {
 
   describe('createCancelError', () => {
     it('creates error', () => {
-      const error = createCancelError(self, 'custom message');
-      expect(error.code).to.equal(20);
+      const error = createCancelError('custom message');
       expect(error.message).to.equal('AbortError: custom message');
       expect(error.name).to.equal('AbortError');
     });

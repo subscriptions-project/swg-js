@@ -262,6 +262,7 @@ exports.ARTICLES = [
   },
 ];
 
-exports.ARTICLES.forEach((a, index) => {
-  a.id = index + 1;
-});
+let articleIndex = 1;
+for (const article of exports.ARTICLES) {
+  article.id = articleIndex++;
+}

@@ -19,7 +19,7 @@ import {ConfiguredRuntime} from './runtime';
 import {LoginPromptApi} from './login-prompt-api';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('LoginPromptApi', {}, (env) => {
+describes.realWin('LoginPromptApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -63,15 +63,15 @@ describes.realWin('LoginPromptApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/loginiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId,
           productId,
           userConsent: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
 
     loginPromptApi.start();
     await loginPromptApi.openViewPromise_;
@@ -79,7 +79,7 @@ describes.realWin('LoginPromptApi', {}, (env) => {
 
   it('should handle cancel', async () => {
     callbacksMock.expects('triggerFlowCanceled').once();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
 
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
@@ -88,7 +88,7 @@ describes.realWin('LoginPromptApi', {}, (env) => {
 
   it('should handle failure', async () => {
     callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
     await expect(loginPromptApi.start()).to.be.rejectedWith(/broken/);

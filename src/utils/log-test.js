@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-/* eslint-disable */
-
 import {assert, debugLog, warn} from './log';
 
-describes.realWin('warn', {}, () => {
+describes.realWin('warn', () => {
   let warnFn;
 
   beforeEach(() => {
-    warnFn = sandbox.spy(console, 'warn');
+    warnFn = sandbox.spy(self.console, 'warn');
   });
 
   afterEach(() => {
@@ -31,15 +29,15 @@ describes.realWin('warn', {}, () => {
 
   it('should log a warning', () => {
     warn('Hello World');
-    expect(console.warn.calledWith('Hello World')).to.be.true;
+    expect(self.console.warn).to.be.calledWith('Hello World');
   });
 });
 
-describes.realWin('debug log', {}, () => {
+describes.realWin('debug log', () => {
   let log;
 
   beforeEach(() => {
-    log = sandbox.spy(console, 'log');
+    log = sandbox.spy(self.console, 'log');
   });
 
   afterEach(() => {
@@ -49,24 +47,27 @@ describes.realWin('debug log', {}, () => {
   it('should log if swg.debug=1', () => {
     self.location.hash = 'swg.debug=1';
     debugLog('Hello World');
-    expect(console.log.calledWith('[Subscriptions]', 'Hello World')).to.be.true;
+    expect(self.console.log).to.be.calledWith('[Subscriptions]', 'Hello World');
   });
 
   it('should handle multiple arguments', () => {
     self.location.hash = 'swg.debug=1';
     debugLog('Hello', 'World');
-    expect(console.log.calledWith('[Subscriptions]', 'Hello', 'World')).to.be
-      .true;
+    expect(self.console.log).to.be.calledWith(
+      '[Subscriptions]',
+      'Hello',
+      'World'
+    );
   });
 
   it('should not log if swg.debug=1 is not present', () => {
     self.location.hash = '';
     debugLog('Hello World');
-    expect(console.log.notCalled).to.be.true;
+    expect(self.console.log).to.not.be.called;
   });
 });
 
-describes.realWin('asserts', {}, env => {
+describes.realWin('asserts', (env) => {
   let win;
 
   beforeEach(() => {
@@ -77,13 +78,6 @@ describes.realWin('asserts', {}, env => {
     expect(() => {
       assert(false, 'xyz');
     }).to.throw(/xyz/);
-
-    try {
-      assert(false, '123');
-      throw 'must have failed';
-    } catch (e) {
-      expect(e.message).to.equal('123');
-    }
   });
 
   it('should not fail', () => {
@@ -96,9 +90,11 @@ describes.realWin('asserts', {}, env => {
     expect(() => {
       assert(false, 'should fail %s', 'XYZ');
     }).to.throw(/should fail XYZ/);
+
     expect(() => {
       assert(false, 'should fail %s %s', 'XYZ', 'YYY');
     }).to.throw(/should fail XYZ YYY/);
+
     const div = win.document.createElement('div');
     div.id = 'abc';
     div.textContent = 'foo';
@@ -106,27 +102,6 @@ describes.realWin('asserts', {}, env => {
       assert(false, 'should fail %s', div);
     }).to.throw(/should fail div#abc/);
 
-    let error;
-    try {
-      assert(false, '%s a %s b %s', 1, 2, 3);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).to.be.instanceof(Error);
-    expect(error.message).to.equal('1 a 2 b 3');
-    expect(error.messageArray).to.deep.equal([1, 'a', 2, 'b', 3]);
-  });
-
-  it('should add element and assert info', () => {
-    const div = win.document.createElement('div');
-    let error;
-    try {
-      assert(false, '%s a %s b %s', div, 2, 3);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).to.be.instanceof(Error);
-    expect(error.associatedElement).to.equal(div);
-    expect(error.fromAssert).to.equal(true);
+    expect(() => assert(false, '%s a %s b %s', 1, 2, 3)).to.throw('1 a 2 b 3');
   });
 });

@@ -27,7 +27,7 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
 
-describes.realWin('ContributionsFlow', {}, (env) => {
+describes.realWin('ContributionsFlow', (env) => {
   let win;
   let contributionsFlow;
   let runtime;
@@ -51,7 +51,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    sandbox.stub(port, 'on').callsFake(function (ctor, cb) {
+    sandbox.stub(port, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
       const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
@@ -70,9 +70,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -96,10 +96,10 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
         {
           isClosable,
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -120,9 +120,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -145,9 +145,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -183,9 +183,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&publicationId=pub1',
+        'https://news.google.com/swg/_/ui/v1/contributionoffersiframe?_=_&publicationId=pub1',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -211,9 +211,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
+        'https://news.google.com/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           productType: ProductType.UI_CONTRIBUTION,
@@ -285,6 +285,40 @@ describes.realWin('ContributionsFlow', {}, (env) => {
         false,
         sandbox.match({shouldDisableBodyScrolling: true})
       )
+      .once();
+    await contributionsFlow.start();
+  });
+
+  it('opens dialog with scrolling enabled when useUpdatedOfferFlows=false and allowScroll=true', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: false,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
+    sandbox.stub(clientConfigManager, 'shouldAllowScroll').returns(true);
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
+      .once();
+    await contributionsFlow.start();
+  });
+
+  it('opens dialog with scrolling enabled when useUpdatedOfferFlows=true and allowScroll=true', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {canDisplayAutoPrompt: true},
+      })
+    );
+    sandbox.stub(clientConfigManager, 'shouldAllowScroll').returns(true);
+    contributionsFlow = new ContributionsFlow(runtime, {list: 'other'});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(sandbox.match.any, false, /* dialogConfig */ {})
       .once();
     await contributionsFlow.start();
   });

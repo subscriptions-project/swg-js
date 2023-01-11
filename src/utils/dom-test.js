@@ -17,7 +17,7 @@
 import * as dom from './dom';
 import {resolveDoc} from '../model/doc';
 
-describes.realWin('Dom', {}, (env) => {
+describes.realWin('Dom', (env) => {
   let doc;
 
   beforeEach(() => {
@@ -196,58 +196,6 @@ describes.realWin('Dom', {}, (env) => {
       parent.appendChild(element);
       expect(dom.hasNextNodeInDocumentOrder(element)).to.be.true;
       expect(dom.hasNextNodeInDocumentOrder(element, parent)).to.be.false;
-    });
-  });
-
-  describe('isConnected', () => {
-    it('should use native isConnected', () => {
-      expect(dom.isConnected({isConnected: true})).to.be.true;
-      expect(dom.isConnected({isConnected: false})).to.be.false;
-    });
-
-    it('should fallback to polyfill w/o native isConnected', () => {
-      const doc = {
-        documentElement: {
-          contains: (node) => node.connected_,
-        },
-      };
-      expect(dom.isConnected({ownerDocument: doc, connected_: true})).to.be
-        .true;
-      expect(dom.isConnected({ownerDocument: doc, connected_: false})).to.be
-        .false;
-    });
-
-    it('should work on actual nodes', () => {
-      const node = doc.createElement('div');
-      expect(dom.isConnected(node)).to.be.false;
-      doc.body.appendChild(node);
-      expect(dom.isConnected(node)).to.be.true;
-      doc.body.removeChild(node);
-      expect(dom.isConnected(node)).to.be.false;
-    });
-  });
-
-  describe('isLegacyEdgeBrowser', () => {
-    it('should return true for legacy Edge browsers', () => {
-      const legacyEdgeWindow = {
-        navigator: {
-          userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36 Edge/40.15063.0',
-        },
-      };
-      const isLegacyEdge = dom.isLegacyEdgeBrowser(legacyEdgeWindow);
-      expect(isLegacyEdge).to.be.true;
-    });
-
-    it('should return false for other browsers', () => {
-      const newEdgeWindow = {
-        navigator: {
-          userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36 Edg/44.18362.449.0',
-        },
-      };
-      const isLegacyEdge = dom.isLegacyEdgeBrowser(newEdgeWindow);
-      expect(isLegacyEdge).to.be.false;
     });
   });
 });

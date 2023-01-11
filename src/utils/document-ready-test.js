@@ -17,12 +17,11 @@
 import {
   isDocumentReady,
   onDocumentReady,
-  whenDocumentComplete,
   whenDocumentReady,
 } from './document-ready';
 import {tick} from '../../test/tick';
 
-describes.sandboxed('documentReady', {}, () => {
+describes.sandboxed('documentReady', () => {
   let testDoc;
   let eventListeners;
 
@@ -149,65 +148,6 @@ describes.sandboxed('documentReady', {}, () => {
       whenDocumentReady(testDoc).then(callback);
 
       await tick(99);
-      expect(callback).to.have.not.been.called;
-      expect(countListeners()).to.equal(1);
-
-      // Complete
-      testDoc.readyState = 'complete';
-      callListeners();
-
-      await tick();
-      expect(callback).to.be.calledOnce;
-      expect(callback.getCall(0).args).to.deep.equal([testDoc]);
-      expect(countListeners()).to.equal(0);
-    });
-  });
-
-  describe('whenDocumentComplete', () => {
-    it('should call callback immediately when complete', async () => {
-      testDoc.readyState = 'complete';
-      const spy = sandbox.spy();
-      const spy2 = sandbox.spy();
-      const spy3 = sandbox.spy();
-
-      whenDocumentComplete(testDoc).then(spy).then(spy2);
-
-      whenDocumentComplete(testDoc).then(spy3);
-
-      expect(spy).to.have.not.been.called;
-      expect(spy2).to.have.not.been.called;
-      expect(spy3).to.have.not.been.called;
-
-      await tick(99);
-      expect(spy).to.be.calledOnce;
-      expect(spy.getCall(0).args).to.deep.equal([testDoc]);
-      expect(spy2).to.be.calledOnce;
-      expect(spy3).to.be.calledOnce;
-    });
-
-    it('should not call callback', async () => {
-      const spy = sandbox.spy();
-      whenDocumentComplete(testDoc).then(spy);
-      expect(spy).to.have.not.been.called;
-
-      await tick();
-      expect(spy).to.have.not.been.called;
-    });
-
-    it('should wait to call callback until ready', async () => {
-      testDoc.readyState = 'loading';
-      const callback = sandbox.spy();
-      whenDocumentComplete(testDoc).then(callback);
-
-      await tick();
-      expect(callback).to.have.not.been.called;
-      expect(countListeners()).to.equal(1);
-
-      // interactive
-      testDoc.readyState = 'interactive';
-      callListeners();
-
-      await tick();
       expect(callback).to.have.not.been.called;
       expect(countListeners()).to.equal(1);
 

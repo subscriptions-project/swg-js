@@ -25,8 +25,6 @@ const karmaDefault = require('./karma.conf');
 const log = require('fancy-log');
 const shuffleSeed = require('shuffle-seed');
 const webserver = require('gulp-webserver');
-
-const {build} = require('./builders');
 const {green, yellow, cyan, red} = require('ansi-colors');
 const {isCiBuild} = require('../ci');
 
@@ -64,7 +62,7 @@ function printArgvMessages() {
     ie: 'Running tests on IE.',
     edge: 'Running tests on Edge.',
     nobuild: 'Skipping build.',
-    watch:
+    w:
       'Enabling watch mode. Editing and saving a file will cause the' +
       ' tests for that file to be re-run in the same browser instance.',
     verbose: 'Enabling verbose mode. Expect lots of output!',
@@ -97,12 +95,12 @@ function printArgvMessages() {
     log(green('Running tests against unminified code.'));
   }
 
-  Object.keys(argv).forEach((arg) => {
+  for (const arg of Object.keys(argv)) {
     const message = argvMessages[arg];
     if (message) {
       log(yellow('--' + arg + ':'), green(message));
     }
-  });
+  }
 }
 
 /**
@@ -184,21 +182,25 @@ function runTests() {
       {
         exclude: [
           'build-system/**/*.js',
-          'third_party/**/*.js',
+          'src/**/*-test.js',
           'test/**/*.js',
+          'third_party/**/*.js',
+          // Tell istanbul not to instrument the constants file.
+          // This is needed because we update it at build time for tests.
+          'src/constants.js',
         ],
       },
     ];
 
     // Install Instanbul plugin.
-    c.browserify.transform.forEach((transform) => {
+    for (const transform of c.browserify.transform) {
       if (transform[0] === 'babelify') {
         if (!transform[1].plugins) {
           transform[1].plugins = [];
         }
         transform[1].plugins.push(instanbulPlugin);
       }
-    });
+    }
   }
 
   // Run fake-server to test XHR responses.
@@ -208,16 +210,16 @@ function runTests() {
       host: 'localhost',
       directoryListing: true,
       middleware: [app],
-    }).on('kill', function () {
+    }).on('kill', () => {
       log(yellow('Shutting down test responses server on localhost:31862'));
-      process.nextTick(function () {
+      process.nextTick(() => {
         process.exit();
       });
     })
   );
   log(yellow('Started test responses server on localhost:31862'));
 
-  new Karma(c, function (exitCode) {
+  new Karma(c, (exitCode) => {
     server.emit('kill');
     if (exitCode) {
       log(red('ERROR:'), yellow('Karma test failed with exit code', exitCode));
@@ -228,10 +230,6 @@ function runTests() {
 
 async function unit() {
   printArgvMessages();
-
-  if (!argv.nobuild) {
-    await build();
-  }
   runTests();
 }
 
@@ -244,7 +242,7 @@ unit.flags = {
   'coverage': '  Run tests in code coverage mode',
   'verbose': '  With logging enabled',
   'testnames': '  Lists the name of each test being run',
-  'watch': '  Watches for changes in files, runs corresponding test(s)',
+  'w': '  Watches for changes in files, runs corresponding test(s)',
   'safari': '  Runs tests on Safari',
   'firefox': '  Runs tests on Firefox',
   'edge': '  Runs tests on Edge',

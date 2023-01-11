@@ -22,7 +22,7 @@ import {Propensity} from './propensity';
 import {PropensityServer} from './propensity-server';
 import {XhrFetcher} from './fetcher';
 
-describes.realWin('Propensity', {}, (env) => {
+describes.realWin('Propensity', (env) => {
   let win;
   let propensity;
   let pageConfig;
@@ -158,7 +158,6 @@ describes.realWin('Propensity', {}, (env) => {
   });
 
   it('should validate events sent to it and set appropriate defaults', () => {
-    let hasError;
     let receivedEvent;
 
     sandbox
@@ -167,29 +166,32 @@ describes.realWin('Propensity', {}, (env) => {
         receivedEvent = event;
       });
 
-    const testSend = (event) => {
-      try {
-        hasError = false;
-        receivedEvent = null;
-        propensity.sendEvent(event);
-      } catch (e) {
-        hasError = true;
-      }
-    };
-
     //ensure it rejects invalid Propensity.Event enum values
-    testSend({
-      name: 'invalid name',
-    });
-    expect(hasError).to.be.true;
-    expect(receivedEvent).to.be.null;
+    expect(() =>
+      propensity.sendEvent({
+        name: 'invalid name',
+      })
+    ).to.throw('Invalid user event provided(invalid name)');
+
+    //ensure it rejects invalid data objects
+    expect(() =>
+      propensity.sendEvent({
+        name: Event.IMPRESSION_OFFERS,
+        active: true,
+        data: 'all_offers',
+      })
+    ).to.throw('Event data must be an Object(all_offers)');
+
+    const testSend = (event) => {
+      receivedEvent = null;
+      propensity.sendEvent(event);
+    };
 
     //ensure it takes a valid enum with nothing else and fills in appropriate
     //defaults for other values
     testSend({
       name: Event.IMPRESSION_PAYWALL,
     });
-    expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
@@ -212,7 +214,6 @@ describes.realWin('Propensity', {}, (env) => {
       name: Event.IMPRESSION_OFFERS,
       active: null,
     });
-    expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
@@ -224,7 +225,6 @@ describes.realWin('Propensity', {}, (env) => {
       name: Event.IMPRESSION_OFFERS,
       active: true,
     });
-    expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
@@ -236,22 +236,12 @@ describes.realWin('Propensity', {}, (env) => {
       name: Event.IMPRESSION_OFFERS,
       active: false,
     });
-    expect(hasError).to.be.false;
     expect(receivedEvent).to.deep.equal({
       eventType: AnalyticsEvent.IMPRESSION_OFFERS,
       eventOriginator: EventOriginator.PROPENSITY_CLIENT,
       isFromUserAction: false,
       additionalParameters: {'is_active': false},
     });
-
-    //ensure it rejects invalid data objects
-    testSend({
-      name: Event.IMPRESSION_OFFERS,
-      active: true,
-      data: 'all_offers',
-    });
-    expect(hasError).to.be.true;
-    expect(receivedEvent).to.be.null;
   });
 
   it('should return propensity score from server', async () => {

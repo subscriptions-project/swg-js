@@ -15,6 +15,10 @@
  */
 
 import {Entitlements as EntitlementsDef} from './entitlements';
+import {
+  LinkSubscriptionRequest as LinkSubscriptionRequestDef,
+  LinkSubscriptionResult as LinkSubscriptionResultDef,
+} from './subscriptions';
 import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
 
 /* eslint-disable no-unused-vars */
@@ -39,6 +43,7 @@ export class BasicSubscriptions {
    *   clientOptions: (ClientOptions|undefined),
    *   alwaysShow: (boolean|undefined),
    *   disableDefaultMeteringHandler: (boolean|undefined),
+   *   publisherProvidedId: (string|undefined),
    * }=} params
    */
   init(params) {}
@@ -87,6 +92,13 @@ export class BasicSubscriptions {
    * @return {?}
    */
   dismissSwgUI() {}
+
+  /**
+   * Initiates the subscription linking flow.
+   * @param {!LinkSubscriptionRequestDef} request
+   * @returns {!Promise<!LinkSubscriptionResultDef>}
+   */
+  linkSubscription(request) {}
 }
 /* eslint-enable no-unused-vars */
 
@@ -118,6 +130,7 @@ export const AutoPromptType = {
  *   lang: (string|undefined),
  *   forceLangInIframes: (boolean|undefined),
  *   theme: (ClientTheme|undefined),
+ *   allowScroll: (boolean|undefined),
  * }}
  */
 export let ClientOptions;

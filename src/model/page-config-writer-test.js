@@ -18,7 +18,7 @@ import {GlobalDoc} from './doc';
 import {PageConfigWriter} from './page-config-writer';
 import {createElement} from '../utils/dom';
 
-describes.realWin('PageConfigWriter', {}, (env) => {
+describes.realWin('PageConfigWriter', (env) => {
   let win, doc, gd, markupConfig;
 
   beforeEach(() => {
@@ -63,16 +63,14 @@ describes.realWin('PageConfigWriter', {}, (env) => {
     it('should write the config after the doc is read', async () => {
       readyState = 'complete';
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getHead().childNodes).to.have.length(1);
     });
 
     it('should write a new node if there is no existing schema', async () => {
       readyState = 'complete';
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getHead().childNodes).to.have.length(1);
       expect(gd.getHead().firstChild.textContent).to.equal(
         JSON.stringify({
@@ -90,8 +88,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
     it('should only write a new node once, regardless of the number of calls', async () => {
       readyState = 'complete';
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getHead().childNodes).to.have.length(1);
       expect(gd.getHead().firstChild.textContent).to.equal(
         JSON.stringify({
@@ -104,8 +101,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
           },
         })
       );
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getHead().childNodes).to.have.length(1);
     });
 
@@ -122,8 +118,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       readyState = 'complete';
 
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getHead().childNodes).to.have.length(1);
     });
 
@@ -135,8 +130,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       readyState = 'complete';
 
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getHead().childNodes).to.have.length(1);
     });
 
@@ -154,8 +148,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       readyState = 'complete';
 
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getBody().childNodes).to.have.length(1);
       expect(gd.getBody().firstChild.textContent).to.equal(
         JSON.stringify({
@@ -180,8 +173,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       readyState = 'complete';
 
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getBody().childNodes).to.have.length(1);
       expect(gd.getBody().firstChild.textContent).to.equal(
         JSON.stringify({
@@ -215,8 +207,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       readyState = 'complete';
 
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(incompleteMarkupConfig)).to
-        .be.eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(incompleteMarkupConfig);
       expect(gd.getBody().childNodes).to.have.length(1);
       expect(gd.getBody().firstChild.textContent).to.equal(
         JSON.stringify({
@@ -244,8 +235,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       readyState = 'complete';
 
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(incompleteMarkupConfig)).to
-        .be.eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(incompleteMarkupConfig);
       expect(gd.getBody().childNodes).to.have.length(1);
       expect(gd.getBody().firstChild.textContent).to.equal(
         JSON.stringify({
@@ -281,8 +271,7 @@ describes.realWin('PageConfigWriter', {}, (env) => {
       readyState = 'complete';
 
       const configWriter = new PageConfigWriter(gd);
-      await expect(configWriter.writeConfigWhenReady(markupConfig)).to.be
-        .eventually.fulfilled;
+      await configWriter.writeConfigWhenReady(markupConfig);
       expect(gd.getBody().childNodes).to.have.length(1);
       // The first schema should be merged, the second schema should be
       // unmodified.

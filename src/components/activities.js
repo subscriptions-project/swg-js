@@ -19,6 +19,7 @@ import {
   deserialize,
   getLabel,
 } from '../proto/api_messages';
+import {INTERNAL_RUNTIME_VERSION} from '../constants';
 
 import {Constants} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
@@ -156,32 +157,32 @@ export class ActivityIframePort {
    * Waits until the activity port is connected to the host.
    * @return {!Promise}
    */
-  connect() {
-    return this.iframePort_.connect().then(() => {
-      // Attach a callback to receive messages after connection complete
-      this.iframePort_.onMessage((data) => {
-        const response = data && data['RESPONSE'];
-        if (!response) {
-          return;
-        }
-        const cb = this.callbackMap_[response[0]];
-        if (cb) {
-          cb(deserialize(response));
-        }
-      });
+  async connect() {
+    await this.iframePort_.connect();
 
-      if (this.deps_ && this.deps_.eventManager()) {
-        this.on(AnalyticsRequest, (request) => {
-          const analyticsRequest = /** @type {AnalyticsRequest} */ (request);
-          this.deps_.eventManager().logEvent({
-            eventType: analyticsRequest.getEvent(),
-            eventOriginator: EventOriginator.SWG_SERVER,
-            isFromUserAction: analyticsRequest.getMeta().getIsFromUserAction(),
-            additionalParameters: analyticsRequest.getParams(),
-          });
-        });
+    // Attach a callback to receive messages after connection complete
+    this.iframePort_.onMessage((data) => {
+      const response = data && data['RESPONSE'];
+      if (!response) {
+        return;
+      }
+      const cb = this.callbackMap_[response[0]];
+      if (cb) {
+        cb(deserialize(response));
       }
     });
+
+    if (this.deps_ && this.deps_.eventManager()) {
+      this.on(AnalyticsRequest, (request) => {
+        const analyticsRequest = /** @type {AnalyticsRequest} */ (request);
+        this.deps_.eventManager().logEvent({
+          eventType: analyticsRequest.getEvent(),
+          eventOriginator: EventOriginator.SWG_SERVER,
+          isFromUserAction: analyticsRequest.getMeta().getIsFromUserAction(),
+          additionalParameters: analyticsRequest.getParams(),
+        });
+      });
+    }
   }
 
   /**
@@ -286,7 +287,7 @@ export class ActivityPorts {
         'analyticsContext': context.toArray(),
         'publicationId': pageConfig.getPublicationId(),
         'productId': pageConfig.getProductId(),
-        '_client': 'SwG $internalRuntimeVersion$',
+        '_client': `SwG ${INTERNAL_RUNTIME_VERSION}`,
         'supportsEventManager': true,
       },
       args || {}
@@ -300,9 +301,10 @@ export class ActivityPorts {
    * @param {?Object=} args
    * @return {!Promise<!ActivityIframePort>}
    */
-  openActivityIframePort_(iframe, url, args) {
+  async openActivityIframePort_(iframe, url, args) {
     const activityPort = new ActivityIframePort(iframe, url, this.deps_, args);
-    return activityPort.connect().then(() => activityPort);
+    await activityPort.connect();
+    return activityPort;
   }
 
   /**
@@ -313,26 +315,26 @@ export class ActivityPorts {
    * @param {boolean=} addDefaultArguments
    * @return {!Promise<!ActivityIframePort>}
    */
-  openIframe(iframe, url, args, addDefaultArguments = false) {
+  async openIframe(iframe, url, args, addDefaultArguments = false) {
     if (addDefaultArguments) {
       args = this.addDefaultArguments(args);
     }
-    return this.deps_
+
+    const swgUserToken = await this.deps_
       .storage()
-      .get(Constants.USER_TOKEN, /* useLocalStorage= */ true)
-      .then((swgUserToken) => {
-        const queryParams = new URL(url).searchParams;
-        if (swgUserToken && !queryParams.has('sut')) {
-          url = addQueryParam(url, 'sut', swgUserToken);
-        }
+      .get(Constants.USER_TOKEN, /* useLocalStorage= */ true);
 
-        const pubId = this.deps_.pageConfig().getPublicationId();
-        if (pubId && !queryParams.has('publicationId')) {
-          url = addQueryParam(url, 'publicationId', pubId);
-        }
+    const queryParams = new URL(url).searchParams;
+    if (swgUserToken && !queryParams.has('sut')) {
+      url = addQueryParam(url, 'sut', swgUserToken);
+    }
 
-        return this.openActivityIframePort_(iframe, url, args);
-      });
+    const pubId = this.deps_.pageConfig().getPublicationId();
+    if (pubId && !queryParams.has('publicationId')) {
+      url = addQueryParam(url, 'publicationId', pubId);
+    }
+
+    return this.openActivityIframePort_(iframe, url, args);
   }
 
   /**
@@ -382,15 +384,14 @@ export class ActivityPorts {
    *
    * A typical implementation would look like:
    * ```
-   * ports.onResult('request1', function(port) {
-   *   port.acceptResult().then(function(result) {
-   *     // Only verified origins are allowed.
-   *     if (result.origin == expectedOrigin &&
-   *         result.originVerified &&
-   *         result.secureChannel) {
-   *       handleResultForRequest1(result);
-   *     }
-   *   });
+   * ports.onResult('request1', async (port) => {
+   *   const result = await port.acceptResult();
+   *   // Only verified origins are allowed.
+   *   if (result.origin == expectedOrigin &&
+   *       result.originVerified &&
+   *       result.secureChannel) {
+   *     handleResultForRequest1(result);
+   *   }
    * })
    *
    * ports.open('request1', request1Url, '_blank');

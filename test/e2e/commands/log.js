@@ -16,7 +16,7 @@
 const log = require('fancy-log');
 const {blue, red} = require('ansi-colors');
 
-const getMessage = function (color, message) {
+const getMessage = (color, message) => {
   return color.bold(String.fromCharCode('9432')) + ' ' + color(message);
 };
 

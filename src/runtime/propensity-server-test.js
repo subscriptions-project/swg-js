@@ -44,7 +44,7 @@ function getPropensityEventFromUrl(capturedUrl) {
   };
 }
 
-describes.realWin('PropensityServer', {}, (env) => {
+describes.realWin('PropensityServer', (env) => {
   let win;
   let propensityServer;
   let eventManager;
@@ -243,10 +243,7 @@ describes.realWin('PropensityServer', {}, (env) => {
       };
       const response = new Response();
       const mockResponse = sandbox.mock(response);
-      mockResponse
-        .expects('json')
-        .returns(Promise.resolve(propensityResponse))
-        .once();
+      mockResponse.expects('json').resolves(propensityResponse).once();
       sandbox.stub(fetcher, 'fetch').callsFake(() => Promise.resolve(response));
 
       const actualResponse = await propensityServer.getPropensity(
@@ -283,10 +280,7 @@ describes.realWin('PropensityServer', {}, (env) => {
       };
       const response = new Response();
       const mockResponse = sandbox.mock(response);
-      mockResponse
-        .expects('json')
-        .returns(Promise.resolve(propensityResponse))
-        .once();
+      mockResponse.expects('json').resolves(propensityResponse).once();
       sandbox.stub(fetcher, 'fetch').callsFake(() => Promise.resolve(response));
 
       const actualResponse = await propensityServer.getPropensity(
@@ -316,10 +310,7 @@ describes.realWin('PropensityServer', {}, (env) => {
       };
       const response = new Response();
       const mockResponse = sandbox.mock(response);
-      mockResponse
-        .expects('json')
-        .returns(Promise.resolve(propensityResponse))
-        .once();
+      mockResponse.expects('json').resolves(propensityResponse).once();
       sandbox.stub(fetcher, 'fetch').callsFake(() => Promise.resolve(response));
 
       const actualResponse = await propensityServer.getPropensity(
@@ -462,14 +453,12 @@ describes.realWin('PropensityServer', {}, (env) => {
 
     it('should not send SwG events to Propensity Service', () => {
       testOriginator(EventOriginator.SWG_CLIENT, false);
-      testOriginator(EventOriginator.AMP_CLIENT, false);
     });
 
     it('should send SwG events to the Propensity Service', () => {
       config.enablePropensity = true;
 
       testOriginator(EventOriginator.SWG_CLIENT, true);
-      testOriginator(EventOriginator.AMP_CLIENT, true);
     });
   });
 

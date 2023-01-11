@@ -17,7 +17,7 @@
 import {getStyle} from './style';
 import {transition} from './animation';
 
-describes.sandboxed('transition', {}, () => {
+describes.sandboxed('transition', () => {
   let doc;
   let clock;
   let el;
