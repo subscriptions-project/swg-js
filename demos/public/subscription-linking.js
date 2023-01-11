@@ -16,12 +16,12 @@
 
 /* eslint-disable-next-line no-unused-vars */
 function linkSubscription() {
-  self.SWG_BASIC.push(async (basicSubscriptions) => {
+  self.SWG.push(async (subscriptions) => {
     const outputElement = document.getElementById('link-result');
     const ppidInputElement = document.getElementById('ppid-input');
     const ppid = ppidInputElement.value.trim();
     outputElement./*OK*/ innerText = '';
-    const result = await basicSubscriptions.linkSubscription({
+    const result = await subscriptions.linkSubscription({
       publisherProvidedId: ppid,
     });
     outputElement./*OK*/ innerText = JSON.stringify(result, null, 2);
