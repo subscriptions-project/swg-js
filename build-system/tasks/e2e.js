@@ -15,9 +15,9 @@
  */
 'use strict';
 
-const nightwatch = require('nightwatch');
-
 async function e2e() {
+  // Load this on-demand to support optional dependencies.
+  const nightwatch = require('nightwatch');
   nightwatch.cli(async (argv) => {
     argv.config = 'test/e2e/nightwatch.conf.js';
     if (!argv.env || argv.env === 'default') {

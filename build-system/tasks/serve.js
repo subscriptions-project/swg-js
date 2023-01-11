@@ -18,7 +18,6 @@
 const argv = require('minimist')(process.argv.slice(2));
 const log = require('fancy-log');
 const nodemon = require('nodemon');
-const storybook = require('@storybook/html/standalone');
 
 const host = argv.host || 'localhost';
 const port = argv.port || process.env.PORT || 8000;
@@ -34,6 +33,8 @@ const {green} = require('ansi-colors');
  */
 function serve(done) {
   if (useStorybook) {
+    // Load this on-demand to support optional dependencies.
+    const storybook = require('@storybook/html/standalone');
     storybook({
       port,
       mode: 'dev',
