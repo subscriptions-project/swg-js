@@ -39,7 +39,7 @@ jobs:
         run: yarn
 
       - name: E2E Tests
-        run: gulp e2e --retries=3
+        run: gulp e2e
 
   unit:
     # Canonical will support this LTS until April 2027.
