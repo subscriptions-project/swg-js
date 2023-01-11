@@ -1,6 +1,8 @@
 import {STORY_CHANGED} from '@storybook/core-events';
 import {addons} from '@storybook/addons';
 
+import '../basic-main';
+
 export default {
   title: 'User Journeys/Auto Prompt',
   argTypes: {
@@ -17,20 +19,7 @@ export default {
     (component) => {
       // Reload window when directing outside of this page.
       setupEventListener();
-      // Since our snippet modifies parts of the page outside of the actual snippet,
-      // we need to reload in order for the view to properly reflect changes. This block
-      // is meant to add some debouncing to allow a dev to change params in order to
-      // see them reflected properly.
-      if (self.SWG_BASIC) {
-        if (self.__RESET_SWG_TIMEOUT__) {
-          self.clearTimeout(self.__RESET_SWG_TIMEOUT__);
-        }
 
-        self.__RESET_SWG_TIMEOUT__ = setTimeout(() => {
-          self.window.location.reload();
-        }, 200);
-        return '';
-      }
       return component();
     },
   ],
@@ -63,13 +52,7 @@ const Template = (args) => {
             });
           });
       `;
-  const returnNode = self.document.createDocumentFragment();
-  const scriptEl = self.document.createElement('script');
-  scriptEl.src = `/basic-subscriptions.max.js?_=${Math.random()}`;
-  scriptEl.async = true;
-  returnNode.appendChild(scriptEl);
-  returnNode.appendChild(el);
-  return returnNode;
+  return el;
 };
 
 export const Contribution = Template.bind({});
