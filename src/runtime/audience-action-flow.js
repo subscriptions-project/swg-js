@@ -114,7 +114,7 @@ export class AudienceActionFlow {
       feArgs({
         'supportsEventManager': true,
         'productType': this.productType_,
-        'windowHeight': deps.win().innerHeight,
+        'windowHeight': deps.win()./* OK */ innerHeight,
       }),
       /* shouldFadeBody */ true
     );

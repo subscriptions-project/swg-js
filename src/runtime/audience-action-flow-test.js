@@ -154,6 +154,7 @@ describes.realWin('AudienceActionFlow', (env) => {
             _client: 'SwG 0.0.0',
             productType: ProductType.SUBSCRIPTION,
             supportsEventManager: true,
+            windowHeight: undefined,
           }
         )
         .resolves(port);
@@ -184,6 +185,7 @@ describes.realWin('AudienceActionFlow', (env) => {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
           supportsEventManager: true,
+          windowHeight: undefined,
         }
       )
       .resolves(port);
