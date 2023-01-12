@@ -52,7 +52,7 @@ import {serializeProtoMessageForUrl} from '../utils/url';
 import {toTimestamp} from '../utils/date-utils';
 
 const ENTITLEMENTS_URL =
-  '$frontend$/swg/_/api/v1/publication/pub1/entitlements';
+  'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements';
 
 const MOCK_TIME_ARRAY = [1600389016, 959000000];
 
@@ -63,7 +63,7 @@ const HASHED_CANONICAL_URL =
 
 const SUBSCRIPTION_TIMESTAMP = toTimestamp(1665445119);
 
-describes.realWin('EntitlementsManager', {}, (env) => {
+describes.realWin('EntitlementsManager', (env) => {
   let win;
   let nowStub;
   let pageConfig;
@@ -300,7 +300,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         },
         method: 'POST',
       })
-      .returns(Promise.resolve());
+      .resolves();
   }
 
   function expectEntitlementPingback({
@@ -349,7 +349,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
-      .returns(Promise.resolve(userToken))
+      .resolves(userToken)
       .exactly(times);
   }
 
@@ -359,22 +359,22 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs('ents')
-        .returns(Promise.resolve(null))
+        .resolves(null)
         .atLeast(0);
       storageMock
         .expects('get')
         .withExactArgs('toast')
-        .returns(Promise.resolve(null))
+        .resolves(null)
         .atLeast(0);
       storageMock
         .expects('get')
         .withExactArgs('isreadytopay')
-        .returns(Promise.resolve(null))
+        .resolves(null)
         .atLeast(0);
       storageMock
         .expects('get')
         .withExactArgs(Constants.READ_TIME, false)
-        .returns(Promise.resolve(null))
+        .resolves(null)
         .atLeast(0);
     });
 
@@ -382,7 +382,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/entitlements`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -412,7 +412,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?devEnt=' +
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?devEnt=' +
             encodeURIComponent(scenario) +
             '&crypt=' +
             encodeURIComponent(encryptedDocumentKey),
@@ -438,7 +438,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
             encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
@@ -470,7 +470,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
             '&sut=' +
             encodeURIComponent('abc'),
@@ -493,7 +493,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs(Constants.USER_TOKEN, true)
-        .returns(Promise.resolve('abc')).once;
+        .resolves('abc').once;
 
       // getEntitlements params do not include swgUserToken
       const ents = await manager.getEntitlements({
@@ -533,7 +533,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
             encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
@@ -588,7 +588,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
             encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
@@ -706,7 +706,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?crypt=' +
             encodeURIComponent(encryptedDocumentKey),
           {
             method: 'GET',
@@ -757,7 +757,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -818,7 +818,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1086,7 +1086,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1534,7 +1534,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1562,7 +1562,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?crypt=deprecated',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?crypt=deprecated',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1594,7 +1594,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
           experimentFlags: ['flag1', 'flag2'],
         },
       };
-      sandbox.stub(manager, 'getArticle').returns(Promise.resolve(article));
+      sandbox.stub(manager, 'getArticle').resolves(article);
       const expFlags = await manager.getExperimentConfigFlags();
       expect(expFlags[0]).to.equal('flag1');
       expect(expFlags[1]).to.equal('flag2');
@@ -1611,7 +1611,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       const article = {
         experimentConfig: {},
       };
-      sandbox.stub(manager, 'getArticle').returns(Promise.resolve(article));
+      sandbox.stub(manager, 'getArticle').resolves(article);
       const expFlags = await manager.getExperimentConfigFlags();
       expect(expFlags).to.be.empty;
     });
@@ -1625,7 +1625,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         /* useArticleEndpoint */ true
       );
       const article = {};
-      sandbox.stub(manager, 'getArticle').returns(Promise.resolve(article));
+      sandbox.stub(manager, 'getArticle').resolves(article);
       const expFlags = await manager.getExperimentConfigFlags();
       expect(expFlags).to.be.empty;
     });
@@ -1676,7 +1676,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/article?encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1719,7 +1719,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${defaultGoogleMeteringEncodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?encodedParams=${defaultGoogleMeteringEncodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1740,7 +1740,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?sut=' +
             encodeURIComponent('abc') +
             '&ppid=' +
             encodeURIComponent('publisherProvidedId'),
@@ -1762,7 +1762,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs(Constants.USER_TOKEN, true)
-        .returns(Promise.resolve('abc')).once;
+        .resolves('abc').once;
 
       await manager.getEntitlements();
     });
@@ -1771,7 +1771,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          '$frontend$/swg/_/api/v1/publication/pub1/entitlements?sut=' +
+          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?sut=' +
             encodeURIComponent('abc') +
             '&ppid=' +
             encodeURIComponent('publisherProvidedId'),
@@ -1791,7 +1791,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs(Constants.USER_TOKEN, true)
-        .returns(Promise.resolve('abc')).once;
+        .resolves('abc').once;
 
       await manager.getEntitlements({
         publisherProvidedId: 'publisherProvidedId',
@@ -1804,14 +1804,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs(Constants.READ_TIME, false)
-        .returns(Promise.resolve(LAST_TIME_STRING))
+        .resolves(LAST_TIME_STRING)
         .atLeast(1);
       sandbox.useFakeTimers(CURRENT_TIME);
       expectGetSwgUserTokenToBeCalled();
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements?interaction_age=2`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/entitlements?interaction_age=2`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1834,14 +1834,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs(Constants.READ_TIME, false)
-        .returns(Promise.resolve(LAST_TIME_STRING))
+        .resolves(LAST_TIME_STRING)
         .atLeast(1);
       sandbox.useFakeTimers(CURRENT_TIME);
       expectGetSwgUserTokenToBeCalled();
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/entitlements`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1864,14 +1864,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs(Constants.READ_TIME, false)
-        .returns(Promise.resolve(LAST_TIME_STRING))
+        .resolves(LAST_TIME_STRING)
         .atLeast(1);
       sandbox.useFakeTimers(CURRENT_TIME);
       expectGetSwgUserTokenToBeCalled();
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `$frontend$/swg/_/api/v1/publication/pub1/entitlements`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/entitlements`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2147,17 +2147,13 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs('ents')
-        .returns(Promise.resolve(null))
+        .resolves(null)
         .atLeast(0);
-      storageMock
-        .expects('set')
-        .withArgs('ents')
-        .returns(Promise.resolve())
-        .atLeast(0);
+      storageMock.expects('set').withArgs('ents').resolves().atLeast(0);
       storageMock
         .expects('get')
         .withExactArgs(Constants.READ_TIME, false)
-        .returns(Promise.resolve(null))
+        .resolves(null)
         .atLeast(0);
     });
 
@@ -2177,7 +2173,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs('isreadytopay')
-        .returns(Promise.resolve(value))
+        .resolves(value)
         .once();
     }
 
@@ -2418,7 +2414,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         fetcherMock
           .expects('fetch')
           .withExactArgs(
-            '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+            'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements',
             {
               method: 'GET',
               headers: {'Accept': 'text/plain, application/json'},
@@ -2446,7 +2442,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         fetcherMock
           .expects('fetch')
           .withArgs(
-            '$frontend$/swg/_/api/v1/publication/pub1/entitlements',
+            'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements',
             sinon.match({
               method: 'POST',
             })
@@ -2501,20 +2497,12 @@ describes.realWin('EntitlementsManager', {}, (env) => {
   describe('flow with cache', () => {
     beforeEach(() => {
       sandbox.stub(Toast.prototype, 'open');
-      storageMock
-        .expects('get')
-        .withArgs('toast')
-        .returns(Promise.resolve(null))
-        .atLeast(0);
-      storageMock
-        .expects('set')
-        .withArgs('toast')
-        .returns(Promise.resolve(null))
-        .atLeast(0);
+      storageMock.expects('get').withArgs('toast').resolves(null).atLeast(0);
+      storageMock.expects('set').withArgs('toast').resolves(null).atLeast(0);
       storageMock
         .expects('get')
         .withExactArgs(Constants.READ_TIME, false)
-        .returns(Promise.resolve(null))
+        .resolves(null)
         .atLeast(0);
     });
 
@@ -2522,18 +2510,14 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs('isreadytopay')
-        .returns(Promise.resolve(value))
+        .resolves(value)
         .atLeast(0);
     }
 
     it('should not store empty response', async () => {
       expectNoResponse();
       expectGetIsReadyToPayToBeCalled(null);
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(null))
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(null).once();
       storageMock.expects('set').withExactArgs('ents').never();
       expectGetSwgUserTokenToBeCalled();
 
@@ -2545,16 +2529,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       const raw = expectGoogleResponse()['signedEntitlements'];
       expect(raw).to.match(/e30\.eyJpc3MiOiJnb/);
       expectGetIsReadyToPayToBeCalled(null);
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(null))
-        .once();
-      storageMock
-        .expects('set')
-        .withExactArgs('ents', raw)
-        .returns(Promise.resolve())
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(null).once();
+      storageMock.expects('set').withExactArgs('ents', raw).resolves().once();
       expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
@@ -2567,16 +2543,8 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       const raw = expectNonGoogleResponse()['signedEntitlements'];
       expect(raw).to.match(/e30\.eyJpc3MiOiJnb/);
       expectGetIsReadyToPayToBeCalled(null);
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(null))
-        .once();
-      storageMock
-        .expects('set')
-        .withExactArgs('ents', raw)
-        .returns(Promise.resolve())
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(null).once();
+      storageMock.expects('set').withExactArgs('ents', raw).resolves().once();
       expectGetSwgUserTokenToBeCalled();
 
       const entitlements = await manager.getEntitlements();
@@ -2592,11 +2560,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         subscriptionToken: 's1',
       })['signedEntitlements'];
       expectGetIsReadyToPayToBeCalled(null);
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(raw))
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(raw).once();
       storageMock.expects('set').withArgs('ents').never();
       expectEntitlementPingback({
         entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
@@ -2621,11 +2585,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         subscriptionToken: 's1',
       })['signedEntitlements'];
       expectGetIsReadyToPayToBeCalled('true');
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(raw))
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(raw).once();
       storageMock.expects('set').withArgs('ents').never();
       expectEntitlementPingback({
         entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
@@ -2647,11 +2607,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         subscriptionToken: 's1',
       })['signedEntitlements'];
       expectGetIsReadyToPayToBeCalled('false');
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(raw))
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(raw).once();
       storageMock.expects('set').withArgs('ents').never();
       expectEntitlementPingback({
         entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
@@ -2673,11 +2629,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         subscriptionToken: 's2',
       })['signedEntitlements'];
       expectGetIsReadyToPayToBeCalled(null);
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(raw))
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(raw).once();
       storageMock.expects('set').withArgs('ents').never();
       expectEntitlementPingback({
         entitlementSource: EntitlementSource.GOOGLE_SUBSCRIBER_ENTITLEMENT,
@@ -2707,11 +2659,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         }
       )['signedEntitlements'];
       expectGetIsReadyToPayToBeCalled(null);
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(raw))
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(raw).once();
       storageMock.expects('set').withArgs('ents').once();
       expectNonGoogleResponse();
       expectGetSwgUserTokenToBeCalled();
@@ -2728,11 +2676,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         subscriptionToken: 's1',
       })['signedEntitlements'];
       expectGetIsReadyToPayToBeCalled(null);
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(raw))
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(raw).once();
       storageMock.expects('set').withArgs('ents').once();
       expectNonGoogleResponse();
       expectGetSwgUserTokenToBeCalled();
@@ -2745,11 +2689,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
     it('should not accept empty response in cache', async () => {
       const raw = entitlementsResponse({})['signedEntitlements'];
       expectGetIsReadyToPayToBeCalled(null);
-      storageMock
-        .expects('get')
-        .withExactArgs('ents')
-        .returns(Promise.resolve(raw))
-        .once();
+      storageMock.expects('get').withExactArgs('ents').resolves(raw).once();
       storageMock.expects('set').withArgs('ents').once();
       expectNonGoogleResponse();
       expectGetSwgUserTokenToBeCalled();
@@ -2761,21 +2701,15 @@ describes.realWin('EntitlementsManager', {}, (env) => {
 
     it('should tolerate malformed cache', async () => {
       // Handle async error caused by invalid token.
-      let threwErrorAfterTimeout = false;
       sandbox.stub(win, 'setTimeout').callsFake((callback) => {
-        try {
-          callback();
-        } catch (err) {
-          expect(err.toString()).to.contain('Invalid token: "VeRy BroKen"');
-          threwErrorAfterTimeout = true;
-        }
+        expect(callback).to.throw('Invalid token: "VeRy BroKen"');
       });
 
       expectGetIsReadyToPayToBeCalled(null);
       storageMock
         .expects('get')
         .withExactArgs('ents')
-        .returns(Promise.resolve('VeRy BroKen'))
+        .resolves('VeRy BroKen')
         .once();
       storageMock.expects('set').withArgs('ents').once();
       expectNonGoogleResponse();
@@ -2786,7 +2720,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
       expect(entitlements.getEntitlementForThis().source).to.equal('pub1');
 
       // Expect async error.
-      expect(threwErrorAfterTimeout).to.be.true;
+      expect(win.setTimeout).to.be.calledOnce;
     });
 
     it('should push entitlements', () => {
@@ -2795,11 +2729,7 @@ describes.realWin('EntitlementsManager', {}, (env) => {
         products: ['pub1:label1'],
         subscriptionToken: 's1',
       })['signedEntitlements'];
-      storageMock
-        .expects('set')
-        .withExactArgs('ents', raw)
-        .returns(Promise.resolve())
-        .once();
+      storageMock.expects('set').withExactArgs('ents', raw).resolves().once();
       const res = manager.pushNextEntitlements(raw);
       expect(res).to.be.true;
       manager.reset(true);

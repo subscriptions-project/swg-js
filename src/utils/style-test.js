@@ -16,7 +16,7 @@
 
 import * as st from './style';
 
-describes.realWin('Types', {}, (env) => {
+describes.realWin('Types', (env) => {
   let win;
   let doc;
 
@@ -54,6 +54,12 @@ describes.realWin('Types', {}, (env) => {
       });
       expect(element.style.width).to.equal('101px');
       expect(element.style.height).to.equal('102px');
+    });
+
+    it('getStyle handles missing property', () => {
+      const element = doc.createElement('div');
+      const style = st.getStyle(element, '');
+      expect(style).to.be.undefined;
     });
 
     it('resetAllStyles', () => {
@@ -138,6 +144,16 @@ describes.realWin('Types', {}, (env) => {
           true
         );
         expect(prop).to.equal('OTransitionDuration');
+      });
+
+      it('immediately returns properties with -- prefix', () => {
+        const prop = st.getVendorJsPropertyName({}, '--dashDash');
+        expect(prop).to.equal('--dashDash');
+      });
+
+      it('handles missing vendor prefixes', () => {
+        const prop = st.getVendorJsPropertyName({}, 'dashDash');
+        expect(prop).to.equal('dashDash');
       });
     });
   });

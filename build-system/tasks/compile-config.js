@@ -32,7 +32,7 @@ const overrides = {};
 /**
  * @return {!Object<string, string>}
  */
-exports.resolveConfig = function () {
+exports.resolveConfig = () => {
   const swgServerOrigin = argv.frontend || FRONTEND;
 
   console.log(green('Configuration'));
@@ -45,14 +45,14 @@ exports.resolveConfig = function () {
   }
 
   const config = {
-    'frontend': swgServerOrigin,
-    'internalRuntimeVersion': internalRuntimeVersion,
-    'frontendCache': argv.frontendCache || FRONTEND_CACHE,
-    'assets': argv.assets || ASSETS,
-    'payEnvironment': argv.payEnvironment || PAY_ENVIRONMENT,
-    'playEnvironment': argv.playEnvironment || PLAY_ENVIRONMENT,
-    'experiments': argv.experiments || EXPERIMENTS,
-    'adsServer': argv.adsServer || ADS_SERVER,
+    'FRONTEND': swgServerOrigin,
+    'INTERNAL_RUNTIME_VERSION': internalRuntimeVersion,
+    'FRONTEND_CACHE': argv.frontendCache || FRONTEND_CACHE,
+    'ASSETS': argv.assets || ASSETS,
+    'PAY_ENVIRONMENT': argv.payEnvironment || PAY_ENVIRONMENT,
+    'PLAY_ENVIRONMENT': argv.playEnvironment || PLAY_ENVIRONMENT,
+    'EXPERIMENTS': argv.experiments || EXPERIMENTS,
+    'ADS_SERVER': argv.adsServer || ADS_SERVER,
   };
   return Object.assign(config, overrides);
 };
@@ -60,7 +60,7 @@ exports.resolveConfig = function () {
 /**
  * @param {!Object<string, string>} config
  */
-exports.overrideConfig = function (config) {
+exports.overrideConfig = (config) => {
   for (const k in config) {
     overrides[k] = config[k];
   }

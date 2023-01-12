@@ -49,7 +49,7 @@ function compileCss(srcFile, outputFile, options) {
   options = options || {};
 
   if (options.watch) {
-    $$.watch(srcFile, function () {
+    $$.watch(srcFile, () => {
       compileCss(
         srcFile,
         outputFile,

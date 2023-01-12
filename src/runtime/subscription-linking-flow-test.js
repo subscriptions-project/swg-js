@@ -20,7 +20,7 @@ import {PageConfig} from '../model/page-config';
 import {SubscriptionLinkingCompleteResponse} from '../proto/api_messages';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 
-describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
+describes.realWin('SubscriptionLinkingFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -69,10 +69,10 @@ describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
       expect(searchParams.get('ppid')).to.equal(REQUEST.publisherProvidedId);
       const args = activityIframeView.args_;
       expect(args['publicationId']).to.equal(PUBLICATION_ID);
-      expect(activityIframeView.shouldFadeBody_).to.be.true;
+      expect(activityIframeView.shouldFadeBody_).to.be.false;
       expect(hidden).to.be.false;
       expect(dialogConfig).to.deep.equal({
-        desktopConfig: {isCenterPositioned: true},
+        desktopConfig: {isCenterPositioned: false},
       });
       dialogManagerMock.verify();
     });
@@ -82,12 +82,12 @@ describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
     const request = {...REQUEST, publisherProvidedId: undefined};
     await expect(
       subscriptionLinkingFlow.start(request)
-    ).to.eventually.be.rejectedWith(Error, 'publisherProvidedId');
+    ).to.eventually.be.rejectedWith('publisherProvidedId');
   });
 
   describe('on SubscriptionLinkingCompleteResponse', () => {
     it('resolves promise with response data', async () => {
-      dialogManagerMock.expects('openView').once().returns(Promise.resolve());
+      dialogManagerMock.expects('openView').once().resolves();
       const response = new SubscriptionLinkingCompleteResponse();
       response.setPublisherProvidedId('abc');
       response.setSuccess(true);
@@ -101,7 +101,7 @@ describes.realWin('SubscriptionLinkingFlow', {}, (env) => {
     });
 
     it('resolves with success=false if missing from response', async () => {
-      dialogManagerMock.expects('openView').once().returns(Promise.resolve());
+      dialogManagerMock.expects('openView').once().resolves();
       const response = new SubscriptionLinkingCompleteResponse();
       response.setPublisherProvidedId('abc');
 

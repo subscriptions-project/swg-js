@@ -73,6 +73,7 @@ module.exports = {
   ],
   presubmitGlobs: [
     '**/*.{css,js,go}',
+    '!**/*.stories.js',
     '!{node_modules,build,dist}/**/*.*',
     '!build-system/tasks/*.js',
     '!build-system/server/*.js',

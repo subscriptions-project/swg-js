@@ -25,6 +25,7 @@ import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {feUrl} from './services';
 import {getStyle} from '../utils/style';
@@ -33,7 +34,7 @@ import {toTimestamp} from '../utils/date-utils';
 
 const URL = 'www.news.com';
 
-describes.realWin('AnalyticsService', {}, (env) => {
+describes.realWin('AnalyticsService', (env) => {
   let src;
   let activityPorts;
   let activityIframePort;
@@ -43,7 +44,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
   let eventManagerCallback;
   let pretendPortWorks;
   let loggedErrors;
-  let eventsLoggedToService;
   let storageMock;
 
   const productId = 'pub1:label1';
@@ -66,7 +66,6 @@ describes.realWin('AnalyticsService', {}, (env) => {
 
   beforeEach(() => {
     setExperimentsStringForTesting('');
-    eventsLoggedToService = [];
 
     // Work around `location.search` being non-configurable,
     // which means Sinon can't stub it normally.
@@ -126,13 +125,11 @@ describes.realWin('AnalyticsService', {}, (env) => {
       expect(eventManagerCallback).to.not.be.null;
     });
 
-    it('should have analyticsService constructed', () => {
-      const activityIframe = analyticsService.getElement();
+    it('constructs analyticsService', () => {
       const transactionId = analyticsService.getTransactionId();
-      expect(analyticsService.getTransactionId()).to.equal(transactionId);
-      expect(analyticsService.getTransactionId()).to.match(
-        /^.{8}-.{4}-.{4}-.{4}-.{12}$/g
-      );
+      expect(transactionId).to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}$/g);
+
+      const activityIframe = analyticsService.getElement();
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
       for (const key in IFRAME_STYLES) {
@@ -195,7 +192,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       storageMock
         .expects('get')
         .withExactArgs(Constants.USER_TOKEN)
-        .returns(Promise.resolve('swgUserToken'))
+        .resolves('swgUserToken')
         .once();
       analyticsService.start();
       expectOpenIframe = true;
@@ -279,32 +276,17 @@ describes.realWin('AnalyticsService', {}, (env) => {
       await analyticsService.getLoggingPromise();
       expect(loggedErrors.length).to.equal(0);
     });
+  });
 
-    describe('SwG Clearcut Service Experiment', () => {
-      beforeEach(() => {
-        analyticsService.setReadyForLogging();
+  describe('Update Google Transaction ID Experiment', () => {
+    it('sets SwG transaction ID', async () => {
+      setExperimentsStringForTesting(
+        ExperimentFlags.UPDATE_GOOGLE_TRANSACTION_ID
+      );
 
-        // This ensures nothing gets sent to the server.
-        sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      });
-
-      it('should not log to clearcut if experiment off', async () => {
-        // This triggers an event.
-        eventManagerCallback({
-          eventType: AnalyticsEvent.UNKNOWN,
-          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: null,
-        });
-
-        // These wait for analytics server to be ready to send data.
-        expect(analyticsService.lastAction_).to.not.be.null;
-        await analyticsService.lastAction_;
-        await activityIframePort.whenReady();
-
-        expectOpenIframe = true;
-        expect(eventsLoggedToService.length).to.equal(0);
-      });
+      const analyticsService = new AnalyticsService(runtime, runtime.fetcher_);
+      const transactionId = analyticsService.getTransactionId();
+      expect(transactionId).to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}\.swg$/g);
     });
   });
 
@@ -326,7 +308,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
         });
     });
 
-    it('should not wait forever when port is broken', async function () {
+    it('should not wait forever when port is broken', async () => {
       pretendPortWorks = false;
       // This sends another event and waits for it to be sent
       eventManagerCallback({
@@ -340,7 +322,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       expect(analyticsService.loggingBroken_).to.be.true;
     });
 
-    it('should not wait forever when things seem functional', async function () {
+    it('should not wait forever when things seem functional', async () => {
       // This sends another event and waits for it to be sent
       eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -355,7 +337,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
       expect(loggedErrors.length).to.equal(1);
     });
 
-    it('should report error with log', async function () {
+    it('should report error with log', async () => {
       const err = 'Fake error';
       eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -568,7 +550,7 @@ describes.realWin('AnalyticsService', {}, (env) => {
      * @param {!EventOriginator} originator
      * @param {boolean} shouldLog
      */
-    const testOriginator = function (originator, shouldLog) {
+    const testOriginator = (originator, shouldLog) => {
       const prevOriginator = event.eventOriginator;
       analyticsService.lastAction_ = null;
       event.eventOriginator = originator;

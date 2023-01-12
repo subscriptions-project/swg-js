@@ -25,6 +25,7 @@ import {
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {ExperimentFlags} from './experiment-flags';
+import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
 import {getCanonicalUrl} from '../utils/url';
@@ -142,7 +143,7 @@ export class AnalyticsService {
     this.readyForLogging_ = false;
 
     // Stores log events while we wait to be ready for logging.
-    /** @private {Array<!../api/client-event-manager-api.ClientEvent>}*/
+    /** @private {!Array<!../api/client-event-manager-api.ClientEvent>}*/
     this.logs_ = [];
   }
 
@@ -151,9 +152,9 @@ export class AnalyticsService {
    */
   setReadyForLogging() {
     this.readyForLogging_ = true;
-    this.logs_.forEach((event) => {
+    for (const event of this.logs_) {
       this.handleClientEvent_(event);
-    });
+    }
   }
 
   /**
@@ -257,7 +258,7 @@ export class AnalyticsService {
       context.setTransactionId(getUuid());
     }
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
-    context.setClientVersion('SwG $internalRuntimeVersion$');
+    context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
     context.setUrl(getCanonicalUrl(this.doc_));
 
     const utmParams = parseQueryString(this.getQueryString_());

@@ -35,7 +35,7 @@ const AUTO_PINGBACK_TIMEOUT = 10000;
 const TOAST_CLOSE_REQUEST = new ToastCloseRequest();
 TOAST_CLOSE_REQUEST.setClose(true);
 
-describes.realWin('MeterToastApi', {}, (env) => {
+describes.realWin('MeterToastApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -116,10 +116,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_METER_TOAST);
@@ -149,10 +149,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     meterToastApi = new MeterToastApi(runtime);
     eventManagerMock
       .expects('logSwgEvent')
@@ -176,10 +176,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     meterToastApi = new MeterToastApi(runtime);
     eventManagerMock
       .expects('logSwgEvent')
@@ -211,10 +211,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          '$frontend$/swg/_/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc',
+          'https://news.google.com/swg/_/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc',
           iframeArgs
         )
-        .returns(Promise.resolve(port));
+        .resolves(port);
       await meterToastApiWithParams.start();
     });
   });
@@ -224,7 +224,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       runtime.callbacks(),
       'triggerSubscribeRequest'
     );
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     await meterToastApi.start();
     // Native message.
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
@@ -244,7 +244,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
       runtime.callbacks(),
       'triggerOffersFlowRequest'
     );
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     await meterToastApi.start();
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
     viewSubscriptionsResponse.setNative(false);
@@ -261,7 +261,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   it('should close iframe on click', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('hidden');
@@ -282,7 +282,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   it('should not close iframe on scroll events on mobile', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('hidden');
@@ -310,7 +310,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     });
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('');
@@ -335,7 +335,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     meterToastApi.isMobile_.restore();
     callbacksMock.expects('triggerFlowStarted').once();
     port.acceptResult = () => Promise.reject(new Error('rejected'));
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     const messageStub = sandbox.stub(port, 'execute');
     await meterToastApi.start();
     expect(messageStub).to.not.be.called;
@@ -350,7 +350,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
     callbacksMock.expects('triggerFlowStarted').once();
     port.acceptResult = () =>
       Promise.reject(new DOMException('abort', 'AbortError'));
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     const messageStub = sandbox.stub(port, 'execute');
     await meterToastApi.start();
     expect(messageStub).to.not.be.called;
@@ -361,7 +361,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   it('should close iframe on touchstart', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     await meterToastApi.start();
     const $body = win.document.body;
     expect($body.style.overflow).to.equal('hidden');
@@ -385,7 +385,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   it('should close iframe on mousedown', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
 
     await meterToastApi.start();
     const $body = win.document.body;
@@ -410,7 +410,7 @@ describes.realWin('MeterToastApi', {}, (env) => {
   it('removeCloseEventListener should remove all event listeners', async () => {
     callbacksMock.expects('triggerFlowStarted').once();
     const messageStub = sandbox.stub(port, 'execute');
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     await meterToastApi.start();
     meterToastApi.removeCloseEventListener();
     await win.dispatchEvent(new Event('click'));
@@ -433,10 +433,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await meterToastApi.start();
 
     const element = runtime
@@ -459,10 +459,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await meterToastApi.start();
     const element = runtime.dialogManager().getDialog().getElement();
     expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
@@ -473,21 +473,21 @@ describes.realWin('MeterToastApi', {}, (env) => {
       description:
         'should open the iframe without locale set if no language or forceLangInIframes set in clientConfig',
       expectedPath:
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
     },
     {
       description:
         'should open the iframe without locale set if no language but forceLangInIframes enabled in clientConfig',
       forceLangInIframes: true,
       expectedPath:
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
     },
     {
       description:
         'should open the iframe without locale set if language set but forceLangInIframes disabled in clientConfig',
       lang: 'pt-BR',
       expectedPath:
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
     },
     {
       description:
@@ -495,9 +495,9 @@ describes.realWin('MeterToastApi', {}, (env) => {
       lang: 'pt-BR',
       forceLangInIframes: true,
       expectedPath:
-        '$frontend$/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
     },
-  ].forEach(({description, lang, forceLangInIframes, expectedPath}) =>
+  ].forEach(({description, lang, forceLangInIframes, expectedPath}) => {
     it(description, async () => {
       clientOptions.lang = lang;
       clientOptions.forceLangInIframes = forceLangInIframes;
@@ -514,10 +514,10 @@ describes.realWin('MeterToastApi', {}, (env) => {
           expectedPath,
           iframeArgs
         )
-        .returns(Promise.resolve(port));
+        .resolves(port);
       await meterToastApi.start();
-    })
-  );
+    });
+  });
 
   it('isMobile_ works as expected', async () => {
     let window = {

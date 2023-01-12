@@ -23,7 +23,7 @@ import {
   serviceUrl,
 } from './services';
 
-describes.sandboxed('services', {}, () => {
+describes.sandboxed('services', () => {
   beforeEach(() => {
     self.location.hash = '';
   });
@@ -100,6 +100,13 @@ describes.sandboxed('services', {}, () => {
       self.location.hash = '#swg.experiments=foo,bar,-foobar';
       expect(feUrl('/iframe?testParam=test', {}, true, 'u/1')).to.equal(
         'https://news.google.com/swg/u/1/_/ui/v1/iframe?testParam=test&_=_&e=foo%2Cbar%2C-foobar'
+      );
+    });
+
+    it('optionally adds a jsmode param', () => {
+      self.location.hash = '#swg.boqjsmode=abc';
+      expect(feUrl('/iframe?testParam=test', {}, true, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/_/ui/v1/iframe?testParam=test&_=_&jsmode=abc'
       );
     });
   });

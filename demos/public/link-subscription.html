@@ -10,15 +10,11 @@
 
   <link rel="stylesheet" href="demos.css">
 
-  <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg-basic.js"></script>
+  <script async subscriptions-control="manual" type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
 
   <script>
-    (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
-      basicSubscriptions.init({
-        type: "NewsArticle",
-        isPartOfType: ["Product"],
-        isPartOfProductId: "CAowz7enCw",
-      });
+    (self.SWG = self.SWG || []).push(subscriptions => {
+      subscriptions.init("CAowz7enCw");
     });
   </script>
 </head>

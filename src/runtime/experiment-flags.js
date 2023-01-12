@@ -62,12 +62,12 @@ export const ExperimentFlags = {
   LOGGING_AUDIENCE_ACTIVITY: 'logging-audience-activity',
 
   /**
-   * Experiment flag for swapping the location of the counter and the main CTA in Amplio blogs.
-   */
-  TWG_SWAP_COUNTER_AND_CTA: 'counter_cta_swap_enable_experiment',
-
-  /**
    * Experiment flag for disabling the miniprompt icon on desktop screens wider than 480px.
    */
   DISABLE_DESKTOP_MINIPROMPT: 'disable-desktop-miniprompt',
+
+  /**
+   * The triggering of a survey prompt takes priority over a contribution prompt.
+   */
+  SURVEY_TRIGGERING_PRIORITY: 'survey_triggering_priority_experiment',
 };

@@ -19,7 +19,7 @@ import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('LoginNotificationApi', {}, (env) => {
+describes.realWin('LoginNotificationApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -62,22 +62,22 @@ describes.realWin('LoginNotificationApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/loginiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId,
           productId,
           userConsent: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
 
     loginNotificationApi.start();
     await loginNotificationApi.openViewPromise_;
   });
 
   it('should handle failure', async () => {
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
 

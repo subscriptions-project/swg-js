@@ -27,9 +27,9 @@ const ruleFiles = fs
         ruleFile
       )
   );
-ruleFiles.forEach(function (ruleFile) {
+for (const ruleFile of ruleFiles) {
   const rule = ruleFile.replace(path.extname(ruleFile), '');
   rules[rule] = require(path.join(__dirname, rule));
-});
+}
 
 module.exports = {rules};

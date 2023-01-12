@@ -77,9 +77,9 @@ exports.jsifyCssAsync = async (filename, options = {}) => {
     });
 
   // Log warnings.
-  result.warnings().forEach((warning) => {
+  for (const warning of result.warnings()) {
     $$.util.log($$.util.colors.red(warning.toString()));
-  });
+  }
 
   // Add source URLs.
   let newCss = result.css;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
+import {UI_CSS} from '../ui/ui-css';
 import {
   createElement,
   injectStyleSheet,
@@ -252,7 +252,7 @@ export class Dialog {
     const iframeDoc = /** @type {!HTMLDocument} */ (this.iframe_.getDocument());
 
     // Inject Google fonts in <HEAD> section of the iframe.
-    injectStyleSheet(resolveDoc(iframeDoc), DIALOG_CSS);
+    injectStyleSheet(resolveDoc(iframeDoc), UI_CSS);
 
     // Add Loading indicator.
     const loadingViewClasses = [];

@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+import {
+  ADS_SERVER,
+  FRONTEND,
+  FRONTEND_CACHE,
+  INTERNAL_RUNTIME_VERSION,
+  PAY_ENVIRONMENT,
+  PLAY_ENVIRONMENT,
+} from '../constants';
 import {addQueryParam, parseQueryString, parseUrl} from '../utils/url';
 
 /**
@@ -34,10 +42,10 @@ export const CACHE_KEYS = {
  * Default operating Mode
  */
 export const DEFAULT = {
-  frontEnd: '$frontend$',
-  payEnv: '$payEnvironment$',
-  playEnv: '$playEnvironment$',
-  feCache: '$frontendCache$',
+  frontEnd: FRONTEND,
+  payEnv: PAY_ENVIRONMENT,
+  playEnv: PLAY_ENVIRONMENT,
+  feCache: FRONTEND_CACHE,
 };
 
 /**
@@ -126,13 +134,14 @@ export function serviceUrl(url) {
  * @return {string} The complete URL.
  */
 export function adsUrl(url) {
-  return '$adsServer$' + url;
+  return ADS_SERVER + url;
 }
 
 /**
  * @param {string} url Relative URL, e.g. "/offersiframe".
- * @param {string=} prefix
  * @param {Object<string, string>=} params List of extra params to append to the URL.
+ * @param {boolean=} usePrefixedHostPath
+ * @param {string=} prefix
  * @return {string} The complete URL.
  */
 export function feUrl(
@@ -183,7 +192,7 @@ export function feCached(url) {
  */
 export function feArgs(args) {
   return Object.assign(args, {
-    '_client': 'SwG $internalRuntimeVersion$',
+    '_client': `SwG ${INTERNAL_RUNTIME_VERSION}`,
   });
 }
 

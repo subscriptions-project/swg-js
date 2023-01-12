@@ -70,7 +70,7 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_2,
 ]);
 
-describes.realWin('AudienceActionFlow', {}, (env) => {
+describes.realWin('AudienceActionFlow', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -114,7 +114,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    sandbox.stub(port, 'on').callsFake(function (ctor, cb) {
+    sandbox.stub(port, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
       const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
@@ -137,7 +137,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
     {action: 'TYPE_REWARDED_SURVEY', path: 'surveyiframe'},
   ].forEach(({action, path}) => {
     it(`opens an AudienceActionFlow constructed with params for ${action}`, async () => {
-      sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
+      sandbox.stub(runtime.storage(), 'get').resolves(null);
       const audienceActionFlow = new AudienceActionFlow(runtime, {
         action,
         onCancel: onCancelSpy,
@@ -147,11 +147,11 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          `$frontend$/swg/_/ui/v1/${path}?_=_&origin=${encodeURIComponent(
+          `https://news.google.com/swg/_/ui/v1/${path}?_=_&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
           )}&hl=en&isClosable=false`,
           {
-            _client: 'SwG $internalRuntimeVersion$',
+            _client: 'SwG 0.0.0',
             productType: ProductType.SUBSCRIPTION,
             supportsEventManager: true,
           }
@@ -167,7 +167,7 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
 
   it('opens an AudienceActionFlow with query param locale set to client configuration language', async () => {
     clientOptions.lang = 'pt-BR';
-    sandbox.stub(runtime.storage(), 'get').returns(Promise.resolve(null));
+    sandbox.stub(runtime.storage(), 'get').resolves(null);
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       onCancel: onCancelSpy,
@@ -177,11 +177,11 @@ describes.realWin('AudienceActionFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        `$frontend$/swg/_/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
+        `https://news.google.com/swg/_/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
         )}&hl=pt-BR&isClosable=false`,
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
           supportsEventManager: true,
         }

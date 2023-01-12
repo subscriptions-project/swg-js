@@ -19,7 +19,7 @@ import {Entitlement, Entitlements} from '../api/entitlements';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 
-describes.sandboxed('Entitlements', {}, () => {
+describes.sandboxed('Entitlements', () => {
   let ackSpy;
 
   beforeEach(() => {
@@ -283,19 +283,13 @@ describe('PurchaseData', () => {
   });
 });
 
-describes.sandboxed('SubscribeResponse', {}, () => {
+describes.sandboxed('SubscribeResponse', () => {
   let sr, pd, ud, entitlements, complete, promise;
 
   beforeEach(() => {
     pd = new PurchaseData('PD_RAW', 'PD_SIG');
     ud = new UserData('ID_TOKEN', {sub: '1234'});
-    entitlements = new Entitlements(
-      'service1',
-      'RaW',
-      [],
-      null,
-      function () {}
-    );
+    entitlements = new Entitlements('service1', 'RaW', [], null, () => {});
     promise = Promise.resolve();
     complete = () => promise;
     sr = new SubscribeResponse('SR_RAW', pd, ud, entitlements, null, complete);
@@ -401,7 +395,7 @@ describe('UserData', () => {
   });
 });
 
-describes.sandboxed('DeferredAccountCreationResponse', {}, () => {
+describes.sandboxed('DeferredAccountCreationResponse', () => {
   let ents, dacr, pd, pd2, ud, complete, promise;
 
   beforeEach(() => {

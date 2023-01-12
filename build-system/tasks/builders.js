@@ -17,14 +17,14 @@
 
 const compile = require('./compile').compile;
 const compileCheckTypes = require('./compile').checkTypes;
-const del = require('del');
 
 /**
  * Clean up the build artifacts.
  * @return {!Promise}
  */
-function clean() {
-  return del(['dist', 'build']);
+async function clean() {
+  const {deleteAsync} = await import('del');
+  return deleteAsync(['dist', 'build']);
 }
 
 /**
@@ -32,32 +32,29 @@ function clean() {
  * @return {!Promise}
  */
 function watch() {
-  return Promise.all([compile({watch: true})]);
+  return compile({watch: true});
 }
 
 /**
  * Main development build.
  * @return {!Promise}
  */
-function build() {
+function build(options = {}) {
   process.env.NODE_ENV = 'development';
-  return Promise.all([compile()]);
+  return compile(options);
 }
 
 /**
  * Dist build for prod.
  * @return {!Promise}
  */
-function dist() {
+async function dist() {
   process.env.NODE_ENV = 'production';
-  return clean().then(() => {
-    return Promise.all([
-      compile({minify: true, checkTypes: false, isProdBuild: true}),
-    ]).then(() => {
-      // Check types now.
-      return compile({minify: true, checkTypes: true});
-    });
-  });
+  await clean();
+  await compile({minify: true, checkTypes: false, isProdBuild: true});
+
+  // Check types now.
+  return compile({minify: true, checkTypes: true});
 }
 
 /**

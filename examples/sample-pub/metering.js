@@ -45,9 +45,10 @@ const MeteringDemo = {
     document.body.classList.add('metering');
 
     // Update nav button to carry over full URL query.
-    document.querySelectorAll('header .nav-button').forEach((navButton) => {
+    const navButtons = [...document.querySelectorAll('header .nav-button')];
+    for (const navButton of navButtons) {
       navButton.href = navButton.href.replace(/\?.*/, location.search);
-    });
+    }
   },
 
   /** Resets the metering demo. */

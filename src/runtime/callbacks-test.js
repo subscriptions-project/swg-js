@@ -18,7 +18,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {Callbacks} from './callbacks';
 import {tick} from '../../test/tick';
 
-describes.sandboxed('Callbacks', {}, () => {
+describes.sandboxed('Callbacks', () => {
   let callbacks;
 
   beforeEach(() => {
@@ -131,6 +131,44 @@ describes.sandboxed('Callbacks', {}, () => {
     await tick();
     expect(spy).to.be.calledOnce.calledWithExactly(true);
     expect(callbacks.hasOffersFlowRequestCallback()).to.be.true;
+  });
+
+  describe('warnings', () => {
+    let warnFn;
+
+    beforeEach(() => {
+      warnFn = sandbox.spy(self.console, 'warn');
+    });
+
+    function getLastWarningMessage() {
+      const calls = warnFn.getCalls();
+      const lastCall = calls[calls.length - 1];
+      return lastCall.args[0];
+    }
+
+    it('warns setOnSubscribeResponse is deprecated', () => {
+      callbacks.setOnSubscribeResponse();
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain('This method has been deprecated');
+    });
+
+    it('warns setOnContributionResponse is deprecated', () => {
+      callbacks.setOnContributionResponse();
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain('This method has been deprecated');
+    });
+
+    it('warns about multiple callbacks for the same response', () => {
+      // Set two callbacks.
+      for (let i = 0; i < 2; i++) {
+        callbacks.setOnContributionResponse(() => {});
+      }
+
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain(
+        'You have registered multiple callbacks for the same response'
+      );
+    });
   });
 
   describe('paymentResponse triggering', () => {

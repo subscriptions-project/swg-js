@@ -96,7 +96,7 @@
         location.search = newSearch;
       }
 
-      (self.SWG = self.SWG || []).push(function (subscriptions) {
+      (self.SWG = self.SWG || []).push((subscriptions) => {
         MeteringDemo.setupControls();
         MeteringDemo.setupLanguage();
       });

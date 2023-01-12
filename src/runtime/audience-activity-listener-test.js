@@ -24,7 +24,7 @@ import {PageConfig} from '../model/page-config';
 import {XhrFetcher} from './fetcher';
 import {setExperimentsStringForTesting} from './experiments';
 
-describes.realWin('AudienceActivityEventListener', {}, (env) => {
+describes.realWin('AudienceActivityEventListener', (env) => {
   let audienceActivityEventListener;
   let capturedUrl;
   let eventManagerCallback;
@@ -78,7 +78,7 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
-      .returns(Promise.resolve('ab+c')).once;
+      .resolves('ab+c').once;
     audienceActivityEventListener.start();
 
     // This triggers an event.
@@ -95,8 +95,28 @@ describes.realWin('AudienceActivityEventListener', {}, (env) => {
 
     const path = new URL(capturedUrl);
     expect(path.toString()).to.equal(
-      '$frontend$/swg/_/api/v1/publication/pub1/audienceactivity?sut=ab%2Bc'
+      'https://news.google.com/swg/_/api/v1/publication/pub1/audienceactivity?sut=ab%2Bc'
     );
+  });
+
+  it('bails if SUT is unavailable', async () => {
+    setExperimentsStringForTesting(ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY);
+    storageMock
+      .expects('get')
+      .withExactArgs(Constants.USER_TOKEN, true)
+      .resolves(null).once;
+    audienceActivityEventListener.start();
+
+    // This triggers an event.
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    // If the SUT is missing, the listener bails before logging events.
+    expect(eventsLoggedToService.length).to.equal(0);
   });
 
   it('should not log an event that is not classified as an audience activity event', async () => {

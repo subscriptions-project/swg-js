@@ -22,12 +22,9 @@ const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
 const closureCompile = require('./closure-compile').closureCompile;
 const fs = require('fs-extra');
-const glob = require('glob');
 const gulp = $$.help(require('gulp'));
 const internalRuntimeVersion = require('./internal-version').VERSION;
-const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const lazypipe = require('lazypipe');
-const pathLib = require('path');
 const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
 const touch = require('touch');
@@ -38,15 +35,12 @@ const {red} = require('ansi-colors');
 /**
  * @return {!Promise}
  */
-exports.compile = async function (options = {}) {
+exports.compile = async (options = {}) => {
   mkdirSync('build');
   mkdirSync('build/cc');
   mkdirSync('build/fake-module');
   mkdirSync('build/fake-module/src');
   mkdirSync('build/css');
-
-  // Compile CSS because we need the css files in compileJs step.
-  await compileCss('./src/', './build/css', options);
 
   // For compilation with babel we start with the main-babel entry point,
   // but then rename to the subscriptions.js which we've been using all along.
@@ -108,8 +102,8 @@ exports.compile = async function (options = {}) {
 /**
  * @return {!Promise}
  */
-exports.checkTypes = function (opts) {
-  return exports.compile(
+exports.checkTypes = (opts) =>
+  exports.compile(
     Object.assign(opts || {}, {
       toName: 'check-types.max.js',
       minifiedName: 'check-types.js',
@@ -117,7 +111,6 @@ exports.checkTypes = function (opts) {
       checkTypes: true,
     })
   );
-};
 
 /**
  * Bundles (max) or compiles (min) a javascript file.
@@ -167,6 +160,14 @@ function compileJs(srcDir, srcFilename, destDir, options) {
           },
         ],
       ],
+      'plugins': [
+        [
+          './build-system/transform-define-constants',
+          {
+            'replacements': resolveConfig(),
+          },
+        ],
+      ],
     })
   );
   if (options.watch) {
@@ -178,16 +179,6 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   let lazybuild = lazypipe()
     .pipe(source, srcFilename + '.js')
     .pipe(buffer);
-
-  // Replacements.
-  const replacements = resolveConfig();
-  for (const k in replacements) {
-    lazybuild = lazybuild.pipe(
-      $$.replace,
-      new RegExp('\\$' + k + '\\$', 'g'),
-      replacements[k]
-    );
-  }
 
   // Complete build with wrapper and sourcemaps.
   lazybuild = lazybuild
@@ -216,7 +207,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   }
 
   if (options.watch) {
-    bundler.on('update', function () {
+    bundler.on('update', () => {
       rebundle();
       // Touch file in unit test set. This triggers rebundling of tests because
       // karma only considers changes to tests files themselves re-bundle
@@ -238,50 +229,8 @@ function compileJs(srcDir, srcFilename, destDir, options) {
   }
 }
 
-/**
- * Compile all the css and drop in the build folder.
- *
- * @param {string} srcDir Path to the src directory.
- * @param {string} outputDir Destination folder for output files.
- * @param {?Object} options
- * @return {!Promise}
- */
-function compileCss(srcDir, outputDir, options) {
-  options = options || {};
-
-  if (options.watch) {
-    $$.watch(srcDir + '**/*.css', function () {
-      compileCss(srcDir, outputDir, Object.assign({}, options, {watch: false}));
-    });
-  }
-
-  const startTime = Date.now();
-  return new Promise((resolve) => {
-    glob('**/*.css', {cwd: srcDir}, function (er, files) {
-      resolve(files);
-    });
-  })
-    .then((files) => {
-      const promises = files.map((file) => {
-        const srcFile = srcDir + file;
-        return jsifyCssAsync(srcFile).then((css) => {
-          const targetFile = outputDir + '/' + file + '.js';
-          mkdirSync(pathLib.dirname(targetFile));
-          fs.writeFileSync(
-            targetFile,
-            'export const CSS = ' + JSON.stringify(css) + ';'
-          );
-        });
-      });
-      return Promise.all(promises);
-    })
-    .then(() => {
-      endBuildStep('Recompiled CSS', '', startTime);
-    });
-}
-
 function toPromise(readable) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     readable.on('error', reject).on('end', resolve);
   });
 }

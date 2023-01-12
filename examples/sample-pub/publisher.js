@@ -33,7 +33,7 @@ let globalSubscriptions;
  * @param {function()} callback
  */
 function whenReady(callback) {
-  (self.SWG = self.SWG || []).push(function (subscriptions) {
+  (self.SWG = self.SWG || []).push((subscriptions) => {
     globalSubscriptions = subscriptions;
     callback(subscriptions);
   });
@@ -151,8 +151,8 @@ function startFlowAuto() {
     return;
   }
   if (flow == 'demo') {
-    whenReady(function (subscriptions) {
-      whenDemoReady(function () {
+    whenReady((subscriptions) => {
+      whenDemoReady(() => {
         const controller = new DemoPaywallController(subscriptions);
         controller.start();
       });
@@ -328,9 +328,9 @@ function startFlowAuto() {
   }
 
   if (flow == 'smartbutton') {
-    whenReady(function (subsciptions) {
+    whenReady((subsciptions) => {
       const subs = subsciptions;
-      whenDemoReady(function () {
+      whenDemoReady(() => {
         let smartButton = document.querySelector('button#smartButton');
         if (!smartButton) {
           // Create a DOM element for SmartButton demo.
@@ -348,7 +348,7 @@ function startFlowAuto() {
             lang: 'en',
             messageTextColor: 'rgba(66, 133, 244, 0.95)',
           },
-          function () {
+          () => {
             subs.showOffers({isClosable: true});
           }
         );
@@ -358,25 +358,22 @@ function startFlowAuto() {
   }
 
   if (flow == 'button') {
-    whenReady(function (subscriptions) {
-      whenDemoReady(function () {
-        const button1 = subscriptions.createButton(function () {
+    whenReady((subscriptions) => {
+      whenDemoReady(() => {
+        const button1 = subscriptions.createButton(() => {
           log('SwG button clicked!');
         });
         document.body.appendChild(button1);
 
         const button2 = document.createElement('button');
         document.body.appendChild(button2);
-        subscriptions.attachButton(button2, {theme: 'dark'}, function () {
+        subscriptions.attachButton(button2, {theme: 'dark'}, () => {
           log('SwG button2 clicked!');
         });
 
-        const button3 = subscriptions.createButton(
-          {lang: 'pt-br'},
-          function () {
-            log('SwG button clicked!');
-          }
-        );
+        const button3 = subscriptions.createButton({lang: 'pt-br'}, () => {
+          log('SwG button clicked!');
+        });
         document.body.appendChild(button3);
 
         const button4 = document.createElement('button');
@@ -400,7 +397,7 @@ function whenDemoReady(callback) {
     callback();
   } else {
     let attempts = 0;
-    var interval = setInterval(function () {
+    var interval = setInterval(() => {
       attempts++;
       if (typeof DemoPaywallController == 'function') {
         clearInterval(interval);
@@ -477,13 +474,11 @@ function getAnchorFromUrl(url) {
  */
 function getQueryParams() {
   const queryParams = {};
-  location.search
-    .substring(1)
-    .split('&')
-    .forEach((pair) => {
-      const parts = pair.split('=');
-      queryParams[parts[0]] = parts[1];
-    });
+  const pairs = location.search.substring(1).split('&');
+  for (const pair of pairs) {
+    const [key, value] = pair.split('=');
+    queryParams[key] = value;
+  }
   return queryParams;
 }
 
