@@ -91,6 +91,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
         document: env.win.document,
         gtag: () => {},
+        innerHeight: 42,
       }
     );
     messageMap = {};
@@ -154,7 +155,7 @@ describes.realWin('AudienceActionFlow', (env) => {
             _client: 'SwG 0.0.0',
             productType: ProductType.SUBSCRIPTION,
             supportsEventManager: true,
-            windowHeight: undefined,
+            windowHeight: 42,
           }
         )
         .resolves(port);
@@ -185,7 +186,7 @@ describes.realWin('AudienceActionFlow', (env) => {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
           supportsEventManager: true,
-          windowHeight: undefined,
+          windowHeight: 42,
         }
       )
       .resolves(port);
