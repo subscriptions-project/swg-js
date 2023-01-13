@@ -157,7 +157,7 @@ describes.realWin('Propensity', (env) => {
     });
   });
 
-  it('adds user event data', () => {
+  it('adds additionalParameters from `data` prop', () => {
     let eventSent = null;
     sandbox
       .stub(ClientEventManager.prototype, 'logEvent')
