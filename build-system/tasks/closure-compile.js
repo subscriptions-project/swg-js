@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const closureCompiler = require('@ampproject/google-closure-compiler');
 const fs = require('fs-extra');
 const gulp = require('gulp');
@@ -91,7 +91,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       entryModuleFilename = entryModuleFilenames;
       entryModuleFilenames = [entryModuleFilename];
     }
-    const checkTypes = options.checkTypes || argv.typecheck_only;
+    const checkTypes = options.checkTypes || args.typecheck_only;
     const intermediateFilename = entryModuleFilename
       .replace(/\//g, '_')
       .replace(/^\./, '');
@@ -176,7 +176,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     compilerOptions.define.push('AMP_MODE=true');
 
     // For now do type check separately
-    if (argv.typecheck_only || checkTypes) {
+    if (args.typecheck_only || checkTypes) {
       // Don't modify compilation_level to a lower level since
       // it won't do strict type checking if its whitespace only.
       compilerOptions.define.push('TYPECHECK_ONLY=true');
@@ -190,10 +190,10 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       compilerOptions.conformance_configs =
         'build-system/conformance-config.textproto';
     }
-    if (argv.pseudoNames) {
+    if (args.pseudoNames) {
       compilerOptions.define.push('PSEUDO_NAMES=true');
     }
-    if (argv.fortesting) {
+    if (args.fortesting) {
       compilerOptions.define.push('FORTESTING=true');
     }
 
@@ -229,7 +229,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       });
 
     // If we're only doing type checking, no need to output the files.
-    if (!argv.typecheck_only) {
+    if (!args.typecheck_only) {
       stream = stream.pipe(rename(outputFilename)).pipe(
         sourcemaps.write('.', {
           sourceRoot: `https://raw.githubusercontent.com/subscriptions-project/swg-js/${internalRuntimeVersion}/`,

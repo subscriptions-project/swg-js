@@ -16,7 +16,7 @@
 'use strict';
 
 const $$ = require('gulp-load-plugins')();
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const babelify = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
@@ -55,7 +55,7 @@ exports.compile = async (options = {}) => {
           toName: 'subscriptions.max.js',
           minifiedName: options.checkTypes
             ? 'subscriptions.checktypes.js'
-            : argv.minifiedName || 'subscriptions.js',
+            : args.minifiedName || 'subscriptions.js',
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',
@@ -72,7 +72,7 @@ exports.compile = async (options = {}) => {
           toName: 'subscriptions-gaa.max.js',
           minifiedName: options.checkTypes
             ? 'subscriptions-gaa.checktypes.js'
-            : argv.minifiedGaaName || 'subscriptions-gaa.js',
+            : args.minifiedGaaName || 'subscriptions-gaa.js',
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',
@@ -89,7 +89,7 @@ exports.compile = async (options = {}) => {
           toName: 'basic-subscriptions.max.js',
           minifiedName: options.checkTypes
             ? 'basic-subscriptions.checktypes.js'
-            : argv.minifiedBasicName || 'basic-subscriptions.js',
+            : args.minifiedBasicName || 'basic-subscriptions.js',
           // If there is a sync JS error during initial load,
           // at least try to unhide the body.
           wrapper: '(function(){<%= contents %>})();',

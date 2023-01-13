@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const {isCiBuild} = require('../ci');
 
 /**
@@ -105,7 +105,7 @@ module.exports = {
   autoWatch: true,
 
   browsers: [
-    argv.headless ? 'Chrome_no_extensions_headless' : 'Chrome_no_extensions',
+    args.headless ? 'Chrome_no_extensions_headless' : 'Chrome_no_extensions',
   ],
 
   // Number of sauce tests to start in parallel
