@@ -15,16 +15,16 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const log = require('fancy-log');
 const nodemon = require('nodemon');
 
-const host = argv.host || 'localhost';
-const port = argv.port || process.env.PORT || 8000;
-const useHttps = argv.https != undefined;
-const quiet = argv.quiet != undefined;
-const publicationId = argv.publicationId || 'scenic-2017.appspot.com';
-const useStorybook = argv.storybook === true;
+const host = args.host || 'localhost';
+const port = args.port || process.env.PORT || 8000;
+const useHttps = args.https != undefined;
+const quiet = args.quiet != undefined;
+const publicationId = args.publicationId || 'scenic-2017.appspot.com';
+const useStorybook = args.storybook === true;
 
 const {green} = require('ansi-colors');
 
