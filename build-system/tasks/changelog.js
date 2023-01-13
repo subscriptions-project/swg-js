@@ -20,7 +20,7 @@
  * of pull requests using the github API from the last release's git tag.
  */
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const githubRequest = require('./github').githubRequest;
 const logger = require('fancy-log');
 const {execSync} = require('node:child_process');
@@ -184,9 +184,9 @@ async function getGithubPullRequestsMetadata(release) {
 function buildChangelogAndIncrementVersion(release) {
   // Suggest a version number.
   let version = '';
-  if (argv.swgVersion) {
+  if (args.swgVersion) {
     // Use the --swgVersion CLI param, if present.
-    version = String(argv.swgVersion);
+    version = String(args.swgVersion);
   } else {
     // Increment the last number.
     const versionSegments = release.tag.split('.');
