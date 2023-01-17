@@ -72,4 +72,12 @@ describes.realWin('OffersApi', () => {
     const offers = await offersApi.getOffers();
     expect(offers).to.deep.equal([]);
   });
+
+  it('rejects falsy offers', () => {
+    fetcherMock.expects('fetchCredentialedJson').never();
+
+    expect(() => offersApi.getOffers(false)).to.throw(
+      'getOffers requires productId in config or arguments'
+    );
+  });
 });
