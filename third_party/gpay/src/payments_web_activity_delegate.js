@@ -26,9 +26,11 @@ import {PaymentsClientDelegateInterface} from './payments_client_delegate_interf
 import {doesMerchantSupportOnlyTokenizedCards} from './validator.js';
 import {injectIframe, injectStyleSheet} from './element_injector.js';
 
-import * as activityPorts from 'web-activities/activity-ports';
-
-const {ActivityPort, ActivityPorts, ActivityIframePort} = activityPorts;
+const {
+  ActivityPort,
+  ActivityPorts,
+  ActivityIframePort,
+} = require('web-activities/activity-ports');
 
 const GPAY_ACTIVITY_REQUEST = 'GPAY';
 const IFRAME_CLOSE_DURATION_IN_MS = 250;

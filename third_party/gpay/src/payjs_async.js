@@ -39,11 +39,9 @@ import {
   validateSecureContext,
 } from './validator.js';
 
-import * as activityPorts from 'web-activities/activity-ports';
+const {ActivityPorts} = require('web-activities/activity-ports');
 
 import {createGoogleTransactionId} from './utils.js';
-
-const {ActivityPorts} = activityPorts;
 
 const TRUSTED_DOMAINS = [
   'actions.google.com',
@@ -86,13 +84,11 @@ class PaymentsAsyncClient {
     this.environment_ =
       paymentOptions.environment || Constants.Environment.TEST;
     if (!PaymentsAsyncClient.googleTransactionId_) {
-      PaymentsAsyncClient.googleTransactionId_ = /** @type {string} */ (
-        this.isInTrustedDomain_() &&
-        paymentOptions['i'] &&
-        paymentOptions['i']['googleTransactionId']
-          ? paymentOptions['i']['googleTransactionId']
-          : createGoogleTransactionId(this.environment_)
-      );
+      PaymentsAsyncClient.googleTransactionId_ = /** @type {string} */ (this.isInTrustedDomain_() &&
+      paymentOptions['i'] &&
+      paymentOptions['i']['googleTransactionId']
+        ? paymentOptions['i']['googleTransactionId']
+        : createGoogleTransactionId(this.environment_));
     }
 
     /** @private @const {!PaymentOptions} */
@@ -224,8 +220,9 @@ class PaymentsAsyncClient {
         // If the merchant supports only Tokenized cards then just rely on
         // delegate to give us the result.
         // This will need to change once b/78519188 is fixed.
-        const webPromise =
-          this.webActivityDelegate_.isReadyToPay(isReadyToPayRequest);
+        const webPromise = this.webActivityDelegate_.isReadyToPay(
+          isReadyToPayRequest
+        );
         const nativePromise = this.delegate_.isReadyToPay(isReadyToPayRequest);
         if (
           doesMerchantSupportOnlyTokenizedCards(isReadyToPayRequest) &&
@@ -238,8 +235,9 @@ class PaymentsAsyncClient {
         return nativePromise.then(() => webPromise);
       }
     }
-    const webPromise =
-      this.webActivityDelegate_.isReadyToPay(isReadyToPayRequest);
+    const webPromise = this.webActivityDelegate_.isReadyToPay(
+      isReadyToPayRequest
+    );
     return webPromise;
   }
 
