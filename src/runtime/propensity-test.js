@@ -201,7 +201,7 @@ describes.realWin('Propensity', (env) => {
       })
     ).to.throw('Event data must be an Object(all_offers)');
 
-    //ensure it rejects invalid `active` values
+    // Ensure it rejects invalid `active` values.
     expect(() =>
       propensity.sendEvent({
         name: Event.IMPRESSION_OFFERS,
