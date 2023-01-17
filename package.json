@@ -20,9 +20,10 @@
     "start-local": "gulp",
     "test": "gulp unit",
     "lint": "gulp lint",
-    "build": "TARGET=classic npx vite build && TARGET=basic npx vite build && TARGET=gaa npx vite build",
+    "build": "gulp build",
+    "build-with-typescript": "TARGET=classic npx vite build && TARGET=basic npx vite build && TARGET=gaa npx vite build",
     "build-i18n": "node assets/i18n/strings/compile.js && gulp lint --fix --files='src/i18n/strings.js'",
-    "dist": "npm run build",
+    "dist": "gulp dist",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },
