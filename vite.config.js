@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import {defineConfig} from 'vite';
-import {resolveConfig} from './build-system/tasks/compile-config';
+import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
+import {defineConfig} from 'vite';
 import {visualizer} from 'rollup-plugin-visualizer';
+
+import {resolveConfig} from './build-system/tasks/compile-config';
 
 // Choose Rollup plugins.
 const replacementValues = Object.entries(resolveConfig()).reduce(
@@ -28,6 +30,10 @@ const replacementValues = Object.entries(resolveConfig()).reduce(
   {}
 );
 const rollupPlugins = [
+  commonjs({
+    include: 'third_party/gpay/src/*.js',
+    transformMixedEsModules: true,
+  }),
   replace({
     delimiters: ['const ', ' = goog.define'],
     include: ['./src/constants.js'],
