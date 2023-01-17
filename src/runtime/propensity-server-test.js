@@ -519,6 +519,11 @@ describes.realWin('PropensityServer', (env) => {
       defaultEvent.isFromUserAction = true;
       registeredCallback(defaultEvent);
       expect(receivedAdditionalParameters.is_active).to.be.true;
+
+      // Creates additionalParameters object if necessary.
+      delete defaultEvent.additionalParameters;
+      registeredCallback(defaultEvent);
+      expect(receivedAdditionalParameters.is_active).to.be.true;
     });
   });
 });
