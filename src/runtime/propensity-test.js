@@ -157,6 +157,25 @@ describes.realWin('Propensity', (env) => {
     });
   });
 
+  it('adds additional parameters from `data` prop', () => {
+    let eventSent = null;
+    sandbox
+      .stub(ClientEventManager.prototype, 'logEvent')
+      .callsFake((event) => (eventSent = event));
+    propensity.sendEvent({
+      name: Event.IMPRESSION_PAYWALL,
+      data: {
+        cool: true,
+      },
+    });
+    expect(eventSent).to.deep.equal({
+      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+      eventOriginator: EventOriginator.PROPENSITY_CLIENT,
+      isFromUserAction: undefined,
+      additionalParameters: {cool: true},
+    });
+  });
+
   it('should validate events sent to it and set appropriate defaults', () => {
     let receivedEvent;
 
@@ -181,6 +200,14 @@ describes.realWin('Propensity', (env) => {
         data: 'all_offers',
       })
     ).to.throw('Event data must be an Object(all_offers)');
+
+    // Ensure it rejects invalid `active` values.
+    expect(() =>
+      propensity.sendEvent({
+        name: Event.IMPRESSION_OFFERS,
+        active: 'i dunno maybe?',
+      })
+    ).to.throw('Event active must be a boolean');
 
     const testSend = (event) => {
       receivedEvent = null;
