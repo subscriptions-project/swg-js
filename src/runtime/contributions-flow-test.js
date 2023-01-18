@@ -174,6 +174,42 @@ describes.realWin('ContributionsFlow', (env) => {
     activityIframeViewMock.verify();
   });
 
+  it('handles flow cancellation', async () => {
+    contributionsFlow = new ContributionsFlow(runtime, {
+      skus: ['sku1', 'sku2'],
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
+        {
+          _client: 'SwG 0.0.0',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
+          list: 'default',
+          skus: ['sku1', 'sku2'],
+          isClosable: true,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+
+    // Trigger the cancellation callback.
+    let onCancelCallback;
+    const activityIframeView =
+      await contributionsFlow.activityIframeViewPromise_;
+    const activityIframeViewMock = sandbox.mock(activityIframeView);
+    activityIframeViewMock.expects('onCancel').callsFake((cb) => {
+      onCancelCallback = cb;
+    });
+    await contributionsFlow.start();
+
+    callbacksMock.expects('triggerFlowCanceled').once();
+    onCancelCallback();
+  });
+
   it('has valid ContributionsFlow constructed, routed to the new contributions iframe', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
@@ -341,9 +377,12 @@ describes.realWin('ContributionsFlow', (env) => {
     expect(nativeStub).to.not.be.called;
     const skuSelected = new SkuSelectedResponse();
     skuSelected.setSku('sku1');
+    skuSelected.setOneTime(true);
     // Pay message.
     callback(skuSelected);
     expect(payStub).to.be.calledOnce;
+    expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+      .true;
     expect(loginStub).to.not.be.called;
     expect(nativeStub).to.not.be.called;
     // Login message.
@@ -352,7 +391,7 @@ describes.realWin('ContributionsFlow', (env) => {
     response.setSubscriberOrMember(true);
     response.setLinkRequested(false);
     callback(response);
-    expect(loginStub).to.be.calledOnce.calledWithExactly({
+    expect(loginStub).to.be.calledOnceWithExactly({
       linkRequested: false,
     });
     expect(payStub).to.be.calledOnce; // Didn't change.
