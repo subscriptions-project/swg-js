@@ -73,6 +73,9 @@ describes.realWin('LoginPromptApi', (env) => {
       )
       .resolves(port);
 
+    resultResolver();
+    dialogManagerMock.expects('completeView').once();
+
     loginPromptApi.start();
     await loginPromptApi.openViewPromise_;
   });
