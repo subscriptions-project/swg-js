@@ -1195,7 +1195,6 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('calls onCloseDialog callback if available', () => {
-      const onCloseDialogMock = sandbox.mock();
       sandbox.stub(fetcher, 'fetch').resolves();
       dialogManagerMock.expects('openDialog').never();
       expectGetSwgUserTokenToBeCalled();
@@ -1220,6 +1219,7 @@ describes.realWin('EntitlementsManager', (env) => {
         'product1'
       );
 
+      const onCloseDialogMock = sandbox.mock();
       manager.consume_(ents, onCloseDialogMock);
       expect(onCloseDialogMock).to.be.calledOnce;
     });
