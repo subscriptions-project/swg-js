@@ -25,7 +25,7 @@ import {ConfiguredRuntime} from './runtime';
 import {ContributionsFlow} from './contributions-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
-import {ProductType} from '../api/subscriptions';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 
 describes.realWin('ContributionsFlow', (env) => {
   let win;
@@ -206,7 +206,10 @@ describes.realWin('ContributionsFlow', (env) => {
     });
     await contributionsFlow.start();
 
-    callbacksMock.expects('triggerFlowCanceled').once();
+    callbacksMock
+      .expects('triggerFlowCanceled')
+      .once()
+      .withExactArgs(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
     onCancelCallback();
   });
 
