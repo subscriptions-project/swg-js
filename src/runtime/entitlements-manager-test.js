@@ -1194,6 +1194,36 @@ describes.realWin('EntitlementsManager', (env) => {
       }
     });
 
+    it('calls onCloseDialog callback if available', () => {
+      const onCloseDialogMock = sandbox.mock();
+      sandbox.stub(fetcher, 'fetch').resolves();
+      dialogManagerMock.expects('openDialog').never();
+      expectGetSwgUserTokenToBeCalled();
+
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [
+          new Entitlement(
+            GOOGLE_METERING_SOURCE,
+            ['product1', 'product2'],
+            'token1',
+            {
+              metering: {
+                ownerId: 'scenic-2017.appspot.com',
+                action: 'READ',
+                clientUserAttribute: 'standard_registered_user',
+              },
+            }
+          ),
+        ],
+        'product1'
+      );
+
+      manager.consume_(ents, onCloseDialogMock);
+      expect(onCloseDialogMock).to.be.calledOnce;
+    });
+
     it('should not open metering dialog when metering entitlements are consumed and showToast is not provided', () => {
       sandbox.stub(fetcher, 'fetch').resolves();
       dialogManagerMock.expects('openDialog').never();
@@ -1296,6 +1326,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should not open metering dialog when metering entitlements are consumed and showToast is false', () => {
+      dialogManagerMock.expects('openDialog').never();
       sandbox.stub(fetcher, 'fetch').resolves();
       expectGetSwgUserTokenToBeCalled();
       const ents = new Entitlements(
@@ -1316,6 +1347,25 @@ describes.realWin('EntitlementsManager', (env) => {
             }
           ),
         ],
+        'product1'
+      );
+
+      manager.consume_(ents);
+    });
+
+    it('does not open metering dialog when subscription token contents are missing', () => {
+      dialogManagerMock.expects('openDialog').never();
+      sandbox.stub(fetcher, 'fetch').resolves();
+      expectGetSwgUserTokenToBeCalled();
+      const entitlement = new Entitlement(
+        GOOGLE_METERING_SOURCE,
+        ['product1', 'product2'],
+        'token1'
+      );
+      const ents = new Entitlements(
+        'service1',
+        'RaW',
+        [entitlement],
         'product1'
       );
 
