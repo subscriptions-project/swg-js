@@ -248,7 +248,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     expect(triggerFlowCancelSpy).to.not.be.called;
   });
 
-  it('should trigger on failed link response', async () => {
+  it('should trigger on cancelled link response', async () => {
     dialogManagerMock.expects('popupClosed').once();
     let handler;
     activitiesMock
@@ -284,6 +284,48 @@ describes.realWin('LinkCompleteFlow', (env) => {
     await tick(2);
 
     expect(triggerFlowCancelSpy).to.be.calledOnce;
+    expect(startStub).to.not.be.called;
+  });
+
+  it('should trigger on (non-cancelled) failed link response', async () => {
+    dialogManagerMock.expects('popupClosed').once();
+    let handler;
+    activitiesMock
+      .expects('onResult')
+      .withExactArgs(
+        'swg-link',
+        sandbox.match((arg) => {
+          handler = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
+    entitlementsManagerMock.expects('blockNextNotification').once();
+    entitlementsManagerMock.expects('unblockNextNotification').once();
+    LinkCompleteFlow.configurePending(runtime);
+    expect(handler).to.exist;
+    expect(triggerLinkProgressSpy).to.not.be.called;
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    expect(triggerFlowCancelSpy).to.not.be.called;
+
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.reject(new Error());
+
+    const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start');
+
+    handler(port);
+    expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
+
+    await tick(2);
+
+    expect(triggerFlowCancelSpy).to.not.be.called;
     expect(startStub).to.not.be.called;
   });
 
