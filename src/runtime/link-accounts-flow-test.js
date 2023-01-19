@@ -638,6 +638,43 @@ describes.realWin('LinkCompleteFlow', (env) => {
 
     storageMock.verify();
   });
+
+  it('handles completion errors', async () => {
+    const storageMock = sandbox.mock(runtime.storage());
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .throws(new Error('example error'));
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    let resultResolver;
+    const resultPromise = new Promise((resolve) => {
+      resultResolver = resolve;
+    });
+    port.acceptResult = () => resultPromise;
+    activitiesMock.expects('openIframe').resolves(port).once();
+    await linkCompleteFlow.start();
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      {success: true, swgUserToken: 'fake user token'},
+      'IFRAME',
+      'https://news.google.com',
+      true,
+      true
+    );
+    resultResolver(result);
+
+    // Capture function that rethrows completion error.
+    let rethrowCompletionErrorFn;
+    win.setTimeout = (c) => {
+      rethrowCompletionErrorFn = c;
+    };
+    linkCompleteFlow.whenComplete();
+    await tick(2);
+
+    expect(rethrowCompletionErrorFn).to.throw('example error');
+  });
 });
 
 describes.realWin('LinkSaveFlow', (env) => {
