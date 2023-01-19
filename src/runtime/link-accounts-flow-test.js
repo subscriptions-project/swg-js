@@ -806,6 +806,17 @@ describes.realWin('LinkSaveFlow', (env) => {
     expect(triggerFlowCanceledSpy.called).to.be.true;
   });
 
+  it('rethrows non-cancel errors', async () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, () => {});
+    resultResolver(Promise.reject(new Error('linking failed')));
+    activitiesMock.expects('openIframe').resolves(port);
+    dialogManagerMock.expects('completeView').once();
+
+    await expect(linkSaveFlow.start()).to.eventually.be.rejectedWith(
+      'linking failed'
+    );
+  });
+
   it('should test linking success', async () => {
     eventManagerMock
       .expects('logSwgEvent')
