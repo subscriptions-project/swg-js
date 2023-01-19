@@ -272,18 +272,27 @@ describes.realWin('PayClient', (env) => {
     expect(data).to.deep.equal(expectedData);
   });
 
-  it('should accept a cancel signal', async () => {
-    payClient.start({});
-    await expect(
-      withResult(Promise.reject({'statusCode': 'CANCELED'}))
-    ).to.be.rejectedWith(/AbortError/);
-  });
-
-  it('should propogate productType with cancel signal', async () => {
+  it('handles cancellation', async () => {
     payClient.start({});
     await expect(withResult(Promise.reject({'statusCode': 'CANCELED'})))
       .to.be.rejectedWith(/AbortError/)
       .and.eventually.have.property('productType');
+  });
+
+  it('handles cancellation in redirect experiment', async () => {
+    win.location.hash = ENCODED_WA_RES_REDIRECT_HASH;
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
+    payClient = new PayClient(runtime);
+
+    let responsePromise;
+    payClient.onResponse((res) => {
+      responsePromise = res;
+    });
+    responseHandler(Promise.reject({'statusCode': 'CANCELED'}));
+
+    await expect(responsePromise)
+      .to.be.rejectedWith(/AbortError/)
+      .and.eventually.have.property('productType').be.null;
   });
 
   it('should accept other errors', async () => {
@@ -341,6 +350,16 @@ describes.realWin('PayClient', (env) => {
           'disableNative': true,
         },
       });
+    });
+
+    it('sets Google transaction ID on PaymentsAsyncClient', () => {
+      payClientStubs.create.restore();
+      PaymentsAsyncClient.googleTransactionId_ = '';
+
+      payClient.start({});
+      expect(PaymentsAsyncClient.googleTransactionId_).to.equal(
+        GOOGLE_TRANSACTION_ID
+      );
     });
   });
 });
@@ -413,6 +432,17 @@ describes.sandboxed('RedirectVerifierHelper', () => {
     await helper.prepare();
     expect(useVerifierSync()).to.equal(TEST_VERIFIER);
     expect(helper.restoreKey()).to.equal(TEST_KEY);
+  });
+
+  it('handles localStorage throwing errors', async () => {
+    Object.defineProperty(win, 'localStorage', {
+      get() {
+        throw new Error();
+      },
+    });
+    await helper.prepare();
+
+    expect(useVerifierSync()).to.be.null;
   });
 
   it('should tolerate storage failures', async () => {
