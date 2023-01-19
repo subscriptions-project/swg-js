@@ -949,6 +949,23 @@ describes.realWin('LinkSaveFlow', (env) => {
     );
   });
 
+  it('bails if save is not requested', async () => {
+    dialogManagerMock.expects('completeView').never();
+
+    linkSaveFlow = new LinkSaveFlow(runtime, () => {
+      throw new Error('callback failed');
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    linkSaveFlow.start();
+
+    await linkSaveFlow.openPromise_;
+    const response = new LinkingInfoResponse();
+    response.setRequested(false);
+    const cb = messageMap[response.label()];
+    cb(response);
+    await linkSaveFlow.getRequestPromise();
+  });
+
   it('should test link complete flow start', async () => {
     eventManagerMock
       .expects('logSwgEvent')
