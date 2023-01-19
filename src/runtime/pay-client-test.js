@@ -280,10 +280,12 @@ describes.realWin('PayClient', (env) => {
   });
 
   it('handles cancellation in redirect experiment', async () => {
+    // Enable experiment.
     win.location.hash = ENCODED_WA_RES_REDIRECT_HASH;
     setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
     payClient = new PayClient(runtime);
 
+    // Simulate cancellation.
     let responsePromise;
     payClient.onResponse((res) => {
       responsePromise = res;
