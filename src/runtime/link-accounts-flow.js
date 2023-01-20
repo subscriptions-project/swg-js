@@ -230,7 +230,7 @@ export class LinkCompleteFlow {
       this.complete_(response, !!response['success']);
     } catch (reason) {
       // Rethrow async.
-      setTimeout(() => {
+      this.win_.setTimeout(() => {
         throw reason;
       });
     }
