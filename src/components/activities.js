@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import activityPorts from 'web-activities/activity-ports';
+
 import {
   AnalyticsRequest,
   EventOriginator,
@@ -22,7 +24,6 @@ import {
 import {Constants} from '../utils/constants';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {addQueryParam} from '../utils/url';
-import activityPorts from 'web-activities/activity-ports';
 
 const {
   ActivityIframePort: WebActivityIframePort,
