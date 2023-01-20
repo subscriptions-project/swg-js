@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import commonjs from '@rollup/plugin-commonjs';
-import replace from '@rollup/plugin-replace';
 import {defineConfig} from 'vite';
 import {visualizer} from 'rollup-plugin-visualizer';
+import commonjs from '@rollup/plugin-commonjs';
+import replace from '@rollup/plugin-replace';
 
 import {resolveConfig} from './build-system/tasks/compile-config';
 
