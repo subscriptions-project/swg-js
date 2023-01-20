@@ -327,7 +327,7 @@ describes.realWin('GaaMeteringRegwall', () => {
       const titleEl = self.document.querySelector(
         '.gaa-metering-regwall--title'
       );
-      expect(titleEl.textContent).to.equal(
+      expect(titleEl.textContent.trim()).to.equal(
         I18N_STRINGS.SHOWCASE_REGWALL_TITLE['pt-br']
       );
     });
@@ -340,7 +340,7 @@ describes.realWin('GaaMeteringRegwall', () => {
       const titleEl = self.document.querySelector(
         '.gaa-metering-regwall--title'
       );
-      expect(titleEl.textContent).to.equal(
+      expect(titleEl.textContent.trim()).to.equal(
         I18N_STRINGS.SHOWCASE_REGWALL_TITLE['en']
       );
     });
