@@ -48,6 +48,7 @@ describes.realWin('MeterToastApi', (env) => {
   let port;
   let dialogManagerMock;
   let onConsumeCallbackFake;
+  let mediaQueryChangedCallback;
   let isMobile;
   const productId = 'pub1:label1';
   let clientOptions;
@@ -56,7 +57,9 @@ describes.realWin('MeterToastApi', (env) => {
     win = env.win;
     sandbox.stub(win, 'matchMedia').returns({
       'matches': true,
-      'addListener': (callback) => callback,
+      'addListener': (callback) => {
+        mediaQueryChangedCallback = callback;
+      },
     });
     messageMap = {};
     pageConfig = new PageConfig(productId);
@@ -465,6 +468,36 @@ describes.realWin('MeterToastApi', (env) => {
       .resolves(port);
     await meterToastApi.start();
     const element = runtime.dialogManager().getDialog().getElement();
+    expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
+  });
+
+  it('changes box-shadow when media query match changes', async () => {
+    const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      isClosable: true,
+      hasSubscriptionCallback: runtime
+        .callbacks()
+        .hasSubscribeRequestCallback(),
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        iframeArgs
+      )
+      .resolves(port);
+    await meterToastApi.start();
+
+    // Initially has box shadow.
+    const element = runtime.dialogManager().getDialog().getElement();
+    expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
+
+    // Loses box shadow if match is false.
+    mediaQueryChangedCallback({matches: false});
+    expect(getStyle(element, 'box-shadow')).to.equal('');
+
+    // Regains box shadow if match is true.
+    mediaQueryChangedCallback({matches: true});
     expect(getStyle(element, 'box-shadow')).to.equal(IFRAME_BOX_SHADOW);
   });
 
