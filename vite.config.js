@@ -20,6 +20,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 
 import {resolveConfig} from './build-system/tasks/compile-config';
+const args = require('./build-system/tasks/args');
 
 // Choose Rollup plugins.
 const replacementValues = Object.entries(resolveConfig()).reduce(
@@ -41,7 +42,7 @@ const rollupPlugins = [
     values: replacementValues,
   }),
 ];
-if (process.argv.includes('--visualize')) {
+if (args.visualize) {
   // Visualize bundle to see which modules are taking up space.
   rollupPlugins.push(
     visualizer({
@@ -56,7 +57,7 @@ const builds = {
   gaa: {output: 'subscriptions-gaa.js', input: './src/gaa-main.js'},
 };
 
-const {input, output} = builds[process.env.TARGET || 'classic'];
+const {input, output} = builds[args.target || 'classic'];
 
 export default defineConfig({
   build: {
