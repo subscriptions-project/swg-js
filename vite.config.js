@@ -52,9 +52,18 @@ if (args.visualize) {
 }
 
 const builds = {
-  basic: {output: 'basic-subscriptions.js', input: './src/basic-main.js'},
-  classic: {output: 'subscriptions.js', input: './src/main.js'},
-  gaa: {output: 'subscriptions-gaa.js', input: './src/gaa-main.js'},
+  basic: {
+    output: args.minifiedBasicName || 'basic-subscriptions.js',
+    input: './src/basic-main.js',
+  },
+  classic: {
+    output: args.minifiedName || 'subscriptions.js',
+    input: './src/main.js',
+  },
+  gaa: {
+    output: args.minifiedGaaName || 'subscriptions-gaa.js',
+    input: './src/gaa-main.js',
+  },
 };
 
 const {input, output} = builds[args.target || 'classic'];
