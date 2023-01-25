@@ -618,6 +618,11 @@ export class ConfiguredRuntime {
       this.googleAnalyticsEventListener_.start();
     }
 
+    // Abcdef.
+    if (integr.enableSomethingSomething) {
+      console.log('Something something');
+    }
+
     // WARNING: DepsDef ('this') is being progressively defined below.
     // Constructors will crash if they rely on something that doesn't exist yet.
     /** @private @const {!../components/activities.ActivityPorts} */
