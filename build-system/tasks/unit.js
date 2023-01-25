@@ -183,6 +183,7 @@ function runTests() {
         exclude: [
           'build-system/**/*.js',
           'src/**/*-test.js',
+          'src/**/*.stories.js',
           'test/**/*.js',
           'third_party/**/*.js',
           // This file is auto-generated.
