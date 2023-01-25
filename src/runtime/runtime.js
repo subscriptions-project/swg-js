@@ -619,6 +619,113 @@ export class ConfiguredRuntime {
     }
 
     // Abcdef.
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
+    self.x = 1;
     if (integr.enableSomethingSomething) {
       self.x = 1;
     }
