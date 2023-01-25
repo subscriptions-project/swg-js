@@ -80,6 +80,7 @@ import {queryStringHasFreshGaaParams} from './extended-access';
 import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
+import {Patch} from './patch';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -727,7 +728,7 @@ export class ConfiguredRuntime {
     self.x = 1;
     self.x = 1;
     if (integr.enableSomethingSomething) {
-      self.x = 1;
+      self.x = new Patch();
     }
 
     // WARNING: DepsDef ('this') is being progressively defined below.
