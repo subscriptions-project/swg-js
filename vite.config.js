@@ -73,6 +73,7 @@ export default defineConfig({
     commonjsOptions: {
       sourceMap: true,
     },
+    target: 'ios12',
 
     minify: 'terser',
     terserOptions: {
