@@ -18,5 +18,6 @@ export class Patch {
   constructor() {
     self.test = 'Will this file count towards patch coverage?';
     self.test2 = 'Will this file show up in CodeCov?';
+    self.test3 = 'Will the coverage upload to CodeCov?';
   }
 }
