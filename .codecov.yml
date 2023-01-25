@@ -1,14 +1,8 @@
 comment: false
 coverage:
   status:
-    project:
-      default:
-        base: auto
-        target: auto
-        threshold: 0.05%
+    project: false
     patch:
       default:
-        enabled: no
+        threshold: 1%
         if_not_found: success
-ignore:
-  - "**/*.stories.js"
