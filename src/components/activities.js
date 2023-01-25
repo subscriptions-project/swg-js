@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {
   AnalyticsRequest,
   EventOriginator,
   deserialize,
   getLabel,
 } from '../proto/api_messages';
+import {INTERNAL_RUNTIME_VERSION} from '../constants';
+
 import {Constants} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
 
