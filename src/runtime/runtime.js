@@ -620,7 +620,7 @@ export class ConfiguredRuntime {
 
     // Abcdef.
     if (integr.enableSomethingSomething) {
-      console.log('Something something');
+      this.analyticsService_ = new AnalyticsService(this, this.fetcher_);
     }
 
     // WARNING: DepsDef ('this') is being progressively defined below.
