@@ -32,7 +32,6 @@ const replacementValues = Object.entries(resolveConfig()).reduce(
 );
 const rollupPlugins = [
   commonjs({
-    include: 'third_party/gpay/src/*.js',
     transformMixedEsModules: true,
   }),
   replace({

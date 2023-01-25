@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import activityPorts from 'web-activities/activity-ports';
 
 import {
   AnalyticsRequest,
@@ -28,7 +27,7 @@ import {addQueryParam} from '../utils/url';
 const {
   ActivityIframePort: WebActivityIframePort,
   ActivityPorts: WebActivityPorts,
-} = activityPorts;
+} = require('web-activities/activity-ports');
 
 /**
  * @interface
