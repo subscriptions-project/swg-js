@@ -33,7 +33,6 @@ export class Graypane {
     setImportantStyles(this.fadeBackground_, {
       'z-index': zIndex,
       'display': 'none',
-      'pointer-events': 'none',
       'position': 'fixed',
       'top': 0,
       'right': 0,
