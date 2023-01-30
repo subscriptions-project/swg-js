@@ -15,13 +15,9 @@
  */
 'use strict';
 
-const nightwatch = require('nightwatch');
-const {dist} = require('./builders');
-
 async function e2e() {
-  // Compile minified js and css so e2e tests will run against local minified js and css.
-  await dist();
-
+  // Load this on-demand to support optional dependencies.
+  const nightwatch = require('nightwatch');
   nightwatch.cli(async (argv) => {
     argv.config = 'test/e2e/nightwatch.conf.js';
     if (!argv.env || argv.env === 'default') {
@@ -51,6 +47,4 @@ e2e.flags = {
     ' loaded',
   'skiptags':
     ' Skips tests that have the specified tag or tags (comma separated).',
-  'retries':
-    ' Retries failed or errored testcases up to the specified number of times.',
 };

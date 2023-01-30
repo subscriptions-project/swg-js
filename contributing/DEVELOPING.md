@@ -125,8 +125,6 @@ For manual testing build Subscribe with Google and start the Node.js server by r
   build-system/   - build infrastructure and development server
   contributing/   - docs for code contributors
   dist/           - (generated) Web releases are compiled here, then deployed to a CDN
-  exports/        - AMP releases use these files to export specific JavaScript symbols
-                    for AMP extensions (ex: amp-subscriptions-google) to reference
   docs/           - documentation for publishers
   examples/       - example publisher website, used for local development
   src/            - source code and unit tests
