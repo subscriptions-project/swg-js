@@ -20,7 +20,9 @@
  */
 
 module.exports = {
-  url: () => this.api.launchUrl + '?metering',
+  url: function () {
+    return this.api.launchUrl + '?metering';
+  },
   elements: {
     swgRegwallDialog: {
       selector: '#swg-regwall-dialog',
