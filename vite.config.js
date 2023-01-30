@@ -22,7 +22,7 @@ import replace from '@rollup/plugin-replace';
 import {resolveConfig} from './build-system/tasks/compile-config';
 const args = require('./build-system/tasks/args');
 
-// Choose Rollup plugins.
+// Choose plugins.
 const replacementValues = Object.entries(resolveConfig()).reduce(
   (obj, [key, value]) => {
     obj[key] = `const ${key} = '${value}' ?? `;
@@ -30,7 +30,7 @@ const replacementValues = Object.entries(resolveConfig()).reduce(
   },
   {}
 );
-const rollupPlugins = [
+const plugins = [
   commonjs({
     transformMixedEsModules: true,
   }),
@@ -43,7 +43,7 @@ const rollupPlugins = [
 ];
 if (args.visualize) {
   // Visualize bundle to see which modules are taking up space.
-  rollupPlugins.push(
+  plugins.push(
     visualizer({
       filename: './build/rollup-visualization.html',
     })
@@ -68,6 +68,8 @@ const builds = {
 const {input, output} = builds[args.target || 'classic'];
 
 export default defineConfig({
+  plugins,
+
   build: {
     emptyOutDir: false,
     commonjsOptions: {
@@ -100,7 +102,6 @@ export default defineConfig({
           entryFileNames: output,
         },
       ],
-      plugins: rollupPlugins,
     },
   },
 });
