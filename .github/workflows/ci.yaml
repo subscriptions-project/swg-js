@@ -20,7 +20,7 @@ jobs:
       - name: Check
         run: gulp check
 
-  e2e:
+  e2e-with-closure:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,6 +33,29 @@ jobs:
 
       - name: Install dependencies
         run: yarn
+
+      - name: Compile JS with Closure
+        run: gulp dist
+
+      - name: E2E Tests
+        run: gulp e2e
+
+  e2e-with-vite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install the right version of Nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Compile JS with Vite
+        run: npx vite build -- --target=basic
 
       - name: E2E Tests
         run: gulp e2e
