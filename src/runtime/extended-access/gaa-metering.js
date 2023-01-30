@@ -105,7 +105,7 @@ export class GaaMetering {
 
     // Disable unlockArticle when showcaseEntilement is provided since articles
     // are unlocked on the server-side.
-    const unlockArticle = showcaseEntitlement ? params.unlockArticle : () => {};
+    const unlockArticle = showcaseEntitlement ? () => {} : params.unlockArticle;
 
     // Set class variables
     GaaMetering.userState = userState;
