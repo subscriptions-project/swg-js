@@ -88,7 +88,7 @@ export class GaaMetering {
 
     // Register publisher's callbacks, promises, and parameters
     const productId = GaaMetering.getProductIDFromPageConfig_();
-    const {
+    let {
       googleApiClientId,
       authorizationUrl,
       allowedReferrers,
@@ -107,6 +107,12 @@ export class GaaMetering {
     // Set class variables
     GaaMetering.userState = userState;
     GaaMetering.publisherEntitlementPromise = publisherEntitlementPromise;
+
+    // Disable unlockArticle when showcaseEntilement is provided since articles
+    // are unlocked on the server-side.
+    if (showcaseEntitlement) {
+      unlockArticle = () => {};
+    }
 
     // Validate gaa parameters and referrer
     if (!GaaMetering.isGaa(allowedReferrers)) {
@@ -364,7 +370,10 @@ export class GaaMetering {
       noIssues = false;
     }
 
-    const reqFunc = ['unlockArticle', 'showPaywall'];
+    const reqFunc =
+      'showcaseEntitlement' in params
+        ? ['showPaywall']
+        : ['showPaywall', 'unlockArticle'];
 
     for (let reqFuncNo = 0; reqFuncNo < reqFunc.length; reqFuncNo++) {
       if (
