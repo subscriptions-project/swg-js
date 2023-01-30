@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Compile JS with Closure
+      - name: Compile Swgjs with Closure
         run: gulp dist
 
       - name: E2E Tests
@@ -54,8 +54,14 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Compile JS with Vite
+      - name: Compile Swgjs Classic with Vite
         run: npx vite build -- --target=classic
+
+      - name: Compile Swgjs Extended Access with Vite
+        run: npx vite build -- --target=gaa
+
+      - name: Compile Swgjs Basic with Vite
+        run: npx vite build -- --target=basic
 
       - name: E2E Tests
         run: gulp e2e
