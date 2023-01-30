@@ -17,11 +17,11 @@
 module.exports = {
   '@tags': ['extendedAccess'],
 
-  'Show contribution options': (browser) => {
+  'Show regwall': (browser) => {
     const extendedAccess = browser.page.extendedAccess();
     extendedAccess
       .navigate()
-      .waitForElementPresent('@swgRegwallDialog', 'Found SwG Regwall dialog')
+      .waitForElementPresent('@swgRegwallDialog', 'Found regwall')
       .waitForElementVisible('@swgRegwallDialog')
       .assert.containsText(
         '.gaa-metering-regwall--title',
