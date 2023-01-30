@@ -20,7 +20,7 @@ jobs:
       - name: Check
         run: gulp check
 
-  e2e-with-closure:
+  e2e:
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +40,7 @@ jobs:
       - name: E2E Tests
         run: gulp e2e
 
-  e2e-with-vite:
+  e2e-with-new-build-system:
     runs-on: ubuntu-latest
 
     steps:
