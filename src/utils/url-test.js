@@ -18,45 +18,14 @@ import {AnalyticsRequest, ReaderSurfaceType} from '../proto/api_messages';
 import {
   addQueryParam,
   getCanonicalUrl,
-  getHostUrl,
   isSecure,
   parseQueryString,
   parseUrl,
   serializeProtoMessageForUrl,
-  serializeQueryString,
   wasReferredByGoogle,
 } from './url';
 
-describe('serializeQueryString', () => {
-  it('should return empty string for empty params', () => {
-    expect(serializeQueryString({})).to.equal('');
-    expect(
-      serializeQueryString({
-        nullValue: null,
-        undefValue: undefined,
-      })
-    ).to.equal('');
-  });
-  it('should serialize a single value', () => {
-    expect(serializeQueryString({a: 'A'})).to.equal('a=A');
-  });
-  it('should serialize multiple values', () => {
-    expect(serializeQueryString({a: 'A', b: 'B'})).to.equal('a=A&b=B');
-  });
-  it('should coerce to string', () => {
-    expect(serializeQueryString({a: 1, b: true})).to.equal('a=1&b=true');
-  });
-  it('should encode values and keys', () => {
-    expect(serializeQueryString({'a+b': 'A+B'})).to.equal('a%2Bb=A%2BB');
-  });
-  it('should serialize multiple valued parameters', () => {
-    expect(serializeQueryString({a: [1, 2, 3], b: true})).to.equal(
-      'a=1&a=2&a=3&b=true'
-    );
-  });
-});
-
-describes.realWin('parseUrl', {}, () => {
+describes.realWin('parseUrl', () => {
   const currentPort = location.port;
 
   function compareParse(url, result) {
@@ -230,19 +199,6 @@ describes.realWin('parseUrl', {}, () => {
       'SwG could not parse a URL query param: unparseableParam'
     );
   });
-
-  it('should strip fragment for host url', () => {
-    expect(getHostUrl('https://example.com/abc?a=1#frag')).to.equal(
-      'https://example.com/abc?a=1'
-    );
-    expect(getHostUrl('https://example.com/abc?a=1')).to.equal(
-      'https://example.com/abc?a=1'
-    );
-    expect(getHostUrl('https://example.com/abc')).to.equal(
-      'https://example.com/abc'
-    );
-    expect(getHostUrl('https://example.com/')).to.equal('https://example.com/');
-  });
 });
 
 describe('addQueryParam', () => {
@@ -343,20 +299,34 @@ describe('serializeProtoMessageForUrl', () => {
 
 describe('getCanonicalUrl', () => {
   it('should query page', () => {
-    const url = 'canonicalUrl';
+    const url = 'https://norcal.com/article1';
     let pageQuery = null;
     const FAKE_DOC = {
-      getRootNode: function () {
-        return {
-          querySelector: function (qry) {
-            pageQuery = qry;
-            return {href: url};
-          },
-        };
-      },
+      getRootNode: () => ({
+        querySelector: (qry) => {
+          pageQuery = qry;
+          return {href: url};
+        },
+      }),
     };
     expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
     expect(pageQuery).to.equal("link[rel='canonical']");
+  });
+  it('should return the page URL without a query string when a canonical tag is not present', () => {
+    const url = 'https://example.com/article1';
+    const FAKE_DOC = {
+      getRootNode: () => ({
+        querySelector: () => null,
+        location: {
+          href: 'https://example.com/article1?foo=bar',
+          hostname: 'example.com',
+          origin: 'https://example.com',
+          pathname: '/article1',
+          search: '?foo=bar',
+        },
+      }),
+    };
+    expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
   });
 });
 

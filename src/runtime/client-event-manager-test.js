@@ -22,7 +22,7 @@ import {tick} from '../../test/tick';
 const DEFAULT_TYPE = AnalyticsEvent.IMPRESSION_AD;
 const DEFAULT_ORIGIN = EventOriginator.SWG_CLIENT;
 const OTHER_TYPE = AnalyticsEvent.ACTION_PAYMENT_COMPLETE;
-const OTHER_ORIGIN = EventOriginator.AMP_CLIENT;
+const OTHER_ORIGIN = EventOriginator.PROPENSITY_CLIENT;
 const BAD_VALUE = 'I should throw an error';
 const RESOLVED_PROMISE = Promise.resolve();
 
@@ -34,7 +34,7 @@ const DEFAULT_EVENT = {
   additionalParameters: {},
 };
 
-describes.sandboxed('EventManager', {}, () => {
+describes.sandboxed('EventManager', () => {
   describe('configuration', () => {
     let eventManager;
     let indicateConfigurationSucceeded;
@@ -304,7 +304,6 @@ describes.sandboxed('EventManager', {}, () => {
 
     it('should identify publisher events', () => {
       const publisherEvents = [
-        EventOriginator.AMP_CLIENT,
         EventOriginator.PROPENSITY_CLIENT,
         EventOriginator.PUBLISHER_CLIENT,
       ];

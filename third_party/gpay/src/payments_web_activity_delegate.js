@@ -282,7 +282,7 @@ class PaymentsWebActivityDelegate {
           isReadyToPayRequest,
           PostMessageEventType.IS_READY_TO_PAY,
           'isReadyToPayResponse',
-          function (event) {
+          (event) => {
             const response = {
               'result': isSupported,
             };

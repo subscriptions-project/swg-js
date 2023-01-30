@@ -21,7 +21,7 @@ import {ClientTheme} from '../api/basic-subscriptions';
 import {DepsDef} from './deps';
 import {Fetcher} from './fetcher';
 
-describes.realWin('ClientConfigManager', {}, () => {
+describes.realWin('ClientConfigManager', () => {
   let clientConfigManager;
   let fetcher;
   let fetcherMock;
@@ -67,7 +67,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('fetchClientConfig should fetch the client config', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -90,7 +90,7 @@ describes.realWin('ClientConfigManager', {}, () => {
       skipAccountCreationScreen: true,
     });
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -160,7 +160,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getAutoPromptConfig should return undefined if the autoPromptConfig is not present in the response', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -173,7 +173,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getAutoPromptConfig should return AutoPromptConfig object even if part of the config is missing', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -188,7 +188,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getAutoPromptConfig should return AutoPromptConfig object', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -229,7 +229,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('fetchClientConfig should log errors from the response', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -372,7 +372,7 @@ describes.realWin('ClientConfigManager', {}, () => {
     });
 
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -383,28 +383,26 @@ describes.realWin('ClientConfigManager', {}, () => {
       })
       .once();
 
-    clientConfigManager.shouldEnableButton().then((data) => {
-      expect(data).to.equal.to.be.true;
-    });
+    const data = await clientConfigManager.shouldEnableButton();
+    expect(data).to.be.true;
   });
 
   it('shouldEnableButton should return undefined if ClientConfig has UI predicate canDisplayButton is not set', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
       .resolves({})
       .once();
 
-    clientConfigManager.shouldEnableButton().then((data) => {
-      expect(data).to.equal.to.be.undefined;
-    });
+    const data = await clientConfigManager.shouldEnableButton();
+    expect(data).to.be.undefined;
   });
 
   it('getClientConfig should have paySwgVersion after fetch', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -417,7 +415,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should have useUpdatedOfferFlows after fetch', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -430,7 +428,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should use default useUpdatedOfferFlows value after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -443,7 +441,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should have uiPredicates after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -462,7 +460,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should have attributionParams', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     const expectedDisplayName = 'Display Name';
     const expectedAvatarUrl = 'avatar.png';
     fetcherMock

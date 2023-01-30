@@ -15,16 +15,16 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const log = require('fancy-log');
 const nodemon = require('nodemon');
 
-const host = argv.host || 'localhost';
-const port = argv.port || process.env.PORT || 8000;
-const useHttps = argv.https != undefined;
-const quiet = argv.quiet != undefined;
-const publicationId = argv.publicationId || 'scenic-2017.appspot.com';
-const ampLocal = argv.ampLocal != undefined;
+const host = args.host || 'localhost';
+const port = args.port || process.env.PORT || 8000;
+const useHttps = args.https != undefined;
+const quiet = args.quiet != undefined;
+const publicationId = args.publicationId || 'scenic-2017.appspot.com';
+const useStorybook = args.storybook === true;
 
 const {green} = require('ansi-colors');
 
@@ -32,7 +32,17 @@ const {green} = require('ansi-colors');
  * Starts a simple http server at the repository root
  */
 function serve(done) {
-  startServer();
+  if (useStorybook) {
+    // Load this on-demand to support optional dependencies.
+    const storybook = require('@storybook/html/standalone');
+    storybook({
+      port,
+      mode: 'dev',
+      configDir: './.storybook',
+    });
+  } else {
+    startServer();
+  }
   done();
 }
 
@@ -48,7 +58,6 @@ function startServer({jsTarget} = {}) {
       'SERVE_PROCESS_ID': process.pid,
       'SERVE_QUIET': quiet,
       'SERVE_PUBID': publicationId,
-      'SERVE_AMP_LOCAL': ampLocal,
       'SERVE_JS_TARGET': jsTarget,
     },
   }).once('quit', stopServer);
@@ -74,7 +83,7 @@ serve.flags = {
   'https': '  Use HTTPS server (default: false)',
   'quiet': '  Do not log HTTP requests (default: false)',
   'publicationId': '  Sample publicationId',
-  'ampLocal': '  Run against local AMP installation',
+  'storybook': 'Run storybook instead of demo apps',
 };
 
 function getHost() {

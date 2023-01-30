@@ -18,7 +18,7 @@ import {Fetcher} from './fetcher';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('OffersApi', {}, () => {
+describes.realWin('OffersApi', () => {
   let offersApi;
   let pageConfig;
   let fetcherMock;
@@ -36,11 +36,11 @@ describes.realWin('OffersApi', {}, () => {
 
   it('should fetch with default product', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
+      'https://news.google.com/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({offers: [{skuId: '1'}, {skuId: '2'}]}))
+      .resolves({offers: [{skuId: '1'}, {skuId: '2'}]})
       .once();
 
     const offers = await offersApi.getOffers();
@@ -49,11 +49,11 @@ describes.realWin('OffersApi', {}, () => {
 
   it('should fetch with a different product', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel2';
+      'https://news.google.com/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel2';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({offers: [{skuId: '1'}, {skuId: '2'}]}))
+      .resolves({offers: [{skuId: '1'}, {skuId: '2'}]})
       .once();
 
     const offers = await offersApi.getOffers('pub1:label2');
@@ -62,14 +62,22 @@ describes.realWin('OffersApi', {}, () => {
 
   it('should fetch empty response', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
+      'https://news.google.com/swg/_/api/v1/publication/pub1/offers?label=pub1%3Alabel1';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
-      .returns(Promise.resolve({}))
+      .resolves({})
       .once();
 
     const offers = await offersApi.getOffers();
     expect(offers).to.deep.equal([]);
+  });
+
+  it('rejects falsy offers', () => {
+    fetcherMock.expects('fetchCredentialedJson').never();
+
+    expect(() => offersApi.getOffers(false)).to.throw(
+      'getOffers requires productId in config or arguments'
+    );
   });
 });

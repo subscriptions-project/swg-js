@@ -48,31 +48,6 @@ let a;
 let cache;
 
 /**
- * Serializes the passed parameter map into a query string with both keys
- * and values encoded.
- * @param {!JsonObject} params
- * @return {string}
- */
-export function serializeQueryString(params) {
-  const s = [];
-  for (const k in params) {
-    const v = params[k];
-    if (v == null) {
-      continue;
-    } else if (Array.isArray(v)) {
-      for (let i = 0; i < v.length; i++) {
-        const sv = /** @type {string} */ (v[i]);
-        s.push(`${encodeURIComponent(k)}=${encodeURIComponent(sv)}`);
-      }
-    } else {
-      const sv = /** @type {string} */ (v);
-      s.push(`${encodeURIComponent(k)}=${encodeURIComponent(sv)}`);
-    }
-  }
-  return s.join('&');
-}
-
-/**
  * Returns a Location-like object for the given URL. If it is relative,
  * the URL gets resolved.
  * Consider the returned object immutable. This is enforced during
@@ -189,22 +164,17 @@ export function serializeProtoMessageForUrl(message) {
 }
 
 /**
- * Returns the Url including the path and search, without fregment.
- * @param {string} url
- * @return {string}
- */
-export function getHostUrl(url) {
-  const locationHref = parseUrl(url);
-  return locationHref.origin + locationHref.pathname + locationHref.search;
-}
-
-/**
+ * Returns the canonical URL from the canonical tag. If the canonical tag is
+ * not present, treat the doc URL itself as canonical.
  * @param {!../model/doc.Doc} doc
  * @return {string}
  */
 export function getCanonicalUrl(doc) {
-  const node = doc.getRootNode().querySelector("link[rel='canonical']");
-  return (node && node.href) || '';
+  const rootNode = doc.getRootNode();
+  const canonicalTag = rootNode.querySelector("link[rel='canonical']");
+  return (
+    canonicalTag?.href || rootNode.location.origin + rootNode.location.pathname
+  );
 }
 
 const PARSED_URL = parseUrl(self.window.location.href);

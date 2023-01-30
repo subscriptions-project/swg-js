@@ -15,27 +15,20 @@
  */
 'use strict';
 
-module.exports = function (context) {
-  return {
-    ExportNamedDeclaration: function (node) {
-      if (node.declaration) {
-        const {declaration} = node;
-        if (declaration.type === 'VariableDeclaration') {
-          declaration.declarations
-            .map(function (declarator) {
-              return declarator.init;
-            })
-            .filter(function (init) {
-              return init && /(?:Call|New)Expression/.test(init.type);
-            })
-            .forEach(function (init) {
-              context.report({
-                node: init,
-                message: 'Cannot export side-effect',
-              });
-            });
-        }
-      }
-    },
-  };
-};
+module.exports = (context) => ({
+  ExportNamedDeclaration: ({declaration}) => {
+    if (declaration?.type !== 'VariableDeclaration') {
+      return;
+    }
+
+    const inits = declaration.declarations
+      .map(({init}) => init)
+      .filter((init) => init && /(?:Call|New)Expression/.test(init.type));
+    for (const init of inits) {
+      context.report({
+        node: init,
+        message: 'Cannot export side-effect',
+      });
+    }
+  },
+});

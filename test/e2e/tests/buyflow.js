@@ -17,7 +17,7 @@
 module.exports = {
   '@tags': ['buyflow'],
 
-  'Show offers on web': function (browser) {
+  'Show offers on web': (browser) => {
     const publication = browser.page.publication();
     publication
       .navigate()
@@ -32,18 +32,10 @@ module.exports = {
       .end();
   },
 
-  'Selecting an offer triggers Google Sign-In prompt': function (browser) {
+  'Selecting an offer triggers Google Sign-In prompt': (browser) => {
     const publication = browser.page.publication();
     publication.navigate().viewFirstArticle().selectOffer();
 
     browser.checkPayment().end();
-  },
-
-  'Show offers on AMP': function (browser) {
-    const amp = browser.page.amp();
-    amp
-      .navigate()
-      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-      .end();
   },
 };

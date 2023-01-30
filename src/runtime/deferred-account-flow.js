@@ -66,7 +66,7 @@ export class DeferredAccountFlow {
    * Starts the deferred account flow.
    * @return {!Promise<!DeferredAccountCreationResponse>}
    */
-  start() {
+  async start() {
     const entitlements = this.options_.entitlements;
 
     // For now, entitlements are required to be present and have the Google
@@ -88,33 +88,30 @@ export class DeferredAccountFlow {
       feArgs({
         'publicationId': this.deps_.pageConfig().getPublicationId(),
         'productId': this.deps_.pageConfig().getProductId(),
-        'entitlements': (entitlements && entitlements.raw) || null,
+        'entitlements': entitlements?.raw || null,
         'consent': this.options_.consent,
       }),
       /* shouldFadeBody */ true
     );
 
     this.openPromise_ = this.dialogManager_.openView(this.activityIframeView_);
-    return this.activityIframeView_.acceptResult().then(
-      (result) => {
-        // The consent part is complete.
-        return this.handleConsentResponse_(
-          /** @type {!Object} */ (result.data)
-        );
-      },
-      (reason) => {
-        if (isCancelError(reason)) {
-          this.deps_
-            .callbacks()
-            .triggerFlowCanceled(
-              SubscriptionFlows.COMPLETE_DEFERRED_ACCOUNT_CREATION
-            );
-        } else {
-          this.dialogManager_.completeView(this.activityIframeView_);
-        }
-        throw reason;
+
+    try {
+      const result = await this.activityIframeView_.acceptResult();
+      // The consent part is complete.
+      return this.handleConsentResponse_(/** @type {!Object} */ (result.data));
+    } catch (reason) {
+      if (isCancelError(reason)) {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(
+            SubscriptionFlows.COMPLETE_DEFERRED_ACCOUNT_CREATION
+          );
+      } else {
+        this.dialogManager_.completeView(this.activityIframeView_);
       }
-    );
+      throw reason;
+    }
   }
 
   /**
@@ -165,6 +162,7 @@ export class DeferredAccountFlow {
       .logSwgEvent(AnalyticsEvent.ACTION_NEW_DEFERRED_ACCOUNT, true);
 
     // Start the "sync" flow.
+    const dummyCompleteHandler = Promise.resolve.bind(Promise);
     creatingFlow.start(
       new SubscribeResponse(
         '', // raw field doesn't matter in this case
@@ -172,7 +170,7 @@ export class DeferredAccountFlow {
         userData,
         entitlements,
         productType,
-        () => Promise.resolve() // completeHandler doesn't matter in this case
+        dummyCompleteHandler // completeHandler doesn't matter in this case
       )
     );
     return response;

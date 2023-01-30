@@ -25,9 +25,9 @@ import {ConfiguredRuntime} from './runtime';
 import {ContributionsFlow} from './contributions-flow';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
-import {ProductType} from '../api/subscriptions';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 
-describes.realWin('ContributionsFlow', {}, (env) => {
+describes.realWin('ContributionsFlow', (env) => {
   let win;
   let contributionsFlow;
   let runtime;
@@ -51,7 +51,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    sandbox.stub(port, 'on').callsFake(function (ctor, cb) {
+    sandbox.stub(port, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
       const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
@@ -70,9 +70,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -96,10 +96,10 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
         {
           isClosable,
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -120,9 +120,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -145,9 +145,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -174,6 +174,45 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     activityIframeViewMock.verify();
   });
 
+  it('handles flow cancellation', async () => {
+    contributionsFlow = new ContributionsFlow(runtime, {
+      skus: ['sku1', 'sku2'],
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
+        {
+          _client: 'SwG 0.0.0',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
+          list: 'default',
+          skus: ['sku1', 'sku2'],
+          isClosable: true,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+
+    // Trigger the cancellation callback.
+    let onCancelCallback;
+    const activityIframeView =
+      await contributionsFlow.activityIframeViewPromise_;
+    const activityIframeViewMock = sandbox.mock(activityIframeView);
+    activityIframeViewMock.expects('onCancel').callsFake((cb) => {
+      onCancelCallback = cb;
+    });
+    await contributionsFlow.start();
+
+    callbacksMock
+      .expects('triggerFlowCanceled')
+      .once()
+      .withExactArgs(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+    onCancelCallback();
+  });
+
   it('has valid ContributionsFlow constructed, routed to the new contributions iframe', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
@@ -183,9 +222,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&publicationId=pub1',
+        'https://news.google.com/swg/_/ui/v1/contributionoffersiframe?_=_&publicationId=pub1',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           'productType': ProductType.UI_CONTRIBUTION,
@@ -211,9 +250,9 @@ describes.realWin('ContributionsFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
+        'https://news.google.com/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           productType: ProductType.UI_CONTRIBUTION,
@@ -341,9 +380,12 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     expect(nativeStub).to.not.be.called;
     const skuSelected = new SkuSelectedResponse();
     skuSelected.setSku('sku1');
+    skuSelected.setOneTime(true);
     // Pay message.
     callback(skuSelected);
     expect(payStub).to.be.calledOnce;
+    expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+      .true;
     expect(loginStub).to.not.be.called;
     expect(nativeStub).to.not.be.called;
     // Login message.
@@ -352,7 +394,7 @@ describes.realWin('ContributionsFlow', {}, (env) => {
     response.setSubscriberOrMember(true);
     response.setLinkRequested(false);
     callback(response);
-    expect(loginStub).to.be.calledOnce.calledWithExactly({
+    expect(loginStub).to.be.calledOnceWithExactly({
       linkRequested: false,
     });
     expect(payStub).to.be.calledOnce; // Didn't change.

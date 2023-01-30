@@ -91,41 +91,47 @@ export class LinkCompleteFlow {
      * Handler function.
      * @param {!../components/activities.ActivityPortDef} port
      */
-    function handler(port) {
+    async function handler(port) {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
       deps.dialogManager().popupClosed();
-      const promise = acceptPortResultData(
-        port,
-        feOrigin(),
-        /* requireOriginVerified */ false,
-        /* requireSecureChannel */ false
-      );
-      return promise.then(
-        (response) => {
+
+      try {
+        // Wait for account linking to complete.
+        const response = await acceptPortResultData(
+          port,
+          feOrigin(),
+          /* requireOriginVerified */ false,
+          /* requireSecureChannel */ false
+        );
+
+        // Send events.
+        deps
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
+        deps
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_LINK_ACCOUNT_SUCCESS);
+
+        // Start flow.
+        const flow = new LinkCompleteFlow(deps, response);
+        flow.start();
+      } catch (reason) {
+        deps.entitlementsManager().unblockNextNotification();
+        if (isCancelError(reason)) {
+          deps
+            .eventManager()
+            .logSwgEvent(AnalyticsEvent.ACTION_LINK_CANCEL, true);
+          deps.callbacks().triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+        } else {
+          // The user chose to continue but there was an error.
           deps
             .eventManager()
             .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
-          const flow = new LinkCompleteFlow(deps, response);
-          flow.start();
-        },
-        (reason) => {
-          if (isCancelError(reason)) {
-            deps
-              .eventManager()
-              .logSwgEvent(AnalyticsEvent.ACTION_LINK_CANCEL, true);
-            deps
-              .callbacks()
-              .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
-          } else {
-            // The user chose to continue but there was an error.
-            deps
-              .eventManager()
-              .logSwgEvent(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
-          }
         }
-      );
+      }
     }
+
     deps.activities().onResult(LINK_REQUEST_ID, handler);
   }
 
@@ -155,32 +161,11 @@ export class LinkCompleteFlow {
     /** @private @const {!./callbacks.Callbacks} */
     this.callbacks_ = deps.callbacks();
 
-    const index = (response && response['index']) || '0';
-
     /** @private {?ActivityIframeView} */
     this.activityIframeView_ = null;
 
-    /** @private @const {!Promise<!ActivityIframeView>} */
-    this.activityIframeViewPromise_ = this.clientConfigManager_
-      .getClientConfig()
-      .then(
-        (clientConfig) =>
-          new ActivityIframeView(
-            this.win_,
-            this.activityPorts_,
-            feUrl(
-              '/linkconfirmiframe',
-              {},
-              clientConfig.usePrefixedHostPath,
-              'u/' + index
-            ),
-            feArgs({
-              'productId': deps.pageConfig().getProductId(),
-              'publicationId': deps.pageConfig().getPublicationId(),
-            }),
-            /* shouldFadeBody */ true
-          )
-      );
+    /** @private {!Object} */
+    this.response_ = response || {};
 
     /** @private {?function()} */
     this.completeResolver_ = null;
@@ -195,44 +180,71 @@ export class LinkCompleteFlow {
    * Starts the Link account flow.
    * @return {!Promise}
    */
-  start() {
-    return this.activityIframeViewPromise_.then((activityIframeView) => {
-      this.activityIframeView_ = activityIframeView;
+  async start() {
+    if (this.response_['saveAndRefresh']) {
+      this.complete_(this.response_, this.response_['linked']);
+      return Promise.resolve();
+    }
 
-      const promise = this.activityIframeView_.acceptResultAndVerify(
+    // Show confirmation.
+    const clientConfig = await this.clientConfigManager_.getClientConfig();
+    const index = this.response_['index'] || '0';
+    this.activityIframeView_ = new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      feUrl(
+        '/linkconfirmiframe',
+        {},
+        clientConfig.usePrefixedHostPath,
+        'u/' + index
+      ),
+      feArgs({
+        'productId': this.deps_.pageConfig().getProductId(),
+        'publicationId': this.deps_.pageConfig().getPublicationId(),
+      }),
+      /* shouldFadeBody */ true
+    );
+
+    this.completeAfterVerifyingResults_();
+
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
+
+    return this.dialogManager_.openView(this.activityIframeView_);
+  }
+
+  /**
+   * @private
+   */
+  async completeAfterVerifyingResults_() {
+    try {
+      const response = await this.activityIframeView_.acceptResultAndVerify(
         feOrigin(),
         /* requireOriginVerified */ true,
         /* requireSecureChannel */ true
       );
-      promise
-        .then((response) => {
-          this.complete_(response);
-        })
-        .catch((reason) => {
-          // Rethrow async.
-          setTimeout(() => {
-            throw reason;
-          });
-        })
-        .then(() => {
-          // The flow is complete.
-          this.dialogManager_.completeView(this.activityIframeView_);
-        });
-      this.deps_
-        .eventManager()
-        .logSwgEvent(AnalyticsEvent.EVENT_GOOGLE_UPDATED, true);
-      this.deps_
-        .eventManager()
-        .logSwgEvent(AnalyticsEvent.IMPRESSION_GOOGLE_UPDATED, true);
-      return this.dialogManager_.openView(this.activityIframeView_);
-    });
+      this.complete_(response, !!response['success']);
+    } catch (reason) {
+      // Rethrow async.
+      this.win_.setTimeout(() => {
+        throw reason;
+      });
+    }
+
+    // The flow is complete.
+    this.dialogManager_.completeView(this.activityIframeView_);
   }
 
   /**
-   * @param {?Object} response
+   * @param {!Object} response
+   * @param {boolean} success
    * @private
    */
-  complete_(response) {
+  complete_(response, success) {
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
@@ -244,7 +256,7 @@ export class LinkCompleteFlow {
     this.callbacks_.resetLinkProgress();
     this.entitlementsManager_.setToastShown(true);
     this.entitlementsManager_.unblockNextNotification();
-    this.entitlementsManager_.reset((response && response['success']) || false);
+    this.entitlementsManager_.reset(success);
     if (response && response['entitlements']) {
       this.entitlementsManager_.pushNextEntitlements(response['entitlements']);
     }
@@ -313,70 +325,71 @@ export class LinkSaveFlow {
    * @return {!Promise<boolean>}
    * @private
    */
-  handleLinkSaveResponse_(result) {
-    // This flow is complete
+  async handleLinkSaveResponse_(result) {
+    // This flow is complete.
     this.complete_();
-    let startPromise;
-    let linkConfirm = null;
-    if (result['linked']) {
-      // When linking succeeds, start link confirmation flow
-      this.dialogManager_.popupClosed();
-      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
-      linkConfirm = new LinkCompleteFlow(this.deps_, result);
-      startPromise = linkConfirm.start();
-    } else {
-      startPromise = Promise.reject(createCancelError(this.win_, 'not linked'));
-    }
-    const completePromise = startPromise.then(() => {
-      this.deps_.callbacks().triggerLinkProgress();
-      return linkConfirm.whenComplete();
-    });
 
-    return completePromise.then(() => {
-      return true;
-    });
+    // Handle linking failure.
+    if (!result['linked']) {
+      throw createCancelError('not linked');
+    }
+
+    // Start link confirmation flow.
+    this.dialogManager_.popupClosed();
+    this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_SAVE_SUBSCRIPTION_SUCCESS);
+    const flow = new LinkCompleteFlow(this.deps_, result);
+    await flow.start();
+
+    this.deps_.callbacks().triggerLinkProgress();
+
+    await flow.whenComplete();
+
+    return true;
   }
 
   /**
    * @param {LinkingInfoResponse} response
    * @private
    */
-  sendLinkSaveToken_(response) {
+  async sendLinkSaveToken_(response) {
     if (!response || !response.getRequested()) {
       return;
     }
-    this.requestPromise_ = new Promise((resolve) => resolve(this.callback_()))
-      .then((request) => {
-        const saveRequest = new LinkSaveTokenRequest();
-        if (request && request.token) {
-          if (request.authCode) {
-            throw new Error('Both authCode and token are available');
-          } else {
-            saveRequest.setToken(request.token);
-          }
-        } else if (request && request.authCode) {
-          saveRequest.setAuthCode(request.authCode);
+
+    try {
+      const request = await this.callback_();
+      const saveRequest = new LinkSaveTokenRequest();
+      if (request?.token) {
+        if (request.authCode) {
+          throw new Error('Both authCode and token are available');
         } else {
-          throw new Error('Neither token or authCode is available');
+          saveRequest.setToken(/** @type {string} */ (request.token));
         }
-        this.activityIframeView_.execute(saveRequest);
-        return request;
-      })
-      .catch((reason) => {
-        // The flow is complete.
-        this.complete_();
-        throw reason;
-      });
+      } else if (request?.authCode) {
+        saveRequest.setAuthCode(/** @type {string} */ (request.authCode));
+      } else {
+        throw new Error('Neither token or authCode is available');
+      }
+      this.activityIframeView_.execute(saveRequest);
+      return request;
+    } catch (reason) {
+      // The flow is complete.
+      this.complete_();
+      throw reason;
+    }
   }
 
   /**
    * @return {?Promise}
    */
   /**
-   * Starts the save subscription
+   * Starts the save subscription.
    * @return {!Promise}
    */
-  start() {
+  async start() {
     const iframeArgs = this.activityPorts_.addDefaultArguments({
       'isClosable': true,
     });
@@ -388,45 +401,46 @@ export class LinkSaveFlow {
       /* shouldFadeBody */ false,
       /* hasLoadingIndicator */ true
     );
-    this.activityIframeView_.on(
-      LinkingInfoResponse,
-      this.sendLinkSaveToken_.bind(this)
-    );
+    this.activityIframeView_.on(LinkingInfoResponse, (response) => {
+      this.requestPromise_ = this.sendLinkSaveToken_(response);
+    });
 
     this.openPromise_ = this.dialogManager_.openView(
       this.activityIframeView_,
       /* hidden */ true
     );
+
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.IMPRESSION_SAVE_SUBSCR_TO_GOOGLE);
-    /** {!Promise<boolean>} */
-    return this.activityIframeView_
-      .acceptResultAndVerify(
+
+    try {
+      const result = await this.activityIframeView_.acceptResultAndVerify(
         feOrigin(),
         /* requireOriginVerified */ true,
         /* requireSecureChannel */ true
-      )
-      .then((result) => {
-        return this.handleLinkSaveResponse_(result);
-      })
-      .catch((reason) => {
-        // In case this flow wasn't complete, complete it here
-        this.complete_();
-        // Handle cancellation from user, link confirm start or completion here
-        if (isCancelError(reason)) {
-          this.deps_
-            .eventManager()
-            .logSwgEvent(
-              AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL,
-              true
-            );
-          this.deps_
-            .callbacks()
-            .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
-          return false;
-        }
-        throw reason;
-      });
+      );
+
+      return await this.handleLinkSaveResponse_(result);
+    } catch (reason) {
+      // In case this flow wasn't complete, complete it here.
+      this.complete_();
+
+      // Handle cancellation from user, link confirm start or completion here.
+      if (isCancelError(reason)) {
+        this.deps_
+          .eventManager()
+          .logSwgEvent(
+            AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL,
+            true
+          );
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.LINK_ACCOUNT);
+        return false;
+      }
+
+      throw reason;
+    }
   }
 }

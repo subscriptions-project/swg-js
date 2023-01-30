@@ -15,9 +15,8 @@
  */
 
 import {ErrorUtils} from '../utils/errors';
-import {Xhr} from '../utils/xhr';
 import {parseJson} from '../utils/json';
-import {serializeProtoMessageForUrl} from '../utils/url';
+import {parseUrl, serializeProtoMessageForUrl} from '../utils/url';
 
 const jsonSaftyPrefix = /^(\)\]\}'\n)/;
 
@@ -33,10 +32,10 @@ export class Fetcher {
 
   /**
    * @param {string} unusedUrl
-   * @param {!../utils/xhr.FetchInitDef} unusedInit
-   * @return {!Promise<!../utils/xhr.FetchResponse>}
+   * @param {!RequestInit} unusedInit
+   * @return {!Promise<!Response>}
    */
-  fetch(unusedUrl, unusedInit) {}
+  async fetch(unusedUrl, unusedInit) {}
 
   /**
    * POST data to a URL endpoint, do not wait for a response.
@@ -49,7 +48,7 @@ export class Fetcher {
    * POST data to a URL endpoint, get a Promise for a response
    * @param {!string} unusedUrl
    * @param {!../proto/api_messages.Message} unusedMessage
-   * @return {!Promise<!../utils/xhr.FetchResponse>}
+   * @return {!Promise<!Object>}
    */
   sendPost(unusedUrl, unusedMessage) {}
 }
@@ -62,29 +61,27 @@ export class XhrFetcher {
    * @param {!Window} win
    */
   constructor(win) {
-    /** @const {!Xhr} */
-    this.xhr_ = new Xhr(win);
+    /** @const {!Window} */
+    this.win_ = win;
   }
 
   /** @override */
-  fetchCredentialedJson(url) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+  async fetchCredentialedJson(url) {
+    const init = /** @type {!RequestInit} */ ({
       method: 'GET',
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
     });
-    return this.fetch(url, init).then((response) => {
-      return response.text().then((text) => {
-        // Remove "")]}'\n" XSSI prevention prefix in safe responses.
-        const cleanedText = text.replace(jsonSaftyPrefix, '');
-        return parseJson(cleanedText);
-      });
-    });
+    const response = await this.fetch(url, init);
+    const text = await response.text();
+    // Remove "")]}'\n" XSSI prevention prefix in safe responses.
+    const cleanedText = text.replace(jsonSaftyPrefix, '');
+    return /** @type {!Object} */ (parseJson(cleanedText));
   }
 
   /** @override */
-  sendPost(url, message) {
-    const init = /** @type {!../utils/xhr.FetchInitDef} */ ({
+  async sendPost(url, message) {
+    const init = /** @type {!RequestInit} */ ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
@@ -92,40 +89,51 @@ export class XhrFetcher {
       credentials: 'include',
       body: 'f.req=' + serializeProtoMessageForUrl(message),
     });
-    return this.fetch(url, init).then((response) => {
-      if (!response) {
-        return {};
-      }
-      return response.text().then((text) => {
-        try {
-          // Remove "")]}'\n" XSSI prevention prefix in safe responses.
-          const cleanedText = text.replace(jsonSaftyPrefix, '');
-          return parseJson(cleanedText);
-        } catch (e) {
-          ErrorUtils.throwAsync(e);
-          return {};
-        }
-      });
-    });
+    const response = await this.fetch(url, init);
+    if (!response) {
+      return {};
+    }
+
+    const text = await response.text();
+    try {
+      // Remove "")]}'\n" XSSI prevention prefix in safe responses.
+      const cleanedText = text.replace(jsonSaftyPrefix, '');
+      return /** @type {!Object} */ (parseJson(cleanedText));
+    } catch (e) {
+      ErrorUtils.throwAsync(e);
+      return {};
+    }
   }
 
   /** @override */
-  fetch(url, init) {
-    return this.xhr_.fetch(url, init);
+  async fetch(url, init) {
+    try {
+      // Wait for the request to succeed before returning the response,
+      // allowing this method to catch failures.
+      const response = await this.win_.fetch(url, init);
+      return response;
+    } catch (reason) {
+      /*
+       * If the domain is not valid for SwG we return 404 without
+       * CORS headers and the browser throws a CORS error.
+       * We include some helpful text in the message to point the
+       * publisher towards the real problem.
+       */
+      const targetOrigin = parseUrl(url).origin;
+      throw new Error(
+        `XHR Failed fetching (${targetOrigin}/...): (Note: a CORS error above may indicate that this publisher or domain is not configured in Publisher Center. The CORS error happens because 4xx responses do not set CORS headers.)\n\n` +
+          reason
+      );
+    }
   }
 
   /** @override */
   sendBeacon(url, data) {
-    if (navigator.sendBeacon) {
-      const headers = {type: 'application/x-www-form-urlencoded;charset=UTF-8'};
-      const blob = new Blob(
-        ['f.req=' + serializeProtoMessageForUrl(data)],
-        headers
-      );
-      navigator.sendBeacon(url, blob);
-      return;
-    }
-    // Only newer browsers support beacon.  Fallback to standard XHR POST.
-    this.sendPost(url, data);
+    const headers = {type: 'application/x-www-form-urlencoded;charset=UTF-8'};
+    const blob = new Blob(
+      ['f.req=' + serializeProtoMessageForUrl(data)],
+      headers
+    );
+    navigator.sendBeacon(url, blob);
   }
 }

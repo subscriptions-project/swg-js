@@ -32,7 +32,7 @@ import {tick} from '../../test/tick';
 const publicationId = 'PUB_ID';
 const TOKEN = 'abc';
 
-describes.realWin('Activity Components', {}, (env) => {
+describes.realWin('Activity Components', (env) => {
   let win, iframe, url, dialog, doc, deps, pageConfig, analytics, activityPorts;
   let eventManager;
 
@@ -70,7 +70,7 @@ describes.realWin('Activity Components', {}, (env) => {
           'analyticsContext': analytics.getContext().toArray(),
           'publicationId': pageConfig.getPublicationId(),
           'productId': pageConfig.getProductId(),
-          '_client': 'SwG $internalRuntimeVersion$',
+          '_client': 'SwG 0.0.0',
           'supportsEventManager': true,
         };
       });

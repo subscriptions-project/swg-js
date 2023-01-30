@@ -16,7 +16,7 @@
 
 import * as st from './style';
 
-describes.realWin('Types', {}, (env) => {
+describes.realWin('Types', (env) => {
   let win;
   let doc;
 
@@ -26,18 +26,6 @@ describes.realWin('Types', {}, (env) => {
   });
 
   describe('Style', () => {
-    it('toggle', () => {
-      const element = doc.createElement('div');
-      st.toggle(element);
-      expect(element.style.display).to.equal('none');
-      st.toggle(element);
-      expect(element.style.display).to.equal('');
-      st.toggle(element, true);
-      expect(element.style.display).to.equal('');
-      st.toggle(element, false);
-      expect(element.style.display).to.equal('none');
-    });
-
     it('check defaultStyle for restricted attributes', () => {
       const defaultStyles = st.defaultStyles;
 
@@ -68,6 +56,12 @@ describes.realWin('Types', {}, (env) => {
       expect(element.style.height).to.equal('102px');
     });
 
+    it('getStyle handles missing property', () => {
+      const element = doc.createElement('div');
+      const style = st.getStyle(element, '');
+      expect(style).to.be.undefined;
+    });
+
     it('resetAllStyles', () => {
       const element = doc.createElement('div');
       st.resetAllStyles(element);
@@ -96,16 +90,6 @@ describes.realWin('Types', {}, (env) => {
     it('camelCaseToTitleCase', () => {
       const str = 'theQuickBrownFox';
       expect(st.camelCaseToTitleCase(str)).to.equal('TheQuickBrownFox');
-    });
-
-    it('removeAlphaFromColor', () => {
-      expect(st.removeAlphaFromColor('rgba(1, 1, 1, 0)')).to.equal(
-        'rgba(1, 1, 1, 1)'
-      );
-      expect(st.removeAlphaFromColor('rgb(1, 1, 1)')).to.equal('rgb(1, 1, 1)');
-      expect(st.removeAlphaFromColor('rgba(0, 0, 0,-0.5)')).to.equal(
-        'rgba(0, 0, 0, 1)'
-      );
     });
 
     describe('getVendorJsPropertyName', () => {
@@ -152,16 +136,6 @@ describes.realWin('Types', {}, (env) => {
         expect(prop).to.equal('MozTransitionDuration');
       });
 
-      it('ms', () => {
-        const element = {style: {msTransitionDuration: ''}};
-        const prop = st.getVendorJsPropertyName(
-          element.style,
-          'transitionDuration',
-          true
-        );
-        expect(prop).to.equal('msTransitionDuration');
-      });
-
       it('O opera', () => {
         const element = {style: {OTransitionDuration: ''}};
         const prop = st.getVendorJsPropertyName(
@@ -170,6 +144,16 @@ describes.realWin('Types', {}, (env) => {
           true
         );
         expect(prop).to.equal('OTransitionDuration');
+      });
+
+      it('immediately returns properties with -- prefix', () => {
+        const prop = st.getVendorJsPropertyName({}, '--dashDash');
+        expect(prop).to.equal('--dashDash');
+      });
+
+      it('handles missing vendor prefixes', () => {
+        const prop = st.getVendorJsPropertyName({}, 'dashDash');
+        expect(prop).to.equal('dashDash');
       });
     });
   });

@@ -40,17 +40,6 @@ export const ExperimentFlags = {
    */
   SMARTBOX: 'smartbox',
 
-  /**
-   * Enables using new Activities APIs
-   */
-  HEJIRA: 'hejira',
-
-  /** Enables logging to both the new SwG Clearcut service and the pre-existing
-   *  Clearcut iframe while we verify the new logging system works.
-   *  Publishers should not activate this experiment.
-   */
-  LOGGING_BEACON: 'logging-beacon',
-
   /** Enables googleTransactionID change. With the experiment on the ID is
    *  changed from '<uuid>' to '<uuid>.swg'.
    */
@@ -73,12 +62,12 @@ export const ExperimentFlags = {
   LOGGING_AUDIENCE_ACTIVITY: 'logging-audience-activity',
 
   /**
-   * Experiment flag for swapping the location of the counter and the main CTA in Amplio blogs.
-   */
-  TWG_SWAP_COUNTER_AND_CTA: 'counter_cta_swap_enable_experiment',
-
-  /**
    * Experiment flag for disabling the miniprompt icon on desktop screens wider than 480px.
    */
   DISABLE_DESKTOP_MINIPROMPT: 'disable-desktop-miniprompt',
+
+  /**
+   * The triggering of a survey prompt takes priority over a contribution prompt.
+   */
+  SURVEY_TRIGGERING_PRIORITY: 'survey_triggering_priority_experiment',
 };

@@ -85,6 +85,12 @@ const AnalyticsEvent = {
   IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE: 40,
   IMPRESSION_SUBSCRIPTION_LINKING_ERROR: 41,
   IMPRESSION_SURVEY: 42,
+  IMPRESSION_REGWALL_ERROR: 43,
+  IMPRESSION_NEWSLETTER_ERROR: 44,
+  IMPRESSION_SURVEY_ERROR: 45,
+  IMPRESSION_METER_TOAST_ERROR: 46,
+  IMPRESSION_MINI_PROMPT: 47,
+  IMPRESSION_MINI_PROMPT_ERROR: 48,
   ACTION_SUBSCRIBE: 1000,
   ACTION_PAYMENT_COMPLETE: 1001,
   ACTION_ACCOUNT_CREATED: 1002,
@@ -145,7 +151,7 @@ const AnalyticsEvent = {
   ACTION_NEWSLETTER_ALREADY_OPTED_IN_CLICK: 1057,
   ACTION_REGWALL_OPT_IN_CLOSE: 1058,
   ACTION_NEWSLETTER_OPT_IN_CLOSE: 1059,
-  ACTION_SHOWCASE_REGWALL_SWIG_CLICK: 1060,
+  ACTION_SHOWCASE_REGWALL_SIWG_CLICK: 1060,
   ACTION_TWG_CHROME_APP_MENU_ENTRY_POINT_CLICK: 1061,
   ACTION_TWG_DISCOVER_FEED_MENU_ENTRY_POINT_CLICK: 1062,
   ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK: 1063,
@@ -156,6 +162,13 @@ const AnalyticsEvent = {
   ACTION_SURVEY_SUBMIT_CLICK: 1068,
   ACTION_SURVEY_CLOSED: 1069,
   ACTION_SURVEY_DATA_TRANSFER: 1070,
+  ACTION_REGWALL_PAGE_REFRESH: 1071,
+  ACTION_NEWSLETTER_PAGE_REFRESH: 1072,
+  ACTION_SURVEY_PAGE_REFRESH: 1073,
+  ACTION_METER_TOAST_PAGE_REFRESH: 1074,
+  ACTION_MINI_PROMPT_INTERACTION: 1075,
+  ACTION_SURVEY_PREVIOUS_BUTTON_CLICK: 1076,
+  ACTION_SURVEY_NEXT_BUTTON_CLICK: 1077,
   EVENT_PAYMENT_FAILED: 2000,
   EVENT_REGWALL_OPT_IN_FAILED: 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED: 2002,
@@ -163,7 +176,8 @@ const AnalyticsEvent = {
   EVENT_NEWSLETTER_ALREADY_OPT_IN: 2004,
   EVENT_SUBSCRIPTION_LINKING_FAILED: 2005,
   EVENT_SURVEY_ALREADY_SUBMITTED: 2006,
-  EVENT_SURVEY_SUBMIT_FAILED: 2007,
+  EVENT_SURVEY_COMPLETION_RECORD_FAILED: 2007,
+  EVENT_SURVEY_DATA_TRANSFER_FAILED: 2008,
   EVENT_CUSTOM: 3000,
   EVENT_CONFIRM_TX_ID: 3001,
   EVENT_CHANGED_TX_ID: 3002,
@@ -193,6 +207,9 @@ const AnalyticsEvent = {
   EVENT_DISABLE_MINIPROMPT_DESKTOP: 3026,
   EVENT_SUBSCRIPTION_LINKING_SUCCESS: 3027,
   EVENT_SURVEY_SUBMITTED: 3028,
+  EVENT_LINK_ACCOUNT_SUCCESS: 3029,
+  EVENT_SAVE_SUBSCRIPTION_SUCCESS: 3030,
+  EVENT_SURVEY_DATA_TRANSFER_COMPLETE: 3031,
   EVENT_SUBSCRIPTION_STATE: 4000,
 };
 /** @enum {number} */
@@ -2085,6 +2102,9 @@ class SubscriptionLinkingCompleteResponse {
 
     /** @private {?string} */
     this.publisherProvidedId_ = data[base] == null ? null : data[base];
+
+    /** @private {?boolean} */
+    this.success_ = data[1 + base] == null ? null : data[1 + base];
   }
 
   /**
@@ -2102,6 +2122,20 @@ class SubscriptionLinkingCompleteResponse {
   }
 
   /**
+   * @return {?boolean}
+   */
+  getSuccess() {
+    return this.success_;
+  }
+
+  /**
+   * @param {boolean} value
+   */
+  setSuccess(value) {
+    this.success_ = value;
+  }
+
+  /**
    * @param {boolean=} includeLabel
    * @return {!Array<?>}
    * @override
@@ -2109,6 +2143,7 @@ class SubscriptionLinkingCompleteResponse {
   toArray(includeLabel = true) {
     const arr = [
         this.publisherProvidedId_, // field 1 - publisher_provided_id
+        this.success_, // field 2 - success
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2279,7 +2314,7 @@ class SurveyDataTransferRequest {
     const base = includesLabel ? 1 : 0;
 
     /** @private {!Array<!SurveyQuestion>} */
-    this.surveyQuestions_ = data[base] || [];
+    this.surveyQuestions_ = (data[base] || []).map(item => new SurveyQuestion(item, includesLabel));
   }
 
   /**
@@ -2394,7 +2429,7 @@ class SurveyQuestion {
     this.questionCategory_ = data[2 + base] == null ? null : data[2 + base];
 
     /** @private {!Array<!SurveyAnswer>} */
-    this.surveyAnswers_ = data[3 + base] || [];
+    this.surveyAnswers_ = (data[3 + base] || []).map(item => new SurveyAnswer(item, includesLabel));
   }
 
   /**

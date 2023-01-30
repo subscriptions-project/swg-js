@@ -32,26 +32,26 @@ function setCorsHeaders(req, res, next) {
 }
 app.use(setCorsHeaders);
 
-app.use('/get', function (req, res) {
+app.use('/get', (req, res) => {
   res.json({
     args: req.query,
     headers: req.headers,
   });
 });
 
-app.use('/redirect-to', function (req, res) {
+app.use('/redirect-to', (req, res) => {
   res.redirect(302, req.query.url);
 });
 
-app.use('/status/404', function (req, res) {
+app.use('/status/404', (req, res) => {
   res.status(404).end();
 });
 
-app.use('/status/500', function (req, res) {
+app.use('/status/500', (req, res) => {
   res.status(500).end();
 });
 
-app.use('/cookies/set', function (req, res) {
+app.use('/cookies/set', (req, res) => {
   for (const name in req.query) {
     res./*OK*/ cookie(name, req.query[name]);
   }
@@ -60,14 +60,14 @@ app.use('/cookies/set', function (req, res) {
   });
 });
 
-app.use('/response-headers', function (req, res) {
+app.use('/response-headers', (req, res) => {
   for (const name in req.query) {
     res.setHeader(name, req.query[name]);
   }
   res.json({});
 });
 
-app.use('/post', function (req, res) {
+app.use('/post', (req, res) => {
   res.json({
     json: req.body,
   });
