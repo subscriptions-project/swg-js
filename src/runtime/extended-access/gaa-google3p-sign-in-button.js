@@ -88,7 +88,6 @@ export class GaaGoogle3pSignInButton {
         self.setTimeout(() => {
           self.open(authorizationUrl, '_parent');
         }, REDIRECT_DELAY);
-        self.open(authorizationUrl, '_parent');
       } else {
         self.open(authorizationUrl);
       }
