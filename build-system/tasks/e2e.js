@@ -15,12 +15,7 @@
  */
 'use strict';
 
-const {dist} = require('./builders');
-
 async function e2e() {
-  // Compile minified js and css so e2e tests will run against local minified js and css.
-  await dist();
-
   // Load this on-demand to support optional dependencies.
   const nightwatch = require('nightwatch');
   nightwatch.cli(async (argv) => {
