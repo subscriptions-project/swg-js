@@ -325,6 +325,31 @@ describes.realWin('PropensityServer', (env) => {
       expect(body).to.not.be.null;
       expect(body['error']).to.equal('Service not available');
     });
+
+    it('returns default score if response has no header', async () => {
+      const propensityResponse = {
+        'header': false,
+        'error': 'Service not available',
+      };
+      const mockResponse = new Response();
+      sandbox
+        .mock(mockResponse)
+        .expects('json')
+        .resolves(propensityResponse)
+        .once();
+      sandbox
+        .stub(fetcher, 'fetch')
+        .callsFake(() => Promise.resolve(mockResponse));
+
+      const response = await propensityServer.getPropensity(
+        '/hello',
+        PropensityApi.PropensityType.GENERAL
+      );
+      const header = response['header'];
+      expect(header['ok']).to.be.false;
+      const body = response['body'];
+      expect(body['error']).to.equal('No valid response');
+    });
   });
 
   describe('ClientId', () => {
@@ -488,6 +513,17 @@ describes.realWin('PropensityServer', (env) => {
       defaultEvent.additionalParameters = addParams;
       registeredCallback(defaultEvent);
       expect(receivedAdditionalParameters).to.be.undefined;
+    });
+
+    it('sets `is_active` if event has an `isFromUserAction` boolean', () => {
+      defaultEvent.isFromUserAction = true;
+      registeredCallback(defaultEvent);
+      expect(receivedAdditionalParameters.is_active).to.be.true;
+
+      // Creates additionalParameters object if necessary.
+      delete defaultEvent.additionalParameters;
+      registeredCallback(defaultEvent);
+      expect(receivedAdditionalParameters.is_active).to.be.true;
     });
   });
 });

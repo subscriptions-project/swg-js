@@ -104,6 +104,31 @@ describes.realWin('OffersFlow', (env) => {
     await offersFlow.start();
   });
 
+  it('includes useNewOfferCard param if flag is set in hash', async () => {
+    win.location.hash = 'swg.newoffercard=1';
+
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_&useNewOfferCard=1',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    await offersFlow.start();
+  });
+
   it('should have valid OffersFlow constructed, routed to the new offers iframe', async () => {
     sandbox
       .stub(runtime.clientConfigManager(), 'getClientConfig')
@@ -551,7 +576,7 @@ describes.realWin('OffersFlow', (env) => {
 
 describes.realWin('SubscribeOptionFlow', (env) => {
   let win;
-  let offersFlow;
+  let subscribeOptionFlow;
   let runtime;
   let activitiesMock;
   let callbacksMock;
@@ -571,7 +596,7 @@ describes.realWin('SubscribeOptionFlow', (env) => {
     const eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
-    offersFlow = new SubscribeOptionFlow(runtime);
+    subscribeOptionFlow = new SubscribeOptionFlow(runtime);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -612,7 +637,16 @@ describes.realWin('SubscribeOptionFlow', (env) => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
-    await offersFlow.start();
+    await subscribeOptionFlow.start();
+  });
+
+  it('should start OffersFlow after result is accepted', async () => {
+    port.acceptResult = () => Promise.resolve({data: {subscribe: true}});
+    activitiesMock.expects('openIframe').resolves(port);
+    const offersFlowStartStub = sandbox.stub(OffersFlow.prototype, 'start');
+    expect(offersFlowStartStub).to.not.be.called;
+    await subscribeOptionFlow.start();
+    expect(offersFlowStartStub).to.be.called;
   });
 
   it('should report cancel', async () => {
@@ -644,11 +678,11 @@ describes.realWin('SubscribeOptionFlow', (env) => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
-    await offersFlow.start();
+    await subscribeOptionFlow.start();
   });
 
   it('should propagate list args', async () => {
-    offersFlow = new SubscribeOptionFlow(runtime, {
+    subscribeOptionFlow = new SubscribeOptionFlow(runtime, {
       list: 'other',
       skus: ['sku1'],
     });
@@ -670,7 +704,7 @@ describes.realWin('SubscribeOptionFlow', (env) => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
-    await offersFlow.start();
+    await subscribeOptionFlow.start();
   });
 
   it('should trigger offers flow when accepted', async () => {
@@ -684,7 +718,7 @@ describes.realWin('SubscribeOptionFlow', (env) => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
 
-    await offersFlow.start();
+    await subscribeOptionFlow.start();
     expect(offersStartStub).to.not.be.called;
     // Subscribe message.
     const response = new SubscribeResponse();

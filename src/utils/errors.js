@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-const {
-  createAbortError,
-  isAbortError,
-} = require('web-activities/activity-ports');
-
 /**
  * Whether the specified error is an AbortError type.
  * See https://heycam.github.io/webidl/#aborterror.
@@ -26,18 +21,19 @@ const {
  * @return {boolean}
  */
 export function isCancelError(error) {
-  return isAbortError(error);
+  return error?.name === 'AbortError';
 }
 
 /**
- * Creates or emulates a DOMException of AbortError type.
+ * Creates an Error of AbortError type.
  * See https://heycam.github.io/webidl/#aborterror.
- * @param {!Window} win
- * @param {string=} message
- * @return {!DOMException}
+ * @param {string} message
+ * @return {!Error}
  */
-export function createCancelError(win, message) {
-  return createAbortError(win, message);
+export function createCancelError(message) {
+  const error = new Error('AbortError: ' + message);
+  error.name = 'AbortError';
+  return error;
 }
 
 /**

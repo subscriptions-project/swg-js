@@ -36,6 +36,7 @@ import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
+const WINDOW_INNER_HEIGHT = 424242;
 const CURRENT_TIME = 1615416442000;
 const EXPECTED_TIME_STRING = '1615416442000';
 
@@ -91,6 +92,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
         document: env.win.document,
         gtag: () => {},
+        innerHeight: WINDOW_INNER_HEIGHT,
       }
     );
     messageMap = {};
@@ -154,6 +156,7 @@ describes.realWin('AudienceActionFlow', (env) => {
             _client: 'SwG 0.0.0',
             productType: ProductType.SUBSCRIPTION,
             supportsEventManager: true,
+            windowHeight: WINDOW_INNER_HEIGHT,
           }
         )
         .resolves(port);
@@ -184,6 +187,7 @@ describes.realWin('AudienceActionFlow', (env) => {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
           supportsEventManager: true,
+          windowHeight: WINDOW_INNER_HEIGHT,
         }
       )
       .resolves(port);

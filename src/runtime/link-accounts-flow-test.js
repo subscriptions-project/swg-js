@@ -248,7 +248,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     expect(triggerFlowCancelSpy).to.not.be.called;
   });
 
-  it('should trigger on failed link response', async () => {
+  it('should trigger on cancelled link response', async () => {
     dialogManagerMock.expects('popupClosed').once();
     let handler;
     activitiesMock
@@ -262,6 +262,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       )
       .once();
     entitlementsManagerMock.expects('blockNextNotification').once();
+    entitlementsManagerMock.expects('unblockNextNotification').once();
     LinkCompleteFlow.configurePending(runtime);
     expect(handler).to.exist;
     expect(triggerLinkProgressSpy).to.not.be.called;
@@ -283,6 +284,48 @@ describes.realWin('LinkCompleteFlow', (env) => {
     await tick(2);
 
     expect(triggerFlowCancelSpy).to.be.calledOnce;
+    expect(startStub).to.not.be.called;
+  });
+
+  it('should trigger on (non-cancelled) failed link response', async () => {
+    dialogManagerMock.expects('popupClosed').once();
+    let handler;
+    activitiesMock
+      .expects('onResult')
+      .withExactArgs(
+        'swg-link',
+        sandbox.match((arg) => {
+          handler = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
+    entitlementsManagerMock.expects('blockNextNotification').once();
+    entitlementsManagerMock.expects('unblockNextNotification').once();
+    LinkCompleteFlow.configurePending(runtime);
+    expect(handler).to.exist;
+    expect(triggerLinkProgressSpy).to.not.be.called;
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+    expect(triggerFlowCancelSpy).to.not.be.called;
+
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    port.acceptResult = () => Promise.reject(new Error());
+
+    const startStub = sandbox.stub(LinkCompleteFlow.prototype, 'start');
+
+    handler(port);
+    expect(triggerLinkProgressSpy).to.be.calledOnce.calledWithExactly();
+    expect(triggerLinkCompleteSpy).to.not.be.called;
+
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_LINK_CONTINUE, true);
+
+    await tick(2);
+
+    expect(triggerFlowCancelSpy).to.not.be.called;
     expect(startStub).to.not.be.called;
   });
 
@@ -595,6 +638,43 @@ describes.realWin('LinkCompleteFlow', (env) => {
 
     storageMock.verify();
   });
+
+  it('handles completion errors', async () => {
+    const storageMock = sandbox.mock(runtime.storage());
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .throws(new Error('example error'));
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    let resultResolver;
+    const resultPromise = new Promise((resolve) => {
+      resultResolver = resolve;
+    });
+    port.acceptResult = () => resultPromise;
+    activitiesMock.expects('openIframe').resolves(port).once();
+    await linkCompleteFlow.start();
+    const result = new ActivityResult(
+      ActivityResultCode.OK,
+      {success: true, swgUserToken: 'fake user token'},
+      'IFRAME',
+      'https://news.google.com',
+      true,
+      true
+    );
+    resultResolver(result);
+
+    // Capture function that rethrows completion error.
+    let rethrowCompletionErrorFn;
+    win.setTimeout = (c) => {
+      rethrowCompletionErrorFn = c;
+    };
+    linkCompleteFlow.whenComplete();
+    await tick(2);
+
+    expect(rethrowCompletionErrorFn).to.throw('example error');
+  });
 });
 
 describes.realWin('LinkSaveFlow', (env) => {
@@ -724,6 +804,17 @@ describes.realWin('LinkSaveFlow', (env) => {
     expect(result).to.be.false;
     expect(triggerFlowStartSpy.notCalled).to.be.true;
     expect(triggerFlowCanceledSpy.called).to.be.true;
+  });
+
+  it('rethrows non-cancel errors', async () => {
+    linkSaveFlow = new LinkSaveFlow(runtime, () => {});
+    resultResolver(Promise.reject(new Error('linking failed')));
+    activitiesMock.expects('openIframe').resolves(port);
+    dialogManagerMock.expects('completeView').once();
+
+    await expect(linkSaveFlow.start()).to.eventually.be.rejectedWith(
+      'linking failed'
+    );
   });
 
   it('should test linking success', async () => {
@@ -867,6 +958,23 @@ describes.realWin('LinkSaveFlow', (env) => {
     await expect(linkSaveFlow.getRequestPromise()).to.be.rejectedWith(
       /callback failed/
     );
+  });
+
+  it('bails if save is not requested', async () => {
+    dialogManagerMock.expects('completeView').never();
+
+    linkSaveFlow = new LinkSaveFlow(runtime, () => {
+      throw new Error('callback failed');
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    linkSaveFlow.start();
+
+    await linkSaveFlow.openPromise_;
+    const response = new LinkingInfoResponse();
+    response.setRequested(false);
+    const cb = messageMap[response.label()];
+    cb(response);
+    await linkSaveFlow.getRequestPromise();
   });
 
   it('should test link complete flow start', async () => {

@@ -65,4 +65,9 @@ export const ExperimentFlags = {
    * Experiment flag for disabling the miniprompt icon on desktop screens wider than 480px.
    */
   DISABLE_DESKTOP_MINIPROMPT: 'disable-desktop-miniprompt',
+
+  /**
+   * The triggering of a survey prompt takes priority over a contribution prompt.
+   */
+  SURVEY_TRIGGERING_PRIORITY: 'survey_triggering_priority_experiment',
 };

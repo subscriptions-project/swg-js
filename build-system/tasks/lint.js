@@ -16,7 +16,7 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const config = require('../config');
 const eslint = require('../../third_party/gulp-eslint');
 const eslintIfFixed = require('gulp-eslint-if-fixed');
@@ -30,7 +30,7 @@ const {gitDiffNameOnlyMain} = require('../git');
 const {green, yellow, cyan, red} = require('ansi-colors');
 const {isCiBuild} = require('../ci');
 
-const isWatching = argv.watch || argv.w || false;
+const isWatching = args.watch || args.w || false;
 const options = {
   fix: false,
 };
@@ -76,6 +76,10 @@ function runLinter(filePath, stream, options) {
   if (!isCiBuild()) {
     log(green('Starting linter...'));
   }
+
+  // Load custom rules.
+  options.rulePaths = ['build-system/eslint-rules'];
+
   const fixedFiles = {};
   return stream
     .pipe(eslint(options))
@@ -203,14 +207,14 @@ function setFilesToLint(files) {
  * @return {!Stream} Readable stream
  */
 function lint() {
-  if (argv.fix) {
+  if (args.fix) {
     options.fix = true;
   }
-  if (argv.files) {
-    setFilesToLint(argv.files.split(','));
+  if (args.files) {
+    setFilesToLint(args.files.split(','));
   } else if (
     !eslintRulesChanged() &&
-    (process.env.LOCAL_PR_CHECK || argv.local_changes)
+    (process.env.LOCAL_PR_CHECK || args.local_changes)
   ) {
     const jsFiles = jsFilesChanged();
     if (jsFiles.length == 0) {

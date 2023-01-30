@@ -4,9 +4,7 @@ on: [push, pull_request]
 
 jobs:
   check:
-    # Canonical will support this LTS until April 2027.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -17,15 +15,13 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn
+        run: yarn --ignore-optional
 
       - name: Check
         run: gulp check
 
   e2e:
-    # Canonical will support this LTS until April 2027.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -39,12 +35,10 @@ jobs:
         run: yarn
 
       - name: E2E Tests
-        run: gulp e2e --retries=3
+        run: gulp e2e
 
   unit:
-    # Canonical will support this LTS until April 2027.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +49,7 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn
+        run: yarn --ignore-optional
 
       - name: Unit Tests
         run: gulp unit --headless --coverage

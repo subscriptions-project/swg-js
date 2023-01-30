@@ -117,6 +117,7 @@ export class LinkCompleteFlow {
         const flow = new LinkCompleteFlow(deps, response);
         flow.start();
       } catch (reason) {
+        deps.entitlementsManager().unblockNextNotification();
         if (isCancelError(reason)) {
           deps
             .eventManager()
@@ -229,7 +230,7 @@ export class LinkCompleteFlow {
       this.complete_(response, !!response['success']);
     } catch (reason) {
       // Rethrow async.
-      setTimeout(() => {
+      this.win_.setTimeout(() => {
         throw reason;
       });
     }
@@ -330,7 +331,7 @@ export class LinkSaveFlow {
 
     // Handle linking failure.
     if (!result['linked']) {
-      throw createCancelError(this.win_, 'not linked');
+      throw createCancelError('not linked');
     }
 
     // Start link confirmation flow.

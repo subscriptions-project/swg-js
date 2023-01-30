@@ -17,7 +17,7 @@
 import {ASSETS} from '../constants';
 
 /**
- * Template literal helper to enable syntax highliting for our CSS below.
+ * Template literal helper to enable syntax highlighting for our CSS below.
  */
 const css = String.raw;
 

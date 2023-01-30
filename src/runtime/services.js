@@ -139,8 +139,9 @@ export function adsUrl(url) {
 
 /**
  * @param {string} url Relative URL, e.g. "/offersiframe".
- * @param {string=} prefix
  * @param {Object<string, string>=} params List of extra params to append to the URL.
+ * @param {boolean=} usePrefixedHostPath
+ * @param {string=} prefix
  * @return {string} The complete URL.
  */
 export function feUrl(

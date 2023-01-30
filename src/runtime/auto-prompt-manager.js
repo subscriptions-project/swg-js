@@ -189,12 +189,14 @@ export class AutoPromptManager {
       params.autoPromptType
     );
 
-    const potentialActionPromptType = await this.getAudienceActionPromptType_({
-      article,
-      autoPromptType: params.autoPromptType,
-      dismissedPrompts,
-      shouldShowAutoPrompt,
-    });
+    const potentialActionPromptType = article
+      ? await this.getAudienceActionPromptType_({
+          article,
+          autoPromptType: params.autoPromptType,
+          dismissedPrompts,
+          shouldShowAutoPrompt,
+        })
+      : undefined;
 
     const promptFn = potentialActionPromptType
       ? this.audienceActionPrompt_({
@@ -369,7 +371,7 @@ export class AutoPromptManager {
    * after the initial Contribution prompt. We also always default to showing the Contribution
    * prompt if the reader is currently inside of the frequency window, indicated by shouldShowAutoPrompt.
    * @param {{
-   *   article: (?./entitlements-manager.Article|undefined),
+   *   article: (!./entitlements-manager.Article),
    *   autoPromptType: (AutoPromptType|undefined),
    *   dismissedPrompts: (?string|undefined),
    *   shouldShowAutoPrompt: (boolean|undefined),
@@ -382,7 +384,7 @@ export class AutoPromptManager {
     dismissedPrompts,
     shouldShowAutoPrompt,
   }) {
-    const audienceActions = article?.audienceActions?.actions || [];
+    const audienceActions = article.audienceActions?.actions || [];
 
     // Count completed surveys.
     const [surveyCompletionTimestamps, surveyDataTransferFailureTimestamps] =
@@ -419,14 +421,33 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      if (!dismissedPrompts) {
+      const preferSurveyOverContributionPrompt =
+        await this.isExperimentEnabled_(
+          article,
+          ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+        );
+
+      if (!preferSurveyOverContributionPrompt && !dismissedPrompts) {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
         return undefined;
       }
-      const previousPrompts = dismissedPrompts.split(',');
-      potentialActions = potentialActions.filter(
-        (action) => !previousPrompts.includes(action.type)
-      );
+
+      if (dismissedPrompts) {
+        const previousPrompts = dismissedPrompts.split(',');
+        potentialActions = potentialActions.filter(
+          (action) => !previousPrompts.includes(action.type)
+        );
+      }
+
+      if (
+        preferSurveyOverContributionPrompt &&
+        potentialActions
+          .map((action) => action.type)
+          .includes(TYPE_REWARDED_SURVEY)
+      ) {
+        this.promptDisplayed_ = TYPE_REWARDED_SURVEY;
+        return TYPE_REWARDED_SURVEY;
+      }
 
       // If all actions have been dismissed or the frequency indicates that we
       // should show the Contribution prompt again regardless of previous dismissals,
@@ -672,5 +693,19 @@ export class AutoPromptManager {
       return isSurveyEligible && isAnalyticsEligible;
     }
     return true;
+  }
+
+  /**
+   * Checks if provided ExperimentFlag is returned in article endpoint.
+   * @param {!./entitlements-manager.Article} article
+   * @param {string} experimentFlag
+   * @return {!Promise<boolean>}
+   */
+  async isExperimentEnabled_(article, experimentFlag) {
+    const articleExpFlags =
+      await this.entitlementsManager_.parseArticleExperimentConfigFlags(
+        article
+      );
+    return articleExpFlags.includes(experimentFlag);
   }
 }
