@@ -55,7 +55,7 @@ jobs:
         run: yarn
 
       - name: Compile JS with Vite
-        run: npx vite build -- --target=basic
+        run: npx vite build -- --target=classic
 
       - name: E2E Tests
         run: gulp e2e
