@@ -27,11 +27,17 @@ const port = process.env.PORT || 8000;
 app.use(express.static('public'));
 
 /**
- * Redirects to SwG Basic JS.
+ * Redirects to SwG JS binary (swg.js or swg-basic.js).
  * The endpoint is compatible with the classic Swgjs local demos.
  */
-app.get('/examples/sample-pub/redirect-to/swg-basic.js', (req, res) => {
-  res.redirect('https://news.google.com/swg/js/v1/swg-basic.js');
+app.get('/examples/sample-pub/redirect-to/:jsfile', (req, res) => {
+  const jsfile = req.params.jsfile;
+  const jsurl =
+    'https://news.google.com/swg/js/v1/' +
+    (req.get('referrer')?.match('/qual/')
+      ? `${jsfile.split('.')[0]}-qual.js`
+      : jsfile);
+  res.redirect(jsurl);
 });
 
 app.listen(port, () => {

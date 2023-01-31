@@ -18,7 +18,7 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {Callbacks} from './callbacks';
 import {tick} from '../../test/tick';
 
-describes.sandboxed('Callbacks', {}, () => {
+describes.sandboxed('Callbacks', () => {
   let callbacks;
 
   beforeEach(() => {
@@ -121,6 +121,56 @@ describes.sandboxed('Callbacks', {}, () => {
     expect(callbacks.hasSubscribeRequestCallback()).to.be.true;
   });
 
+  it('should trigger and execute offersFlowRequest', async () => {
+    const spy = sandbox.spy();
+    expect(callbacks.hasOffersFlowRequestCallback()).to.be.false;
+    callbacks.setOnOffersFlowRequest(spy);
+    expect(callbacks.hasOffersFlowRequestCallback()).to.be.true;
+    expect(callbacks.triggerOffersFlowRequest()).to.be.true;
+
+    await tick();
+    expect(spy).to.be.calledOnce.calledWithExactly(true);
+    expect(callbacks.hasOffersFlowRequestCallback()).to.be.true;
+  });
+
+  describe('warnings', () => {
+    let warnFn;
+
+    beforeEach(() => {
+      warnFn = sandbox.spy(self.console, 'warn');
+    });
+
+    function getLastWarningMessage() {
+      const calls = warnFn.getCalls();
+      const lastCall = calls[calls.length - 1];
+      return lastCall.args[0];
+    }
+
+    it('warns setOnSubscribeResponse is deprecated', () => {
+      callbacks.setOnSubscribeResponse();
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain('This method has been deprecated');
+    });
+
+    it('warns setOnContributionResponse is deprecated', () => {
+      callbacks.setOnContributionResponse();
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain('This method has been deprecated');
+    });
+
+    it('warns about multiple callbacks for the same response', () => {
+      // Set two callbacks.
+      for (let i = 0; i < 2; i++) {
+        callbacks.setOnContributionResponse(() => {});
+      }
+
+      const warningMessage = getLastWarningMessage();
+      expect(warningMessage).to.contain(
+        'You have registered multiple callbacks for the same response'
+      );
+    });
+  });
+
   describe('paymentResponse triggering', () => {
     let spy;
     let resolver;
@@ -167,12 +217,9 @@ describes.sandboxed('Callbacks', {}, () => {
     it('should throw other errors', async () => {
       await failer({name: 'OtherError'});
       let receivedReason = null;
-      await callbacks.paymentResponsePromise_.then(
-        () => {},
-        (reason) => {
-          receivedReason = reason;
-        }
-      );
+      await callbacks.paymentResponsePromise_.catch((reason) => {
+        receivedReason = reason;
+      });
       await tick();
       // Now everything should execute
       expect(spy).to.not.be.called;

@@ -33,27 +33,25 @@ let globalSubscriptions;
  * @param {function()} callback
  */
 function whenReady(callback) {
-  (self.SWG = self.SWG || []).push(function (subscriptions) {
+  (self.SWG = self.SWG || []).push((subscriptions) => {
     globalSubscriptions = subscriptions;
     callback(subscriptions);
   });
 }
 
 // Callbacks.
-whenReady(function (subscriptions) {
+whenReady((subscriptions) => {
   function eventCallback(eventName) {
-    return function (value) {
-      const promise = Promise.resolve(value);
-      promise.then(
-        function (response) {
-          log(eventName, response);
-        },
-        function (reason) {
-          log(eventName + 'failed', reason);
-        }
-      );
+    return async (value) => {
+      try {
+        const response = await Promise.resolve(value);
+        log(eventName, response);
+      } catch (reason) {
+        log(eventName + 'failed', reason);
+      }
     };
   }
+
   subscriptions.setOnEntitlementsResponse(eventCallback('entitlements'));
   subscriptions.setOnLinkComplete(eventCallback('link-complete'));
   subscriptions.setOnLoginRequest(eventCallback('login-request'));
@@ -62,39 +60,35 @@ whenReady(function (subscriptions) {
 
 /**
  * The subscription has been complete.
- * @param {!Promise<!SubscribeResponse>} promise
+ * @param {!Promise<!SubscribeResponse>} responsePromise
  * @private
  */
-function subscribeResponse_(promise) {
-  promise.then(
-    function (response) {
-      // TODO: Start account creation flow.
-      log('got subscription response', response);
-      const toast = document.getElementById('creating_account_toast');
-      const userEl = document.getElementById('creating_account_toast_user');
-      userEl.textContent = response.userData.email;
-      toast.style.display = 'block';
-      // TODO: wait for account creation to be complete.
-      setTimeout(
-        function () {
-          response.complete().then(
-            function () {
-              log('subscription has been confirmed');
-              // Open the content.
-              this.subscriptions.reset();
-              this.start();
-            }.bind(this)
-          );
-          toast.style.display = 'none';
-        }.bind(this),
-        3000
-      );
-    }.bind(this),
-    function (reason) {
-      log('subscription response failed: ', reason);
-      throw reason;
-    }
-  );
+async function subscribeResponse_(responsePromise) {
+  let response;
+  try {
+    response = await responsePromise;
+  } catch (reason) {
+    log('subscription response failed: ', reason);
+    throw reason;
+  }
+
+  // TODO: Start account creation flow.
+  log('got subscription response', response);
+  const toast = document.getElementById('creating_account_toast');
+  const userEl = document.getElementById('creating_account_toast_user');
+  userEl.textContent = response.userData.email;
+  toast.style.display = 'block';
+
+  // TODO: wait for account creation to be complete.
+  setTimeout(async () => {
+    await response.complete();
+    log('subscription has been confirmed');
+
+    // Open the content.
+    this.subscriptions.reset();
+    this.start();
+    toast.style.display = 'none';
+  }, 3000);
 }
 
 /**
@@ -107,19 +101,17 @@ function subscribeResponse_(promise) {
  */
 function startFlow(flow, var_args) {
   var_args = Array.prototype.slice.call(arguments, 1);
-  whenReady(function (subscriptions) {
+  whenReady(async (subscriptions) => {
     const flowFunc = subscriptions[flow];
     const flows = Object.keys(subscriptions);
-    if (!(typeof flowFunc == 'function')) {
+    if (typeof flowFunc !== 'function') {
       throw new Error(
         'Flow "' + flow + '" not found: Available flows: "' + flows + '"'
       );
     }
     log('starting flow', flow, '(', var_args, ')', ' {' + flows + '}');
-    const result = flowFunc.apply(subscriptions, var_args);
-    Promise.resolve(result).then(() => {
-      log('flow complete', flow);
-    });
+    await flowFunc.apply(subscriptions, var_args);
+    log('flow complete', flow);
   });
 }
 
@@ -159,8 +151,8 @@ function startFlowAuto() {
     return;
   }
   if (flow == 'demo') {
-    whenReady(function (subscriptions) {
-      whenDemoReady(function () {
+    whenReady((subscriptions) => {
+      whenDemoReady(() => {
         const controller = new DemoPaywallController(subscriptions);
         controller.start();
       });
@@ -171,7 +163,7 @@ function startFlowAuto() {
   if (flow == 'metering') {
     /* eslint-disable */
 
-    whenReady((subscriptions) => {
+    whenReady(async (subscriptions) => {
       // Forget any subscriptions, for metering demo purposes.
       subscriptions.clear();
 
@@ -201,119 +193,115 @@ function startFlowAuto() {
       });
 
       // Fetch entitlements.
-      subscriptions.getEntitlements().then((entitlements) => {
-        if (entitlements.enablesThis()) {
-          // Unlock article right away, since the user has a subscription.
-          MeteringDemo.openPaywall();
-        } else {
-          // Attempt to unlock article with metering.
-          maybeUnlockWithMetering();
-        }
-      });
+      const entitlements = await subscriptions.getEntitlements();
+      if (entitlements.enablesThis()) {
+        // Unlock article right away, since the user has a subscription.
+        MeteringDemo.openPaywall();
+      } else {
+        // Attempt to unlock article with metering.
+        maybeUnlockWithMetering();
+      }
 
-      function maybeUnlockWithMetering() {
+      async function maybeUnlockWithMetering() {
         // Fetch the current user's metering state.
-        MeteringDemo.fetchMeteringState()
-          .then((meteringState) => {
-            if (meteringState.registrationTimestamp) {
-              // Skip metering regwall for registered users.
-              return meteringState;
-            }
+        let meteringState = await MeteringDemo.fetchMeteringState();
 
-            const use3pSignIn = getQueryParams().use3pSignIn === 'true';
-            const useGSI = getQueryParams().useGSI === 'true';
-            let iframeUrl;
-            // Specify a URL that renders a sign-in button.
-            if (use3pSignIn) {
-              iframeUrl = MeteringDemo.GOOGLE_3P_SIGN_IN_IFRAME_URL;
-            } else if (useGSI) {
-              iframeUrl = MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL;
-            } else {
-              iframeUrl = MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL;
-            }
-            const regwallParams = {
-              iframeUrl,
-            };
+        if (meteringState.registrationTimestamp) {
+          // Skip metering regwall for registered users.
+          return meteringState;
+        }
 
-            // Optionally add a CASL link, for demo purposes.
-            const demoCaslUrl = new URLSearchParams(location.search).get(
-              'casl_url'
-            );
-            if (demoCaslUrl) {
-              regwallParams.caslUrl = demoCaslUrl;
-            }
+        const use3pSignIn = getQueryParams().use3pSignIn === 'true';
+        const useGSI = getQueryParams().useGSI === 'true';
+        let iframeUrl;
+        // Specify a URL that renders a sign-in button.
+        if (use3pSignIn) {
+          iframeUrl = MeteringDemo.GOOGLE_3P_SIGN_IN_IFRAME_URL;
+        } else if (useGSI) {
+          iframeUrl = MeteringDemo.GOOGLE_SIGN_IN_IFRAME_URL;
+        } else {
+          iframeUrl = MeteringDemo.SIGN_IN_WITH_GOOGLE_IFRAME_URL;
+        }
+        const regwallParams = {
+          iframeUrl,
+        };
 
-            // Show metering regwall for unregistered users.
-            return GaaMeteringRegwall.show(regwallParams)
-              .then((googleSignInUser) =>
-                // Register a user based on data from Google Sign-In.
+        // Optionally add a CASL link, for demo purposes.
+        const demoCaslUrl = new URLSearchParams(location.search).get(
+          'casl_url'
+        );
+        if (demoCaslUrl) {
+          regwallParams.caslUrl = demoCaslUrl;
+        }
+
+        // Show metering regwall for unregistered users.
+        const googleSignInUser = await GaaMeteringRegwall.show(regwallParams);
+
+        // Register a user based on data from Google Sign-In.
+        //
+        // We advise setting a 1st party, secure, HTTP-only cookie,
+        // so it lives past 7 days in Safari.
+        // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
+        await MeteringDemo.registerUser(googleSignInUser);
+
+        // Fetch the current user's metering state again
+        // since they registered.
+        meteringState = await MeteringDemo.fetchMeteringState();
+
+        // Forget previous entitlements fetches.
+        subscriptions.clear();
+
+        // Get SwG entitlements.
+        let entitlements;
+        try {
+          entitlements = await subscriptions.getEntitlements({
+            metering: {
+              state: {
+                // Hashed identifier for a specific user. Hash this value yourself
+                // to avoid sending PII.
+                id: meteringState.id,
+                // Standard attributes which affect your meters.
+                // Each attribute has a corresponding timestamp, which
+                // allows meters to do things like granting access
+                // for up to 30 days after a certain action.
                 //
-                // We advise setting a 1st party, secure, HTTP-only cookie,
-                // so it lives past 7 days in Safari.
-                // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
-                MeteringDemo.registerUser(googleSignInUser)
-              )
-              .then(() =>
-                // Fetch the current user's metering state again
-                // since they registered.
-                MeteringDemo.fetchMeteringState()
-              );
-          })
-          .then((meteringState) => {
-            // Forget previous entitlements fetches.
-            subscriptions.clear();
-
-            // Get SwG entitlements.
-            return subscriptions.getEntitlements({
-              metering: {
-                state: {
-                  // Hashed identifier for a specific user. Hash this value yourself
-                  // to avoid sending PII.
-                  id: meteringState.id,
-                  // Standard attributes which affect your meters.
-                  // Each attribute has a corresponding timestamp, which
-                  // allows meters to do things like granting access
-                  // for up to 30 days after a certain action.
-                  //
-                  // TODO: Describe standard attributes, once they're defined.
-                  standardAttributes: {
-                    registered_user: {
-                      timestamp: meteringState.registrationTimestamp,
-                    },
+                // TODO: Describe standard attributes, once they're defined.
+                standardAttributes: {
+                  registered_user: {
+                    timestamp: meteringState.registrationTimestamp,
                   },
                 },
               },
-            });
-          })
-          .catch((err) => {
-            console.error(err);
-            return false;
-          })
-          .then((entitlements) => {
-            // Check if a Google metering entitlement unlocks the article.
-            if (entitlements && entitlements.enablesThisWithGoogleMetering()) {
-              // Consume the entitlement. This lets Google know a specific free
-              // read was "used up", which allows Google to calculate how many
-              // free reads are left for a given user.
-              //
-              // Consuming an entitlement will also trigger a dialog that lets the user
-              // know Google provided them with a free read.
-              entitlements.consume(() => {
-                // Unlock the article AFTER the user consumes a free read.
-                // Note: If you unlock the article outside of this callback,
-                // users might be able to scroll down and read the article
-                // without closing the dialog, and closing the dialog is
-                // what actually consumes a free read.
-                MeteringDemo.openPaywall();
-              });
-            } else {
-              // Handle failures to unlock the article with metering entitlements.
-              // Perhaps the user ran out of free reads. Or perhaps the user
-              // dismissed the Regwall. Either way, the publisher determines
-              // what happens next. This demo shows offers.
-              startFlow('showOffers');
-            }
+            },
           });
+        } catch (err) {
+          console.error(err);
+          entitlements = false;
+        }
+
+        // Check if a Google metering entitlement unlocks the article.
+        if (entitlements && entitlements.enablesThisWithGoogleMetering()) {
+          // Consume the entitlement. This lets Google know a specific free
+          // read was "used up", which allows Google to calculate how many
+          // free reads are left for a given user.
+          //
+          // Consuming an entitlement will also trigger a dialog that lets the user
+          // know Google provided them with a free read.
+          entitlements.consume(() => {
+            // Unlock the article AFTER the user consumes a free read.
+            // Note: If you unlock the article outside of this callback,
+            // users might be able to scroll down and read the article
+            // without closing the dialog, and closing the dialog is
+            // what actually consumes a free read.
+            MeteringDemo.openPaywall();
+          });
+        } else {
+          // Handle failures to unlock the article with metering entitlements.
+          // Perhaps the user ran out of free reads. Or perhaps the user
+          // dismissed the Regwall. Either way, the publisher determines
+          // what happens next. This demo shows offers.
+          startFlow('showOffers');
+        }
       }
     });
 
@@ -340,9 +328,9 @@ function startFlowAuto() {
   }
 
   if (flow == 'smartbutton') {
-    whenReady(function (subsciptions) {
+    whenReady((subsciptions) => {
       const subs = subsciptions;
-      whenDemoReady(function () {
+      whenDemoReady(() => {
         let smartButton = document.querySelector('button#smartButton');
         if (!smartButton) {
           // Create a DOM element for SmartButton demo.
@@ -360,7 +348,7 @@ function startFlowAuto() {
             lang: 'en',
             messageTextColor: 'rgba(66, 133, 244, 0.95)',
           },
-          function () {
+          () => {
             subs.showOffers({isClosable: true});
           }
         );
@@ -370,29 +358,26 @@ function startFlowAuto() {
   }
 
   if (flow == 'button') {
-    whenReady(function (subscriptions) {
-      whenDemoReady(function () {
-        const button1 = subscriptions.createButton(function () {
+    whenReady((subscriptions) => {
+      whenDemoReady(() => {
+        const button1 = subscriptions.createButton(() => {
           log('SwG button clicked!');
         });
         document.body.appendChild(button1);
 
         const button2 = document.createElement('button');
         document.body.appendChild(button2);
-        subscriptions.attachButton(button2, {theme: 'dark'}, function () {
+        subscriptions.attachButton(button2, {theme: 'dark'}, () => {
           log('SwG button2 clicked!');
         });
 
-        const button3 = subscriptions.createButton(
-          {lang: 'pt-br'},
-          function () {
-            log('SwG button clicked!');
-          }
-        );
+        const button3 = subscriptions.createButton({lang: 'pt-br'}, () => {
+          log('SwG button clicked!');
+        });
         document.body.appendChild(button3);
 
         const button4 = document.createElement('button');
-        button4.setAttribute('lang', 'jp');
+        button4.setAttribute('lang', 'ja');
         document.body.appendChild(button4);
         subscriptions.attachButton(button4, {theme: 'dark'}, () => {
           log('SwG button4 clicked!');
@@ -412,7 +397,7 @@ function whenDemoReady(callback) {
     callback();
   } else {
     let attempts = 0;
-    var interval = setInterval(function () {
+    var interval = setInterval(() => {
       attempts++;
       if (typeof DemoPaywallController == 'function') {
         clearInterval(interval);
@@ -489,13 +474,11 @@ function getAnchorFromUrl(url) {
  */
 function getQueryParams() {
   const queryParams = {};
-  location.search
-    .substring(1)
-    .split('&')
-    .forEach((pair) => {
-      const parts = pair.split('=');
-      queryParams[parts[0]] = parts[1];
-    });
+  const pairs = location.search.substring(1).split('&');
+  for (const pair of pairs) {
+    const [key, value] = pair.split('=');
+    queryParams[key] = value;
+  }
   return queryParams;
 }
 

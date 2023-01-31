@@ -15,14 +15,23 @@
  */
 
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
+import {isFunction} from '../utils/types';
+
+/* eslint-disable no-unused-vars */
+/** @typedef {?function(string, string, Object)} */
+let AnalyticsMethod;
+
+/** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod, dataLayer: Object}} */
+let WindowWithAnalyticsMethods;
+/* eslint-enable no-unused-vars */
 
 export class GoogleAnalyticsEventListener {
   /**
    * @param {!./deps.DepsDef} deps
    */
   constructor(deps) {
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+    /** @private @const {!./deps.DepsDef} deps */
+    this.deps_ = deps;
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
@@ -40,12 +49,28 @@ export class GoogleAnalyticsEventListener {
   /**
    *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
    * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
-  handleClientEvent_(event) {
-    // Bail immediately if ga function doesn't exist in Window.
-    if (typeof this.win_.ga != 'function') {
+  handleClientEvent_(event, eventParams = undefined) {
+    // Require either ga function (analytics.js) or gtag function (gtag.js) or dataLayer.push function (gtm.js).
+    const gaIsEligible = GoogleAnalyticsEventListener.isGaEligible(this.deps_);
+    const gtagIsEligible = GoogleAnalyticsEventListener.isGtagEligible(
+      this.deps_
+    );
+    const gtmIsEligible = GoogleAnalyticsEventListener.isGtmEligible(
+      this.deps_
+    );
+    const anyGoogleAnalyticsLoggingIsEligible =
+      gaIsEligible || gtagIsEligible || gtmIsEligible;
+    if (!anyGoogleAnalyticsLoggingIsEligible) {
       return;
     }
+
+    // Extract methods from window.
+    const {ga, gtag, dataLayer} = /** @type {!WindowWithAnalyticsMethods} */ (
+      this.deps_.win()
+    );
+
     let subscriptionFlow = '';
     if (event.additionalParameters) {
       // additionalParameters isn't strongly typed so checking for both object and class notation.
@@ -53,12 +78,76 @@ export class GoogleAnalyticsEventListener {
         event.additionalParameters.subscriptionFlow ||
         event.additionalParameters.getSubscriptionFlow();
     }
-    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+    let gaEvent = analyticsEventToGoogleAnalyticsEvent(
       event.eventType,
       subscriptionFlow
     );
-    if (gaEvent) {
-      this.win_.ga('send', 'event', gaEvent);
+    if (!gaEvent) {
+      return;
     }
+
+    const analyticsParams = eventParams?.googleAnalyticsParameters || {};
+    gaEvent = {
+      ...gaEvent,
+      eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
+      eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
+    };
+
+    // TODO(b/234825847): Remove this once universal analytics is deprecated in 2023.
+    if (gaIsEligible) {
+      ga('send', 'event', gaEvent);
+    }
+
+    if (gtagIsEligible) {
+      const gtagEvent = {
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+        ...analyticsParams,
+      };
+      gtag('event', gaEvent.eventAction, gtagEvent);
+    }
+
+    // Support google tag manager.
+    if (gtmIsEligible) {
+      dataLayer.push({
+        'event': gaEvent.eventAction,
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+        ...analyticsParams,
+      });
+    }
+  }
+
+  /**
+   * Function to determine whether event is eligible for GA logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGaEligible(deps) {
+    return isFunction(
+      /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).ga
+    );
+  }
+
+  /**
+   * Function to determine whether event is eligible for gTag logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGtagEligible(deps) {
+    return isFunction(
+      /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).gtag
+    );
+  }
+
+  /**
+   * Function to determine whether event is eligible for GTM logging.
+   * @param {!./deps.DepsDef} deps
+   * @returns {boolean}
+   */
+  static isGtmEligible(deps) {
+    return isFunction(deps.win().dataLayer?.push);
   }
 }

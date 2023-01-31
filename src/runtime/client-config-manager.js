@@ -16,9 +16,8 @@
 
 import {AttributionParams} from '../model/attribution-params';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
-import {ClientConfig} from '../model/client-config';
+import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientTheme} from '../api/basic-subscriptions';
-import {UiPredicates} from '../model/auto-prompt-config';
 import {serviceUrl} from './services';
 import {warn} from '../utils/log';
 
@@ -52,6 +51,7 @@ export class ClientConfigManager {
     /** @private @const {ClientConfig} */
     this.defaultConfig_ = new ClientConfig({
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
+      usePrefixedHostPath: true,
     });
   }
 
@@ -84,15 +84,14 @@ export class ClientConfigManager {
   /**
    * Convenience method for retrieving the auto prompt portion of the client
    * configuration.
-   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|undefined>}
+   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|null|undefined>}
    */
-  getAutoPromptConfig() {
+  async getAutoPromptConfig() {
     if (!this.responsePromise_) {
       this.fetchClientConfig();
     }
-    return this.responsePromise_.then(
-      (clientConfig) => clientConfig.autoPromptConfig
-    );
+    const clientConfig = await this.responsePromise_;
+    return clientConfig?.autoPromptConfig;
   }
 
   /**
@@ -110,7 +109,19 @@ export class ClientConfigManager {
    * @return {!../api/basic-subscriptions.ClientTheme}
    */
   getTheme() {
-    return this.clientOptions_.theme || ClientTheme.LIGHT;
+    const themeDefault = self.matchMedia(`(prefers-color-scheme: dark)`).matches
+      ? ClientTheme.DARK
+      : ClientTheme.LIGHT;
+    return this.clientOptions_.theme || themeDefault;
+  }
+
+  /**
+   * Returns whether scrolling on main page should be allowed when
+   * subscription or contribution dialog is displayed.
+   * @return {boolean}
+   */
+  shouldAllowScroll() {
+    return !!this.clientOptions_.allowScroll;
   }
 
   /**
@@ -130,7 +141,7 @@ export class ClientConfigManager {
    * Determines whether a subscription or contribution button should be disabled.
    * @returns {!Promise<boolean|undefined>}
    */
-  shouldEnableButton() {
+  async shouldEnableButton() {
     // Disable button if disableButton is set to be true in clientOptions.
     // If disableButton is set to be false or not set, then always enable button.
     // This is for testing purpose.
@@ -141,45 +152,37 @@ export class ClientConfigManager {
     if (!this.responsePromise_) {
       this.fetchClientConfig();
     }
+
     // UI predicates decides whether to enable button.
-    return this.responsePromise_.then((clientConfig) => {
-      if (clientConfig.uiPredicates?.canDisplayButton) {
-        return true;
-      } else {
-        return false;
-      }
-    });
+    const {uiPredicates} = await this.responsePromise_;
+    return uiPredicates?.canDisplayButton;
   }
 
   /**
    * Fetches the client config from the server.
    * @return {!Promise<!ClientConfig>}
    */
-  fetch_() {
-    return this.deps_
-      .entitlementsManager()
-      .getArticle()
-      .then((article) => {
-        if (article) {
-          return this.parseClientConfig_(article['clientConfig']);
-        } else {
-          // If there was no article from the entitlement manager, we need
-          // to fetch our own using the internal version.
-          const url = serviceUrl(
-            '/publication/' +
-              encodeURIComponent(this.publicationId_) +
-              '/clientconfiguration'
-          );
-          return this.fetcher_.fetchCredentialedJson(url).then((json) => {
-            if (json.errorMessages && json.errorMessages.length > 0) {
-              for (const errorMessage of json.errorMessages) {
-                warn('SwG ClientConfigManager: ' + errorMessage);
-              }
-            }
-            return this.parseClientConfig_(json);
-          });
-        }
-      });
+  async fetch_() {
+    const article = await this.deps_.entitlementsManager().getArticle();
+
+    if (article) {
+      return this.parseClientConfig_(article['clientConfig']);
+    }
+
+    // If there was no article from the entitlement manager, we need
+    // to fetch our own using the internal version.
+    const url = serviceUrl(
+      '/publication/' +
+        encodeURIComponent(this.publicationId_) +
+        '/clientconfiguration'
+    );
+    const json = await this.fetcher_.fetchCredentialedJson(url);
+    if (json.errorMessages && json.errorMessages.length > 0) {
+      for (const errorMessage of json.errorMessages) {
+        warn('SwG ClientConfigManager: ' + errorMessage);
+      }
+    }
+    return this.parseClientConfig_(json);
   }
 
   /**
@@ -192,13 +195,23 @@ export class ClientConfigManager {
     const autoPromptConfigJson = json['autoPromptConfig'];
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
-      autoPromptConfig = new AutoPromptConfig(
-        autoPromptConfigJson.maxImpressionsPerWeek,
-        autoPromptConfigJson.clientDisplayTrigger?.displayDelaySeconds,
-        autoPromptConfigJson.explicitDismissalConfig?.backoffSeconds,
-        autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsPerWeek,
-        autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsResultingHideSeconds
-      );
+      autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds:
+          autoPromptConfigJson.clientDisplayTrigger?.displayDelaySeconds,
+        dismissalBackOffSeconds:
+          autoPromptConfigJson.explicitDismissalConfig?.backOffSeconds,
+        maxDismissalsPerWeek:
+          autoPromptConfigJson.explicitDismissalConfig?.maxDismissalsPerWeek,
+        maxDismissalsResultingHideSeconds:
+          autoPromptConfigJson.explicitDismissalConfig
+            ?.maxDismissalsResultingHideSeconds,
+        impressionBackOffSeconds:
+          autoPromptConfigJson.impressionConfig?.backOffSeconds,
+        maxImpressions: autoPromptConfigJson.impressionConfig?.maxImpressions,
+        maxImpressionsResultingHideSeconds:
+          autoPromptConfigJson.impressionConfig
+            ?.maxImpressionsResultingHideSeconds,
+      });
     }
 
     const uiPredicatesJson = json['uiPredicates'];
@@ -206,7 +219,8 @@ export class ClientConfigManager {
     if (uiPredicatesJson) {
       uiPredicates = new UiPredicates(
         uiPredicatesJson.canDisplayAutoPrompt,
-        uiPredicatesJson.canDisplayButton
+        uiPredicatesJson.canDisplayButton,
+        uiPredicatesJson.purchaseUnavailableRegion
       );
     }
 

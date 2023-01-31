@@ -38,7 +38,7 @@ const GOOGLE_TRANSACTION_ID = 'ABC12345-CDE0-XYZ1-ABAB-11609E6472E9';
 const ENCODED_WA_RES_REDIRECT_HASH =
   '#__WA_RES__=%7B%22requestId%22%3A%22GPAY%22%2C%22origin%22%3A%22https%3A%2F%2Fpay.google.com%22%2C%22code%22%3A%22ok%22%2C%22data%22%3A%7B%22redirectEncryptedCallbackData%22%3A%22ALmKuMgxpT9olhoadKoO%2FFEq8M00rv6UKLbaLcjQwlt4grw7lrELFFFaCYUtikAC3xC8mhePgSvT7LgLHnB2URIG1wRltYgUyJUZRwaOGwSs0tQjHWDo2Vq%2BXyflTCTHjE7sDeL9ICXt8DeUJpPyOr1PDafOtPcgUgHuNwFxgRHYHOSalYyzGuUR1tU80aVUmKPZQHtsp8YJ5wM9z9Oa2uRpR1O0P1rlaQ%2BwjCoyai%2B7Dyial2UFybMQtCKYwpBs%2FEKAe4F7l9SNDlzZvnYhV4LDJ3Uc03FKIS0e4Hqx3414v%2FRMJ6SxAhnvuOfl3nIBWdV%2B62fgZgI2fmQooHDWaEhFPvh3lTQr4byF9r9tDWnb%2BBTb7MWmiQqb7ijRpoAhsb%2BMPPHiAz3TCxMjdElw97RJlnGpNjg9e5RbWN8dn3fwMn5K0MOosqQurnckHcTvp8dtFiqTJj3XNEHLI2lI0ZLeaY%2F%2Fl22pgdOT8usc1zC%2FMC743Yw5QW6ouX58iTTcAEbH%2BEEQlB8VNzDUiHuS6ffc5CqQ320%2FDJq9uM4KnWoSXa%2FIn%2FjABf%2F286u900LsuVg4DU%2Fya69RXCmkUAVpSQ7uhU1reqEJx4CBMe38gCT4eEmFdIgWxQHK07g6HzTxAc3myyxflXDVIYQGR%2F%2Fh5loWEJsC1dzxH1pg64C8uveD6vinohYpxnG5FBrpF45Lu4kdJtp8lYhLZukwuO8VTtYtXBLEMHYTRkhqvYoS2kb6VDaec8fphDE9TYv%2BQG0Xsc9oP31nAWJoZBbU2zF00qPZXEKc9RQ8zqljiFOQH7%2BrldNGBjmqm49TvGOrJBQSOEMMuoTjyrS45epodbXaLaVG7Cej%2BF1o27QciRKjNBacTq8cu6tEGAqd%2F5s0QyzguRiPKIxCn%2BPCKSHITPIwU1x9FhilJTItYvbQoxIVrA3Gjg8%2BZPgAG3Ht6v%2BnCHy3gJq4wzph6iK2hBBVdHS5gKJFtTm2O97xx0Sy3nt%2Fff3hoxTTWuQxa9sMlXnWoVgOSMPP0kq2u0%2Bdg9agq%2BiAO8yDFMT1tZdONZSTFKPqnmpTArXsuA4aOTKjtFPUlLiaOmw1VqqdwXo6tOXzTUxc9NvcxYJgqgYd4o5h1Tp3cXhGou4W%2FA%2FPt1T5lV8QIGOgE06wqh9kA%2BTyutgUlZKYXqeJ1Q%2BpSaVtE%2FJ%2BvxhJGxzoxLncpmT0T%2FMtLHrZAnIBpZ%2FBNp0kNAk1WSlvhnScHIQwDNdfj5Q%2Blrqs3TvzErGTNjSd9XwX%2FKzQVcVrIGHvscVebNwoeYmmE2aHVDWPdnKto20J6V0vBQuOGsjLNhefdsCVLJlNkE0RgkFSYa4wH3cBofW3BKNKmYl5CR3z1HG471rsaE1oursSj0csfUajF6scF0KqUnFRpWdY%2FauUwDjfRXWxP6Y%2BR9RmW6iNYbxG7i5T5AA844fgcrdFxGwKJzhjpJyQEDn%2BjMCpNmaerOxGdpbZL5p%2BCLl950YZAUVGLv6aQB5RfdMpyF%2Fbnflufava1utaw51Q7Pjlhd3sPSHUJr904LxNFG2Td8bngLkWygkUdvXi2quXvLq8z7ArVVxhls6vNW876M%2FlQFbDMm6KR81DYuEKgrL810W%2FaBmhJks1Q51qlL9nwvNvcl0SnTAU1%2FE%2FMig%2FKTuV2yfaaH%2Bjc6siWHAJ9MA3L9upFYJO4j%2FnL%2F2%2B0vXnZUI2iwAKxPwzZrlh2AmkKTtGLq0FYO37axdN9qsNF%2BxIrNhaeeqMKcQT2OeMSB4tY5pfqb8yd0L8rTjL8heXnJBQlsaeHXKbrvcRIM%2BYxOY80mzG7T4GzaX5p8W8%2F12xr71dw9lMoscmwj5G%2FATrhHpQmkUZuOuhqJY34nWPdrpOZWn9DPRT0F8R4xstMlT%2BthmUIwJwo6ZSa68N3X2SzSESQUKemPepvFq3%2FJveUEEdneBPYDOV8tHpa6hda8zNkepYb6FM8oMQwZ5oWjuLABnZpXce7%2Bwaq%2FE5HZIkpjKv7Xewgd%2BGx3S%2Bz5yW%2BWz5G8U7iACDpyU9vrnUP3rm1WnCjUnGbsvE%2BRxk3I1HEtHlMH43%2Fs7vhX9CHBOtCGiOkazzH%2BjeDyAZRai%2Br2KcP%2FJbq%2FI30LU8YymusDdMSuAasri%2FPd4NYrzqzSjpnl2rJ1TCl1xxUlpfJLrVBz4s21OWcI8XcR3h5qszXecha%2Fqoqc%2BLco7o9zzNVHRSCHuzCBEpgdAtxyq%2BJjqR1ujS89qNVtxYNQTa6f%2B9fSL0okidStSurr8ClKSRQilO8sVrT6vaGewmMrLPwT7EuZ%2BXaxhfDVqI8Gse3qmvFSfUJobpK7ku6P059SeR7%2BdsAegl0etLYdc3S98KTaxz0IU8xS%2B1e%2B0zAFun2V6OO4aBiB1IkbQmSjR%2FJUK327WgEXxB6Sc7Hnsnbkb4ZlCfJhaMiGceb7RZ1%2Fdlch9IiHAqI0MbfA%2Fi6IjSvpcdGp87P947kzdCHfS04arpG9QDFr0VBaCzHhWeWFX0GKllIl2jnWj6Hv4nnv%2FqwPSLsW8Sy1Gmv3HfDUdymdFXorficEQUDukDgsO4md52XLjzvvYRDfXOYCMHGNtAVeFX38FtHWgVKfTkpoabXY27%2B7OffSRPXoemOji17hATKZq%2FoGKCgVliD8WMMBP50kRRiu5eSj%2FQgbtm%2BQu8rFCTcycLpBS23lxW9giZXdNoGx9ilqmPvsmkve%2B1CHJGaa55voEvgTyCt%2Bd8p19Qs44YlLNy8uvkICzXHJhGoKA1PLpS7eFTl8xqNsyMjo%2F14%2B6kz0qypfZYLMwOmxHZwSLLFnc20QRK21EfmdAyOBMaYV85n75rqiCVNoG7DkHdL4p45nmahP38KAE8EN%2BcsBsKkOXDLppw377mJS4euQN3X2LGUMzRGBWU%2FNlCjudptaChab13nq1vxcv6JgT4FxF93fqDBZOLX9KnQ63RawCg1LizEo%2B3Y7AG7kYIp%2B5%2B7ktFuRKtzdhiP%2F7oCtW4%2FSfujvrvEbI6%2Fi5FCsRxuaMfp4aSxts7q95Fc7hyyLM2m814%2B%2FtD7mYAfWCt2sHvFw%2BvE44lzULN%2ByiUrMRnGwegk9tLSrnRwa3mcACB99G735KuCfbcSEbC0y9necVLKIU4Rms6VFJffFsdTMbPeJxhXMy7VWmhxcVjIgl5U%2F9tcvvb%2BABE8dd5plt%2F94AVqxCYMb6fwuwD6nbyChWT%2Bt0xstfMS2qkD3Qy59x1Br0S%2FFq3ONSOmo1hXfzxCedlbKu%2FvJf5wEVwTUazdSNN3%2Fov%2BFpTeYfO%22%2C%22swgRequest%22%3A%7B%22skuId%22%3A%2250cent_test%22%2C%22publicationId%22%3A%22gtech-demo.appspot.com%22%7D%2C%22environment%22%3A%22PRODUCTION%22%2C%22googleTransactionId%22%3A%22F8E6EF9E-3224-4074-A540-DF5601678E2F.swg%22%2C%22productType%22%3A%22SUBSCRIPTION%22%7D%7D';
 
-describes.realWin('PayClient', {}, (env) => {
+describes.realWin('PayClient', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -203,7 +203,7 @@ describes.realWin('PayClient', {}, (env) => {
       'paymentArgs': {'a': 1},
     });
     expect(payClientStubs.create).to.be.calledOnce.calledWith({
-      'environment': '$payEnvironment$',
+      'environment': 'TEST',
       'i': {
         'redirectKey': 'test_restore_key',
       },
@@ -219,7 +219,7 @@ describes.realWin('PayClient', {}, (env) => {
     });
   });
 
-  it('should force redirect mode', async function () {
+  it('should force redirect mode', async () => {
     await payClient.start(
       {
         'paymentArgs': {'a': 1},
@@ -272,18 +272,29 @@ describes.realWin('PayClient', {}, (env) => {
     expect(data).to.deep.equal(expectedData);
   });
 
-  it('should accept a cancel signal', async () => {
-    payClient.start({});
-    await expect(
-      withResult(Promise.reject({'statusCode': 'CANCELED'}))
-    ).to.be.rejectedWith(/AbortError/);
-  });
-
-  it('should propogate productType with cancel signal', async () => {
+  it('handles cancellation', async () => {
     payClient.start({});
     await expect(withResult(Promise.reject({'statusCode': 'CANCELED'})))
       .to.be.rejectedWith(/AbortError/)
       .and.eventually.have.property('productType');
+  });
+
+  it('handles cancellation in redirect experiment', async () => {
+    // Enable experiment.
+    win.location.hash = ENCODED_WA_RES_REDIRECT_HASH;
+    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
+    payClient = new PayClient(runtime);
+
+    // Simulate cancellation.
+    let responsePromise;
+    payClient.onResponse((res) => {
+      responsePromise = res;
+    });
+    responseHandler(Promise.reject({'statusCode': 'CANCELED'}));
+
+    await expect(responsePromise)
+      .to.be.rejectedWith(/AbortError/)
+      .and.eventually.have.property('productType').be.null;
   });
 
   it('should accept other errors', async () => {
@@ -342,10 +353,20 @@ describes.realWin('PayClient', {}, (env) => {
         },
       });
     });
+
+    it('sets Google transaction ID on PaymentsAsyncClient', () => {
+      payClientStubs.create.restore();
+      PaymentsAsyncClient.googleTransactionId_ = '';
+
+      payClient.start({});
+      expect(PaymentsAsyncClient.googleTransactionId_).to.equal(
+        GOOGLE_TRANSACTION_ID
+      );
+    });
   });
 });
 
-describes.sandboxed('RedirectVerifierHelper', {}, () => {
+describes.sandboxed('RedirectVerifierHelper', () => {
   const TEST_KEY = 'AQIDBAUGBwgJCgsMDQ4PEA==';
   const TEST_VERIFIER = 'QlJKRUNCVkhDeGhLRGh0TkVSNVFGQj4+';
 
@@ -409,11 +430,21 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
     expect(helper.restoreKey()).to.equal(TEST_KEY);
   });
 
-  it('should resolve verifier sync after prepare', () => {
-    return helper.prepare().then(() => {
-      expect(useVerifierSync()).to.equal(TEST_VERIFIER);
-      expect(helper.restoreKey()).to.equal(TEST_KEY);
+  it('should resolve verifier sync after prepare', async () => {
+    await helper.prepare();
+    expect(useVerifierSync()).to.equal(TEST_VERIFIER);
+    expect(helper.restoreKey()).to.equal(TEST_KEY);
+  });
+
+  it('handles localStorage throwing errors', async () => {
+    Object.defineProperty(win, 'localStorage', {
+      get() {
+        throw new Error();
+      },
     });
+    await helper.prepare();
+
+    expect(useVerifierSync()).to.be.null;
   });
 
   it('should tolerate storage failures', async () => {
@@ -427,9 +458,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate random values failures', async () => {
-    sandbox.stub(crypto, 'getRandomValues').callsFake(() => {
-      throw new Error('intentional');
-    });
+    sandbox.stub(crypto, 'getRandomValues').throws(new Error('intentional'));
 
     const verifier = await useVerifierPromise();
     expect(verifier).to.be.null;
@@ -437,9 +466,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate hashing failures', async () => {
-    sandbox
-      .stub(subtle, 'digest')
-      .callsFake(() => Promise.reject('intentional'));
+    sandbox.stub(subtle, 'digest').rejects('intentional');
 
     const verifier = await useVerifierPromise();
     expect(verifier).to.be.null;
@@ -447,9 +474,7 @@ describes.sandboxed('RedirectVerifierHelper', {}, () => {
   });
 
   it('should tolerate storage retrieval failures', () => {
-    sandbox.stub(localStorage, 'getItem').callsFake(() => {
-      throw new Error('intentional');
-    });
+    sandbox.stub(localStorage, 'getItem').throws(new Error('intentional'));
     expect(helper.restoreKey()).to.be.null;
   });
 

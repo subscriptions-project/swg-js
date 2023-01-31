@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const closureCompiler = require('@ampproject/google-closure-compiler');
 const fs = require('fs-extra');
 const gulp = require('gulp');
@@ -23,7 +23,6 @@ const os = require('os');
 const path = require('path');
 const pumpify = require('pumpify');
 const rename = require('gulp-rename');
-const replace = require('gulp-replace');
 const resolveConfig = require('./compile-config').resolveConfig;
 const sourcemaps = require('gulp-sourcemaps');
 const through = require('through2');
@@ -38,19 +37,19 @@ const MAX_PARALLEL_CLOSURE_INVOCATIONS = 4;
 // Compiles code with the closure compiler. This is intended only for
 // production use. During development we intent to continue using
 // babel, as it has much faster incremental compilation.
-exports.closureCompile = function (
+exports.closureCompile = (
   entryModuleFilename,
   outputDir,
   outputFilename,
   options
-) {
+) => {
   // Rate limit closure compilation to MAX_PARALLEL_CLOSURE_INVOCATIONS
   // concurrent processes.
-  return new Promise(function (resolve) {
+  return new Promise((resolve) => {
     function start() {
       inProgress++;
       compile(entryModuleFilename, outputDir, outputFilename, options).then(
-        function () {
+        () => {
           if (isCiBuild()) {
             // When printing simplified log in CI, use dot for each task.
             process.stdout.write('.');
@@ -59,7 +58,7 @@ exports.closureCompile = function (
           next();
           resolve();
         },
-        function (e) {
+        (e) => {
           console./*OK*/ error(red('Compilation error', e.message));
           process.exit(1);
         }
@@ -92,7 +91,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       entryModuleFilename = entryModuleFilenames;
       entryModuleFilenames = [entryModuleFilename];
     }
-    const checkTypes = options.checkTypes || argv.typecheck_only;
+    const checkTypes = options.checkTypes || args.typecheck_only;
     const intermediateFilename = entryModuleFilename
       .replace(/\//g, '_')
       .replace(/^\./, '');
@@ -114,6 +113,8 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       // Not sure what these files are, but they seem to duplicate code
       // one level below and confuse the compiler.
       '!node_modules/core-js/modules/library/**.js',
+      // Do not include stories.
+      '!**.stories.js',
       // Don't include tests.
       '!**-test.js',
       '!**_test.js',
@@ -124,15 +125,15 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     if (options.extraGlobs) {
       srcs.push.apply(srcs, options.extraGlobs);
     }
-    unneededFiles.forEach(function (fake) {
-      if (!fs.existsSync(fake)) {
+    for (const unneededFile of unneededFiles) {
+      if (!fs.existsSync(unneededFile)) {
         fs.writeFileSync(
-          fake,
+          unneededFile,
           '// Not needed in closure compiler\n' +
             'export function deadCode() {}'
         );
       }
-    });
+    }
 
     let externs = ['build-system/extern.js'];
     if (options.externs) {
@@ -175,7 +176,7 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
     compilerOptions.define.push('AMP_MODE=true');
 
     // For now do type check separately
-    if (argv.typecheck_only || checkTypes) {
+    if (args.typecheck_only || checkTypes) {
       // Don't modify compilation_level to a lower level since
       // it won't do strict type checking if its whitespace only.
       compilerOptions.define.push('TYPECHECK_ONLY=true');
@@ -189,11 +190,26 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       compilerOptions.conformance_configs =
         'build-system/conformance-config.textproto';
     }
-    if (argv.pseudoNames) {
+    if (args.pseudoNames) {
       compilerOptions.define.push('PSEUDO_NAMES=true');
     }
-    if (argv.fortesting) {
+    if (args.fortesting) {
       compilerOptions.define.push('FORTESTING=true');
+    }
+
+    /**
+     * Replacements.
+     *
+     * The format is <name>[=<val>], where <name> is the name of a @define variable and <val> is a boolean,
+     * number, or a single-quoted string that contains no single quotes. If [=<val>] is omitted, the variable is marked true
+     */
+    const replacements = resolveConfig();
+    for (const k in replacements) {
+      const replacement =
+        typeof replacements[k] === 'string'
+          ? `'${replacements[k]}'`
+          : replacements[k];
+      compilerOptions.define.push(`${k}=${replacement}`);
     }
 
     if (compilerOptions.define.length == 0) {
@@ -206,28 +222,20 @@ function compile(entryModuleFilenames, outputDir, outputFilename, options) {
       .pipe(makeSourcemapsRelative(closureCompiler.gulp()(compilerOptions)))
       .pipe(rename(intermediateFilename))
       .pipe(gulp.dest('build/cc/'))
-      .on('error', function (err) {
+      .on('error', (err) => {
         console./*OK*/ error(red('Error compiling', entryModuleFilenames));
         console./*OK*/ error(red(err.message));
         process.exit(1);
       });
 
     // If we're only doing type checking, no need to output the files.
-    if (!argv.typecheck_only) {
+    if (!args.typecheck_only) {
       stream = stream.pipe(rename(outputFilename)).pipe(
         sourcemaps.write('.', {
           sourceRoot: `https://raw.githubusercontent.com/subscriptions-project/swg-js/${internalRuntimeVersion}/`,
           includeContent: false,
         })
       );
-
-      // Replacements.
-      const replacements = resolveConfig();
-      for (const k in replacements) {
-        stream = stream.pipe(
-          replace(new RegExp('\\$' + k + '\\$', 'g'), replacements[k])
-        );
-      }
 
       // Appends a newline terminator to .map files
       stream = stream.pipe(

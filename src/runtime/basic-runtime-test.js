@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as runtime from './runtime';
 import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
@@ -51,7 +52,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 
-describes.realWin('installBasicRuntime', {}, (env) => {
+describes.realWin('installBasicRuntime', (env) => {
   let win;
 
   beforeEach(() => {
@@ -65,24 +66,20 @@ describes.realWin('installBasicRuntime', {}, (env) => {
   it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
-    dep(function () {
+    dep(() => {
       progress += '1';
     });
-    dep(function () {
+    dep(() => {
       progress += '2';
     });
     expect(progress).to.equal('');
 
     // Install runtime and schedule few more dependencies.
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
-    dep(function () {
+    installBasicRuntime(win);
+    dep(() => {
       progress += '3';
     });
-    dep(function () {
+    dep(() => {
       progress += '4';
     });
 
@@ -91,10 +88,10 @@ describes.realWin('installBasicRuntime', {}, (env) => {
     expect(progress).to.equal('1234');
 
     // Few more.
-    dep(function () {
+    dep(() => {
       progress += '5';
     });
-    dep(function () {
+    dep(() => {
       progress += '6';
     });
     await getBasicRuntime().whenReady();
@@ -102,11 +99,7 @@ describes.realWin('installBasicRuntime', {}, (env) => {
   });
 
   it('should reuse the same runtime on multiple runs', () => {
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
     const runtime1 = getBasicRuntime();
     installBasicRuntime(win);
     expect(getBasicRuntime()).to.equal(runtime1);
@@ -126,11 +119,7 @@ describes.realWin('installBasicRuntime', {}, (env) => {
   });
 
   it('handles recursive calls after installation', async () => {
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
     let progress = '';
     dep(() => {
       progress += '1';
@@ -159,11 +148,7 @@ describes.realWin('installBasicRuntime', {}, (env) => {
         });
       });
     });
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
 
     await getBasicRuntime().whenReady();
     await getBasicRuntime().whenReady();
@@ -186,58 +171,18 @@ describes.realWin('installBasicRuntime', {}, (env) => {
       expect(basicSubscriptions).to.have.property(name);
     }
   });
-
-  describe('default onEntitlementsResponse', () => {
-    let entitlements;
-    let configuredCallback;
-
-    beforeEach(() => {
-      sandbox
-        .stub(BasicRuntime.prototype, 'setOnEntitlementsResponse')
-        .callsFake((callback) => {
-          configuredCallback = callback;
-        });
-      entitlements = {
-        consume: sandbox.stub(),
-      };
-    });
-
-    it('should consume if entitlement enables with metering', async () => {
-      entitlements.enablesThisWithGoogleMetering = sandbox.stub().returns(true);
-
-      installBasicRuntime(win);
-      const entitlementsResponse = Promise.resolve(entitlements);
-      configuredCallback(entitlementsResponse);
-      await entitlementsResponse;
-
-      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
-      expect(entitlements.consume).to.be.calledOnce;
-    });
-
-    it('should not consume if entitlement is not for metering', async () => {
-      entitlements.enablesThisWithGoogleMetering = sandbox
-        .stub()
-        .returns(false);
-
-      installBasicRuntime(win);
-      const entitlementsResponse = Promise.resolve(entitlements);
-      configuredCallback(entitlementsResponse);
-      await entitlementsResponse;
-
-      expect(entitlements.enablesThisWithGoogleMetering).to.be.calledOnce;
-      expect(entitlements.consume).to.not.be.called;
-    });
-  });
 });
 
-describes.realWin('BasicRuntime', {}, (env) => {
+describes.realWin('BasicRuntime', (env) => {
   let win;
   let doc;
   let basicRuntime;
+  let configuredRuntimeSpy;
 
   beforeEach(() => {
     win = env.win;
     doc = new GlobalDoc(win);
+    configuredRuntimeSpy = sandbox.spy(runtime, 'ConfiguredRuntime');
     basicRuntime = new BasicRuntime(win);
     setExperimentsStringForTesting('');
   });
@@ -274,6 +219,12 @@ describes.realWin('BasicRuntime', {}, (env) => {
       // PageConfigResolver should have been created and attempted to resolve
       // the PageConfig.
       expect(resolveStub).to.be.calledOnce;
+
+      // Default metering handler in entitlements-manager should be enabled
+      // for BasicRuntime.
+      expect(
+        configuredRuntimeSpy.getCall(0).args[2].enableDefaultMeteringHandler
+      ).to.be.true;
     });
 
     it('should try to check the page config resolver after initial configuration', async () => {
@@ -314,6 +265,34 @@ describes.realWin('BasicRuntime', {}, (env) => {
         theme: ClientTheme.DARK,
       });
     });
+
+    it('should allow caller to disable default metering handler', async () => {
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        disableDefaultMeteringHandler: true,
+      });
+
+      await basicRuntime.configured_(true);
+
+      expect(
+        configuredRuntimeSpy.getCall(0).args[2].enableDefaultMeteringHandler
+      ).to.be.false;
+    });
+
+    it('should set publisherProvidedId after initialization', async () => {
+      basicRuntime.init({
+        publisherProvidedId: 'publisherProvidedId',
+      });
+
+      await basicRuntime.configured_(true);
+
+      expect(basicRuntime.config_.publisherProvidedId).to.equal(
+        'publisherProvidedId'
+      );
+    });
   });
 
   describe('configured', () => {
@@ -350,7 +329,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnEntitlementsResponse" to ConfiguredBasicRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredBasicRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -360,7 +339,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnEntitlementsResponse" to the shared ConfiguredRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredClassicRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -370,7 +349,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnPaymentResponse" to ConfiguredBasicRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredBasicRuntimeMock
         .expects('setOnPaymentResponse')
         .withExactArgs(callback)
@@ -380,7 +359,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnPaymentResponse" to ConfiguredRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredClassicRuntimeMock
         .expects('setOnPaymentResponse')
         .withExactArgs(callback)
@@ -419,7 +398,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
         'CHECK_ENTITLEMENTS',
         'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_&publicationId=pub1',
         '_blank',
-        {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
+        {publicationId: 'pub1', _client: 'SwG 0.0.0'},
         {'width': 600, 'height': 600}
       );
     });
@@ -459,7 +438,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
         port,
         sandbox.match.any,
         true,
-        true
+        false
       );
       expect(data['jwt']).to.equal('abc');
       expect(data['usertoken']).to.equal('xyz');
@@ -495,7 +474,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(true))
+        .resolves(true)
         .once();
 
       await basicRuntime.setupButtons();
@@ -529,7 +508,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(false))
+        .resolves(false)
         .once();
 
       await basicRuntime.setupButtons();
@@ -565,7 +544,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(true))
+        .resolves(true)
         .once();
 
       await basicRuntime.setupButtons();
@@ -594,13 +573,14 @@ describes.realWin('BasicRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('BasicConfiguredRuntime', {}, (env) => {
+describes.realWin('BasicConfiguredRuntime', (env) => {
   let win;
   let pageConfig;
 
   beforeEach(() => {
     win = Object.assign({}, env.win, {
       ga: () => {},
+      setTimeout: (callback) => callback(),
     });
     pageConfig = new PageConfig('pub1:label1', true);
   });
@@ -705,12 +685,8 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     it('should configure subscription auto prompts to show offers for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .returns(Promise.resolve(entitlements));
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .returns(Promise.resolve({}));
+      entitlementsManagerMock.expects('getEntitlements').resolves(entitlements);
+      clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showOffers')
         .withExactArgs({
@@ -726,12 +702,8 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .returns(Promise.resolve(entitlements));
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .returns(Promise.resolve({}));
+      entitlementsManagerMock.expects('getEntitlements').resolves(entitlements);
+      clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
         .withExactArgs({
@@ -941,14 +913,48 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       audienceActionFlowMock.verify();
     });
 
-    it('should pass getEntitlemnts to fetchClientConfig if useArticleEndpoint is enabled', () => {
+    it('should handle an empty EntitlementsResponse with no active flow', async () => {
+      const port = new ActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      let toast;
+      const toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
+
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+
+      expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
+      expect(toast.src_).to.contain('flavor=custom');
+      expect(toast.src_).to.contain(
+        `customText=${encodeURIComponent('No membership found')}`
+      );
+    });
+
+    it('passes getEntitlements to fetchClientConfig if useArticleEndpoint is enabled', async () => {
       setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT, true);
-      const entitlements = new Entitlements('foo.service');
+      const entitlements = new Entitlements(
+        'foo.service',
+        'RaW',
+        [],
+        null,
+        null
+      );
       const entitlementsStub = sandbox.stub(
         EntitlementsManager.prototype,
         'getEntitlements'
       );
-      entitlementsStub.returns(Promise.resolve(entitlements));
+      entitlementsStub.resolves(entitlements);
       const clientConfigManagerStub = sandbox.stub(
         ClientConfigManager.prototype,
         'fetchClientConfig'
@@ -959,7 +965,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       expect(isExperimentOn(win, ExperimentFlags.USE_ARTICLE_ENDPOINT)).to.be
         .true;
       expect(clientConfigManagerStub).to.be.calledOnce;
-      expect(clientConfigManagerStub.args[0][0]).to.eventually.be.equal(
+      expect(await clientConfigManagerStub.args[0][0]).to.deep.equal(
         entitlements
       );
     });
@@ -977,34 +983,55 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         .be.false;
     });
 
-    it('should enable METERED_BY_GOOGLE on the entitlements manager', () => {
+    it('should enable METERED_BY_GOOGLE on the entitlements manager if the page is locked', () => {
       const entitlementsStub = sandbox.stub(
         EntitlementsManager.prototype,
         'enableMeteredByGoogle'
       );
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
 
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
 
       expect(entitlementsStub).to.be.calledOnce;
     });
 
-    it('should set onNativeSubscribeRequest to handle clicks on the Metering Toast "Subscribe" button', async () => {
+    it('should not enable METERED_BY_GOOGLE on the entitlements manager if the page is unlocked', () => {
+      const entitlementsStub = sandbox.stub(
+        EntitlementsManager.prototype,
+        'enableMeteredByGoogle'
+      );
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+
+      configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
+
+      expect(entitlementsStub).to.not.be.called;
+    });
+
+    it('should set onOffersFlowRequest to handle clicks on the Metering Toast "Subscribe" button', async () => {
       expect(configuredBasicRuntime.configuredClassicRuntime()).to.exist;
       expect(
         configuredBasicRuntime
           .configuredClassicRuntime()
           .callbacks()
-          .hasSubscribeRequestCallback()
+          .hasOffersFlowRequestCallback()
       ).to.be.true;
     });
 
-    it('should call showOffers when subscribe request is triggered', async () => {
-      const showOffersStub = sandbox.stub(
-        configuredBasicRuntime.configuredClassicRuntime(),
-        'showOffers'
+    it('should dismiss the active dialog and call showOffers when offers flow request is triggered', async () => {
+      let offersOptions = null;
+      const showOffersStub = sandbox
+        .stub(configuredBasicRuntime.configuredClassicRuntime(), 'showOffers')
+        .callsFake((options) => {
+          offersOptions = options;
+        });
+      const completeAllStub = sandbox.stub(
+        configuredBasicRuntime.dialogManager(),
+        'completeAll'
       );
-      await configuredBasicRuntime.callbacks().triggerSubscribeRequest();
+      await configuredBasicRuntime.callbacks().triggerOffersFlowRequest();
       expect(showOffersStub).to.be.calledOnce;
+      expect(completeAllStub).to.be.calledOnce;
+      expect(offersOptions.isClosable).to.equal(true);
     });
   });
 });

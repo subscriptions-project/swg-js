@@ -22,15 +22,18 @@
 import {
   GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
+  GaaMetering,
   GaaMeteringRegwall,
   GaaSignInWithGoogleButton,
-} from './utils/gaa';
+} from './runtime/extended-access';
+import {INTERNAL_RUNTIME_VERSION} from './constants';
 import {log} from './utils/log';
 
-log('Subscriptions Showcase Version: $internalRuntimeVersion$');
+log(`Subscriptions Showcase Version: ${INTERNAL_RUNTIME_VERSION}`);
 
 // Declare global variables.
 self.GaaGoogleSignInButton = GaaGoogleSignInButton;
 self.GaaGoogle3pSignInButton = GaaGoogle3pSignInButton;
 self.GaaSignInWithGoogleButton = GaaSignInWithGoogleButton;
 self.GaaMeteringRegwall = GaaMeteringRegwall;
+self.GaaMetering = GaaMetering;

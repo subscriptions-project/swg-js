@@ -4,9 +4,7 @@ on: [push, pull_request]
 
 jobs:
   check:
-    # Canonical will support this LTS until April 2025.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -14,18 +12,16 @@ jobs:
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn
+        run: yarn --ignore-optional
 
       - name: Check
         run: gulp check
 
   e2e:
-    # Canonical will support this LTS until April 2025.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -33,18 +29,19 @@ jobs:
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
 
       - name: Install dependencies
         run: yarn
+
+      - name: Compile JS with Closure
+        run: gulp dist
 
       - name: E2E Tests
-        run: gulp e2e --retries=3
+        run: gulp e2e
 
-  unit:
-    # Canonical will support this LTS until April 2025.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-20.04
+  e2e-vite:
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -52,14 +49,34 @@ jobs:
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
 
       - name: Install dependencies
         run: yarn
+
+      - name: Compile JS with Vite
+        run: npx vite build -- --target=classic
+
+      - name: E2E Tests
+        run: gulp e2e
+
+  unit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install the right version of Nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: yarn --ignore-optional
 
       - name: Unit Tests
         run: gulp unit --headless --coverage
 
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
         with:
-          file: ./test/coverage/lcov-unit.info
+          files: ./test/coverage/lcov-unit.info

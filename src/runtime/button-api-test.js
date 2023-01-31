@@ -27,13 +27,13 @@ function expectOpenIframe(activitiesMock, port, args) {
     .expects('openIframe')
     .withExactArgs(
       sandbox.match((arg) => arg.tagName === 'IFRAME'),
-      '$frontend$/swg/_/ui/v1/smartboxiframe?_=_',
+      'https://news.google.com/swg/_/ui/v1/smartboxiframe?_=_',
       args
     )
-    .returns(Promise.resolve(port));
+    .resolves(port);
 }
 
-describes.realWin('ButtonApi', {}, (env) => {
+describes.realWin('ButtonApi', (env) => {
   let win;
   let doc;
   let runtime;
@@ -71,23 +71,29 @@ describes.realWin('ButtonApi', {}, (env) => {
   describe('init', () => {
     it('should inject stylesheet', () => {
       buttonApi.init();
-      const links = doc.querySelectorAll(
-        'link[href="$assets$/swg-button.css"]'
-      );
+      const links = doc.querySelectorAll('link[href="/assets/swg-button.css"]');
       expect(links).to.have.length(1);
       const link = links[0];
       expect(link.getAttribute('rel')).to.equal('stylesheet');
       expect(link.getAttribute('type')).to.equal('text/css');
-      expect(link.getAttribute('href')).to.equal('$assets$/swg-button.css');
+      expect(link.getAttribute('href')).to.equal('/assets/swg-button.css');
     });
 
     it('should inject stylesheet only once', () => {
       new ButtonApi(resolveDoc(doc), Promise.resolve(runtime)).init();
       buttonApi.init();
-      const links = doc.querySelectorAll(
-        'link[href="$assets$/swg-button.css"]'
-      );
+      const links = doc.querySelectorAll('link[href="/assets/swg-button.css"]');
       expect(links).to.have.length(1);
+    });
+
+    it('bails gracefully if document is headless', () => {
+      const headlessDoc = {...resolveDoc(doc), getHead: () => null};
+      const buttonApi = new ButtonApi(headlessDoc, Promise.resolve(runtime));
+
+      buttonApi.init();
+      const links = doc.querySelectorAll('link[href="/assets/swg-button.css"]');
+
+      expect(links).to.have.length(0);
     });
   });
 

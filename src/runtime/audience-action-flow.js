@@ -27,11 +27,16 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
+  AnalyticsEvent,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
+  EventOriginator,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {Constants} from '../utils/constants';
+import {Constants, StorageKeys} from '../utils/constants';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
@@ -42,7 +47,7 @@ import {parseUrl} from '../utils/url';
 /**
  * @typedef {{
  *  action: (string|undefined),
- *  fallback: (function()|undefined),
+ *  onCancel: (function()|undefined),
  *  autoPromptType: (AutoPromptType|undefined)
  * }}
  */
@@ -51,6 +56,7 @@ export let AudienceActionParams;
 const actionToIframeMapping = {
   'TYPE_REGISTRATION_WALL': '/regwalliframe',
   'TYPE_NEWSLETTER_SIGNUP': '/newsletteriframe',
+  'TYPE_REWARDED_SURVEY': '/surveyiframe',
 };
 
 const autopromptTypeToProductTypeMapping = {
@@ -93,25 +99,25 @@ export class AudienceActionFlow {
     /** @private @const {?./client-config-manager.ClientConfigManager} */
     this.clientConfigManager_ = deps.clientConfigManager();
 
-    /** @private @const {!Promise<?ActivityIframeView>} */
-    this.activityIframeViewPromise_ = deps
-      .storage()
-      .get(Constants.USER_TOKEN, true)
-      .then((token) => {
-        return new ActivityIframeView(
-          deps.win(),
-          deps.activities(),
-          this.getUrl_(deps.pageConfig(), deps.win(), token),
-          feArgs({
-            'supportsEventManager': true,
-            'productType': this.productType_,
-          }),
-          /* shouldFadeBody */ true
-        );
-      });
+    /** @private @const {!./storage.Storage} */
+    this.storage_ = deps.storage();
 
-    /** @private {?ActivityIframeView} */
-    this.activityIframeView_ = null;
+    /** @private {!ActivityIframeView} */
+    this.activityIframeView_ = new ActivityIframeView(
+      deps.win(),
+      deps.activities(),
+      feUrl(actionToIframeMapping[this.params_.action], {
+        'origin': parseUrl(deps.win().location.href).origin,
+        'hl': this.clientConfigManager_.getLanguage(),
+        'isClosable': !deps.pageConfig().isLocked(),
+      }),
+      feArgs({
+        'supportsEventManager': true,
+        'productType': this.productType_,
+        'windowHeight': deps.win()./* OK */ innerHeight,
+      }),
+      /* shouldFadeBody */ true
+    );
   }
 
   /**
@@ -120,58 +126,39 @@ export class AudienceActionFlow {
    * @return {!Promise}
    */
   start() {
-    return this.activityIframeViewPromise_.then((activityIframeView) => {
-      if (!activityIframeView) {
-        return Promise.resolve();
+    this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
+      this.handleCompleteAudienceActionResponse_(response)
+    );
+
+    this.activityIframeView_.on(SurveyDataTransferRequest, (request) =>
+      this.handleSurveyDataTransferRequest_(request)
+    );
+
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
+    );
+
+    const {onCancel} = this.params_;
+    if (onCancel) {
+      this.activityIframeView_.onCancel(onCancel);
+    }
+
+    return this.dialogManager_.openView(
+      this.activityIframeView_,
+      /* hidden */ false,
+      /* dialogConfig */ {
+        shouldDisableBodyScrolling: true,
       }
-
-      activityIframeView.on(CompleteAudienceActionResponse, (response) =>
-        this.handleCompleteAudienceActionResponse_(response)
-      );
-
-      activityIframeView.on(
-        AlreadySubscribedResponse,
-        this.handleLinkRequest_.bind(this)
-      );
-
-      const {fallback} = this.params_;
-      if (fallback) {
-        /**
-         * For a subscription publication, we need to show
-         * what would have been the original prompt if the
-         * user indicated they do not want to complete an action.
-         */
-        activityIframeView.onCancel(fallback);
-      }
-
-      this.activityIframeView_ = activityIframeView;
-      return this.dialogManager_.openView(activityIframeView);
-    });
-  }
-
-  /**
-   * Builds a URL to access the appropriate iframe path
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @param {!Window} win
-   * @param {?string} userToken
-   * @private
-   * @return {string}
-   */
-  getUrl_(pageConfig, win, userToken) {
-    const path = actionToIframeMapping[this.params_.action];
-
-    return feUrl(path, {
-      'publicationId': pageConfig.getPublicationId(),
-      'origin': parseUrl(win.location.href).origin,
-      'sut': userToken ? userToken : '',
-    });
+    );
   }
 
   /**
    * On a successful response from the dialog, we should:
    * 1) Store the updated user token
    * 2) Clear existing entitlements from the page
-   * 3) Re-fetch entitlements which may potentially provide access to the page
+   * 3) Update READ_TIME in local storage to indicate that entitlements may have changed recently
+   * 4) Re-fetch entitlements which may potentially provide access to the page
    * @param {CompleteAudienceActionResponse} response
    * @private
    */
@@ -184,9 +171,15 @@ export class AudienceActionFlow {
     }
     if (response.getActionCompleted()) {
       this.showSignedInToast_(response.getUserEmail() ?? '');
-    } else {
+    } else if (response.getAlreadyCompleted()) {
       this.showAlreadyOptedInToast_();
+    } else {
+      this.showFailedOptedInToast_();
     }
+    const now = Date.now().toString();
+    this.deps_
+      .storage()
+      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
   }
 
@@ -197,16 +190,22 @@ export class AudienceActionFlow {
   showSignedInToast_(userEmail) {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
-    if (this.params_.action === 'TYPE_REGISTRATION_WALL') {
-      customText = msg(
-        SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED_LANG_MAP,
-        lang
-      ).replace(placeholderPatternForEmail, userEmail);
-    } else if (this.params_.action === 'TYPE_NEWSLETTER_SIGNUP') {
-      customText = msg(
-        SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_LANG_MAP,
-        lang
-      ).replace(placeholderPatternForEmail, userEmail);
+    switch (this.params_.action) {
+      case 'TYPE_REGISTRATION_WALL':
+        customText = msg(
+          SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED_LANG_MAP,
+          lang
+        ).replace(placeholderPatternForEmail, userEmail);
+        break;
+      case 'TYPE_NEWSLETTER_SIGNUP':
+        customText = msg(
+          SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_LANG_MAP,
+          lang
+        ).replace(placeholderPatternForEmail, userEmail);
+        break;
+      default:
+        // Do not show toast for other types.
+        return;
     }
     new Toast(
       this.deps_,
@@ -219,28 +218,61 @@ export class AudienceActionFlow {
 
   /** @private */
   showAlreadyOptedInToast_() {
-    if (this.params_.action === 'TYPE_REGISTRATION_WALL') {
-      // Show 'Signed in as abc@gmail.com' toast on the pub page.
-      new Toast(
-        this.deps_,
-        feUrl('/toastiframe', {
+    let urlParams;
+    switch (this.params_.action) {
+      case 'TYPE_REGISTRATION_WALL':
+        // Show 'Signed in as abc@gmail.com' toast on the pub page.
+        urlParams = {
           flavor: 'basic',
-        })
-      ).open();
-    } else if (this.params_.action === 'TYPE_NEWSLETTER_SIGNUP') {
-      const lang = this.clientConfigManager_.getLanguage();
-      const customText = msg(
-        SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
-        lang
-      );
-      new Toast(
-        this.deps_,
-        feUrl('/toastiframe', {
+        };
+        break;
+      case 'TYPE_NEWSLETTER_SIGNUP':
+        const lang = this.clientConfigManager_.getLanguage();
+        const customText = msg(
+          SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
+          lang
+        );
+        urlParams = {
           flavor: 'custom',
           customText,
-        })
-      ).open();
+        };
+        break;
+      default:
+        // Do not show toast for other types.
+        return;
     }
+    new Toast(this.deps_, feUrl('/toastiframe', urlParams)).open();
+  }
+
+  /** @private */
+  showFailedOptedInToast_() {
+    const lang = this.clientConfigManager_.getLanguage();
+    let customText = '';
+    switch (this.params_.action) {
+      case 'TYPE_REGISTRATION_WALL':
+        customText = msg(
+          SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED_LANG_MAP,
+          lang
+        );
+        break;
+      case 'TYPE_NEWSLETTER_SIGNUP':
+        customText = msg(
+          SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED_LANG_MAP,
+          lang
+        );
+        break;
+      default:
+        // Do not show toast for other types.
+        return;
+    }
+
+    new Toast(
+      this.deps_,
+      feUrl('/toastiframe', {
+        flavor: 'custom',
+        customText,
+      })
+    ).open();
   }
 
   /**
@@ -254,12 +286,75 @@ export class AudienceActionFlow {
   }
 
   /**
+   * @param {SurveyDataTransferRequest} request
+   * @private
+   */
+  // eslint-disable-next-line no-unused-vars
+  handleSurveyDataTransferRequest_(request) {
+    // @TODO(justinchou): execute callback with setOnInterventionComplete
+    // then check for success
+    const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
+    if (gaLoggingSuccess) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+          /* isFromUserAction */ true
+        );
+    } else {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+          /* isFromUserAction */ false
+        );
+      this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
+    }
+    const surveyDataTransferResponse = new SurveyDataTransferResponse();
+    surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
+    this.activityIframeView_.execute(surveyDataTransferResponse);
+  }
+
+  /**
+   * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
+   * for whether or not logging was successful.
+   * @param {SurveyDataTransferRequest} request
+   * @return {boolean}
+   * @private
+   */
+  logSurveyDataToGoogleAnalytics(request) {
+    if (
+      !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
+      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
+    ) {
+      return false;
+    }
+    request.getSurveyQuestionsList().map((question) => {
+      const answer = question.getSurveyAnswersList()[0];
+      const event = {
+        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      };
+      const eventParams = {
+        googleAnalyticsParameters: {
+          'event_category': question.getQuestionCategory() || '',
+          'survey_question': question.getQuestionText() || '',
+          'survey_answer_category': answer.getAnswerCategory() || '',
+          'event_label': answer.getAnswerText() || '',
+        },
+      };
+      this.deps_.eventManager().logEvent(event, eventParams);
+    });
+    return true;
+  }
+
+  /**
    * Shows the toast of 'no entitlement found' on activity iFrame view.
    * @public
    */
   showNoEntitlementFoundToast() {
-    if (this.activityIframeView_) {
-      this.activityIframeView_.execute(new EntitlementsResponse());
-    }
+    this.activityIframeView_.execute(new EntitlementsResponse());
   }
 }

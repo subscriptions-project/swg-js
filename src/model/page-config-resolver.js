@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import {Doc, resolveDoc} from './doc';
+import {Doc as DocInterface, resolveDoc} from './doc';
 import {PageConfig} from './page-config';
 import {debugLog} from '../utils/log';
 import {hasNextNodeInDocumentOrder} from '../utils/dom';
 import {tryParseJson} from '../utils/json';
-import {user} from '../utils/error-logger';
 
 const ALREADY_SEEN = '__SWG-SEEN__';
 const CONTROL_FLAG = 'subscriptions-control';
@@ -44,10 +43,10 @@ const RE_ALLOWED_TYPES = new RegExp(ALLOWED_TYPES.join('|'));
  */
 export class PageConfigResolver {
   /**
-   * @param {!Window|!Document|!Doc} winOrDoc
+   * @param {!Window|!Document|!DocInterface} winOrDoc
    */
   constructor(winOrDoc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(winOrDoc);
 
     /** @private {?function((!PageConfig|!Promise))} */
@@ -84,22 +83,17 @@ export class PageConfigResolver {
     if (!this.configResolver_) {
       return null;
     }
-    let config = this.metaParser_.check();
-    if (!config) {
-      config = this.ldParser_.check();
-    }
-    if (!config) {
-      config = this.microdataParser_.check();
-    }
+    const config =
+      this.metaParser_.check() ||
+      this.ldParser_.check() ||
+      this.microdataParser_.check();
     if (config) {
       // Product ID has been found: initialize the rest of the config.
       this.configResolver_(config);
       this.configResolver_ = null;
     } else if (this.doc_.isReady()) {
       this.configResolver_(
-        Promise.reject(
-          user().createError('No config could be discovered in the page')
-        )
+        Promise.reject('No config could be discovered in the page')
       );
       this.configResolver_ = null;
     }
@@ -126,14 +120,11 @@ class TypeChecker {
 
   /**
    * Checks space delimited list of types
-   * @param {?string} itemtype
+   * @param {string} itemtype
    * @param {Array<string>} expectedTypes
    * @return {boolean}
    */
   checkString(itemtype, expectedTypes) {
-    if (!itemtype) {
-      return false;
-    }
     return this.checkArray(itemtype.split(/\s+/), expectedTypes);
   }
 
@@ -164,10 +155,10 @@ class TypeChecker {
 
 class MetaParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
   }
 
@@ -204,10 +195,10 @@ class MetaParser {
 
 class JsonLdParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
     /** @private @const @function */
     this.checkType_ = new TypeChecker();
@@ -306,26 +297,25 @@ class JsonLdParser {
 
   /**
    * @param {*} value
-   * @param {boolean} def
+   * @param {boolean} defaultValue
    * @return {boolean}
    */
-  bool_(value, def) {
-    if (value == null || value === '') {
-      return def;
-    }
-    if (typeof value == 'boolean') {
+  bool_(value, defaultValue) {
+    if (typeof value === 'boolean') {
       return value;
     }
-    if (typeof value == 'string') {
+
+    if (typeof value === 'string') {
       const lowercase = value.toLowerCase();
-      if (lowercase == 'false') {
+      if (lowercase === 'false') {
         return false;
       }
-      if (lowercase == 'true') {
+      if (lowercase === 'true') {
         return true;
       }
     }
-    return def;
+
+    return defaultValue;
   }
 
   /**
@@ -367,10 +357,10 @@ class JsonLdParser {
 
 class MicrodataParser {
   /**
-   * @param {!Doc} doc
+   * @param {!DocInterface} doc
    */
   constructor(doc) {
-    /** @private @const {!Doc} */
+    /** @private @const {!DocInterface} */
     this.doc_ = doc;
     /** @private {?boolean} */
     this.access_ = null;
@@ -427,7 +417,11 @@ class MicrodataParser {
     ) {
       node[alreadySeen] = true;
       // document nodes don't have hasAttribute
-      if (node.hasAttribute && node.hasAttribute('itemscope')) {
+      if (
+        node.hasAttribute &&
+        node.hasAttribute('itemscope') &&
+        node.hasAttribute('itemtype')
+      ) {
         /**{?string} */
         const type = node.getAttribute('itemtype');
         return this.checkType_.checkString(type, ALLOWED_TYPES);
@@ -486,11 +480,6 @@ class MicrodataParser {
    * @return {?PageConfig} PageConfig found
    */
   tryExtractConfig_() {
-    let config = this.getPageConfig_();
-    if (config) {
-      return config;
-    }
-
     // Grab all the nodes with an itemtype and filter for our allowed types
     const nodeList = Array.prototype.slice
       .call(this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]'))
@@ -501,17 +490,22 @@ class MicrodataParser {
         )
       );
 
-    for (let i = 0; nodeList[i] && config == null; i++) {
-      const element = nodeList[i];
+    for (const element of nodeList) {
       if (this.access_ == null) {
         this.access_ = this.discoverAccess_(element);
       }
+
       if (!this.productId_) {
         this.productId_ = this.discoverProductId_(element);
       }
-      config = this.getPageConfig_();
+
+      const config = this.getPageConfig_();
+      if (config) {
+        return config;
+      }
     }
-    return config;
+
+    return null;
   }
 
   /**
@@ -560,9 +554,4 @@ function getMetaTag(rootNode, name) {
     return el.getAttribute('content');
   }
   return null;
-}
-
-/** @package Visible for testing only. */
-export function getDocClassForTesting() {
-  return Doc;
 }

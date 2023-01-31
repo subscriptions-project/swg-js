@@ -202,7 +202,7 @@ function isTestFile(file) {
 
 function stripComments(contents) {
   // Multi-line comments
-  contents = contents.replace(/\/\*(?!.*\*\/)(.|\n)*?\*\//g, function (match) {
+  contents = contents.replace(/\/\*(?!.*\*\/)(.|\n)*?\*\//g, (match) => {
     // Preserve the newlines
     const newlines = [];
     for (let i = 0; i < match.length; i++) {
@@ -243,7 +243,7 @@ function matchTerms(file, terms) {
   const contents = stripComments(file.contents.toString());
   const relative = normalizeRelativePath(file.relative);
   return Object.keys(terms)
-    .map(function (term) {
+    .map((term) => {
       let fix;
       const allowlist = terms[term].allowlist;
       const checkInTestFolder = terms[term].checkInTestFolder;
@@ -306,9 +306,7 @@ function matchTerms(file, terms) {
 
       return hasTerm;
     })
-    .some(function (hasAnyTerm) {
-      return hasAnyTerm;
-    });
+    .some((hasAnyTerm) => hasAnyTerm);
 }
 
 /**
@@ -342,7 +340,7 @@ function hasAnyTerms(file) {
 function isMissingTerms(file) {
   const contents = file.contents.toString();
   return Object.keys(requiredTerms)
-    .map(function (term) {
+    .map((term) => {
       const filter = requiredTerms[term];
       if (!filter.test(file.path)) {
         return false;
@@ -363,9 +361,7 @@ function isMissingTerms(file) {
       }
       return false;
     })
-    .some(function (hasMissingTerm) {
-      return hasMissingTerm;
-    });
+    .some((hasMissingTerm) => hasMissingTerm);
 }
 
 /**
@@ -378,13 +374,13 @@ function checkRules() {
   return gulp
     .src(srcGlobs)
     .pipe(
-      through2.obj(function (file, enc, cb) {
+      through2.obj((file, enc, cb) => {
         forbiddenFound = hasAnyTerms(file) || forbiddenFound;
         missingRequirements = isMissingTerms(file) || missingRequirements;
         cb();
       })
     )
-    .on('end', function () {
+    .on('end', () => {
       if (forbiddenFound) {
         log(
           blue(

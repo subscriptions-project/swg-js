@@ -16,7 +16,7 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const config = require('../config');
 const eslint = require('../../third_party/gulp-eslint');
 const eslintIfFixed = require('gulp-eslint-if-fixed');
@@ -30,7 +30,7 @@ const {gitDiffNameOnlyMain} = require('../git');
 const {green, yellow, cyan, red} = require('ansi-colors');
 const {isCiBuild} = require('../ci');
 
-const isWatching = argv.watch || argv.w || false;
+const isWatching = args.watch || args.w || false;
 const options = {
   fix: false,
 };
@@ -76,17 +76,21 @@ function runLinter(filePath, stream, options) {
   if (!isCiBuild()) {
     log(green('Starting linter...'));
   }
+
+  // Load custom rules.
+  options.rulePaths = ['build-system/eslint-rules'];
+
   const fixedFiles = {};
   return stream
     .pipe(eslint(options))
     .pipe(
-      eslint.formatEach(function (msg) {
+      eslint.formatEach((msg) => {
         logOnSameLine(msg.trim() + '\n');
       })
     )
     .pipe(eslintIfFixed(filePath))
     .pipe(
-      eslint.result(function (result) {
+      eslint.result((result) => {
         if (!isCiBuild()) {
           logOnSameLine(green('Linted: ') + result.filePath);
         }
@@ -102,7 +106,7 @@ function runLinter(filePath, stream, options) {
       })
     )
     .pipe(
-      eslint.results(function (results) {
+      eslint.results((results) => {
         if (results.errorCount == 0 && results.warningCount == 0) {
           if (!isCiBuild()) {
             logOnSameLine(green('SUCCESS: ') + 'No linter warnings or errors.');
@@ -144,9 +148,9 @@ function runLinter(filePath, stream, options) {
         }
         if (options.fix && Object.keys(fixedFiles).length > 0) {
           log(green('INFO: ') + 'Summary of fixes:');
-          Object.keys(fixedFiles).forEach((file) => {
+          for (const file of Object.keys(fixedFiles)) {
             log(fixedFiles[file] + cyan(file));
-          });
+          }
         }
       })
     )
@@ -159,7 +163,7 @@ function runLinter(filePath, stream, options) {
  * @return {!Array<string>}
  */
 function jsFilesChanged() {
-  return gitDiffNameOnlyMain().filter(function (file) {
+  return gitDiffNameOnlyMain().filter((file) => {
     return fs.existsSync(file) && path.extname(file) == '.js';
   });
 }
@@ -172,7 +176,7 @@ function jsFilesChanged() {
  */
 function eslintRulesChanged() {
   return (
-    gitDiffNameOnlyMain().filter(function (file) {
+    gitDiffNameOnlyMain().filter((file) => {
       return (
         path.basename(file).includes('.eslintrc') ||
         path.dirname(file) === 'build-system/eslint-rules'
@@ -192,9 +196,9 @@ function setFilesToLint(files) {
     .concat(files);
   if (!isCiBuild()) {
     log(green('INFO: ') + 'Running lint on the following files:');
-    files.forEach((file) => {
+    for (const file of files) {
       log(cyan(file));
-    });
+    }
   }
 }
 
@@ -203,14 +207,14 @@ function setFilesToLint(files) {
  * @return {!Stream} Readable stream
  */
 function lint() {
-  if (argv.fix) {
+  if (args.fix) {
     options.fix = true;
   }
-  if (argv.files) {
-    setFilesToLint(argv.files.split(','));
+  if (args.files) {
+    setFilesToLint(args.files.split(','));
   } else if (
     !eslintRulesChanged() &&
-    (process.env.LOCAL_PR_CHECK || argv.local_changes)
+    (process.env.LOCAL_PR_CHECK || args.local_changes)
   ) {
     const jsFiles = jsFilesChanged();
     if (jsFiles.length == 0) {
@@ -230,7 +234,7 @@ module.exports = {
 
 lint.description = 'Validates against Google Closure Linter';
 lint.flags = {
-  'watch': '  Watches for changes in files, validates against the linter',
+  'w': '  Watches for changes in files, validates against the linter',
   'fix': '  Fixes simple lint errors (spacing etc)',
   'files': '  Lints just the specified files',
   'local_changes': '  Lints just the files changed in the local branch',

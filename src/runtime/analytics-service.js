@@ -24,8 +24,8 @@ import {
   FinishedLoggingResponse,
 } from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
-import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
+import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
 import {getCanonicalUrl} from '../utils/url';
@@ -33,7 +33,6 @@ import {getOnExperiments, isExperimentOn} from './experiments';
 import {getSwgTransactionId, getUuid} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
-import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 import {toTimestamp} from '../utils/date-utils';
 
@@ -101,8 +100,8 @@ export class AnalyticsService {
     this.context_ = new AnalyticsContext();
     this.setStaticContext_();
 
-    /** @private {?Promise<!web-activities/activity-ports.ActivityIframePort>} */
-    this.serviceReady_ = null;
+    /** @private {?Promise<?../components/activities.ActivityIframePort>} */
+    this.portPromise_ = null;
 
     /** @private {?Promise} */
     this.lastAction_ = null;
@@ -144,7 +143,7 @@ export class AnalyticsService {
     this.readyForLogging_ = false;
 
     // Stores log events while we wait to be ready for logging.
-    /** @private {Array<!../api/client-event-manager-api.ClientEvent>}*/
+    /** @private {!Array<!../api/client-event-manager-api.ClientEvent>}*/
     this.logs_ = [];
   }
 
@@ -153,9 +152,9 @@ export class AnalyticsService {
    */
   setReadyForLogging() {
     this.readyForLogging_ = true;
-    this.logs_.forEach((event) => {
+    for (const event of this.logs_) {
       this.handleClientEvent_(event);
-    });
+    }
   }
 
   /**
@@ -259,7 +258,7 @@ export class AnalyticsService {
       context.setTransactionId(getUuid());
     }
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
-    context.setClientVersion('SwG $internalRuntimeVersion$');
+    context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
     context.setUrl(getCanonicalUrl(this.doc_));
 
     const utmParams = parseQueryString(this.getQueryString_());
@@ -278,52 +277,54 @@ export class AnalyticsService {
   }
 
   /**
-   * @return {!Promise<!../components/activities.ActivityIframePort>}
+   * @return {!Promise<?../components/activities.ActivityIframePort>}
    */
   start() {
-    if (!this.serviceReady_) {
+    // Only prepare port once.
+    if (!this.portPromise_) {
       // Please note that currently openIframe reads the current analytics
       // context and that it may not contain experiments activated late during
-      // the publishers code lifecycle.
+      // the publisher's code lifecycle.
       this.addLabels(getOnExperiments(this.doc_.getWin()));
-      this.serviceReady_ = this.deps_
-        .storage()
-        .get(Constants.USER_TOKEN)
-        .then((swgUserToken) => {
-          const pubId = this.deps_.pageConfig().getPublicationId();
-          const urlParams = swgUserToken
-            ? {sut: swgUserToken, publicationId: pubId}
-            : {publicationId: pubId};
-          return this.activityPorts_.openIframe(
-            this.iframe_,
-            feUrl('/serviceiframe', urlParams),
-            null,
-            true
-          );
-        })
-        .then(
-          (port) => {
-            // Register a listener for the logging to code indicate it is
-            // finished logging.
-            port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
-            return port.whenReady().then(() => {
-              // The publisher should be done setting experiments but runtime
-              // will forward them here if they aren't.
-              this.addLabels(getOnExperiments(this.doc_.getWin()));
-              return port;
-            });
-          },
-          (message) => {
-            // If the port doesn't open register that logging is broken so
-            // nothing is just waiting.
-            this.loggingBroken_ = true;
-            this.afterLogging_(
-              createErrorResponse('Could not connect [' + message + ']')
-            );
-          }
-        );
+      this.portPromise_ = this.preparePort();
     }
-    return this.serviceReady_;
+
+    return this.portPromise_;
+  }
+
+  /**
+   * @return {!Promise<?../components/activities.ActivityIframePort>}
+   */
+  async preparePort() {
+    // Open iframe.
+    let port;
+    try {
+      port = await this.activityPorts_.openIframe(
+        this.iframe_,
+        feUrl('/serviceiframe'),
+        null,
+        true
+      );
+    } catch (message) {
+      // If the port doesn't open register that logging is broken so
+      // nothing is just waiting.
+      this.loggingBroken_ = true;
+      this.afterLogging_(
+        createErrorResponse('Could not connect [' + message + ']')
+      );
+      return null;
+    }
+
+    // Register a listener for the logging to code indicate it is
+    // finished logging.
+    port.on(FinishedLoggingResponse, this.afterLogging_.bind(this));
+    await port.whenReady();
+
+    // The publisher should be done setting experiments but runtime
+    // will forward them here if they aren't.
+    this.addLabels(getOnExperiments(this.doc_.getWin()));
+
+    return port;
   }
 
   /**
@@ -375,24 +376,7 @@ export class AnalyticsService {
   }
 
   /**
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @return {boolean}
-   */
-  shouldAlwaysLogEvent_(event) {
-    /* AMP_CLIENT events are considered publisher events and we generally only
-     * log those if the publisher decided to enable publisher event logging for
-     * privacy purposes.  The page load event is not private and is necessary
-     * just so we know the user is in AMP, so we will log it regardless of
-     * configuration.
-     */
-    return (
-      event.eventType === AnalyticsEvent.IMPRESSION_PAGE_LOAD &&
-      event.eventOriginator === EventOriginator.AMP_CLIENT
-    );
-  }
-
-  /**
-   *  Listens for new events from the events manager and handles logging
+   * Listens for new events from the events manager and handles logging
    * @param {!../api/client-event-manager-api.ClientEvent} event
    */
   handleClientEvent_(event) {
@@ -409,30 +393,35 @@ export class AnalyticsService {
       return;
     }
 
-    if (
+    const blockedByPublisherConfig =
       ClientEventManager.isPublisherEvent(event) &&
-      !this.shouldLogPublisherEvents_() &&
-      !this.shouldAlwaysLogEvent_(event)
-    ) {
+      !this.shouldLogPublisherEvents_();
+    if (blockedByPublisherConfig) {
       return;
     }
 
-    if (this.readyForLogging_) {
-      // Register we sent a log, the port will call this.afterLogging_ when done.
-      this.unfinishedLogs_++;
-      this.lastAction_ = this.start().then((port) => {
-        const analyticsRequest = this.createLogRequest_(event);
-        port.execute(analyticsRequest);
-        if (
-          isExperimentOn(this.doc_.getWin(), ExperimentFlags.LOGGING_BEACON)
-        ) {
-          this.sendBeacon_(analyticsRequest);
-        }
-      });
-    } else {
-      // If we're not ready to log events yet, store the event so we can log it later.
+    if (!this.readyForLogging_) {
+      // If we're not ready to log events yet,
+      // store the event so we can log it later.
       this.logs_.push(event);
+      return;
     }
+
+    // Register we sent a log. The port will call this.afterLogging_ when done.
+    this.unfinishedLogs_++;
+
+    // Send log.
+    this.lastAction_ = this.sendLog_(event);
+  }
+
+  /**
+   * @param {!../api/client-event-manager-api.ClientEvent} event
+   * @return {!Promise}
+   */
+  async sendLog_(event) {
+    const port = await this.start();
+    const analyticsRequest = this.createLogRequest_(event);
+    port.execute(analyticsRequest);
   }
 
   /**
@@ -499,18 +488,5 @@ export class AnalyticsService {
     }
 
     return this.promiseToLog_;
-  }
-
-  /**
-   * A beacon is a rapid fire browser request that does not wait for a response
-   * from the server.  It is guaranteed to go out before the page redirects.
-   * @param {!AnalyticsRequest} analyticsRequest
-   */
-  sendBeacon_(analyticsRequest) {
-    const pubId = encodeURIComponent(
-      this.deps_.pageConfig().getPublicationId()
-    );
-    const url = serviceUrl('/publication/' + pubId + '/clientlogs');
-    this.fetcher_.sendBeacon(url, analyticsRequest);
   }
 }

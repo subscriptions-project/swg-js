@@ -23,11 +23,13 @@ import {Constants} from '../utils/constants';
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isExperimentOn} from './experiments';
+import {msg} from '../utils/i18n';
 import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
@@ -72,14 +74,13 @@ export function installBasicRuntime(win) {
    * Executes a callback when the runtime is ready.
    * @param {function(!../api/basic-subscriptions.BasicSubscriptions)} callback
    */
-  function callWhenRuntimeIsReady(callback) {
+  async function callWhenRuntimeIsReady(callback) {
     if (!callback) {
       return;
     }
 
-    basicRuntime.whenReady().then(() => {
-      callback(publicBasicRuntime);
-    });
+    await basicRuntime.whenReady();
+    callback(publicBasicRuntime);
   }
 
   // Queue up any callbacks the publication might have provided.
@@ -99,15 +100,6 @@ export function installBasicRuntime(win) {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
-
-  // Set the default entitlements response handler to consume a valid metering entitlement.
-  basicRuntime.setOnEntitlementsResponse((entitlementsPromise) => {
-    entitlementsPromise.then((entitlements) => {
-      if (entitlements.enablesThisWithGoogleMetering()) {
-        entitlements.consume();
-      }
-    });
-  });
 }
 
 /**
@@ -149,6 +141,12 @@ export class BasicRuntime {
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
+
+    /** @private {boolean} */
+    this.enableDefaultMeteringHandler_ = true;
+
+    /** @private {string|undefined} */
+    this.publisherProvidedId_ = undefined;
   }
 
   /**
@@ -164,6 +162,7 @@ export class BasicRuntime {
    * @private
    */
   configured_(commit) {
+    this.config_.publisherProvidedId = this.publisherProvidedId_;
     if (!this.committed_ && commit && !this.pageConfigWriter_) {
       this.committed_ = true;
 
@@ -175,7 +174,11 @@ export class BasicRuntime {
             new ConfiguredBasicRuntime(
               this.doc_,
               pageConfig,
-              /* integr */ {configPromise: this.configuredPromise_},
+              /* integr */ {
+                configPromise: this.configuredPromise_,
+                enableDefaultMeteringHandler:
+                  this.enableDefaultMeteringHandler_,
+              },
               this.config_,
               this.clientOptions_
             )
@@ -194,77 +197,86 @@ export class BasicRuntime {
   }
 
   /** @override */
-  init(params) {
+  init({
+    type,
+    isAccessibleForFree,
+    isPartOfType,
+    isPartOfProductId,
+    clientOptions,
+    autoPromptType,
+    alwaysShow = false,
+    disableDefaultMeteringHandler = false,
+    publisherProvidedId,
+  }) {
+    this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
+    this.publisherProvidedId_ = publisherProvidedId;
     this.pageConfigWriter_
       .writeConfigWhenReady({
-        type: params.type,
-        isAccessibleForFree: params.isAccessibleForFree,
-        isPartOfType: params.isPartOfType,
-        isPartOfProductId: params.isPartOfProductId,
+        type,
+        isAccessibleForFree,
+        isPartOfType,
+        isPartOfProductId,
       })
       .then(() => {
         this.pageConfigWriter_ = null;
         this.configured_(true);
       });
 
-    this.clientOptions_ = Object.assign({}, params.clientOptions, {
+    this.clientOptions_ = Object.assign({}, clientOptions, {
       forceLangInIframes: true,
     });
     this.setupAndShowAutoPrompt({
-      autoPromptType: params.autoPromptType,
-      alwaysShow: params.alwaysShow || false,
+      autoPromptType,
+      alwaysShow,
     });
     this.setOnLoginRequest();
     this.processEntitlements();
   }
 
   /** @override */
-  setOnEntitlementsResponse(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnEntitlementsResponse(callback)
-    );
+  async setOnEntitlementsResponse(callback) {
+    const runtime = await this.configured_(false);
+    runtime.setOnEntitlementsResponse(callback);
   }
 
   /** @override */
-  setOnPaymentResponse(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnPaymentResponse(callback)
-    );
+  async setOnPaymentResponse(callback) {
+    const runtime = await this.configured_(false);
+    runtime.setOnPaymentResponse(callback);
   }
 
   /** @override */
-  setOnLoginRequest() {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnLoginRequest()
-    );
+  async setOnLoginRequest() {
+    const runtime = await this.configured_(false);
+    runtime.setOnLoginRequest();
   }
 
   /** @override */
-  setupAndShowAutoPrompt(options) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setupAndShowAutoPrompt(options)
-    );
+  async setupAndShowAutoPrompt(options) {
+    const runtime = await this.configured_(false);
+    runtime.setupAndShowAutoPrompt(options);
   }
 
   /** @override */
-  dismissSwgUI() {
-    return this.configured_(false).then((runtime) => runtime.dismissSwgUI());
+  async dismissSwgUI() {
+    const runtime = await this.configured_(false);
+    runtime.dismissSwgUI();
   }
 
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
-  setupButtons() {
-    return this.configured_(false).then((runtime) => runtime.setupButtons());
+  async setupButtons() {
+    const runtime = await this.configured_(false);
+    runtime.setupButtons();
   }
 
   /** Process result from checkentitlements view */
-  processEntitlements() {
-    return this.configured_(false).then((runtime) =>
-      runtime.processEntitlements()
-    );
+  async processEntitlements() {
+    const runtime = await this.configured_(false);
+    runtime.processEntitlements();
   }
 }
 
@@ -279,6 +291,7 @@ export class ConfiguredBasicRuntime {
    * @param {{
    *     fetcher: (!./fetcher.Fetcher|undefined),
    *     configPromise: (!Promise|undefined),
+   *     enableDefaultMeteringHandler: (boolean|undefined),
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
    * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
@@ -315,11 +328,16 @@ export class ConfiguredBasicRuntime {
     this.entitlementsManager().blockNextToast();
 
     // Enable Google metering in basic runtime by default;
-    this.entitlementsManager().enableMeteredByGoogle();
+    if (pageConfig.isLocked()) {
+      this.entitlementsManager().enableMeteredByGoogle();
+    }
 
     // Handle clicks on the Metering Toast's "Subscribe" button.
-    this.configuredClassicRuntime_.setOnNativeSubscribeRequest(() => {
-      this.configuredClassicRuntime_.showOffers();
+    this.setOnOffersFlowRequest_(() => {
+      // Close the current dialog to allow a new one with potentially different configurations
+      // to take over the screen.
+      this.dismissSwgUI();
+      this.configuredClassicRuntime_.showOffers({isClosable: true});
     });
 
     // Fetches entitlements.
@@ -481,58 +499,71 @@ export class ConfiguredBasicRuntime {
    * Handler function to process EntitlementsResponse.
    * @param {!../components/activities.ActivityPortDef} port
    */
-  entitlementsResponseHandler(port) {
-    const promise = acceptPortResultData(
+  async entitlementsResponseHandler(port) {
+    const response = await acceptPortResultData(
       port,
       feOrigin(),
       /* requireOriginVerified */ true,
-      /* requireSecureChannel */ true
+      /* requireSecureChannel */ false
     );
-    return promise.then((response) => {
-      const jwt = response['jwt'];
-      if (jwt) {
-        // If entitlements are returned, close the subscription/contribution offers iframe
-        this.configuredClassicRuntime_.closeDialog();
 
-        // Also save the entitlements and user token
-        this.entitlementsManager().pushNextEntitlements(jwt);
-        const userToken = response['usertoken'];
-        if (userToken) {
-          this.storage().set(Constants.USER_TOKEN, userToken, true);
-        }
+    const jwt = response['jwt'];
+    if (jwt) {
+      // If entitlements are returned, close the subscription/contribution offers iframe
+      this.configuredClassicRuntime_.closeDialog();
 
-        // Show 'Signed in as abc@gmail.com' toast on the pub page.
-        new Toast(
-          this,
-          feUrl('/toastiframe', {
-            flavor: 'basic',
-          })
-        ).open();
-      } else {
-        // If no entitlements are returned, subscription/contribution offers or audience
-        // action iframe will show a toast with label "no subscription/contribution found"
-        const lastOffersFlow =
-          this.configuredClassicRuntime_.getLastOffersFlow();
-        if (lastOffersFlow) {
-          lastOffersFlow.showNoEntitlementFoundToast();
-          return;
-        }
-
-        const lastContributionsFlow =
-          this.configuredClassicRuntime_.getLastContributionsFlow();
-        if (lastContributionsFlow) {
-          lastContributionsFlow.showNoEntitlementFoundToast();
-          return;
-        }
-
-        const lastAudienceActionFlow =
-          this.autoPromptManager_.getLastAudienceActionFlow();
-        if (lastAudienceActionFlow) {
-          lastAudienceActionFlow.showNoEntitlementFoundToast();
-          return;
-        }
+      // Also save the entitlements and user token
+      this.entitlementsManager().pushNextEntitlements(jwt);
+      const userToken = response['usertoken'];
+      if (userToken) {
+        this.storage().set(Constants.USER_TOKEN, userToken, true);
       }
-    });
+
+      // Show 'Signed in as abc@gmail.com' toast on the pub page.
+      new Toast(
+        this,
+        feUrl('/toastiframe', {
+          flavor: 'basic',
+        })
+      ).open();
+    } else {
+      // If no entitlements are returned, subscription/contribution offers or audience
+      // action iframe will show a toast with label "no subscription/contribution found"
+      const lastOffersFlow = this.configuredClassicRuntime_.getLastOffersFlow();
+      if (lastOffersFlow) {
+        lastOffersFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
+      const lastContributionsFlow =
+        this.configuredClassicRuntime_.getLastContributionsFlow();
+      if (lastContributionsFlow) {
+        lastContributionsFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
+      const lastAudienceActionFlow =
+        this.autoPromptManager_.getLastAudienceActionFlow();
+      if (lastAudienceActionFlow) {
+        lastAudienceActionFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
+      // Fallback in case there is no active flow. This occurs when the entitlment check
+      // runs as a redirect.
+      const language = this.clientConfigManager().getLanguage();
+      const customText = msg(
+        SWG_I18N_STRINGS['NO_MEMBERSHIP_FOUND_LANG_MAP'],
+        language
+      );
+      new Toast(
+        this,
+        feUrl('/toastiframe', {
+          flavor: 'custom',
+          customText,
+        })
+      ).open();
+    }
   }
 
   /** @override */
@@ -569,35 +600,38 @@ export class ConfiguredBasicRuntime {
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
-  setupButtons() {
-    this.clientConfigManager()
-      .shouldEnableButton()
-      .then((enable) => {
-        this.buttonApi_.attachButtonsWithAttribute(
-          BUTTON_ATTRIUBUTE,
-          [
-            ButtonAttributeValues.SUBSCRIPTION,
-            ButtonAttributeValues.CONTRIBUTION,
-          ],
-          {
-            theme: this.clientConfigManager().getTheme(),
-            lang: this.clientConfigManager().getLanguage(),
-            enable,
-          },
-          {
-            [ButtonAttributeValues.SUBSCRIPTION]: () => {
-              this.configuredClassicRuntime_.showOffers({
-                isClosable: !this.pageConfig().isLocked(),
-              });
-            },
-            [ButtonAttributeValues.CONTRIBUTION]: () => {
-              this.configuredClassicRuntime_.showContributionOptions({
-                isClosable: !this.pageConfig().isLocked(),
-              });
-            },
-          }
-        );
-      });
+  async setupButtons() {
+    const enable = await this.clientConfigManager().shouldEnableButton();
+    this.buttonApi_.attachButtonsWithAttribute(
+      BUTTON_ATTRIUBUTE,
+      [ButtonAttributeValues.SUBSCRIPTION, ButtonAttributeValues.CONTRIBUTION],
+      {
+        theme: this.clientConfigManager().getTheme(),
+        lang: this.clientConfigManager().getLanguage(),
+        enable,
+      },
+      {
+        [ButtonAttributeValues.SUBSCRIPTION]: () => {
+          this.configuredClassicRuntime_.showOffers({
+            isClosable: !this.pageConfig().isLocked(),
+          });
+        },
+        [ButtonAttributeValues.CONTRIBUTION]: () => {
+          this.configuredClassicRuntime_.showContributionOptions({
+            isClosable: !this.pageConfig().isLocked(),
+          });
+        },
+      }
+    );
+  }
+
+  /**
+   * Sets the callback when the offers flow is requested.
+   * @param {function()} callback
+   * @private
+   */
+  setOnOffersFlowRequest_(callback) {
+    this.callbacks().setOnOffersFlowRequest(callback);
   }
 }
 

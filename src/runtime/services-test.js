@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-import {CACHE_KEYS, MODES, cacheParam, feUrl, getSwgMode} from './services';
+import {
+  CACHE_KEYS,
+  MODES,
+  cacheParam,
+  feUrl,
+  getSwgMode,
+  serviceUrl,
+} from './services';
 
-describes.sandboxed('services', {}, () => {
+describes.sandboxed('services', () => {
   beforeEach(() => {
     self.location.hash = '';
   });
@@ -26,17 +33,17 @@ describes.sandboxed('services', {}, () => {
       expect(getSwgMode()).to.deep.equal(MODES.default);
     });
 
-    it('should overide with swg.mode=prod', () => {
+    it('should override with swg.mode=prod', () => {
       self.location.hash = 'swg.mode=prod';
       expect(getSwgMode()).to.deep.equal(MODES.prod);
     });
 
-    it('should overide with swg.mode=qual', () => {
+    it('should override with swg.mode=qual', () => {
       self.location.hash = 'swg.mode=qual';
       expect(getSwgMode()).to.deep.equal(MODES.qual);
     });
 
-    it('should overide with swg.mode=autopush', () => {
+    it('should override with swg.mode=autopush', () => {
       self.location.hash = 'swg.mode=autopush';
       expect(getSwgMode()).to.deep.equal(MODES.autopush);
     });
@@ -86,6 +93,35 @@ describes.sandboxed('services', {}, () => {
     it('should insert prefix properly when hostpath prefixed', () => {
       expect(feUrl('/iframe', {}, true, 'u/1')).to.equal(
         'https://news.google.com/swg/u/1/_/ui/v1/iframe?_=_'
+      );
+    });
+
+    it('should include experiments if setup on the current page', () => {
+      self.location.hash = '#swg.experiments=foo,bar,-foobar';
+      expect(feUrl('/iframe?testParam=test', {}, true, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/_/ui/v1/iframe?testParam=test&_=_&e=foo%2Cbar%2C-foobar'
+      );
+    });
+
+    it('optionally adds a jsmode param', () => {
+      self.location.hash = '#swg.boqjsmode=abc';
+      expect(feUrl('/iframe?testParam=test', {}, true, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/_/ui/v1/iframe?testParam=test&_=_&jsmode=abc'
+      );
+    });
+  });
+
+  describe('serviceUrl', () => {
+    it('should include url provided correctly', () => {
+      expect(serviceUrl('/some/apicall')).to.equal(
+        'https://news.google.com/swg/_/api/v1/some/apicall'
+      );
+    });
+
+    it('should include experiments if setup on the current page', () => {
+      self.location.hash = '#swg.experiments=foo,bar,-foobar';
+      expect(serviceUrl('/some/apicall')).to.equal(
+        'https://news.google.com/swg/_/api/v1/some/apicall?e=foo%2Cbar%2C-foobar'
       );
     });
   });

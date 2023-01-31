@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ASSETS} from '../constants';
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
 import {ActivityPorts} from '../components/activities';
 import {
@@ -61,17 +62,21 @@ import {
   defaultConfig,
 } from '../api/subscriptions';
 import {Propensity} from './propensity';
-import {CSS as SWG_DIALOG} from '../../build/css/components/dialog.css';
+import {DIALOG_CSS as SWG_DIALOG} from '../ui/ui-css';
 import {Storage} from './storage';
+import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
+import {
+  convertPotentialTimestampToMilliseconds,
+  toTimestamp,
+} from '../utils/date-utils';
 import {debugLog} from '../utils/log';
-import {injectStyleSheet, isLegacyEdgeBrowser} from '../utils/dom';
+import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn} from './experiments';
-import {isSecure, wasReferredByGoogle} from '../utils/url';
-import {parseUrl} from '../utils/url';
-import {queryStringHasFreshGaaParams} from '../utils/gaa';
+import {isSecure} from '../utils/url';
+import {queryStringHasFreshGaaParams} from './extended-access';
 import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
@@ -106,13 +111,6 @@ export function installRuntime(win) {
     return;
   }
 
-  // Warn IE11 users of deprecation.
-  if (/MSIE|Trident/.test(self.navigator.userAgent)) {
-    warn(
-      'IE Support is being deprecated, in September 2021 IE will no longer be supported.'
-    );
-  }
-
   // Create a SwG runtime.
   const runtime = new Runtime(win);
 
@@ -123,14 +121,14 @@ export function installRuntime(win) {
    * Executes a callback when SwG runtime is ready.
    * @param {function(!SubscriptionsInterface)} callback
    */
-  function callWhenRuntimeIsReady(callback) {
+  async function callWhenRuntimeIsReady(callback) {
     if (!callback) {
       return;
     }
 
-    runtime.whenReady().then(() => {
-      callback(publicRuntime);
-    });
+    await runtime.whenReady();
+
+    callback(publicRuntime);
   }
 
   // Queue up any callbacks the publication might have provided.
@@ -179,21 +177,21 @@ export class Runtime {
     this.config_ = {};
 
     /** @private {boolean} */
-    this.committed_ = false;
+    this.startedConfiguringRuntime_ = false;
 
     /** @private {?function((!ConfiguredRuntime|!Promise))} */
-    this.configuredResolver_ = null;
+    this.configuredRuntimeResolver_ = null;
 
     /** @private @const {!Promise<!ConfiguredRuntime>} */
-    this.configuredPromise_ = new Promise((resolve) => {
-      this.configuredResolver_ = resolve;
+    this.configuredRuntimePromise_ = new Promise((resolve) => {
+      this.configuredRuntimeResolver_ = resolve;
     });
 
     /** @private {?PageConfigResolver} */
     this.pageConfigResolver_ = null;
 
     /** @private @const {!ButtonApi} */
-    this.buttonApi_ = new ButtonApi(this.doc_, this.configuredPromise_);
+    this.buttonApi_ = new ButtonApi(this.doc_, this.configuredRuntimePromise_);
     this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
@@ -205,49 +203,60 @@ export class Runtime {
   }
 
   /**
-   * @param {boolean} commit
+   * @param {boolean} startConfiguringRuntime
    * @return {!Promise<!ConfiguredRuntime>}
    * @private
    */
-  configured_(commit) {
-    if (!this.committed_ && commit) {
-      this.committed_ = true;
-      /** @type {!Promise<!PageConfig>} */
-      let pageConfigPromise;
-      if (this.productOrPublicationId_) {
-        pageConfigPromise = Promise.resolve(
-          new PageConfig(this.productOrPublicationId_, /* locked */ false)
-        );
-      } else {
-        this.pageConfigResolver_ = new PageConfigResolver(this.doc_);
-        pageConfigPromise = this.pageConfigResolver_
-          .resolveConfig()
-          .then((config) => {
-            this.pageConfigResolver_ = null;
-            return config;
-          });
-      }
-      pageConfigPromise.then(
-        (pageConfig) => {
-          this.configuredResolver_(
-            new ConfiguredRuntime(
-              this.doc_,
-              pageConfig,
-              /* integr */ {configPromise: this.configuredPromise_},
-              this.config_
-            )
-          );
-          this.configuredResolver_ = null;
-        },
-        (reason) => {
-          this.configuredResolver_(Promise.reject(reason));
-          this.configuredResolver_ = null;
-        }
-      );
-    } else if (commit && this.pageConfigResolver_) {
-      this.pageConfigResolver_.check();
+  async configured_(startConfiguringRuntime) {
+    if (!startConfiguringRuntime) {
+      // Configuration isn't necessary yet, so lets wait.
+      return this.configuredRuntimePromise_;
     }
-    return this.configuredPromise_;
+
+    if (this.startedConfiguringRuntime_) {
+      // Runtime configuration has already started.
+      if (this.pageConfigResolver_) {
+        // Page config resolution has already started, but hasn't completed.
+        // Kick off additional checks for the page config.
+        this.pageConfigResolver_.check();
+      }
+      return this.configuredRuntimePromise_;
+    }
+
+    // Configure runtime.
+    this.startedConfiguringRuntime_ = true;
+    const pageConfig = await this.determinePageConfig_();
+    const configuredRuntime = new ConfiguredRuntime(
+      this.doc_,
+      pageConfig,
+      /* integr */ {configPromise: this.configuredRuntimePromise_},
+      this.config_
+    );
+    this.configuredRuntimeResolver_(configuredRuntime);
+
+    return configuredRuntime;
+  }
+
+  /**
+   * Creates or resolves the page config.
+   * @return {!Promise<!PageConfig>}
+   */
+  async determinePageConfig_() {
+    if (this.productOrPublicationId_) {
+      // Create page config.
+      return new PageConfig(this.productOrPublicationId_, /* locked */ false);
+    }
+
+    // Resolve page config.
+    this.pageConfigResolver_ = new PageConfigResolver(this.doc_);
+    try {
+      const pageConfig = await this.pageConfigResolver_.resolveConfig();
+      this.pageConfigResolver_ = null;
+      return pageConfig;
+    } catch (reason) {
+      this.pageConfigResolver_ = null;
+      throw reason;
+    }
   }
 
   /**
@@ -269,7 +278,7 @@ export class Runtime {
 
   /** @override */
   init(productOrPublicationId) {
-    assert(!this.committed_, 'already configured');
+    assert(!this.startedConfiguringRuntime_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
 
     // Process the page's config. Then start logging events in the
@@ -281,203 +290,185 @@ export class Runtime {
   }
 
   /** @override */
-  configure(config) {
+  async configure(config) {
     // Accumulate config for startup.
     Object.assign(this.config_, config);
-    return this.configured_(false).then((runtime) => runtime.configure(config));
+    const runtime = await this.configured_(false);
+    return runtime.configure(config);
   }
 
   /** @override */
-  start() {
-    return this.configured_(true).then((runtime) => runtime.start());
+  async start() {
+    const runtime = await this.configured_(true);
+    return runtime.start();
   }
 
   /** @override */
-  reset() {
-    return this.configured_(true).then((runtime) => runtime.reset());
+  async reset() {
+    const runtime = await this.configured_(true);
+    return runtime.reset();
   }
 
   /** @override */
-  clear() {
-    return this.configured_(true).then((runtime) => runtime.clear());
+  async clear() {
+    const runtime = await this.configured_(true);
+    return runtime.clear();
   }
 
   /** @override */
-  getEntitlements(params) {
-    return this.configured_(true).then((runtime) =>
-      runtime.getEntitlements(params)
-    );
+  async getEntitlements(params) {
+    const runtime = await this.configured_(true);
+    return runtime.getEntitlements(params);
   }
 
   /** @override */
-  setOnEntitlementsResponse(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnEntitlementsResponse(callback)
-    );
+  async setOnEntitlementsResponse(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnEntitlementsResponse(callback);
   }
 
   /** @override */
-  getOffers(options) {
-    return this.configured_(true).then((runtime) => runtime.getOffers(options));
+  async getOffers(options) {
+    const runtime = await this.configured_(true);
+    return runtime.getOffers(options);
   }
 
   /** @override */
-  showOffers(options) {
-    return this.configured_(true).then((runtime) =>
-      runtime.showOffers(options)
-    );
+  async showOffers(options) {
+    const runtime = await this.configured_(true);
+    return runtime.showOffers(options);
   }
 
   /** @override */
-  showUpdateOffers(options) {
-    return this.configured_(true).then((runtime) =>
-      runtime.showUpdateOffers(options)
-    );
+  async showUpdateOffers(options) {
+    const runtime = await this.configured_(true);
+    return runtime.showUpdateOffers(options);
   }
 
   /** @override */
-  showSubscribeOption(options) {
-    return this.configured_(true).then((runtime) =>
-      runtime.showSubscribeOption(options)
-    );
+  async showSubscribeOption(options) {
+    const runtime = await this.configured_(true);
+    return runtime.showSubscribeOption(options);
   }
 
   /** @override */
-  showAbbrvOffer(options) {
-    return this.configured_(true).then((runtime) =>
-      runtime.showAbbrvOffer(options)
-    );
+  async showAbbrvOffer(options) {
+    const runtime = await this.configured_(true);
+    return runtime.showAbbrvOffer(options);
   }
 
   /** @override */
-  showContributionOptions(options) {
-    return this.configured_(true).then((runtime) =>
-      runtime.showContributionOptions(options)
-    );
+  async showContributionOptions(options) {
+    const runtime = await this.configured_(true);
+    return runtime.showContributionOptions(options);
   }
 
   /** @override */
-  waitForSubscriptionLookup(accountPromise) {
-    return this.configured_(true).then((runtime) =>
-      runtime.waitForSubscriptionLookup(accountPromise)
-    );
+  async waitForSubscriptionLookup(accountPromise) {
+    const runtime = await this.configured_(true);
+    return runtime.waitForSubscriptionLookup(accountPromise);
   }
 
   /** @override */
-  setOnNativeSubscribeRequest(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnNativeSubscribeRequest(callback)
-    );
+  async setOnNativeSubscribeRequest(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnNativeSubscribeRequest(callback);
   }
 
   /** @override */
-  setOnSubscribeResponse(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnSubscribeResponse(callback)
-    );
+  async setOnSubscribeResponse(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnSubscribeResponse(callback);
   }
 
   /** @override */
-  subscribe(sku) {
-    return this.configured_(true).then((runtime) => runtime.subscribe(sku));
+  async subscribe(sku) {
+    const runtime = await this.configured_(true);
+    return runtime.subscribe(sku);
   }
 
   /** @override */
-  updateSubscription(subscriptionRequest) {
-    return this.configured_(true).then((runtime) =>
-      runtime.updateSubscription(subscriptionRequest)
-    );
+  async updateSubscription(subscriptionRequest) {
+    const runtime = await this.configured_(true);
+    return runtime.updateSubscription(subscriptionRequest);
   }
 
   /** @override */
-  setOnContributionResponse(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnContributionResponse(callback)
-    );
+  async setOnContributionResponse(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnContributionResponse(callback);
   }
 
   /** @override */
-  setOnPaymentResponse(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnPaymentResponse(callback)
-    );
+  async setOnPaymentResponse(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnPaymentResponse(callback);
   }
 
   /** @override */
-  contribute(skuOrSubscriptionRequest) {
-    return this.configured_(true).then((runtime) =>
-      runtime.contribute(skuOrSubscriptionRequest)
-    );
+  async contribute(skuOrSubscriptionRequest) {
+    const runtime = await this.configured_(true);
+    return runtime.contribute(skuOrSubscriptionRequest);
   }
 
   /** @override */
-  completeDeferredAccountCreation(options) {
-    return this.configured_(true).then((runtime) =>
-      runtime.completeDeferredAccountCreation(options)
-    );
+  async completeDeferredAccountCreation(options) {
+    const runtime = await this.configured_(true);
+    return runtime.completeDeferredAccountCreation(options);
   }
 
   /** @override */
-  setOnLoginRequest(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnLoginRequest(callback)
-    );
+  async setOnLoginRequest(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnLoginRequest(callback);
   }
 
   /** @override */
-  triggerLoginRequest(request) {
-    return this.configured_(false).then((runtime) =>
-      runtime.triggerLoginRequest(request)
-    );
+  async triggerLoginRequest(request) {
+    const runtime = await this.configured_(false);
+    return runtime.triggerLoginRequest(request);
   }
 
   /** @override */
-  setOnLinkComplete(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnLinkComplete(callback)
-    );
+  async setOnLinkComplete(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnLinkComplete(callback);
   }
 
   /** @override */
-  linkAccount(params = {}) {
-    return this.configured_(true).then((runtime) =>
-      runtime.linkAccount(params)
-    );
+  async linkAccount(params = {}) {
+    const runtime = await this.configured_(true);
+    return runtime.linkAccount(params);
   }
 
   /** @override */
-  setOnFlowStarted(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnFlowStarted(callback)
-    );
+  async setOnFlowStarted(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnFlowStarted(callback);
   }
 
   /** @override */
-  setOnFlowCanceled(callback) {
-    return this.configured_(false).then((runtime) =>
-      runtime.setOnFlowCanceled(callback)
-    );
+  async setOnFlowCanceled(callback) {
+    const runtime = await this.configured_(false);
+    return runtime.setOnFlowCanceled(callback);
   }
 
   /** @override */
-  saveSubscription(saveSubscriptionRequestCallback) {
-    return this.configured_(true).then((runtime) => {
-      return runtime.saveSubscription(saveSubscriptionRequestCallback);
-    });
+  async saveSubscription(saveSubscriptionRequestCallback) {
+    const runtime = await this.configured_(true);
+    return runtime.saveSubscription(saveSubscriptionRequestCallback);
   }
 
   /** @override */
-  showLoginPrompt() {
-    return this.configured_(true).then((runtime) => {
-      return runtime.showLoginPrompt();
-    });
+  async showLoginPrompt() {
+    const runtime = await this.configured_(true);
+    return runtime.showLoginPrompt();
   }
 
   /** @override */
-  showLoginNotification() {
-    return this.configured_(true).then((runtime) => {
-      return runtime.showLoginNotification();
-    });
+  async showLoginNotification() {
+    const runtime = await this.configured_(true);
+    return runtime.showLoginNotification();
   }
 
   /** @override */
@@ -486,10 +477,9 @@ export class Runtime {
   }
 
   /** @override */
-  attachSmartButton(button, optionsOrCallback, callback) {
-    return this.configured_(true).then((runtime) =>
-      runtime.attachSmartButton(button, optionsOrCallback, callback)
-    );
+  async attachSmartButton(button, optionsOrCallback, callback) {
+    const runtime = await this.configured_(true);
+    return runtime.attachSmartButton(button, optionsOrCallback, callback);
   }
 
   /** @override */
@@ -498,42 +488,53 @@ export class Runtime {
   }
 
   /** @override */
-  getPropensityModule() {
-    return this.configured_(true).then((runtime) => {
-      return runtime.getPropensityModule();
-    });
+  async getPropensityModule() {
+    const runtime = await this.configured_(true);
+    return runtime.getPropensityModule();
   }
 
   /** @override */
-  getLogger() {
-    return this.configured_(true).then((runtime) => runtime.getLogger());
+  async getLogger() {
+    const runtime = await this.configured_(true);
+    return runtime.getLogger();
   }
 
   /** @override */
-  getEventManager() {
-    return this.configured_(true).then((runtime) => runtime.getEventManager());
+  async getEventManager() {
+    const runtime = await this.configured_(true);
+    return runtime.getEventManager();
   }
 
   /** @override */
-  setShowcaseEntitlement(entitlement) {
-    return this.configured_(true).then((runtime) =>
-      runtime.setShowcaseEntitlement(entitlement)
-    );
+  async setShowcaseEntitlement(entitlement) {
+    const runtime = await this.configured_(true);
+    return runtime.setShowcaseEntitlement(entitlement);
   }
 
   /** @override */
-  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
-    return this.configured_(true).then((runtime) =>
-      runtime.consumeShowcaseEntitlementJwt(
-        showcaseEntitlementJwt,
-        onCloseDialog
-      )
+  async consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
+    const runtime = await this.configured_(true);
+    return runtime.consumeShowcaseEntitlementJwt(
+      showcaseEntitlementJwt,
+      onCloseDialog
     );
   }
 
   /** @override */
   showBestAudienceAction() {
     warn('Not implemented yet');
+  }
+
+  /** @override */
+  async setPublisherProvidedId(publisherProvidedId) {
+    const runtime = await this.configured_(true);
+    return runtime.setPublisherProvidedId(publisherProvidedId);
+  }
+
+  /** @override */
+  async linkSubscription(request) {
+    const runtime = await this.configured_(true);
+    return runtime.linkSubscription(request);
   }
 }
 
@@ -549,6 +550,7 @@ export class ConfiguredRuntime {
    *     fetcher: (!FetcherInterface|undefined),
    *     configPromise: (!Promise|undefined),
    *     enableGoogleAnalytics: (boolean|undefined),
+   *     enableDefaultMeteringHandler: (boolean|undefined),
    *     useArticleEndpoint: (boolean|undefined)
    *   }=} integr
    * @param {!../api/subscriptions.Config=} config
@@ -573,11 +575,6 @@ export class ConfiguredRuntime {
     /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
 
-    if (isLegacyEdgeBrowser(this.win_)) {
-      // TODO(dvoytenko, b/120607343): Find a way to remove this restriction
-      // or move it to Web Activities.
-      this.config_.windowOpenMode = WindowOpenMode.REDIRECT;
-    }
     if (config) {
       this.configure_(config);
     }
@@ -609,6 +606,9 @@ export class ConfiguredRuntime {
     /** @private {?ContributionsFlow} */
     this.lastContributionsFlow_ = null;
 
+    /** @private {string|undefined} */
+    this.publisherProvidedId_ = undefined;
+
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
       /** @private @const {!GoogleAnalyticsEventListener} */
@@ -638,7 +638,8 @@ export class ConfiguredRuntime {
       this.pageConfig_,
       this.fetcher_,
       this, // See note about 'this' above
-      integr.useArticleEndpoint || false
+      integr.useArticleEndpoint || false,
+      integr.enableDefaultMeteringHandler || false
     );
 
     /** @private @const {!ClientConfigManager} */
@@ -667,9 +668,8 @@ export class ConfiguredRuntime {
 
     const preconnect = new Preconnect(this.win_.document);
 
-    preconnect.prefetch('$assets$/loader.svg');
+    preconnect.prefetch(`${ASSETS}/loader.svg`);
     preconnect.preconnect('https://www.gstatic.com/');
-    preconnect.preconnect('https://fonts.googleapis.com/');
     preconnect.preconnect('https://www.google.com/');
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
@@ -809,6 +809,14 @@ export class ConfiguredRuntime {
             error = 'Unknown skipAccountCreationScreen value: ' + value;
           }
           break;
+        case 'publisherProvidedId':
+          if (
+            value != undefined &&
+            !(typeof value === 'string' && value != '')
+          ) {
+            error = 'publisherProvidedId must be a string, value: ' + value;
+          }
+          break;
         default:
           error = 'Unknown config property: ' + key;
       }
@@ -851,27 +859,28 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  getEntitlements(params) {
-    return this.entitlementsManager_
-      .getEntitlements(params)
-      .then((entitlements) => {
-        // The swg user token is stored in the entitlements flow, so the analytics service is ready for logging.
-        this.analyticsService_.setReadyForLogging();
-        this.analyticsService_.start();
-        // Auto update internal things tracking the user's current SKU.
-        if (entitlements) {
-          try {
-            const skus = entitlements.entitlements.map(
-              (entitlement) =>
-                entitlement.getSku() || 'unknown subscriptionToken'
-            );
-            if (skus.length > 0) {
-              this.analyticsService_.setSku(skus.join(','));
-            }
-          } catch (ex) {}
+  async getEntitlements(params) {
+    if (params?.publisherProvidedId) {
+      params.publisherProvidedId = this.publisherProvidedId_;
+    }
+    const entitlements = await this.entitlementsManager_.getEntitlements(
+      params
+    );
+    // The swg user token is stored in the entitlements flow, so the analytics service is ready for logging.
+    this.analyticsService_.setReadyForLogging();
+    this.analyticsService_.start();
+    // Auto update internal things tracking the user's current SKU.
+    if (entitlements) {
+      try {
+        const skus = entitlements.entitlements.map(
+          (entitlement) => entitlement.getSku() || 'unknown subscriptionToken'
+        );
+        if (skus.length > 0) {
+          this.analyticsService_.setSku(skus.join(','));
         }
-        return entitlements.clone();
-      });
+      } catch (ex) {}
+    }
+    return entitlements.clone();
   }
 
   /** @override */
@@ -885,55 +894,50 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  showOffers(options) {
-    return this.documentParsed_.then(() => {
-      const errorMessage =
-        'The showOffers() method cannot be used to update a subscription. ' +
-        'Use the showUpdateOffers() method instead.';
-      assert(options ? !options['oldSku'] : true, errorMessage);
-      this.lastOffersFlow_ = new OffersFlow(this, options);
-      return this.lastOffersFlow_.start();
-    });
+  async showOffers(options) {
+    await this.documentParsed_;
+    const errorMessage =
+      'The showOffers() method cannot be used to update a subscription. ' +
+      'Use the showUpdateOffers() method instead.';
+    assert(options ? !options['oldSku'] : true, errorMessage);
+    this.lastOffersFlow_ = new OffersFlow(this, options);
+    return this.lastOffersFlow_.start();
   }
 
   /** @override */
-  showUpdateOffers(options) {
+  async showUpdateOffers(options) {
     assert(
       isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
       'Not yet launched!'
     );
-    return this.documentParsed_.then(() => {
-      const errorMessage =
-        'The showUpdateOffers() method cannot be used for new subscribers. ' +
-        'Use the showOffers() method instead.';
-      assert(options ? !!options['oldSku'] : false, errorMessage);
-      const flow = new OffersFlow(this, options);
-      return flow.start();
-    });
+    await this.documentParsed_;
+    const errorMessage =
+      'The showUpdateOffers() method cannot be used for new subscribers. ' +
+      'Use the showOffers() method instead.';
+    assert(options ? !!options['oldSku'] : false, errorMessage);
+    const flow = new OffersFlow(this, options);
+    return flow.start();
   }
 
   /** @override */
-  showSubscribeOption(options) {
-    return this.documentParsed_.then(() => {
-      const flow = new SubscribeOptionFlow(this, options);
-      return flow.start();
-    });
+  async showSubscribeOption(options) {
+    await this.documentParsed_;
+    const flow = new SubscribeOptionFlow(this, options);
+    return flow.start();
   }
 
   /** @override */
-  showAbbrvOffer(options) {
-    return this.documentParsed_.then(() => {
-      const flow = new AbbrvOfferFlow(this, options);
-      return flow.start();
-    });
+  async showAbbrvOffer(options) {
+    await this.documentParsed_;
+    const flow = new AbbrvOfferFlow(this, options);
+    return flow.start();
   }
 
   /** @override */
-  showContributionOptions(options) {
-    return this.documentParsed_.then(() => {
-      this.lastContributionsFlow_ = new ContributionsFlow(this, options);
-      return this.lastContributionsFlow_.start();
-    });
+  async showContributionOptions(options) {
+    await this.documentParsed_;
+    this.lastContributionsFlow_ = new ContributionsFlow(this, options);
+    return this.lastContributionsFlow_.start();
   }
 
   /**
@@ -945,11 +949,10 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  waitForSubscriptionLookup(accountPromise) {
-    return this.documentParsed_.then(() => {
-      const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
-      return wait.start();
-    });
+  async waitForSubscriptionLookup(accountPromise) {
+    await this.documentParsed_;
+    const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
+    return wait.start();
   }
 
   /** @override */
@@ -968,31 +971,27 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  linkAccount(params = {}) {
-    return this.documentParsed_.then(() => {
-      return new LinkbackFlow(this).start(params);
-    });
+  async linkAccount(params = {}) {
+    await this.documentParsed_;
+    return new LinkbackFlow(this).start(params);
   }
 
   /** @override */
-  saveSubscription(saveSubscriptionRequestCallback) {
-    return this.documentParsed_.then(() => {
-      return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
-    });
+  async saveSubscription(saveSubscriptionRequestCallback) {
+    await this.documentParsed_;
+    return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
   }
 
   /** @override */
-  showLoginPrompt() {
-    return this.documentParsed_.then(() => {
-      return new LoginPromptApi(this).start();
-    });
+  async showLoginPrompt() {
+    await this.documentParsed_;
+    return new LoginPromptApi(this).start();
   }
 
   /** @override */
-  showLoginNotification() {
-    return this.documentParsed_.then(() => {
-      return new LoginNotificationApi(this).start();
-    });
+  async showLoginNotification() {
+    await this.documentParsed_;
+    return new LoginNotificationApi(this).start();
   }
 
   /** @override */
@@ -1011,18 +1010,17 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  subscribe(sku) {
+  async subscribe(sku) {
     const errorMessage =
       'The subscribe() method can only take a sku as its parameter; ' +
       'for subscription updates please use the updateSubscription() method';
     assert(typeof sku === 'string', errorMessage);
-    return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, {'skuId': sku}).start();
-    });
+    await this.documentParsed_;
+    return new PayStartFlow(this, {'skuId': sku}).start();
   }
 
   /** @override */
-  updateSubscription(subscriptionRequest) {
+  async updateSubscription(subscriptionRequest) {
     assert(
       isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
       'Not yet launched!'
@@ -1034,9 +1032,8 @@ export class ConfiguredRuntime {
       subscriptionRequest ? subscriptionRequest['oldSku'] : false,
       errorMessage
     );
-    return this.documentParsed_.then(() => {
-      return new PayStartFlow(this, subscriptionRequest).start();
-    });
+    await this.documentParsed_;
+    return new PayStartFlow(this, subscriptionRequest).start();
   }
 
   /** @override */
@@ -1045,26 +1042,20 @@ export class ConfiguredRuntime {
   }
 
   /** @override */
-  contribute(skuOrSubscriptionRequest) {
+  async contribute(skuOrSubscriptionRequest) {
     /** @type {!../api/subscriptions.SubscriptionRequest} */
     const request =
       typeof skuOrSubscriptionRequest == 'string'
         ? {'skuId': skuOrSubscriptionRequest}
         : skuOrSubscriptionRequest;
-    return this.documentParsed_.then(() => {
-      return new PayStartFlow(
-        this,
-        request,
-        ProductType.UI_CONTRIBUTION
-      ).start();
-    });
+    await this.documentParsed_;
+    return new PayStartFlow(this, request, ProductType.UI_CONTRIBUTION).start();
   }
 
   /** @override */
-  completeDeferredAccountCreation(options) {
-    return this.documentParsed_.then(() => {
-      return new DeferredAccountFlow(this, options || null).start();
-    });
+  async completeDeferredAccountCreation(options) {
+    await this.documentParsed_;
+    return new DeferredAccountFlow(this, options || null).start();
   }
 
   /** @override */
@@ -1141,7 +1132,6 @@ export class ConfiguredRuntime {
     if (
       !entitlement ||
       !isSecure(this.win().location) ||
-      !wasReferredByGoogle(parseUrl(this.win().document.referrer)) ||
       !queryStringHasFreshGaaParams(
         this.win().location.search,
         /*allowAllAccessTypes=*/ true
@@ -1154,6 +1144,15 @@ export class ConfiguredRuntime {
       showcaseEventToAnalyticsEvents(entitlement.entitlement) || [];
     const params = new EventParams();
     params.setIsUserRegistered(entitlement.isUserRegistered);
+    if (entitlement.subscriptionTimestamp) {
+      params.setSubscriptionTimestamp(
+        toTimestamp(
+          convertPotentialTimestampToMilliseconds(
+            entitlement.subscriptionTimestamp
+          )
+        )
+      );
+    }
 
     for (let i = 0; i < eventsToLog.length; i++) {
       this.eventManager().logEvent({
@@ -1178,6 +1177,17 @@ export class ConfiguredRuntime {
   /** @override */
   showBestAudienceAction() {
     warn('Not implemented yet');
+  }
+
+  /** @override */
+  setPublisherProvidedId(publisherProvidedId) {
+    this.publisherProvidedId_ = publisherProvidedId;
+  }
+
+  /** @override */
+  async linkSubscription(request) {
+    await this.documentParsed_;
+    return new SubscriptionLinkingFlow(this).start(request);
   }
 }
 
@@ -1230,5 +1240,7 @@ function createPublicRuntime(runtime) {
     consumeShowcaseEntitlementJwt:
       runtime.consumeShowcaseEntitlementJwt.bind(runtime),
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
+    setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
+    linkSubscription: runtime.linkSubscription.bind(runtime),
   });
 }

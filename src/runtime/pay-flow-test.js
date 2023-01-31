@@ -131,7 +131,7 @@ function createDefaultSubscribeResponse() {
   );
 }
 
-describes.realWin('PayStartFlow', {}, (env) => {
+describes.realWin('PayStartFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -178,8 +178,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             skuId: 'sku1',
             publicationId: 'pub1',
@@ -202,8 +202,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('sku1')
       );
-    const flowPromise = flow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await flow.start();
   });
 
   it('should trigger the contribution flow if given contribution productType', async () => {
@@ -227,8 +226,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': subscriptionRequest,
           'i': {
             'startTimeMs': sandbox.match.any,
@@ -248,8 +247,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('sku1')
       );
-    const flowPromise = contribFlow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await contribFlow.start();
   });
 
   it('should have valid flow constructed for one time', async () => {
@@ -270,8 +268,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             skuId: 'newSku',
             paymentRecurrence: RecurrenceMapping['ONE_TIME'],
@@ -295,8 +293,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('newSku')
       );
-    const flowPromise = oneTimeFlow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await oneTimeFlow.start();
   });
 
   it('should have valid flow constructed with metadata', async () => {
@@ -319,8 +316,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             skuId: 'newSku',
             publicationId: 'pub1',
@@ -346,8 +343,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('newSku')
       );
-    const flowPromise = metadataFlow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await metadataFlow.start();
   });
 
   it('should have valid replace flow constructed', async () => {
@@ -371,8 +367,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             skuId: 'newSku1',
             oldSku: 'oldSku1',
@@ -398,8 +394,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('newSku1')
       );
-    const flowPromise = replaceFlow.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await replaceFlow.start();
   });
 
   it('should have valid replace flow constructed (no proration mode)', async () => {
@@ -423,8 +418,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': Object.assign({}, subscriptionRequest, {
             replaceSkuProrationMode:
               ReplaceSkuProrationModeMapping.IMMEDIATE_WITH_TIME_PRORATION,
@@ -448,8 +443,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
         true,
         getEventParams('newSku2')
       );
-    const flowPromise = replaceFlowNoProrationMode.start();
-    await expect(flowPromise).to.eventually.be.undefined;
+    await replaceFlowNoProrationMode.start();
   });
 
   it('should force redirect mode', async () => {
@@ -460,8 +454,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             'publicationId': 'pub1',
             'skuId': 'sku1',
@@ -483,7 +477,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   it('should have paySwgVersion from clientConfig', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '1'})))
+      .resolves(new ClientConfig({paySwgVersion: '1'}))
       .once();
 
     payClientMock
@@ -492,8 +486,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             'skuId': 'sku1',
             'publicationId': 'pub1',
@@ -516,7 +510,7 @@ describes.realWin('PayStartFlow', {}, (env) => {
   it('should forceDisableNative for basic paySwgVersion', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig({paySwgVersion: '2'})))
+      .resolves(new ClientConfig({paySwgVersion: '2'}))
       .once();
 
     payClientMock
@@ -525,8 +519,8 @@ describes.realWin('PayStartFlow', {}, (env) => {
         {
           'apiVersion': 1,
           'allowedPaymentMethods': ['CARD'],
-          'environment': '$payEnvironment$',
-          'playEnvironment': '$playEnvironment$',
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
           'swg': {
             'skuId': 'sku1',
             'publicationId': 'pub1',
@@ -545,9 +539,25 @@ describes.realWin('PayStartFlow', {}, (env) => {
       .once();
     await flow.start();
   });
+
+  it('should forceDisableNative for paySwgVersion 3', async () => {
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(new ClientConfig({paySwgVersion: '3'}))
+      .once();
+
+    payClientMock
+      .expects('start')
+      .withArgs(sandbox.match.any, {
+        forceRedirect: false,
+        forceDisableNative: true,
+      })
+      .once();
+    await flow.start();
+  });
 });
 
-describes.realWin('PayCompleteFlow', {}, (env) => {
+describes.realWin('PayCompleteFlow', (env) => {
   let win;
   let pageConfig;
   let runtime;
@@ -632,9 +642,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -644,7 +654,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
@@ -676,7 +686,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       activitiesMock
         .expects('openIframe')
         .withExactArgs(sandbox.match.any, sandbox.match.any, sandbox.match.any)
-        .returns(Promise.resolve(port));
+        .resolves(port);
 
       await flow.start(response);
       await flow.readyPromise_;
@@ -709,9 +719,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           loginHint: USER_EMAIL,
           productType: ProductType.SUBSCRIPTION,
@@ -721,7 +731,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -753,9 +763,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           loginHint: USER_EMAIL,
           productType: ProductType.SUBSCRIPTION,
@@ -765,7 +775,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -799,9 +809,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           loginHint: USER_EMAIL,
           productType: ProductType.UI_CONTRIBUTION,
@@ -811,7 +821,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -856,9 +866,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -868,7 +878,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
 
     storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
 
@@ -880,7 +890,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   it('should have valid flow constructed w/ useUpdatedConfirmUi set to true', async () => {
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true})))
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}))
       .once();
 
     const response = createDefaultSubscribeResponse();
@@ -903,9 +913,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -915,7 +925,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
@@ -948,9 +958,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -960,7 +970,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
@@ -1018,7 +1028,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_' +
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
           '&isPaid=true&checkOrderStatus=true' +
@@ -1026,7 +1036,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           expectedCanonicalUrl +
           '&isAnonymous=true',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.VIRTUAL_GIFT,
@@ -1039,7 +1049,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -1070,9 +1080,9 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/payconfirmiframe?_=_&hl=fr-CA',
+        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_&hl=fr-CA',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           idToken: USER_ID_TOKEN,
           productType: ProductType.SUBSCRIPTION,
@@ -1082,7 +1092,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
           skipAccountCreationScreen: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
   });
@@ -1093,7 +1103,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(true) // Expected positive.
@@ -1138,7 +1148,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(true) // Expected positive.
@@ -1179,7 +1189,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock
       .expects('reset')
       .withExactArgs(true) // Expected positive.
@@ -1230,7 +1240,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     };
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     const order = [];
     entitlementsManagerMock
       .expects('reset')
@@ -1307,7 +1317,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -1337,7 +1347,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(
@@ -1402,9 +1412,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
         .withExactArgs('contribute')
         .once();
 
-      await expect(responseCallback(Promise.reject(error))).to.eventually.equal(
-        undefined
-      );
+      await responseCallback(Promise.reject(error));
 
       expect(startStub).to.not.be.called;
 
@@ -1689,7 +1697,7 @@ describes.realWin('PayCompleteFlow', {}, (env) => {
   });
 });
 
-describes.realWin('parseSubscriptionResponse', {}, (env) => {
+describes.realWin('parseSubscriptionResponse', (env) => {
   let pageConfig;
   let runtime;
 
@@ -1818,13 +1826,9 @@ describes.realWin('parseSubscriptionResponse', {}, (env) => {
   });
 
   it('should throw error', () => {
-    let err = null;
-    try {
-      parseSubscriptionResponse(runtime, null);
-    } catch (ex) {
-      err = ex.toString();
-    }
-    expect(err).to.equal('Error: unexpected payment response');
+    expect(() => parseSubscriptionResponse(runtime, null)).to.throw(
+      'unexpected payment response'
+    );
   });
 
   it('should parse complete idToken', () => {

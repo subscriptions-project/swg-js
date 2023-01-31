@@ -105,13 +105,12 @@ function checkNodeVersion() {
 function getNodeLatestLtsVersion(distributionsJson) {
   if (distributionsJson) {
     // Versions are in descending order, so the first match is the latest lts.
-    return distributionsJson.find(function (distribution) {
-      return (
+    return distributionsJson.find(
+      (distribution) =>
         distribution.hasOwnProperty('version') &&
         distribution.hasOwnProperty('lts') &&
         distribution.lts
-      );
-    }).version;
+    ).version;
   } else {
     return '';
   }

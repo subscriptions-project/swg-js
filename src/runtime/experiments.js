@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {EXPERIMENTS} from '../constants';
 import {ErrorUtils} from '../utils/errors';
 import {parseQueryString} from '../utils/url';
 
@@ -41,6 +42,22 @@ import {parseQueryString} from '../utils/url';
  *    control. In this case, 20% of the impressions will be split into two
  *    categories: experiment and control. Notice, a control can be requested
  *    only for the fraction under 20%.
+ *
+ * Server-side experiments in SwG.
+ *
+ * These are only observed at runtime via the `#swg.experiments=${experimentsString}`
+ * parameter in the URL's fragment.
+ *
+ * The `${experimentsString}` follows the convention of comma separated
+ * experiment ID's, optionally prefixed with hyphen (`-`) indicating you want
+ * the experiment to be disabled.
+ *
+ * An example would look like:
+ *  - `MyExperiment,-OtherExperiment` - indicates that you would like `MyExperiment`
+ * to be enabled and `OtherExperiment` to be disabled.
+ *
+ * Due to restrictions, server flags can only be enabled following the
+ * internal policy; otherwise they are ignored.
  */
 
 /**
@@ -52,10 +69,10 @@ const Selection = {
 };
 
 /**
- * A comma-separated set of experiments.
+ * A mutable copy of the comma-separated set of experiments.
  * @type {string}
  */
-let experimentsString = '$experiments$';
+let experimentsString = EXPERIMENTS;
 
 /**
  * A parsed map of experiments.

@@ -27,7 +27,7 @@ const {getStdout} = require('./exec');
  * one on each line.
  * @return {!Array<string>}
  */
-exports.gitDiffNameOnlyMain = function () {
+exports.gitDiffNameOnlyMain = () => {
   const mainBaseline = gitMainBaseline();
   return getStdout(`git diff --name-only ${mainBaseline}`).trim().split('\n');
 };

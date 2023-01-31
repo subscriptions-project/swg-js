@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {CSS as DIALOG_CSS} from '../../build/css/ui/ui.css';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
+import {UI_CSS} from '../ui/ui-css';
 import {
   createElement,
   injectStyleSheet,
@@ -75,11 +75,14 @@ const resetViewStyles = {
  *       viewport height.
  * - iframeCssClassOverride: The CSS class to use for the iframe, overriding
  *       default classes such as swg-dialog.
+ * - shouldDisableBodyScrolling: Whether to disable scrolling on the content page
+ *       when the dialog is visible.
  *
  * @typedef {{
  *   desktopConfig: (DesktopDialogConfig|undefined),
  *   maxAllowedHeightRatio: (number|undefined),
  *   iframeCssClassOverride: (string|undefined),
+ *   shouldDisableBodyScrolling: (boolean|undefined),
  * }}
  */
 export let DialogConfig;
@@ -175,6 +178,10 @@ export class Dialog {
     /** @const @private {boolean} */
     this.positionCenterOnDesktop_ = !!desktopDialogConfig.isCenterPositioned;
 
+    /** @const @private {boolean} */
+    this.shouldDisableBodyScrolling_ =
+      !!dialogConfig.shouldDisableBodyScrolling;
+
     /** @const @private {!MediaQueryList} */
     this.desktopMediaQuery_ = this.doc_
       .getWin()
@@ -192,7 +199,7 @@ export class Dialog {
    * @param {boolean=} hidden
    * @return {!Promise<!Dialog>}
    */
-  open(hidden = false) {
+  async open(hidden = false) {
     const iframe = this.iframe_;
     if (iframe.isConnected()) {
       throw new Error('already opened');
@@ -213,17 +220,16 @@ export class Dialog {
       this.show_();
     }
 
-    return iframe.whenReady().then(() => {
-      this.buildIframe_();
-      return this;
-    });
+    await iframe.whenReady();
+    this.buildIframe_();
+    return this;
   }
 
   /**
    * Opens the iframe embedded in the given container element.
    * @param {!Element} containerEl
    */
-  openInContainer(containerEl) {
+  async openInContainer(containerEl) {
     const iframe = this.iframe_;
     if (iframe.isConnected()) {
       throw new Error('already opened');
@@ -231,10 +237,9 @@ export class Dialog {
 
     containerEl.appendChild(iframe.getElement());
 
-    return iframe.whenReady().then(() => {
-      this.buildIframe_();
-      return this;
-    });
+    await iframe.whenReady();
+    this.buildIframe_();
+    return this;
   }
 
   /**
@@ -247,7 +252,7 @@ export class Dialog {
     const iframeDoc = /** @type {!HTMLDocument} */ (this.iframe_.getDocument());
 
     // Inject Google fonts in <HEAD> section of the iframe.
-    injectStyleSheet(resolveDoc(iframeDoc), DIALOG_CSS);
+    injectStyleSheet(resolveDoc(iframeDoc), UI_CSS);
 
     // Add Loading indicator.
     const loadingViewClasses = [];
@@ -278,7 +283,7 @@ export class Dialog {
    * @param {boolean=} animated
    * @return {!Promise}
    */
-  close(animated = true) {
+  async close(animated = true) {
     let animating;
     if (animated) {
       const transitionStyles = this.shouldPositionCenter_()
@@ -292,16 +297,19 @@ export class Dialog {
     } else {
       animating = Promise.resolve();
     }
-    return animating.then(() => {
-      const iframeEl = this.iframe_.getElement();
-      iframeEl.parentNode.removeChild(iframeEl);
 
-      this.removePaddingToHtml_();
-      this.graypane_.destroy();
-      if (this.desktopMediaQueryListener_) {
-        this.desktopMediaQuery_.removeListener(this.desktopMediaQueryListener_);
-      }
-    });
+    this.doc_.getBody().classList.remove('swg-disable-scroll');
+
+    await animating;
+
+    const iframeEl = this.iframe_.getElement();
+    iframeEl.parentNode.removeChild(iframeEl);
+
+    this.removePaddingToHtml_();
+    this.graypane_.destroy();
+    if (this.desktopMediaQueryListener_) {
+      this.desktopMediaQuery_.removeListener(this.desktopMediaQueryListener_);
+    }
   }
 
   /**
@@ -396,30 +404,33 @@ export class Dialog {
    * @param {!./view.View} view
    * @return {!Promise}
    */
-  openView(view) {
+  async openView(view) {
     setImportantStyles(view.getElement(), resetViewStyles);
     this.entryTransitionToNextView_();
 
     this.view_ = view;
     this.getContainer().appendChild(view.getElement());
 
+    if (this.shouldDisableBodyScrolling_) {
+      this.doc_.getBody().classList.add('swg-disable-scroll');
+    }
+
     // If the current view should fade the parent document.
     if (view.shouldFadeBody() && !this.hidden_) {
       this.graypane_.show(/* animate */ true);
     }
 
-    return view.init(this).then(() => {
-      setImportantStyles(view.getElement(), {
-        'opacity': 1,
-      });
-      if (this.hidden_) {
-        if (view.shouldFadeBody()) {
-          this.graypane_.show(/* animated */ true);
-        }
-        this.show_();
-      }
-      this.exitTransitionFromOldView_();
+    await view.init(this);
+    setImportantStyles(view.getElement(), {
+      'opacity': 1,
     });
+    if (this.hidden_) {
+      if (view.shouldFadeBody()) {
+        this.graypane_.show(/* animated */ true);
+      }
+      this.show_();
+    }
+    this.exitTransitionFromOldView_();
   }
 
   /**
@@ -427,13 +438,14 @@ export class Dialog {
    * @private
    */
   show_() {
-    this.animate_(() => {
+    this.animate_(async () => {
       setImportantStyles(this.getElement(), {
         'transform': 'translateY(100%)',
         'opactiy': 1,
         'visibility': 'visible',
       });
-      return transition(
+
+      await transition(
         this.getElement(),
         {
           'transform': this.getDefaultTranslateY_(),
@@ -442,11 +454,12 @@ export class Dialog {
         },
         300,
         'ease-out'
-      ).then(() => {
-        // Focus the dialog contents, per WAI-ARIA best practices.
-        this.getElement().focus();
-      });
+      );
+
+      // Focus the dialog contents, per WAI-ARIA best practices.
+      this.getElement().focus();
     });
+
     this.hidden_ = false;
   }
 
@@ -457,7 +470,7 @@ export class Dialog {
    * @param {boolean=} animated
    * @return {?Promise}
    */
-  resizeView(view, height, animated = true) {
+  async resizeView(view, height, animated = true) {
     if (this.view_ != view) {
       return null;
     }
@@ -490,18 +503,21 @@ export class Dialog {
           }
           setImportantStyles(this.getElement(), immediateStyles);
 
-          return transition(
-            this.getElement(),
-            {
-              'transform': this.getDefaultTranslateY_(),
-            },
-            300,
-            'ease-out'
-          );
+          requestAnimationFrame(() => {
+            transition(
+              this.getElement(),
+              {
+                'transform': this.getDefaultTranslateY_(),
+              },
+              300,
+              'ease-out'
+            );
+          });
+          return Promise.resolve();
         });
       } else {
         // Collapse.
-        animating = this.animate_(() => {
+        animating = this.animate_(async () => {
           const transitionPromise = isStale()
             ? Promise.resolve()
             : transition(
@@ -514,15 +530,16 @@ export class Dialog {
                 300,
                 'ease-out'
               );
-          return transitionPromise.then(() => {
-            if (isStale()) {
-              return;
-            }
 
-            setImportantStyles(this.getElement(), {
-              'height': `${newHeight}px`,
-              'transform': this.getDefaultTranslateY_(),
-            });
+          await transitionPromise;
+
+          if (isStale()) {
+            return;
+          }
+
+          setImportantStyles(this.getElement(), {
+            'height': `${newHeight}px`,
+            'transform': this.getDefaultTranslateY_(),
           });
         });
       }
@@ -532,14 +549,15 @@ export class Dialog {
       });
       animating = Promise.resolve();
     }
-    return animating.then(() => {
-      if (isStale()) {
-        return;
-      }
 
-      this.updatePaddingToHtml_(height);
-      view.resized();
-    });
+    await animating;
+
+    if (isStale()) {
+      return;
+    }
+
+    this.updatePaddingToHtml_(height);
+    view.resized();
   }
 
   /**
@@ -547,20 +565,16 @@ export class Dialog {
    * @return {!Promise}
    * @private
    */
-  animate_(callback) {
-    const wait = this.animating_ || Promise.resolve();
-    return (this.animating_ = wait
-      .then(
-        () => {
-          return callback();
-        },
-        () => {
-          // Ignore errors to make sure animations don't get stuck.
-        }
-      )
-      .then(() => {
-        this.animating_ = null;
-      }));
+  async animate_(callback) {
+    await this.animating_;
+
+    try {
+      await callback();
+    } catch (err) {
+      // Ignore errors to make sure animations don't get stuck.
+    }
+
+    this.animating_ = null;
   }
 
   /**

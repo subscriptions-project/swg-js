@@ -38,7 +38,7 @@ const SHOW_OFFERS_ARGS = {
   source: 'SwG',
 };
 
-describes.realWin('OffersFlow', {}, (env) => {
+describes.realWin('OffersFlow', (env) => {
   let win;
   let offersFlow;
   let runtime;
@@ -91,7 +91,32 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    await offersFlow.start();
+  });
+
+  it('includes useNewOfferCard param if flag is set in hash', async () => {
+    win.location.hash = 'swg.newoffercard=1';
+
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_&useNewOfferCard=1',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -118,7 +143,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1',
+        'https://news.google.com/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -148,7 +173,40 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/subscriptionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
+        'https://news.google.com/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&hl=fr-CA',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    await offersFlow.start();
+  });
+
+  it('includes purchaseUnavailableRegion param if true', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {purchaseUnavailableRegion: true},
+      })
+    );
+    offersFlow = new OffersFlow(runtime, {
+      'isClosable': false,
+    });
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/_/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&purchaseUnavailableRegion=true',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -189,7 +247,7 @@ describes.realWin('OffersFlow', {}, (env) => {
     await offersFlow.start();
   });
 
-  it('opens dialog without desktop config when useUpdatedOfferFlows=false', async () => {
+  it('opens dialog without dialog config when useUpdatedOfferFlows=false', async () => {
     sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
       new ClientConfig({
         useUpdatedOfferFlows: false,
@@ -212,9 +270,56 @@ describes.realWin('OffersFlow', {}, (env) => {
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
     dialogManagerMock
       .expects('openView')
-      .withExactArgs(sandbox.match.any, false, {
-        desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+        })
+      )
+      .once();
+    await offersFlow.start();
+  });
+
+  it('opens dialog with scrolling disabled when useUpdatedOfferFlows=true', async () => {
+    sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
       })
+    );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          shouldDisableBodyScrolling: true,
+        })
+      )
+      .once();
+    await offersFlow.start();
+  });
+
+  it('opens dialog with scrolling enabled when useUpdatedOfferFlows=true and allowScroll=true', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+      })
+    );
+    sandbox.stub(clientConfigManager, 'shouldAllowScroll').returns(true);
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
+          shouldDisableBodyScrolling: false,
+        })
+      )
       .once();
     await offersFlow.start();
   });
@@ -234,7 +339,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -253,7 +358,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -272,7 +377,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -294,7 +399,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -309,15 +414,11 @@ describes.realWin('OffersFlow', {}, (env) => {
   });
 
   it('should throw error if calling OffersFlow with oldSku but no skus', () => {
-    try {
-      offersFlow = new OffersFlow(runtime, {
+    const fn = () =>
+      new OffersFlow(runtime, {
         oldSku: 'old_sku',
       });
-    } catch (err) {
-      expect(err)
-        .to.be.an.instanceOf(Error)
-        .with.property('message', 'Need a sku list if old sku is provided!');
-    }
+    expect(fn).to.throw('Need a sku list if old sku is provided!');
   });
 
   it('should remove oldSku if skus contains it', async () => {
@@ -329,7 +430,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -360,7 +461,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: true,
           productType: ProductType.SUBSCRIPTION,
@@ -447,7 +548,7 @@ describes.realWin('OffersFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/offersiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/offersiframe?_=_',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,
@@ -473,9 +574,9 @@ describes.realWin('OffersFlow', {}, (env) => {
   });
 });
 
-describes.realWin('SubscribeOptionFlow', {}, (env) => {
+describes.realWin('SubscribeOptionFlow', (env) => {
   let win;
-  let offersFlow;
+  let subscribeOptionFlow;
   let runtime;
   let activitiesMock;
   let callbacksMock;
@@ -495,7 +596,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
     const eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
-    offersFlow = new SubscribeOptionFlow(runtime);
+    subscribeOptionFlow = new SubscribeOptionFlow(runtime);
     port = new ActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
@@ -522,9 +623,9 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/optionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -536,7 +637,16 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
-    await offersFlow.start();
+    await subscribeOptionFlow.start();
+  });
+
+  it('should start OffersFlow after result is accepted', async () => {
+    port.acceptResult = () => Promise.resolve({data: {subscribe: true}});
+    activitiesMock.expects('openIframe').resolves(port);
+    const offersFlowStartStub = sandbox.stub(OffersFlow.prototype, 'start');
+    expect(offersFlowStartStub).to.not.be.called;
+    await subscribeOptionFlow.start();
+    expect(offersFlowStartStub).to.be.called;
   });
 
   it('should report cancel', async () => {
@@ -554,9 +664,9 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/optionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -568,11 +678,11 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
-    await offersFlow.start();
+    await subscribeOptionFlow.start();
   });
 
   it('should propagate list args', async () => {
-    offersFlow = new SubscribeOptionFlow(runtime, {
+    subscribeOptionFlow = new SubscribeOptionFlow(runtime, {
       list: 'other',
       skus: ['sku1'],
     });
@@ -580,9 +690,9 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/optionsiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/optionsiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'other',
@@ -594,7 +704,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
     eventManagerMock
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.IMPRESSION_CLICK_TO_SHOW_OFFERS);
-    await offersFlow.start();
+    await subscribeOptionFlow.start();
   });
 
   it('should trigger offers flow when accepted', async () => {
@@ -608,7 +718,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
 
-    await offersFlow.start();
+    await subscribeOptionFlow.start();
     expect(offersStartStub).to.not.be.called;
     // Subscribe message.
     const response = new SubscribeResponse();
@@ -644,7 +754,7 @@ describes.realWin('SubscribeOptionFlow', {}, (env) => {
   });
 });
 
-describes.realWin('AbbrvOfferFlow', {}, (env) => {
+describes.realWin('AbbrvOfferFlow', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -697,9 +807,9 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -718,15 +828,15 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
   });
 
   it('should have valid AbbrvOfferFlow constructed w/native', async () => {
-    runtime.callbacks().setOnSubscribeRequest(function () {});
+    runtime.callbacks().setOnSubscribeRequest(() => {});
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
     activitiesMock
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -759,9 +869,9 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'default',
@@ -788,9 +898,9 @@ describes.realWin('AbbrvOfferFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/abbrvofferiframe?_=_',
+        'https://news.google.com/swg/_/ui/v1/abbrvofferiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:label1',
           list: 'other',
