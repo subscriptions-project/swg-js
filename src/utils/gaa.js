@@ -1099,9 +1099,9 @@ export class GaaGoogle3pSignInButton {
   /**
    * Renders the third party Google Sign-In button for external authentication.
    * @nocollapse
-   * @param {{ allowedOrigins: !Array<string>, authorizationUrl: string, redirectMode: boolean }} params
+   * @param {{ allowedOrigins: !Array<string>, authorizationUrl: string }} params
    */
-  static show({allowedOrigins, authorizationUrl, redirectMode = true}) {
+  static show({allowedOrigins, authorizationUrl}) {
     // Optionally grab language code from URL.
     const queryString = GaaUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -1121,11 +1121,7 @@ export class GaaGoogle3pSignInButton {
     buttonEl.tabIndex = 0;
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = () => {
-      if (redirectMode) {
-        self.parent.document.location.href = authorizationUrl;
-      } else {
-        self.open(authorizationUrl);
-      }
+      self.open(authorizationUrl);
     };
     self.document.body.appendChild(buttonEl);
 
