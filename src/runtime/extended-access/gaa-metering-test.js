@@ -283,6 +283,29 @@ describes.realWin('GaaMetering', () => {
       ).to.be.true;
     });
 
+    it('succeeds for valid params with showcaseEntitlement', () => {
+      expect(
+        GaaMetering.validateParameters({
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          /* Ommiting unlockArticle */
+          showcaseEntitlement: 'test showcaseEntitlement',
+          showPaywall: () => {},
+          handleLogin: () => {},
+          handleSwGEntitlement: () => {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+        })
+      ).to.be.true;
+    });
+
     it('succeeds for valid params with authorizationUrl', () => {
       expect(
         GaaMetering.validateParameters({
@@ -1307,7 +1330,6 @@ describes.realWin('GaaMetering', () => {
           registrationTimestamp: 1602763054,
         },
         showcaseEntitlement: 'test showcaseEntitlement',
-        unlockArticle: () => {},
         showPaywall: () => {},
         handleLogin: () => {},
         handleSwGEntitlement: () => {},
