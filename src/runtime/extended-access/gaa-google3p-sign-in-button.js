@@ -84,7 +84,7 @@ export class GaaGoogle3pSignInButton {
       });
 
       if (redirectMode) {
-        // TODO(b/242998655): Fix the downstream calls for logEvent to be chained to remove the need of delaying redirect.
+        // TODO(b/242998655): Fix the downstream calls for logEvent to be chained to remove the need of delaying redirect.        
         self.setTimeout(() => {
           self.open(authorizationUrl, '_parent');
         }, REDIRECT_DELAY);
