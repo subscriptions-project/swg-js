@@ -19,7 +19,7 @@ const {execOrDie} = require('./build-system/exec');
 const {isCiBuild} = require('./build-system/ci');
 if (!isCiBuild()) {
   // CI systems will have already installed dependencies.
-  execOrDie('npx yarn');
+  execOrDie('npm i');
 }
 
 const $$ = require('gulp-load-plugins')();

@@ -66,7 +66,7 @@ function swgjs_install() {
       git clone -o team https://github.com/subscriptions-project/swg-js $SWGJS_PATH
       cd $SWGJS_PATH
       git remote add me git@github.com:$GITHUB_USERNAME/swg-js.git
-      npx yarn
+      npm i
   fi
 }
 
@@ -180,7 +180,7 @@ function swgjs_deploy_demos() {
   git stash
   git fetch team main
   git checkout team/main
-  npx yarn deploy
+  npm run deploy
   git checkout -
   git stash pop
   cd -

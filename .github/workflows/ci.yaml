@@ -15,7 +15,7 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn --ignore-optional
+        run: npm ci --omit optional
 
       - name: Check
         run: gulp check
@@ -32,7 +32,7 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn
+        run: npm ci
 
       - name: Compile Swgjs with Closure
         run: gulp dist
@@ -52,7 +52,7 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn
+        run: npm ci
 
       - name: Compile Swgjs Classic with Vite
         run: npx vite build -- --target=classic
@@ -78,7 +78,7 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn --ignore-optional
+        run: npm ci --omit optional
 
       - name: Unit Tests
         run: gulp unit --headless --coverage
