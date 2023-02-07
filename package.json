@@ -6,7 +6,7 @@
   "main": "index.js",
   "engines": {
     "node": "^18.0.0",
-    "yarn": "^1.10.1"
+    "npm": "^9.0.0"
   },
   "author": "Subscribe with Google Authors",
   "license": "Apache-2.0",
@@ -107,7 +107,7 @@
     "watchify": "4.0.0"
   },
   "optionalDependencies": {
-    "@rollup/plugin-commonjs": "24.0.0",
+    "@rollup/plugin-commonjs": "24.0.1",
     "@rollup/plugin-replace": "5.0.2",
     "@storybook/addon-actions": "6.5.16",
     "@storybook/addon-essentials": "6.5.16",
@@ -123,8 +123,7 @@
     "jsonwebtoken": "9.0.0",
     "nightwatch": "1.7.13",
     "rollup-plugin-visualizer": "5.9.0",
-    "vite": "4.0.4",
-    "yarn": "1.22.19"
+    "vite": "4.1.1"
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,

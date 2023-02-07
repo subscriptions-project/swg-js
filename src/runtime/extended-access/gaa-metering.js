@@ -96,13 +96,16 @@ export class GaaMetering {
       caslUrl,
       showPaywall,
       userState,
-      unlockArticle,
       handleSwGEntitlement,
       registerUserPromise,
       handleLoginPromise,
       publisherEntitlementPromise,
       rawJwt,
     } = params;
+
+    // Disable unlockArticle when showcaseEntilement is provided since articles
+    // are unlocked on the server-side.
+    const unlockArticle = showcaseEntitlement ? () => {} : params.unlockArticle;
 
     // Set class variables
     GaaMetering.userState = userState;
@@ -364,7 +367,10 @@ export class GaaMetering {
       noIssues = false;
     }
 
-    const reqFunc = ['unlockArticle', 'showPaywall'];
+    const reqFunc =
+      'showcaseEntitlement' in params
+        ? ['showPaywall']
+        : ['showPaywall', 'unlockArticle'];
 
     for (let reqFuncNo = 0; reqFuncNo < reqFunc.length; reqFuncNo++) {
       if (
