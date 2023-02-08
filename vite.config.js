@@ -100,6 +100,7 @@ export default defineConfig({
         {
           format: 'iife',
           entryFileNames: output,
+          sourcemap: true,
         },
       ],
     },
