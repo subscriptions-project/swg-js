@@ -15,7 +15,7 @@
  */
 
 import {defineConfig} from 'vite';
-import {readdirSync, readFileSync, writeFileSync} from 'fs';
+import {readFileSync, readdirSync, writeFileSync} from 'fs';
 import {visualizer} from 'rollup-plugin-visualizer';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
