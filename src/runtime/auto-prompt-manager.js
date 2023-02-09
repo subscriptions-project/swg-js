@@ -215,8 +215,6 @@ export class AutoPromptManager {
       return;
     }
 
-    // log stuff when we want to show
-
     const displayDelayMs =
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
