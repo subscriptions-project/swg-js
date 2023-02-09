@@ -17,7 +17,7 @@
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {ExperimentConstants} from './experiment-constants';
+// import {ExperimentConstants} from './experiment-constants';
 import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
@@ -217,7 +217,7 @@ export class AutoPromptManager {
       return;
     }
 
-    // log stuff
+    // log stuff when we want to show
 
     const displayDelayMs =
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
