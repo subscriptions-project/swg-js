@@ -51,6 +51,7 @@ const plugins = [
         filename.endsWith('.map')
       );
       for (const filename of filenames) {
+        // Load sourcemap.
         const path = outputDir + '/' + filename;
         const sourcemap = JSON.parse(
           readFileSync(outputDir + '/' + filename).toString()
