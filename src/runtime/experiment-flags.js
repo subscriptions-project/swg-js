@@ -70,4 +70,9 @@ export const ExperimentFlags = {
    * The triggering of a survey prompt takes priority over a contribution prompt.
    */
   SURVEY_TRIGGERING_PRIORITY: 'survey_triggering_priority_experiment',
+
+  /**
+   * Experiment flag for delaying the second prompt by allowing free reads after the first.
+   */
+  SECOND_PROMPT_DELAY: 'second_prompt_delay_experiment',
 };
