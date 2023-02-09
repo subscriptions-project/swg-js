@@ -15,6 +15,7 @@
  */
 
 import {defineConfig} from 'vite';
+import {readdirSync, readFileSync, writeFileSync} from 'fs';
 import {visualizer} from 'rollup-plugin-visualizer';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
@@ -23,13 +24,11 @@ import {resolveConfig} from './build-system/tasks/compile-config';
 const args = require('./build-system/tasks/args');
 
 // Choose plugins.
-const replacementValues = Object.entries(resolveConfig()).reduce(
-  (obj, [key, value]) => {
-    obj[key] = `const ${key} = '${value}' ?? `;
-    return obj;
-  },
-  {}
-);
+const config = resolveConfig();
+const replacementValues = Object.entries(config).reduce((obj, [key, value]) => {
+  obj[key] = `const ${key} = '${value}' ?? `;
+  return obj;
+}, {});
 const plugins = [
   commonjs({
     transformMixedEsModules: true,
@@ -40,6 +39,36 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
+  // Fix sourcemaps.
+  {
+    name: 'fix-sourcemaps',
+    apply: 'build',
+    writeBundle(outputConfig) {
+      const outputDir = outputConfig.dir || '';
+
+      // Fix sourcemaps.
+      const filenames = readdirSync(outputDir).filter((filename) =>
+        filename.endsWith('.map')
+      );
+      for (const filename of filenames) {
+        const path = outputDir + '/' + filename;
+        const sourcemap = JSON.parse(
+          readFileSync(outputDir + '/' + filename).toString()
+        );
+
+        // Update source root.
+        sourcemap.sourceRoot = `https://raw.githubusercontent.com/subscriptions-project/swg-js/${config.INTERNAL_RUNTIME_VERSION}/`;
+
+        // Update source paths.
+        sourcemap.sources = sourcemap.sources.map((source) =>
+          source.replace(/^\.\.\/src\//, 'src/')
+        );
+
+        // Save changes.
+        writeFileSync(path, JSON.stringify(sourcemap));
+      }
+    },
+  },
 ];
 if (args.visualize) {
   // Visualize bundle to see which modules are taking up space.
