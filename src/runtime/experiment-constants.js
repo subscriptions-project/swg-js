@@ -15,7 +15,7 @@
  */
 
 /**
- * @enum {string}
+ * @enum {number}
  */
 export const ExperimentConstants = {
   /**
