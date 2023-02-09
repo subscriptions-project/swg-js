@@ -239,7 +239,10 @@ export class AutoPromptManager {
     );
     this.deps_
       .win()
-      .setTimeout(promptFn, isBlockingPromptWithDelay ? displayDelayMs : 0);
+      .setTimeout(
+        promptFn ? promptFn : null,
+        isBlockingPromptWithDelay ? displayDelayMs : 0
+      );
   }
 
   /**
@@ -372,10 +375,12 @@ export class AutoPromptManager {
       return false;
     }
 
-    const delaySecondPrompt = await this.isExperimentEnabled_(
-      article,
-      ExperimentFlags.SECOND_PROMPT_DELAY
-    );
+    const delaySecondPrompt = article
+      ? await this.isExperimentEnabled_(
+          article,
+          ExperimentFlags.SECOND_PROMPT_DELAY
+        )
+      : false;
 
     if (delaySecondPrompt) {
       return true;
