@@ -205,34 +205,41 @@ export class AutoPromptManager {
         })
       : params.displayLargePromptFn;
 
-    const displayDelayMs =
-      (clientConfig?.autoPromptConfig?.clientDisplayTrigger
-        ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
-    if (!shouldShowAutoPrompt) {
-      if (
-        this.shouldShowBlockingPrompt_(
-          entitlements,
-          /* hasPotentialAudienceAction */ !!potentialActionPromptType
-        ) &&
-        promptFn
-      ) {
-        const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
-          potentialActionPromptType
-        );
-        this.deps_
-          .win()
-          .setTimeout(promptFn, isBlockingPromptWithDelay ? displayDelayMs : 0);
-      }
+    const shouldShowBlockingPrompt =
+      this.shouldShowBlockingPrompt_(
+        entitlements,
+        /* hasPotentialAudienceAction */ !!potentialActionPromptType
+      ) && promptFn;
+
+    if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
       return;
     }
 
-    this.deps_.win().setTimeout(() => {
-      this.autoPromptDisplayed_ = true;
-      this.showPrompt_(
-        this.getPromptTypeToDisplay_(params.autoPromptType),
-        promptFn
+    // log stuff when we want to show
+
+    const displayDelayMs =
+      (clientConfig?.autoPromptConfig?.clientDisplayTrigger
+        ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
+
+    if (shouldShowAutoPrompt) {
+      this.deps_.win().setTimeout(() => {
+        this.autoPromptDisplayed_ = true;
+        this.showPrompt_(
+          this.getPromptTypeToDisplay_(params.autoPromptType),
+          promptFn
+        );
+      }, displayDelayMs);
+    } else {
+      const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
+        potentialActionPromptType
       );
-    }, displayDelayMs);
+      this.deps_
+        .win()
+        .setTimeout(
+          promptFn ? promptFn : null,
+          isBlockingPromptWithDelay ? displayDelayMs : 0
+        );
+    }
   }
 
   /**
