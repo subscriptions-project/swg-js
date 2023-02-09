@@ -231,18 +231,17 @@ export class AutoPromptManager {
           promptFn
         );
       }, displayDelayMs);
-    }
-
-    // shouldShowBlockingPrompt == true
-    const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
-      potentialActionPromptType
-    );
-    this.deps_
-      .win()
-      .setTimeout(
-        promptFn ? promptFn : null,
-        isBlockingPromptWithDelay ? displayDelayMs : 0
+    } else {
+      const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
+        potentialActionPromptType
       );
+      this.deps_
+        .win()
+        .setTimeout(
+          promptFn ? promptFn : null,
+          isBlockingPromptWithDelay ? displayDelayMs : 0
+        );
+    }
   }
 
   /**
