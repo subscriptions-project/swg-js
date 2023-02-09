@@ -39,14 +39,13 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
-  // Fix sourcemaps.
+  // Point sourcemaps to a Swgjs release on GitHub.
   {
     name: 'fix-sourcemaps',
     apply: 'build',
     writeBundle(outputConfig) {
       const outputDir = outputConfig.dir || '';
 
-      // Fix sourcemaps.
       const filenames = readdirSync(outputDir).filter((filename) =>
         filename.endsWith('.map')
       );
@@ -57,10 +56,10 @@ const plugins = [
           readFileSync(outputDir + '/' + filename).toString()
         );
 
-        // Update source root.
+        // Point to a Swgjs release on GitHub.
         sourcemap.sourceRoot = `https://raw.githubusercontent.com/subscriptions-project/swg-js/${config.INTERNAL_RUNTIME_VERSION}/`;
 
-        // Update source paths.
+        // Fix relative paths.
         sourcemap.sources = sourcemap.sources.map((source) =>
           source.replace(/^\.\.\/src\//, 'src/')
         );
