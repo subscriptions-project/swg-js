@@ -377,7 +377,11 @@ export class AutoPromptManager {
       ExperimentFlags.SECOND_PROMPT_DELAY
     );
 
-    return true || delaySecondPrompt;
+    if (delaySecondPrompt) {
+      return true;
+    }
+
+    return true;
   }
 
   /**
