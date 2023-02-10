@@ -224,7 +224,7 @@ export class AutoPromptManager {
         )
       : false;
     if (delaySecondPrompt) {
-      shouldSuppressAutoprompt = checkFreeReadShouldSuppressAutoprompt(ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT);
+      shouldSuppressAutoprompt = await checkFreeReadShouldSuppressAutoprompt(ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT);
       if (shouldSuppressAutoprompt) {
         return;
       }
@@ -726,11 +726,11 @@ export class AutoPromptManager {
    * [t1]         NO                YES
    * [t1, t2]     NO                YES
    * [t1, t2, t3] YES               NO
-   * @param {int} numFreeReads
+   * @param {number} numFreeReads
    * @return {boolean}
    */
-  checkFreeReadShouldSuppressAutoprompt(numFreeReads) {
-    const shouldShowAutopromptTimestamps = this.storage_.getEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
+  async checkFreeReadShouldSuppressAutoprompt(numFreeReads) {
+    const shouldShowAutopromptTimestamps = await this.storage_.getEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
     const shouldSuppressPrompt = shouldShowAutopromptTimestamps.length > 0 && shouldShowAutopromptTimestamps.length <= numFreeReads;
     const shouldStoreTimestamp = shouldShowAutopromptTimestamps.length <= numFreeReads;
 
@@ -739,7 +739,7 @@ export class AutoPromptManager {
     }
     
     if (shouldSuppressPrompt) {
-      this.autoPromptDisplayed_ = null; // is this required? may have to overwrite, may not
+      this.promptDisplayed_ = null; // is this required? may have to overwrite, may not
       return true;
     }
     return false;
