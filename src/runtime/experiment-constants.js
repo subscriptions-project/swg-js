@@ -22,5 +22,5 @@ export const ExperimentConstants = {
    * Number of free reads between prompts for Second Prompt Delay Experiment.
    * For X reads, we expect prompt sequence to be: [Prompt 1, Read 1, ..., Read X, Prompt 2]
    */
-  SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS: 2,
+  SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT: 2,
 };

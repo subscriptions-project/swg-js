@@ -70,6 +70,12 @@ StorageKeys.IS_READY_TO_PAY = 'isreadytopay';
 StorageKeys.REDIRECT = 'subscribe.google.com:rk';
 
 /**
+ * Local storage key for should show autoprompt timestamps.
+ * const {string}
+ */
+StorageKeys.SHOULD_SHOW_AUTOPROMPT = 'shouldshowautoprompt';
+
+/**
  * Local storage key for survey completed timestamps.
  * @const {string}
  */

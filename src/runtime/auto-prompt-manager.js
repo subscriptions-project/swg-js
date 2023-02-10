@@ -17,7 +17,7 @@
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
-// import {ExperimentConstants} from './experiment-constants';
+import {ExperimentConstants} from './experiment-constants';
 import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
@@ -187,7 +187,6 @@ export class AutoPromptManager {
     const shouldShowAutoPrompt = await this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
-      article,
       params.autoPromptType
     );
 
@@ -217,7 +216,19 @@ export class AutoPromptManager {
       return;
     }
 
-    // log stuff when we want to show
+    // Second Prompt Delay experiment
+    const delaySecondPrompt = article
+      ? await this.isExperimentEnabled_(
+          article,
+          ExperimentFlags.SECOND_PROMPT_DELAY
+        )
+      : false;
+    if (delaySecondPrompt) {
+      shouldSuppressAutoprompt = checkFreeReadShouldSuppressAutoprompt(ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT);
+      if (shouldSuppressAutoprompt) {
+        return;
+      }
+    }
 
     const displayDelayMs =
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
@@ -249,16 +260,10 @@ export class AutoPromptManager {
    * be shown.
    * @param {!../model/client-config.ClientConfig|undefined} clientConfig
    * @param {!../api/entitlements.Entitlements} entitlements
-   * @param {?./entitlements-manager.Article} article
    * @param {!AutoPromptType|undefined} autoPromptType
    * @returns {!Promise<boolean>}
    */
-  async shouldShowAutoPrompt_(
-    clientConfig,
-    entitlements,
-    article,
-    autoPromptType
-  ) {
+  async shouldShowAutoPrompt_(clientConfig, entitlements, autoPromptType) {
     // If false publication predicate was returned in the response, don't show
     // the prompt.
     if (
@@ -372,17 +377,6 @@ export class AutoPromptManager {
         autoPromptConfig.impressionConfig.backOffSeconds * SECOND_IN_MILLIS
     ) {
       return false;
-    }
-
-    const delaySecondPrompt = article
-      ? await this.isExperimentEnabled_(
-          article,
-          ExperimentFlags.SECOND_PROMPT_DELAY
-        )
-      : false;
-
-    if (delaySecondPrompt) {
-      return true;
     }
 
     return true;
@@ -719,6 +713,36 @@ export class AutoPromptManager {
       return isSurveyEligible && isAnalyticsEligible;
     }
     return true;
+  }
+
+  /**
+   * Checks if a free read granted after the first autoprompt should suppress 
+   * the second autoprompt. Tracks reads by storing timestamps for the first
+   * autoprompt shown, and for each free read after. Returns whether to
+   * suppress the next autoprompt. For example, for default
+   * number of free reads X = 2, then
+   * Timestamps   Show Autoprompt   Store Timestamp
+   * []           YES               YES
+   * [t1]         NO                YES
+   * [t1, t2]     NO                YES
+   * [t1, t2, t3] YES               NO
+   * @param {int} numFreeReads
+   * @return {boolean}
+   */
+  checkFreeReadShouldSuppressAutoprompt(numFreeReads) {
+    const shouldShowAutopromptTimestamps = this.storage_.getEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
+    const shouldSuppressPrompt = shouldShowAutopromptTimestamps.length > 0 && shouldShowAutopromptTimestamps.length <= numFreeReads;
+    const shouldStoreTimestamp = shouldShowAutopromptTimestamps.length <= numFreeReads;
+
+    if (shouldStoreTimestamp) {
+      this.storage_.storeEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
+    }
+    
+    if (shouldSuppressPrompt) {
+      this.autoPromptDisplayed_ = null; // is this required? may have to overwrite, may not
+      return true;
+    }
+    return false;
   }
 
   /**
