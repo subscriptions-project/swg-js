@@ -727,7 +727,7 @@ export class AutoPromptManager {
    * [t1, t2]     NO                YES
    * [t1, t2, t3] YES               NO
    * @param {number} numFreeReads
-   * @return {boolean}
+   * @return {!Promise<boolean>}
    */
   async checkFreeReadShouldSuppressAutoprompt_(numFreeReads) {
     const shouldShowAutopromptTimestamps = await this.storage_.getEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
@@ -740,9 +740,9 @@ export class AutoPromptManager {
     
     if (shouldSuppressPrompt) {
       this.promptDisplayed_ = null; // is this required? may have to overwrite, may not
-      return true;
+      return Promise.resolve(true);
     }
-    return false;
+    return Promise.resolve(false);
   }
 
   /**
