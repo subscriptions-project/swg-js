@@ -224,7 +224,7 @@ export class AutoPromptManager {
         )
       : false;
     if (delaySecondPrompt) {
-      shouldSuppressAutoprompt = await checkFreeReadShouldSuppressAutoprompt(ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT);
+      const shouldSuppressAutoprompt = await this.checkFreeReadShouldSuppressAutoprompt_(ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT);
       if (shouldSuppressAutoprompt) {
         return;
       }
@@ -729,7 +729,7 @@ export class AutoPromptManager {
    * @param {number} numFreeReads
    * @return {boolean}
    */
-  async checkFreeReadShouldSuppressAutoprompt(numFreeReads) {
+  async checkFreeReadShouldSuppressAutoprompt_(numFreeReads) {
     const shouldShowAutopromptTimestamps = await this.storage_.getEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
     const shouldSuppressPrompt = shouldShowAutopromptTimestamps.length > 0 && shouldShowAutopromptTimestamps.length <= numFreeReads;
     const shouldStoreTimestamp = shouldShowAutopromptTimestamps.length <= numFreeReads;
