@@ -1131,7 +1131,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(5);
+      await tick(7);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -1155,7 +1155,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(5);
+      await tick(7);
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
