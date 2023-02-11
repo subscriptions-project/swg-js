@@ -42,7 +42,7 @@ async function main() {
         .replace('<strong></strong>', '')
         .replace(
           /<ph name="(.+?)".+?\/ph>/g,
-          (unusedParam, name) => `$${name}$`
+          (unusedParam, name) => `{${name}}`
         );
     }
   }
