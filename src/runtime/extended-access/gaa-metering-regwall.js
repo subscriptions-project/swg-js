@@ -250,7 +250,6 @@ export class GaaMeteringRegwall {
           placeholderPatternForPublication,
           `<strong>${publisherName}</strong>`
         );
-      console.info(caslHtml);
     }
 
     let registrationButtonHtml = '';
