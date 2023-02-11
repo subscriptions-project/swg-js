@@ -206,9 +206,9 @@ export class GaaMeteringRegwall {
   static render_({iframeUrl, caslUrl, useNativeMode = false}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
-    const placeholderPatternForPublication = /<ph name="PUBLICATION".+?\/ph>/g;
-    const placeholderPatternForLinkStart = /<ph name="LINK_START".+?\/ph>/g;
-    const placeholderPatternForLinkEnd = /<ph name="LINK_END".+?\/ph>/g;
+    const placeholderPatternForPublication = /\$PUBLICATION\$/g;
+    const placeholderPatternForLinkStart = /\$LINK_START\$/g;
+    const placeholderPatternForLinkEnd = /\$LINK_END\$/g;
 
     // Create and style container element.
     // TODO: Consider using a FriendlyIframe here, to avoid CSS conflicts.

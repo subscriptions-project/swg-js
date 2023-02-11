@@ -36,7 +36,14 @@ async function main() {
       if (!localesPerMessage[name]) {
         localesPerMessage[name] = {};
       }
-      localesPerMessage[name][locale] = $msg.html();
+      localesPerMessage[name][locale] = $msg
+        .html()
+        // Simplify template.
+        .replace('<strong></strong>', '')
+        .replace(
+          /<ph name="(.+?)".+?\/ph>/g,
+          (unusedParam, name) => `$${name}$`
+        );
     }
   }
   const js = `

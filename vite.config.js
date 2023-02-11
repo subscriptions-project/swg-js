@@ -39,6 +39,18 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
+  {
+    name: 'transform-file',
+
+    transform(src, id) {
+      if (id.includes('src/runtime/extended-access/html-templates.js')) {
+        return {
+          code: src.replace(/\n/g, ' ').replace(/  /g, ' '),
+          map: null, // provide source map if available
+        };
+      }
+    },
+  },
   // Point sourcemaps to a Swgjs release on GitHub.
   {
     name: 'fix-sourcemaps',
