@@ -39,9 +39,9 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
+  // Optimize size of HTML templates.
   {
-    name: 'transform-file',
-
+    name: 'optimize-size-of-html-templates',
     transform(src, id) {
       if (id.includes('src/runtime/extended-access/html-templates.js')) {
         return {
