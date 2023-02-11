@@ -206,9 +206,9 @@ export class GaaMeteringRegwall {
   static render_({iframeUrl, caslUrl, useNativeMode = false}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
-    const placeholderPatternForPublication = '{PUBLICATION}';
-    const placeholderPatternForLinkStart = '{LINK_START}';
-    const placeholderPatternForLinkEnd = '{LINK_END}';
+    const placeholderPatternForPublication = /{PUBLICATION}/g;
+    const placeholderPatternForLinkStart = /{LINK_START}/g;
+    const placeholderPatternForLinkEnd = /{LINK_END}/g;
 
     // Create and style container element.
     // TODO: Consider using a FriendlyIframe here, to avoid CSS conflicts.
@@ -240,13 +240,13 @@ export class GaaMeteringRegwall {
         msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)
       )
         // Update link.
-        .replaceAll(
+        .replace(
           placeholderPatternForLinkStart,
           `<a href="${encodeURI(caslUrl)}" target="_blank">`
         )
-        .replaceAll(placeholderPatternForLinkEnd, '</a>')
+        .replace(placeholderPatternForLinkEnd, '</a>')
         // Update publisher name.
-        .replaceAll(
+        .replace(
           placeholderPatternForPublication,
           `<strong>${publisherName}</strong>`
         );
