@@ -230,6 +230,7 @@ export class AutoPromptManager {
       const shouldSuppressAutoprompt =
         await this.secondPromptDelayExperimentSuppressesPrompt_();
       if (shouldSuppressAutoprompt) {
+        this.promptDisplayed_ = null;
         return;
       }
     }
@@ -722,7 +723,7 @@ export class AutoPromptManager {
   /**
    * Checks if a free read granted after the first autoprompt should suppress
    * the second autoprompt. Tracks reads by storing timestamps for the first
-   * autoprompt shown, and for each free read after. Returns whether to
+   * autoprompt shown and for each free read after. Returns whether to
    * suppress the next autoprompt. For example, for default
    * number of free reads X = 2, then:
    * Timestamps   Show Autoprompt   Store Timestamp
@@ -748,7 +749,6 @@ export class AutoPromptManager {
     }
 
     if (shouldSuppressPrompt) {
-      this.promptDisplayed_ = null;
       return Promise.resolve(true);
     }
     return Promise.resolve(false);
