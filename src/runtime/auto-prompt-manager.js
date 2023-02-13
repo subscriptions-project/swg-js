@@ -217,14 +217,20 @@ export class AutoPromptManager {
     }
 
     // Second Prompt Delay experiment
+    const isContributionFlow =
+      params.autoPromptType == AutoPromptType.CONTRIBUTION ||
+      params.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
     const delaySecondPrompt = article
       ? await this.isExperimentEnabled_(
           article,
           ExperimentFlags.SECOND_PROMPT_DELAY
         )
       : false;
-    if (delaySecondPrompt) {
-      const shouldSuppressAutoprompt = await this.checkFreeReadShouldSuppressAutoprompt_(ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT);
+    if (isContributionFlow && delaySecondPrompt) {
+      const shouldSuppressAutoprompt =
+        await this.checkFreeReadShouldSuppressAutoprompt_(
+          ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT
+        );
       if (shouldSuppressAutoprompt) {
         return;
       }
@@ -716,30 +722,35 @@ export class AutoPromptManager {
   }
 
   /**
-   * Checks if a free read granted after the first autoprompt should suppress 
+   * Checks if a free read granted after the first autoprompt should suppress
    * the second autoprompt. Tracks reads by storing timestamps for the first
    * autoprompt shown, and for each free read after. Returns whether to
    * suppress the next autoprompt. For example, for default
    * number of free reads X = 2, then
    * Timestamps   Show Autoprompt   Store Timestamp
-   * []           YES               YES
-   * [t1]         NO                YES
-   * [t1, t2]     NO                YES
-   * [t1, t2, t3] YES               NO
+   * []           YES (1st prompt)  YES
+   * [t1]         NO  (free read)   YES
+   * [t1, t2]     NO  (free read)   YES
+   * [t1, t2, t3] YES (2nd prompt)  NO
    * @param {number} numFreeReads
    * @return {!Promise<boolean>}
    */
   async checkFreeReadShouldSuppressAutoprompt_(numFreeReads) {
-    const shouldShowAutopromptTimestamps = await this.storage_.getEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
-    const shouldSuppressPrompt = shouldShowAutopromptTimestamps.length > 0 && shouldShowAutopromptTimestamps.length <= numFreeReads;
-    const shouldStoreTimestamp = shouldShowAutopromptTimestamps.length <= numFreeReads;
+    const shouldShowAutopromptTimestamps = await this.storage_.getEvent(
+      StorageKeys.SHOULD_SHOW_AUTOPROMPT
+    );
+    const shouldSuppressPrompt =
+      shouldShowAutopromptTimestamps.length > 0 &&
+      shouldShowAutopromptTimestamps.length <= numFreeReads;
+    const shouldStoreTimestamp =
+      shouldShowAutopromptTimestamps.length <= numFreeReads;
 
     if (shouldStoreTimestamp) {
       this.storage_.storeEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
     }
-    
+
     if (shouldSuppressPrompt) {
-      this.promptDisplayed_ = null; // is this required? may have to overwrite, may not
+      this.promptDisplayed_ = null;
       return Promise.resolve(true);
     }
     return Promise.resolve(false);
