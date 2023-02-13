@@ -1907,7 +1907,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
     });
 
-    it('should follow AudienceActionFlow without SecondPromptDelay experiment for Subscriptions', async () => {
+    it('should not delay second prompt for Subscriptions', async () => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION,
         alwaysShow: false,
@@ -2056,7 +2056,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
     });
 
-    it('should follow AudienceActionFlow without SecondPromptDelay experiment for Subscriptions', async () => {
+    it('should not delay second prompt for Subscriptions', async () => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION,
         alwaysShow: false,
