@@ -1916,14 +1916,9 @@ describes.realWin('AutoPromptManager', (env) => {
       miniPromptApiMock.expects('create').once();
       await tick(7);
 
-      expect(startSpy).to.have.been.calledOnce;
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REWARDED_SURVEY',
-        onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.SUBSCRIPTION,
-      });
+      expect(startSpy).to.not.have.been.called;
       expect(alternatePromptSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
     });
 
     it('With SecondPromptDelayExperiment enabled, on first prompt, should set shouldShowAutoPromptTimestamps and show first prompt', async () => {
@@ -2070,14 +2065,9 @@ describes.realWin('AutoPromptManager', (env) => {
       miniPromptApiMock.expects('create').once();
       await tick(7);
 
-      expect(startSpy).to.have.been.calledOnce;
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REWARDED_SURVEY',
-        onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.SUBSCRIPTION,
-      });
+      expect(startSpy).to.not.have.been.called;
       expect(alternatePromptSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
     });
 
     it('With SurveyTrigginerPriorityExperiment and SecondPromptDelayExperiment enabled, on first prompt, should set shouldShowAutoPromptTimestamps and show first Survey', async () => {
