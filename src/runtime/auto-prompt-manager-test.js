@@ -1909,17 +1909,18 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('should follow AudienceActionFlow without SecondPromptDelay experiment for Subscriptions', async () => {
       await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
+      miniPromptApiMock.expects('create').once();
       await tick(7);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
       expect(alternatePromptSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
@@ -2062,17 +2063,18 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('should follow AudienceActionFlow without SecondPromptDelay experiment for Subscriptions', async () => {
       await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
+      miniPromptApiMock.expects('create').once();
       await tick(7);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
       expect(alternatePromptSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
