@@ -746,11 +746,7 @@ export class AutoPromptManager {
     if (shouldStoreTimestamp) {
       this.storage_.storeEvent(StorageKeys.SECOND_PROMPT_DELAY_COUNTER);
     }
-
-    if (shouldSuppressPrompt) {
-      return Promise.resolve(true);
-    }
-    return Promise.resolve(false);
+    return Promise.resolve(shouldSuppressPrompt);
   }
 
   /**
