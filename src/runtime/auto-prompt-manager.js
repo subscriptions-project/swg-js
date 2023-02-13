@@ -215,6 +215,25 @@ export class AutoPromptManager {
       return;
     }
 
+    // Second Prompt Delay experiment
+    const isContributionFlow =
+      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE;
+    const delaySecondPrompt = article
+      ? await this.isExperimentEnabled_(
+          article,
+          ExperimentFlags.SECOND_PROMPT_DELAY
+        )
+      : false;
+    if (isContributionFlow && delaySecondPrompt) {
+      const shouldSuppressAutoprompt =
+        await this.secondPromptDelayExperimentSuppressesPrompt_();
+      if (shouldSuppressAutoprompt) {
+        this.promptDisplayed_ = null;
+        return;
+      }
+    }
+
     const displayDelayMs =
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
@@ -698,6 +717,36 @@ export class AutoPromptManager {
       return isSurveyEligible && isAnalyticsEligible;
     }
     return true;
+  }
+
+  /**
+   * Checks if a free read granted after the first autoprompt should suppress
+   * the second autoprompt. Tracks reads by storing timestamps for the first
+   * autoprompt shown and for each free read after. Returns whether to
+   * suppress the next autoprompt. For example, for default
+   * number of free reads X = 2, then:
+   * Timestamps   Show Autoprompt   Store Timestamp
+   * []           YES (1st prompt)  YES
+   * [t1]         NO  (free read)   YES
+   * [t1, t2]     NO  (free read)   YES
+   * [t1, t2, t3] YES (2nd prompt)  NO
+   * @return {!Promise<boolean>}
+   */
+  async secondPromptDelayExperimentSuppressesPrompt_() {
+    const numFreeReads = 2; // (b/267650049) 2 free reads
+    const shouldShowAutopromptTimestamps = await this.storage_.getEvent(
+      StorageKeys.SECOND_PROMPT_DELAY_COUNTER
+    );
+    const shouldSuppressPrompt =
+      shouldShowAutopromptTimestamps.length > 0 &&
+      shouldShowAutopromptTimestamps.length <= numFreeReads;
+    const shouldStoreTimestamp =
+      shouldShowAutopromptTimestamps.length <= numFreeReads;
+
+    if (shouldStoreTimestamp) {
+      this.storage_.storeEvent(StorageKeys.SECOND_PROMPT_DELAY_COUNTER);
+    }
+    return Promise.resolve(shouldSuppressPrompt);
   }
 
   /**
