@@ -70,8 +70,9 @@ StorageKeys.IS_READY_TO_PAY = 'isreadytopay';
 StorageKeys.REDIRECT = 'subscribe.google.com:rk';
 
 /**
- * Local storage key for should show autoprompt timestamps.
- * const {string}
+ * Local storage key for calculating when the SecondPromptDelay experiment suppresses
+ * prompts.
+ * @const {string}
  */
 StorageKeys.SECOND_PROMPT_DELAY_COUNTER = 'second_prompt_delay_counter';
 
