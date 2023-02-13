@@ -218,8 +218,8 @@ export class AutoPromptManager {
 
     // Second Prompt Delay experiment
     const isContributionFlow =
-      params.autoPromptType == AutoPromptType.CONTRIBUTION ||
-      params.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
+      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE;
     const delaySecondPrompt = article
       ? await this.isExperimentEnabled_(
           article,
