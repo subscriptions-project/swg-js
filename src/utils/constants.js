@@ -73,7 +73,7 @@ StorageKeys.REDIRECT = 'subscribe.google.com:rk';
  * Local storage key for should show autoprompt timestamps.
  * const {string}
  */
-StorageKeys.SHOULD_SHOW_AUTOPROMPT = 'shouldshowautopromptexp';
+StorageKeys.SECOND_PROMPT_DELAY_COUNTER = 'second_prompt_delay_counter';
 
 /**
  * Local storage key for survey completed timestamps.

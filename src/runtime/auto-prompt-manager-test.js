@@ -2232,7 +2232,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          StorageKeys.SHOULD_SHOW_AUTOPROMPT,
+          StorageKeys.SECOND_PROMPT_DELAY_COUNTER,
           /* useLocalStorage */ true
         )
         .resolves(shouldShowAutopromptTimestamps)
@@ -2246,7 +2246,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('set')
         .withExactArgs(
-          StorageKeys.SHOULD_SHOW_AUTOPROMPT,
+          StorageKeys.SECOND_PROMPT_DELAY_COUNTER,
           setTimestamps,
           /* useLocalStorage */ true
         )

@@ -736,7 +736,7 @@ export class AutoPromptManager {
   async secondPromptDelayExperimentSuppressesPrompt_() {
     const numFreeReads = 2; // (b/267650049) 2 free reads
     const shouldShowAutopromptTimestamps = await this.storage_.getEvent(
-      StorageKeys.SHOULD_SHOW_AUTOPROMPT
+      StorageKeys.SECOND_PROMPT_DELAY_COUNTER
     );
     const shouldSuppressPrompt =
       shouldShowAutopromptTimestamps.length > 0 &&
@@ -745,7 +745,7 @@ export class AutoPromptManager {
       shouldShowAutopromptTimestamps.length <= numFreeReads;
 
     if (shouldStoreTimestamp) {
-      this.storage_.storeEvent(StorageKeys.SHOULD_SHOW_AUTOPROMPT);
+      this.storage_.storeEvent(StorageKeys.SECOND_PROMPT_DELAY_COUNTER);
     }
 
     if (shouldSuppressPrompt) {
