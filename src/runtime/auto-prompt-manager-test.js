@@ -26,7 +26,6 @@ import {Constants, StorageKeys} from '../utils/constants';
 import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
-import {ExperimentConstants} from './experiment-constants';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
@@ -1978,8 +1977,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('With SecondPromptDelayExperiment enabled, on N+1 prompt, should not set shouldShowAutoPromptTimestamps and display next prompt', async () => {
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
-      const numFreeReads =
-        ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT;
+      const numFreeReads = 2;
       const shouldShowAutopromptTimestamps =
         (CURRENT_TIME.toString() + ',').repeat(numFreeReads) +
         CURRENT_TIME.toString();
@@ -2130,8 +2128,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('With SurveyTrigginerPriorityExperiment and SecondPromptDelayExperiment enabled, on N+1 prompt, should not set shouldShowAutoPromptTimestamps and display contribution prompt', async () => {
-      const numFreeReads =
-        ExperimentConstants.SECOND_PROMPT_DELAY_BY_NUMBER_OF_READS_DEFUALT;
+      const numFreeReads = 2;
       const shouldShowAutopromptTimestamps =
         (CURRENT_TIME.toString() + ',').repeat(numFreeReads) +
         CURRENT_TIME.toString();
