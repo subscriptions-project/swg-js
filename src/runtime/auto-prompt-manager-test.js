@@ -1131,7 +1131,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(5);
+      await tick(7);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -1155,7 +1155,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(5);
+      await tick(7);
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
@@ -1566,7 +1566,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  describe('Contribution Flows with Audience Actions and Experiments', () => {
+  describe('Contribution Flows with Audience Actions and Survey Triggering Priority Experiments', () => {
     let articleExpectation;
 
     beforeEach(() => {
@@ -1636,6 +1636,27 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
+    });
+
+    it('With SurveyTriggeringPriorityExperiment enabled, should show the contribution prompt after the Survey prompt', async () => {
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPrompts: 'TYPE_REWARDED_SURVEY',
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
 
     it('With SurveyTriggeringPriorityExperiment enabled, should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
@@ -1840,6 +1861,292 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  describe('Audience Actions with Second Prompt Delay Experiment', () => {
+    let articleExpectation;
+
+    beforeEach(() => {
+      const autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+      });
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(false);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      articleExpectation = entitlementsManagerMock.expects('getArticle');
+      articleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [{type: 'TYPE_REWARDED_SURVEY'}],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['second_prompt_delay_experiment'],
+          },
+        })
+        .once();
+    });
+
+    it('should not delay second prompt for Subscriptions', async () => {
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      miniPromptApiMock.expects('create').once();
+      await tick(7);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+    });
+
+    it('With SecondPromptDelayExperiment enabled, on first prompt, should set shouldShowAutoPromptTimestamps and show first prompt', async () => {
+      const shouldShowAutopromptTimestamps = '';
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+        shouldShowAutopromptTimestamps,
+        setsNewShouldShowAutoPromptTimestamp: true,
+      });
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        AutoPromptType.CONTRIBUTION
+      );
+    });
+
+    it('With SecondPromptDelayExperiment enabled, on second prompt, should set shouldShowAutoPromptTimestamps and suppress prompt', async () => {
+      const shouldShowAutopromptTimestamps = CURRENT_TIME.toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+        shouldShowAutopromptTimestamps,
+        setsNewShouldShowAutoPromptTimestamp: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(15);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+    });
+
+    it('With SecondPromptDelayExperiment enabled, on N+1 prompt, should not set shouldShowAutoPromptTimestamps and display next prompt', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      const numFreeReads = 2;
+      const shouldShowAutopromptTimestamps =
+        (CURRENT_TIME.toString() + ',').repeat(numFreeReads) +
+        CURRENT_TIME.toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: AutoPromptType.CONTRIBUTION,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+        shouldShowAutopromptTimestamps,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(15);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REWARDED_SURVEY'
+      );
+    });
+  });
+
+  describe('Audience Actions with Survey Triggering Priority Experiment and Second Prompt Delay Experiment', () => {
+    let articleExpectation;
+
+    beforeEach(() => {
+      const autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+      });
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(false);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      articleExpectation = entitlementsManagerMock.expects('getArticle');
+      articleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [{type: 'TYPE_REWARDED_SURVEY'}],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: [
+              'survey_triggering_priority_experiment',
+              'second_prompt_delay_experiment',
+            ],
+          },
+        })
+        .once();
+    });
+
+    it('should not delay second prompt for Subscriptions', async () => {
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      miniPromptApiMock.expects('create').once();
+      await tick(7);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+    });
+
+    it('With SurveyTrigginerPriorityExperiment and SecondPromptDelayExperiment enabled, on first prompt, should set shouldShowAutoPromptTimestamps and show first Survey', async () => {
+      const shouldShowAutopromptTimestamps = '';
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+        shouldShowAutopromptTimestamps,
+        setsNewShouldShowAutoPromptTimestamp: true,
+      });
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REWARDED_SURVEY'
+      );
+    });
+
+    it('With SurveyTrigginerPriorityExperiment and SecondPromptDelayExperiment enabled, on second prompt, should set shouldShowAutoPromptTimestamps and suppress prompt', async () => {
+      const shouldShowAutopromptTimestamps = CURRENT_TIME.toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+        shouldShowAutopromptTimestamps,
+        setsNewShouldShowAutoPromptTimestamp: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(15);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+    });
+
+    it('With SurveyTrigginerPriorityExperiment and SecondPromptDelayExperiment enabled, on N+1 prompt, should not set shouldShowAutoPromptTimestamps and display contribution prompt', async () => {
+      const numFreeReads = 2;
+      const shouldShowAutopromptTimestamps =
+        (CURRENT_TIME.toString() + ',').repeat(numFreeReads) +
+        CURRENT_TIME.toString();
+
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPrompts: 'TYPE_REWARDED_SURVEY',
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+        shouldShowAutopromptTimestamps,
+      });
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+    });
+  });
+
   async function verifyOnCancelStores(storageMock, actionFlowSpy, setValue) {
     storageMock
       .expects('set')
@@ -1864,12 +2171,15 @@ describes.realWin('AutoPromptManager', (env) => {
       storedSurveyCompleted,
       storedSurveyFailed,
       getUserToken,
+      shouldShowAutopromptTimestamps,
+      setsNewShouldShowAutoPromptTimestamp,
     } = {
       storedImpressions: null,
       storedDismissals: null,
       dismissedPrompts: null,
       storedSurveyCompleted: null,
       storedSurveyFailed: null,
+      setsNewShouldShowAutoPromptTimestamp: false,
       ...setupArgs,
     };
     storageMock
@@ -1906,6 +2216,31 @@ describes.realWin('AutoPromptManager', (env) => {
         .withExactArgs(Constants.USER_TOKEN, /* useLocalStorage */ true)
         .resolves('token')
         .atMost(1);
+    }
+    if (shouldShowAutopromptTimestamps != undefined) {
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          StorageKeys.SECOND_PROMPT_DELAY_COUNTER,
+          /* useLocalStorage */ true
+        )
+        .resolves(shouldShowAutopromptTimestamps)
+        .exactly(setsNewShouldShowAutoPromptTimestamp ? 2 : 1);
+    }
+    if (setsNewShouldShowAutoPromptTimestamp) {
+      const setTimestamps =
+        (!!shouldShowAutopromptTimestamps
+          ? shouldShowAutopromptTimestamps + ','
+          : '') + CURRENT_TIME.toString();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.SECOND_PROMPT_DELAY_COUNTER,
+          setTimestamps,
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .once();
     }
   }
 });
