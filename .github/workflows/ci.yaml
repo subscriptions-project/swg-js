@@ -66,7 +66,7 @@ jobs:
       - name: Watch bundle sizes
         uses: jackyef/bundlewatch-gh-action@0.2.1
         with:
-          bundlewatch-github-token: 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
+          bundlewatch-github-token: ${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}
 
       - name: E2E Tests
         run: gulp e2e
