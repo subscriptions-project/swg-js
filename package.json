@@ -21,6 +21,7 @@
     "test": "gulp unit",
     "lint": "gulp lint",
     "build": "gulp build",
+    "build-with-vite-for-ci": "npx vite build -- --target=basic && npx vite build -- --target=classic && npx vite build -- --target=gaa",
     "build-i18n": "node assets/i18n/strings/compile.js && gulp lint --fix --files='src/i18n/strings.js'",
     "dist": "gulp dist",
     "storybook": "start-storybook -p 6006",

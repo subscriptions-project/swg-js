@@ -54,23 +54,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile Swgjs Classic with Vite
-        run: npx vite build -- --target=classic
-
-      - name: Compile Swgjs Extended Access with Vite
-        run: npx vite build -- --target=gaa
-
-      - name: Compile Swgjs Basic with Vite
-        run: npx vite build -- --target=basic
-
-      - name: Watch bundle sizes
-        uses: preactjs/compressed-size-action@v2
-        with:
-          pattern: './dist/*.js'
-          build-script: ''
+      - name: Compile Swgjs bundles (Classic, Basic, and Extended Access)
+        run: npm run build-with-vite-for-ci
 
       - name: E2E Tests
         run: gulp e2e
+
+  bundle-sizes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install the right version of Nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Track bundle sizes
+        uses: preactjs/compressed-size-action@v2
+        with:
+          pattern: './dist/*.js'
+          build-script: 'build-with-vite-for-ci'
 
   unit:
     runs-on: ubuntu-latest
