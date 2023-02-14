@@ -42,7 +42,7 @@ const plugins = [
   // Optimize size of HTML templates.
   {
     name: 'optimize-size-of-html-templates',
-    transform(src, id) {
+    transform(code, id) {
       // Only process template files.
       const filenames = [
         'src/runtime/extended-access/html-templates.js',
@@ -53,9 +53,17 @@ const plugins = [
         return;
       }
 
+      // Remove new lines.
+      code = code.replace(/\n+/g, ' ');
+
+      // Remove comments.
+      code = code.replace(/\/\*\*.+?\*\//g, '');
+
       // Remove extra spacing.
+      code = code.replace(/[\n ]+/g, ' ');
+
       return {
-        code: src.replace(/[\n ]+/g, ' '),
+        code,
         map: null, // provide source map if available
       };
     },
@@ -131,6 +139,11 @@ export default defineConfig({
     terserOptions: {
       // eslint-disable-next-line google-camelcase/google-camelcase
       mangle: {properties: {keep_quoted: true, regex: '_$'}},
+
+      // Remove comments.
+      format: {
+        comments: false,
+      },
 
       // Disables converting computed properties ({['hello']: 5}) into regular prop ({ hello: 5}).
       // This was an assumption baked into closure.
