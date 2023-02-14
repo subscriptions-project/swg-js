@@ -64,9 +64,10 @@ jobs:
         run: npx vite build -- --target=basic
 
       - name: Watch bundle sizes
-        uses: jackyef/bundlewatch-gh-action@0.2.1
+        uses: preactjs/compressed-size-action@v2
         with:
-          bundlewatch-github-token: ${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}
+          pattern: './dist/*.js'
+          build-script: ''
 
       - name: E2E Tests
         run: gulp e2e
