@@ -75,6 +75,7 @@ jobs:
         uses: preactjs/compressed-size-action@v2
         with:
           pattern: './dist/*.js'
+          exclude: './dist/*.checktypes.js'
           # TODO: Update to 'build-with-vite-for-ci' script after merging #2758.
           build-script: 'dist'
 
