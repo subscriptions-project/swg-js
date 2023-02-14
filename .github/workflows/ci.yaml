@@ -74,6 +74,7 @@ jobs:
       - name: Track bundle sizes
         uses: preactjs/compressed-size-action@v2
         with:
+          minimum-change-threshold: 10 # Ignore changes of 10 bytes or less.
           pattern: './dist/*.js'
           exclude: './dist/*.checktypes.js'
           # TODO: Update to 'build-with-vite-for-ci' script after merging #2758.
