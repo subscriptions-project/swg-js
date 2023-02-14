@@ -43,12 +43,21 @@ const plugins = [
   {
     name: 'optimize-size-of-html-templates',
     transform(src, id) {
-      if (id.includes('src/runtime/extended-access/html-templates.js')) {
-        return {
-          code: src.replace(/\n/g, ' ').replace(/  /g, ' '),
-          map: null, // provide source map if available
-        };
+      // Only process template files.
+      const filenames = [
+        'src/runtime/extended-access/html-templates.js',
+        'src/ui/ui-css.js',
+      ];
+      const isTemplate = filenames.find((filenames) => id.endsWith(filenames));
+      if (!isTemplate) {
+        return;
       }
+
+      // Remove extra spacing.
+      return {
+        code: src.replace(/[\n ]+/g, ' '),
+        map: null, // provide source map if available
+      };
     },
   },
   // Point sourcemaps to a Swgjs release on GitHub.
