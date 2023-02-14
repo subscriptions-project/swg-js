@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "subscribe-with-google",
-  "version": "1.0.0",
+  "version": "1.0",
   "description": "Subscribe with Google",
   "main": "index.js",
   "engines": {
@@ -122,13 +122,6 @@
     "nightwatch": "1.7.13",
     "rollup-plugin-visualizer": "5.9.0",
     "vite": "4.1.1"
-  },
-  "bundlewatch": {
-    "files": [
-      {
-        "path": "dist/*.js"
-      }
-    ]
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,
