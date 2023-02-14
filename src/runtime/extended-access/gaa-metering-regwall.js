@@ -528,10 +528,8 @@ export class GaaMeteringRegwall {
 
     return new Promise((resolve) => {
       self.google.accounts.id.initialize({
-        /* eslint-disable google-camelcase/google-camelcase */
-        client_id: googleApiClientId,
-        callback: resolve,
-        /* eslint-enable google-camelcase/google-camelcase */
+        'client_id': googleApiClientId,
+        'callback': resolve,
       });
       self.google.accounts.id.renderButton(buttonEl, {
         'type': 'standard',

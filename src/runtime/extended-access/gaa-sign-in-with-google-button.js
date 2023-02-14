@@ -124,11 +124,9 @@ export class GaaSignInWithGoogleButton {
 
       const jwt = await new Promise((resolve) => {
         self.google.accounts.id.initialize({
-          /* eslint-disable google-camelcase/google-camelcase */
-          client_id: clientId,
-          callback: resolve,
-          allowed_parent_origin: allowedOrigins,
-          /* eslint-enable google-camelcase/google-camelcase */
+          'client_id': clientId,
+          'callback': resolve,
+          'allowed_parent_origin': allowedOrigins,
         });
         self.google.accounts.id.renderButton(
           self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
