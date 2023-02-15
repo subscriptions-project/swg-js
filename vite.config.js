@@ -42,7 +42,7 @@ const plugins = [
   // Remove Google license comments.
   {
     name: 'remove-google-license-comments',
-    transform(code, id) {
+    transform(code) {
       // Remove comments.
       code = code.replace(
         /\/\*\*(.|\n)+?Copyright 20\d{2} (Google Inc|The Web Activities Authors)(.|\n)+?\*\//g,
