@@ -48,8 +48,7 @@ subscriptions.setOnInterventionComplete({
 	},
 });
 // Get the article from the subscriptions API.
-// Note: the article will only be available after entitlements have been fetched.
-// Ideally make this call after the `getEntitlements` promise has been resolved.
+// Note: the article promise will only resolve after `getEntitlements` has fetched the entitlements.
 subscriptions.getArticle().then((article) => {
 	// Determine if this intervention is available for use.
 	if (article.audienceActions.actions.includes(InterventionType.SURVEY)) {
