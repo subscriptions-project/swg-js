@@ -43,7 +43,8 @@ const plugins = [
   {
     name: 'remove-google-license-comments',
     transform(code) {
-      // Remove comments.
+      // Remove Google license comments.
+      // Preserve license comments from others. (ex: Math.uuid.js)
       code = code.replace(
         /\/\*\*(.|\n)+?Copyright 20\d{2} (Google Inc|The Web Activities Authors)(.|\n)+?\*\//g,
         ''
