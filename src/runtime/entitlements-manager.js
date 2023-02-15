@@ -65,7 +65,7 @@ const SERVICE_ID = 'subscribe.google.com';
  *  experimentConfig: ({
  *    experimentFlags: Array<{
  *      type: (string)
- *    }>
+ *    }>,
  *    numReadsBetweenPrompts: (number|undefined)
  *  })
  * }}
