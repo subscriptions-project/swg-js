@@ -227,7 +227,9 @@ export class AutoPromptManager {
       : false;
     if (isContributionFlow && delaySecondPrompt) {
       const shouldSuppressAutoprompt =
-        await this.secondPromptDelayExperimentSuppressesPrompt_(article);
+        await this.secondPromptDelayExperimentSuppressesPrompt_(
+          article?.experimentConfig?.numReadsBetweenPrompts || 0
+        );
       if (shouldSuppressAutoprompt) {
         this.promptDisplayed_ = null;
         return;
@@ -730,14 +732,11 @@ export class AutoPromptManager {
    * [t1]         NO  (free read)   YES
    * [t1, t2]     NO  (free read)   YES
    * [t1, t2, t3] YES (2nd prompt)  NO
-   * @param {!./entitlements-manager.Article} article
+   * @param {number} expConfigNumFreeReads
    * @return {!Promise<boolean>}
    */
-  async secondPromptDelayExperimentSuppressesPrompt_(article) {
-    const experimentConfigNumFreeReads =
-      article.experimentConfig?.numReadsBetweenPrompts || 0;
-    const numFreeReads = // (b/267650049) default 2 free reads
-      experimentConfigNumFreeReads > 0 ? experimentConfigNumFreeReads : 2;
+  async secondPromptDelayExperimentSuppressesPrompt_(expConfigNumFreeReads) {
+    const numFreeReads = expConfigNumFreeReads > 0 ? expConfigNumFreeReads : 2; // (b/267650049) default 2 free reads
     const secondPromptDelayCounter = await this.storage_.getEvent(
       StorageKeys.SECOND_PROMPT_DELAY_COUNTER
     );
