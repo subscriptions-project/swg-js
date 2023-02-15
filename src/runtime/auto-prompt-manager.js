@@ -227,7 +227,7 @@ export class AutoPromptManager {
       : false;
     if (isContributionFlow && delaySecondPrompt) {
       const shouldSuppressAutoprompt =
-        await this.secondPromptDelayExperimentSuppressesPrompt_();
+        await this.secondPromptDelayExperimentSuppressesPrompt_(article);
       if (shouldSuppressAutoprompt) {
         this.promptDisplayed_ = null;
         return;
@@ -730,18 +730,22 @@ export class AutoPromptManager {
    * [t1]         NO  (free read)   YES
    * [t1, t2]     NO  (free read)   YES
    * [t1, t2, t3] YES (2nd prompt)  NO
+   * @param {!./entitlements-manager.Article} article
    * @return {!Promise<boolean>}
    */
-  async secondPromptDelayExperimentSuppressesPrompt_() {
-    const numFreeReads = 2; // (b/267650049) 2 free reads
-    const shouldShowAutopromptTimestamps = await this.storage_.getEvent(
+  async secondPromptDelayExperimentSuppressesPrompt_(article) {
+    const experimentConfigNumFreeReads =
+      article.experimentConfig?.numReadsBetweenPrompts || 0;
+    const numFreeReads =
+      experimentConfigNumFreeReads > 0 ? experimentConfigNumFreeReads : 2; // (b/267650049) default 2 free reads
+    const secondPromptDelayCounter = await this.storage_.getEvent(
       StorageKeys.SECOND_PROMPT_DELAY_COUNTER
     );
     const shouldSuppressPrompt =
-      shouldShowAutopromptTimestamps.length > 0 &&
-      shouldShowAutopromptTimestamps.length <= numFreeReads;
+      secondPromptDelayCounter.length > 0 &&
+      secondPromptDelayCounter.length <= numFreeReads;
     const shouldStoreTimestamp =
-      shouldShowAutopromptTimestamps.length <= numFreeReads;
+      secondPromptDelayCounter.length <= numFreeReads;
 
     if (shouldStoreTimestamp) {
       this.storage_.storeEvent(StorageKeys.SECOND_PROMPT_DELAY_COUNTER);
