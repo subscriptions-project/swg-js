@@ -38,8 +38,10 @@ After entitlements have been fetched in the [entitlements flow](entitlements-flo
 ```javascript
 // Set up a callback to know the result of an intervention.
 subscriptions.setOnInterventionComplete({
-	interventionType: InterventionType.SURVEY, // Provide the intervention type, in this case a survey.
-	callback: (status) => { // Provide callback to receive the status.
+	// Provide the intervention type, in this case a survey.
+	interventionType: InterventionType.SURVEY,
+	// Provide callback to receive the status.
+	callback: (status) => {
 		if (status == InterventionCompleteStatus.COMPLETE) {
 			// Successfully completed
 		} else { // InterventionCompleteStatus.FAILED
@@ -48,14 +50,16 @@ subscriptions.setOnInterventionComplete({
 	},
 });
 // Get the article from the subscriptions API.
-// Note: the article promise will only resolve after `getEntitlements` has fetched the entitlements.
+// Note: the article promise will only resolve after `getEntitlements` has completed.
 subscriptions.getArticle().then((article) => {
 	// Determine if this intervention is available for use.
 	if (article.audienceActions.actions.includes(InterventionType.SURVEY)) {
 		// Finally, show the intervention.
 		subscriptions.showIntervention({
-			interventionType: InterventionType.SURVEY, // You must specify the intervention you wish to show.
-			isClosable: false, // Determine if the intervention is dismissible.
+			// You must specify the intervention you wish to show.
+			interventionType: InterventionType.SURVEY,
+			// Determine if the intervention is dismissible.
+			isClosable: false,
 		});
 	}
 });
