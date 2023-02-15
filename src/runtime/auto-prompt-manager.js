@@ -736,8 +736,8 @@ export class AutoPromptManager {
   async secondPromptDelayExperimentSuppressesPrompt_(article) {
     const experimentConfigNumFreeReads =
       article.experimentConfig?.numReadsBetweenPrompts || 0;
-    const numFreeReads =
-      experimentConfigNumFreeReads > 0 ? experimentConfigNumFreeReads : 2; // (b/267650049) default 2 free reads
+    const numFreeReads = // (b/267650049) default 2 free reads
+      experimentConfigNumFreeReads > 0 ? experimentConfigNumFreeReads : 2;
     const secondPromptDelayCounter = await this.storage_.getEvent(
       StorageKeys.SECOND_PROMPT_DELAY_COUNTER
     );
