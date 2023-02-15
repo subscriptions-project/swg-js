@@ -21,49 +21,48 @@ This flow will allow publication sites to display interventions. Interventions a
 After entitlements have been fetched in the [entitlements flow](entitlements-flow.md) the publication site will have access to the `Article` object from the `getArticle` method on the Subscriptions API.
 ```javascript
 /**
- * Article response object.
+ * Partial Article response object.
  *
  * @typedef {{
- *  ...
  *  audienceActions: ({
  *    actions: Array<{
  *      type: InterventionType
  *    }>,
- *    ...
  *  }),
- * ...
  * }}
  */
  ```
- This object contains a list of available actions in descending order of precedence, which can be invoked with the `showIntervention` method in the Subscriptions API. Finally, when the publication site wishes to know the outcome of the intervention, they can call the `setOnInterventionComplete` method on the Subscriptions API to set a callback for completion of an intervention.
+ This object contains a list of available actions in descending order of precedence, which can be invoked with the `showIntervention` method in the Subscriptions API. When the publication site wishes to know the outcome of the intervention, they can call the `setOnInterventionComplete` method on the Subscriptions API to set a callback for completion of an intervention.
 
  ## Sample code
 ```javascript
 // Set up a callback to know the result of an intervention.
-setOnInterventionComplete({
+subscriptions.setOnInterventionComplete({
 	interventionType: InterventionType.SURVEY, // Provide the intervention type, in this case a survey.
 	callback: (status) => { // Provide callback to receive the status.
 		if (status == InterventionCompleteStatus.COMPLETE) {
 			// Successfully completed
-		} else {
+		} else { // InterventionCompleteStatus.FAILED
 			// Failed to complete
 		}
 	},
 });
-// Get the article from the subscriptions API. Note: the article will only be available after entitlements have been fetched.
-const article = subscriptions.getArticle();
-// Determine if this intervention is available for use.
-if (article.audienceActions.actions.includes(InterventionType.SURVEY)) {
-    // Finally, show the intervention.
-	subscriptions.showIntervention({
-        interventionType: InterventionType.SURVEY, // You must specify the intervention you wish to show.
-        isClosable: false, // Determine if the intervention is dismissible.
-    });
-}
+// Get the article from the subscriptions API.
+// Note: the article will only be available after entitlements have been fetched.
+// Ideally make this call after the `getEntitlements` promise has been resolved.
+subscriptions.getArticle().then((article) => {
+	// Determine if this intervention is available for use.
+	if (article.audienceActions.actions.includes(InterventionType.SURVEY)) {
+		// Finally, show the intervention.
+		subscriptions.showIntervention({
+			interventionType: InterventionType.SURVEY, // You must specify the intervention you wish to show.
+			isClosable: false, // Determine if the intervention is dismissible.
+		});
+	}
+});
 ```
 ## InterventionType
 Currently only the `SURVEY` type is supported for interventions.
 
 ## InterventionCompleteStatus
 This has the values `COMPLETE` and `FAILED`, indicating the status of the intervention completion.
-
