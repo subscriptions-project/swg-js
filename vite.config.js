@@ -39,6 +39,22 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
+  // Remove Google license comments.
+  {
+    name: 'remove-google-license-comments',
+    transform(code, id) {
+      // Remove comments.
+      code = code.replace(
+        /\/\*\*(.|\n)+?Copyright 20\d{2} (Google Inc|The Web Activities Authors)(.|\n)+?\*\//g,
+        ''
+      );
+
+      return {
+        code,
+        map: null,
+      };
+    },
+  },
   // Optimize size of HTML templates.
   {
     name: 'optimize-size-of-html-templates',
@@ -64,7 +80,7 @@ const plugins = [
 
       return {
         code,
-        map: null, // provide source map if available
+        map: null,
       };
     },
   },
@@ -139,11 +155,6 @@ export default defineConfig({
     terserOptions: {
       // eslint-disable-next-line google-camelcase/google-camelcase
       mangle: {properties: {keep_quoted: true, regex: '_'}},
-
-      // Remove comments.
-      format: {
-        comments: false,
-      },
 
       // Disables converting computed properties ({['hello']: 5}) into regular prop ({ hello: 5}).
       // This was an assumption baked into closure.
