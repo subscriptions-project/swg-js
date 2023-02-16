@@ -154,14 +154,17 @@ export default defineConfig({
 
     minify: 'terser',
     terserOptions: {
-      // eslint-disable-next-line google-camelcase/google-camelcase
-      mangle: {properties: {keep_quoted: true, regex: '_'}},
+      mangle: {
+        properties: {
+          'keep_quoted': true,
+          regex: /(^[A-Z0-9_]+_[A-Z0-9_]+$|_$)/, // v2
+        },
+      },
 
       // Disables converting computed properties ({['hello']: 5}) into regular prop ({ hello: 5}).
       // This was an assumption baked into closure.
       compress: {
-        // eslint-disable-next-line google-camelcase/google-camelcase
-        computed_props: false,
+        'computed_props': false,
 
         // Settled on this count by incrementing number until there was no more
         // effect on minification quality.
