@@ -39,6 +39,23 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
+  // Remove Google license comments.
+  {
+    name: 'remove-google-license-comments',
+    transform(code) {
+      // Remove Google license comments.
+      // Preserve license comments from others. (ex: Math.uuid.js)
+      code = code.replace(
+        /\/\*\*(.|\n)+?Copyright 20\d{2} (Google Inc)(.|\n)+?\*\//g,
+        ''
+      );
+
+      return {
+        code,
+        map: null,
+      };
+    },
+  },
   // Point sourcemaps to a Swgjs release on GitHub.
   {
     name: 'fix-sourcemaps',
