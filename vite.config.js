@@ -157,7 +157,7 @@ export default defineConfig({
       mangle: {
         properties: {
           'keep_quoted': true,
-          regex: /(^[A-Z0-9_]+_[A-Z0-9_]+$|_$)/, // v2
+          regex: /(^[A-Z0-9_]+$|_$)/,
         },
       },
 
