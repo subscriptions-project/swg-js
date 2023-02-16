@@ -114,8 +114,9 @@ export default defineConfig({
           keep_quoted: true,
           // Mangle property names following a few patterns:
           // - Constant names containing only capital letters, numbers, and underscores
-          //     Ex: event names like ACTION_PAYMENT_FLOW_STARTED
+          //     Ex: event names like `ACTION_PAYMENT_FLOW_STARTED`
           // - Private method names ending with `_`
+          //     Ex: `start_()`
           regex: /(^[A-Z0-9_]+$|_$)/,
         },
       },
