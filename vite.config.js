@@ -108,8 +108,17 @@ export default defineConfig({
 
     minify: 'terser',
     terserOptions: {
-      // eslint-disable-next-line google-camelcase/google-camelcase
-      mangle: {properties: {keep_quoted: true, regex: /(^[A-Z0-9_]+$|_$)/}},
+      mangle: {
+        properties: {
+          // eslint-disable-next-line google-camelcase/google-camelcase
+          keep_quoted: true,
+          // Mangle property names following a few patterns:
+          // - Constant names containing only capital letters, numbers, and underscores
+          //     Ex: event names like ACTION_PAYMENT_FLOW_STARTED
+          // - Private method names ending with `_`
+          regex: /(^[A-Z0-9_]+$|_$)/,
+        },
+      },
 
       // Disables converting computed properties ({['hello']: 5}) into regular prop ({ hello: 5}).
       // This was an assumption baked into closure.
