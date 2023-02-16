@@ -39,6 +39,35 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
+  // Optimize size of HTML templates.
+  {
+    name: 'optimize-size-of-html-templates',
+    transform(code, id) {
+      // Only process template files.
+      const filenames = [
+        'src/runtime/extended-access/html-templates.js',
+        'src/ui/ui-css.js',
+      ];
+      const isTemplate = filenames.find((filenames) => id.endsWith(filenames));
+      if (!isTemplate) {
+        return;
+      }
+
+      // Remove new lines.
+      code = code.replace(/\n+/g, ' ');
+
+      // Remove comments.
+      code = code.replace(/\/\*\*.+?\*\//g, '');
+
+      // Remove extra spacing.
+      code = code.replace(/[\n ]+/g, ' ');
+
+      return {
+        code,
+        map: null,
+      };
+    },
+  },
   // Point sourcemaps to a Swgjs release on GitHub.
   {
     name: 'fix-sourcemaps',
