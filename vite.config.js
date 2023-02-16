@@ -112,12 +112,12 @@ export default defineConfig({
         properties: {
           // eslint-disable-next-line google-camelcase/google-camelcase
           keep_quoted: true,
-          // Mangle property names following a few patterns:
-          // - Constant names containing only capital letters, numbers, and underscores
+          // Mangle unquoted property names following a few patterns:
+          // - Constant names starting with a capital letter
           //     Ex: event names like `ACTION_PAYMENT_FLOW_STARTED`
           // - Private names ending with `_`
           //     Ex: `start_()`
-          regex: /(^[A-Z0-9_]+$|_$)/,
+          regex: /(^[A-Z]|_$)/,
         },
       },
 
