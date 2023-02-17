@@ -17,24 +17,32 @@
 
 const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
+const glob = require('glob');
 const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const pathLib = require('path');
 const {endBuildStep, mkdirSync} = require('./helpers');
 
-function assets() {
+async function assets() {
+  // Make directories.
   mkdirSync('dist');
-  fs.copySync('assets/loader.svg', 'dist/loader.svg', {overwrite: true});
-  return Promise.all([
+  mkdirSync('dist/i18n');
+
+  // Compile CSS.
+  await Promise.all([
     compileCss('assets/swg-button.css', 'dist/swg-button.css', {
       sourceMap: false,
     }),
     compileCss('assets/swg-mini-prompt.css', 'dist/swg-mini-prompt.css', {
       sourceMap: false,
     }),
-  ]).then(() => {
-    mkdirSync('dist/i18n');
-    fs.copySync('assets/i18n/', 'dist/i18n/', {overwrite: true});
-  });
+  ]);
+
+  // Copy SVGs.
+  fs.copySync('assets/loader.svg', 'dist/loader.svg', {overwrite: true});
+  fs.copySync('assets/i18n/', 'dist/i18n/', {overwrite: true});
+
+  // Remove extra files.
+  fs.rmSync('dist/i18n/strings', {force: true, recursive: true});
 }
 
 /**
