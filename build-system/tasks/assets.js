@@ -17,7 +17,6 @@
 
 const $$ = require('gulp-load-plugins')();
 const fs = require('fs-extra');
-const glob = require('glob');
 const jsifyCssAsync = require('./jsify-css').jsifyCssAsync;
 const pathLib = require('path');
 const {endBuildStep, mkdirSync} = require('./helpers');
