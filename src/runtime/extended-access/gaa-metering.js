@@ -104,7 +104,10 @@ export class GaaMetering {
     } = params;
 
     // Make unlockArticle optional when showcaseEntilement is provided.
-    const unlockArticle = showcaseEntitlement && !params.unlockArticle ? () => {} : params.unlockArticle;
+    const unlockArticle =
+      showcaseEntitlement && !params.unlockArticle
+        ? () => {}
+        : params.unlockArticle;
 
     // Set class variables
     GaaMetering.userState = userState;

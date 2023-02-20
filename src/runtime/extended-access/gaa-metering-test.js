@@ -1487,7 +1487,7 @@ describes.realWin('GaaMetering', () => {
       expect(GaaMetering.handleLoginRequest).to.be.called;
     });
   });
-  
+
   describe('checkShowcaseEntitlement', () => {
     beforeEach(() => {
       sandbox
