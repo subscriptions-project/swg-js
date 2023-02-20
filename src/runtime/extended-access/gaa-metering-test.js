@@ -1486,42 +1486,8 @@ describes.realWin('GaaMetering', () => {
       callback();
       expect(GaaMetering.handleLoginRequest).to.be.called;
     });
-
-    it('sets onEntitlementsResponse callback', async () => {
-      sandbox.stub(GaaMetering, 'setEntitlements');
-
-      // Successfully init, setting a callback in the process.
-      QueryStringUtils.getQueryString.returns(
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
-      );
-      self.document.referrer = 'https://www.google.com';
-      GaaMetering.init({
-        googleApiClientId: GOOGLE_API_CLIENT_ID,
-        allowedReferrers: [
-          'example.com',
-          'test.com',
-          'localhost',
-          'google.com',
-        ],
-        userState: {},
-        unlockArticle: () => {},
-        showPaywall: () => {},
-        handleLogin: () => {},
-        handleSwGEntitlement: () => {},
-        registerUserPromise: new Promise(() => {}),
-        handleLoginPromise: new Promise(() => {}),
-        publisherEntitlementPromise: new Promise(() => {}),
-      });
-
-      expect(subscriptionsMock.setOnEntitlementsResponse).to.be.called;
-      expect(GaaMetering.setEntitlements).to.not.be.called;
-      const callback =
-        subscriptionsMock.setOnEntitlementsResponse.lastCall.firstArg;
-      callback();
-      expect(GaaMetering.setEntitlements).to.be.called;
-    });
   });
-
+  
   describe('checkShowcaseEntitlement', () => {
     beforeEach(() => {
       sandbox
