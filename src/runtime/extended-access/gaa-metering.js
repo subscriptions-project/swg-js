@@ -103,9 +103,8 @@ export class GaaMetering {
       rawJwt,
     } = params;
 
-    // Disable unlockArticle when showcaseEntilement is provided since articles
-    // are unlocked on the server-side.
-    const unlockArticle = showcaseEntitlement ? () => {} : params.unlockArticle;
+    // Make unlockArticle optional when showcaseEntilement is provided.
+    const unlockArticle = showcaseEntitlement && !params.unlockArticle ? () => {} : params.unlockArticle;
 
     // Set class variables
     GaaMetering.userState = userState;
@@ -133,17 +132,6 @@ export class GaaMetering {
       );
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
-
-      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
-        GaaMetering.setEntitlements(
-          googleEntitlementsPromise,
-          allowedReferrers,
-          unlockArticle,
-          handleSwGEntitlement,
-          showGoogleRegwall,
-          showPaywall
-        )
-      );
 
       if ('granted' in userState && 'grantReason' in userState) {
         unlockArticleIfGranted();
@@ -236,11 +224,19 @@ export class GaaMetering {
     function checkShowcaseEntitlement(userState) {
       if (userState.registrationTimestamp) {
         // Send userState to Google
-        callSwg((subscriptions) => {
+        callSwg(async (subscriptions) => {
           debugLog('getting entitlements from Google');
           debugLog(GaaMetering.newUserStateToUserState(userState));
-          subscriptions.getEntitlements(
+          const googleEntitlementsPromise = subscriptions.getEntitlements(
             GaaMetering.newUserStateToUserState(userState)
+          );
+          GaaMetering.setEntitlements(
+            googleEntitlementsPromise,
+            allowedReferrers,
+            unlockArticle,
+            handleSwGEntitlement,
+            showGoogleRegwall,
+            showPaywall
           );
         });
       } else {
