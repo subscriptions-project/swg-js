@@ -75,4 +75,9 @@ export const ExperimentFlags = {
    * Experiment flag for delaying the second prompt by allowing free reads after the first.
    */
   SECOND_PROMPT_DELAY: 'second_prompt_delay_experiment',
+
+  /**
+   * Experiment flag for using the Article for enterprise publications.
+   */
+  ENABLE_ENTERPRISE_ARTICLE: 'enable_enterprise_article',
 };
