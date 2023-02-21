@@ -233,7 +233,7 @@ export class Runtime {
         configPromise: this.configuredRuntimePromise_,
         useArticleEndpoint: isExperimentOn(
           this.win_,
-          ExperimentFlags.USE_ARTICLE_ENDPOINT,
+          ExperimentFlags.ENABLE_ENTERPRISE_ARTICLE,
         ),
       },
       this.config_
@@ -541,6 +541,10 @@ export class Runtime {
   async linkSubscription(request) {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
+  }
+
+  setExperimentValue(experimentId, on) {
+    setExperiment(this.win_, experimentId, on);
   }
 }
 
@@ -1248,5 +1252,6 @@ function createPublicRuntime(runtime) {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    setExperimentValue: runtime.setExperimentValue.bind(runtime),
   });
 }

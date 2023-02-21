@@ -370,6 +370,22 @@ describes.realWin('Runtime', (env) => {
       const analytics = configuredRuntime.analytics();
       expect(analytics.readyForLogging_).to.be.true;
     });
+
+    it('sets article endpoint off', async () => {
+      runtime.setExperimentValue(ExperimentFlags.ENABLE_ENTERPRISE_ARTICLE, false);
+      runtime.init('pub2');
+      const configuredRuntime = await runtime.configured_(true);
+      const entitlementsManager = configuredRuntime.entitlementsManager();
+      expect(entitlementsManager.useArticleEndpoint_).to.be.false;
+    });
+
+    it('sets article endpoint on', async () => {
+      runtime.setExperimentValue(ExperimentFlags.ENABLE_ENTERPRISE_ARTICLE, true);
+      runtime.init('pub2');
+      const configuredRuntime = await runtime.configured_(true);
+      const entitlementsManager = configuredRuntime.entitlementsManager();
+      expect(entitlementsManager.useArticleEndpoint_).to.be.true;
+    });
   });
 
   describe('configured', () => {
