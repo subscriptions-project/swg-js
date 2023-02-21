@@ -229,7 +229,13 @@ export class Runtime {
     const configuredRuntime = new ConfiguredRuntime(
       this.doc_,
       pageConfig,
-      /* integr */ {configPromise: this.configuredRuntimePromise_},
+      /* integr */ {
+        configPromise: this.configuredRuntimePromise_,
+        useArticleEndpoint: isExperimentOn(
+          this.win_,
+          ExperimentFlags.USE_ARTICLE_ENDPOINT,
+        ),
+      },
       this.config_
     );
     this.configuredRuntimeResolver_(configuredRuntime);
