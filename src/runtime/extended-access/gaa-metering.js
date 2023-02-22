@@ -227,7 +227,7 @@ export class GaaMetering {
     function checkShowcaseEntitlement(userState) {
       if (userState.registrationTimestamp) {
         // Send userState to Google
-        callSwg(async (subscriptions) => {
+        callSwg((subscriptions) => {
           debugLog('getting entitlements from Google');
           debugLog(GaaMetering.newUserStateToUserState(userState));
           const googleEntitlementsPromise = subscriptions.getEntitlements(
