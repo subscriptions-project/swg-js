@@ -372,10 +372,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('sets article endpoint off', async () => {
-      runtime.setExperimentValue(
-        ExperimentFlags.ENABLE_ENTERPRISE_ARTICLE,
-        false
-      );
+      runtime.configure({useArticleEndpoint: false});
       runtime.init('pub2');
       const configuredRuntime = await runtime.configured_(true);
       const entitlementsManager = configuredRuntime.entitlementsManager();
@@ -383,10 +380,7 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('sets article endpoint on', async () => {
-      runtime.setExperimentValue(
-        ExperimentFlags.ENABLE_ENTERPRISE_ARTICLE,
-        true
-      );
+      runtime.configure({useArticleEndpoint: true});
       runtime.init('pub2');
       const configuredRuntime = await runtime.configured_(true);
       const entitlementsManager = configuredRuntime.entitlementsManager();

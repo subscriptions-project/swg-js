@@ -231,10 +231,7 @@ export class Runtime {
       pageConfig,
       /* integr */ {
         configPromise: this.configuredRuntimePromise_,
-        useArticleEndpoint: isExperimentOn(
-          this.win_,
-          ExperimentFlags.ENABLE_ENTERPRISE_ARTICLE
-        ),
+        useArticleEndpoint: this.config_.useArticleEndpoint || false,
       },
       this.config_
     );
@@ -542,10 +539,6 @@ export class Runtime {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
   }
-
-  setExperimentValue(experimentId, on) {
-    setExperiment(this.win_, experimentId, on);
-  }
 }
 
 /**
@@ -825,6 +818,11 @@ export class ConfiguredRuntime {
             !(typeof value === 'string' && value != '')
           ) {
             error = 'publisherProvidedId must be a string, value: ' + value;
+          }
+          break;
+        case 'useArticleEndpoint':
+          if (!isBoolean(value)) {
+            error = 'Unknown useArticleEndpoint value: ' + value;
           }
           break;
         default:
@@ -1252,6 +1250,5 @@ function createPublicRuntime(runtime) {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
-    setExperimentValue: runtime.setExperimentValue.bind(runtime),
   });
 }
