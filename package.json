@@ -39,7 +39,7 @@
     "babel-loader": "9.1.2",
     "babel-plugin-istanbul": "6.1.1",
     "babelify": "10.0.0",
-    "body-parser": "1.20.1",
+    "body-parser": "1.20.2",
     "browserify": "17.0.0",
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
