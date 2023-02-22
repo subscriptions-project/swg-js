@@ -371,8 +371,7 @@ describes.realWin('Runtime', (env) => {
       expect(analytics.readyForLogging_).to.be.true;
     });
 
-    it('sets article endpoint off', async () => {
-      runtime.configure({useArticleEndpoint: false});
+    it('sets article endpoint off by default', async () => {
       runtime.init('pub2');
       const configuredRuntime = await runtime.configured_(true);
       const entitlementsManager = configuredRuntime.entitlementsManager();
@@ -1318,6 +1317,11 @@ describes.realWin('ConfiguredRuntime', (env) => {
         expect(() => {
           runtime.configure({publisherProvidedId: ''});
         }).to.throw(/publisherProvidedId must be a string, value: /);
+      });
+
+      it('throws on unknown useArticleEndpoint value', () => {
+        const mistake = () => runtime.configure({useArticleEndpoint: 'true'});
+        expect(mistake).to.throw('Unknown useArticleEndpoint value: true');
       });
     });
 
