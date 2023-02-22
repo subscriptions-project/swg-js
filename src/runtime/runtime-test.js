@@ -1319,9 +1319,33 @@ describes.realWin('ConfiguredRuntime', (env) => {
         }).to.throw(/publisherProvidedId must be a string, value: /);
       });
 
+      it('throws on unknown enableSwgAnalytics value', () => {
+        const mistake = () => runtime.configure({enableSwgAnalytics: 'true'});
+        expect(mistake).to.throw(
+          'enableSwgAnalytics must be a boolean, type: string'
+        );
+      });
+
+      it('throws on unknown enablePropensity value', () => {
+        const mistake = () => runtime.configure({enablePropensity: 'true'});
+        expect(mistake).to.throw(
+          'enablePropensity must be a boolean, type: string'
+        );
+      });
+
+      it('throws on unknown skipAccountCreationScreen value', () => {
+        const mistake = () =>
+          runtime.configure({skipAccountCreationScreen: 'true'});
+        expect(mistake).to.throw(
+          'skipAccountCreationScreen must be a boolean, type: string'
+        );
+      });
+
       it('throws on unknown useArticleEndpoint value', () => {
         const mistake = () => runtime.configure({useArticleEndpoint: 'true'});
-        expect(mistake).to.throw('Unknown useArticleEndpoint value: true');
+        expect(mistake).to.throw(
+          'useArticleEndpoint must be a boolean, type: string'
+        );
       });
     });
 

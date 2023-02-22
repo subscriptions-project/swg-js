@@ -799,17 +799,20 @@ export class ConfiguredRuntime {
           break;
         case 'enableSwgAnalytics':
           if (!isBoolean(value)) {
-            error = 'Unknown enableSwgAnalytics value: ' + value;
+            error =
+              'enableSwgAnalytics must be a boolean, type: ' + typeof value;
           }
           break;
         case 'enablePropensity':
           if (!isBoolean(value)) {
-            error = 'Unknown enablePropensity value: ' + value;
+            error = 'enablePropensity must be a boolean, type: ' + typeof value;
           }
           break;
         case 'skipAccountCreationScreen':
           if (!isBoolean(value)) {
-            error = 'Unknown skipAccountCreationScreen value: ' + value;
+            error =
+              'skipAccountCreationScreen must be a boolean, type: ' +
+              typeof value;
           }
           break;
         case 'publisherProvidedId':
@@ -822,7 +825,8 @@ export class ConfiguredRuntime {
           break;
         case 'useArticleEndpoint':
           if (!isBoolean(value)) {
-            error = 'Unknown useArticleEndpoint value: ' + value;
+            error =
+              'useArticleEndpoint must be a boolean, type: ' + typeof value;
           }
           break;
         default:
