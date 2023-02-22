@@ -233,7 +233,7 @@ export class Runtime {
         configPromise: this.configuredRuntimePromise_,
         useArticleEndpoint: isExperimentOn(
           this.win_,
-          ExperimentFlags.ENABLE_ENTERPRISE_ARTICLE,
+          ExperimentFlags.ENABLE_ENTERPRISE_ARTICLE
         ),
       },
       this.config_
