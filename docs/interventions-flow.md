@@ -18,9 +18,15 @@ limitations under the License.
 
 This flow will allow publication sites to display interventions. Interventions are alternatives to displaying a paywall, and include surveys, newsletter sign ups, and registration walls.
 
-After entitlements have been fetched in the [entitlements flow](entitlements-flow.md) the publication site will have access to the `Article` object from the `getArticle` method on the Subscriptions API.
- This object contains a list of available actions in descending order of precedence, which can be invoked with the `showIntervention` method in the Subscriptions API. To handle errors or process the data on your own, you may set a callback for the response with `setOnInterventionComplete`.
-
+After entitlements have been fetched in the [entitlements flow](entitlements-flow.md) the publication site will have access to the `Article` object from the `getArticle` method on the Subscriptions API. To enable this feature publications will need to call `subscriptions.configure` with `useArticleEndpoint` set to `true` in the SwG callback. See [Include SwG client on a site](embed-client.md) for setting up the SwG callback.
+```javascript
+// Configure getEntitlements to use the article endpoint.
+(self.SWG = self.SWG || []).push(function(subscriptions) {
+	subscriptions.configure({useArticleEndpoint: true});
+	subscriptions.init(publicationOrProductId);
+});
+```
+ Article contains a list of available actions in descending order of precedence, which can be invoked with the `showIntervention` method in the Subscriptions API. To handle errors or process the data on your own, you may set a callback for the response with `setOnInterventionComplete`.
  ## Sample code
 ```javascript
 // Set up a callback to know the result of an intervention.
@@ -70,3 +76,5 @@ This is an enum of interventions provided by SwG. The enum can be provided as th
 | NEWSLETTER_SIGNUP | newsletter_signup |
 | SURVEY            | survey            |
 
+## setOnInterventionComplete response
+This depends on the intervention and is currently undefined.
