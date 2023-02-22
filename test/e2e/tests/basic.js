@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-const args = require('./args');
-const fs = require('fs-extra');
+module.exports = {
+  '@tags': ['basic'],
 
-const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-const packageVersion = packageJson.version;
-
-// Used to e.g. references the ads binary from the runtime to get
-// version lock.
-exports.VERSION = args.swgVersion
-  ? String(args.swgVersion)
-  : packageVersion + '-' + Date.now();
+  'Show button': (browser) => {
+    const basic = browser.page.basic();
+    basic
+      .navigate()
+      .waitForElementPresent('@swgBasicButton', 'Found button')
+      .waitForElementVisible('@swgBasicButton')
+      .click('@swgBasicButton')
+      .viewContributionOffers()
+      .assert.containsText('.XWoc8b', 'Swgjs Contribution Demos')
+      .assert.containsText('.h57Fgb', '$1')
+      .contribute()
+      .checkPayment()
+      .end();
+  },
+};
