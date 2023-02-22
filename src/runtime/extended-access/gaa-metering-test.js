@@ -1334,7 +1334,7 @@ describes.realWin('GaaMetering', () => {
           registrationTimestamp: 1602763054,
         },
         showcaseEntitlement: 'test showcaseEntitlement',
-        unlockArticle: unlockArticle,
+        unlockArticle,
         showPaywall: () => {},
         handleLogin: () => {},
         handleSwGEntitlement: () => {},
