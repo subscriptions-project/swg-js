@@ -145,7 +145,11 @@ export class GaaMetering {
         unlockArticleIfGranted();
       } else if (showcaseEntitlement) {
         debugLog(showcaseEntitlement);
-        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
+        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement, () => {
+          // Consume the entitlement and trigger a dialog that lets the user
+          // know Google provided them with a free read.
+          unlockArticle();
+        });
       } else {
         debugLog('resolving publisherEntitlement');
         const fetchedPublisherEntitlements = await publisherEntitlementPromise;
