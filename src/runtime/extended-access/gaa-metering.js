@@ -103,12 +103,6 @@ export class GaaMetering {
       rawJwt,
     } = params;
 
-    // Make unlockArticle optional when showcaseEntilement is provided.
-    const unlockArticle =
-      showcaseEntitlement && !params.unlockArticle
-        ? () => {}
-        : params.unlockArticle;
-
     // Set class variables
     GaaMetering.userState = userState;
     GaaMetering.publisherEntitlementPromise = publisherEntitlementPromise;
@@ -118,6 +112,12 @@ export class GaaMetering {
       debugLog('Extended Access - Invalid gaa parameters or referrer.');
       return false;
     }
+
+    // Make unlockArticle optional when showcaseEntilement is provided.
+    const unlockArticle =
+      showcaseEntitlement && !params.unlockArticle
+        ? () => {}
+        : params.unlockArticle;
 
     callSwg(async (subscriptions) => {
       subscriptions.init(productId);
