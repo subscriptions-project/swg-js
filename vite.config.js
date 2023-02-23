@@ -65,7 +65,7 @@ const plugins = [
         );
 
         // Save changes.
-        writeFileSync(path, JSON.stringify(sourcemap));
+        writeFileSync(path, JSON.stringify(sourcemap) + '\n');
       }
     },
   },
