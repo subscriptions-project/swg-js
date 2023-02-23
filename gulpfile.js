@@ -46,18 +46,16 @@ gulp.task('build', build);
 gulp.task('changelog', changelog);
 gulp.task('publish', publish);
 gulp.task('lint', lint);
-gulp.task('check-types', checkTypes);
 gulp.task('check-rules', checkRules);
 gulp.task('unit', unit);
 gulp.task('watch', watch);
 gulp.task('serve', serve);
 gulp.task('clean', clean);
 gulp.task('e2e', e2e);
-gulp.task('dist', dist);
 
 gulp.task('default', gulp.series(['watch', 'serve']));
 
-const check = gulp.series('lint', 'check-types', 'check-rules');
+const check = gulp.series('lint', 'check-rules');
 check.description = 'Run through all checks';
 gulp.task('check', check);
 

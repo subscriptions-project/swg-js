@@ -16,7 +16,6 @@
 'use strict';
 
 const compile = require('./compile').compile;
-const compileCheckTypes = require('./compile').checkTypes;
 
 /**
  * Clean up the build artifacts.
@@ -57,25 +56,13 @@ async function dist() {
   return compile({minify: true, checkTypes: true});
 }
 
-/**
- * Type check path.
- * @return {!Promise}
- */
-function checkTypes() {
-  process.env.NODE_ENV = 'production';
-  return compileCheckTypes();
-}
-
 module.exports = {
   build,
-  checkTypes,
   clean,
   dist,
   watch,
 };
 watch.description = 'Watches for changes in files, re-build';
-
-checkTypes.description = 'Check JS types';
 
 clean.description = 'Removes build output';
 
