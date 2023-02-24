@@ -229,7 +229,10 @@ export class Runtime {
     const configuredRuntime = new ConfiguredRuntime(
       this.doc_,
       pageConfig,
-      /* integr */ {configPromise: this.configuredRuntimePromise_},
+      /* integr */ {
+        configPromise: this.configuredRuntimePromise_,
+        useArticleEndpoint: this.config_.useArticleEndpoint || false,
+      },
       this.config_
     );
     this.configuredRuntimeResolver_(configuredRuntime);
@@ -796,17 +799,20 @@ export class ConfiguredRuntime {
           break;
         case 'enableSwgAnalytics':
           if (!isBoolean(value)) {
-            error = 'Unknown enableSwgAnalytics value: ' + value;
+            error =
+              'enableSwgAnalytics must be a boolean, type: ' + typeof value;
           }
           break;
         case 'enablePropensity':
           if (!isBoolean(value)) {
-            error = 'Unknown enablePropensity value: ' + value;
+            error = 'enablePropensity must be a boolean, type: ' + typeof value;
           }
           break;
         case 'skipAccountCreationScreen':
           if (!isBoolean(value)) {
-            error = 'Unknown skipAccountCreationScreen value: ' + value;
+            error =
+              'skipAccountCreationScreen must be a boolean, type: ' +
+              typeof value;
           }
           break;
         case 'publisherProvidedId':
@@ -815,6 +821,12 @@ export class ConfiguredRuntime {
             !(typeof value === 'string' && value != '')
           ) {
             error = 'publisherProvidedId must be a string, value: ' + value;
+          }
+          break;
+        case 'useArticleEndpoint':
+          if (!isBoolean(value)) {
+            error =
+              'useArticleEndpoint must be a boolean, type: ' + typeof value;
           }
           break;
         default:
