@@ -21,8 +21,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --omit optional
 
-      - name: Check
+      - name: Check lint & rules
         run: gulp check
+
+      - name: Check types
+        run: npx tsc --project tsconfig.json
 
   e2e:
     runs-on: ubuntu-latest
