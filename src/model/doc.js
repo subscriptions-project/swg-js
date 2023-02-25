@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import {isDocumentReady, whenDocumentReady} from '../utils/document-ready';
+import {
+  isDocumentReady,
+  whenDocumentReady,
+} from '../../packages/common/utils/document-ready';
 
 /**
  * @interface

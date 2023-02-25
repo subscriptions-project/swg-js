@@ -19,7 +19,7 @@ import {
   onDocumentReady,
   whenDocumentReady,
 } from './document-ready';
-import {tick} from '../../test/tick';
+import {tick} from '../../../test/tick';
 
 describes.sandboxed('documentReady', () => {
   let testDoc;
