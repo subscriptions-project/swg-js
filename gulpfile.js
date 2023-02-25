@@ -24,8 +24,8 @@ if (!isCiBuild()) {
 
 const $$ = require('gulp-load-plugins')();
 const gulp = $$.help(require('gulp'));
-const {build, clean, watch} = require('./build-system/tasks/builders');
 const {assets} = require('./build-system/tasks/assets');
+const {build, clean, watch} = require('./build-system/tasks/builders');
 const {changelog} = require('./build-system/tasks/changelog');
 const {checkRules} = require('./build-system/tasks/check-rules');
 const {e2e} = require('./build-system/tasks/e2e');
