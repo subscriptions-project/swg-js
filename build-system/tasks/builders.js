@@ -43,23 +43,9 @@ function build(options = {}) {
   return compile(options);
 }
 
-/**
- * Dist build for prod.
- * @return {!Promise}
- */
-async function dist() {
-  process.env.NODE_ENV = 'production';
-  await clean();
-  await compile({minify: true, checkTypes: false, isProdBuild: true});
-
-  // Check types now.
-  return compile({minify: true, checkTypes: true});
-}
-
 module.exports = {
   build,
   clean,
-  dist,
   watch,
 };
 watch.description = 'Watches for changes in files, re-build';
@@ -67,10 +53,3 @@ watch.description = 'Watches for changes in files, re-build';
 clean.description = 'Removes build output';
 
 build.description = 'Builds the library';
-
-dist.description = 'Build production binaries';
-dist.flags = {
-  pseudoNames:
-    'Compiles with readable names. ' +
-    'Great for profiling and debugging production code.',
-};
