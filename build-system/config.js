@@ -45,7 +45,7 @@ const commonTestPaths = [
   },
 ];
 
-const basicTestPaths = ['src/**/*-test.js', 'src/**/*-test.ts'];
+const basicTestPaths = ['{packages,src}/**/*-test.{js,ts}'];
 
 const unitTestPaths = commonTestPaths.concat(basicTestPaths);
 
@@ -55,8 +55,7 @@ module.exports = {
   basicTestPaths,
   unitTestPaths,
   lintGlobs: [
-    '**/*.js',
-    '**/*.ts',
+    '**/*.{js,ts}',
     '!**/*.extern.js',
     '!src/api/*.js', // Avoid "unused" prefixes in APIs.
     '!src/proto/*.js', // Auto generated code,
@@ -73,7 +72,7 @@ module.exports = {
     '!{node_modules,build,dist,third_party,build-system}/**/*.*',
   ],
   presubmitGlobs: [
-    '**/*.{css,js,ts,go}',
+    '**/*.{css,go,js,ts}',
     '!**/*.stories.js',
     '!{node_modules,build,dist}/**/*.*',
     '!build-system/tasks/*.js',
