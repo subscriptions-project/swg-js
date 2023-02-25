@@ -15,7 +15,7 @@
  */
 
 function getReadyState(doc: Document): string {
-  return /** @type {string} */ doc['readyState'];
+  return doc['readyState'];
 }
 
 /**
