@@ -72,7 +72,7 @@ module.exports = {
     '!{node_modules,build,dist,third_party,build-system}/**/*.*',
   ],
   presubmitGlobs: [
-    '**/*.{css,go,js,ts}',
+    '**/*.{css,js,ts}',
     '!**/*.stories.js',
     '!{node_modules,build,dist}/**/*.*',
     '!build-system/tasks/*.js',
