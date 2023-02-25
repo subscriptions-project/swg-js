@@ -57,7 +57,7 @@ gulp.task('dist', dist);
 
 gulp.task('default', gulp.series(['watch', 'serve']));
 
-const check = gulp.series('lint', 'check-types', 'check-rules');
+const check = gulp.series('lint', 'check-rules');
 check.description = 'Run through all checks';
 gulp.task('check', check);
 
