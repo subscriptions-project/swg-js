@@ -426,6 +426,7 @@ export const SubscriptionFlows = {
  *   enableSwgAnalytics: (boolean|undefined),
  *   enablePropensity: (boolean|undefined),
  *   publisherProvidedId: (string|undefined),
+ *   useArticleEndpoint: (boolean|undefined),
  * }}
  */
 export let Config;

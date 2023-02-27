@@ -103,10 +103,6 @@ export class GaaMetering {
       rawJwt,
     } = params;
 
-    // Disable unlockArticle when showcaseEntilement is provided since articles
-    // are unlocked on the server-side.
-    const unlockArticle = showcaseEntitlement ? () => {} : params.unlockArticle;
-
     // Set class variables
     GaaMetering.userState = userState;
     GaaMetering.publisherEntitlementPromise = publisherEntitlementPromise;
@@ -116,6 +112,12 @@ export class GaaMetering {
       debugLog('Extended Access - Invalid gaa parameters or referrer.');
       return false;
     }
+
+    // Make unlockArticle optional when showcaseEntilement is provided.
+    const unlockArticle =
+      showcaseEntitlement && !params.unlockArticle
+        ? () => {}
+        : params.unlockArticle;
 
     callSwg(async (subscriptions) => {
       subscriptions.init(productId);
@@ -134,17 +136,6 @@ export class GaaMetering {
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
-      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
-        GaaMetering.setEntitlements(
-          googleEntitlementsPromise,
-          allowedReferrers,
-          unlockArticle,
-          handleSwGEntitlement,
-          showGoogleRegwall,
-          showPaywall
-        )
-      );
-
       if ('granted' in userState && 'grantReason' in userState) {
         unlockArticleIfGranted();
       } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
@@ -154,7 +145,11 @@ export class GaaMetering {
         unlockArticleIfGranted();
       } else if (showcaseEntitlement) {
         debugLog(showcaseEntitlement);
-        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
+        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement, () => {
+          // Consume the entitlement and trigger a dialog that lets the user
+          // know Google provided them with a free read.
+          unlockArticle();
+        });
       } else {
         debugLog('resolving publisherEntitlement');
         const fetchedPublisherEntitlements = await publisherEntitlementPromise;
@@ -239,8 +234,16 @@ export class GaaMetering {
         callSwg((subscriptions) => {
           debugLog('getting entitlements from Google');
           debugLog(GaaMetering.newUserStateToUserState(userState));
-          subscriptions.getEntitlements(
+          const googleEntitlementsPromise = subscriptions.getEntitlements(
             GaaMetering.newUserStateToUserState(userState)
+          );
+          GaaMetering.setEntitlements(
+            googleEntitlementsPromise,
+            allowedReferrers,
+            unlockArticle,
+            handleSwGEntitlement,
+            showGoogleRegwall,
+            showPaywall
           );
         });
       } else {
