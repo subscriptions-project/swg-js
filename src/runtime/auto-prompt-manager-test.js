@@ -1100,7 +1100,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('AudienceActionFlow', () => {
-    let articleExpectation;
+    let getArticleExpectation;
 
     beforeEach(() => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
@@ -1114,8 +1114,8 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getClientConfig')
         .resolves(clientConfig)
         .once();
-      articleExpectation = entitlementsManagerMock.expects('getArticle');
-      articleExpectation
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
         .resolves({
           audienceActions: {
             actions: [{type: 'TYPE_REGISTRATION_WALL'}],
@@ -1144,7 +1144,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should call the original prompt for no article actions', async () => {
-      articleExpectation
+      getArticleExpectation
         .resolves({
           audienceActions: {},
         })
@@ -1186,7 +1186,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Contribution Flows with Audience Actions', () => {
-    let articleExpectation;
+    let getArticleExpectation;
 
     beforeEach(() => {
       const autoPromptConfig = new AutoPromptConfig({
@@ -1217,8 +1217,8 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      articleExpectation = entitlementsManagerMock.expects('getArticle');
-      articleExpectation
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
         .resolves({
           audienceActions: {
             actions: [
@@ -1567,7 +1567,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Contribution Flows with Audience Actions and Survey Triggering Priority Experiments', () => {
-    let articleExpectation;
+    let getArticleExpectation;
 
     beforeEach(() => {
       const autoPromptConfig = new AutoPromptConfig({
@@ -1598,8 +1598,8 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      articleExpectation = entitlementsManagerMock.expects('getArticle');
-      articleExpectation
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
         .resolves({
           audienceActions: {
             actions: [
@@ -1862,7 +1862,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Audience Actions with Second Prompt Delay Experiment', () => {
-    let articleExpectation;
+    let getArticleExpectation;
 
     beforeEach(() => {
       const autoPromptConfig = new AutoPromptConfig({
@@ -1893,12 +1893,12 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      articleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
     });
 
     it('should not delay second prompt for Subscriptions', async () => {
-      resolveArticleExpectationOnce(
-        articleExpectation,
+      mockGetArticleResponse(
+        getArticleExpectation,
         ['TYPE_REWARDED_SURVEY'],
         ['second_prompt_delay_experiment']
       );
@@ -1918,8 +1918,8 @@ describes.realWin('AutoPromptManager', (env) => {
     // when article sets numFreeReads = 0, default numFreeReads = 2
     [{numFreeReads: 0}, {numFreeReads: 3}].forEach(({numFreeReads}) => {
       it('With SecondPromptDelayExperiment enabled and default 2 free reads, on first prompt, should set shouldShowAutoPromptTimestamps and show first prompt', async () => {
-        resolveArticleExpectationOnce(
-          articleExpectation,
+        mockGetArticleResponse(
+          getArticleExpectation,
           ['TYPE_REWARDED_SURVEY'],
           ['second_prompt_delay_experiment'],
           numFreeReads
@@ -1956,8 +1956,8 @@ describes.realWin('AutoPromptManager', (env) => {
       {numFreeReads: 3, secondPromptDelayCounter: 3},
     ].forEach(({numFreeReads, secondPromptDelayCounter}) => {
       it('With SecondPromptDelayExperiment enable, on valid free read, should set shouldShowAutoPromptTimestamps and suppress prompt', async () => {
-        resolveArticleExpectationOnce(
-          articleExpectation,
+        mockGetArticleResponse(
+          getArticleExpectation,
           ['TYPE_REWARDED_SURVEY'],
           ['second_prompt_delay_experiment'],
           numFreeReads
@@ -1994,8 +1994,8 @@ describes.realWin('AutoPromptManager', (env) => {
       {numFreeReads: 3, secondPromptDelayCounter: 4},
     ].forEach(({numFreeReads, secondPromptDelayCounter}) => {
       it('With SecondPromptDelayExperiment enabled, after consuming all free reads, should not set shouldShowAutoPromptTimestamps and display next prompt', async () => {
-        resolveArticleExpectationOnce(
-          articleExpectation,
+        mockGetArticleResponse(
+          getArticleExpectation,
           ['TYPE_REWARDED_SURVEY'],
           ['second_prompt_delay_experiment'],
           numFreeReads
@@ -2038,7 +2038,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Audience Actions with Survey Triggering Priority Experiment and Second Prompt Delay Experiment', () => {
-    let articleExpectation;
+    let getArticleExpectation;
 
     beforeEach(() => {
       const autoPromptConfig = new AutoPromptConfig({
@@ -2069,8 +2069,8 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      articleExpectation = entitlementsManagerMock.expects('getArticle');
-      articleExpectation
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
         .resolves({
           audienceActions: {
             actions: [{type: 'TYPE_REWARDED_SURVEY'}],
@@ -2193,19 +2193,14 @@ describes.realWin('AutoPromptManager', (env) => {
     await tick(2);
   }
 
-  function resolveArticleExpectationOnce(
-    articleExpectation,
+  function mockGetArticleResponse(
+    getArticleExpectation,
     actionTypes,
     experimentFlags,
     numReadsBetweenPrompts = 0
   ) {
-    const actions =
-      actionTypes.map((actionType) => {
-        return {
-          type: actionType,
-        };
-      }) || {};
-    articleExpectation
+    const actions = actionTypes.map((actionType) => ({type: actionType})) || {};
+    getArticleExpectation
       .resolves({
         audienceActions: {
           actions,
