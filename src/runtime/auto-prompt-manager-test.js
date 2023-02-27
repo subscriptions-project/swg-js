@@ -1916,7 +1916,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     [{numFreeReads: 2}, {numFreeReads: 3}].forEach(({numFreeReads}) => {
-      it('With SecondPromptDelayExperiment enabled and default 2 free reads, on first prompt, should set secondPromptDelayTimestamps and show first prompt', async () => {
+      it(`With SecondPromptDelayExperiment enabled and numFreeReads=${numFreeReads}, on first prompt, should set secondPromptDelayTimestamps and show first prompt`, async () => {
         mockGetArticleResponse(
           getArticleExpectation,
           ['TYPE_REWARDED_SURVEY'],
@@ -1954,7 +1954,7 @@ describes.realWin('AutoPromptManager', (env) => {
       {numFreeReads: 3, secondPromptDelayCounter: 1},
       {numFreeReads: 3, secondPromptDelayCounter: 3},
     ].forEach(({numFreeReads, secondPromptDelayCounter}) => {
-      it('With SecondPromptDelayExperiment enabled, on valid free read, should set secondPromptDelayTimestamps and suppress prompt', async () => {
+      it(`With SecondPromptDelayExperiment enabled and numFreeReads=${numFreeReads}, secondPromptDelayCounter=${secondPromptDelayCounter}, on valid free read, should set secondPromptDelayTimestamps and suppress prompt`, async () => {
         mockGetArticleResponse(
           getArticleExpectation,
           ['TYPE_REWARDED_SURVEY'],
@@ -1992,7 +1992,7 @@ describes.realWin('AutoPromptManager', (env) => {
       {numFreeReads: 2, secondPromptDelayCounter: 3},
       {numFreeReads: 3, secondPromptDelayCounter: 4},
     ].forEach(({numFreeReads, secondPromptDelayCounter}) => {
-      it('With SecondPromptDelayExperiment enabled, after consuming all free reads, should not set secondPromptDelayTimestamps and display next prompt', async () => {
+      it(`With SecondPromptDelayExperiment enabled and numFreeReads=${numFreeReads}, secondPromptDelayCounter=${secondPromptDelayCounter}, after consuming all free reads, should not set secondPromptDelayTimestamps and display next prompt`, async () => {
         mockGetArticleResponse(
           getArticleExpectation,
           ['TYPE_REWARDED_SURVEY'],
