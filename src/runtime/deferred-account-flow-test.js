@@ -145,7 +145,7 @@ describes.realWin('DeferredAccountFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/recoveriframe?_=_',
+        'https://news.google.com/swg/ui/v1/recoveriframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
