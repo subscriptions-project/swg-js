@@ -725,21 +725,17 @@ export class AutoPromptManager {
    * Checks if a free read granted after the first autoprompt should suppress
    * the second autoprompt. Tracks reads by storing timestamps for the first
    * autoprompt shown and for each free read after. Returns whether to
-   * suppress the next autoprompt. For example, for default
-   * number of free reads X = 2, then:
+   * suppress the next autoprompt. For example, for default number of free
+   * reads X = 2 (b/267650049), then:
    * Timestamps   Show Autoprompt   Store Timestamp
    * []           YES (1st prompt)  YES
    * [t1]         NO  (free read)   YES
    * [t1, t2]     NO  (free read)   YES
    * [t1, t2, t3] YES (2nd prompt)  NO
-   * @param {number|undefined} expConfigNumFreeReads
+   * @param {number|undefined} numFreeReads
    * @return {!Promise<boolean>}
    */
-  async secondPromptDelayExperimentSuppressesPrompt_(expConfigNumFreeReads) {
-    const numFreeReads =
-      expConfigNumFreeReads && expConfigNumFreeReads > 0
-        ? expConfigNumFreeReads
-        : 2; // (b/267650049) default 2 free reads
+  async secondPromptDelayExperimentSuppressesPrompt_(numFreeReads = 2) {
     const secondPromptDelayCounter = await this.storage_.getEvent(
       StorageKeys.SECOND_PROMPT_DELAY_COUNTER
     );
