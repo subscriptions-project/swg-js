@@ -64,7 +64,7 @@ describes.realWin('WaitForSubscriptionLookupApi', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/waitforsubscriptionlookupiframe?_=_',
+        'https://news.google.com/swg/ui/v1/waitforsubscriptionlookupiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId,
