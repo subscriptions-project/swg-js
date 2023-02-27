@@ -1954,7 +1954,7 @@ describes.realWin('AutoPromptManager', (env) => {
       {numFreeReads: 3, secondPromptDelayCounter: 1},
       {numFreeReads: 3, secondPromptDelayCounter: 3},
     ].forEach(({numFreeReads, secondPromptDelayCounter}) => {
-      it('With SecondPromptDelayExperiment enable, on valid free read, should set secondPromptDelayTimestamps and suppress prompt', async () => {
+      it('With SecondPromptDelayExperiment enabled, on valid free read, should set secondPromptDelayTimestamps and suppress prompt', async () => {
         mockGetArticleResponse(
           getArticleExpectation,
           ['TYPE_REWARDED_SURVEY'],
