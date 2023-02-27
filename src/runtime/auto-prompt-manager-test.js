@@ -2150,10 +2150,11 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('With SurveyTrigginerPriorityExperiment and SecondPromptDelayExperiment enabled, on N+1 prompt, should not set shouldShowAutoPromptTimestamps and display contribution prompt', async () => {
-      const secondPromptDelayCounter = 2;
-      const shouldShowAutopromptTimestamps =
-        (CURRENT_TIME.toString() + ',').repeat(secondPromptDelayCounter) +
-        CURRENT_TIME.toString();
+      const secondPromptDelayCounter = 3;
+      const shouldShowAutopromptTimestamps = Array.from(
+        {length: secondPromptDelayCounter},
+        () => CURRENT_TIME.toString()
+      ).join();
 
       setupPreviousImpressionAndDismissals(storageMock, {
         dismissedPrompts: 'TYPE_REWARDED_SURVEY',
