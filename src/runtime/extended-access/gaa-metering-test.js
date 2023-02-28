@@ -199,7 +199,9 @@ describes.realWin('GaaMetering', () => {
       setOnLoginRequest: sandbox.fake(),
       setOnNativeSubscribeRequest: sandbox.fake(),
       setOnEntitlementsResponse: sandbox.fake(),
-      consumeShowcaseEntitlementJwt: sandbox.fake(),
+      consumeShowcaseEntitlementJwt: sandbox.fake((entJwt, callback) => {
+        callback();
+      }),
       setShowcaseEntitlement: sandbox.fake(),
       getEntitlements: sandbox.fake(),
       getEventManager: () => Promise.resolve({logEvent}),
@@ -1317,6 +1319,8 @@ describes.realWin('GaaMetering', () => {
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
+      const unlockArticle = sandbox.fake(() => {});
+
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
         allowedReferrers: [
@@ -1330,6 +1334,7 @@ describes.realWin('GaaMetering', () => {
           registrationTimestamp: 1602763054,
         },
         showcaseEntitlement: 'test showcaseEntitlement',
+        unlockArticle,
         showPaywall: () => {},
         handleLogin: () => {},
         handleSwGEntitlement: () => {},
@@ -1346,6 +1351,8 @@ describes.realWin('GaaMetering', () => {
       expect(subscriptionsMock.consumeShowcaseEntitlementJwt).to.calledWith(
         'test showcaseEntitlement'
       );
+
+      expect(unlockArticle).to.be.called;
     });
 
     it('has publisherEntitlements', async () => {
@@ -1485,40 +1492,6 @@ describes.realWin('GaaMetering', () => {
       const callback = subscriptionsMock.setOnLoginRequest.lastCall.firstArg;
       callback();
       expect(GaaMetering.handleLoginRequest).to.be.called;
-    });
-
-    it('sets onEntitlementsResponse callback', async () => {
-      sandbox.stub(GaaMetering, 'setEntitlements');
-
-      // Successfully init, setting a callback in the process.
-      QueryStringUtils.getQueryString.returns(
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
-      );
-      self.document.referrer = 'https://www.google.com';
-      GaaMetering.init({
-        googleApiClientId: GOOGLE_API_CLIENT_ID,
-        allowedReferrers: [
-          'example.com',
-          'test.com',
-          'localhost',
-          'google.com',
-        ],
-        userState: {},
-        unlockArticle: () => {},
-        showPaywall: () => {},
-        handleLogin: () => {},
-        handleSwGEntitlement: () => {},
-        registerUserPromise: new Promise(() => {}),
-        handleLoginPromise: new Promise(() => {}),
-        publisherEntitlementPromise: new Promise(() => {}),
-      });
-
-      expect(subscriptionsMock.setOnEntitlementsResponse).to.be.called;
-      expect(GaaMetering.setEntitlements).to.not.be.called;
-      const callback =
-        subscriptionsMock.setOnEntitlementsResponse.lastCall.firstArg;
-      callback();
-      expect(GaaMetering.setEntitlements).to.be.called;
     });
   });
 
