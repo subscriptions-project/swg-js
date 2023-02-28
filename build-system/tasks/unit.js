@@ -18,13 +18,13 @@
 const app = require('../server/test-server').app;
 const args = require('./args');
 const config = require('../config');
-const glob = require('glob');
 const gulp = require('gulp-help')(require('gulp'));
 const Karma = require('karma').Server;
 const karmaDefault = require('./karma.conf');
 const log = require('fancy-log');
 const shuffleSeed = require('shuffle-seed');
 const webserver = require('gulp-webserver');
+const {globSync} = require('glob');
 const {green, yellow, cyan, red} = require('ansi-colors');
 const {isCiBuild} = require('../ci');
 
@@ -122,7 +122,7 @@ function getUnitTestsToRun(c) {
 
     let testFiles = [];
     for (const index in unitTestPaths) {
-      testFiles = testFiles.concat(glob.sync(unitTestPaths[index]));
+      testFiles = testFiles.concat(globSync(unitTestPaths[index]));
     }
 
     const seed = args.seed || Math.random();
