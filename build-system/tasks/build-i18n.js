@@ -16,10 +16,13 @@
 
 /** @fileoverview Compiles XLB files into a single JSON file with translations. */
 
+// Note: Want to change Extended Access i18n strings? Check out this document:
+// https://docs.google.com/document/d/1FMEKJ_TmjHhqON0krE4xhDbTEj0I0DnvzxMzB2cWUWA/edit?resourcekey=0-TQ7hPOzAD4hX8x9PfweGSg#heading=h.q9gi7t4h1tyj
+
 const cheerio = require('cheerio');
 const fs = require('fs').promises;
 
-async function main() {
+async function buildI18nStrings() {
   const files = await fs.readdir(__dirname);
   const xlbFiles = files.filter((name) => /\.xlb$/.test(name));
   const localesPerMessage = {};
@@ -61,7 +64,7 @@ async function main() {
 
 export const I18N_STRINGS = ${JSON.stringify(localesPerMessage, null, 2)};
 `;
-  fs.writeFile(__dirname + '/../../../src/i18n/strings.js', js);
+  fs.writeFile(__dirname + '/../../src/i18n/strings.js', js);
 }
 
-main();
+buildI18nStrings();
