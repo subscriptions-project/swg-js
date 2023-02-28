@@ -33,7 +33,7 @@ export const I18N_STRINGS = {
     'fr-ca': 'Aller plus loin avec Google',
     'hi': 'Google की मदद से ज़्यादा मुफ़्त लेख पाएं',
     'it': 'Con Google puoi avere di più',
-    'ja': 'Google でもっと読もう',
+    'ja': 'Google からのプレゼント',
     'kn': 'Google ನಿಂದ ಹೆಚ್ಚಿನ ಪ್ರಯೋಜನ ಪಡೆಯಿರಿ',
     'lt': 'Gaukite daugiau su „Google“',
     'lv': 'Iegūstiet vairāk ar Google',
@@ -62,7 +62,7 @@ export const I18N_STRINGS = {
     'es-419':
       'Normalmente, es necesario pagar para ver este contenido, pero Google te ofrece acceso gratuito a este y otros artículos si te registras en {PUBLICATION} con tu Cuenta&nbsp;de&nbsp;Google.',
     'es-ar':
-      '<strong></strong>Normalmente, es necesario pagar para ver este contenido, pero Google te ofrece acceso gratuito a este y otros artículos si te registras en <ph name="PUBLICATION"><ex>AP News</ex>{publication}</ph> con tu Cuenta&nbsp;de&nbsp;Google.',
+      'Normalmente, es necesario pagar para ver este contenido, pero Google te ofrece acceso gratuito a este y otros artículos si te registras en {PUBLICATION} con tu Cuenta&nbsp;de&nbsp;Google.',
     'fr': "Ce contenu est généralement payant, mais vous pouvez lire cet article et d'autres contenus gratuitement grâce à Google en vous inscrivant sur {PUBLICATION} avec votre compte Google.",
     'fr-ca':
       "Ce contenu est généralement payant, mais Google vous offre un accès gratuit à cet article et à d'autres si vous vous inscrivez à {PUBLICATION} à l'aide de votre compte Google.",
@@ -144,7 +144,7 @@ export const I18N_STRINGS = {
     'pl': 'Zaloguj się przez Google',
     'pt-br': 'Fazer login com o Google',
     'pt-pt': 'Iniciar sessão com o Google',
-    'ro': 'Conectează-te cu Google',
+    'ro': 'Conectați-vă cu Google',
     'sk': 'Prihlásiť sa účtom Google',
     'sl': 'Prijavite se z Googlom',
     'sv': 'Logga in med Google',
