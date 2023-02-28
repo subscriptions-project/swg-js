@@ -1079,8 +1079,7 @@ describes.realWin('GaaMetering', () => {
       expect(logEvent).not.to.have.been.called;
     });
 
-    it('fails with a warning in debug mode when missing productId in page markup', async () => {
-
+    it('fails with a warning in debug mode when missing a productId in the page markup', async () => {
       removeJsonLdScripts();
 
       self.document.head.innerHTML = `
@@ -1094,14 +1093,14 @@ describes.realWin('GaaMetering', () => {
       );
       self.document.referrer = 'https://www.google.com';
       location.hash = `#swg.debug=1`;
-      
+
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
         allowedReferrers: ['example.com', 'test.com', 'localhost'],
         userState: {
           id: 'user1235',
           registrationTimestamp: 1602763054,
-          granted: false
+          granted: false,
         },
         unlockArticle: () => {},
         showPaywall: () => {},
