@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,17 @@
  */
 'use strict';
 
-const args = require('./args');
-const fs = require('fs-extra');
+/**
+ * @fileoverview Page object for the extended access feature on scenic.
+ */
 
-const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-const packageVersion = packageJson.version;
-
-// Used to e.g. references the ads binary from the runtime to get
-// version lock.
-exports.VERSION = args.swgVersion
-  ? String(args.swgVersion)
-  : packageVersion + '-' + Date.now();
+module.exports = {
+  url: function () {
+    return this.api.launchUrl + '?metering';
+  },
+  elements: {
+    swgRegwallDialog: {
+      selector: '#swg-regwall-dialog',
+    },
+  },
+};

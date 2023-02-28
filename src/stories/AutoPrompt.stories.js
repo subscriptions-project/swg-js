@@ -12,7 +12,12 @@ export default {
     },
     'AutoPromptType': {
       control: 'select',
-      options: ['contribution', 'subscription'],
+      options: [
+        'contribution',
+        'subscription',
+        'contribution_large',
+        'subscription_large',
+      ],
     },
   },
   decorators: [
@@ -59,4 +64,13 @@ Subscription.args = {
   ...Contribution.args,
   PublicationId: 'CAow6YGuCw',
   AutoPromptType: 'subscription',
+};
+
+export const SubscriptionFree = Template.bind({});
+SubscriptionFree.args = {
+  ...Contribution.args,
+  PublicationId: 'CAow6YGuCw',
+  ProductId: 'openaccess',
+  AutoPromptType: 'subscription_large',
+  IsAccessibleForFree: true,
 };

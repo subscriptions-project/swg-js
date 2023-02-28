@@ -70,7 +70,7 @@ describes.realWin('ContributionsFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/ui/v1/contributionsiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -96,7 +96,7 @@ describes.realWin('ContributionsFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/ui/v1/contributionsiframe?_=_',
         {
           isClosable,
           _client: 'SwG 0.0.0',
@@ -120,7 +120,7 @@ describes.realWin('ContributionsFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/ui/v1/contributionsiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -145,7 +145,7 @@ describes.realWin('ContributionsFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/ui/v1/contributionsiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -182,7 +182,7 @@ describes.realWin('ContributionsFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/contributionsiframe?_=_',
+        'https://news.google.com/swg/ui/v1/contributionsiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -222,7 +222,7 @@ describes.realWin('ContributionsFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/contributionoffersiframe?_=_&publicationId=pub1',
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -250,7 +250,7 @@ describes.realWin('ContributionsFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',

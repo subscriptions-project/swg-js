@@ -117,7 +117,7 @@ function getNodeLatestLtsVersion(distributionsJson) {
 }
 
 function main() {
-  // The CI already uses Yarn and the latest Nodejs LTS.
+  // The CI already uses the latest Nodejs LTS.
   if (isCiBuild()) {
     return 0;
   }

@@ -47,6 +47,6 @@ module.exports = {
   // Let tests to continue if an assertion fails.
   abortOnAssertionFailure: false,
 
-  // Wait 30 seconds for conditions to become true.
-  waitForConditionTimeout: 30000,
+  // Wait 60 seconds for conditions to become true.
+  waitForConditionTimeout: 60000,
 };
