@@ -156,7 +156,7 @@ export function feUrl(
       ? `swg/${prefix}`
       : `${prefix}/swg`
     : 'swg';
-  url = feCached(`${getSwgMode().frontEnd}/${prefixed}/_/ui/v1${url}`);
+  url = feCached(`${getSwgMode().frontEnd}/${prefixed}/ui/v1${url}`);
 
   // Optionally add jsmode param. This allows us to test against "aggressively" compiled Boq JS.
   const query = parseQueryString(self.location.hash);
