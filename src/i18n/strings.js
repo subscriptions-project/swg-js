@@ -15,7 +15,7 @@
  */
 
 // NOTE: Please don't edit this file directly!
-//   This document describes how to change i18n strings in swg-js: https://docs.google.com/document/d/1FMEKJ_TmjHhqON0krE4xhDbTEj0I0DnvzxMzB2cWUWA/edit?resourcekey=0-TQ7hPOzAD4hX8x9PfweGSg#heading=h.q9gi7t4h1tyj
+//   This guide describes how to change i18n strings in Swgjs: go/swg-showcase-i18n
 
 export const I18N_STRINGS = {
   'SHOWCASE_REGWALL_TITLE': {
