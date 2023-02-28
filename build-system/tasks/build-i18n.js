@@ -23,11 +23,12 @@ const cheerio = require('cheerio');
 const fs = require('fs').promises;
 
 async function buildI18nStrings() {
-  const files = await fs.readdir(__dirname);
+  const xlbDir = __dirname + '/../../assets/i18n/strings';
+  const files = await fs.readdir(xlbDir);
   const xlbFiles = files.filter((name) => /\.xlb$/.test(name));
   const localesPerMessage = {};
   for (const xlbFile of xlbFiles) {
-    const xml = await fs.readFile(__dirname + '/' + xlbFile, 'utf8');
+    const xml = await fs.readFile(xlbDir + '/' + xlbFile, 'utf8');
     const $ = cheerio.load(xml);
     let locale = $('localizationbundle').attr('locale').toLocaleLowerCase();
     if (locale.startsWith('en-')) {
