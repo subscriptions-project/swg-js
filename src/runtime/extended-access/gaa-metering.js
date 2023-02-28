@@ -88,7 +88,7 @@ export class GaaMetering {
 
     // Validate productId in page markup
     if (!GaaMetering.getProductIDFromPageConfig_()) {
-      debugLog('Showcase articles must define a productID with either JSON-LD or Microdata.');
+      debugLog('[gaa.js:GaaMetering.init]: Showcase articles must define a productID using either JSON-LD or Microdata.');
       return false;
     }
 
