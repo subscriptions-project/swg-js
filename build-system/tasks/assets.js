@@ -39,6 +39,10 @@ async function assets() {
   // Copy SVGs.
   fs.copySync('assets/loader.svg', 'dist/loader.svg', {overwrite: true});
   fs.copySync('assets/i18n/', 'dist/i18n/', {overwrite: true});
+
+  // Remove extra i18n files.
+  // These files were already used to compile the `src/i18n/strings.js` file.
+  fs.rmSync('dist/i18n/strings', {force: true, recursive: true});
 }
 
 /**
