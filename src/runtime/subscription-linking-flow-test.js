@@ -64,7 +64,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
 
       const url = new URL(activityIframeView.src_);
       const {pathname, searchParams} = url;
-      expect(pathname).to.equal('/swg/_/ui/v1/linksaveiframe');
+      expect(pathname).to.equal('/swg/ui/v1/linksaveiframe');
       expect(searchParams.get('subscriptionLinking')).to.equal('true');
       expect(searchParams.get('ppid')).to.equal(REQUEST.publisherProvidedId);
       const args = activityIframeView.args_;

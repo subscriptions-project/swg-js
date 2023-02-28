@@ -149,7 +149,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          `https://news.google.com/swg/_/ui/v1/${path}?_=_&origin=${encodeURIComponent(
+          `https://news.google.com/swg/ui/v1/${path}?_=_&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
           )}&hl=en&isClosable=false`,
           {
@@ -180,7 +180,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        `https://news.google.com/swg/_/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
+        `https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
         )}&hl=pt-BR&isClosable=false`,
         {
