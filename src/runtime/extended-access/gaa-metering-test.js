@@ -57,6 +57,37 @@ const ARTICLE_LD_JSON_METADATA = `
   }
 }`;
 
+/** Article metadata in ld+json form. */
+const ARTICLE_LD_JSON_METADATA_WITHOUT_PRODUCT_ID = `
+{
+  "@context": "http://schema.org",
+  "@type": "NewsArticle",
+  "headline": "16 Top Spots for Hiking",
+  "image": "https://scenic-2017.appspot.com/icons/icon-2x.png",
+  "datePublished": "2025-02-05T08:00:00+08:00",
+  "dateModified": "2025-02-05T09:20:00+08:00",
+  "author": {
+    "@type": "Person",
+    "name": "John Doe"
+  },
+  "publisher": {
+      "name": "${PUBLISHER_NAME}",
+      "@type": "Organization",
+      "@id": "scenic-2017.appspot.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://scenic-2017.appspot.com/icons/icon-2x.png"
+      }
+  },
+  "description": "A most wonderful article",
+  "isAccessibleForFree": "False",
+  "isPartOf": {
+    "@type": ["CreativeWork", "Product"],
+    "name" : "Scenic News",
+    "productID": ""
+  }
+}`;
+
 const ARTICLE_LD_JSON_METADATA_THAT_SAYS_ARTICLE_IS_FREE = `
 {
   "@context": "http://schema.org",
@@ -199,7 +230,9 @@ describes.realWin('GaaMetering', () => {
       setOnLoginRequest: sandbox.fake(),
       setOnNativeSubscribeRequest: sandbox.fake(),
       setOnEntitlementsResponse: sandbox.fake(),
-      consumeShowcaseEntitlementJwt: sandbox.fake(),
+      consumeShowcaseEntitlementJwt: sandbox.fake((entJwt, callback) => {
+        callback();
+      }),
       setShowcaseEntitlement: sandbox.fake(),
       getEntitlements: sandbox.fake(),
       getEventManager: () => Promise.resolve({logEvent}),
@@ -656,11 +689,11 @@ describes.realWin('GaaMetering', () => {
   });
 
   describe('getProductIDFromPageConfig_', () => {
-    it('gets the publisher ID from object page config', () => {
+    it('gets productId from object page config', () => {
       expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
-    it('gets the publisher ID from array page config', () => {
+    it('gets productId from array page config', () => {
       self.document.head.innerHTML = `
         <script type="application/ld+json">
           [${ARTICLE_LD_JSON_METADATA}]
@@ -670,7 +703,7 @@ describes.realWin('GaaMetering', () => {
       expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
-    it('gets publisher ID from microdata', () => {
+    it('gets productId from microdata', () => {
       removeJsonLdScripts();
 
       // Add Microdata.
@@ -678,15 +711,12 @@ describes.realWin('GaaMetering', () => {
       expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
-    it('throws if article metadata lacks a publisher id', () => {
+    it('returns null if article metadata lacks a productId', () => {
       removeJsonLdScripts();
       // Remove microdata
       microdata.innerHTML = '';
 
-      const meteringError = () => GaaMetering.getProductIDFromPageConfig_();
-      expect(meteringError).throws(
-        'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
-      );
+      expect(GaaMetering.getProductIDFromPageConfig_()).to.be.null;
     });
   });
 
@@ -1049,6 +1079,46 @@ describes.realWin('GaaMetering', () => {
       expect(logEvent).not.to.have.been.called;
     });
 
+    it('fails with a warning in debug mode when missing a productId in the page markup', async () => {
+      removeJsonLdScripts();
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA_WITHOUT_PRODUCT_ID}]
+      </script>
+      `;
+
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      location.hash = `#swg.debug=1`;
+
+      GaaMetering.init({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: ['example.com', 'test.com', 'localhost'],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+          granted: false,
+        },
+        unlockArticle: () => {},
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+      });
+
+      await tick();
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        '[gaa.js:GaaMetering.init]: Showcase articles must define a productID using either JSON-LD or Microdata.'
+      );
+    });
+
     it('GaaMetering.init fails the isGaa', () => {
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
@@ -1317,6 +1387,8 @@ describes.realWin('GaaMetering', () => {
         '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
       );
       self.document.referrer = 'https://www.google.com';
+      const unlockArticle = sandbox.fake(() => {});
+
       GaaMetering.init({
         googleApiClientId: GOOGLE_API_CLIENT_ID,
         allowedReferrers: [
@@ -1330,6 +1402,7 @@ describes.realWin('GaaMetering', () => {
           registrationTimestamp: 1602763054,
         },
         showcaseEntitlement: 'test showcaseEntitlement',
+        unlockArticle,
         showPaywall: () => {},
         handleLogin: () => {},
         handleSwGEntitlement: () => {},
@@ -1346,6 +1419,8 @@ describes.realWin('GaaMetering', () => {
       expect(subscriptionsMock.consumeShowcaseEntitlementJwt).to.calledWith(
         'test showcaseEntitlement'
       );
+
+      expect(unlockArticle).to.be.called;
     });
 
     it('has publisherEntitlements', async () => {
@@ -1485,40 +1560,6 @@ describes.realWin('GaaMetering', () => {
       const callback = subscriptionsMock.setOnLoginRequest.lastCall.firstArg;
       callback();
       expect(GaaMetering.handleLoginRequest).to.be.called;
-    });
-
-    it('sets onEntitlementsResponse callback', async () => {
-      sandbox.stub(GaaMetering, 'setEntitlements');
-
-      // Successfully init, setting a callback in the process.
-      QueryStringUtils.getQueryString.returns(
-        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
-      );
-      self.document.referrer = 'https://www.google.com';
-      GaaMetering.init({
-        googleApiClientId: GOOGLE_API_CLIENT_ID,
-        allowedReferrers: [
-          'example.com',
-          'test.com',
-          'localhost',
-          'google.com',
-        ],
-        userState: {},
-        unlockArticle: () => {},
-        showPaywall: () => {},
-        handleLogin: () => {},
-        handleSwGEntitlement: () => {},
-        registerUserPromise: new Promise(() => {}),
-        handleLoginPromise: new Promise(() => {}),
-        publisherEntitlementPromise: new Promise(() => {}),
-      });
-
-      expect(subscriptionsMock.setOnEntitlementsResponse).to.be.called;
-      expect(GaaMetering.setEntitlements).to.not.be.called;
-      const callback =
-        subscriptionsMock.setOnEntitlementsResponse.lastCall.firstArg;
-      callback();
-      expect(GaaMetering.setEntitlements).to.be.called;
     });
   });
 

@@ -86,8 +86,15 @@ export class GaaMetering {
       return false;
     }
 
+    // Validate productId in page markup
+    if (!GaaMetering.getProductIDFromPageConfig_()) {
+      debugLog(
+        '[gaa.js:GaaMetering.init]: Showcase articles must define a productID using either JSON-LD or Microdata.'
+      );
+      return false;
+    }
+
     // Register publisher's callbacks, promises, and parameters
-    const productId = GaaMetering.getProductIDFromPageConfig_();
     const {
       googleApiClientId,
       authorizationUrl,
@@ -103,10 +110,6 @@ export class GaaMetering {
       rawJwt,
     } = params;
 
-    // Disable unlockArticle when showcaseEntilement is provided since articles
-    // are unlocked on the server-side.
-    const unlockArticle = showcaseEntitlement ? () => {} : params.unlockArticle;
-
     // Set class variables
     GaaMetering.userState = userState;
     GaaMetering.publisherEntitlementPromise = publisherEntitlementPromise;
@@ -117,9 +120,13 @@ export class GaaMetering {
       return false;
     }
 
-    callSwg(async (subscriptions) => {
-      subscriptions.init(productId);
+    // Make unlockArticle optional when showcaseEntilement is provided.
+    const unlockArticle =
+      showcaseEntitlement && !params.unlockArticle
+        ? () => {}
+        : params.unlockArticle;
 
+    callSwg(async (subscriptions) => {
       logEvent({
         analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
         isFromUserAction: false,
@@ -134,17 +141,6 @@ export class GaaMetering {
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
-      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
-        GaaMetering.setEntitlements(
-          googleEntitlementsPromise,
-          allowedReferrers,
-          unlockArticle,
-          handleSwGEntitlement,
-          showGoogleRegwall,
-          showPaywall
-        )
-      );
-
       if ('granted' in userState && 'grantReason' in userState) {
         unlockArticleIfGranted();
       } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
@@ -154,7 +150,11 @@ export class GaaMetering {
         unlockArticleIfGranted();
       } else if (showcaseEntitlement) {
         debugLog(showcaseEntitlement);
-        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
+        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement, () => {
+          // Consume the entitlement and trigger a dialog that lets the user
+          // know Google provided them with a free read.
+          unlockArticle();
+        });
       } else {
         debugLog('resolving publisherEntitlement');
         const fetchedPublisherEntitlements = await publisherEntitlementPromise;
@@ -239,8 +239,16 @@ export class GaaMetering {
         callSwg((subscriptions) => {
           debugLog('getting entitlements from Google');
           debugLog(GaaMetering.newUserStateToUserState(userState));
-          subscriptions.getEntitlements(
+          const googleEntitlementsPromise = subscriptions.getEntitlements(
             GaaMetering.newUserStateToUserState(userState)
+          );
+          GaaMetering.setEntitlements(
+            googleEntitlementsPromise,
+            allowedReferrers,
+            unlockArticle,
+            handleSwGEntitlement,
+            showGoogleRegwall,
+            showPaywall
           );
         });
       } else {
@@ -283,7 +291,7 @@ export class GaaMetering {
       googleEntitlement.consume(() => {
         // Consume the entitlement and trigger a dialog that lets the user
         // know Google provided them with a free read.
-        unlockArticle();
+        unlockArticle(googleEntitlement);
       });
     } else if (googleEntitlement.enablesThis()) {
       // Google returned a non-metering entitlement
@@ -489,9 +497,7 @@ export class GaaMetering {
       return microdataPageConfig;
     }
 
-    throw new Error(
-      'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
-    );
+    return null;
   }
 
   /**

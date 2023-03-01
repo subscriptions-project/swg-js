@@ -370,6 +370,21 @@ describes.realWin('Runtime', (env) => {
       const analytics = configuredRuntime.analytics();
       expect(analytics.readyForLogging_).to.be.true;
     });
+
+    it('sets article endpoint off by default', async () => {
+      runtime.init('pub2');
+      const configuredRuntime = await runtime.configured_(true);
+      const entitlementsManager = configuredRuntime.entitlementsManager();
+      expect(entitlementsManager.useArticleEndpoint_).to.be.false;
+    });
+
+    it('sets article endpoint on', async () => {
+      runtime.configure({useArticleEndpoint: true});
+      runtime.init('pub2');
+      const configuredRuntime = await runtime.configured_(true);
+      const entitlementsManager = configuredRuntime.entitlementsManager();
+      expect(entitlementsManager.useArticleEndpoint_).to.be.true;
+    });
   });
 
   describe('configured', () => {
@@ -1302,6 +1317,35 @@ describes.realWin('ConfiguredRuntime', (env) => {
         expect(() => {
           runtime.configure({publisherProvidedId: ''});
         }).to.throw(/publisherProvidedId must be a string, value: /);
+      });
+
+      it('throws on unknown enableSwgAnalytics value', () => {
+        const mistake = () => runtime.configure({enableSwgAnalytics: 'true'});
+        expect(mistake).to.throw(
+          'enableSwgAnalytics must be a boolean, type: string'
+        );
+      });
+
+      it('throws on unknown enablePropensity value', () => {
+        const mistake = () => runtime.configure({enablePropensity: 'true'});
+        expect(mistake).to.throw(
+          'enablePropensity must be a boolean, type: string'
+        );
+      });
+
+      it('throws on unknown skipAccountCreationScreen value', () => {
+        const mistake = () =>
+          runtime.configure({skipAccountCreationScreen: 'true'});
+        expect(mistake).to.throw(
+          'skipAccountCreationScreen must be a boolean, type: string'
+        );
+      });
+
+      it('throws on unknown useArticleEndpoint value', () => {
+        const mistake = () => runtime.configure({useArticleEndpoint: 'true'});
+        expect(mistake).to.throw(
+          'useArticleEndpoint must be a boolean, type: string'
+        );
       });
     });
 

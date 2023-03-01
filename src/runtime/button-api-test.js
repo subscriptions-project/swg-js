@@ -27,7 +27,7 @@ function expectOpenIframe(activitiesMock, port, args) {
     .expects('openIframe')
     .withExactArgs(
       sandbox.match((arg) => arg.tagName === 'IFRAME'),
-      'https://news.google.com/swg/_/ui/v1/smartboxiframe?_=_',
+      'https://news.google.com/swg/ui/v1/smartboxiframe?_=_',
       args
     )
     .resolves(port);
