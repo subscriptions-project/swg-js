@@ -689,11 +689,11 @@ describes.realWin('GaaMetering', () => {
   });
 
   describe('getProductIDFromPageConfig_', () => {
-    it('gets the productId from object page config', () => {
+    it('gets productId from object page config', () => {
       expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
-    it('gets the productId from array page config', () => {
+    it('gets productId from array page config', () => {
       self.document.head.innerHTML = `
         <script type="application/ld+json">
           [${ARTICLE_LD_JSON_METADATA}]
