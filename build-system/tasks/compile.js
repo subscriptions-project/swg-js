@@ -20,10 +20,7 @@ const args = require('./args');
 const babelify = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
-const closureCompile = require('./closure-compile').closureCompile;
-const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
-const internalRuntimeVersion = require('./internal-version').VERSION;
 const lazypipe = require('lazypipe');
 const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
@@ -101,20 +98,7 @@ exports.compile = async (options = {}) => {
 };
 
 /**
- * @return {!Promise}
- */
-exports.checkTypes = (opts) =>
-  exports.compile(
-    Object.assign(opts || {}, {
-      toName: 'check-types.max.js',
-      minifiedName: 'check-types.js',
-      minify: true,
-      checkTypes: true,
-    })
-  );
-
-/**
- * Bundles (max) or compiles (min) a javascript file.
+ * Bundles (max) a javascript file.
  *
  * @param {string} srcDir Path to the src directory
  * @param {string} srcFilename Name of the JS source file
@@ -124,28 +108,6 @@ exports.checkTypes = (opts) =>
  */
 function compileJs(srcDir, srcFilename, destDir, options) {
   options = options || {};
-
-  if (options.minify) {
-    const startTime = Date.now();
-    return closureCompile(
-      srcDir + srcFilename + '.js',
-      destDir,
-      options.minifiedName,
-      options
-    )
-      .then(() => {
-        fs.writeFileSync(destDir + '/version.txt', internalRuntimeVersion);
-        if (options.latestName) {
-          fs.copySync(
-            destDir + '/' + options.minifiedName,
-            destDir + '/' + options.latestName
-          );
-        }
-      })
-      .then(() => {
-        endBuildStep('Minified', srcFilename + '.js', startTime);
-      });
-  }
 
   let bundler = browserify(srcDir + srcFilename + '.js', {
     debug: true,
