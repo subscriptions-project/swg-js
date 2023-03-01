@@ -107,7 +107,7 @@ describes.realWin('AutoPromptManager', (env) => {
     subscriptionPromptFnSpy = sandbox.spy(runtime, 'showOffers');
 
     sandbox.stub(MiniPromptApi.prototype, 'init');
-    autoPromptManager = new AutoPromptManager(deps, Promise.resolve(runtime));
+    autoPromptManager = new AutoPromptManager(deps, runtime);
     autoPromptManager.autoPromptDisplayed_ = true;
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
@@ -443,7 +443,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(contributionPromptFnSpy).to.not.be.called;
+    expect(alternatePromptSpy).to.not.be.called;
   });
 
   it('should display the large prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
@@ -456,7 +456,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(contributionPromptFnSpy).to.be.calledOnce;
+    expect(alternatePromptSpy).to.be.calledOnce;
   });
 
   it('should not display any prompt if the type is undefined', async () => {
@@ -1058,7 +1058,7 @@ describes.realWin('AutoPromptManager', (env) => {
       displayLargePromptFn: alternatePromptSpy,
     });
     expect(logEventSpy).to.be.calledOnceWith(expectedEvent);
-    expect(contributionPromptFnSpy).to.be.calledOnce;
+    expect(alternatePromptSpy).to.be.calledOnce;
   });
 
   it('should replace the contribution miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
@@ -1071,7 +1071,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(contributionPromptFnSpy).to.be.calledOnce;
+    expect(alternatePromptSpy).to.be.calledOnce;
   });
 
   it('should replace the subscription miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
@@ -1084,7 +1084,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(subscriptionPromptFnSpy).to.be.calledOnce;
+    expect(alternatePromptSpy).to.be.calledOnce;
   });
 
   it('should not replace the miniprompt with a large prompt when DISABLE_DESKTOP_MINIPROMPT is enabled but the viewport is narrower than 480px', async () => {

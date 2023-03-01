@@ -368,7 +368,7 @@ export class ConfiguredBasicRuntime {
     /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(
       this,
-      Promise.resolve(this.configuredClassicRuntime_)
+      this.configuredClassicRuntime_
     );
 
     /** @private @const {!ButtonApi} */
