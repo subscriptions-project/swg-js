@@ -51,7 +51,7 @@
     "express": "4.18.2",
     "fancy-log": "2.0.0",
     "fs-extra": "11.1.0",
-    "glob": "9.0.1",
+    "glob": "9.0.2",
     "gulp": "4.0.2",
     "gulp-eslint-if-fixed": "1.0.0",
     "gulp-help": "chmontgomery/gulp-help#gulp4",
