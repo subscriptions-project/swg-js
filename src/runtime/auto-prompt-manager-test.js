@@ -22,6 +22,7 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
+import {ConfiguredRuntime} from './runtime';
 import {Constants, StorageKeys} from '../utils/constants';
 import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
@@ -56,6 +57,9 @@ describes.realWin('AutoPromptManager', (env) => {
   let miniPromptApiMock;
   let actionFlowSpy;
   let startSpy;
+  let runtime;
+  let contributionPromptFnSpy;
+  let subscriptionPromptFnSpy;
   const productId = 'pub1:label1';
   const pubId = 'pub1';
 
@@ -98,8 +102,12 @@ describes.realWin('AutoPromptManager', (env) => {
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    contributionPromptFnSpy = sandbox.spy(runtime, 'showContributionOptions');
+    subscriptionPromptFnSpy = sandbox.spy(runtime, 'showOffers');
+
     sandbox.stub(MiniPromptApi.prototype, 'init');
-    autoPromptManager = new AutoPromptManager(deps);
+    autoPromptManager = new AutoPromptManager(deps, Promise.resolve(runtime));
     autoPromptManager.autoPromptDisplayed_ = true;
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
@@ -422,7 +430,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the mini prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
@@ -435,7 +443,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the large prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
@@ -448,7 +456,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.be.calledOnce;
+    expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
   it('should not display any prompt if the type is undefined', async () => {
@@ -469,7 +477,8 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
+    expect(subscriptionPromptFnSpy).to.not.be.called;
   });
 
   it('should not display any prompt if the type is NONE', async () => {
@@ -490,7 +499,8 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
+    expect(subscriptionPromptFnSpy).to.not.be.called;
   });
 
   it('should not display any prompt if the auto prompt config is not returned', async () => {
@@ -511,7 +521,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the mini prompt if the auto prompt config does not cap impressions', async () => {
@@ -533,7 +543,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should not display the mini prompt if the auto prompt config caps impressions, and the user is over the cap, and sufficient time has not yet passed since the specified hide duration', async () => {
@@ -567,7 +577,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the mini prompt if the auto prompt config caps impressions, and the user is over the cap, but sufficient time has passed since the specified hide duration', async () => {
@@ -603,7 +613,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the mini prompt if the auto prompt config caps impressions, and the user is under the cap', async () => {
@@ -636,7 +646,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should not display the mini prompt if the auto prompt config caps impressions, and the user is under the cap, but sufficient time has not yet passed since the specified backoff duration', async () => {
@@ -670,7 +680,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the large prompt if the auto prompt config caps impressions, and the user is under the cap', async () => {
@@ -702,7 +712,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     await tick(8);
-    expect(alternatePromptSpy).to.be.calledOnce;
+    expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
   it('should display the mini prompt if the auto prompt config caps impressions, and the user is under the cap after discounting old impressions', async () => {
@@ -737,7 +747,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should not display the mini prompt if the auto prompt config caps dismissals, and the user is over the cap', async () => {
@@ -776,7 +786,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the mini prompt if the auto prompt config caps dismissals, and the user is over the cap, but sufficient time has passed since the specified hide duration', async () => {
@@ -815,7 +825,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should not display the mini prompt if the auto prompt config caps dismissals, and the user is under the cap, but sufficient time has not yet passed since the backoff duration', async () => {
@@ -854,7 +864,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the mini prompt if the auto prompt config caps dismissals, and the user is under the cap, and sufficient time has passed since the specified backoff duration', async () => {
@@ -894,7 +904,7 @@ describes.realWin('AutoPromptManager', (env) => {
       displayLargePromptFn: alternatePromptSpy,
     });
     await tick(8);
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the subscription mini prompt if the user has no entitlements', async () => {
@@ -916,7 +926,7 @@ describes.realWin('AutoPromptManager', (env) => {
       displayLargePromptFn: alternatePromptSpy,
     });
     await tick(8);
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(subscriptionPromptFnSpy).to.not.be.called;
   });
 
   it('should not display any prompt if the user has a valid entitlement', async () => {
@@ -938,7 +948,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the alternate prompt if the user has no entitlements, but the content is paygated', async () => {
@@ -962,7 +972,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     await tick(5);
-    expect(alternatePromptSpy).to.be.calledOnce;
+    expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
   it('should not display any prompt if UI predicate is false', async () => {
@@ -995,7 +1005,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the contribution mini prompt if the user has no entitlements and UI predicate is true', async () => {
@@ -1026,7 +1036,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   it('should log events when a large prompt overrides the miniprompt', async () => {
@@ -1048,7 +1058,7 @@ describes.realWin('AutoPromptManager', (env) => {
       displayLargePromptFn: alternatePromptSpy,
     });
     expect(logEventSpy).to.be.calledOnceWith(expectedEvent);
-    expect(alternatePromptSpy).to.be.calledOnce;
+    expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
   it('should replace the contribution miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
@@ -1061,7 +1071,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.be.calledOnce;
+    expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
   it('should replace the subscription miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
@@ -1074,7 +1084,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: true,
       displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.be.calledOnce;
+    expect(subscriptionPromptFnSpy).to.be.calledOnce;
   });
 
   it('should not replace the miniprompt with a large prompt when DISABLE_DESKTOP_MINIPROMPT is enabled but the viewport is narrower than 480px', async () => {
@@ -1096,7 +1106,7 @@ describes.realWin('AutoPromptManager', (env) => {
       displayLargePromptFn: alternatePromptSpy,
     });
     logEventSpy.should.not.have.been.calledWith(expectedEvent);
-    expect(alternatePromptSpy).to.not.be.called;
+    expect(contributionPromptFnSpy).to.not.be.called;
   });
 
   describe('AudienceActionFlow', () => {
@@ -1139,7 +1149,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
 
@@ -1159,7 +1169,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.have.been.called;
+      expect(contributionPromptFnSpy).to.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
     });
 
@@ -1248,7 +1258,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         AutoPromptType.CONTRIBUTION
       );
@@ -1279,7 +1289,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
@@ -1315,7 +1325,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1353,7 +1363,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1391,7 +1401,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1424,7 +1434,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
 
@@ -1450,7 +1460,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
 
@@ -1480,7 +1490,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
@@ -1517,7 +1527,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
@@ -1554,7 +1564,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1632,7 +1642,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
@@ -1655,7 +1665,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
 
@@ -1684,7 +1694,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1722,7 +1732,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1760,7 +1770,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1793,7 +1803,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
 
@@ -1819,7 +1829,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
 
@@ -1849,7 +1859,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1917,7 +1927,7 @@ describes.realWin('AutoPromptManager', (env) => {
       await tick(7);
 
       expect(startSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
     });
 
@@ -1940,7 +1950,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         AutoPromptType.CONTRIBUTION
       );
@@ -1965,7 +1975,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
@@ -2000,7 +2010,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
@@ -2066,7 +2076,7 @@ describes.realWin('AutoPromptManager', (env) => {
       await tick(7);
 
       expect(startSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
     });
 
@@ -2089,7 +2099,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
@@ -2114,7 +2124,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
@@ -2142,7 +2152,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(alternatePromptSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.promptDisplayed_).to.equal(null);
     });
   });

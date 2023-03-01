@@ -134,6 +134,27 @@ export class AutoPromptManager {
    * @return {!Promise}
    */
   async showAutoPrompt(params) {
+    const configuredRuntime = await this.configuredRuntimePromise_;
+    if (
+      params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+    ) {
+      params.displayLargePromptFn = () => {
+        configuredRuntime.showOffers({
+          isClosable: !this.pageConfig_.isLocked(),
+        });
+      };
+    } else if (
+      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+    ) {
+      params.displayLargePromptFn = () => {
+        configuredRuntime.showContributionOptions({
+          isClosable: !this.pageConfig_.isLocked(),
+        });
+      };
+    }
+
     // Manual override of display rules, mainly for demo purposes.
     if (params.alwaysShow) {
       this.showPrompt_(
@@ -187,27 +208,6 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
-    const configuredRuntime = await this.configuredRuntimePromise_;
-    if (
-      params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
-    ) {
-      params.displayLargePromptFn = () => {
-        configuredRuntime.showOffers({
-          isClosable: !this.pageConfig().isLocked(),
-        });
-      };
-    } else if (
-      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
-      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
-    ) {
-      params.displayLargePromptFn = () => {
-        configuredRuntime.showContributionOptions({
-          isClosable: !this.pageConfig().isLocked(),
-        });
-      };
-    }
-
     const shouldShowAutoPrompt = await this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
