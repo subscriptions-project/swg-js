@@ -54,8 +54,9 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
 export class AutoPromptManager {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {!Promise<!./runtime.ConfiguredRuntime>} configuredRuntimePromise
    */
-  constructor(deps) {
+  constructor(deps, configuredRuntimePromise) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -100,6 +101,9 @@ export class AutoPromptManager {
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    /** @private @const {!Promise<!./runtime.ConfiguredRuntime>} */
+    this.configuredRuntimePromise_ = configuredRuntimePromise;
   }
 
   /**
@@ -183,6 +187,7 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
+    const configuredRuntime = await this.configuredRuntimePromise_;
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
       params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
