@@ -16,15 +16,18 @@
 
 /** @fileoverview Compiles XLB files into a single JSON file with translations. */
 
+// Note: This guide describes how to change i18n strings in Swgjs: go/swg-showcase-i18n
+
 const cheerio = require('cheerio');
 const fs = require('fs').promises;
 
-async function main() {
-  const files = await fs.readdir(__dirname);
+async function buildI18nStrings() {
+  const xlbDir = __dirname + '/../../assets/i18n/strings';
+  const files = await fs.readdir(xlbDir);
   const xlbFiles = files.filter((name) => /\.xlb$/.test(name));
   const localesPerMessage = {};
   for (const xlbFile of xlbFiles) {
-    const xml = await fs.readFile(__dirname + '/' + xlbFile, 'utf8');
+    const xml = await fs.readFile(xlbDir + '/' + xlbFile, 'utf8');
     const $ = cheerio.load(xml);
     let locale = $('localizationbundle').attr('locale').toLocaleLowerCase();
     if (locale.startsWith('en-')) {
@@ -57,11 +60,11 @@ async function main() {
  */
 
 // NOTE: Please don't edit this file directly!
-//   This document describes how to change i18n strings in swg-js: https://docs.google.com/document/d/1FMEKJ_TmjHhqON0krE4xhDbTEj0I0DnvzxMzB2cWUWA/edit?resourcekey=0-TQ7hPOzAD4hX8x9PfweGSg#heading=h.q9gi7t4h1tyj
+//   This guide describes how to change i18n strings in Swgjs: go/swg-showcase-i18n
 
 export const I18N_STRINGS = ${JSON.stringify(localesPerMessage, null, 2)};
 `;
-  fs.writeFile(__dirname + '/../../../src/i18n/strings.js', js);
+  fs.writeFile(__dirname + '/../../src/i18n/strings.js', js);
 }
 
-main();
+buildI18nStrings();
