@@ -16,7 +16,6 @@
 
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
-import {AutoPromptType} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
@@ -367,7 +366,10 @@ export class ConfiguredBasicRuntime {
     }
 
     /** @private @const {!AutoPromptManager} */
-    this.autoPromptManager_ = new AutoPromptManager(this);
+    this.autoPromptManager_ = new AutoPromptManager(
+      this,
+      Promise.resolve(this.configuredClassicRuntime_)
+    );
 
     /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(
@@ -568,25 +570,6 @@ export class ConfiguredBasicRuntime {
 
   /** @override */
   setupAndShowAutoPrompt(options) {
-    if (
-      options.autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      options.autoPromptType == AutoPromptType.SUBSCRIPTION_LARGE
-    ) {
-      options.displayLargePromptFn = () => {
-        this.configuredClassicRuntime_.showOffers({
-          isClosable: !this.pageConfig().isLocked(),
-        });
-      };
-    } else if (
-      options.autoPromptType === AutoPromptType.CONTRIBUTION ||
-      options.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE
-    ) {
-      options.displayLargePromptFn = () => {
-        this.configuredClassicRuntime_.showContributionOptions({
-          isClosable: !this.pageConfig().isLocked(),
-        });
-      };
-    }
     return this.autoPromptManager_.showAutoPrompt(options);
   }
 
