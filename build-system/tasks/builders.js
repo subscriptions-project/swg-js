@@ -16,7 +16,6 @@
 'use strict';
 
 const compile = require('./compile').compile;
-const compileCheckTypes = require('./compile').checkTypes;
 
 /**
  * Clean up the build artifacts.
@@ -44,46 +43,13 @@ function build(options = {}) {
   return compile(options);
 }
 
-/**
- * Dist build for prod.
- * @return {!Promise}
- */
-async function dist() {
-  process.env.NODE_ENV = 'production';
-  await clean();
-  await compile({minify: true, checkTypes: false, isProdBuild: true});
-
-  // Check types now.
-  return compile({minify: true, checkTypes: true});
-}
-
-/**
- * Type check path.
- * @return {!Promise}
- */
-function checkTypes() {
-  process.env.NODE_ENV = 'production';
-  return compileCheckTypes();
-}
-
 module.exports = {
   build,
-  checkTypes,
   clean,
-  dist,
   watch,
 };
 watch.description = 'Watches for changes in files, re-build';
 
-checkTypes.description = 'Check JS types';
-
 clean.description = 'Removes build output';
 
 build.description = 'Builds the library';
-
-dist.description = 'Build production binaries';
-dist.flags = {
-  pseudoNames:
-    'Compiles with readable names. ' +
-    'Great for profiling and debugging production code.',
-};
