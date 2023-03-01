@@ -24,6 +24,8 @@ import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
+const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
+const TYPE_SUBSCRIPTION = ' TYPE_SUBSCRIPTION';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const SECOND_IN_MILLIS = 1000;
 
@@ -54,8 +56,9 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
 export class AutoPromptManager {
   /**
    * @param {!./deps.DepsDef} deps
+   * @param {!Promise<!./runtime.ConfiguredRuntime>} configuredRuntimePromise
    */
-  constructor(deps) {
+  constructor(deps, configuredRuntimePromise) {
     /** @private @const {!./deps.DepsDef} */
     this.deps_ = deps;
 
@@ -100,6 +103,9 @@ export class AutoPromptManager {
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
+
+    /** @private @const {!Promise<!./runtime.ConfiguredRuntime>} */
+    this.configuredRuntimePromise_ = configuredRuntimePromise;
   }
 
   /**
@@ -183,6 +189,39 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
+    const audienceActionsPromptType = article
+      ? this.getPromptType_(article)
+      : undefined;
+
+    // Override autoPromptType if it is undefined.
+    params.autoPromptType = params.autoPromptType
+      ? params.autoPromptType
+      : audienceActionsPromptType;
+
+    const configuredRuntime = await this.configuredRuntimePromise_;
+    console.log(params.autoPromptType);
+    console.warn('stuff I want to write to the console');
+
+    if (
+      params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+    ) {
+      params.displayLargePromptFn = () => {
+        configuredRuntime.showOffers({
+          isClosable: !this.pageConfig().isLocked(),
+        });
+      };
+    } else if (
+      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+    ) {
+      params.displayLargePromptFn = () => {
+        configuredRuntime.showContributionOptions({
+          isClosable: !this.pageConfig().isLocked(),
+        });
+      };
+    }
+
     const shouldShowAutoPrompt = await this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
@@ -384,6 +423,33 @@ export class AutoPromptManager {
     }
 
     return true;
+  }
+
+  /**
+   * Determines what Audience Action prompt type should be shown.
+   *
+   * Show the first AutoPromptType passed in from Audience Actions.
+   * @param {{
+   *   article: (!./entitlements-manager.Article)
+   * }} params
+   * @return {!AutoPromptType|undefined}
+   */
+  async getPromptType_(article) {
+    const audienceActions = article.audienceActions?.actions || [];
+
+    const potentialActions = audienceActions.filter(
+      (action) =>
+        action.type === TYPE_CONTRIBUTION || action.type === TYPE_SUBSCRIPTION
+    );
+
+    // No audience actions matching contribution or subscription.
+    if (potentialActions.length === 0) {
+      return undefined;
+    }
+
+    return potentialActions[0].type === TYPE_CONTRIBUTION
+      ? AutoPromptType.CONTRIBUTION_LARGE
+      : AutoPromptType.SUBSCRIPTION_LARGE;
   }
 
   /**

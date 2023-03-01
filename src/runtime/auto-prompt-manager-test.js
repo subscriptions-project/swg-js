@@ -22,6 +22,7 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
+import {ConfiguredRuntime} from './runtime';
 import {Constants, StorageKeys} from '../utils/constants';
 import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
@@ -56,6 +57,8 @@ describes.realWin('AutoPromptManager', (env) => {
   let miniPromptApiMock;
   let actionFlowSpy;
   let startSpy;
+  let runtime;
+  let configuredClassicRuntimeMock;
   const productId = 'pub1:label1';
   const pubId = 'pub1';
 
@@ -72,6 +75,9 @@ describes.realWin('AutoPromptManager', (env) => {
 
     pageConfig = new PageConfig(productId);
     sandbox.stub(deps, 'pageConfig').returns(pageConfig);
+
+    runtime = new ConfiguredRuntime(win, pageConfig);
+    configuredClassicRuntimeMock = sandbox.mock(runtime);
 
     eventManager = new ClientEventManager(new Promise(() => {}));
     sandbox.stub(deps, 'eventManager').returns(eventManager);
@@ -99,7 +105,7 @@ describes.realWin('AutoPromptManager', (env) => {
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 
     sandbox.stub(MiniPromptApi.prototype, 'init');
-    autoPromptManager = new AutoPromptManager(deps);
+    autoPromptManager = new AutoPromptManager(deps, Promise.resolve(runtime));
     autoPromptManager.autoPromptDisplayed_ = true;
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
@@ -702,7 +708,12 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     await tick(8);
-    expect(alternatePromptSpy).to.be.calledOnce;
+    configuredClassicRuntimeMock
+      .expects('showContributionOptions')
+      .withExactArgs({
+        isClosable: false,
+      })
+      .once();
   });
 
   it('should display the mini prompt if the auto prompt config caps impressions, and the user is under the cap after discounting old impressions', async () => {
