@@ -183,6 +183,26 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
+    if (
+      params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+    ) {
+      params.displayLargePromptFn = () => {
+        configuredRuntime.showOffers({
+          isClosable: !this.pageConfig().isLocked(),
+        });
+      };
+    } else if (
+      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+    ) {
+      params.displayLargePromptFn = () => {
+        configuredRuntime.showContributionOptions({
+          isClosable: !this.pageConfig().isLocked(),
+        });
+      };
+    }
+
     const shouldShowAutoPrompt = await this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
