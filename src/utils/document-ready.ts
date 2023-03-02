@@ -67,8 +67,6 @@ function onDocumentState(
 
 /**
  * Returns a promise that is resolved when document is ready.
- * @param {!Document} doc
- * @return {!Promise<!Document>}
  */
 export function whenDocumentReady(doc: Document): Promise<Document> {
   return new Promise((resolve) => {
