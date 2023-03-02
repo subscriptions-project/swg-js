@@ -14,30 +14,25 @@
  * limitations under the License.
  */
 
-/**
- * @param {!Document} doc
- * @return {string}
- */
-function getReadyState(doc) {
-  return /** @type {string} */ (doc['readyState']);
+function getReadyState(doc: Document): string {
+  return doc.readyState;
 }
 
 /**
  * Whether the document is ready.
- * @param {!Document} doc
- * @return {boolean}
  */
-export function isDocumentReady(doc) {
+export function isDocumentReady(doc: Document): boolean {
   const readyState = getReadyState(doc);
-  return readyState != 'loading' && readyState != 'uninitialized';
+  return readyState !== 'loading' && readyState !== 'uninitialized';
 }
 
 /**
  * Calls the callback when document is ready.
- * @param {!Document} doc
- * @param {function(!Document)} callback
  */
-export function onDocumentReady(doc, callback) {
+export function onDocumentReady(
+  doc: Document,
+  callback: (doc: Document) => void
+) {
   onDocumentState(doc, isDocumentReady, callback);
 }
 
@@ -47,7 +42,11 @@ export function onDocumentReady(doc, callback) {
  * @param {function(!Document):boolean} condition
  * @param {function(!Document)} callback
  */
-function onDocumentState(doc, condition, callback) {
+function onDocumentState(
+  doc: Document,
+  condition: (doc: Document) => boolean,
+  callback: (doc: Document) => void
+) {
   if (condition(doc)) {
     // Execute callback right now.
     callback(doc);
@@ -68,10 +67,8 @@ function onDocumentState(doc, condition, callback) {
 
 /**
  * Returns a promise that is resolved when document is ready.
- * @param {!Document} doc
- * @return {!Promise<!Document>}
  */
-export function whenDocumentReady(doc) {
+export function whenDocumentReady(doc: Document): Promise<Document> {
   return new Promise((resolve) => {
     onDocumentReady(doc, resolve);
   });

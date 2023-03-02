@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Doc, resolveDoc} from './doc'; // eslint-disable-line no-unused-vars
+import {Doc, resolveDoc} from './doc'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import {createElement} from '../utils/dom';
 import {tryParseJson} from '../utils/json';
 
