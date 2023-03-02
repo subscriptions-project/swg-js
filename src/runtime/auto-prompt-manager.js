@@ -424,7 +424,7 @@ export class AutoPromptManager {
    * Determines what Audience Action prompt type should be shown.
    *
    * Show the first AutoPromptType passed in from Audience Actions.
-   * @param {[]|undefined} actions
+   * @param {string[]|undefined} actions
    * @return {!AutoPromptType|undefined}
    */
   getAutoPromptType_(actions) {
