@@ -25,7 +25,7 @@ import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
-const TYPE_SUBSCRIPTION = ' TYPE_SUBSCRIPTION';
+const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const SECOND_IN_MILLIS = 1000;
 
@@ -197,9 +197,6 @@ export class AutoPromptManager {
     params.autoPromptType = params.autoPromptType
       ? params.autoPromptType
       : audienceActionsPromptType;
-
-    console.log(params.autoPromptType);
-    console.warn('stuff I want to write to the console');
 
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
@@ -433,7 +430,7 @@ export class AutoPromptManager {
    * }} params
    * @return {!AutoPromptType|undefined}
    */
-  async getPromptType_(article) {
+  getPromptType_(article) {
     const audienceActions = article.audienceActions?.actions || [];
 
     const potentialActions = audienceActions.filter(

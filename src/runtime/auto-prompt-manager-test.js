@@ -77,9 +77,6 @@ describes.realWin('AutoPromptManager', (env) => {
     pageConfig = new PageConfig(productId);
     sandbox.stub(deps, 'pageConfig').returns(pageConfig);
 
-    runtime = new ConfiguredRuntime(win, pageConfig);
-    configuredClassicRuntimeMock = sandbox.mock(runtime);
-
     eventManager = new ClientEventManager(new Promise(() => {}));
     sandbox.stub(deps, 'eventManager').returns(eventManager);
     sandbox
@@ -110,7 +107,6 @@ describes.realWin('AutoPromptManager', (env) => {
     subscriptionPromptFnSpy = sandbox.spy(runtime, 'showOffers');
 
     sandbox.stub(MiniPromptApi.prototype, 'init');
-
     autoPromptManager = new AutoPromptManager(deps, runtime);
     autoPromptManager.autoPromptDisplayed_ = true;
 
@@ -1154,6 +1150,61 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+    });
+
+    it('should show the Contribution prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
+      articleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_CONTRIBUTION'},
+              {type: 'TYPE_REGISTRATION_WALL'},
+              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        AutoPromptType.CONTRIBUTION
+      );
+    });
+
+    it('should show an AudienceActionFlow if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
+      articleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [{type: 'TYPE_SUBSCRIPTION'}],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_SUBSCRIPTION',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+      });
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
 
