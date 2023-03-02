@@ -190,7 +190,7 @@ export class AutoPromptManager {
     params
   ) {
     const audienceActionsPromptType = article
-      ? this.getPromptType_(article)
+      ? this.getAutoPromptType_(article)
       : undefined;
 
     // Override autoPromptType if it is undefined.
@@ -430,7 +430,7 @@ export class AutoPromptManager {
    * }} params
    * @return {!AutoPromptType|undefined}
    */
-  getPromptType_(article) {
+  getAutoPromptType_(article) {
     const audienceActions = article.audienceActions?.actions || [];
 
     const potentialActions = audienceActions.filter(
