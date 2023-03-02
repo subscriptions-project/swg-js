@@ -25,19 +25,20 @@ module.exports = {
   frameworks: ['fixture', 'browserify', 'mocha', 'sinon-chai', 'chai'],
 
   preprocessors: {
-    'src/**/*.js': ['browserify'],
-    'test/**/*.js': ['browserify'],
+    '{src,test}/**/*.{js,ts}': ['browserify'],
   },
 
   browserify: {
     watch: true,
     debug: true,
     fast: true,
+    plugin: ['tsify'],
     transform: [
       [
         'babelify',
         {
           presets: ['@babel/preset-env'],
+          extensions: ['.js', '.ts'],
           plugins: [
             [
               './build-system/transform-define-constants',

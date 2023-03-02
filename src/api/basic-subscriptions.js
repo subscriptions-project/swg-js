@@ -17,7 +17,7 @@
 import {Entitlements as EntitlementsDef} from './entitlements';
 import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
 
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Interface for users of the basic tier of Subscribe with Google.
  * @interface
@@ -89,7 +89,7 @@ export class BasicSubscriptions {
    */
   dismissSwgUI() {}
 }
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 /**
  * The types of autoprompt that can be specified to be shown. CONTRIBUTION and
