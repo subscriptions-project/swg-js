@@ -45,7 +45,7 @@ const commonTestPaths = [
   },
 ];
 
-const basicTestPaths = ['{packages,src}/**/*-test.{js,ts}'];
+const basicTestPaths = ['src/**/*-test.{js,ts}'];
 
 const unitTestPaths = commonTestPaths.concat(basicTestPaths);
 

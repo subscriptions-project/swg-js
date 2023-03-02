@@ -25,7 +25,7 @@ module.exports = {
   frameworks: ['fixture', 'browserify', 'mocha', 'sinon-chai', 'chai'],
 
   preprocessors: {
-    '{packages,src,test}/**/*.{js,ts}': ['browserify'],
+    '{src,test}/**/*.{js,ts}': ['browserify'],
   },
 
   browserify: {
