@@ -189,13 +189,10 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
-    const audienceActionsPromptType =
-      article && article.audienceActions && article.audienceActions.actions
-        ? this.getAutoPromptType_(article.audienceActions.actions)
-        : undefined;
-
     // Override autoPromptType if it is undefined.
-    params.autoPromptType = params.autoPromptType || audienceActionsPromptType;
+    params.autoPromptType =
+      params.autoPromptType ||
+      this.getAutoPromptType_(article?.audienceActions?.actions);
 
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
@@ -427,7 +424,7 @@ export class AutoPromptManager {
    * @param {string[]|undefined} actions
    * @return {!AutoPromptType|undefined}
    */
-  getAutoPromptType_(actions) {
+  getAutoPromptType_(actions = []) {
     const potentialAction = actions.find(
       (action) =>
         action.type === TYPE_CONTRIBUTION || action.type === TYPE_SUBSCRIPTION
