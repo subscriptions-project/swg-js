@@ -252,7 +252,8 @@ export class AutoPromptManager {
     if (isContributionFlow && delaySecondPrompt) {
       const shouldSuppressAutoprompt =
         await this.secondPromptDelayExperimentSuppressesPrompt_(
-          article?.experimentConfig?.numReadsBetweenPrompts
+          clientConfig?.autoPromptConfig?.clientDisplayTrigger
+            ?.impressionCountInterval
         );
       if (shouldSuppressAutoprompt) {
         this.promptDisplayed_ = null;

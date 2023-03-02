@@ -17,6 +17,7 @@
 /**
  * @typedef {{
  *   displayDelaySeconds: (number|undefined),
+ *   impressionCountInterval: (number|undefined),
  *   dismissalBackOffSeconds: (number|undefined),
  *   maxDismissalsPerWeek: (number|undefined),
  *   maxDismissalsResultingHideSeconds: (number|undefined),
@@ -36,6 +37,7 @@ export class AutoPromptConfig {
    */
   constructor({
     displayDelaySeconds,
+    impressionCountInterval,
     dismissalBackOffSeconds,
     maxDismissalsPerWeek,
     maxDismissalsResultingHideSeconds,
@@ -44,7 +46,10 @@ export class AutoPromptConfig {
     maxImpressionsResultingHideSeconds,
   } = {}) {
     /** @const {!ClientDisplayTrigger} */
-    this.clientDisplayTrigger = new ClientDisplayTrigger(displayDelaySeconds);
+    this.clientDisplayTrigger = new ClientDisplayTrigger(
+      displayDelaySeconds,
+      impressionCountInterval
+    );
 
     /** @const {!ExplicitDismissalConfig} */
     this.explicitDismissalConfig = new ExplicitDismissalConfig(
@@ -68,10 +73,14 @@ export class AutoPromptConfig {
 export class ClientDisplayTrigger {
   /**
    * @param {number|undefined} displayDelaySeconds
+   * @param {number|undefined} impressionCountInterval
    */
-  constructor(displayDelaySeconds) {
+  constructor(displayDelaySeconds, impressionCountInterval) {
     /** @const {number|undefined} */
     this.displayDelaySeconds = displayDelaySeconds;
+
+    /** @const {number|undefined} */
+    this.impressionCountInterval = impressionCountInterval;
   }
 }
 
