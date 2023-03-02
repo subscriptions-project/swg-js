@@ -86,8 +86,15 @@ export class GaaMetering {
       return false;
     }
 
+    // Validate productId in page markup
+    if (!GaaMetering.getProductIDFromPageConfig_()) {
+      debugLog(
+        '[gaa.js:GaaMetering.init]: Showcase articles must define a productID using either JSON-LD or Microdata.'
+      );
+      return false;
+    }
+
     // Register publisher's callbacks, promises, and parameters
-    const productId = GaaMetering.getProductIDFromPageConfig_();
     const {
       googleApiClientId,
       authorizationUrl,
@@ -120,8 +127,6 @@ export class GaaMetering {
         : params.unlockArticle;
 
     callSwg(async (subscriptions) => {
-      subscriptions.init(productId);
-
       logEvent({
         analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
         isFromUserAction: false,
@@ -286,7 +291,7 @@ export class GaaMetering {
       googleEntitlement.consume(() => {
         // Consume the entitlement and trigger a dialog that lets the user
         // know Google provided them with a free read.
-        unlockArticle();
+        unlockArticle(googleEntitlement);
       });
     } else if (googleEntitlement.enablesThis()) {
       // Google returned a non-metering entitlement
@@ -492,9 +497,7 @@ export class GaaMetering {
       return microdataPageConfig;
     }
 
-    throw new Error(
-      'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
-    );
+    return null;
   }
 
   /**
