@@ -45,7 +45,7 @@ export const FilterResult = {
  */
 export let ClientEvent;
 
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * @interface
  */
@@ -76,7 +76,7 @@ export class ClientEventManagerApi {
    */
   logEvent(event, eventParams = undefined) {}
 }
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 /**
  * Event Properties to handle for a specific event. For example, GA Event

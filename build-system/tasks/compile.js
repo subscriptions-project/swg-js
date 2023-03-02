@@ -25,6 +25,7 @@ const lazypipe = require('lazypipe');
 const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
 const touch = require('touch');
+const tsify = require('tsify');
 const watchify = require('watchify');
 const {endBuildStep, mkdirSync} = require('./helpers');
 const {red} = require('ansi-colors');
@@ -110,28 +111,31 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   let bundler = browserify(srcDir + srcFilename + '.js', {
     debug: true,
-  }).transform(
-    babelify.configure({
-      'presets': [
-        [
-          '@babel/preset-env',
-          {
-            'targets': {
-              'browsers': ['defaults, not IE 11'],
+  })
+    .plugin(tsify)
+    .transform(
+      babelify.configure({
+        'presets': [
+          [
+            '@babel/preset-env',
+            {
+              'targets': {
+                'browsers': ['defaults, not IE 11'],
+              },
             },
-          },
+          ],
         ],
-      ],
-      'plugins': [
-        [
-          './build-system/transform-define-constants',
-          {
-            'replacements': resolveConfig(),
-          },
+        'extensions': ['.js', '.ts'],
+        'plugins': [
+          [
+            './build-system/transform-define-constants',
+            {
+              'replacements': resolveConfig(),
+            },
+          ],
         ],
-      ],
-    })
-  );
+      })
+    );
   if (options.watch) {
     bundler = watchify(bundler);
   }

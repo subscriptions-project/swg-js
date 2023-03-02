@@ -24,6 +24,8 @@ import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
+const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
+const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const SECOND_IN_MILLIS = 1000;
 
@@ -187,6 +189,11 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
+    // Override autoPromptType if it is undefined.
+    params.autoPromptType =
+      params.autoPromptType ||
+      this.getAutoPromptType_(article?.audienceActions?.actions);
+
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
       params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
@@ -411,6 +418,29 @@ export class AutoPromptManager {
     }
 
     return true;
+  }
+
+  /**
+   * Determines what Audience Action prompt type should be shown.
+   *
+   * Show the first AutoPromptType passed in from Audience Actions.
+   * @param {string[]|undefined} actions
+   * @return {!AutoPromptType|undefined}
+   */
+  getAutoPromptType_(actions = []) {
+    const potentialAction = actions.find(
+      (action) =>
+        action.type === TYPE_CONTRIBUTION || action.type === TYPE_SUBSCRIPTION
+    );
+
+    // No audience actions matching contribution or subscription.
+    if (!potentialAction) {
+      return undefined;
+    }
+
+    return potentialAction.type === TYPE_CONTRIBUTION
+      ? AutoPromptType.CONTRIBUTION_LARGE
+      : AutoPromptType.SUBSCRIPTION_LARGE;
   }
 
   /**
