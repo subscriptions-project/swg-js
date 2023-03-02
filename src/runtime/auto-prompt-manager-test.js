@@ -1949,22 +1949,13 @@ describes.realWin('AutoPromptManager', (env) => {
         });
         await tick(10);
 
-<<<<<<< HEAD
         expect(startSpy).to.not.have.been.called;
         expect(actionFlowSpy).to.not.have.been.called;
-        expect(alternatePromptSpy).to.not.have.been.called;
+        expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(autoPromptManager.promptDisplayed_).to.equal(
           AutoPromptType.CONTRIBUTION
         );
       });
-=======
-      expect(startSpy).to.not.have.been.called;
-      expect(actionFlowSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
-        AutoPromptType.CONTRIBUTION
-      );
->>>>>>> fa62477b6aeb0f067059f3005168104f1736deaf
     });
 
     [
