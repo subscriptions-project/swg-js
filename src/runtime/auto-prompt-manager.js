@@ -194,9 +194,7 @@ export class AutoPromptManager {
       : undefined;
 
     // Override autoPromptType if it is undefined.
-    params.autoPromptType = params.autoPromptType
-      ? params.autoPromptType
-      : audienceActionsPromptType;
+    params.autoPromptType = params.autoPromptType || audienceActionsPromptType;
 
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
@@ -427,7 +425,7 @@ export class AutoPromptManager {
    * Show the first AutoPromptType passed in from Audience Actions.
    * @param {{
    *   article: (!./entitlements-manager.Article)
-   * }} params
+   * }} article
    * @return {!AutoPromptType|undefined}
    */
   getAutoPromptType_(article) {
