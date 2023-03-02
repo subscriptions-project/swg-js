@@ -189,9 +189,10 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
-    const audienceActionsPromptType = article
-      ? this.getAutoPromptType_(article)
-      : undefined;
+    const audienceActionsPromptType =
+      article && article.audienceActions && article.audienceActions.actions
+        ? this.getAutoPromptType_(article.audienceActions.actions)
+        : undefined;
 
     // Override autoPromptType if it is undefined.
     params.autoPromptType = params.autoPromptType || audienceActionsPromptType;
@@ -423,25 +424,21 @@ export class AutoPromptManager {
    * Determines what Audience Action prompt type should be shown.
    *
    * Show the first AutoPromptType passed in from Audience Actions.
-   * @param {{
-   *   article: (!./entitlements-manager.Article)
-   * }} article
+   * @param {[]|undefined} actions
    * @return {!AutoPromptType|undefined}
    */
-  getAutoPromptType_(article) {
-    const audienceActions = article.audienceActions?.actions || [];
-
-    const potentialActions = audienceActions.filter(
+  getAutoPromptType_(actions) {
+    const potentialAction = actions.find(
       (action) =>
         action.type === TYPE_CONTRIBUTION || action.type === TYPE_SUBSCRIPTION
     );
 
     // No audience actions matching contribution or subscription.
-    if (potentialActions.length === 0) {
+    if (!potentialAction) {
       return undefined;
     }
 
-    return potentialActions[0].type === TYPE_CONTRIBUTION
+    return potentialAction.type === TYPE_CONTRIBUTION
       ? AutoPromptType.CONTRIBUTION_LARGE
       : AutoPromptType.SUBSCRIPTION_LARGE;
   }
