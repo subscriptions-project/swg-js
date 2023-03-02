@@ -1158,7 +1158,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the Contribution prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
-      articleExpectation
+      getArticleExpectation
         .resolves({
           audienceActions: {
             actions: [
@@ -1186,7 +1186,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show an AudienceActionFlow if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
-      articleExpectation
+      getArticleExpectation
         .resolves({
           audienceActions: {
             actions: [{type: 'TYPE_SUBSCRIPTION'}],
