@@ -19,11 +19,11 @@ const DEFAULT_LANGUAGE_CODE = 'en';
 
 /**
  * Gets a message for a given language code, from a map of messages.
- * @param {!Object<string, string>} map
- * @param {?string|?Element} languageCodeOrElement
- * @return {?string}
  */
-export function msg(map, languageCodeOrElement) {
+export function msg(
+  map: {[key: string]: string | undefined},
+  languageCodeOrElement: string | HTMLElement
+): string | undefined {
   const defaultMsg = map[DEFAULT_LANGUAGE_CODE];
 
   // Verify params.
@@ -61,16 +61,14 @@ export function msg(map, languageCodeOrElement) {
 
 /**
  * Gets a language code (ex: "en-US") from a given Element.
- * @param {!Element} element
- * @return {string}
  */
-export function getLanguageCodeFromElement(element) {
+export function getLanguageCodeFromElement(element: HTMLElement): string {
   if (element.lang) {
     // Get language from element itself.
     return element.lang;
   }
 
-  if (element.ownerDocument && element.ownerDocument.documentElement.lang) {
+  if (element?.ownerDocument?.documentElement?.lang) {
     // Get language from element's document.
     return element.ownerDocument.documentElement.lang;
   }
