@@ -40,6 +40,10 @@ export function warn(...args: any[]) {
  * Throws an error if the first argument isn't trueish.
  *
  * Supports argument substitution into the message via %s placeholders.
+ * @param shouldBeTrueish The value to assert. The assert fails if it does
+ *     not evaluate to true.
+ * @param message The assertion message
+ * @param args Arguments substituted into %s in the message.
  */
 export function assert(
   shouldBeTrueish: any,
