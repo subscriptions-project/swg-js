@@ -1935,10 +1935,10 @@ describes.realWin('AutoPromptManager', (env) => {
   describe('Audience Actions with Second Prompt Delay Experiment', () => {
     let getArticleExpectation;
 
-    beforeEach(() => {
+    function init(impressionCountInterval) {
       const autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
-        impressionCountInterval: 2,
+        impressionCountInterval,
         dismissalBackOffSeconds: 5,
         maxDismissalsPerWeek: 2,
         maxDismissalsResultingHideSeconds: 10,
@@ -1977,114 +1977,148 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
-    });
+    }
 
-    it('should not delay second prompt for Subscriptions', async () => {
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.SUBSCRIPTION,
-        alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
-      });
-      miniPromptApiMock.expects('create').once();
-      await tick(7);
-
-      expect(startSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
-    });
-
-    it(`With SecondPromptDelayExperiment enabled, on first prompt, should set secondPromptDelayTimestamps and show first prompt`, async () => {
-      const secondPromptDelayTimestamps = '';
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-        secondPromptDelayTimestamps,
-        setsNewShouldShowAutoPromptTimestamp: true,
-      });
-      miniPromptApiMock.expects('create').once();
-
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.CONTRIBUTION,
-        alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
-      });
-      await tick(10);
-
-      expect(startSpy).to.not.have.been.called;
-      expect(actionFlowSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
-        AutoPromptType.CONTRIBUTION
-      );
-    });
-
-    [{secondPromptDelayCounter: 1}, {secondPromptDelayCounter: 2}].forEach(
-      ({secondPromptDelayCounter}) => {
-        it(`With SecondPromptDelayExperiment enabled, secondPromptDelayCounter=${secondPromptDelayCounter}, on valid free read, should set secondPromptDelayTimestamps and suppress prompt`, async () => {
-          const secondPromptDelayTimestamps = Array.from(
-            {length: secondPromptDelayCounter},
-            () => CURRENT_TIME.toString()
-          ).join();
-          setupPreviousImpressionAndDismissals(storageMock, {
-            dismissedPromptGetCallCount: 1,
-            getUserToken: true,
-            secondPromptDelayTimestamps,
-            setsNewShouldShowAutoPromptTimestamp: true,
+    [
+      {
+        impressionCountInterval: 2,
+        secondPromptDelayTimestampsSuppressesPrompt: 2,
+        secondPromptDelayTimestampsTriggersPrompt: 3,
+      },
+      {
+        impressionCountInterval: undefined,
+        secondPromptDelayTimestampsSuppressesPrompt: 2,
+        secondPromptDelayTimestampsTriggersPrompt: 3,
+      },
+      {
+        impressionCountInterval: 10,
+        secondPromptDelayTimestampsSuppressesPrompt: 2,
+        secondPromptDelayTimestampsTriggersPrompt: 11,
+      },
+    ].forEach(
+      ({
+        impressionCountInterval,
+        secondPromptDelayTimestampsSuppressesPrompt,
+        secondPromptDelayTimestampsTriggersPrompt,
+      }) => {
+        describe(`When impressionCountInterval=${impressionCountInterval}`, () => {
+          beforeEach(() => {
+            init((impressionCountInterval = impressionCountInterval));
           });
-          miniPromptApiMock.expects('create').never();
 
-          await autoPromptManager.showAutoPrompt({
-            autoPromptType: AutoPromptType.CONTRIBUTION,
-            alwaysShow: false,
-            displayLargePromptFn: alternatePromptSpy,
+          it('should not delay second prompt for Subscriptions', async () => {
+            await autoPromptManager.showAutoPrompt({
+              autoPromptType: AutoPromptType.SUBSCRIPTION,
+              alwaysShow: false,
+              displayLargePromptFn: alternatePromptSpy,
+            });
+            miniPromptApiMock.expects('create').once();
+            await tick(7);
+
+            expect(startSpy).to.not.have.been.called;
+            expect(contributionPromptFnSpy).to.not.have.been.called;
+            expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(
+              null
+            );
           });
-          await tick(15);
 
-          expect(startSpy).to.not.have.been.called;
-          expect(actionFlowSpy).to.not.have.been.called;
-          expect(contributionPromptFnSpy).to.not.have.been.called;
-          expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
-          expect(autoPromptManager.promptDisplayed_).to.equal(null);
-        });
-      }
-    );
+          it(`With SecondPromptDelayExperiment enabled, on first prompt, should set secondPromptDelayTimestamps and show first prompt`, async () => {
+            const secondPromptDelayTimestamps = '';
+            setupPreviousImpressionAndDismissals(storageMock, {
+              dismissedPromptGetCallCount: 1,
+              getUserToken: true,
+              secondPromptDelayTimestamps,
+              setsNewShouldShowAutoPromptTimestamp: true,
+            });
+            miniPromptApiMock.expects('create').once();
 
-    [{secondPromptDelayCounter: 3}, {secondPromptDelayCounter: 4}].forEach(
-      ({secondPromptDelayCounter}) => {
-        it(`With SecondPromptDelayExperiment enabled, secondPromptDelayCounter=${secondPromptDelayCounter}, after consuming all free reads, should not set secondPromptDelayTimestamps and display next prompt`, async () => {
-          const storedImpressions = (CURRENT_TIME - 5).toString();
-          const storedDismissals = (CURRENT_TIME - 10).toString();
-          const secondPromptDelayTimestamps = Array.from(
-            {length: secondPromptDelayCounter},
-            () => CURRENT_TIME.toString()
-          ).join();
-          setupPreviousImpressionAndDismissals(storageMock, {
-            storedImpressions,
-            storedDismissals,
-            dismissedPrompts: AutoPromptType.CONTRIBUTION,
-            dismissedPromptGetCallCount: 1,
-            getUserToken: true,
-            secondPromptDelayTimestamps,
+            await autoPromptManager.showAutoPrompt({
+              autoPromptType: AutoPromptType.CONTRIBUTION,
+              alwaysShow: false,
+              displayLargePromptFn: alternatePromptSpy,
+            });
+            await tick(10);
+
+            expect(startSpy).to.not.have.been.called;
+            expect(actionFlowSpy).to.not.have.been.called;
+            expect(contributionPromptFnSpy).to.not.have.been.called;
+            expect(autoPromptManager.promptDisplayed_).to.equal(
+              AutoPromptType.CONTRIBUTION
+            );
           });
-          miniPromptApiMock.expects('create').never();
 
-          await autoPromptManager.showAutoPrompt({
-            autoPromptType: AutoPromptType.CONTRIBUTION,
-            alwaysShow: false,
-            displayLargePromptFn: alternatePromptSpy,
-          });
-          await tick(15);
+          [
+            {secondPromptDelayCounter: 1},
+            {
+              secondPromptDelayCounter:
+                secondPromptDelayTimestampsSuppressesPrompt,
+            },
+          ].forEach(({secondPromptDelayCounter}) => {
+            it(`With SecondPromptDelayExperiment enabled, secondPromptDelayCounter=${secondPromptDelayCounter}, on valid free read, should set secondPromptDelayTimestamps and suppress prompt`, async () => {
+              const secondPromptDelayTimestamps = Array.from(
+                {length: secondPromptDelayCounter},
+                () => CURRENT_TIME.toString()
+              ).join();
+              setupPreviousImpressionAndDismissals(storageMock, {
+                dismissedPromptGetCallCount: 1,
+                getUserToken: true,
+                secondPromptDelayTimestamps,
+                setsNewShouldShowAutoPromptTimestamp: true,
+              });
+              miniPromptApiMock.expects('create').never();
 
-          expect(startSpy).to.have.been.calledOnce;
-          expect(actionFlowSpy).to.have.been.calledWith(deps, {
-            action: 'TYPE_REWARDED_SURVEY',
-            onCancel: sandbox.match.any,
-            autoPromptType: AutoPromptType.CONTRIBUTION,
+              await autoPromptManager.showAutoPrompt({
+                autoPromptType: AutoPromptType.CONTRIBUTION,
+                alwaysShow: false,
+                displayLargePromptFn: alternatePromptSpy,
+              });
+              await tick(15);
+
+              expect(startSpy).to.not.have.been.called;
+              expect(actionFlowSpy).to.not.have.been.called;
+              expect(contributionPromptFnSpy).to.not.have.been.called;
+              expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(
+                null
+              );
+              expect(autoPromptManager.promptDisplayed_).to.equal(null);
+            });
           });
-          expect(contributionPromptFnSpy).to.not.have.been.called;
-          expect(autoPromptManager.promptDisplayed_).to.equal(
-            'TYPE_REWARDED_SURVEY'
-          );
+
+          it(`With SecondPromptDelayExperiment enabled, secondPromptDelayCounter=${secondPromptDelayTimestampsTriggersPrompt}, after consuming all free reads, should not set secondPromptDelayTimestamps and display next prompt`, async () => {
+            const storedImpressions = (CURRENT_TIME - 5).toString();
+            const storedDismissals = (CURRENT_TIME - 10).toString();
+            const secondPromptDelayTimestamps = Array.from(
+              {length: secondPromptDelayTimestampsTriggersPrompt},
+              () => CURRENT_TIME.toString()
+            ).join();
+            setupPreviousImpressionAndDismissals(storageMock, {
+              storedImpressions,
+              storedDismissals,
+              dismissedPrompts: AutoPromptType.CONTRIBUTION,
+              dismissedPromptGetCallCount: 1,
+              getUserToken: true,
+              secondPromptDelayTimestamps,
+            });
+            miniPromptApiMock.expects('create').never();
+
+            await autoPromptManager.showAutoPrompt({
+              autoPromptType: AutoPromptType.CONTRIBUTION,
+              alwaysShow: false,
+              displayLargePromptFn: alternatePromptSpy,
+            });
+            await tick(15);
+
+            expect(startSpy).to.have.been.calledOnce;
+            expect(actionFlowSpy).to.have.been.calledWith(deps, {
+              action: 'TYPE_REWARDED_SURVEY',
+              onCancel: sandbox.match.any,
+              autoPromptType: AutoPromptType.CONTRIBUTION,
+            });
+            expect(contributionPromptFnSpy).to.not.have.been.called;
+            expect(autoPromptManager.promptDisplayed_).to.equal(
+              'TYPE_REWARDED_SURVEY'
+            );
+          });
         });
       }
     );
