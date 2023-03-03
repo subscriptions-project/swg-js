@@ -98,9 +98,10 @@ describes.realWin('asserts', (env) => {
     const div = win.document.createElement('div');
     div.id = 'abc';
     div.textContent = 'foo';
+    const span = win.document.createElement('span');
     expect(() => {
-      assert(false, 'should fail %s', div);
-    }).to.throw(/should fail div#abc/);
+      assert(false, 'should fail %s %s', div, span);
+    }).to.throw(/should fail div#abc span/);
 
     expect(() => assert(false, '%s a %s b %s', 1, 2, 3)).to.throw('1 a 2 b 3');
   });
