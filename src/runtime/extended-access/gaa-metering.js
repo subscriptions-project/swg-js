@@ -513,7 +513,7 @@ export class GaaMetering {
 
     for (let i = 0; i < ldJsonElements.length; i++) {
       const ldJsonElement = ldJsonElements[i];
-      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+      let ldJson = /** @type {*} */ (JSON.parse(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];
@@ -567,7 +567,7 @@ export class GaaMetering {
     ];
 
     for (const ldJsonElement of ldJsonElements) {
-      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+      let ldJson = /** @type {*} */ (JSON.parse(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];

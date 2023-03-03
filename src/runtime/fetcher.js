@@ -76,7 +76,7 @@ export class XhrFetcher {
     const text = await response.text();
     // Remove "")]}'\n" XSSI prevention prefix in safe responses.
     const cleanedText = text.replace(jsonSaftyPrefix, '');
-    return /** @type {!Object} */ (parseJson(cleanedText));
+    return /** @type {!Object} */ (JSON.parse(cleanedText));
   }
 
   /** @override */
@@ -98,7 +98,7 @@ export class XhrFetcher {
     try {
       // Remove "")]}'\n" XSSI prevention prefix in safe responses.
       const cleanedText = text.replace(jsonSaftyPrefix, '');
-      return /** @type {!Object} */ (parseJson(cleanedText));
+      return /** @type {!Object} */ (JSON.parse(cleanedText));
     } catch (e) {
       ErrorUtils.throwAsync(e);
       return {};

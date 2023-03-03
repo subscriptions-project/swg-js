@@ -346,7 +346,7 @@ export class GaaMeteringRegwall {
       self.document.querySelectorAll('script[type="application/ld+json"]')
     );
     const jsonQueue = /** @type {!Array<*>} */ (
-      ldJsonScripts.map((script) => parseJson(script.textContent))
+      ldJsonScripts.map((script) => JSON.parse(script.textContent))
     );
 
     // Search for publisher name, breadth-first.

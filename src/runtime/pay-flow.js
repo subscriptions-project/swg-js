@@ -564,7 +564,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   if (raw && !swgData) {
     raw = atob(raw);
     if (raw) {
-      const parsed = parseJson(raw);
+      const parsed = JSON.parse(raw);
       swgData = parsed['swgCallbackData'];
     }
   }
