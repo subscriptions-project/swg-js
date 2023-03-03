@@ -2022,7 +2022,7 @@ describes.realWin('AutoPromptManager', (env) => {
             );
           });
 
-          it(`With SecondPromptDelayExperiment enabled, on first prompt, should set secondPromptDelayTimestamps and show first prompt`, async () => {
+          it('With SecondPromptDelayExperiment enabled, on first prompt, should set secondPromptDelayTimestamps and show first prompt', async () => {
             const secondPromptDelayTimestamps = '';
             setupPreviousImpressionAndDismissals(storageMock, {
               dismissedPromptGetCallCount: 1,

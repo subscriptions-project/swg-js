@@ -777,28 +777,31 @@ export class AutoPromptManager {
   }
 
   /**
-   * Checks if a free read granted after the first autoprompt should suppress
-   * the second autoprompt. Tracks reads by storing timestamps for the first
-   * autoprompt shown and for each free read after. Returns whether to
-   * suppress the next autoprompt. For example, for default number of free
-   * reads X = 2 (b/267650049), then:
-   * Timestamps   Show Autoprompt   Store Timestamp
-   * []           YES (1st prompt)  YES
-   * [t1]         NO  (free read)   YES
-   * [t1, t2]     NO  (free read)   YES
-   * [t1, t2, t3] YES (2nd prompt)  NO
-   * @param {number|undefined} numFreeReads
+   * Checks if the triggering of the second prompt should be suppressed due the
+   * configured interval of impression counts after the first prompt within
+   * autoPromptConfig. Tracks impressions by storing timestamps for the first
+   * prompt triggered and for each impression after. Returns whether to
+   * suppress the next prompt. For example, for default number of impressions
+   * X = 2 (b/267650049), then:
+   * Timestamps   Show Autoprompt     Store Timestamp
+   * []           YES (1st prompt)    YES
+   * [t1]         NO  (Impression 1)  YES
+   * [t1, t2]     NO  (Impression 2)  YES
+   * [t1, t2, t3] YES (2nd prompt)    NO
+   * @param {number|undefined} impressionCountInterval
    * @return {!Promise<boolean>}
    */
-  async secondPromptDelayExperimentSuppressesPrompt_(numFreeReads = 2) {
+  async secondPromptDelayExperimentSuppressesPrompt_(
+    impressionCountInterval = 2
+  ) {
     const secondPromptDelayCounter = await this.storage_.getEvent(
       StorageKeys.SECOND_PROMPT_DELAY_COUNTER
     );
     const shouldSuppressPrompt =
       secondPromptDelayCounter.length > 0 &&
-      secondPromptDelayCounter.length <= numFreeReads;
+      secondPromptDelayCounter.length <= impressionCountInterval;
     const shouldStoreTimestamp =
-      secondPromptDelayCounter.length <= numFreeReads;
+      secondPromptDelayCounter.length <= impressionCountInterval;
 
     if (shouldStoreTimestamp) {
       this.storage_.storeEvent(StorageKeys.SECOND_PROMPT_DELAY_COUNTER);
