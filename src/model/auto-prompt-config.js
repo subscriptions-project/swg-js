@@ -17,7 +17,7 @@
 /**
  * @typedef {{
  *   displayDelaySeconds: (number|undefined),
- *   impressionCountInterval: (number|undefined),
+ *   numImpressionsBetweenPrompts: (number|undefined),
  *   dismissalBackOffSeconds: (number|undefined),
  *   maxDismissalsPerWeek: (number|undefined),
  *   maxDismissalsResultingHideSeconds: (number|undefined),
@@ -37,7 +37,7 @@ export class AutoPromptConfig {
    */
   constructor({
     displayDelaySeconds,
-    impressionCountInterval,
+    numImpressionsBetweenPrompts,
     dismissalBackOffSeconds,
     maxDismissalsPerWeek,
     maxDismissalsResultingHideSeconds,
@@ -48,7 +48,7 @@ export class AutoPromptConfig {
     /** @const {!ClientDisplayTrigger} */
     this.clientDisplayTrigger = new ClientDisplayTrigger(
       displayDelaySeconds,
-      impressionCountInterval
+      numImpressionsBetweenPrompts
     );
 
     /** @const {!ExplicitDismissalConfig} */
@@ -73,14 +73,14 @@ export class AutoPromptConfig {
 export class ClientDisplayTrigger {
   /**
    * @param {number|undefined} displayDelaySeconds
-   * @param {number|undefined} impressionCountInterval
+   * @param {number|undefined} numImpressionsBetweenPrompts
    */
-  constructor(displayDelaySeconds, impressionCountInterval) {
+  constructor(displayDelaySeconds, numImpressionsBetweenPrompts) {
     /** @const {number|undefined} */
     this.displayDelaySeconds = displayDelaySeconds;
 
     /** @const {number|undefined} */
-    this.impressionCountInterval = impressionCountInterval;
+    this.numImpressionsBetweenPrompts = numImpressionsBetweenPrompts;
   }
 }
 

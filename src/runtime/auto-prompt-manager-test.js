@@ -759,7 +759,7 @@ describes.realWin('AutoPromptManager', (env) => {
     entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
-      impressionCountInterval: 2,
+      numImpressionsBetweenPrompts: 2,
       dismissalBackOffSeconds: 0,
       maxDismissalsPerWeek: 1,
       maxDismissalsResultingHideSeconds: 10,
@@ -799,7 +799,7 @@ describes.realWin('AutoPromptManager', (env) => {
     entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
-      impressionCountInterval: 2,
+      numImpressionsBetweenPrompts: 2,
       dismissalBackOffSeconds: 0,
       maxDismissalsPerWeek: 1,
       maxDismissalsResultingHideSeconds: 10,
@@ -839,7 +839,7 @@ describes.realWin('AutoPromptManager', (env) => {
     entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
-      impressionCountInterval: 2,
+      numImpressionsBetweenPrompts: 2,
       dismissalBackOffSeconds: 10,
       maxDismissalsPerWeek: 2,
       maxDismissalsResultingHideSeconds: 5,
@@ -879,7 +879,7 @@ describes.realWin('AutoPromptManager', (env) => {
     entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
-      impressionCountInterval: 2,
+      numImpressionsBetweenPrompts: 2,
       dismissalBackOffSeconds: 5,
       maxDismissalsPerWeek: 2,
       maxDismissalsResultingHideSeconds: 10,
@@ -1260,7 +1260,7 @@ describes.realWin('AutoPromptManager', (env) => {
     beforeEach(() => {
       const autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
-        impressionCountInterval: 2,
+        numImpressionsBetweenPrompts: 2,
         dismissalBackOffSeconds: 5,
         maxDismissalsPerWeek: 2,
         maxDismissalsResultingHideSeconds: 10,
@@ -1642,7 +1642,7 @@ describes.realWin('AutoPromptManager', (env) => {
     beforeEach(() => {
       const autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
-        impressionCountInterval: 2,
+        numImpressionsBetweenPrompts: 2,
         dismissalBackOffSeconds: 5,
         maxDismissalsPerWeek: 2,
         maxDismissalsResultingHideSeconds: 10,
@@ -1935,10 +1935,10 @@ describes.realWin('AutoPromptManager', (env) => {
   describe('Audience Actions with Second Prompt Delay Experiment', () => {
     let getArticleExpectation;
 
-    function init(impressionCountInterval) {
+    function init(numImpressionsBetweenPrompts) {
       const autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
-        impressionCountInterval,
+        numImpressionsBetweenPrompts,
         dismissalBackOffSeconds: 5,
         maxDismissalsPerWeek: 2,
         maxDismissalsResultingHideSeconds: 10,
@@ -1981,29 +1981,29 @@ describes.realWin('AutoPromptManager', (env) => {
 
     [
       {
-        impressionCountInterval: 2,
+        numImpressionsBetweenPrompts: 2,
         secondPromptDelayTimestampsSuppressesPrompt: 2,
         secondPromptDelayTimestampsTriggersPrompt: 3,
       },
       {
-        impressionCountInterval: undefined,
+        numImpressionsBetweenPrompts: undefined,
         secondPromptDelayTimestampsSuppressesPrompt: 2,
         secondPromptDelayTimestampsTriggersPrompt: 3,
       },
       {
-        impressionCountInterval: 10,
+        numImpressionsBetweenPrompts: 10,
         secondPromptDelayTimestampsSuppressesPrompt: 10,
         secondPromptDelayTimestampsTriggersPrompt: 11,
       },
     ].forEach(
       ({
-        impressionCountInterval,
+        numImpressionsBetweenPrompts,
         secondPromptDelayTimestampsSuppressesPrompt,
         secondPromptDelayTimestampsTriggersPrompt,
       }) => {
-        describe(`When impressionCountInterval=${impressionCountInterval}`, () => {
+        describe(`When numImpressionsBetweenPrompts=${numImpressionsBetweenPrompts}`, () => {
           beforeEach(() => {
-            init((impressionCountInterval = impressionCountInterval));
+            init((numImpressionsBetweenPrompts = numImpressionsBetweenPrompts));
           });
 
           it('should not delay second prompt for Subscriptions', async () => {
@@ -2130,7 +2130,7 @@ describes.realWin('AutoPromptManager', (env) => {
     beforeEach(() => {
       const autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
-        impressionCountInterval: 2,
+        numImpressionsBetweenPrompts: 2,
         dismissalBackOffSeconds: 5,
         maxDismissalsPerWeek: 2,
         maxDismissalsResultingHideSeconds: 10,

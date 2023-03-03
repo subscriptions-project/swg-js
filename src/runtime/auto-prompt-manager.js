@@ -260,7 +260,7 @@ export class AutoPromptManager {
       const shouldSuppressAutoprompt =
         await this.secondPromptDelayExperimentSuppressesPrompt_(
           clientConfig?.autoPromptConfig?.clientDisplayTrigger
-            ?.impressionCountInterval
+            ?.numImpressionsBetweenPrompts
         );
       if (shouldSuppressAutoprompt) {
         this.promptDisplayed_ = null;
@@ -778,7 +778,7 @@ export class AutoPromptManager {
 
   /**
    * Checks if the triggering of the second prompt should be suppressed due the
-   * configured interval of impression counts after the first prompt within
+   * configured number of impressions to allow the first prompt within
    * autoPromptConfig. Tracks impressions by storing timestamps for the first
    * prompt triggered and for each impression after. Returns whether to
    * suppress the next prompt. For example, for default number of impressions
@@ -788,20 +788,20 @@ export class AutoPromptManager {
    * [t1]         NO  (Impression 1)  YES
    * [t1, t2]     NO  (Impression 2)  YES
    * [t1, t2, t3] YES (2nd prompt)    NO
-   * @param {number|undefined} impressionCountInterval
+   * @param {number|undefined} numImpressionsBetweenPrompts
    * @return {!Promise<boolean>}
    */
   async secondPromptDelayExperimentSuppressesPrompt_(
-    impressionCountInterval = 2 // (b/267650049) default 2 impressions
+    numImpressionsBetweenPrompts = 2 // (b/267650049) default 2 impressions
   ) {
     const secondPromptDelayCounter = await this.storage_.getEvent(
       StorageKeys.SECOND_PROMPT_DELAY_COUNTER
     );
     const shouldSuppressPrompt =
       secondPromptDelayCounter.length > 0 &&
-      secondPromptDelayCounter.length <= impressionCountInterval;
+      secondPromptDelayCounter.length <= numImpressionsBetweenPrompts;
     const shouldStoreTimestamp =
-      secondPromptDelayCounter.length <= impressionCountInterval;
+      secondPromptDelayCounter.length <= numImpressionsBetweenPrompts;
 
     if (shouldStoreTimestamp) {
       this.storage_.storeEvent(StorageKeys.SECOND_PROMPT_DELAY_COUNTER);
