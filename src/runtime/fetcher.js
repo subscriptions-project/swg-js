@@ -15,7 +15,6 @@
  */
 
 import {ErrorUtils} from '../utils/errors';
-import {parseJson} from '../utils/json';
 import {parseUrl, serializeProtoMessageForUrl} from '../utils/url';
 
 const jsonSaftyPrefix = /^(\)\]\}'\n)/;

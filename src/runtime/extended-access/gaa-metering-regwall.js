@@ -57,7 +57,6 @@ import {addQueryParam} from '../../utils/url';
 import {createElement, injectStyleSheet} from '../../utils/dom';
 import {debugLog, warn} from '../../utils/log';
 import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
-import {parseJson} from '../../utils/json';
 import {resolveDoc} from '../../model/doc';
 import {setImportantStyles} from '../../utils/style';
 

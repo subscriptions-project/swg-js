@@ -34,7 +34,6 @@ import {
 import {ShowcaseEvent} from '../../api/subscriptions';
 import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
 import {debugLog} from '../../utils/log';
-import {parseJson} from '../../utils/json';
 import {parseUrl, wasReferredByGoogle} from '../../utils/url';
 
 export class GaaMetering {
