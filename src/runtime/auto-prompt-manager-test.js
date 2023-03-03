@@ -1992,7 +1992,7 @@ describes.realWin('AutoPromptManager', (env) => {
       },
       {
         impressionCountInterval: 10,
-        secondPromptDelayTimestampsSuppressesPrompt: 2,
+        secondPromptDelayTimestampsSuppressesPrompt: 10,
         secondPromptDelayTimestampsTriggersPrompt: 11,
       },
     ].forEach(
