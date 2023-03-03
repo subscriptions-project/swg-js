@@ -778,7 +778,7 @@ export class AutoPromptManager {
 
   /**
    * Checks if the triggering of the second prompt should be suppressed due the
-   * configured number of impressions to allow the first prompt within
+   * configured number of impressions to allow after the first prompt within
    * autoPromptConfig. Tracks impressions by storing timestamps for the first
    * prompt triggered and for each impression after. Returns whether to
    * suppress the next prompt. For example, for default number of impressions
