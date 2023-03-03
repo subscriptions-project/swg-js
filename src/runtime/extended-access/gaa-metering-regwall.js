@@ -57,7 +57,6 @@ import {addQueryParam} from '../../utils/url';
 import {createElement, injectStyleSheet} from '../../utils/dom';
 import {debugLog, warn} from '../../utils/log';
 import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
-import {parseJson} from '../../utils/json';
 import {resolveDoc} from '../../model/doc';
 import {setImportantStyles} from '../../utils/style';
 
@@ -346,7 +345,7 @@ export class GaaMeteringRegwall {
       self.document.querySelectorAll('script[type="application/ld+json"]')
     );
     const jsonQueue = /** @type {!Array<*>} */ (
-      ldJsonScripts.map((script) => parseJson(script.textContent))
+      ldJsonScripts.map((script) => JSON.parse(script.textContent))
     );
 
     // Search for publisher name, breadth-first.

@@ -38,7 +38,7 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
-import {getPropertyFromJsonString, parseJson} from '../utils/json';
+import {getPropertyFromJsonString} from '../utils/json';
 import {getSwgMode} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseUrl} from '../utils/url';
@@ -564,7 +564,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   if (raw && !swgData) {
     raw = atob(raw);
     if (raw) {
-      const parsed = parseJson(raw);
+      const parsed = JSON.parse(raw);
       swgData = parsed['swgCallbackData'];
     }
   }
