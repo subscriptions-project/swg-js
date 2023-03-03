@@ -26,12 +26,14 @@ export function debugLog(...args: any[]) {
 
 export function log(...args: any[]) {
   // eslint-disable-next-line no-console
-  console.log(...args);
+  console /*OK*/
+    .log(...args);
 }
 
 export function warn(...args: any[]) {
   // eslint-disable-next-line no-console
-  console.warn(...args);
+  console /*OK*/
+    .warn(...args);
 }
 
 /**
