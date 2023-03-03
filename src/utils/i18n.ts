@@ -21,9 +21,9 @@ const DEFAULT_LANGUAGE_CODE = 'en';
  * Gets a message for a given language code, from a map of messages.
  */
 export function msg(
-  map: {[key: string]: string},
+  map: {[key: string]: string | undefined},
   languageCodeOrElement: string | HTMLElement
-): string {
+): string | undefined {
   const defaultMsg = map[DEFAULT_LANGUAGE_CODE];
 
   // Verify params.
