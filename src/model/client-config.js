@@ -22,7 +22,6 @@
  *   autoPromptConfig: (./auto-prompt-config.AutoPromptConfig|undefined),
  *   paySwgVersion: (string|undefined),
  *   uiPredicates: (UiPredicates|undefined),
- *   usePrefixedHostPath: (boolean|undefined),
  *   useUpdatedOfferFlows: (boolean|undefined),
  *   skipAccountCreationScreen: (boolean|undefined),
  * }}
@@ -41,7 +40,6 @@ export class ClientConfig {
     autoPromptConfig,
     paySwgVersion,
     uiPredicates,
-    usePrefixedHostPath,
     useUpdatedOfferFlows,
     skipAccountCreationScreen,
   } = {}) {
@@ -50,9 +48,6 @@ export class ClientConfig {
 
     /** @const {string|undefined} */
     this.paySwgVersion = paySwgVersion;
-
-    /** @const {boolean} */
-    this.usePrefixedHostPath = usePrefixedHostPath || false;
 
     /** @const {boolean} */
     this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;

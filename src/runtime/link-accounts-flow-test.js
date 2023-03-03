@@ -24,7 +24,6 @@ import {
   LinkSaveTokenRequest,
   LinkingInfoResponse,
 } from '../proto/api_messages';
-import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {Dialog} from '../components/dialog';
@@ -182,10 +181,6 @@ describes.realWin('LinkCompleteFlow', {}, (env) => {
   });
 
   it('should trigger on link response', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(new ClientConfig());
-
     dialogManagerMock.expects('popupClosed').once();
     let handler;
     activitiesMock
