@@ -17,10 +17,8 @@
 /**
  * Returns an array of random values.  The length of the array is numInts.  Each
  * int will be >= 0 and < maxVal.
- * @param {!number} numInts
- * @param {!number} maxVal
  */
-export function getRandomInts(numInts, maxVal) {
+export function getRandomInts(numInts: number, maxVal: number) {
   // Ensure array type is appropriate for the max value (performance)
   const arr =
     maxVal < 256
