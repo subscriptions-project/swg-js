@@ -792,7 +792,7 @@ export class AutoPromptManager {
    * @return {!Promise<boolean>}
    */
   async secondPromptDelayExperimentSuppressesPrompt_(
-    impressionCountInterval = 2
+    impressionCountInterval = 2 // (b/267650049) default 2 impressions
   ) {
     const secondPromptDelayCounter = await this.storage_.getEvent(
       StorageKeys.SECOND_PROMPT_DELAY_COUNTER
