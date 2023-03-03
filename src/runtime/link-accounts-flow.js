@@ -146,9 +146,6 @@ export class LinkCompleteFlow {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!./client-config-manager.ClientConfigManager} */
-    this.clientConfigManager_ = deps.clientConfigManager();
-
     /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
@@ -187,17 +184,11 @@ export class LinkCompleteFlow {
     }
 
     // Show confirmation.
-    const clientConfig = await this.clientConfigManager_.getClientConfig();
     const index = this.response_['index'] || '0';
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      feUrl(
-        '/linkconfirmiframe',
-        {},
-        clientConfig.usePrefixedHostPath,
-        'u/' + index
-      ),
+      feUrl('/linkconfirmiframe', {}, 'u/' + index),
       feArgs({
         'productId': this.deps_.pageConfig().getProductId(),
         'publicationId': this.deps_.pageConfig().getPublicationId(),

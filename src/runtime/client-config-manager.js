@@ -51,7 +51,6 @@ export class ClientConfigManager {
     /** @private @const {ClientConfig} */
     this.defaultConfig_ = new ClientConfig({
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
-      usePrefixedHostPath: true,
     });
   }
 
@@ -236,7 +235,6 @@ export class ClientConfigManager {
     return new ClientConfig({
       autoPromptConfig,
       paySwgVersion,
-      usePrefixedHostPath: json['usePrefixedHostPath'],
       useUpdatedOfferFlows: json['useUpdatedOfferFlows'],
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
       uiPredicates,
