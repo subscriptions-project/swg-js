@@ -140,22 +140,12 @@ export function adsUrl(url) {
 /**
  * @param {string} url Relative URL, e.g. "/offersiframe".
  * @param {Object<string, string>=} params List of extra params to append to the URL.
- * @param {boolean=} usePrefixedHostPath
  * @param {string=} prefix
  * @return {string} The complete URL.
  */
-export function feUrl(
-  url,
-  params = {},
-  usePrefixedHostPath = true,
-  prefix = ''
-) {
+export function feUrl(url, params = {}, prefix = '') {
   // Add cache param.
-  const prefixed = prefix
-    ? usePrefixedHostPath
-      ? `swg/${prefix}`
-      : `${prefix}/swg`
-    : 'swg';
+  const prefixed = prefix ? `swg/${prefix}` : 'swg';
   url = feCached(`${getSwgMode().frontEnd}/${prefixed}/ui/v1${url}`);
 
   // Optionally add jsmode param. This allows us to test against "aggressively" compiled Boq JS.
