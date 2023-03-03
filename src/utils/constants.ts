@@ -30,7 +30,6 @@ const StorageKeys = {
   /**
    * Local storage key for autoprompt dismissal timestamps.
    */
-
   DISMISSALS: 'autopromptdismiss',
 
   /**
