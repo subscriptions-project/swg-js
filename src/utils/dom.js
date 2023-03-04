@@ -23,15 +23,12 @@ export const styleType = 'text/css';
 /**
  * Add attributes to an element.
  * @param {!Element} element
- * @param {!Object<string, string>} attributes
+ * @param {!Object<string, string>=} attributes
  * @return {!Element} updated element.
  */
-function addAttributesToElement(element, attributes) {
-  for (const attr in attributes) {
-    element.setAttribute(
-      attr,
-      /** @type {string|boolean|number} */ (attributes[attr])
-    );
+function addAttributesToElement(element, attributes = {}) {
+  for (const [key, value] of Object.entries(attributes)) {
+    element.setAttribute(key, value);
   }
   return element;
 }
