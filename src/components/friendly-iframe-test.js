@@ -15,7 +15,7 @@
  */
 
 import {FriendlyIframe} from './friendly-iframe';
-import {getStyle, setImportantStyles, setStyles} from '../utils/style';
+import {getStyle, setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string|number} */
 const importantStyles = {
