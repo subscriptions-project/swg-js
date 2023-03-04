@@ -46,5 +46,5 @@ export function getPropertyFromJsonString(
   propertyName: string
 ): any {
   const json = tryParseJson(jsonString);
-  return (json && json[propertyName]) ?? null;
+  return json?.[propertyName];
 }
