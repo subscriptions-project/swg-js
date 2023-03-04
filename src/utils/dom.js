@@ -23,23 +23,15 @@ export const styleType = 'text/css';
 /**
  * Add attributes to an element.
  * @param {!Element} element
- * @param {!Object<string, string|number|boolean|!Object<string, string|number|boolean>>} attributes
+ * @param {!Object<string, string>} attributes
  * @return {!Element} updated element.
  */
-export function addAttributesToElement(element, attributes) {
+function addAttributesToElement(element, attributes) {
   for (const attr in attributes) {
-    if (attr == 'style') {
-      setStyles(
-        element,
-        /** @type {!Object<string, string|boolean|number>} */
-        (attributes[attr])
-      );
-    } else {
-      element.setAttribute(
-        attr,
-        /** @type {string|boolean|number} */ (attributes[attr])
-      );
-    }
+    element.setAttribute(
+      attr,
+      /** @type {string|boolean|number} */ (attributes[attr])
+    );
   }
   return element;
 }

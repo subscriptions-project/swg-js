@@ -118,7 +118,7 @@ export class GaaSignInWithGoogleButton {
     try {
       const buttonEl = createElement(self.document, 'div', {
         id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-        tabIndex: 0,
+        tabIndex: '0',
       });
       self.document.body.appendChild(buttonEl);
 

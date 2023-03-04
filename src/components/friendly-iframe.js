@@ -17,9 +17,9 @@
 import {createElement} from '../utils/dom';
 import {resetAllStyles} from '../utils/style';
 
-/** @const {!Object<string|number>} */
+/** @const {!Object<string, string>} */
 const friendlyIframeAttributes = {
-  'frameborder': 0,
+  'frameborder': '0',
   'scrolling': 'no',
   'src': 'about:blank',
 };
@@ -30,9 +30,9 @@ const friendlyIframeAttributes = {
 export class FriendlyIframe {
   /**
    * @param {!Document} doc
-   * @param {!Object<string, string|number>=} attrs
+   * @param {!Object<string, string>} attrs
    */
-  constructor(doc, attrs = {}) {
+  constructor(doc, attrs) {
     const mergedAttrs = Object.assign({}, friendlyIframeAttributes, attrs);
 
     /** @private @const {!HTMLIFrameElement} */
