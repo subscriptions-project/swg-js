@@ -15,7 +15,6 @@
  */
 
 import {assert} from './log';
-import {setStyles} from './style';
 
 /** @const {string} */
 export const styleType = 'text/css';
