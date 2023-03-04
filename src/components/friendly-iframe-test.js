@@ -61,7 +61,7 @@ describes.realWin('FriendlyIframe', (env) => {
       expect(friendlyIframe.isConnected()).to.be.true;
 
       setImportantStyles(iframe, importantStyles);
-      setStyles(iframe);
+      setStyles(iframe, {});
 
       expect(getStyle(iframe, 'opacity')).to.equal('1');
       expect(getStyle(iframe, 'display')).to.equal('block');
