@@ -514,7 +514,7 @@ export class GaaMeteringRegwall {
     // Create and append button to regwall
     const buttonEl = createElement(self.document, 'div', {
       id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-      tabIndex: 0,
+      tabIndex: '0',
     });
     parentElement.appendChild(buttonEl);
 
@@ -560,7 +560,7 @@ export class GaaMeteringRegwall {
     // Render the third party Google Sign-In button.
     const buttonEl = createElement(self.document, 'div', {
       id: GOOGLE_3P_SIGN_IN_BUTTON_ID,
-      tabIndex: 0,
+      tabIndex: '0',
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     parentElement.appendChild(buttonEl);
