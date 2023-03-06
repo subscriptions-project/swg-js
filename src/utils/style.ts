@@ -151,7 +151,7 @@ export const defaultStyles = {
  */
 export function setImportantStyles(
   element: HTMLElement,
-  styles: {[property: string]: string | number}
+  styles: {[property: string]: number | string}
 ) {
   for (const [property, value] of Object.entries(styles)) {
     element.style.setProperty(property, value.toString(), 'important');
