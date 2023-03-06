@@ -73,7 +73,7 @@ export class GaaGoogle3pSignInButton {
     // Render the third party Google Sign-In button.
     const buttonEl = createElement(self.document, 'div', {
       id: GOOGLE_3P_SIGN_IN_BUTTON_ID,
-      tabIndex: 0,
+      tabIndex: '0',
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     buttonEl.onclick = async () => {
