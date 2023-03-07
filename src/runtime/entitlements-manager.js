@@ -51,15 +51,21 @@ import {warn} from '../utils/log';
 const SERVICE_ID = 'subscribe.google.com';
 
 /**
+ * @typedef {{
+ *  type: (string),
+ *  configurationId: (string)
+ * }}
+ */
+export let Action;
+
+/**
  * Article response object.
  *
  * @typedef {{
  *  entitlements: (../api/entitlements.Entitlements),
  *  clientConfig: (../model/client-config.ClientConfig),
  *  audienceActions: ({
- *    actions: Array<{
- *      type: (string)
- *    }>,
+ *    actions: Array<Action>,
  *    engineId: (string)
  *  }),
  *  experimentConfig: ({

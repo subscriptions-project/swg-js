@@ -1132,7 +1132,9 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [{type: 'TYPE_REGISTRATION_WALL'}],
+            actions: [
+              {type: 'TYPE_REGISTRATION_WALL', confiurationId: 'reg_config_id'},
+            ],
             engineId: '123',
           },
         })
@@ -1162,9 +1164,18 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_CONTRIBUTION'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_CONTRIBUTION',
+                confiurationId: 'contribution_config_id',
+              },
+              {
+                type: 'TYPE_REGISTRATION_WALL',
+                configurationId: 'regwall_config_id',
+              },
+              {
+                type: 'TYPE_NEWSLETTER_SIGNUP',
+                configurationId: 'newsletter_config_id',
+              },
             ],
             engineId: '123',
           },
@@ -1189,7 +1200,12 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [{type: 'TYPE_SUBSCRIPTION'}],
+            actions: [
+              {
+                type: 'TYPE_SUBSCRIPTION',
+                configurationId: 'subscription_config_id',
+              },
+            ],
             engineId: '123',
           },
         })
@@ -1292,9 +1308,18 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_REWARDED_SURVEY',
+                configurationId: 'survey_config_id',
+              },
+              {
+                type: 'TYPE_REGISTRATION_WALL',
+                configurationId: 'regwall_config_id',
+              },
+              {
+                type: 'TYPE_NEWSLETTER_SIGNUP',
+                configurationId: 'newsletter_config_id',
+              },
             ],
             engineId: '123',
           },
@@ -1674,9 +1699,18 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_REWARDED_SURVEY',
+                configurationId: 'survey_config_id',
+              },
+              {
+                type: 'TYPE_REGISTRATION_WALL',
+                configurationId: 'regwall_config_id',
+              },
+              {
+                type: 'TYPE_NEWSLETTER_SIGNUP',
+                configurationId: 'newsletter_config_id',
+              },
             ],
             engineId: '123',
           },
@@ -1969,7 +2003,12 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [{type: 'TYPE_REWARDED_SURVEY'}],
+            actions: [
+              {
+                type: 'TYPE_REWARDED_SURVEY',
+                configurationId: 'survey_config_id',
+              },
+            ],
             engineId: '123',
           },
           experimentConfig: {
@@ -2161,7 +2200,12 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [{type: 'TYPE_REWARDED_SURVEY'}],
+            actions: [
+              {
+                type: 'TYPE_REWARDED_SURVEY',
+                configurationId: 'survey_config_id',
+              },
+            ],
             engineId: '123',
           },
           experimentConfig: {

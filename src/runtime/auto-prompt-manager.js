@@ -220,7 +220,7 @@ export class AutoPromptManager {
       params.autoPromptType
     );
 
-    const potentialActionPromptType = article
+    const potentialAction = article
       ? await this.getAudienceActionPromptType_({
           article,
           autoPromptType: params.autoPromptType,
@@ -229,9 +229,10 @@ export class AutoPromptManager {
         })
       : undefined;
 
-    const promptFn = potentialActionPromptType
+    const promptFn = potentialAction
       ? this.audienceActionPrompt_({
-          action: potentialActionPromptType,
+          action: potentialAction.type,
+          configurationId: potentialAction.configurationId,
           autoPromptType: params.autoPromptType,
         })
       : params.displayLargePromptFn;
@@ -239,7 +240,7 @@ export class AutoPromptManager {
     const shouldShowBlockingPrompt =
       this.shouldShowBlockingPrompt_(
         entitlements,
-        /* hasPotentialAudienceAction */ !!potentialActionPromptType
+        /* hasPotentialAudienceAction */ !!potentialAction.type
       ) && promptFn;
 
     if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
@@ -282,7 +283,7 @@ export class AutoPromptManager {
       }, displayDelayMs);
     } else {
       const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
-        potentialActionPromptType
+        potentialAction.type
       );
       this.deps_
         .win()
@@ -457,7 +458,7 @@ export class AutoPromptManager {
    *   dismissedPrompts: (?string|undefined),
    *   shouldShowAutoPrompt: (boolean|undefined),
    * }} params
-   * @return {!Promise<string|undefined>}
+   * @return {!Promise<./entitlements-manager.Action|undefined>}
    */
   async getAudienceActionPromptType_({
     article,
@@ -494,7 +495,7 @@ export class AutoPromptManager {
     }
 
     // Default to the first recommended action.
-    let actionToUse = potentialActions[0].type;
+    let actionToUse = potentialActions[0];
 
     // Contribution prompts should appear before recommended actions, so we'll need
     // to check if we have shown it before.
@@ -539,8 +540,8 @@ export class AutoPromptManager {
 
       // Otherwise, set to the next recommended action. If the last dismissal was the
       // Contribution prompt, this will resolve to the first recommended action.
-      actionToUse = potentialActions[0].type;
-      this.promptDisplayed_ = actionToUse;
+      actionToUse = potentialActions[0];
+      this.promptDisplayed_ = actionToUse.type;
     }
     return actionToUse;
   }
