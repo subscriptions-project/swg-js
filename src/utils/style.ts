@@ -19,7 +19,6 @@
  * Some attributes are not included such as height, left, margin-left; since
  * these attributes are updated by @media queries and having these values
  * defined here as !important does not work on IE/edge browsers.
- * @const {!Object<string, string|number>}
  */
 export const defaultStyles = {
   'align-content': 'normal',
@@ -149,10 +148,11 @@ export const defaultStyles = {
 /**
  * Sets the CSS styles of the specified element with !important. The styles
  * are specified as a map from CSS property names to their values.
- * @param {!Element} element
- * @param {!Object<string, number|string>} styles
  */
-export function setImportantStyles(element, styles) {
+export function setImportantStyles(
+  element: HTMLElement,
+  styles: {[property: string]: number | string}
+) {
   for (const [property, value] of Object.entries(styles)) {
     element.style.setProperty(property, value.toString(), 'important');
   }
@@ -160,31 +160,30 @@ export function setImportantStyles(element, styles) {
 
 /**
  * Sets the CSS style of the specified element.
- * @param {Element} element
- * @param {string} property
- * @param {string} value
  */
-export function setStyle(element, property, value) {
+export function setStyle(
+  element: HTMLElement,
+  property: string,
+  value: string
+) {
   element.style.setProperty(property, value);
 }
 
 /**
  * Returns the value of the CSS style of the specified element.
- * @param {!Element} element
- * @param {string} property
- * @return {string}
  */
-export function getStyle(element, property) {
+export function getStyle(element: HTMLElement, property: string): string {
   return element.style.getPropertyValue(property);
 }
 
 /**
  * Sets the CSS styles of the specified element. The styles
  * a specified as a map from CSS property names to their values.
- * @param {!Element} element
- * @param {!Object<string, string>} styles
  */
-export function setStyles(element, styles) {
+export function setStyles(
+  element: HTMLElement,
+  styles: {[property: string]: string}
+) {
   for (const [property, value] of Object.entries(styles)) {
     setStyle(element, property, value);
   }
@@ -192,22 +191,17 @@ export function setStyles(element, styles) {
 
 /**
  * Resets styles that were set dynamically (i.e. inline)
- * @param {!Element} element
- * @param {!Array<string>} properties
  */
-export function resetStyles(element, properties) {
-  const styleObj = {};
+export function resetStyles(element: HTMLElement, properties: Array<string>) {
   for (const property of properties) {
-    styleObj[property] = '';
+    setStyle(element, property, '');
   }
-  setStyles(element, styleObj);
 }
 
 /**
  * Resets all the styles of an element to a given value. Defaults to null.
  * The valid values are 'inherit', 'initial', 'unset' or null.
- * @param {!Element} element
  */
-export function resetAllStyles(element) {
+export function resetAllStyles(element: HTMLElement) {
   setImportantStyles(element, defaultStyles);
 }
