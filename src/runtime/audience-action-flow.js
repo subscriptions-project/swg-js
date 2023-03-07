@@ -47,6 +47,7 @@ import {parseUrl} from '../utils/url';
 /**
  * @typedef {{
  *  action: (string|undefined),
+ *  configurationId: (string|undefined),
  *  onCancel: (function()|undefined),
  *  autoPromptType: (AutoPromptType|undefined)
  * }}
@@ -108,6 +109,7 @@ export class AudienceActionFlow {
       deps.activities(),
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
+        'configurationId': this.params_.configurationId,
         'hl': this.clientConfigManager_.getLanguage(),
         'isClosable': !deps.pageConfig().isLocked(),
       }),

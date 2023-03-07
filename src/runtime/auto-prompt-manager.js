@@ -545,14 +545,16 @@ export class AutoPromptManager {
   /**
    * @param {{
    *  action: (string|undefined),
+   *  configurationId: (string|undefined),
    *  autoPromptType: (AutoPromptType|undefined)
    * }} params
    * @return {!function()}
    */
-  audienceActionPrompt_({action, autoPromptType}) {
+  audienceActionPrompt_({action, configurationId, autoPromptType}) {
     return () => {
       const params = {
         action,
+        configurationId,
         autoPromptType,
         onCancel: () => this.storeLastDismissal_(),
       };
