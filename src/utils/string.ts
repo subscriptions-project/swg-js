@@ -42,7 +42,7 @@ function getMonthlyTimeIdentifier(): string {
  * The first 8 digits are unique for the millisecond of the month.  The rest
  * are randomly generated.
  */
-export function getUuid() {
+export function getUuid(): string {
   let uuid = getMonthlyTimeIdentifier() + '-';
   let rIndex = 0;
   const rands = getRandomInts(23, 16);
@@ -67,7 +67,7 @@ export function getUuid() {
   return uuid;
 }
 
-export function getSwgTransactionId() {
+export function getSwgTransactionId(): string {
   return getUuid() + '.swg';
 }
 
@@ -79,7 +79,7 @@ function padString(str: string, format: string): string {
 }
 
 const PADDING = '00000000';
-function toHex(buffer: ArrayBuffer) {
+function toHex(buffer: ArrayBuffer): string {
   const hexCodes = [];
   const view = new DataView(buffer);
   for (let i = 0; i < view.byteLength; i += 4) {
