@@ -17,15 +17,12 @@
 import {base64UrlDecodeToBytes, utf8DecodeSync} from './bytes';
 import {tryParseJson} from './json';
 
-/**
- * @typedef {{
- *   header: (?JsonObject|undefined),
- *   payload: (?JsonObject|undefined),
- *   verifiable: string,
- *   sig: string,
- * }}
- */
-let JwtTokenInternalDef;
+interface JwtTokenInternalDef {
+  header: any;
+  payload: any;
+  verifiable: string;
+  sig: string;
+}
 
 /**
  * Provides helper methods to decode and verify JWT tokens.
@@ -35,19 +32,12 @@ export class JwtHelper {
 
   /**
    * Decodes JWT token and returns its payload.
-   * @param {string} encodedToken
-   * @return {?JsonObject|undefined}
    */
-  decode(encodedToken) {
+  decode(encodedToken: string): unknown {
     return this.decodeInternal_(encodedToken).payload;
   }
 
-  /**
-   * @param {string} encodedToken
-   * @return {!JwtTokenInternalDef}
-   * @private
-   */
-  decodeInternal_(encodedToken) {
+  private decodeInternal_(encodedToken: string): JwtTokenInternalDef {
     // See https://jwt.io/introduction/
     /**
      * Throws error about invalid token.
