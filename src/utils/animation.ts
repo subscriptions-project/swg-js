@@ -18,14 +18,19 @@ import {setImportantStyles} from './style';
 
 /**
  * Returns a promise which is resolved after the given duration of animation
- * @param {!Element} el - Element to be observed.
- * @param {!Object<string, string|number>} props - properties to be animated.
- * @param {number} durationMillis - duration of animation.
- * @param {string} curve - transition function for the animation.
- * @return {!Promise} Promise which resolves once the animation is done playing.
+ * @param el - Element to be observed.
+ * @param props - properties to be animated.
+ * @param durationMillis - duration of animation.
+ * @param curve - transition function for the animation.
+ * @return Promise which resolves once the animation is done playing.
  */
-export async function transition(el, props, durationMillis, curve) {
-  const win = el.ownerDocument.defaultView;
+export async function transition(
+  el: HTMLElement,
+  props: {[key: string]: number | string},
+  durationMillis: number,
+  curve: string
+): Promise<void> {
+  const win = el.ownerDocument.defaultView!;
   const previousTransitionValue = el.style.transition || '';
 
   await new Promise((resolve) => {

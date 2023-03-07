@@ -23,18 +23,16 @@ const CHARS = '0123456789ABCDEF';
 /**
  * Ensures the passed value is safe to use for character 19 per rfc4122,
  * sec. 4.1.5.  "Sets the high bits of clock sequence".
- * @param {!number} v
  */
-function getChar19(v) {
+function getChar19(v: number): string {
   return CHARS[(v & 0x3) | 0x8];
 }
 
 /**
  * The returned identifier will always be an 8 digit valid hexidecimal number
  * and will be unique for each MS within a given month.
- * @return {string}
  */
-function getMonthlyTimeIdentifier() {
+function getMonthlyTimeIdentifier(): string {
   const hexTime = Date.now().toString(16);
   return hexTime.substring(hexTime.length - 8).toUpperCase();
 }
@@ -44,7 +42,7 @@ function getMonthlyTimeIdentifier() {
  * The first 8 digits are unique for the millisecond of the month.  The rest
  * are randomly generated.
  */
-export function getUuid() {
+export function getUuid(): string {
   let uuid = getMonthlyTimeIdentifier() + '-';
   let rIndex = 0;
   const rands = getRandomInts(23, 16);
@@ -69,22 +67,19 @@ export function getUuid() {
   return uuid;
 }
 
-export function getSwgTransactionId() {
+export function getSwgTransactionId(): string {
   return getUuid() + '.swg';
 }
 
 /**
  * Returns a string whose length matches the length of format.
- * @param {string} str
- * @param {string} format
- * @return {string}
  */
-function padString(str, format) {
+function padString(str: string, format: string): string {
   return (format + str).slice(-format.length);
 }
 
 const PADDING = '00000000';
-function toHex(buffer) {
+function toHex(buffer: ArrayBuffer): string {
   const hexCodes = [];
   const view = new DataView(buffer);
   for (let i = 0; i < view.byteLength; i += 4) {
@@ -101,7 +96,7 @@ function toHex(buffer) {
  * @param {string} stringToHash
  * @return {!Promise<string>}
  */
-export async function hash(stringToHash) {
+export async function hash(stringToHash: string): Promise<string> {
   const subtle = self.crypto?.subtle;
 
   if (!subtle) {
