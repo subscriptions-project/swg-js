@@ -62,48 +62,27 @@ export class AutoPromptConfig {
  * Client side conditions to trigger the display of the auto prompt.
  */
 export class ClientDisplayTrigger {
-  displayDelaySeconds?: number;
-
-  constructor(displayDelaySeconds?: number) {
-    this.displayDelaySeconds = displayDelaySeconds;
-  }
+  constructor(public readonly displayDelaySeconds?: number) {}
 }
 
 /**
  * Configuration of explicit dismissal behavior and its effects.
  */
 export class ExplicitDismissalConfig {
-  backOffSeconds?: number;
-  maxDismissalsPerWeek?: number;
-  maxDismissalsResultingHideSeconds?: number;
-
   constructor(
-    backOffSeconds?: number,
-    maxDismissalsPerWeek?: number,
-    maxDismissalsResultingHideSeconds?: number
-  ) {
-    this.backOffSeconds = backOffSeconds;
-    this.maxDismissalsPerWeek = maxDismissalsPerWeek;
-    this.maxDismissalsResultingHideSeconds = maxDismissalsResultingHideSeconds;
-  }
+    public readonly backOffSeconds?: number,
+    public readonly maxDismissalsPerWeek?: number,
+    public readonly maxDismissalsResultingHideSeconds?: number
+  ) {}
 }
 
 /**
  * Configuration of impression behavior and its effects.
  */
 export class ImpressionConfig {
-  backOffSeconds?: number;
-  maxImpressions?: number;
-  maxImpressionsResultingHideSeconds?: number;
-
   constructor(
-    backOffSeconds?: number,
-    maxImpressions?: number,
-    maxImpressionsResultingHideSeconds?: number
-  ) {
-    this.backOffSeconds = backOffSeconds;
-    this.maxImpressions = maxImpressions;
-    this.maxImpressionsResultingHideSeconds =
-      maxImpressionsResultingHideSeconds;
-  }
+    public readonly backOffSeconds?: number,
+    public readonly maxImpressions?: number,
+    public readonly maxImpressionsResultingHideSeconds?: number
+  ) {}
 }
