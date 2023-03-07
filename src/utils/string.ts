@@ -24,7 +24,7 @@ const CHARS = '0123456789ABCDEF';
  * Ensures the passed value is safe to use for character 19 per rfc4122,
  * sec. 4.1.5.  "Sets the high bits of clock sequence".
  */
-function getChar19(v: number) {
+function getChar19(v: number): string {
   return CHARS[(v & 0x3) | 0x8];
 }
 
