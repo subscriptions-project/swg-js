@@ -37,7 +37,7 @@ export class JwtHelper {
     return this.decodeInternal_(encodedToken).payload;
   }
 
-  decodeInternal_(encodedToken: string): JwtTokenInternalDef {
+  private decodeInternal_(encodedToken: string): JwtTokenInternalDef {
     // See https://jwt.io/introduction/
     /**
      * Throws error about invalid token.
