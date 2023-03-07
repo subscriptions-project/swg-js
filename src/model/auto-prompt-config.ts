@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-/**
- * @typedef {{
- *   displayDelaySeconds: (number|undefined),
- *   dismissalBackOffSeconds: (number|undefined),
- *   maxDismissalsPerWeek: (number|undefined),
- *   maxDismissalsResultingHideSeconds: (number|undefined),
- *   impressionBackOffSeconds: (number|undefined),
- *   maxImpressions: (number|undefined),
- *   maxImpressionsResultingHideSeconds: (number|undefined),
- * }}
- */
-export let AutoPromptConfigParams;
+interface AutoPromptConfigParams {
+  displayDelaySeconds?: number;
+  dismissalBackOffSeconds?: number;
+  maxDismissalsPerWeek?: number;
+  maxDismissalsResultingHideSeconds?: number;
+  impressionBackOffSeconds?: number;
+  maxImpressions?: number;
+  maxImpressionsResultingHideSeconds?: number;
+}
 
 /**
  * Container for the auto prompt configuation details.
  */
 export class AutoPromptConfig {
+  clientDisplayTrigger: ClientDisplayTrigger;
+  explicitDismissalConfig: ExplicitDismissalConfig;
+  impressionConfig: ImpressionConfig;
+
   /**
    * @param {!AutoPromptConfigParams=} params
    */
@@ -42,18 +43,13 @@ export class AutoPromptConfig {
     impressionBackOffSeconds,
     maxImpressions,
     maxImpressionsResultingHideSeconds,
-  } = {}) {
-    /** @const {!ClientDisplayTrigger} */
+  }: AutoPromptConfigParams) {
     this.clientDisplayTrigger = new ClientDisplayTrigger(displayDelaySeconds);
-
-    /** @const {!ExplicitDismissalConfig} */
     this.explicitDismissalConfig = new ExplicitDismissalConfig(
       dismissalBackOffSeconds,
       maxDismissalsPerWeek,
       maxDismissalsResultingHideSeconds
     );
-
-    /** @const {!ImpressionConfig} */
     this.impressionConfig = new ImpressionConfig(
       impressionBackOffSeconds,
       maxImpressions,
@@ -66,11 +62,9 @@ export class AutoPromptConfig {
  * Client side conditions to trigger the display of the auto prompt.
  */
 export class ClientDisplayTrigger {
-  /**
-   * @param {number|undefined} displayDelaySeconds
-   */
-  constructor(displayDelaySeconds) {
-    /** @const {number|undefined} */
+  displayDelaySeconds?: number;
+
+  constructor(displayDelaySeconds?: number) {
     this.displayDelaySeconds = displayDelaySeconds;
   }
 }
@@ -79,23 +73,17 @@ export class ClientDisplayTrigger {
  * Configuration of explicit dismissal behavior and its effects.
  */
 export class ExplicitDismissalConfig {
-  /**
-   * @param {number|undefined} backOffSeconds
-   * @param {number|undefined} maxDismissalsPerWeek
-   * @param {number|undefined} maxDismissalsResultingHideSeconds
-   */
+  backOffSeconds?: number;
+  maxDismissalsPerWeek?: number;
+  maxDismissalsResultingHideSeconds?: number;
+
   constructor(
-    backOffSeconds,
-    maxDismissalsPerWeek,
-    maxDismissalsResultingHideSeconds
+    backOffSeconds?: number,
+    maxDismissalsPerWeek?: number,
+    maxDismissalsResultingHideSeconds?: number
   ) {
-    /** @const {number|undefined} */
     this.backOffSeconds = backOffSeconds;
-
-    /** @const {number|undefined} */
     this.maxDismissalsPerWeek = maxDismissalsPerWeek;
-
-    /** @const {number|undefined} */
     this.maxDismissalsResultingHideSeconds = maxDismissalsResultingHideSeconds;
   }
 }
@@ -104,23 +92,17 @@ export class ExplicitDismissalConfig {
  * Configuration of impression behavior and its effects.
  */
 export class ImpressionConfig {
-  /**
-   * @param {number|undefined} backOffSeconds
-   * @param {number|undefined} maxImpressions
-   * @param {number|undefined} maxImpressionsResultingHideSeconds
-   */
+  backOffSeconds?: number;
+  maxImpressions?: number;
+  maxImpressionsResultingHideSeconds?: number;
+
   constructor(
-    backOffSeconds,
-    maxImpressions,
-    maxImpressionsResultingHideSeconds
+    backOffSeconds?: number,
+    maxImpressions?: number,
+    maxImpressionsResultingHideSeconds?: number
   ) {
-    /** @const {number|undefined} */
     this.backOffSeconds = backOffSeconds;
-
-    /** @const {number|undefined} */
     this.maxImpressions = maxImpressions;
-
-    /** @const {number|undefined} */
     this.maxImpressionsResultingHideSeconds =
       maxImpressionsResultingHideSeconds;
   }
