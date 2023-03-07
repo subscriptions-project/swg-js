@@ -64,7 +64,7 @@ export function assert(
   throw new Error(formatted);
 }
 
-function toString(val: any): string {
+function toString(val: unknown): string {
   // Do check equivalent to `val instanceof Element` without cross-window bug
   const possibleElement = val as Element;
   if (possibleElement?.nodeType == 1) {
