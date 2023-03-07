@@ -17,7 +17,7 @@
 /**
  * Determines if value is actually an Object.
  */
-export function isObject(value: any): boolean {
+export function isObject(value: unknown): boolean {
   const str = Object.prototype.toString.call(value);
   return str === '[object Object]';
 }
@@ -32,13 +32,13 @@ export function isEnumValue(enumObj: object, value: string | number): boolean {
 /**
  * True if the value is a function.
  */
-export function isFunction(value: any): boolean {
+export function isFunction(value: unknown): boolean {
   return typeof value === 'function';
 }
 
 /**
  * True if the value is either true or false.
  */
-export function isBoolean(value: any): boolean {
+export function isBoolean(value: unknown): boolean {
   return typeof value === 'boolean';
 }

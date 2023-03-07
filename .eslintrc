@@ -70,6 +70,7 @@
         "varsIgnorePattern": "Def|Interface$"
       }
     ],
+    "@typescript-eslint/no-explicit-any": 2,
     "no-useless-call": 2,
     "no-useless-concat": 2,
     "no-undef": 2,
