@@ -18,7 +18,7 @@
  * Whether the specified error is an AbortError type.
  * See https://heycam.github.io/webidl/#aborterror.
  */
-export function isCancelError(error: any): boolean {
+export function isCancelError(error: Error): boolean {
   return error?.name === 'AbortError';
 }
 
