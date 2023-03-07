@@ -18,15 +18,8 @@
  * Container for attribution details for the publisher / creator.
  */
 export class AttributionParams {
-  /**
-   * @param {string} displayName
-   * @param {string} avatarUrl
-   */
-  constructor(displayName, avatarUrl) {
-    /** @const {string} */
-    this.displayName = displayName;
-
-    /** @const {string} */
-    this.avatarUrl = avatarUrl;
-  }
+  constructor(
+    public readonly displayName: string,
+    public readonly avatarUrl: string
+  ) {}
 }
