@@ -148,8 +148,8 @@ const forbiddenTermsSrcInclusive = {
   'Text(Encoder|Decoder)\\(': {
     message:
       'TextEncoder/TextDecoder is not supported in all browsers.' +
-      'Please use UTF8 utilities from src/bytes.js',
-    allowlist: ['src/utils/bytes.js'],
+      'Please use UTF8 utilities from src/utils/bytes.ts',
+    allowlist: ['src/utils/bytes.ts'],
   },
   'reject\\(\\)': {
     message:

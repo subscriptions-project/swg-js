@@ -17,25 +17,11 @@
 import {assert} from './log';
 
 /**
- * Character mapping from base64url to base64.
- * @const {!Object<string, string>}
- */
-const base64UrlDecodeSubs = {'-': '+', '_': '/'};
-
-/**
- * Character mapping from base64 to base64url.
- * @const {!Object<string, string>}
- */
-const base64UrlEncodeSubs = {'+': '-', '/': '_', '=': ''};
-
-/**
  * Converts a string which holds 8-bit code points, such as the result of atob,
  * into a Uint8Array with the corresponding bytes.
  * If you have a string of characters, you probably want to be using utf8Encode.
- * @param {string} str
- * @return {!Uint8Array}
  */
-export function stringToBytes(str) {
+export function stringToBytes(str: string): Uint8Array {
   const bytes = new Uint8Array(str.length);
   for (let i = 0; i < str.length; i++) {
     const charCode = str.charCodeAt(i);
@@ -47,10 +33,8 @@ export function stringToBytes(str) {
 
 /**
  * Converts a 8-bit bytes array into a string
- * @param {!Uint8Array} bytes
- * @return {string}
  */
-export function bytesToString(bytes) {
+export function bytesToString(bytes: Uint8Array): string {
   // Intentionally avoids String.fromCharCode.apply so we don't suffer a
   // stack overflow. #10495, https://jsperf.com/bytesToString-2
   const array = new Array(bytes.length);
@@ -62,10 +46,8 @@ export function bytesToString(bytes) {
 
 /**
  * Interpret a byte array as a UTF-8 string.
- * @param {!Uint8Array} bytes
- * @return {string}
  */
-export function utf8DecodeSync(bytes) {
+export function utf8DecodeSync(bytes: Uint8Array): string {
   if (typeof TextDecoder !== 'undefined') {
     return new TextDecoder('utf-8').decode(bytes);
   }
@@ -75,12 +57,10 @@ export function utf8DecodeSync(bytes) {
 
 /**
  * Turn a string into UTF-8 bytes.
- * @param {string} string
- * @return {!Uint8Array}
  */
-export function utf8EncodeSync(string) {
+export function utf8EncodeSync(string: string): Uint8Array {
   if (typeof TextEncoder !== 'undefined') {
-    return new TextEncoder('utf-8').encode(string);
+    return new TextEncoder().encode(string);
   }
   return stringToBytes(unescape(encodeURIComponent(string)));
 }
@@ -88,21 +68,20 @@ export function utf8EncodeSync(string) {
 /**
  * Converts a string which is in base64url encoding into a Uint8Array
  * containing the decoded value.
- * @param {string} str
- * @return {!Uint8Array}
  */
-export function base64UrlDecodeToBytes(str) {
-  const encoded = atob(str.replace(/[-_]/g, (ch) => base64UrlDecodeSubs[ch]));
+export function base64UrlDecodeToBytes(str: string): Uint8Array {
+  const encoded = atob(str.replaceAll('-', '+').replaceAll('_', '/'));
   return stringToBytes(encoded);
 }
 
 /**
  * Converts a bytes array into base64url encoded string.
  * base64url is defined in RFC 4648. It is sometimes referred to as "web safe".
- * @param {!Uint8Array} bytes
- * @return {string}
  */
-export function base64UrlEncodeFromBytes(bytes) {
+export function base64UrlEncodeFromBytes(bytes: Uint8Array): string {
   const str = bytesToString(bytes);
-  return btoa(str).replace(/[+/=]/g, (ch) => base64UrlEncodeSubs[ch]);
+  return btoa(str)
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
 }
