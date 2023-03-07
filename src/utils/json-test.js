@@ -63,6 +63,11 @@ describe('json', () => {
       expect(value).to.be.undefined;
     });
 
+    it('returns false if value is false', () => {
+      const value = getPropertyFromJsonString('{"x":false}', 'x');
+      expect(value).to.be.false;
+    });
+
     it('returns undefined if json is invalid', () => {
       const value = getPropertyFromJsonString('...', 'x');
       expect(value).to.be.undefined;
