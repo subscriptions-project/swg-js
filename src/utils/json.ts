@@ -46,5 +46,5 @@ export function getPropertyFromJsonString(
   propertyName: string
 ): unknown {
   const json = tryParseJson(jsonString) as {[key: string]: unknown};
-  return (json && json[propertyName]) || null; // TODO: Handle falsy values.
+  return json?.[propertyName];
 }
