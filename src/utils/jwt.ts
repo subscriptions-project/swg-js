@@ -33,7 +33,7 @@ export class JwtHelper {
   /**
    * Decodes JWT token and returns its payload.
    */
-  decode(encodedToken: string): any {
+  decode(encodedToken: string): unknown {
     return this.decodeInternal_(encodedToken).payload;
   }
 
