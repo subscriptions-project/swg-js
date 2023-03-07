@@ -70,7 +70,7 @@ export function utf8EncodeSync(string: string): Uint8Array {
  * containing the decoded value.
  */
 export function base64UrlDecodeToBytes(str: string): Uint8Array {
-  const encoded = atob(str.replaceAll('-', '+').replace('_', '/'));
+  const encoded = atob(str.replaceAll('-', '+').replaceAll('_', '/'));
   return stringToBytes(encoded);
 }
 
