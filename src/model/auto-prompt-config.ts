@@ -16,6 +16,7 @@
 
 interface AutoPromptConfigParams {
   displayDelaySeconds?: number;
+  numImpressionsBetweenPrompts?: number;
   dismissalBackOffSeconds?: number;
   maxDismissalsPerWeek?: number;
   maxDismissalsResultingHideSeconds?: number;
@@ -37,6 +38,7 @@ export class AutoPromptConfig {
    */
   constructor({
     displayDelaySeconds,
+    numImpressionsBetweenPrompts,
     dismissalBackOffSeconds,
     maxDismissalsPerWeek,
     maxDismissalsResultingHideSeconds,
@@ -44,7 +46,10 @@ export class AutoPromptConfig {
     maxImpressions,
     maxImpressionsResultingHideSeconds,
   }: AutoPromptConfigParams) {
-    this.clientDisplayTrigger = new ClientDisplayTrigger(displayDelaySeconds);
+    this.clientDisplayTrigger = new ClientDisplayTrigger(
+      displayDelaySeconds,
+      numImpressionsBetweenPrompts
+    );
     this.explicitDismissalConfig = new ExplicitDismissalConfig(
       dismissalBackOffSeconds,
       maxDismissalsPerWeek,
@@ -62,7 +67,10 @@ export class AutoPromptConfig {
  * Client side conditions to trigger the display of the auto prompt.
  */
 export class ClientDisplayTrigger {
-  constructor(public readonly displayDelaySeconds?: number) {}
+  constructor(
+    public readonly displayDelaySeconds?: number,
+    public readonly numImpressionsBetweenPrompts?: number
+  ) {}
 }
 
 /**
