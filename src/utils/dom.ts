@@ -21,49 +21,40 @@ export const styleType = 'text/css';
 
 /**
  * Add attributes to an element.
- * @param {!Element} element
- * @param {!Object<string, string>=} attributes
- * @return {!Element} updated element.
  */
-function addAttributesToElement(element, attributes = {}) {
+function addAttributesToElement(
+  element: Element,
+  attributes: {[key: string]: string} = {}
+) {
   for (const [key, value] of Object.entries(attributes)) {
     element.setAttribute(key, value);
   }
-  return element;
 }
 
 /**
  * Create a new element on document with specified tagName and attributes.
- * @param {!Document} doc
- * @param {string} tagName
- * @param {!Object<string, string>} attributes
- * @param {?(string|!Node|!ArrayLike<!Node>|!Array<!Node>)=} content
- * @return {!Element} created element.
  */
-export function createElement(doc, tagName, attributes, content) {
+export function createElement(
+  doc: Document,
+  tagName: string,
+  attributes: {[s: string]: string},
+  content?: string
+): Element {
   const element = doc.createElement(tagName);
+
   addAttributesToElement(element, attributes);
-  if (content != null) {
-    if (typeof content == 'string') {
-      element.textContent = content;
-    } else if (content.nodeType) {
-      element.appendChild(/** @type {!Node} */ (content));
-    } else if ('length' in content) {
-      for (let i = 0; i < content.length; i++) {
-        element.appendChild(content[i]);
-      }
-    } else {
-      assert(false, 'Unsupported content: %s', content);
-    }
+
+  if (content) {
+    element.textContent = content;
   }
+
   return element;
 }
 
 /**
  * Removes the element.
- * @param {!Element} element
  */
-export function removeElement(element) {
+export function removeElement(element: Element) {
   if (element.parentElement) {
     element.parentElement.removeChild(element);
   }
@@ -71,19 +62,17 @@ export function removeElement(element) {
 
 /**
  * Removes all children from the parent element.
- * @param {!Element} parent
  */
-export function removeChildren(parent) {
+export function removeChildren(parent: Element) {
   parent.textContent = '';
 }
 
 /**
  * Injects the provided styles in the HEAD section of the document.
- * @param {!../model/doc.Doc} doc The document object.
- * @param {string} styleText The style string.
- * @return {!Element}
+ * @param doc The document object.
+ * @param styleText The style string.
  */
-export function injectStyleSheet(doc, styleText) {
+export function injectStyleSheet(doc, styleText: string): Element {
   const styleElement = createElement(doc.getWin().document, 'style', {
     'type': styleType,
   });
@@ -97,19 +86,19 @@ export function injectStyleSheet(doc, styleText) {
  * This means either:
  *  a. The element itself has a nextSibling.
  *  b. Any of the element ancestors has a nextSibling.
- * @param {!Element} element
- * @param {?Node=} stopNode
- * @return {boolean}
  */
-export function hasNextNodeInDocumentOrder(element, stopNode) {
-  let currentElement = element;
+export function hasNextNodeInDocumentOrder(
+  element: Element,
+  stopNode: (Node | null) | undefined
+): boolean {
+  let currentElement: Element | ParentNode | null = element;
   do {
     if (currentElement.nextSibling) {
       return true;
     }
   } while (
     (currentElement = currentElement.parentNode) &&
-    currentElement != stopNode
+    currentElement !== stopNode
   );
   return false;
 }
