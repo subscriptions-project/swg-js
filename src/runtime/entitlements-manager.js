@@ -23,13 +23,14 @@ import {
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
-import {Constants, StorageKeys} from '../utils/constants';
 import {
+  Article as ArticleDef,
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
+import {Constants, StorageKeys} from '../utils/constants';
 import {
   GetEntitlementsParamsExternalDef,
   GetEntitlementsParamsInternalDef,
@@ -49,27 +50,6 @@ import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
-
-/**
- * Article response object.
- *
- * @typedef {{
- *  entitlements: (../api/entitlements.Entitlements),
- *  clientConfig: (../model/client-config.ClientConfig),
- *  audienceActions: ({
- *    actions: Array<{
- *      type: (string)
- *    }>,
- *    engineId: (string)
- *  }),
- *  experimentConfig: ({
- *    experimentFlags: Array<{
- *      type: (string)
- *    }>
- *  })
- * }}
- */
-export let Article;
 
 /**
  */
@@ -156,7 +136,7 @@ export class EntitlementsManager {
     /** @private @const {boolean} */
     this.enableDefaultMeteringHandler_ = enableDefaultMeteringHandler;
 
-    /** @private {?Article} */
+    /** @private {?ArticleDef} */
     this.article_ = null;
 
     /** @private {boolean} */
@@ -472,7 +452,7 @@ export class EntitlementsManager {
   /**
    * If the manager is also responsible for fetching the Article, it
    * will be accessible from here and should resolve a null promise otherwise.
-   * @returns {!Promise<?Article>}
+   * @returns {!Promise<?ArticleDef>}
    */
   async getArticle() {
     // The base manager only fetches from the entitlements endpoint, which does
@@ -497,7 +477,7 @@ export class EntitlementsManager {
 
   /**
    * Parses the experiment flags from the Article.
-   * @param {?Article} article
+   * @param {?ArticleDef} article
    * @returns {Array<string>}
    */
   parseArticleExperimentConfigFlags(article) {
@@ -992,7 +972,7 @@ export class EntitlementsManager {
     const json = await this.fetcher_.fetchCredentialedJson(url);
     let response = json;
     if (this.useArticleEndpoint_) {
-      this.article_ = /** @type {Article} */ (json);
+      this.article_ = /** @type {ArticleDef} */ (json);
       response = json['entitlements'];
     }
 

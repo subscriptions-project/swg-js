@@ -539,6 +539,12 @@ export class Runtime {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
   }
+
+  /** @override */
+  async getArticle() {
+    const runtime = await this.configured_(true);
+    return runtime.getArticle();
+  }
 }
 
 /**
@@ -1201,6 +1207,11 @@ export class ConfiguredRuntime {
     await this.documentParsed_;
     return new SubscriptionLinkingFlow(this).start(request);
   }
+
+  /** @override */
+  async getArticle() {
+    return this.entitlementsManager_.getArticle();
+  }
 }
 
 /**
@@ -1254,5 +1265,6 @@ function createPublicRuntime(runtime) {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    getArticle: runtime.getArticle.bind(runtime),
   });
 }

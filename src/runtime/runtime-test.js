@@ -922,6 +922,13 @@ describes.realWin('Runtime', (env) => {
       await runtime.setPublisherProvidedId('publisherProvidedId');
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
+
+    it('should delegate "getArticle"', async () => {
+      configuredRuntimeMock.expects('getArticle').once();
+
+      await runtime.getArticle();
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
   });
 });
 
@@ -2077,6 +2084,11 @@ subscribe() method'
       runtime.setPublisherProvidedId('publisherProvidedId');
 
       expect(runtime.publisherProvidedId_).to.equal('publisherProvidedId');
+    });
+
+    it('should call entitlementsManager getArticle', async () => {
+      entitlementsManagerMock.expects('getArticle').once();
+      await runtime.getArticle();
     });
 
     describe('setShowcaseEntitlement', () => {

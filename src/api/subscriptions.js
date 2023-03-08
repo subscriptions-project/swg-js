@@ -19,7 +19,10 @@ import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {Entitlements as EntitlementsDef} from './entitlements';
+import {
+  Entitlements as EntitlementsDef,
+  Article as ArticleDef,
+} from './entitlements';
 import {LoggerApi as LoggerApiDef} from './logger-api';
 import {Offer as OfferDef} from './offer';
 import {PropensityApi as PropensityApiDef} from './propensity-api';
@@ -351,6 +354,13 @@ export class Subscriptions {
    * @return {?}
    */
   setPublisherProvidedId(publisherProvidedId) {}
+
+  /**
+   * Returns the article fetched from the article endpoint. Article is fetched
+   * in the `getEntitlements` method. 
+   * @return {!Promise<?ArticleDef>}
+   */
+  getArticle() {}
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
 

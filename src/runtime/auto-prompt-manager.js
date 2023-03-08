@@ -15,6 +15,7 @@
  */
 
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {Article as ArticleDef} from '../api/entitlements';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ExperimentFlags} from './experiment-flags';
@@ -173,7 +174,7 @@ export class AutoPromptManager {
    * configuration, entitlement state, and options specified in params.
    * @param {!../model/client-config.ClientConfig|undefined} clientConfig
    * @param {!../api/entitlements.Entitlements} entitlements
-   * @param {?./entitlements-manager.Article} article
+   * @param {?ArticleDef} article
    * @param {?string|undefined} dismissedPrompts
    * @param {{
    *   autoPromptType: (AutoPromptType|undefined),
@@ -452,7 +453,7 @@ export class AutoPromptManager {
    * after the initial Contribution prompt. We also always default to showing the Contribution
    * prompt if the reader is currently inside of the frequency window, indicated by shouldShowAutoPrompt.
    * @param {{
-   *   article: (!./entitlements-manager.Article),
+   *   article: (!ArticleDef),
    *   autoPromptType: (AutoPromptType|undefined),
    *   dismissedPrompts: (?string|undefined),
    *   shouldShowAutoPrompt: (boolean|undefined),
@@ -811,7 +812,7 @@ export class AutoPromptManager {
 
   /**
    * Checks if provided ExperimentFlag is returned in article endpoint.
-   * @param {!./entitlements-manager.Article} article
+   * @param {!ArticleDef} article
    * @param {string} experimentFlag
    * @return {!Promise<boolean>}
    */

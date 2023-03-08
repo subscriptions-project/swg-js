@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ClientConfig} from '../model/client-config';
 import {Timestamp} from '../proto/api_messages';
 import {debugLog} from '../utils/log';
 import {getPropertyFromJsonString} from '../utils/json';
@@ -440,3 +441,23 @@ export class Entitlement {
     return sku;
   }
 }
+
+/**
+ * Article response object.
+ * @typedef {{
+*  entitlements: (Entitlements),
+*  clientConfig: (ClientConfig),
+*  audienceActions: ({
+*    actions: Array<{
+*      type: (string)
+*    }>,
+*    engineId: (string)
+*  }),
+*  experimentConfig: ({
+*    experimentFlags: Array<{
+*      type: (string)
+*    }>
+*  })
+* }}
+*/
+export let Article;
