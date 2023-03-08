@@ -14,27 +14,32 @@
  * limitations under the License.
  */
 
+import {AttributionParams} from './attribution-params';
+import {AutoPromptConfig} from './auto-prompt-config';
+
 /**
  * Client configuration options.
- *
- * @typedef {{
- *   attributionParams: (./attribution-params.AttributionParams|undefined),
- *   autoPromptConfig: (./auto-prompt-config.AutoPromptConfig|undefined),
- *   paySwgVersion: (string|undefined),
- *   uiPredicates: (UiPredicates|undefined),
- *   useUpdatedOfferFlows: (boolean|undefined),
- *   skipAccountCreationScreen: (boolean|undefined),
- * }}
  */
-export let ClientConfigOptions;
+interface ClientConfigOptions {
+  attributionParams?: AttributionParams;
+  autoPromptConfig?: AutoPromptConfig;
+  paySwgVersion?: string;
+  uiPredicates?: UiPredicates;
+  useUpdatedOfferFlows?: boolean;
+  skipAccountCreationScreen?: boolean;
+}
 
 /**
  * Container for the details relating to how the client should be configured.
  */
 export class ClientConfig {
-  /**
-   * @param {ClientConfigOptions} options
-   */
+  public readonly attributionParams?: AttributionParams;
+  public readonly autoPromptConfig?: AutoPromptConfig;
+  public readonly paySwgVersion?: string;
+  public readonly uiPredicates?: UiPredicates;
+  public readonly useUpdatedOfferFlows?: boolean;
+  public readonly skipAccountCreationScreen?: boolean;
+
   constructor({
     attributionParams,
     autoPromptConfig,
@@ -42,23 +47,12 @@ export class ClientConfig {
     uiPredicates,
     useUpdatedOfferFlows,
     skipAccountCreationScreen,
-  } = {}) {
-    /** @const {./auto-prompt-config.AutoPromptConfig|undefined} */
+  }: ClientConfigOptions) {
     this.autoPromptConfig = autoPromptConfig;
-
-    /** @const {string|undefined} */
     this.paySwgVersion = paySwgVersion;
-
-    /** @const {boolean} */
     this.useUpdatedOfferFlows = useUpdatedOfferFlows || false;
-
-    /** @const {boolean} */
     this.skipAccountCreationScreen = skipAccountCreationScreen || false;
-
-    /** @const {UiPredicates|undefined} */
     this.uiPredicates = uiPredicates;
-
-    /** @const {./attribution-params.AttributionParams|undefined} */
     this.attributionParams = attributionParams;
   }
 }
@@ -67,23 +61,9 @@ export class ClientConfig {
  * Predicates to control UI elements.
  */
 export class UiPredicates {
-  /**
-   * @param {boolean|undefined} canDisplayAutoPrompt
-   * @param {boolean|undefined} canDisplayButton
-   * @param {boolean|undefined} purchaseUnavailableRegion
-   */
   constructor(
-    canDisplayAutoPrompt,
-    canDisplayButton,
-    purchaseUnavailableRegion
-  ) {
-    /** @const {boolean|undefined} */
-    this.canDisplayAutoPrompt = canDisplayAutoPrompt;
-
-    /** @const {boolean|undefined} */
-    this.canDisplayButton = canDisplayButton;
-
-    /** @const {boolean|undefined} */
-    this.purchaseUnavailableRegion = purchaseUnavailableRegion;
-  }
+    public readonly canDisplayAutoPrompt?: boolean,
+    public readonly canDisplayButton?: boolean,
+    public readonly purchaseUnavailableRegion?: boolean
+  ) {}
 }
