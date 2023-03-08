@@ -1805,7 +1805,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('With SurveyTriggeringPriorityExperiment disabled, should show the Survey prompt if it is before contribution in audienceActions', async () => {
-      articleExpectation
+      getArticleExpectation
         .resolves({
           audienceActions: {
             actions: [
@@ -1843,7 +1843,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('With SurveyTriggeringPriorityExperiment disabled, should show the Contribution prompt if it is the first in audienceActions', async () => {
-      articleExpectation
+      getArticleExpectation
         .resolves({
           audienceActions: {
             actions: [
