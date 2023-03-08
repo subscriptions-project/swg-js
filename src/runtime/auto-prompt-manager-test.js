@@ -988,7 +988,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .resolves(entitlements)
       .once();
 
-    const autoPromptConfig = new AutoPromptConfig();
+    const autoPromptConfig = new AutoPromptConfig({});
     const uiPredicates = new UiPredicates(
       /* canDisplayAutoPrompt */ false,
       /* canDisplayButton */ true
@@ -1019,7 +1019,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .resolves(entitlements)
       .once();
 
-    const autoPromptConfig = new AutoPromptConfig();
+    const autoPromptConfig = new AutoPromptConfig({});
     const uiPredicates = new UiPredicates(
       /* canDisplayAutoPrompt */ true,
       /* canDisplayButton */ true
