@@ -54,7 +54,7 @@ export interface Doc {
   /**
    * Resolved when document has been fully constructed.
    */
-  whenReady(): Promise<any>;
+  whenReady(): Promise<void>;
 }
 
 export class GlobalDoc implements Doc {
@@ -95,8 +95,8 @@ export class GlobalDoc implements Doc {
     return isDocumentReady(this.doc_);
   }
 
-  whenReady() {
-    return whenDocumentReady(this.doc_);
+  async whenReady() {
+    await whenDocumentReady(this.doc_);
   }
 }
 
