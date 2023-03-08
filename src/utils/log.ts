@@ -17,20 +17,20 @@
 /**
  * Debug logger, only log message if #swg.log=1 exists in URL.
  */
-export function debugLog(...args: any[]) {
+export function debugLog(...args: unknown[]) {
   if (/swg.debug=1/.test(self.location.hash)) {
     args.unshift('[Subscriptions]');
     log(...args);
   }
 }
 
-export function log(...args: any[]) {
+export function log(...args: unknown[]) {
   // eslint-disable-next-line no-console
   console /*OK*/
     .log(...args);
 }
 
-export function warn(...args: any[]) {
+export function warn(...args: unknown[]) {
   // eslint-disable-next-line no-console
   console /*OK*/
     .warn(...args);
@@ -46,9 +46,9 @@ export function warn(...args: any[]) {
  * @param args Arguments substituted into %s in the message.
  */
 export function assert(
-  shouldBeTrueish: any,
+  shouldBeTrueish: unknown,
   message = 'Assertion failed',
-  ...args: any[]
+  ...args: unknown[]
 ): void {
   if (shouldBeTrueish) {
     return;
@@ -64,10 +64,14 @@ export function assert(
   throw new Error(formatted);
 }
 
-function toString(val: any): string {
+function toString(val: unknown): string {
   // Do check equivalent to `val instanceof Element` without cross-window bug
-  if (val?.nodeType == 1) {
-    return val.tagName.toLowerCase() + (val.id ? '#' + val.id : '');
+  const possibleElement = val as Element;
+  if (possibleElement?.nodeType == 1) {
+    return (
+      possibleElement.tagName.toLowerCase() +
+      (possibleElement.id ? '#' + possibleElement.id : '')
+    );
   }
-  return val.toString();
+  return String(val);
 }

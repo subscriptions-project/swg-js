@@ -26,12 +26,12 @@
 export function tryParseJson(
   json: string,
   onFailed?: (err: Error) => void
-): any {
+): unknown {
   try {
     return JSON.parse(json);
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (onFailed) {
-      onFailed(err);
+      onFailed(err as Error);
     }
     return undefined;
   }
@@ -44,7 +44,7 @@ export function tryParseJson(
 export function getPropertyFromJsonString(
   jsonString: string,
   propertyName: string
-): any {
-  const json = tryParseJson(jsonString);
-  return (json && json[propertyName]) || null; // TODO: Handle falsy values.
+): unknown {
+  const json = tryParseJson(jsonString) as {[key: string]: unknown};
+  return json?.[propertyName];
 }
