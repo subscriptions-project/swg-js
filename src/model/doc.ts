@@ -19,133 +19,97 @@ import {isDocumentReady, whenDocumentReady} from '../utils/document-ready';
 /**
  * @interface
  */
-export class Doc {
+export interface Doc {
   /**
-   * @return {!Window}
    */
-  getWin() {}
+  getWin(): Window;
 
   /**
    * The `Document` node or analog.
-   * @return {!Node}
    */
-  getRootNode() {}
+  getRootNode(): Node;
 
   /**
    * The `Document.documentElement` element or analog.
-   * @return {!Element}
    */
-  getRootElement() {}
+  getRootElement(): Element;
 
   /**
    * The `Document.head` element or analog. Returns `null` if not available
    * yet.
-   * @return {!Element}
    */
-  getHead() {}
+  getHead(): Element;
 
   /**
    * The `Document.body` element or analog. Returns `null` if not available
    * yet.
-   * @return {?Element}
    */
-  getBody() {}
+  getBody(): Element | null;
 
   /**
    * Whether the document has been fully constructed.
-   * @return {boolean}
    */
-  isReady() {}
+  isReady(): boolean;
 
   /**
    * Resolved when document has been fully constructed.
-   * @return {!Promise}
    */
-  whenReady() {}
-
-  /**
-   * Adds the element to the fixed layer.
-   * @param {!Element} unusedElement
-   * @return {!Promise}
-   *
-   * This is a no-op for except in AMP on iOS < 13.0.
-   */
-  addToFixedLayer(unusedElement) {}
+  whenReady(): Promise<any>;
 }
 
-/** @implements {Doc} */
-export class GlobalDoc {
+export class GlobalDoc implements Doc {
+  private readonly doc_: Document;
+  private readonly win_: Window;
+
   /**
    * @param {!Window|!Document} winOrDoc
    */
-  constructor(winOrDoc) {
-    const isWin = !!winOrDoc.document;
-    /** @private @const {!Window} */
-    this.win_ = /** @type {!Window} */ (
-      isWin
-        ? /** @type {!Window} */ (winOrDoc)
-        : /** @type {!Document} */ (winOrDoc).defaultView
-    );
-    /** @private @const {!Document} */
-    this.doc_ = isWin
-      ? /** @type {!Window} */ (winOrDoc).document
-      : /** @type {!Document} */ (winOrDoc);
+  constructor(winOrDoc: Window | Document) {
+    const isWin = 'document' in winOrDoc;
+    this.win_ = isWin ? winOrDoc : winOrDoc.defaultView!;
+    this.doc_ = isWin ? winOrDoc.document : winOrDoc;
   }
 
-  /** @override */
   getWin() {
     return this.win_;
   }
 
-  /** @override */
   getRootNode() {
     return this.doc_;
   }
 
-  /** @override */
   getRootElement() {
     return this.doc_.documentElement;
   }
 
-  /** @override */
   getHead() {
     // `document.head` always has a chance to be parsed, at least partially.
-    return /** @type {!Element} */ (this.doc_.head);
+    return /** @type {!Element} */ this.doc_.head;
   }
 
-  /** @override */
   getBody() {
     return this.doc_.body;
   }
 
-  /** @override */
   isReady() {
     return isDocumentReady(this.doc_);
   }
 
-  /** @override */
   whenReady() {
     return whenDocumentReady(this.doc_);
   }
-
-  /** @override */
-  addToFixedLayer(unusedElement) {
-    return Promise.resolve();
-  }
 }
 
-/**
- * @param {!Document|!Window|!Doc} input
- * @return {!Doc}
- */
-export function resolveDoc(input) {
-  // Is it a `Document`
-  if (/** @type {!Document} */ (input).nodeType === /* DOCUMENT */ 9) {
-    return new GlobalDoc(/** @type {!Document} */ (input));
+export function resolveDoc(input: Document | Window | Doc): Doc {
+  // Is it a `Document`?
+  if ('nodeType' in input) {
+    return new GlobalDoc(input);
   }
+
   // Is it a `Window`?
-  if (/** @type {!Window} */ (input).document) {
-    return new GlobalDoc(/** @type {!Window} */ (input));
+  if ('document' in input) {
+    return new GlobalDoc(input);
   }
-  return /** @type {!Doc} */ (input);
+
+  return input;
 }
