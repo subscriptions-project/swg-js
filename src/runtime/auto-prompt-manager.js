@@ -499,11 +499,22 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      const preferSurveyOverContributionPrompt =
-        await this.isExperimentEnabled_(
-          article,
-          ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
-        );
+      let preferSurveyOverContributionPrompt = await this.isExperimentEnabled_(
+        article,
+        ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+      );
+
+      // If audienceActions contains both contribution and survey actions,
+      // we will use the order from audienceActions to determine the preference.
+      const contributionIndex = potentialActions.findIndex(
+        (action) => action.type === TYPE_CONTRIBUTION
+      );
+      const surveyIndex = potentialActions.findIndex(
+        (action) => action.type === TYPE_REWARDED_SURVEY
+      );
+      if (contributionIndex >= 0 && surveyIndex >= 0) {
+        preferSurveyOverContributionPrompt = surveyIndex < contributionIndex;
+      }
 
       if (!preferSurveyOverContributionPrompt && !dismissedPrompts) {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
