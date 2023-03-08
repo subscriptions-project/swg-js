@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import {assert} from './log';
+import {Doc} from '../model/doc';
 
-/** @const {string} */
 export const styleType = 'text/css';
 
 /**
@@ -37,7 +36,7 @@ function addAttributesToElement(
 export function createElement(
   doc: Document,
   tagName: string,
-  attributes: {[s: string]: string},
+  attributes: {[key: string]: string},
   content?: string
 ): Element {
   const element = doc.createElement(tagName);
@@ -72,7 +71,7 @@ export function removeChildren(parent: Element) {
  * @param doc The document object.
  * @param styleText The style string.
  */
-export function injectStyleSheet(doc, styleText: string): Element {
+export function injectStyleSheet(doc: Doc, styleText: string): Element {
   const styleElement = createElement(doc.getWin().document, 'style', {
     'type': styleType,
   });
