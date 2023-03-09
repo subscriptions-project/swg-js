@@ -417,7 +417,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -465,7 +465,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -487,7 +487,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -509,7 +509,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(clientConfig)
@@ -530,7 +530,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -917,7 +917,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -940,7 +940,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -962,7 +962,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1123,7 +1123,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      const clientConfig = new ClientConfig();
+      const clientConfig = new ClientConfig({});
       clientConfigManagerMock
         .expects('getClientConfig')
         .resolves(clientConfig)
