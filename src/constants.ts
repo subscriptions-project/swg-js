@@ -15,17 +15,18 @@
  */
 
 /**
- * This file contains a set of variables that can be overriden by the compiler.
+ * This file contains a set of variables the compiler will overwrite.
+ * The initial values are just placeholders for tests.
  */
 
-const FRONTEND = 'placeholder';
-const PAY_ENVIRONMENT = 'placeholder';
-const PLAY_ENVIRONMENT = 'placeholder';
-const FRONTEND_CACHE = 'placeholder';
-const INTERNAL_RUNTIME_VERSION = 'placeholder';
-const ASSETS = 'placeholder';
-const ADS_SERVER = 'placeholder';
-const EXPERIMENTS = 'placeholder';
+const FRONTEND = 'https://news.google.com';
+const PAY_ENVIRONMENT = 'SANDBOX';
+const PLAY_ENVIRONMENT = 'STAGING';
+const FRONTEND_CACHE = 'nocache';
+const INTERNAL_RUNTIME_VERSION = '0.0.0';
+const ASSETS = '/assets';
+const ADS_SERVER = 'https://pubads.g.doubleclick.net';
+const EXPERIMENTS = '';
 
 export {
   FRONTEND,
