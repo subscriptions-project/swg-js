@@ -27,9 +27,6 @@ export class UserData {
     public readonly idToken: string,
     public readonly data: {[key: string]: string}
   ) {
-    this.idToken = idToken;
-    this.data = data;
-
     this.id = data['sub'];
     this.email = data['email'];
     this.emailVerified = data['email_verified'];
