@@ -20,7 +20,7 @@
  */
 
 const FRONTEND = 'https://news.google.com';
-const PAY_ENVIRONMENT = 'SANDBOX';
+const PAY_ENVIRONMENT = 'TEST';
 const PLAY_ENVIRONMENT = 'STAGING';
 const FRONTEND_CACHE = 'nocache';
 const INTERNAL_RUNTIME_VERSION = '0.0.0';
