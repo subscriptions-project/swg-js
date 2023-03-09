@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-declare namespace goog {
-  function define(name: string, value: string): void;
-}
-
 /**
  * This file contains a set of variables that can be overriden by the compiler.
  */
+
+// Mock `goog.define` method.
+declare namespace goog {
+  function define(name: string, value: string): void;
+}
 
 const FRONTEND = goog.define('FRONTEND', 'https://news.google.com');
 
