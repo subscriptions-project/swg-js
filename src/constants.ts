@@ -14,38 +14,34 @@
  * limitations under the License.
  */
 
+declare namespace goog {
+  function define(name: string, value: string): void;
+}
+
 /**
  * This file contains a set of variables that can be overriden by the compiler.
  */
 
-/** @define {string} */
 const FRONTEND = goog.define('FRONTEND', 'https://news.google.com');
 
-/** @define {string} */
 const PAY_ENVIRONMENT = goog.define('PAY_ENVIRONMENT', 'SANDBOX');
 
-/** @define {string} */
 const PLAY_ENVIRONMENT = goog.define('PLAY_ENVIRONMENT', 'STAGING');
 
-/** @define {string} */
 const FRONTEND_CACHE = goog.define('FRONTEND_CACHE', 'nocache');
 
-/** @define {string} */
 const INTERNAL_RUNTIME_VERSION = goog.define(
   'INTERNAL_RUNTIME_VERSION',
   '0.0.0'
 );
 
-/** @define {string} */
 const ASSETS = goog.define('ASSETS', '/assets');
 
-/** @define {string} */
 const ADS_SERVER = goog.define(
   'ADS_SERVER',
   'https://pubads.g.doubleclick.net'
 );
 
-/** @define {string} */
 const EXPERIMENTS = goog.define('EXPERIMENTS', '');
 
 export {
