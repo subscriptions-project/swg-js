@@ -18,32 +18,14 @@
  * This file contains a set of variables that can be overriden by the compiler.
  */
 
-// Mock `goog.define` method.
-declare namespace goog {
-  function define(name: string, value: string): void;
-}
-
-const FRONTEND = goog.define('FRONTEND', 'https://news.google.com');
-
-const PAY_ENVIRONMENT = goog.define('PAY_ENVIRONMENT', 'SANDBOX');
-
-const PLAY_ENVIRONMENT = goog.define('PLAY_ENVIRONMENT', 'STAGING');
-
-const FRONTEND_CACHE = goog.define('FRONTEND_CACHE', 'nocache');
-
-const INTERNAL_RUNTIME_VERSION = goog.define(
-  'INTERNAL_RUNTIME_VERSION',
-  '0.0.0'
-);
-
-const ASSETS = goog.define('ASSETS', '/assets');
-
-const ADS_SERVER = goog.define(
-  'ADS_SERVER',
-  'https://pubads.g.doubleclick.net'
-);
-
-const EXPERIMENTS = goog.define('EXPERIMENTS', '');
+const FRONTEND = 'placeholder';
+const PAY_ENVIRONMENT = 'placeholder';
+const PLAY_ENVIRONMENT = 'placeholder';
+const FRONTEND_CACHE = 'placeholder';
+const INTERNAL_RUNTIME_VERSION = 'placeholder';
+const ASSETS = 'placeholder';
+const ADS_SERVER = 'placeholder';
+const EXPERIMENTS = 'placeholder';
 
 export {
   FRONTEND,
