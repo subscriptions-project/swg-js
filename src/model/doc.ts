@@ -16,11 +16,9 @@
 
 import {isDocumentReady, whenDocumentReady} from '../utils/document-ready';
 
-/**
- * @interface
- */
 export interface Doc {
   /**
+   * The `Window` interface.
    */
   getWin(): Window;
 
@@ -84,7 +82,7 @@ export class GlobalDoc implements Doc {
 
   getHead() {
     // `document.head` always has a chance to be parsed, at least partially.
-    return /** @type {!Element} */ this.doc_.head;
+    return this.doc_.head;
   }
 
   getBody() {
