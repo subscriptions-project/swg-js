@@ -33,7 +33,6 @@ describes.realWin('Doc', (env) => {
       expect(gd.getHead()).to.equal(doc.head);
       expect(gd.getBody()).to.equal(doc.body);
       expect(gd.isReady()).to.be.true;
-      await gd.addToFixedLayer();
       await gd.whenReady();
     });
 
@@ -45,7 +44,6 @@ describes.realWin('Doc', (env) => {
       expect(gd.getHead()).to.equal(doc.head);
       expect(gd.getBody()).to.equal(doc.body);
       expect(gd.isReady()).to.be.true;
-      await gd.addToFixedLayer();
       await gd.whenReady();
     });
 
@@ -65,7 +63,6 @@ describes.realWin('Doc', (env) => {
       expect(gd.getHead()).to.be.null;
       expect(gd.getBody()).to.be.null;
       expect(gd.isReady()).to.be.false;
-      await gd.addToFixedLayer();
 
       const readyPromise = gd.whenReady();
       expect(eventHandlers['readystatechange']).to.exist;
