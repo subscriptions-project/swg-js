@@ -502,37 +502,40 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      let preferSurveyOverContributionPrompt = await this.isExperimentEnabled_(
+      // Survery take highest priority if this flag is enabled.
+      const prioritizeSurvey = await this.isExperimentEnabled_(
         article,
         ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
       );
 
-      // If audienceActions contains both contribution and survey actions,
-      // we will use the order from audienceActions to determine the preference.
-      const contributionIndex = potentialActions.findIndex(
-        (action) => action.type === TYPE_CONTRIBUTION
-      );
-      const surveyIndex = potentialActions.findIndex(
-        (action) => action.type === TYPE_REWARDED_SURVEY
-      );
-      if (contributionIndex >= 0 && surveyIndex >= 0) {
-        preferSurveyOverContributionPrompt = surveyIndex < contributionIndex;
+      let previousPrompts = [];
+      if (dismissedPrompts) {
+        previousPrompts = dismissedPrompts.split(',');
+        previousPrompts = previousPrompts.map((action) =>
+          action === AutoPromptType.CONTRIBUTION ||
+          action === AutoPromptType.CONTRIBUTION_LARGE
+            ? TYPE_CONTRIBUTION
+            : action
+        );
       }
 
-      if (!preferSurveyOverContributionPrompt && !dismissedPrompts) {
-        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
-        return undefined;
+      // Add contribution as the first action if it doesn't exist in audience actions.
+      const contributionInAudienceActions = potentialActions.some(
+        (action) => action.type === TYPE_CONTRIBUTION
+      );
+
+      if (!contributionInAudienceActions) {
+        potentialActions.unshift({type: TYPE_CONTRIBUTION});
       }
 
       if (dismissedPrompts) {
-        const previousPrompts = dismissedPrompts.split(',');
         potentialActions = potentialActions.filter(
           (action) => !previousPrompts.includes(action.type)
         );
       }
 
       if (
-        preferSurveyOverContributionPrompt &&
+        prioritizeSurvey &&
         potentialActions
           .map((action) => action.type)
           .includes(TYPE_REWARDED_SURVEY)
@@ -541,13 +544,20 @@ export class AutoPromptManager {
         return TYPE_REWARDED_SURVEY;
       }
 
-      // If all actions have been dismissed or the frequency indicates that we
-      // should show the Contribution prompt again regardless of previous dismissals,
-      // we don't want to record the Contribution dismissal
-      if (potentialActions.length === 0 || shouldShowAutoPrompt) {
+      if (potentialActions[0].type === TYPE_CONTRIBUTION) {
+        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
         return undefined;
       }
 
+      // If all actions have been dismissed or the frequency indicates that we
+      // should show the Contribution prompt again regardless of previous dismissals,
+      // we don't want to record the Contribution dismissal
+      if (
+        potentialActions.length === 0 ||
+        (!contributionInAudienceActions && shouldShowAutoPrompt)
+      ) {
+        return undefined;
+      }
       // Otherwise, set to the next recommended action. If the last dismissal was the
       // Contribution prompt, this will resolve to the first recommended action.
       actionToUse = potentialActions[0].type;

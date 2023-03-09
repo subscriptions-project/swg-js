@@ -1727,7 +1727,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        AutoPromptType.CONTRIBUTION
+      );
     });
 
     it('With SurveyTriggeringPriorityExperiment enabled, should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
@@ -1830,7 +1832,7 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(10);
 
-      expect(startSpy).to.have.been.called;
+      expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         onCancel: sandbox.match.any,
@@ -2334,7 +2336,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        AutoPromptType.CONTRIBUTION
+      );
     });
   });
 
