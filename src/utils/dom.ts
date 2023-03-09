@@ -81,22 +81,22 @@ export function injectStyleSheet(doc: Doc, styleText: string): Element {
 }
 
 /**
- * Whether the element have a next node in the document order.
+ * Whether the element has a next node in the document order.
  * This means either:
  *  a. The element itself has a nextSibling.
  *  b. Any of the element ancestors has a nextSibling.
  */
 export function hasNextNodeInDocumentOrder(
-  element: Element,
+  element: HTMLElement,
   stopNode: (Node | null) | undefined
 ): boolean {
-  let currentElement: Element | ParentNode | null = element;
+  let currentElement: HTMLElement | null = element;
   do {
     if (currentElement.nextSibling) {
       return true;
     }
   } while (
-    (currentElement = currentElement.parentNode) &&
+    (currentElement = currentElement.parentElement) &&
     currentElement !== stopNode
   );
   return false;
