@@ -502,21 +502,16 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      // Survery take highest priority if this flag is enabled.
-      const prioritizeSurvey = await this.isExperimentEnabled_(
-        article,
-        ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
-      );
-
-      let previousPrompts = [];
+      let previouslyShownPrompts = [];
       if (dismissedPrompts) {
-        previousPrompts = dismissedPrompts.split(',');
-        previousPrompts = previousPrompts.map((action) =>
-          action === AutoPromptType.CONTRIBUTION ||
-          action === AutoPromptType.CONTRIBUTION_LARGE
-            ? TYPE_CONTRIBUTION
-            : action
-        );
+        previouslyShownPrompts = dismissedPrompts
+          .split(',')
+          .map((action) =>
+            action === AutoPromptType.CONTRIBUTION ||
+            action === AutoPromptType.CONTRIBUTION_LARGE
+              ? TYPE_CONTRIBUTION
+              : action
+          );
       }
 
       // Add contribution as the first action if it doesn't exist in audience actions.
@@ -530,9 +525,15 @@ export class AutoPromptManager {
 
       if (dismissedPrompts) {
         potentialActions = potentialActions.filter(
-          (action) => !previousPrompts.includes(action.type)
+          (action) => !previouslyShownPrompts.includes(action.type)
         );
       }
+
+      // Survery take highest priority if this flag is enabled.
+      const prioritizeSurvey = await this.isExperimentEnabled_(
+        article,
+        ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+      );
 
       if (
         prioritizeSurvey &&
