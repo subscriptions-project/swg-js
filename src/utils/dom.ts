@@ -86,18 +86,12 @@ export function injectStyleSheet(doc: Doc, styleText: string): Element {
  *  a. The element itself has a nextSibling.
  *  b. Any of the element ancestors has a nextSibling.
  */
-export function hasNextNodeInDocumentOrder(
-  element: HTMLElement,
-  stopNode: (Node | null) | undefined
-): boolean {
-  let currentElement: HTMLElement | null = element;
+export function hasNextNodeInDocumentOrder(node: Node): boolean {
+  let currentNode: Node | null = node;
   do {
-    if (currentElement.nextSibling) {
+    if (currentNode.nextSibling) {
       return true;
     }
-  } while (
-    (currentElement = currentElement.parentElement) &&
-    currentElement !== stopNode
-  );
+  } while ((currentNode = currentNode.parentNode));
   return false;
 }
