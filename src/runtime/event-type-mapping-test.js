@@ -27,45 +27,33 @@ import {
 import {Event} from '../api/logger-api';
 import {ShowcaseEvent, SubscriptionFlows} from '../api/subscriptions';
 
-describes.realWin('Logger and Propensity events', () => {
-  it('propensity to analytics to propensity should be identical', () => {
-    let analyticsEvent;
-    let propensityEvent;
-    //ensure the second propensity event is identical to the first:
-    //propensity event -> analytics events -> propensity event
-    for (const propensityEnum in Event) {
-      propensityEvent = Event[propensityEnum];
-      analyticsEvent = publisherEventToAnalyticsEvent(propensityEvent);
-      expect(analyticsEventToPublisherEvent(analyticsEvent)).to.equal(
-        propensityEvent
-      );
+describes.realWin('Publisher and analytics events', () => {
+  it('publisher to analytics to publisher should be identical', () => {
+    // Ensure all publisher events convert to analytics events and back.
+    for (const publisherEvent of Object.values(Event)) {
+      const analyticsEvent = publisherEventToAnalyticsEvent(publisherEvent);
       expect(analyticsEvent).to.not.be.null;
       expect(analyticsEvent).to.not.be.undefined;
+
+      const publisherEvent2 = analyticsEventToPublisherEvent(analyticsEvent);
+      expect(publisherEvent2).to.equal(publisherEvent);
     }
   });
 
-  it('analytics to propensity to analytics should be identical', () => {
-    let analyticsEvent;
-    let propensityEvent;
-    for (const analyticsEnum in AnalyticsEvent) {
-      analyticsEvent = AnalyticsEvent[analyticsEnum];
-      propensityEvent = analyticsEventToPublisherEvent(analyticsEvent);
-      //not all analytics events convert to propensity events - this is OK
-      if (propensityEvent == null) {
+  it('analytics to publisher to analytics should be identical', () => {
+    for (const analyticsEvent of Object.values(AnalyticsEvent)) {
+      const publisherEvent = analyticsEventToPublisherEvent(analyticsEvent);
+
+      // Not all analytics events convert to publisher events - this is OK.
+      if (publisherEvent == null) {
         continue;
       }
-      //but if the analytics event converted to the propensity event it should
-      //be able to convert back to the same analytics event
-      expect(publisherEventToAnalyticsEvent(propensityEvent)).to.equal(
+
+      // But all analytics events that convert to publisher events should also
+      // be able to convert back.
+      expect(publisherEventToAnalyticsEvent(publisherEvent)).to.equal(
         analyticsEvent
       );
-    }
-  });
-
-  it('all publisher types mapped', () => {
-    for (const publisherEvent in Event) {
-      const converted = publisherEventToAnalyticsEvent(Event[publisherEvent]);
-      expect(!!converted).to.be.true;
     }
   });
 });
