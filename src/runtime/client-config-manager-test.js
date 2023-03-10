@@ -129,7 +129,7 @@ describes.realWin('ClientConfigManager', () => {
         new Promise((resolve) => {
           sequence++;
           resolve({
-            clientConfig: new ClientConfig(),
+            clientConfig: new ClientConfig({}),
           });
         }),
     });
