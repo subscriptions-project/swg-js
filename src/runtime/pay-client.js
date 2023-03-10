@@ -15,7 +15,7 @@
  */
 
 import {ExperimentFlags} from './experiment-flags';
-import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+// import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
 import {StorageKeys} from '../utils/constants';
 import {bytesToString, stringToBytes} from '../utils/bytes';
@@ -45,6 +45,17 @@ export const PAY_ORIGIN = {
 function payUrl() {
   return feCached(PAY_ORIGIN[getSwgMode().payEnv] + '/gp/p/ui/pay');
 }
+
+/*global google */
+const PayReadyPromise = new Promise((resolve, reject) => {
+  const scriptTag = self.document.createElement('script');
+  scriptTag.async = true;
+  scriptTag.src = 'https://pay.google.com/gp/p/js/pay.js';
+  scriptTag.onload = resolve;
+  scriptTag.onerror = reject;
+
+  self.document.body.appendChild(scriptTag);
+});
 
 /**
  */
@@ -104,11 +115,13 @@ export class PayClient {
    * @return {!PaymentsAsyncClient}
    * @private
    */
-  createClient_(options, googleTransactionId, handler) {
+  async createClient_(options, googleTransactionId, handler) {
+    await PayReadyPromise;
     // Assign Google Transaction ID to PaymentsAsyncClient.googleTransactionId_
     // so it can be passed to gpay_async.js and stored in payment clearcut log.
-    PaymentsAsyncClient.googleTransactionId_ = googleTransactionId;
-    return new PaymentsAsyncClient(
+    google.payments.api.PaymentsAsyncClient.googleTransactionId_ =
+      googleTransactionId;
+    return new google.payments.api.PaymentsAsyncClient(
       options,
       handler,
       /* useIframe */ false,
@@ -130,8 +143,8 @@ export class PayClient {
   /**
    * Initializes Payments client.
    */
-  initializePaymentsClient_() {
-    this.client_ = this.createClient_(
+  async initializePaymentsClient_() {
+    this.client_ = await this.createClient_(
       /** @type {!PaymentOptions} */
       ({
         environment: getSwgMode().payEnv,
@@ -168,12 +181,12 @@ export class PayClient {
    * @param {!PaymentDataRequest} paymentRequest
    * @param {!PayOptionsDef=} options
    */
-  start(paymentRequest, options = {}) {
+  async start(paymentRequest, options = {}) {
     this.request_ = paymentRequest;
 
     if (!this.client_) {
       this.preconnect(this.preconnect_);
-      this.initializePaymentsClient_();
+      await this.initializePaymentsClient_();
     }
 
     if (options.forceRedirect) {
