@@ -228,6 +228,8 @@ export class AutoPromptManager {
           shouldShowAutoPrompt,
         })
       : undefined;
+    console.log('potentialActionPromptType');
+    console.log(potentialActionPromptType);
 
     const promptFn = potentialActionPromptType
       ? this.audienceActionPrompt_({
@@ -242,6 +244,8 @@ export class AutoPromptManager {
         /* hasPotentialAudienceAction */ !!potentialActionPromptType
       ) && promptFn;
 
+    console.log('shouldShowBlockingPrompt');
+    console.log(shouldShowBlockingPrompt);
     if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
       return;
     }
@@ -504,26 +508,7 @@ export class AutoPromptManager {
     ) {
       let previouslyShownPrompts = [];
       if (dismissedPrompts) {
-        previouslyShownPrompts = dismissedPrompts
-          .split(',')
-          .map((action) =>
-            action === AutoPromptType.CONTRIBUTION ||
-            action === AutoPromptType.CONTRIBUTION_LARGE
-              ? TYPE_CONTRIBUTION
-              : action
-          );
-      }
-
-      // Add contribution as the first action if it doesn't exist in audience actions.
-      const contributionInAudienceActions = potentialActions.some(
-        (action) => action.type === TYPE_CONTRIBUTION
-      );
-
-      if (!contributionInAudienceActions) {
-        potentialActions.unshift({type: TYPE_CONTRIBUTION});
-      }
-
-      if (dismissedPrompts) {
+        previouslyShownPrompts = dismissedPrompts.split(',');
         potentialActions = potentialActions.filter(
           (action) => !previouslyShownPrompts.includes(action.type)
         );
@@ -545,7 +530,20 @@ export class AutoPromptManager {
         return TYPE_REWARDED_SURVEY;
       }
 
-      if (potentialActions[0].type === TYPE_CONTRIBUTION) {
+      const contributionIndex = potentialActions.findIndex(
+        (action) => action.type === TYPE_CONTRIBUTION
+      );
+
+      // If the first potential action is contribution, and it has never been
+      // dismissed before, we will show contribution prompt and record the
+      // contribution dismissal.
+      if (
+        !(
+          previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION) ||
+          previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION_LARGE)
+        ) &&
+        contributionIndex <= 0
+      ) {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
         return undefined;
       }
@@ -553,12 +551,17 @@ export class AutoPromptManager {
       // If all actions have been dismissed or the frequency indicates that we
       // should show the Contribution prompt again regardless of previous dismissals,
       // we don't want to record the Contribution dismissal
+      if (contributionIndex === 0) {
+        potentialActions.shift();
+      }
+
       if (
         potentialActions.length === 0 ||
-        (!contributionInAudienceActions && shouldShowAutoPrompt)
+        (shouldShowAutoPrompt && contributionIndex <= 0)
       ) {
         return undefined;
       }
+
       // Otherwise, set to the next recommended action. If the last dismissal was the
       // Contribution prompt, this will resolve to the first recommended action.
       actionToUse = potentialActions[0].type;
