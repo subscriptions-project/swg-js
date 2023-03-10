@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars During TypeScript migration. */
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import {Offer} from '../api/offer';
 import {serviceUrl} from './services';
 
