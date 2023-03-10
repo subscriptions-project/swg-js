@@ -24,7 +24,7 @@ import {
   publisherEventToAnalyticsEvent,
   showcaseEventToAnalyticsEvents,
 } from './event-type-mapping';
-import {Event} from '../api/propensity-api';
+import {Event} from '../api/logger-api';
 import {ShowcaseEvent, SubscriptionFlows} from '../api/subscriptions';
 
 describes.realWin('Logger and Propensity events', () => {
