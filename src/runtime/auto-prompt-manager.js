@@ -228,8 +228,6 @@ export class AutoPromptManager {
           shouldShowAutoPrompt,
         })
       : undefined;
-    console.log('potentialActionPromptType');
-    console.log(potentialActionPromptType);
 
     const promptFn = potentialActionPromptType
       ? this.audienceActionPrompt_({
@@ -244,8 +242,6 @@ export class AutoPromptManager {
         /* hasPotentialAudienceAction */ !!potentialActionPromptType
       ) && promptFn;
 
-    console.log('shouldShowBlockingPrompt');
-    console.log(shouldShowBlockingPrompt);
     if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
       return;
     }
