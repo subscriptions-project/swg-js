@@ -530,6 +530,13 @@ export class AutoPromptManager {
         (action) => action.type === TYPE_CONTRIBUTION
       );
 
+      if (contributionIndex > 0) {
+        actionToUse = potentialActions[0].type;
+        this.promptDisplayed_ = actionToUse;
+        console.log(this.promptDisplayed_);
+        return actionToUse;
+      }
+
       // If the first potential action is contribution, and it has never been
       // dismissed before, we will show contribution prompt and record the
       // contribution dismissal.
@@ -537,8 +544,7 @@ export class AutoPromptManager {
         !(
           previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION) ||
           previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION_LARGE)
-        ) &&
-        contributionIndex <= 0
+        )
       ) {
         this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
         return undefined;
@@ -547,14 +553,11 @@ export class AutoPromptManager {
       // If all actions have been dismissed or the frequency indicates that we
       // should show the Contribution prompt again regardless of previous dismissals,
       // we don't want to record the Contribution dismissal
-      if (contributionIndex === 0) {
-        potentialActions.shift();
-      }
+      potentialActions = potentialActions.filter(
+        (action) => action.type !== TYPE_CONTRIBUTION
+      );
 
-      if (
-        potentialActions.length === 0 ||
-        (shouldShowAutoPrompt && contributionIndex <= 0)
-      ) {
+      if (potentialActions.length === 0 || shouldShowAutoPrompt) {
         return undefined;
       }
 
@@ -562,6 +565,7 @@ export class AutoPromptManager {
       // Contribution prompt, this will resolve to the first recommended action.
       actionToUse = potentialActions[0].type;
       this.promptDisplayed_ = actionToUse;
+      console.log(this.promptDisplayed_);
     }
     return actionToUse;
   }
