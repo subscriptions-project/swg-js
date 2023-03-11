@@ -533,7 +533,6 @@ export class AutoPromptManager {
       if (contributionIndex > 0) {
         actionToUse = potentialActions[0].type;
         this.promptDisplayed_ = actionToUse;
-        console.log(this.promptDisplayed_);
         return actionToUse;
       }
 
@@ -565,7 +564,6 @@ export class AutoPromptManager {
       // Contribution prompt, this will resolve to the first recommended action.
       actionToUse = potentialActions[0].type;
       this.promptDisplayed_ = actionToUse;
-      console.log(this.promptDisplayed_);
     }
     return actionToUse;
   }
