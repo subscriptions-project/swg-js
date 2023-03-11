@@ -21,7 +21,7 @@
     "test": "gulp unit",
     "lint": "gulp lint",
     "build": "gulp build",
-    "build-i18n": "node build-system/tasks/build-i18n.js && gulp lint --fix --files='src/i18n/strings.js'",
+    "build-i18n": "node build-system/tasks/build-i18n.js && gulp lint --fix --files='src/i18n/strings.ts'",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },
@@ -45,7 +45,7 @@
     "chai-as-promised": "7.1.1",
     "cssnano": "5.1.15",
     "del": "7.0.0",
-    "eslint": "8.35.0",
+    "eslint": "8.36.0",
     "eslint-plugin-google-camelcase": "0.0.2",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
