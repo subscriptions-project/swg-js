@@ -115,5 +115,5 @@ export interface PropensityApi extends LoggerApi {
    * The argument should be a valid string from PropensityType.
    * If no type is provided, GENERAL score is returned.
    */
-  getPropensity(_type?: PropensityType): Promise<PropensityScore> | null;
+  getPropensity(type?: PropensityType): Promise<PropensityScore> | null;
 }

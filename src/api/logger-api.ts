@@ -227,7 +227,7 @@ export interface LoggerApi {
    *   enableSwgAnalytics - Sends data to Google's analytics server for buy-flow
    *     comparison purposes.
    */
-  sendEvent(_userEvent: PublisherEvent): void;
+  sendEvent(userEvent: PublisherEvent): void;
 
   /**
    * Send user subscription state upon initial discovery.
@@ -241,7 +241,7 @@ export interface LoggerApi {
    * as a valid string from the enum SubscriptionState.
    */
   sendSubscriptionState(
-    _state: SubscriptionState,
-    _jsonProducts: {[key: string]: string[]}
+    state: SubscriptionState,
+    jsonProducts: {[key: string]: string[]}
   ): void;
 }
