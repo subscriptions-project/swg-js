@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-/**
- * @enum {string}
- */
-export const SubscriptionState = {
-  // user's subscription state not known.
-  UNKNOWN: 'unknown',
-  // user is not a subscriber.
-  NON_SUBSCRIBER: 'non_subscriber',
-  // user is a subscriber.
-  SUBSCRIBER: 'subscriber',
-  // user's subscription has expired.
-  PAST_SUBSCRIBER: 'past_subscriber',
-};
+export enum SubscriptionState {
+  /** User's subscription state not known. */
+  UNKNOWN = 'unknown',
+
+  /** User is not a subscriber. */
+  NON_SUBSCRIBER = 'non_subscriber',
+
+  /** User is a subscriber. */
+  SUBSCRIBER = 'subscriber',
+
+  /** User's subscription has expired. */
+  PAST_SUBSCRIBER = 'past_subscriber',
+}
 
 /**
  * Subscription related events. Listed below are enum strings that
  * represent events related to Subscription flow. Event parameters
  * that provide more context about the event are sent as a JSON
  * block of depth 1 in the sendEvent() API call.
- * @enum {string}
  */
-export const Event = {
+export enum Event {
   /**
    * IMPRESSION_PAYWALL event.
    * User hits a paywall.
@@ -50,7 +49,7 @@ export const Event = {
    *  active: false,
    * }
    */
-  IMPRESSION_PAYWALL: 'paywall',
+  IMPRESSION_PAYWALL = 'paywall',
   /**
    * IMPRESSION_AD event.
    * User has been shown a subscription ad.
@@ -65,7 +64,7 @@ export const Event = {
    *   data: {'ad_name': 'fall_ad'}
    * }
    */
-  IMPRESSION_AD: 'ad_shown',
+  IMPRESSION_AD = 'ad_shown',
   /**
    * IMPRESSION_OFFERS event.
    * User has been shown a list of available offers for subscription.
@@ -101,7 +100,7 @@ export const Event = {
    *           'source': ‘paywall-metering-expired’}
    * }
    */
-  IMPRESSION_OFFERS: 'offers_shown',
+  IMPRESSION_OFFERS = 'offers_shown',
   /**
    * ACTION_SUBSCRIPTIONS_LANDING_PAGE event.
    * User has taken the action to arrive at a landing page of the
@@ -132,7 +131,7 @@ export const Event = {
    *   data: {'source': 'marketing_via_email'}
    * }
    */
-  ACTION_SUBSCRIPTIONS_LANDING_PAGE: 'subscriptions_landing_page',
+  ACTION_SUBSCRIPTIONS_LANDING_PAGE = 'subscriptions_landing_page',
   /**
    * ACTION_OFFER_SELECTED event.
    * User has selected an offer.
@@ -147,7 +146,7 @@ export const Event = {
    * When offer selection starts the payment flow directly,
    * use the next event ACTION_PAYMENT_FLOW_STARTED instead.
    */
-  ACTION_OFFER_SELECTED: 'offer_selected',
+  ACTION_OFFER_SELECTED = 'offer_selected',
   /**
    * ACTION_PAYMENT_FLOW_STARTED event.
    * User has started payment flow.
@@ -161,7 +160,7 @@ export const Event = {
    *   data: {product': 'basic-monthly'}
    * }
    */
-  ACTION_PAYMENT_FLOW_STARTED: 'payment_flow_start',
+  ACTION_PAYMENT_FLOW_STARTED = 'payment_flow_start',
   /**
    * ACTION_PAYMENT_COMPLETED.
    * User has made the payment for a subscription.
@@ -175,7 +174,7 @@ export const Event = {
    *   data: {product': 'basic-monthly'}
    * }
    */
-  ACTION_PAYMENT_COMPLETED: 'payment_complete',
+  ACTION_PAYMENT_COMPLETED = 'payment_complete',
   /**
    * EVENT_CUSTOM: custom publisher event.
    * The field 'active' of PropensityEvent, which carries this
@@ -192,8 +191,8 @@ export const Event = {
    *   }
    *  }
    */
-  EVENT_CUSTOM: 'custom',
-};
+  EVENT_CUSTOM = 'custom',
+}
 
 /**
  * Propensity Event
@@ -212,20 +211,14 @@ export const Event = {
  *         parameters. The guideline to create this JSON block
  *         that describes the event is provided against each
  *         enum listed in the Event enum above.
- *
- *  @typedef {{
- *    name: string,
- *    active: boolean,
- *    data: ?JsonObject,
- * }}
  */
-export let PublisherEvent;
+export interface PublisherEvent {
+  name: string;
+  active: boolean;
+  data: unknown;
+}
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/**
- * @interface
- */
-export class LoggerApi {
+export interface LoggerApi {
   /**
    * Send a buy-flow event that occurred on the publisher's site to Google.  The
    * ultimate destination is controlled by configuration settings.  Publisher
@@ -233,9 +226,8 @@ export class LoggerApi {
    *   enablePropensity - Sends data to the Propensity to Subscribe ads server.
    *   enableSwgAnalytics - Sends data to Google's analytics server for buy-flow
    *     comparison purposes.
-   * @param {!PublisherEvent} userEvent
    */
-  sendEvent(userEvent) {}
+  sendEvent(userEvent: PublisherEvent): void;
 
   /**
    * Send user subscription state upon initial discovery.
@@ -247,9 +239,9 @@ export class LoggerApi {
    *     {'product': ['product1', 'product2']}
    * Each call to this API should have the first argument
    * as a valid string from the enum SubscriptionState.
-   * @param {SubscriptionState} state
-   * @param {?JsonObject} jsonProducts
    */
-  sendSubscriptionState(state, jsonProducts) {}
+  sendSubscriptionState(
+    state: SubscriptionState,
+    jsonProducts?: {product: string[]}
+  ): void;
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */
