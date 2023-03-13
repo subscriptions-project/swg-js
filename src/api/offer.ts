@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-import {Offer} from './offer';
-
-describes.realWin('Offer', () => {
-  it('should be constructed correctly', () => {
-    const offer = new Offer('si1', 't1', 'd1', 'p1');
-    expect(offer.description).to.equal('d1');
-    expect(offer.skuId).to.equal('si1');
-    expect(offer.title).to.equal('t1');
-    expect(offer.price).to.equal('p1');
-  });
-});
+export interface Offer {
+  skuId: string;
+  title: string;
+  description: string;
+  price: string;
+}

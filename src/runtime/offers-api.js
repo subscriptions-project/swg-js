@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+import {Offer} from '../api/offer';
 import {serviceUrl} from './services';
 
 export class OffersApi {
@@ -31,7 +33,7 @@ export class OffersApi {
 
   /**
    * @param {?string=} productId
-   * @return {!Promise<!Array<!../api/offer.Offer>>}
+   * @return {!Promise<!Array<!Offer>>}
    */
   getOffers(productId = this.config_.getProductId()) {
     if (!productId) {
@@ -42,7 +44,7 @@ export class OffersApi {
 
   /**
    * @param {string} productId
-   * @return {!Promise<!Array<!../api/offer.Offer>>}
+   * @return {!Promise<!Array<!Offer>>}
    * @private
    */
   async fetch_(productId) {
