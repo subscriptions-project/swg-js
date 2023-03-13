@@ -242,6 +242,6 @@ export interface LoggerApi {
    */
   sendSubscriptionState(
     state: SubscriptionState,
-    jsonProducts: {[key: string]: string[]}
+    jsonProducts?: {product: string[]}
   ): void;
 }
