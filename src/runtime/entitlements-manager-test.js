@@ -2160,7 +2160,7 @@ describes.realWin('EntitlementsManager', (env) => {
       });
     });
 
-    it.only('should NOT pingback from other originators', async () => {
+    it('should NOT pingback from other originators', async () => {
       const SKIP = {
         [EventOriginator.UNKNOWN_CLIENT]: 1,
         [EventOriginator.SWG_CLIENT]: 1,
