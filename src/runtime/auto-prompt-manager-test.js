@@ -1396,6 +1396,55 @@ describes.realWin('AutoPromptManager', (env) => {
       );
     });
 
+    it('should show the third Audience Action flow if the first two were previously dismissed and is not the next Contribution prompt time', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_CONTRIBUTION'},
+              {type: 'TYPE_REWARDED_SURVEY'},
+              {type: 'TYPE_REGISTRATION_WALL'},
+              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: 'contribution,TYPE_REWARDED_SURVEY',
+        dismissedPromptGetCallCount: 2,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL'
+      );
+    });
+
     it('should skip survey and show second Audience Action flow if survey was completed', async () => {
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();

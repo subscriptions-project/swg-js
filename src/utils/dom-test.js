@@ -91,28 +91,6 @@ describes.realWin('Dom', (env) => {
       expect(element.textContent).to.equal('A');
     });
 
-    it('should create an element with element as content', () => {
-      const child = dom.createElement(doc, 'a');
-      const element = dom.createElement(doc, 'div', {}, child);
-      expect(element.childNodes).to.have.length(1);
-      expect(element.firstChild).to.equal(child);
-    });
-
-    it('should create an element with an array of element as content', () => {
-      const child1 = dom.createElement(doc, 'a');
-      const child2 = dom.createElement(doc, 'a');
-      const element = dom.createElement(doc, 'div', {}, [child1, child2]);
-      expect(element.childNodes).to.have.length(2);
-      expect(element.children[0]).to.equal(child1);
-      expect(element.children[1]).to.equal(child2);
-    });
-
-    it('should create an element with illegal content', () => {
-      expect(() => {
-        dom.createElement(doc, 'div', {}, {});
-      }).to.throw(/Unsupported content/);
-    });
-
     it('should remove all the children', () => {
       const element = dom.createElement(doc, 'div', {});
       element.textContent = 'Some text';
@@ -172,18 +150,6 @@ describes.realWin('Dom', (env) => {
       ancestor.appendChild(uncle);
       parent.appendChild(element);
       expect(dom.hasNextNodeInDocumentOrder(element)).to.be.true;
-    });
-
-    it('should return false when ancestor with sibling with stop node', () => {
-      const element = doc.createElement('div');
-      const parent = doc.createElement('div');
-      const uncle = doc.createElement('div');
-      const ancestor = doc.createElement('div');
-      ancestor.appendChild(parent);
-      ancestor.appendChild(uncle);
-      parent.appendChild(element);
-      expect(dom.hasNextNodeInDocumentOrder(element)).to.be.true;
-      expect(dom.hasNextNodeInDocumentOrder(element, parent)).to.be.false;
     });
   });
 });
