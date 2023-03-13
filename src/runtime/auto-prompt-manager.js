@@ -536,7 +536,8 @@ export class AutoPromptManager {
         return actionToUse;
       }
 
-      // If the first potential action is contribution, and it has never been
+      // If the first potential action is contribution, or the contribution
+      // action was not passed through audience actions, and it has never been
       // dismissed before, we will show contribution prompt and record the
       // contribution dismissal.
       if (
