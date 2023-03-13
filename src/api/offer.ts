@@ -14,23 +14,9 @@
  * limitations under the License.
  */
 
-/**
- */
-export class Offer {
-  /**
-   * @param {string} skuId
-   * @param {string} title
-   * @param {string} description
-   * @param {string} price
-   */
-  constructor(skuId, title, description, price) {
-    /** @const {string} */
-    this.skuId = skuId;
-    /** @const {string} */
-    this.title = title;
-    /** @const {string} */
-    this.description = description;
-    /** @const {string} */
-    this.price = price;
-  }
+export interface Offer {
+  skuId: string;
+  title: string;
+  description: string;
+  price: string;
 }
