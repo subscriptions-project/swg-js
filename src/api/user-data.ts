@@ -14,45 +14,32 @@
  * limitations under the License.
  */
 
-/**
- */
 export class UserData {
-  /**
-   * @param {string} idToken
-   * @param {!Object} data
-   */
-  constructor(idToken, data) {
-    /** @const {string} */
-    this.idToken = idToken;
-    /** @const {!Object} */
-    this.data = data;
+  id: string;
+  email: string;
+  emailVerified: string;
+  name: string;
+  givenName: string;
+  familyName: string;
+  pictureUrl: string;
 
-    /** @const {string} */
+  constructor(
+    public readonly idToken: string,
+    public readonly data: {[key: string]: string}
+  ) {
     this.id = data['sub'];
-    /** @const {string} */
     this.email = data['email'];
-    /** @const {boolean} */
     this.emailVerified = data['email_verified'];
-    /** @const {string} */
     this.name = data['name'];
-    /** @const {string} */
     this.givenName = data['given_name'];
-    /** @const {string} */
     this.familyName = data['family_name'];
-    /** @const {string} */
     this.pictureUrl = data['picture'];
   }
 
-  /**
-   * @return {!UserData}
-   */
-  clone() {
+  clone(): UserData {
     return new UserData(this.idToken, this.data);
   }
 
-  /**
-   * @return {!Object}
-   */
   json() {
     return {
       'id': this.id,

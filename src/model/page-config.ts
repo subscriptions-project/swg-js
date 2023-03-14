@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-/**
- */
 export class PageConfig {
-  /**
-   * @param {string} productOrPublicationId
-   * @param {boolean} locked
-   */
-  constructor(productOrPublicationId, locked) {
+  publicationId_: string;
+  productId_: string | null;
+  label_: string | null;
+  locked_: boolean;
+
+  constructor(productOrPublicationId: string, locked: boolean) {
     let publicationId, productId, label;
     const div = productOrPublicationId.indexOf(':');
     if (div != -1) {
@@ -36,41 +35,25 @@ export class PageConfig {
       label = null;
     }
 
-    /** @private @const {string} */
     this.publicationId_ = publicationId;
-    /** @private @const {?string} */
     this.productId_ = productId;
-    /** @private @const {?string} */
     this.label_ = label;
-    /** @private @const {boolean} */
     this.locked_ = locked;
   }
 
-  /**
-   * @return {string}
-   */
-  getPublicationId() {
+  getPublicationId(): string {
     return this.publicationId_;
   }
 
-  /**
-   * @return {?string}
-   */
-  getProductId() {
+  getProductId(): string | null {
     return this.productId_;
   }
 
-  /**
-   * @return {?string}
-   */
-  getLabel() {
+  getLabel(): string | null {
     return this.label_;
   }
 
-  /**
-   * @return {boolean}
-   */
-  isLocked() {
+  isLocked(): boolean {
     return this.locked_;
   }
 }

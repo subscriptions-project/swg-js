@@ -47,9 +47,7 @@ describes.realWin('ClientConfigManager', () => {
 
   it('getClientConfig should return default config', async () => {
     const clientConfig = await clientConfigManager.getClientConfig();
-    expect(clientConfig).to.deep.equal(
-      new ClientConfig({usePrefixedHostPath: true})
-    );
+    expect(clientConfig).to.deep.equal(new ClientConfig({}));
   });
 
   it('getClientConfig should include skipAccountCreation override if specified', async () => {
@@ -60,7 +58,6 @@ describes.realWin('ClientConfigManager', () => {
     expect(clientConfig).to.deep.equal(
       new ClientConfig({
         skipAccountCreationScreen: true,
-        usePrefixedHostPath: true,
       })
     );
   });
@@ -132,7 +129,7 @@ describes.realWin('ClientConfigManager', () => {
         new Promise((resolve) => {
           sequence++;
           resolve({
-            clientConfig: new ClientConfig(),
+            clientConfig: new ClientConfig({}),
           });
         }),
     });

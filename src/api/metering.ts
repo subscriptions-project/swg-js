@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-/** @enum {number}  */
-export const MeterClientTypes = {
+export enum MeterClientTypes {
   /** Meter client type for content licensed by Google. */
-  LICENSED_BY_GOOGLE: 1,
+  LICENSED_BY_GOOGLE = 1,
+
   /**
    * Meter client type for content that a publication is allowing to be
    * metered by Google.
    */
-  METERED_BY_GOOGLE: 2,
-};
+  METERED_BY_GOOGLE = 2,
+}

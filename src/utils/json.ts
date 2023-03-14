@@ -15,36 +15,23 @@
  */
 
 /**
- * @fileoverview This module declares JSON types as defined in the
- * {@link http://json.org/}.
- */
-
-/**
- * Simple wrapper around JSON.parse that casts the return value
- * to JsonObject.
- * Create a new wrapper if an array return value is desired.
- * @param {*} json JSON string to parse
- * @return {?JsonObject|undefined} May be extend to parse arrays.
- */
-export function parseJson(json) {
-  return /** @type {?JsonObject} */ (JSON.parse(/** @type {string} */ (json)));
-}
-
-/**
  * Parses the given `json` string without throwing an exception if not valid.
  * Returns `undefined` if parsing fails.
  * Returns the `Object` corresponding to the JSON string when parsing succeeds.
- * @param {*} json JSON string to parse
- * @param {function(!Error)=} onFailed Optional function that will be called
+ * @param json JSON string to parse
+ * @param onFailed Optional function that will be called
  *     with the error if parsing fails.
- * @return {?JsonObject|undefined} May be extend to parse arrays.
+ * @return Value parsed from JSON.
  */
-export function tryParseJson(json, onFailed) {
+export function tryParseJson(
+  json: string,
+  onFailed?: (err: Error) => void
+): unknown {
   try {
-    return parseJson(json);
-  } catch (e) {
+    return JSON.parse(json);
+  } catch (err: unknown) {
     if (onFailed) {
-      onFailed(e);
+      onFailed(err as Error);
     }
     return undefined;
   }
@@ -53,11 +40,11 @@ export function tryParseJson(json, onFailed) {
 /**
  * Converts the passed string into a JSON object (if possible) and returns the
  * value of the propertyName on that object.
- * @param {string} jsonString
- * @param {string} propertyName
- * @return {*}
  */
-export function getPropertyFromJsonString(jsonString, propertyName) {
-  const json = tryParseJson(jsonString);
-  return (json && json[propertyName]) || null;
+export function getPropertyFromJsonString(
+  jsonString: string,
+  propertyName: string
+): unknown {
+  const json = tryParseJson(jsonString) as {[key: string]: unknown};
+  return json?.[propertyName];
 }

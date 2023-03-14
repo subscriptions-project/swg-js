@@ -24,6 +24,8 @@ import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
+const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
+const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const SECOND_IN_MILLIS = 1000;
 
@@ -187,6 +189,11 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
+    // Override autoPromptType if it is undefined.
+    params.autoPromptType =
+      params.autoPromptType ||
+      this.getAutoPromptType_(article?.audienceActions?.actions);
+
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
       params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
@@ -251,7 +258,10 @@ export class AutoPromptManager {
       : false;
     if (isContributionFlow && delaySecondPrompt) {
       const shouldSuppressAutoprompt =
-        await this.secondPromptDelayExperimentSuppressesPrompt_();
+        await this.secondPromptDelayExperimentSuppressesPrompt_(
+          clientConfig?.autoPromptConfig?.clientDisplayTrigger
+            ?.numImpressionsBetweenPrompts
+        );
       if (shouldSuppressAutoprompt) {
         this.promptDisplayed_ = null;
         return;
@@ -411,6 +421,29 @@ export class AutoPromptManager {
   }
 
   /**
+   * Determines what Audience Action prompt type should be shown.
+   *
+   * Show the first AutoPromptType passed in from Audience Actions.
+   * @param {string[]|undefined} actions
+   * @return {!AutoPromptType|undefined}
+   */
+  getAutoPromptType_(actions = []) {
+    const potentialAction = actions.find(
+      (action) =>
+        action.type === TYPE_CONTRIBUTION || action.type === TYPE_SUBSCRIPTION
+    );
+
+    // No audience actions matching contribution or subscription.
+    if (!potentialAction) {
+      return undefined;
+    }
+
+    return potentialAction.type === TYPE_CONTRIBUTION
+      ? AutoPromptType.CONTRIBUTION_LARGE
+      : AutoPromptType.SUBSCRIPTION_LARGE;
+  }
+
+  /**
    * Determines what Audience Action prompt should be shown.
    *
    * In the case of Subscription models, we always show the first available prompt.
@@ -469,26 +502,22 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      const preferSurveyOverContributionPrompt =
-        await this.isExperimentEnabled_(
-          article,
-          ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
-        );
-
-      if (!preferSurveyOverContributionPrompt && !dismissedPrompts) {
-        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
-        return undefined;
-      }
-
+      let previouslyShownPrompts = [];
       if (dismissedPrompts) {
-        const previousPrompts = dismissedPrompts.split(',');
+        previouslyShownPrompts = dismissedPrompts.split(',');
         potentialActions = potentialActions.filter(
-          (action) => !previousPrompts.includes(action.type)
+          (action) => !previouslyShownPrompts.includes(action.type)
         );
       }
+
+      // Survery take highest priority if this flag is enabled.
+      const prioritizeSurvey = await this.isExperimentEnabled_(
+        article,
+        ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+      );
 
       if (
-        preferSurveyOverContributionPrompt &&
+        prioritizeSurvey &&
         potentialActions
           .map((action) => action.type)
           .includes(TYPE_REWARDED_SURVEY)
@@ -497,9 +526,37 @@ export class AutoPromptManager {
         return TYPE_REWARDED_SURVEY;
       }
 
+      const contributionIndex = potentialActions.findIndex(
+        (action) => action.type === TYPE_CONTRIBUTION
+      );
+
+      if (contributionIndex > 0) {
+        actionToUse = potentialActions[0].type;
+        this.promptDisplayed_ = actionToUse;
+        return actionToUse;
+      }
+
+      // If the first potential action is contribution, or the contribution
+      // action was not passed through audience actions, and it has never been
+      // dismissed before, we will show contribution prompt and record the
+      // contribution dismissal.
+      if (
+        !(
+          previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION) ||
+          previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION_LARGE)
+        )
+      ) {
+        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+        return undefined;
+      }
+
       // If all actions have been dismissed or the frequency indicates that we
       // should show the Contribution prompt again regardless of previous dismissals,
       // we don't want to record the Contribution dismissal
+      potentialActions = potentialActions.filter(
+        (action) => action.type !== TYPE_CONTRIBUTION
+      );
+
       if (potentialActions.length === 0 || shouldShowAutoPrompt) {
         return undefined;
       }
@@ -744,28 +801,31 @@ export class AutoPromptManager {
   }
 
   /**
-   * Checks if a free read granted after the first autoprompt should suppress
-   * the second autoprompt. Tracks reads by storing timestamps for the first
-   * autoprompt shown and for each free read after. Returns whether to
-   * suppress the next autoprompt. For example, for default
-   * number of free reads X = 2, then:
-   * Timestamps   Show Autoprompt   Store Timestamp
-   * []           YES (1st prompt)  YES
-   * [t1]         NO  (free read)   YES
-   * [t1, t2]     NO  (free read)   YES
-   * [t1, t2, t3] YES (2nd prompt)  NO
+   * Checks if the triggering of the second prompt should be suppressed due the
+   * configured number of impressions to allow after the first prompt within
+   * autoPromptConfig. Tracks impressions by storing timestamps for the first
+   * prompt triggered and for each impression after. Returns whether to
+   * suppress the next prompt. For example, for default number of impressions
+   * X = 2 (b/267650049), then:
+   * Timestamps   Show Autoprompt     Store Timestamp
+   * []           YES (1st prompt)    YES
+   * [t1]         NO  (Impression 1)  YES
+   * [t1, t2]     NO  (Impression 2)  YES
+   * [t1, t2, t3] YES (2nd prompt)    NO
+   * @param {number|undefined} numImpressionsBetweenPrompts
    * @return {!Promise<boolean>}
    */
-  async secondPromptDelayExperimentSuppressesPrompt_() {
-    const numFreeReads = 2; // (b/267650049) 2 free reads
-    const shouldShowAutopromptTimestamps = await this.storage_.getEvent(
+  async secondPromptDelayExperimentSuppressesPrompt_(
+    numImpressionsBetweenPrompts = 2 // (b/267650049) default 2 impressions
+  ) {
+    const secondPromptDelayCounter = await this.storage_.getEvent(
       StorageKeys.SECOND_PROMPT_DELAY_COUNTER
     );
     const shouldSuppressPrompt =
-      shouldShowAutopromptTimestamps.length > 0 &&
-      shouldShowAutopromptTimestamps.length <= numFreeReads;
+      secondPromptDelayCounter.length > 0 &&
+      secondPromptDelayCounter.length <= numImpressionsBetweenPrompts;
     const shouldStoreTimestamp =
-      shouldShowAutopromptTimestamps.length <= numFreeReads;
+      secondPromptDelayCounter.length <= numImpressionsBetweenPrompts;
 
     if (shouldStoreTimestamp) {
       this.storage_.storeEvent(StorageKeys.SECOND_PROMPT_DELAY_COUNTER);

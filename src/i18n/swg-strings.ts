@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// Why is there a strings.js and a swg-strings.js, you ask? strings.js is a
+// Why is there a strings.ts and a swg-strings.ts, you ask? strings.ts is a
 // generated file, currently used for gaa builds. This file is used for swg and
 // swg-basic builds, and is currently manually updated.
 // TODO(stellachui): Figure out if they should be merged without a large impact

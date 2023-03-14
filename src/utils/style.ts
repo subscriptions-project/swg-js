@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-/** @type {Object<string, string>} */
-let propertyNameCache;
-
-/** @const {!Array<string>} */
-const vendorPrefixes = ['Webkit', 'webkit', 'Moz', 'moz', 'O', 'o'];
-
 /**
  * Default styles to be set for top level friendly iframe.
  * Some attributes are not included such as height, left, margin-left; since
  * these attributes are updated by @media queries and having these values
  * defined here as !important does not work on IE/edge browsers.
- * @const {!Object<string, string|number>}
  */
 export const defaultStyles = {
   'align-content': 'normal',
@@ -153,193 +146,62 @@ export const defaultStyles = {
 };
 
 /**
- * @param {string} camelCase camel cased string
- * @return {string} title cased string
- */
-export function camelCaseToTitleCase(camelCase) {
-  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
-}
-
-/**
- * Checks the style if a prefixed version of a property exists and returns
- * it or returns an empty string.
- * @private
- * @param {!Object} style
- * @param {string} titleCase the title case version of a css property name
- * @return {string} the prefixed property name or null.
- */
-function getVendorJsPropertyName_(style, titleCase) {
-  for (let i = 0; i < vendorPrefixes.length; i++) {
-    const propertyName = vendorPrefixes[i] + titleCase;
-    if (style[propertyName] !== undefined) {
-      return propertyName;
-    }
-  }
-  return '';
-}
-
-/**
- * Returns the possibly prefixed JavaScript property name of a style property
- * (ex. WebkitTransitionDuration) given a camelCase'd version of the property
- * (ex. transitionDuration).
- * @param {!Object} style
- * @param {string} camelCase the camel cased version of a css property name
- * @param {boolean=} bypassCache bypass the memoized cache of property
- *   mapping
- * @return {string}
- */
-export function getVendorJsPropertyName(style, camelCase, bypassCache) {
-  if (camelCase.startsWith('--')) {
-    // CSS vars are returned as is.
-    return camelCase;
-  }
-  if (!propertyNameCache) {
-    propertyNameCache = {};
-  }
-  let propertyName = propertyNameCache[camelCase];
-  if (!propertyName || bypassCache) {
-    propertyName = camelCase;
-    if (style[camelCase] === undefined) {
-      const titleCase = camelCaseToTitleCase(camelCase);
-      const prefixedPropertyName = getVendorJsPropertyName_(style, titleCase);
-
-      if (style[prefixedPropertyName] !== undefined) {
-        propertyName = prefixedPropertyName;
-      }
-    }
-    if (!bypassCache) {
-      propertyNameCache[camelCase] = propertyName;
-    }
-  }
-  return propertyName;
-}
-
-/**
  * Sets the CSS styles of the specified element with !important. The styles
  * are specified as a map from CSS property names to their values.
- * @param {!Element} element
- * @param {!Object<string, string|number>} styles
  */
-export function setImportantStyles(element, styles) {
-  for (const k in styles) {
-    element.style.setProperty(
-      getVendorJsPropertyName(styles, k),
-      styles[k].toString(),
-      'important'
-    );
+export function setImportantStyles(
+  element: HTMLElement,
+  styles: {[property: string]: number | string}
+) {
+  for (const [property, value] of Object.entries(styles)) {
+    element.style.setProperty(property, value.toString(), 'important');
   }
 }
 
 /**
- * Sets the CSS style of the specified element with optional units, e.g. "px".
- * @param {Element} element
- * @param {string} property
- * @param {?string|number|boolean} value
- * @param {string=} units
- * @param {boolean=} bypassCache
+ * Sets the CSS style of the specified element.
  */
-export function setStyle(element, property, value, units, bypassCache) {
-  const propertyName = getVendorJsPropertyName(
-    element.style,
-    property,
-    bypassCache
-  );
-  if (propertyName) {
-    element.style[propertyName] = /** @type {string} */ (
-      units ? value + units : value
-    );
-  }
+export function setStyle(
+  element: HTMLElement,
+  property: string,
+  value: string
+) {
+  element.style.setProperty(property, value);
 }
 
 /**
  * Returns the value of the CSS style of the specified element.
- * @param {!Element} element
- * @param {string} property
- * @param {boolean=} bypassCache
- * @return {*}
  */
-export function getStyle(element, property, bypassCache) {
-  const propertyName = getVendorJsPropertyName(
-    element.style,
-    property,
-    bypassCache
-  );
-  if (!propertyName) {
-    return undefined;
-  }
-  return element.style[propertyName];
+export function getStyle(element: HTMLElement, property: string): string {
+  return element.style.getPropertyValue(property);
 }
 
 /**
  * Sets the CSS styles of the specified element. The styles
  * a specified as a map from CSS property names to their values.
- * @param {!Element} element
- * @param {!Object<string, ?string|number|boolean>} styles
  */
-export function setStyles(element, styles) {
-  for (const k in styles) {
-    setStyle(element, k, styles[k]);
+export function setStyles(
+  element: HTMLElement,
+  styles: {[property: string]: string}
+) {
+  for (const [property, value] of Object.entries(styles)) {
+    setStyle(element, property, value);
   }
-}
-
-/**
- * Returns a pixel value.
- * @param {number} value
- * @return {string}
- */
-export function px(value) {
-  return value + 'px';
-}
-
-/**
- * Returns a "translateX" for CSS "transform" property.
- * @param {number|string} value
- * @return {string}
- */
-export function translateX(value) {
-  if (typeof value == 'string') {
-    return `translateX(${value})`;
-  }
-  return `translateX(${px(value)})`;
-}
-
-/**
- * Returns a "translateX" for CSS "transform" property.
- * @param {number|string} x
- * @param {(number|string)=} y
- * @return {string}
- */
-export function translate(x, y) {
-  if (typeof x == 'number') {
-    x = px(x);
-  }
-  if (y === undefined) {
-    return `translate(${x})`;
-  }
-  if (typeof y == 'number') {
-    y = px(y);
-  }
-  return `translate(${x}, ${y})`;
 }
 
 /**
  * Resets styles that were set dynamically (i.e. inline)
- * @param {!Element} element
- * @param {!Array<string>} properties
  */
-export function resetStyles(element, properties) {
-  const styleObj = {};
+export function resetStyles(element: HTMLElement, properties: Array<string>) {
   for (const property of properties) {
-    styleObj[property] = null;
+    setStyle(element, property, '');
   }
-  setStyles(element, styleObj);
 }
 
 /**
  * Resets all the styles of an element to a given value. Defaults to null.
  * The valid values are 'inherit', 'initial', 'unset' or null.
- * @param {!Element} element
  */
-export function resetAllStyles(element) {
+export function resetAllStyles(element: HTMLElement) {
   setImportantStyles(element, defaultStyles);
 }

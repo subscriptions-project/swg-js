@@ -34,7 +34,6 @@ import {
 import {ShowcaseEvent} from '../../api/subscriptions';
 import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
 import {debugLog} from '../../utils/log';
-import {parseJson} from '../../utils/json';
 import {parseUrl, wasReferredByGoogle} from '../../utils/url';
 
 export class GaaMetering {
@@ -86,15 +85,8 @@ export class GaaMetering {
       return false;
     }
 
-    // Validate productId in page markup
-    if (!GaaMetering.getProductIDFromPageConfig_()) {
-      debugLog(
-        '[gaa.js:GaaMetering.init]: Showcase articles must define a productID using either JSON-LD or Microdata.'
-      );
-      return false;
-    }
-
     // Register publisher's callbacks, promises, and parameters
+    const productId = GaaMetering.getProductIDFromPageConfig_();
     const {
       googleApiClientId,
       authorizationUrl,
@@ -127,6 +119,8 @@ export class GaaMetering {
         : params.unlockArticle;
 
     callSwg(async (subscriptions) => {
+      subscriptions.init(productId);
+
       logEvent({
         analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
         isFromUserAction: false,
@@ -497,7 +491,9 @@ export class GaaMetering {
       return microdataPageConfig;
     }
 
-    return null;
+    throw new Error(
+      'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
+    );
   }
 
   /**
@@ -513,7 +509,7 @@ export class GaaMetering {
 
     for (let i = 0; i < ldJsonElements.length; i++) {
       const ldJsonElement = ldJsonElements[i];
-      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+      let ldJson = /** @type {*} */ (JSON.parse(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];
@@ -567,7 +563,7 @@ export class GaaMetering {
     ];
 
     for (const ldJsonElement of ldJsonElements) {
-      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+      let ldJson = /** @type {*} */ (JSON.parse(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];

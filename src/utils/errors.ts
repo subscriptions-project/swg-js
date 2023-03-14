@@ -17,20 +17,16 @@
 /**
  * Whether the specified error is an AbortError type.
  * See https://heycam.github.io/webidl/#aborterror.
- * @param {*} error
- * @return {boolean}
  */
-export function isCancelError(error) {
+export function isCancelError(error: Error): boolean {
   return error?.name === 'AbortError';
 }
 
 /**
  * Creates an Error of AbortError type.
  * See https://heycam.github.io/webidl/#aborterror.
- * @param {string} message
- * @return {!Error}
  */
-export function createCancelError(message) {
+export function createCancelError(message: string): Error {
   const error = new Error('AbortError: ' + message);
   error.name = 'AbortError';
   return error;
@@ -40,10 +36,7 @@ export function createCancelError(message) {
  * A set of error utilities combined in a class to allow easy stubbing in tests.
  */
 export class ErrorUtils {
-  /**
-   * @param {!Error} error
-   */
-  static throwAsync(error) {
+  static throwAsync(error: Error) {
     setTimeout(() => {
       throw error;
     });

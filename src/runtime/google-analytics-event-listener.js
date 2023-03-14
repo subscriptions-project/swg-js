@@ -17,13 +17,13 @@
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {isFunction} from '../utils/types';
 
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /** @typedef {?function(string, string, Object)} */
 let AnalyticsMethod;
 
 /** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod, dataLayer: Object}} */
 let WindowWithAnalyticsMethods;
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export class GoogleAnalyticsEventListener {
   /**

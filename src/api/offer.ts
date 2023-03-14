@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-/**
- * Container for attribution details for the publisher / creator.
- */
-export class AttributionParams {
-  /**
-   * @param {string} displayName
-   * @param {string} avatarUrl
-   */
-  constructor(displayName, avatarUrl) {
-    /** @const {string} */
-    this.displayName = displayName;
-
-    /** @const {string} */
-    this.avatarUrl = avatarUrl;
-  }
+export interface Offer {
+  skuId: string;
+  title: string;
+  description: string;
+  price: string;
 }

@@ -15,22 +15,26 @@
  */
 
 /**
+ * This file contains a set of variables the compiler will overwrite.
+ * The initial values are just placeholders for tests.
  */
-export class Offer {
-  /**
-   * @param {string} skuId
-   * @param {string} title
-   * @param {string} description
-   * @param {string} price
-   */
-  constructor(skuId, title, description, price) {
-    /** @const {string} */
-    this.skuId = skuId;
-    /** @const {string} */
-    this.title = title;
-    /** @const {string} */
-    this.description = description;
-    /** @const {string} */
-    this.price = price;
-  }
-}
+
+const FRONTEND = 'https://news.google.com';
+const PAY_ENVIRONMENT = 'TEST';
+const PLAY_ENVIRONMENT = 'STAGING';
+const FRONTEND_CACHE = 'nocache';
+const INTERNAL_RUNTIME_VERSION = '0.0.0';
+const ASSETS = '/assets';
+const ADS_SERVER = 'https://pubads.g.doubleclick.net';
+const EXPERIMENTS = '';
+
+export {
+  FRONTEND,
+  PAY_ENVIRONMENT,
+  PLAY_ENVIRONMENT,
+  FRONTEND_CACHE,
+  INTERNAL_RUNTIME_VERSION,
+  ASSETS,
+  ADS_SERVER,
+  EXPERIMENTS,
+};

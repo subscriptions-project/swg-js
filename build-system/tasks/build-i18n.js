@@ -64,7 +64,7 @@ async function buildI18nStrings() {
 
 export const I18N_STRINGS = ${JSON.stringify(localesPerMessage, null, 2)};
 `;
-  fs.writeFile(__dirname + '/../../src/i18n/strings.js', js);
+  fs.writeFile(__dirname + '/../../src/i18n/strings.ts', js);
 }
 
 buildI18nStrings();

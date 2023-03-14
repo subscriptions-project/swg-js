@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* eslint-disable-next-line no-unused-vars */
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 function linkSubscription() {
   self.SWG.push(async (subscriptions) => {
     const outputElement = document.getElementById('link-result');
