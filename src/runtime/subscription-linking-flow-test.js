@@ -39,7 +39,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
     messageMap = {};
     sandbox.stub(ActivityIframeView.prototype, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
-      const label = messageType.label();
+      const label = messageType.getMessageLabel();
       messageMap[label] = cb;
     });
     subscriptionLinkingFlow = new SubscriptionLinkingFlow(runtime);
@@ -93,7 +93,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       response.setSuccess(true);
 
       const resultPromise = subscriptionLinkingFlow.start(REQUEST);
-      const handler = messageMap[response.label()];
+      const handler = messageMap[response.getMessageLabel()];
       handler(response);
 
       const result = await resultPromise;
@@ -106,7 +106,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       response.setPublisherProvidedId('abc');
 
       const resultPromise = subscriptionLinkingFlow.start(REQUEST);
-      const handler = messageMap[response.label()];
+      const handler = messageMap[response.getMessageLabel()];
       handler(response);
 
       const result = await resultPromise;

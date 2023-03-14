@@ -90,7 +90,7 @@ describes.realWin('MeterToastApi', (env) => {
     port.acceptResult = () => Promise.resolve();
     sandbox.stub(port, 'on').callsFake((ctor, callback) => {
       const messageType = new ctor();
-      const messageLabel = messageType.label();
+      const messageLabel = messageType.getMessageLabel();
       messageMap[messageLabel] = callback;
     });
     sandbox.stub(self.console, 'warn');
@@ -232,7 +232,8 @@ describes.realWin('MeterToastApi', (env) => {
     // Native message.
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
     viewSubscriptionsResponse.setNative(true);
-    const messageCallback = messageMap[viewSubscriptionsResponse.label()];
+    const messageCallback =
+      messageMap[viewSubscriptionsResponse.getMessageLabel()];
     messageCallback(viewSubscriptionsResponse);
     expect(nativeStub).to.be.calledOnce.calledWithExactly();
     // event listeners should be removed.
@@ -251,7 +252,8 @@ describes.realWin('MeterToastApi', (env) => {
     await meterToastApi.start();
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
     viewSubscriptionsResponse.setNative(false);
-    const messageCallback = messageMap[viewSubscriptionsResponse.label()];
+    const messageCallback =
+      messageMap[viewSubscriptionsResponse.getMessageLabel()];
     messageCallback(viewSubscriptionsResponse);
     expect(callbackStub).to.be.calledOnce.calledWithExactly();
     // event listeners should be removed.

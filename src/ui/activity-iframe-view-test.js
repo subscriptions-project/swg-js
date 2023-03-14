@@ -210,7 +210,7 @@ describes.realWin('ActivityIframeView', (env) => {
       message.setSku('sku1');
 
       sandbox.stub(activityIframePort, 'on').callsFake((Message, cb) => {
-        messageLabel = Message.prototype.label();
+        messageLabel = Message.prototype.getMessageLabel();
         onCb = cb;
       });
       activityIframeView.on(SkuSelectedResponse, (message) => {

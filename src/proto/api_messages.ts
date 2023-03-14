@@ -21,12 +21,13 @@
 
 /** Carries information relating to RRM. */
 export interface Message {
-  label(): string;
+  getMessageLabel(): string;
 
   toArray(includeLabel?: boolean): unknown[];
 }
 
-interface MessageConstructor {
+/** Constructor for a message that carries information relating to RRM. */
+export interface MessageConstructor {
   new (data?: unknown[], includesLabel?: boolean): Message;
 }
 
@@ -272,12 +273,12 @@ export class AccountCreationRequest implements Message {
       this.complete_, // field 1 - complete
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'AccountCreationRequest';
   }
 }
@@ -305,12 +306,12 @@ export class ActionRequest implements Message {
       this.action_, // field 1 - action
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'ActionRequest';
   }
 }
@@ -352,12 +353,12 @@ export class AlreadySubscribedResponse implements Message {
       this.linkRequested_, // field 2 - link_requested
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'AlreadySubscribedResponse';
   }
 }
@@ -412,7 +413,7 @@ export class AnalyticsContext implements Message {
     this.url_ = data[10 + base] == null ? null : (data[10 + base] as string);
 
     this.clientTimestamp_ =
-      data[11 + base] == null || data[11 + base] == undefined
+      data[11 + base] == null
         ? null
         : new Timestamp(data[11 + base] as unknown[], includesLabel);
 
@@ -553,12 +554,12 @@ export class AnalyticsContext implements Message {
       this.integrationVersion_, // field 14 - integration_version
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'AnalyticsContext';
   }
 }
@@ -600,12 +601,12 @@ export class AnalyticsEventMeta implements Message {
       this.isFromUserAction_, // field 2 - is_from_user_action
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'AnalyticsEventMeta';
   }
 }
@@ -621,7 +622,7 @@ export class AnalyticsRequest implements Message {
     const base = includesLabel ? 1 : 0;
 
     this.context_ =
-      data[base] == null || data[base] == undefined
+      data[base] == null
         ? null
         : new AnalyticsContext(data[base] as unknown[], includesLabel);
 
@@ -629,12 +630,12 @@ export class AnalyticsRequest implements Message {
       data[1 + base] == null ? null : (data[1 + base] as AnalyticsEvent);
 
     this.meta_ =
-      data[2 + base] == null || data[2 + base] == undefined
+      data[2 + base] == null
         ? null
         : new AnalyticsEventMeta(data[2 + base] as unknown[], includesLabel);
 
     this.params_ =
-      data[3 + base] == null || data[3 + base] == undefined
+      data[3 + base] == null
         ? null
         : new EventParams(data[3 + base] as unknown[], includesLabel);
   }
@@ -679,12 +680,12 @@ export class AnalyticsRequest implements Message {
       this.params_ ? this.params_.toArray(includeLabel) : [], // field 4 - params
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'AnalyticsRequest';
   }
 }
@@ -712,12 +713,12 @@ export class AudienceActivityClientLogsRequest implements Message {
       this.event_, // field 1 - event
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'AudienceActivityClientLogsRequest';
   }
 }
@@ -784,12 +785,12 @@ export class CompleteAudienceActionResponse implements Message {
       this.alreadyCompleted_, // field 4 - already_completed
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'CompleteAudienceActionResponse';
   }
 }
@@ -829,12 +830,12 @@ export class EntitlementJwt implements Message {
       this.source_, // field 2 - source
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'EntitlementJwt';
   }
 }
@@ -853,12 +854,12 @@ export class EntitlementsRequest implements Message {
     const base = includesLabel ? 1 : 0;
 
     this.usedEntitlement_ =
-      data[base] == null || data[base] == undefined
+      data[base] == null
         ? null
         : new EntitlementJwt(data[base] as unknown[], includesLabel);
 
     this.clientEventTime_ =
-      data[1 + base] == null || data[1 + base] == undefined
+      data[1 + base] == null
         ? null
         : new Timestamp(data[1 + base] as unknown[], includesLabel);
 
@@ -874,7 +875,7 @@ export class EntitlementsRequest implements Message {
       data[5 + base] == null ? null : (data[5 + base] as boolean);
 
     this.subscriptionTimestamp_ =
-      data[6 + base] == null || data[6 + base] == undefined
+      data[6 + base] == null
         ? null
         : new Timestamp(data[6 + base] as unknown[], includesLabel);
   }
@@ -948,12 +949,12 @@ export class EntitlementsRequest implements Message {
         : [], // field 7 - subscription_timestamp
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'EntitlementsRequest';
   }
 }
@@ -994,12 +995,12 @@ export class EntitlementsResponse implements Message {
       this.swgUserToken_, // field 2 - swg_user_token
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'EntitlementsResponse';
   }
 }
@@ -1038,7 +1039,7 @@ export class EventParams implements Message {
       data[6 + base] == null ? null : (data[6 + base] as string);
 
     this.subscriptionTimestamp_ =
-      data[7 + base] == null || data[7 + base] == undefined
+      data[7 + base] == null
         ? null
         : new Timestamp(data[7 + base] as unknown[], includesLabel);
   }
@@ -1121,12 +1122,12 @@ export class EventParams implements Message {
         : [], // field 8 - subscription_timestamp
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'EventParams';
   }
 }
@@ -1166,12 +1167,12 @@ export class FinishedLoggingResponse implements Message {
       this.error_, // field 2 - error
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'FinishedLoggingResponse';
   }
 }
@@ -1211,12 +1212,12 @@ export class LinkSaveTokenRequest implements Message {
       this.token_, // field 2 - token
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'LinkSaveTokenRequest';
   }
 }
@@ -1244,12 +1245,12 @@ export class LinkingInfoResponse implements Message {
       this.requested_, // field 1 - requested
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'LinkingInfoResponse';
   }
 }
@@ -1277,12 +1278,12 @@ export class OpenDialogRequest implements Message {
       this.urlPath_, // field 1 - url_path
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'OpenDialogRequest';
   }
 }
@@ -1399,12 +1400,12 @@ export class SkuSelectedResponse implements Message {
       this.sharingPolicyEnabled_, // field 8 - sharing_policy_enabled
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SkuSelectedResponse';
   }
 }
@@ -1432,12 +1433,12 @@ export class SmartBoxMessage implements Message {
       this.isClicked_, // field 1 - is_clicked
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SmartBoxMessage';
   }
 }
@@ -1465,12 +1466,12 @@ export class SubscribeResponse implements Message {
       this.subscribe_, // field 1 - subscribe
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SubscribeResponse';
   }
 }
@@ -1511,12 +1512,12 @@ export class SubscriptionLinkingCompleteResponse implements Message {
       this.success_, // field 2 - success
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SubscriptionLinkingCompleteResponse';
   }
 }
@@ -1545,12 +1546,12 @@ export class SubscriptionLinkingResponse implements Message {
       this.publisherProvidedId_, // field 1 - publisher_provided_id
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SubscriptionLinkingResponse';
   }
 }
@@ -1616,12 +1617,12 @@ export class SurveyAnswer implements Message {
       this.ppsValue_, // field 4 - pps_value
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SurveyAnswer';
   }
 }
@@ -1653,12 +1654,12 @@ export class SurveyDataTransferRequest implements Message {
         : [], // field 1 - survey_questions
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SurveyDataTransferRequest';
   }
 }
@@ -1686,12 +1687,12 @@ export class SurveyDataTransferResponse implements Message {
       this.success_, // field 1 - success
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SurveyDataTransferResponse';
   }
 }
@@ -1761,12 +1762,12 @@ export class SurveyQuestion implements Message {
         : [], // field 4 - survey_answers
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'SurveyQuestion';
   }
 }
@@ -1806,12 +1807,12 @@ export class Timestamp implements Message {
       this.nanos_, // field 2 - nanos
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'Timestamp';
   }
 }
@@ -1839,12 +1840,12 @@ export class ToastCloseRequest implements Message {
       this.close_, // field 1 - close
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'ToastCloseRequest';
   }
 }
@@ -1872,12 +1873,12 @@ export class ViewSubscriptionsResponse implements Message {
       this.native_, // field 1 - native
     ];
     if (includeLabel) {
-      arr.unshift(this.label());
+      arr.unshift(this.getMessageLabel());
     }
     return arr;
   }
 
-  label(): string {
+  getMessageLabel(): string {
     return 'ViewSubscriptionsResponse';
   }
 }

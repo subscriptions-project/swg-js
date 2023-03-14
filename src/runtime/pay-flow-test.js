@@ -1235,7 +1235,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     port.onResizeRequest = () => {};
     port.on = (ctor, cb) => {
       const messageType = new ctor();
-      messageLabel = messageType.label();
+      messageLabel = messageType.getMessageLabel();
       messageMap[messageLabel] = cb;
     };
     port.whenReady = () => Promise.resolve();
@@ -1285,7 +1285,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     await flow.readyPromise_;
     const entitlementsResponse = new EntitlementsResponse();
     entitlementsResponse.setJwt('ENTITLEMENTS_JWT');
-    expect(messageLabel).to.equal(entitlementsResponse.label());
+    expect(messageLabel).to.equal(entitlementsResponse.getMessageLabel());
     const cb = messageMap[messageLabel];
     cb(entitlementsResponse);
 

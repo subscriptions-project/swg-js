@@ -69,7 +69,7 @@ describes.realWin('OffersFlow', (env) => {
     port.acceptResult = () => Promise.resolve();
     sandbox.stub(port, 'on').callsFake((ctor, callback) => {
       const messageType = new ctor();
-      const messageLabel = messageType.label();
+      const messageLabel = messageType.getMessageLabel();
       messageMap[messageLabel] = callback;
     });
   });
@@ -493,7 +493,7 @@ describes.realWin('OffersFlow', (env) => {
     skuSelected.setSku('sku1');
 
     // Pay message.
-    let messageCallback = messageMap[skuSelected.label()];
+    let messageCallback = messageMap[skuSelected.getMessageLabel()];
     messageCallback(skuSelected);
     expect(payStub).to.be.calledOnce;
     expect(loginStub).to.not.be.called;
@@ -503,7 +503,7 @@ describes.realWin('OffersFlow', (env) => {
     const response = new AlreadySubscribedResponse();
     response.setSubscriberOrMember(true);
     response.setLinkRequested(false);
-    messageCallback = messageMap[response.label()];
+    messageCallback = messageMap[response.getMessageLabel()];
     messageCallback(response);
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
@@ -514,7 +514,7 @@ describes.realWin('OffersFlow', (env) => {
     // Native message.
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
     viewSubscriptionsResponse.setNative(true);
-    messageCallback = messageMap[viewSubscriptionsResponse.label()];
+    messageCallback = messageMap[viewSubscriptionsResponse.getMessageLabel()];
     messageCallback(viewSubscriptionsResponse);
     expect(nativeStub).to.be.calledOnce.calledWithExactly();
     expect(loginStub).to.be.calledOnce; // Didn't change.
@@ -529,7 +529,7 @@ describes.realWin('OffersFlow', (env) => {
     const response = new AlreadySubscribedResponse();
     response.setSubscriberOrMember(true);
     response.setLinkRequested(true);
-    messageCallback = messageMap[response.label()];
+    messageCallback = messageMap[response.getMessageLabel()];
     messageCallback(response);
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: true,
@@ -538,7 +538,7 @@ describes.realWin('OffersFlow', (env) => {
     const entitlementsResponse = new EntitlementsResponse();
     entitlementsResponse.setJwt('abc');
     entitlementsResponse.setSwgUserToken('123');
-    messageCallback = messageMap[response.label()];
+    messageCallback = messageMap[response.getMessageLabel()];
     messageCallback(response);
   });
 
@@ -602,7 +602,7 @@ describes.realWin('SubscribeOptionFlow', (env) => {
     port.whenReady = () => Promise.resolve();
     sandbox.stub(port, 'on').callsFake((ctor, callback) => {
       const messageType = new ctor();
-      const messageLabel = messageType.label();
+      const messageLabel = messageType.getMessageLabel();
       messageMap[messageLabel] = callback;
     });
   });
@@ -723,7 +723,7 @@ describes.realWin('SubscribeOptionFlow', (env) => {
     // Subscribe message.
     const response = new SubscribeResponse();
     response.setSubscribe(true);
-    messageCallback = messageMap[response.label()];
+    messageCallback = messageMap[response.getMessageLabel()];
     messageCallback(response);
     expect(offersStartStub).to.be.calledOnce;
   });
@@ -747,7 +747,7 @@ describes.realWin('SubscribeOptionFlow', (env) => {
     await optionFlow.start();
     const response = new SubscribeResponse();
     response.setSubscribe(true);
-    messageCallback = messageMap[response.label()];
+    messageCallback = messageMap[response.getMessageLabel()];
     messageCallback(response);
     const activityIframeView = await offersFlow.activityIframeViewPromise_;
     expect(activityIframeView.args_['list']).to.equal('other');
@@ -785,7 +785,7 @@ describes.realWin('AbbrvOfferFlow', (env) => {
     port.whenReady = () => Promise.resolve();
     sandbox.stub(port, 'on').callsFake((ctor, callback) => {
       const messageType = new ctor();
-      const messageLabel = messageType.label();
+      const messageLabel = messageType.getMessageLabel();
       messageMap[messageLabel] = callback;
     });
   });
@@ -957,7 +957,7 @@ describes.realWin('AbbrvOfferFlow', (env) => {
     const response = new AlreadySubscribedResponse();
     response.setSubscriberOrMember(true);
     response.setLinkRequested(false);
-    messageCallback = messageMap[response.label()];
+    messageCallback = messageMap[response.getMessageLabel()];
     messageCallback(response);
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
