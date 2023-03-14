@@ -69,7 +69,7 @@ class Intervention {
   /** @public @const {string} */
   type;
   /** @public @const {string} */
-  publicationId;
+  configurationId;
 }
 
 export class AvailableIntervention extends Intervention {

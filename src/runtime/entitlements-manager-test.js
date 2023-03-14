@@ -1971,7 +1971,7 @@ describes.realWin('EntitlementsManager', (env) => {
           actions: [
             {
               type: 'TEST_ACTION',
-              publicationId: 'TEST_PUBLICATION_ID',
+              configurationId: 'TEST_CONFIGURATION_ID',
             },
           ],
         },
@@ -1982,7 +1982,7 @@ describes.realWin('EntitlementsManager', (env) => {
           new AvailableIntervention(
             {
               type: 'TEST_ACTION',
-              publicationId: 'TEST_PUBLICATION_ID',
+              configurationId: 'TEST_CONFIGURATION_ID',
             },
             deps
           ),
@@ -2892,7 +2892,7 @@ describes.realWin('EntitlementsManager', (env) => {
       const availableIntervention = new AvailableIntervention(
         {
           type: 'TEST_ACTION',
-          publicationId: 'TEST_PUBLICATION_ID',
+          configurationId: 'TEST_CONFIGURATION_ID',
         },
         deps
       );
