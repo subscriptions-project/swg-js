@@ -1,4 +1,20 @@
 /**
+ * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * @fileoverview Protos for SwG client/iframe messaging
  * Auto generated, do not edit
  */
@@ -14,12 +30,14 @@ interface MessageConstructor {
   new (data?: unknown[], includesLabel?: boolean): Message;
 }
 
+/** */
 export enum ActionType {
   ACTION_TYPE_UNKNOWN = 0,
   ACTION_TYPE_RELOAD_PAGE = 1,
   ACTION_TYPE_UPDATE_COUNTER = 2,
 }
 
+/** */
 export enum AnalyticsEvent {
   UNKNOWN = 0,
   IMPRESSION_PAYWALL = 1,
@@ -192,6 +210,7 @@ export enum AnalyticsEvent {
   EVENT_SUBSCRIPTION_STATE = 4000,
 }
 
+/** */
 export enum EntitlementResult {
   UNKNOWN_ENTITLEMENT_RESULT = 0,
   UNLOCKED_SUBSCRIBER = 1001,
@@ -202,6 +221,7 @@ export enum EntitlementResult {
   INELIGIBLE_PAYWALL = 2003,
 }
 
+/** */
 export enum EntitlementSource {
   UNKNOWN_ENTITLEMENT_SOURCE = 0,
   GOOGLE_SUBSCRIBER_ENTITLEMENT = 1001,
@@ -210,6 +230,7 @@ export enum EntitlementSource {
   PUBLISHER_ENTITLEMENT = 3001,
 }
 
+/** */
 export enum EventOriginator {
   UNKNOWN_CLIENT = 0,
   SWG_CLIENT = 1,
@@ -220,6 +241,7 @@ export enum EventOriginator {
   SHOWCASE_CLIENT = 6,
 }
 
+/** */
 export enum ReaderSurfaceType {
   READER_SURFACE_TYPE_UNSPECIFIED = 0,
   READER_SURFACE_WORDPRESS = 1,
@@ -227,6 +249,7 @@ export enum ReaderSurfaceType {
   READER_SURFACE_TENOR = 3,
 }
 
+/** */
 export class AccountCreationRequest implements Message {
   private complete_: boolean | null;
 
@@ -259,6 +282,7 @@ export class AccountCreationRequest implements Message {
   }
 }
 
+/** */
 export class ActionRequest implements Message {
   private action_: ActionType | null;
 
@@ -291,6 +315,7 @@ export class ActionRequest implements Message {
   }
 }
 
+/** */
 export class AlreadySubscribedResponse implements Message {
   private subscriberOrMember_: boolean | null;
   private linkRequested_: boolean | null;
@@ -337,6 +362,7 @@ export class AlreadySubscribedResponse implements Message {
   }
 }
 
+/** */
 export class AnalyticsContext implements Message {
   private embedderOrigin_: string | null;
   private transactionId_: string | null;
@@ -537,6 +563,7 @@ export class AnalyticsContext implements Message {
   }
 }
 
+/** */
 export class AnalyticsEventMeta implements Message {
   private eventOriginator_: EventOriginator | null;
   private isFromUserAction_: boolean | null;
@@ -583,6 +610,7 @@ export class AnalyticsEventMeta implements Message {
   }
 }
 
+/** */
 export class AnalyticsRequest implements Message {
   private context_: AnalyticsContext | null;
   private event_: AnalyticsEvent | null;
@@ -661,6 +689,7 @@ export class AnalyticsRequest implements Message {
   }
 }
 
+/** */
 export class AudienceActivityClientLogsRequest implements Message {
   private event_: AnalyticsEvent | null;
 
@@ -693,6 +722,7 @@ export class AudienceActivityClientLogsRequest implements Message {
   }
 }
 
+/** */
 export class CompleteAudienceActionResponse implements Message {
   private swgUserToken_: string | null;
   private actionCompleted_: boolean | null;
@@ -764,6 +794,7 @@ export class CompleteAudienceActionResponse implements Message {
   }
 }
 
+/** */
 export class EntitlementJwt implements Message {
   private jwt_: string | null;
   private source_: string | null;
@@ -808,6 +839,7 @@ export class EntitlementJwt implements Message {
   }
 }
 
+/** */
 export class EntitlementsRequest implements Message {
   private usedEntitlement_: EntitlementJwt | null;
   private clientEventTime_: Timestamp | null;
@@ -926,6 +958,7 @@ export class EntitlementsRequest implements Message {
   }
 }
 
+/** */
 export class EntitlementsResponse implements Message {
   private jwt_: string | null;
   private swgUserToken_: string | null;
@@ -971,6 +1004,7 @@ export class EntitlementsResponse implements Message {
   }
 }
 
+/** */
 export class EventParams implements Message {
   private smartboxMessage_: string | null;
   private gpayTransactionId_: string | null;
@@ -1097,6 +1131,7 @@ export class EventParams implements Message {
   }
 }
 
+/** */
 export class FinishedLoggingResponse implements Message {
   private complete_: boolean | null;
   private error_: string | null;
@@ -1141,6 +1176,7 @@ export class FinishedLoggingResponse implements Message {
   }
 }
 
+/** */
 export class LinkSaveTokenRequest implements Message {
   private authCode_: string | null;
   private token_: string | null;
@@ -1185,6 +1221,7 @@ export class LinkSaveTokenRequest implements Message {
   }
 }
 
+/** */
 export class LinkingInfoResponse implements Message {
   private requested_: boolean | null;
 
@@ -1217,6 +1254,7 @@ export class LinkingInfoResponse implements Message {
   }
 }
 
+/** */
 export class OpenDialogRequest implements Message {
   private urlPath_: string | null;
 
@@ -1249,6 +1287,7 @@ export class OpenDialogRequest implements Message {
   }
 }
 
+/** */
 export class SkuSelectedResponse implements Message {
   private sku_: string | null;
   private oldSku_: string | null;
@@ -1370,6 +1409,7 @@ export class SkuSelectedResponse implements Message {
   }
 }
 
+/** */
 export class SmartBoxMessage implements Message {
   private isClicked_: boolean | null;
 
@@ -1402,6 +1442,7 @@ export class SmartBoxMessage implements Message {
   }
 }
 
+/** */
 export class SubscribeResponse implements Message {
   private subscribe_: boolean | null;
 
@@ -1434,6 +1475,7 @@ export class SubscribeResponse implements Message {
   }
 }
 
+/** */
 export class SubscriptionLinkingCompleteResponse implements Message {
   private publisherProvidedId_: string | null;
   private success_: boolean | null;
@@ -1479,6 +1521,7 @@ export class SubscriptionLinkingCompleteResponse implements Message {
   }
 }
 
+/** */
 export class SubscriptionLinkingResponse implements Message {
   private publisherProvidedId_: string | null;
 
@@ -1512,6 +1555,7 @@ export class SubscriptionLinkingResponse implements Message {
   }
 }
 
+/** */
 export class SurveyAnswer implements Message {
   private answerId_: number | null;
   private answerText_: string | null;
@@ -1582,6 +1626,7 @@ export class SurveyAnswer implements Message {
   }
 }
 
+/** */
 export class SurveyDataTransferRequest implements Message {
   private surveyQuestions_: SurveyQuestion[] | null;
 
@@ -1618,6 +1663,7 @@ export class SurveyDataTransferRequest implements Message {
   }
 }
 
+/** */
 export class SurveyDataTransferResponse implements Message {
   private success_: boolean | null;
 
@@ -1650,6 +1696,7 @@ export class SurveyDataTransferResponse implements Message {
   }
 }
 
+/** */
 export class SurveyQuestion implements Message {
   private questionId_: number | null;
   private questionText_: string | null;
@@ -1724,6 +1771,7 @@ export class SurveyQuestion implements Message {
   }
 }
 
+/** */
 export class Timestamp implements Message {
   private seconds_: number | null;
   private nanos_: number | null;
@@ -1768,6 +1816,7 @@ export class Timestamp implements Message {
   }
 }
 
+/** */
 export class ToastCloseRequest implements Message {
   private close_: boolean | null;
 
@@ -1800,6 +1849,7 @@ export class ToastCloseRequest implements Message {
   }
 }
 
+/** */
 export class ViewSubscriptionsResponse implements Message {
   private native_: boolean | null;
 
@@ -1833,34 +1883,34 @@ export class ViewSubscriptionsResponse implements Message {
 }
 
 const PROTO_MAP: {[key: string]: MessageConstructor} = {
-  AccountCreationRequest: AccountCreationRequest,
-  ActionRequest: ActionRequest,
-  AlreadySubscribedResponse: AlreadySubscribedResponse,
-  AnalyticsContext: AnalyticsContext,
-  AnalyticsEventMeta: AnalyticsEventMeta,
-  AnalyticsRequest: AnalyticsRequest,
-  AudienceActivityClientLogsRequest: AudienceActivityClientLogsRequest,
-  CompleteAudienceActionResponse: CompleteAudienceActionResponse,
-  EntitlementJwt: EntitlementJwt,
-  EntitlementsRequest: EntitlementsRequest,
-  EntitlementsResponse: EntitlementsResponse,
-  EventParams: EventParams,
-  FinishedLoggingResponse: FinishedLoggingResponse,
-  LinkSaveTokenRequest: LinkSaveTokenRequest,
-  LinkingInfoResponse: LinkingInfoResponse,
-  OpenDialogRequest: OpenDialogRequest,
-  SkuSelectedResponse: SkuSelectedResponse,
-  SmartBoxMessage: SmartBoxMessage,
-  SubscribeResponse: SubscribeResponse,
-  SubscriptionLinkingCompleteResponse: SubscriptionLinkingCompleteResponse,
-  SubscriptionLinkingResponse: SubscriptionLinkingResponse,
-  SurveyAnswer: SurveyAnswer,
-  SurveyDataTransferRequest: SurveyDataTransferRequest,
-  SurveyDataTransferResponse: SurveyDataTransferResponse,
-  SurveyQuestion: SurveyQuestion,
-  Timestamp: Timestamp,
-  ToastCloseRequest: ToastCloseRequest,
-  ViewSubscriptionsResponse: ViewSubscriptionsResponse,
+  'AccountCreationRequest': AccountCreationRequest,
+  'ActionRequest': ActionRequest,
+  'AlreadySubscribedResponse': AlreadySubscribedResponse,
+  'AnalyticsContext': AnalyticsContext,
+  'AnalyticsEventMeta': AnalyticsEventMeta,
+  'AnalyticsRequest': AnalyticsRequest,
+  'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
+  'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
+  'EntitlementJwt': EntitlementJwt,
+  'EntitlementsRequest': EntitlementsRequest,
+  'EntitlementsResponse': EntitlementsResponse,
+  'EventParams': EventParams,
+  'FinishedLoggingResponse': FinishedLoggingResponse,
+  'LinkSaveTokenRequest': LinkSaveTokenRequest,
+  'LinkingInfoResponse': LinkingInfoResponse,
+  'OpenDialogRequest': OpenDialogRequest,
+  'SkuSelectedResponse': SkuSelectedResponse,
+  'SmartBoxMessage': SmartBoxMessage,
+  'SubscribeResponse': SubscribeResponse,
+  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
+  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
+  'SurveyAnswer': SurveyAnswer,
+  'SurveyDataTransferRequest': SurveyDataTransferRequest,
+  'SurveyDataTransferResponse': SurveyDataTransferResponse,
+  'SurveyQuestion': SurveyQuestion,
+  'Timestamp': Timestamp,
+  'ToastCloseRequest': ToastCloseRequest,
+  'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
 /**
@@ -1874,9 +1924,12 @@ export function deserialize(data: unknown[]): Message {
       return new ctor(data);
     }
   }
-  throw new Error('Deserialization failed for ' + data);
+  throw new Error(`Deserialization failed for ${data}`);
 }
 
+/**
+ * Gets a message's label.
+ */
 export function getLabel(messageType: MessageConstructor): string {
   return messageType.prototype.label();
 }
