@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as audienceActionFlow from './audience-action-flow';
 import {ActivityPorts} from '../components/activities';
 import {
   AnalyticsContext,
@@ -26,6 +27,10 @@ import {
   EventParams,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
+import {
+  AvailableIntervention,
+  EntitlementsManager,
+} from './entitlements-manager';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -38,7 +43,6 @@ import {
   GOOGLE_METERING_SOURCE,
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
-import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 import {MeterClientTypes} from '../api/metering';
 import {PageConfig} from '../model/page-config';
@@ -1937,6 +1941,59 @@ describes.realWin('EntitlementsManager', (env) => {
 
       await manager.getEntitlements();
     });
+
+    it('should return null promise when fetching interventions without article', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ false
+      );
+      sandbox.stub(manager, 'getArticle').resolves(null);
+
+      expect(await manager.getAvailableInterventions()).to.equal(
+        null,
+        'getAvailableInterventions should return null'
+      );
+
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg.js:getAvailableInterventions] Article is null. Make sure you have enabled it in the client ready callback with: `subscriptions.configure({enableArticleEndpoint: true})`'
+      );
+    });
+
+    it('should return correct AvailableInterventions', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {
+        audienceActions: {
+          actions: [
+            {
+              type: 'TEST_ACTION',
+              configurationId: 'TEST_CONFIGURATION_ID',
+            },
+          ],
+        },
+      };
+      sandbox.stub(manager, 'getArticle').resolves(article);
+      expect(await manager.getAvailableInterventions()).to.deep.equal(
+        [
+          new AvailableIntervention(
+            {
+              type: 'TEST_ACTION',
+              configurationId: 'TEST_CONFIGURATION_ID',
+            },
+            deps
+          ),
+        ],
+        'getAvailableInterventions should return correct action'
+      );
+    });
   });
 
   describe('event listening', () => {
@@ -2831,6 +2888,37 @@ describes.realWin('EntitlementsManager', (env) => {
       storageMock.expects('remove').withExactArgs('ents').once();
       storageMock.expects('remove').withExactArgs('isreadytopay').once();
       manager.reset(true);
+    });
+  });
+
+  describe('AvailableIntervention', () => {
+    it('calls audience action flow', () => {
+      const availableIntervention = new AvailableIntervention(
+        {
+          type: 'TEST_ACTION',
+          configurationId: 'TEST_CONFIGURATION_ID',
+        },
+        deps
+      );
+
+      const actionFlowSpy = sandbox.spy(
+        audienceActionFlow,
+        'AudienceActionFlow'
+      );
+      const startSpy = sandbox.spy(
+        audienceActionFlow.AudienceActionFlow.prototype,
+        'start'
+      );
+
+      availableIntervention.show({
+        isClosable: true,
+      });
+
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        isClosable: true,
+        action: 'TEST_ACTION',
+      });
+      expect(startSpy).to.have.been.calledOnce;
     });
   });
 });
