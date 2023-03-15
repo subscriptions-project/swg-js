@@ -86,7 +86,7 @@ export class AvailableIntervention extends Intervention {
   /**
    * Starts the intervention flow.
    * @param {!ShowInterventionParams=} params
-   * @return {?}
+   * @return {!Promise}
    */
   show(params) {
     // TODO: implement `onResult`
