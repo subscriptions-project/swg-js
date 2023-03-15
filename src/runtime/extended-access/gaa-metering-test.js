@@ -638,6 +638,7 @@ describes.realWin('GaaMetering', () => {
     it('fails for a non-boolean shouldInitializeSwG', () => {
       expect(
         GaaMetering.validateParameters({
+          shouldInitializeSwG: 'invalid_value',
           googleApiClientId: GOOGLE_API_CLIENT_ID,
           allowedReferrers: ['example.com', 'test.com', 'localhost'],
           userState: {
@@ -653,7 +654,6 @@ describes.realWin('GaaMetering', () => {
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
           publisherEntitlementPromise: new Promise(() => {}),
-          shouldInitializeSwG: 'invalid_value',
         })
       ).to.be.false;
 
