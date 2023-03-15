@@ -1962,7 +1962,7 @@ describes.realWin('EntitlementsManager', (env) => {
       );
     });
 
-    it('should correct AvailableInterventions', async () => {
+    it('should return correct AvailableInterventions', async () => {
       manager = new EntitlementsManager(
         win,
         pageConfig,
