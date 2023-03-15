@@ -105,7 +105,7 @@ export class AvailableIntervention extends Intervention {
  *  entitlements: (../api/entitlements.Entitlements),
  *  clientConfig: (../model/client-config.ClientConfig),
  *  audienceActions: ({
- *    actions: Array<Intervention>,
+ *    actions: Array<!Intervention>,
  *    engineId: (string)
  *  }),
  *  experimentConfig: ({
