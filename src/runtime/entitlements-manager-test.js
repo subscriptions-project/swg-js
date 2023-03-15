@@ -1958,7 +1958,7 @@ describes.realWin('EntitlementsManager', (env) => {
       );
 
       expect(self.console.warn).to.have.been.calledWithExactly(
-        '[swg.js:getAvailableInterventions] Article is null. Please configure it in the client ready callback.'
+        '[swg.js:getAvailableInterventions] Article is null. Make sure you have enabled it in the client ready callback with: `subscriptions.configure({enableArticleEndpoint: true})`'
       );
     });
 

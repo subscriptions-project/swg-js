@@ -1054,14 +1054,14 @@ export class EntitlementsManager {
 
   /**
    * Returns a list of available interventions. If there are no interventions available
-   * an empty array is returned. If the article endpoint is not enabled, null is returned.
+   * an empty array is returned. If the article does not exist, null is returned.
    * @return {!Promise<Array<AvailableIntervention> | null>}
    */
   async getAvailableInterventions() {
     const article = await this.getArticle();
     if (!article) {
       warn(
-        '[swg.js:getAvailableInterventions] Article is null. Please configure it in the client ready callback.'
+        '[swg.js:getAvailableInterventions] Article is null. Make sure you have enabled it in the client ready callback with: `subscriptions.configure({enableArticleEndpoint: true})`'
       );
       return null;
     }
