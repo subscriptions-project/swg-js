@@ -458,7 +458,7 @@ export class GaaMetering {
       }
     }
 
-    if ('shouldInitializeSwG' in params && typeof params.initSwG != 'boolean') {
+    if ('shouldInitializeSwG' in params && typeof params.shouldInitializeSwG != 'boolean') {
       debugLog(
         'shouldInitializeSwG is provided but the value is not a boolean'
       );
