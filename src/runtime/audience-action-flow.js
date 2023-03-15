@@ -48,7 +48,8 @@ import {parseUrl} from '../utils/url';
  * @typedef {{
  *  action: (string|undefined),
  *  onCancel: (function()|undefined),
- *  autoPromptType: (AutoPromptType|undefined)
+ *  autoPromptType: (AutoPromptType|undefined),
+ *  onResult: ((function(!Object):(Promise<Boolean>|Boolean))|undefined),
  * }}
  */
 export let AudienceActionParams;
@@ -290,11 +291,14 @@ export class AudienceActionFlow {
    * @private
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleSurveyDataTransferRequest_(request) {
+  async handleSurveyDataTransferRequest_(request) {
     // @TODO(justinchou): execute callback with setOnInterventionComplete
     // then check for success
-    const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
-    if (gaLoggingSuccess) {
+    const {onResult} = this.params_;
+    const loggingSuccess = onResult
+      ? await this.params_.onResult(request)
+      : this.logSurveyDataToGoogleAnalytics(request);
+    if (loggingSuccess) {
       this.deps_
         .eventManager()
         .logSwgEvent(
@@ -311,7 +315,7 @@ export class AudienceActionFlow {
       this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
+    surveyDataTransferResponse.setSuccess(loggingSuccess);
     this.activityIframeView_.execute(surveyDataTransferResponse);
   }
 

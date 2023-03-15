@@ -34,6 +34,7 @@ import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
+import {tick} from '../../test/tick';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const WINDOW_INNER_HEIGHT = 424242;
@@ -124,6 +125,10 @@ describes.realWin('AudienceActionFlow', (env) => {
     sandbox.stub(runtime, 'win').returns(win);
     onCancelSpy = sandbox.spy();
     sandbox.useFakeTimers(CURRENT_TIME);
+  });
+
+  afterEach(() => {
+    eventManagerMock.verify();
   });
 
   function setWinWithoutGtag() {
@@ -714,6 +719,95 @@ describes.realWin('AudienceActionFlow', (env) => {
     messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
 
     activityIframeViewMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest with successful onResult logging`, async () => {
+    const onResultMock = sandbox
+      .mock()
+      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
+      .resolves(true)
+      .once();
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      onResult: onResultMock,
+    });
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock.expects('logEvent').withExactArgs({
+      eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: true,
+      additionalParameters: null,
+    });
+
+    await audienceActionFlow.start();
+
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+
+    const activityIframeViewMock = sandbox
+      .mock(audienceActionFlow.activityIframeView_)
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
+
+    await tick(10);
+
+    activityIframeViewMock.verify();
+    onResultMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest with failed onResult logging`, async () => {
+    const onResultMock = sandbox
+      .mock()
+      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
+      .resolves(false)
+      .once();
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      onResult: onResultMock,
+    });
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs({
+        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+      })
+      .once();
+
+    await audienceActionFlow.start();
+
+    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    failSurveyDataTransferResponse.setSuccess(false);
+
+    const activityIframeViewMock = sandbox
+      .mock(audienceActionFlow.activityIframeView_)
+      .expects('execute')
+      .withExactArgs(failSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
+
+    await tick(10);
+
+    activityIframeViewMock.verify();
+    onResultMock.verify();
   });
 
   it('opens dialog with scrolling disabled', async () => {
