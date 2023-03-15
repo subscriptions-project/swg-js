@@ -1956,6 +1956,10 @@ describes.realWin('EntitlementsManager', (env) => {
         null,
         'getAvailableInterventions should return null'
       );
+
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg.js:getAvailableInterventions] Article is null. Please configure it in the client ready callback.'
+      );
     });
 
     it('should correct AvailableInterventions', async () => {

@@ -1054,15 +1054,21 @@ export class EntitlementsManager {
 
   /**
    * Returns a list of available interventions. If there are no interventions available
-   * an empty string is returned. If the article endpoint is not enabled, null is returned.
-   * @return {!Promise<?Array<AvailableIntervention>>}
+   * an empty array is returned. If the article endpoint is not enabled, null is returned.
+   * @return {!Promise<Array<AvailableIntervention> | null>}
    */
   async getAvailableInterventions() {
     const article = await this.getArticle();
+    if (!article) {
+      warn(
+        '[swg.js:getAvailableInterventions] Article is null. Please configure it in the client ready callback.'
+      );
+      return null;
+    }
     return (
-      article?.audienceActions.actions.map(
+      article.audienceActions?.actions?.map(
         (action) => new AvailableIntervention(action, this.deps_)
-      ) || null
+      ) || []
     );
   }
 }
