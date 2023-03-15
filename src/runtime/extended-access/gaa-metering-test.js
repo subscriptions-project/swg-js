@@ -635,6 +635,34 @@ describes.realWin('GaaMetering', () => {
       );
     });
 
+    it('fails for an invalid shouldInitializeSwG', () => {
+      expect(
+        GaaMetering.validateParameters({
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          userState: {
+            id: 'user1235',
+            registrationTimestamp: 1602763054,
+            subscriptionTimestamp: 1602763094,
+            granted: false,
+          },
+          unlockArticle: () => {},
+          showPaywall: () => {},
+          handleLogin: () => {},
+          handleSwGEntitlement: () => {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+          publisherEntitlementPromise: new Promise(() => {}),
+          shouldInitializeSwG: 'invalid_value',
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'shouldInitializeSwG is provided but the value is not a boolean'
+      );
+    });
+
     it('succeeds for free articles where granted is true but grantedReason is not required', () => {
       sandbox.stub(GaaMetering, 'isArticleFreeFromPageConfig_');
       GaaMetering.isArticleFreeFromPageConfig_.returns(true);
@@ -1075,6 +1103,59 @@ describes.realWin('GaaMetering', () => {
         'Extended Access - Invalid gaa parameters or referrer.'
       );
       expect(logEvent).not.to.have.been.called;
+    });
+
+    it('initializes SwG by default', async () => {
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {},
+        unlockArticle: () => {},
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+      });
+
+      expect(subscriptionsMock.init).to.be.called;
+    });
+
+    it('does not initialize SwG when shouldInitializeSwG is false', async () => {
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        shouldInitializeSwG: false,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {},
+        unlockArticle: () => {},
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+      });
+
+      expect(subscriptionsMock.init).to.not.be.called;
     });
 
     it('succeeds for a subscriber', async () => {
