@@ -19,22 +19,11 @@
  * The initial values are just placeholders for tests.
  */
 
-const FRONTEND = 'https://news.google.com';
-const PAY_ENVIRONMENT = 'TEST';
-const PLAY_ENVIRONMENT = 'STAGING';
-const FRONTEND_CACHE = 'nocache';
-const INTERNAL_RUNTIME_VERSION = '0.0.0';
-const ASSETS = '/assets';
-const ADS_SERVER = 'https://pubads.g.doubleclick.net';
-const EXPERIMENTS = '';
-
-export {
-  FRONTEND,
-  PAY_ENVIRONMENT,
-  PLAY_ENVIRONMENT,
-  FRONTEND_CACHE,
-  INTERNAL_RUNTIME_VERSION,
-  ASSETS,
-  ADS_SERVER,
-  EXPERIMENTS,
-};
+export const FRONTEND = 'https://news.google.com';
+export const PAY_ENVIRONMENT = 'TEST';
+export const PLAY_ENVIRONMENT = 'STAGING';
+export const FRONTEND_CACHE = 'nocache';
+export const INTERNAL_RUNTIME_VERSION = '0.0.0';
+export const ASSETS = '/assets';
+export const ADS_SERVER = 'https://pubads.g.doubleclick.net';
+export const EXPERIMENTS = '';
