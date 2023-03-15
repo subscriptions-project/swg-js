@@ -635,7 +635,7 @@ describes.realWin('GaaMetering', () => {
       );
     });
 
-    it('fails for an invalid shouldInitializeSwG', () => {
+    it('fails for a non-boolean shouldInitializeSwG', () => {
       expect(
         GaaMetering.validateParameters({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
