@@ -119,9 +119,8 @@ export class GaaMetering {
         : params.unlockArticle;
 
     // Provide an option to bypass SwG init for 3P integrations.
-    const shouldInitializeSwG = 'shouldInitializeSwG' in params
-      ? params.shouldInitializeSwG
-      : true;
+    const shouldInitializeSwG =
+      'shouldInitializeSwG' in params ? params.shouldInitializeSwG : true;
 
     callSwg(async (subscriptions) => {
       if (shouldInitializeSwG) {
