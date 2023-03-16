@@ -181,16 +181,16 @@ function runTests() {
       'istanbul',
       {
         exclude: [
-          'build-system/**/*.js',
-          'src/**/*-test.js',
-          'src/**/*.stories.js',
-          'test/**/*.js',
-          'third_party/**/*.js',
+          'build-system/**/*',
+          'src/**/*-test.{js,ts}',
+          'src/**/*.stories.{js,ts}',
+          'test/**/*',
+          'third_party/**/*',
           // This file is auto-generated.
-          'src/proto/api_messages.js',
+          'src/proto/api_messages.ts',
           // Tell istanbul not to instrument the constants file.
           // This is needed because we update it at build time for tests.
-          'src/constants.js',
+          'src/constants.ts',
         ],
       },
     ];
