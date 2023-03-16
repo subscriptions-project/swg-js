@@ -99,25 +99,13 @@ export class AvailableIntervention extends Intervention {
 }
 
 /**
- * @typedef {{
- *  type: (string),
- *  configurationId: (string)
- * }}
- */
-export let Action;
-
-/**
  * Article response object.
  *
  * @typedef {{
  *  entitlements: (../api/entitlements.Entitlements),
  *  clientConfig: (../model/client-config.ClientConfig),
  *  audienceActions: ({
-<<<<<<< HEAD
- *    actions: Array<Action>,
-=======
  *    actions: Array<!Intervention>,
->>>>>>> 3555014cda29471589a2c0250f3b6f4650beb101
  *    engineId: (string)
  *  }),
  *  experimentConfig: ({
