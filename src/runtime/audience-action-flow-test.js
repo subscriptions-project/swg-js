@@ -869,7 +869,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     const onResultMock = sandbox
       .mock()
       .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
-      .resolves(Promise.reject(new Error('Test Callback Exception')))
+      .rejects(new Error('Test Callback Exception'))
       .once();
 
     const audienceActionFlow = new AudienceActionFlow(runtime, {
