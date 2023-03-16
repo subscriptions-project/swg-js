@@ -109,7 +109,7 @@ export class AudienceActionFlow {
       deps.activities(),
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
-        'configurationId': this.params_.configurationId,
+        'configurationId': this.params_.configurationId || '',
         'hl': this.clientConfigManager_.getLanguage(),
         'isClosable': !deps.pageConfig().isLocked(),
       }),
