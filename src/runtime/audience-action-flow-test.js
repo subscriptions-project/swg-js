@@ -125,10 +125,12 @@ describes.realWin('AudienceActionFlow', (env) => {
     sandbox.stub(runtime, 'win').returns(win);
     onCancelSpy = sandbox.spy();
     sandbox.useFakeTimers(CURRENT_TIME);
+    sandbox.stub(self.console, 'warn');
   });
 
   afterEach(() => {
     eventManagerMock.verify();
+    self.console.warn.reset();
   });
 
   function setWinWithoutGtag() {
@@ -615,7 +617,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     activityIframeViewMock.verify();
   });
 
-  it(`handles a SurveyDataTransferRequest with successful logging`, async () => {
+  it(`handles a SurveyDataTransferRequest with successful Google Analytics logging`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       onCancel: onCancelSpy,
@@ -683,10 +685,12 @@ describes.realWin('AudienceActionFlow', (env) => {
     const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
     messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
 
+    await tick(10);
+
     activityIframeViewMock.verify();
   });
 
-  it(`handles a SurveyDataTransferRequest with failed logging`, async () => {
+  it(`handles a SurveyDataTransferRequest with failed Google Analytics logging`, async () => {
     setWinWithoutGtag();
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
@@ -717,6 +721,8 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
     messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
+
+    await tick(10);
 
     activityIframeViewMock.verify();
   });
@@ -806,6 +812,55 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     await tick(10);
 
+    activityIframeViewMock.verify();
+    onResultMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest with onResult logging exception`, async () => {
+    const onResultMock = sandbox
+      .mock()
+      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
+      .throws(new Error('Test Callback Exception'))
+      .once();
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      onResult: onResultMock,
+    });
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs({
+        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+      })
+      .once();
+
+    await audienceActionFlow.start();
+
+    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    failSurveyDataTransferResponse.setSuccess(false);
+
+    const activityIframeViewMock = sandbox
+      .mock(audienceActionFlow.activityIframeView_)
+      .expects('execute')
+      .withExactArgs(failSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
+
+    await tick(10);
+
+    expect(self.console.warn).to.have.been.calledWithExactly(
+      '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
+    );
     activityIframeViewMock.verify();
     onResultMock.verify();
   });
