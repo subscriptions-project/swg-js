@@ -377,7 +377,7 @@ export class Dialog {
 
     // If the current view should fade the parent document.
     if (view.shouldFadeBody() && !this.hidden_) {
-      this.graypane_.show(/* animate */ true);
+      this.graypane_.show(/* animated */ true);
     }
 
     await view.init(this);
