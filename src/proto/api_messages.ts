@@ -19,11 +19,6 @@
  * Auto generated, do not edit
  */
 
-/**
- * @fileoverview Protos for SwG client/iframe messaging
- * Auto generated, do not edit
- */
-
 /* tslint:disable:enforce-name-casing */
 /* tslint:disable:strip-private-property-underscore */
 

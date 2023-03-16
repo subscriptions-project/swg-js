@@ -53,7 +53,7 @@ describes.realWin('ContributionsFlow', (env) => {
     port.acceptResult = () => Promise.resolve();
     sandbox.stub(port, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
-      const messageLabel = messageType.getMessageLabel();
+      const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
     });
   });
@@ -409,7 +409,7 @@ describes.realWin('ContributionsFlow', (env) => {
     const response = new AlreadySubscribedResponse();
     response.setSubscriberOrMember(true);
     response.setLinkRequested(true);
-    const callback = messageMap[response.getMessageLabel()];
+    const callback = messageMap[response.label()];
     callback(response);
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: true,

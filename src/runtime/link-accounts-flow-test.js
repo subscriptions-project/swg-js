@@ -717,7 +717,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     messageMap = {};
     sandbox.stub(port, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
-      const label = messageType.getMessageLabel();
+      const label = messageType.label();
       messageMap[label] = cb;
     });
     const resultPromise = new Promise((resolve) => {
@@ -851,7 +851,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     await linkSaveFlow.openPromise_;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
-    const cb = messageMap[response.getMessageLabel()];
+    const cb = messageMap[response.label()];
     cb(response);
     dialogManagerMock.expects('completeView').once();
 
@@ -868,7 +868,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     await linkSaveFlow.openPromise_;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
-    const cb = messageMap[response.getMessageLabel()];
+    const cb = messageMap[response.label()];
     cb(response);
     dialogManagerMock.expects('completeView').once();
 
@@ -891,7 +891,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     await linkSaveFlow.openPromise_;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
-    const cb = messageMap[response.getMessageLabel()];
+    const cb = messageMap[response.label()];
     cb(response);
 
     await linkSaveFlow.getRequestPromise();
@@ -912,7 +912,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     await linkSaveFlow.openPromise_;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
-    const cb = messageMap[response.getMessageLabel()];
+    const cb = messageMap[response.label()];
     cb(response);
 
     await linkSaveFlow.getRequestPromise();
@@ -927,7 +927,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     await linkSaveFlow.openPromise_;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
-    const cb = messageMap[response.getMessageLabel()];
+    const cb = messageMap[response.label()];
     dialogManagerMock.expects('completeView').once();
     cb(response);
 
@@ -946,7 +946,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     await linkSaveFlow.openPromise_;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
-    const cb = messageMap[response.getMessageLabel()];
+    const cb = messageMap[response.label()];
     dialogManagerMock.expects('completeView').once();
     cb(response);
 
@@ -967,7 +967,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     await linkSaveFlow.openPromise_;
     const response = new LinkingInfoResponse();
     response.setRequested(false);
-    const cb = messageMap[response.getMessageLabel()];
+    const cb = messageMap[response.label()];
     cb(response);
     await linkSaveFlow.getRequestPromise();
   });
