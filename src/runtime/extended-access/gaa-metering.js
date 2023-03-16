@@ -118,8 +118,14 @@ export class GaaMetering {
         ? () => {}
         : params.unlockArticle;
 
+    // Provide an option to bypass SwG init for 3P integrations.
+    const shouldInitializeSwG =
+      'shouldInitializeSwG' in params ? params.shouldInitializeSwG : true;
+
     callSwg(async (subscriptions) => {
-      subscriptions.init(productId);
+      if (shouldInitializeSwG) {
+        subscriptions.init(productId);
+      }
 
       logEvent({
         analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
@@ -449,6 +455,16 @@ export class GaaMetering {
         );
         noIssues = false;
       }
+    }
+
+    if (
+      'shouldInitializeSwG' in params &&
+      typeof params.shouldInitializeSwG != 'boolean'
+    ) {
+      debugLog(
+        'shouldInitializeSwG is provided but the value is not a boolean'
+      );
+      noIssues = false;
     }
 
     return noIssues;

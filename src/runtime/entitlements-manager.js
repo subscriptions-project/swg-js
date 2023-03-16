@@ -23,6 +23,7 @@ import {
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
+import {AudienceActionFlow} from './audience-action-flow';
 import {Constants, StorageKeys} from '../utils/constants';
 import {
   Entitlement,
@@ -51,15 +52,60 @@ import {warn} from '../utils/log';
 const SERVICE_ID = 'subscribe.google.com';
 
 /**
+ * Properties:
+ *   - isClosable - determine whether the view is closable.
+ *   - onResult - callback to get the intervention result and decide if it completes.
+ *                Takes either a normal or async function and returns `true` if the
+ *                intervention should be marked complete.
+ *
+ * @typedef {{
+ *   isClosable: (boolean|undefined),
+ *   onResult: ((function(!Object):(Promise<Boolean>|Boolean))|undefined),
+ * }}
+ */
+export let ShowInterventionParams;
+
+class Intervention {
+  /** @public @const {string} */
+  type;
+  /** @public @const {string} */
+  configurationId;
+}
+
+export class AvailableIntervention extends Intervention {
+  /**
+   * @param {Intervention} original
+   * @param {!./deps.DepsDef} deps
+   */
+  constructor(original, deps) {
+    super();
+    Object.assign(this, original);
+    /** @private @const {!./deps.DepsDef} */
+    this.deps_ = deps;
+  }
+  /**
+   * Starts the intervention flow.
+   * @param {!ShowInterventionParams=} params
+   * @return {!Promise}
+   */
+  show(params) {
+    // TODO: implement `onResult`
+    const flow = new AudienceActionFlow(this.deps_, {
+      isClosable: params.isClosable,
+      action: this.type,
+    });
+    return flow.start();
+  }
+}
+
+/**
  * Article response object.
  *
  * @typedef {{
  *  entitlements: (../api/entitlements.Entitlements),
  *  clientConfig: (../model/client-config.ClientConfig),
  *  audienceActions: ({
- *    actions: Array<{
- *      type: (string)
- *    }>,
+ *    actions: Array<!Intervention>,
  *    engineId: (string)
  *  }),
  *  experimentConfig: ({
@@ -1004,6 +1050,26 @@ export class EntitlementsManager {
     }
 
     return this.parseEntitlements(response);
+  }
+
+  /**
+   * Returns a list of available interventions. If there are no interventions available
+   * an empty array is returned. If the article does not exist, null is returned.
+   * @return {!Promise<Array<AvailableIntervention> | null>}
+   */
+  async getAvailableInterventions() {
+    const article = await this.getArticle();
+    if (!article) {
+      warn(
+        '[swg.js:getAvailableInterventions] Article is null. Make sure you have enabled it in the client ready callback with: `subscriptions.configure({enableArticleEndpoint: true})`'
+      );
+      return null;
+    }
+    return (
+      article.audienceActions?.actions?.map(
+        (action) => new AvailableIntervention(action, this.deps_)
+      ) || []
+    );
   }
 }
 
