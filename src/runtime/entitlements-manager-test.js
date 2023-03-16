@@ -2225,6 +2225,12 @@ describes.realWin('EntitlementsManager', (env) => {
         [EventOriginator.SHOWCASE_CLIENT]: 1,
       };
       for (const originKey in EventOriginator) {
+        // Ignore numerical keys from TypeScript's reverse mapping.
+        // https://www.typescriptlang.org/docs/handbook/enums.html#reverse-mappings
+        if (!isNaN(originKey)) {
+          continue;
+        }
+
         const origin = EventOriginator[originKey];
         if (SKIP[origin]) {
           continue;
