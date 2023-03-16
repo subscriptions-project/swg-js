@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {FRONTEND} from '../constants';
 import {Doc} from '../model/doc';
+import {FRONTEND} from '../constants';
 
 interface ReportableError extends Error {
   /** Helps avoid reporting the same error multiple times. */

@@ -188,7 +188,7 @@ export function feArgs(args: {[key: string]: unknown}): {
 }
 
 export function cacheParam(cacheKey: string): string {
-  let period = Number(CACHE_KEYS[cacheKey] || 1);
+  const period = Number(CACHE_KEYS[cacheKey] || 1);
   if (period === 0) {
     return '_';
   }
