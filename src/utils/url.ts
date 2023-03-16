@@ -166,7 +166,7 @@ const PARSED_REFERRER = parseUrl(self.document.referrer);
  * True for Google domains
  * @param parsedUrl Defaults to the current page's URL
  */
-function isGoogleDomain(parsedUrl = PARSED_URL): boolean {
+function isGoogleDomain(parsedUrl: Location): boolean {
   return GOOGLE_DOMAIN_RE.test(parsedUrl.hostname);
 }
 
