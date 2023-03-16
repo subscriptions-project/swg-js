@@ -77,7 +77,7 @@ describes.realWin('Graypane', (env) => {
 
   it('defaults to showing w/animation', async () => {
     graypane.attach();
-    const p = graypane.show(ANIMATE);
+    const p = graypane.show();
     expect(p).to.exist;
   });
 
