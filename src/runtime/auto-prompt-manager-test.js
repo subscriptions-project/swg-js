@@ -1133,7 +1133,10 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_REGISTRATION_WALL', confiurationId: 'reg_config_id'},
+              {
+                type: 'TYPE_REGISTRATION_WALL',
+                configurationId: 'reg_config_id',
+              },
             ],
             engineId: '123',
           },
@@ -1152,6 +1155,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'reg_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
@@ -1166,7 +1170,7 @@ describes.realWin('AutoPromptManager', (env) => {
             actions: [
               {
                 type: 'TYPE_CONTRIBUTION',
-                confiurationId: 'contribution_config_id',
+                configurationId: 'contribution_config_id',
               },
               {
                 type: 'TYPE_REGISTRATION_WALL',
@@ -1220,6 +1224,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_SUBSCRIPTION',
+        configurationId: 'subscription_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
@@ -1371,6 +1376,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1407,6 +1413,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1426,10 +1433,22 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_CONTRIBUTION'},
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
+              {
+                type: 'TYPE_REWARDED_SURVEY',
+                configurationId: 'survey_config_id',
+              },
+              {
+                type: 'TYPE_REGISTRATION_WALL',
+                configurationId: 'regwall_config_id',
+              },
+              {
+                type: 'TYPE_NEWSLETTER_SIGNUP',
+                configurationId: 'newsletter_config_id',
+              },
             ],
             engineId: '123',
           },
@@ -1456,6 +1475,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1494,6 +1514,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1532,6 +1553,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1621,6 +1643,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1658,6 +1681,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1695,6 +1719,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1837,6 +1862,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1875,6 +1901,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -1894,10 +1921,22 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_CONTRIBUTION'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_REWARDED_SURVEY',
+                configurationId: 'survey_config_id',
+              },
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
+              {
+                type: 'TYPE_REGISTRATION_WALL',
+                configurationId: 'regwall_config_id',
+              },
+              {
+                type: 'TYPE_NEWSLETTER_SIGNUP',
+                configurationId: 'newsletter_config_id',
+              },
             ],
             engineId: '123',
           },
@@ -1918,6 +1957,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
       });
@@ -1932,10 +1972,22 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_CONTRIBUTION'},
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
+              {
+                type: 'TYPE_REWARDED_SURVEY',
+                configurationId: 'survey_config_id',
+              },
+              {
+                type: 'TYPE_REGISTRATION_WALL',
+                configurationId: 'regwall_config_id',
+              },
+              {
+                type: 'TYPE_NEWSLETTER_SIGNUP',
+                configurationId: 'newsletter_config_id',
+              },
             ],
             engineId: '123',
           },
@@ -1985,6 +2037,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -2074,6 +2127,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
@@ -2273,6 +2327,7 @@ describes.realWin('AutoPromptManager', (env) => {
             expect(startSpy).to.have.been.calledOnce;
             expect(actionFlowSpy).to.have.been.calledWith(deps, {
               action: 'TYPE_REWARDED_SURVEY',
+              configurationId: 'survey_config_id',
               onCancel: sandbox.match.any,
               autoPromptType: AutoPromptType.CONTRIBUTION,
             });

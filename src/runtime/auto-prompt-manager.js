@@ -227,8 +227,9 @@ export class AutoPromptManager {
           dismissedPrompts,
           shouldShowAutoPrompt,
         })
-      : {};
-    const promptFn = potentialAction.type
+      : undefined;
+
+    const promptFn = potentialAction
       ? this.audienceActionPrompt_({
           action: potentialAction.type,
           configurationId: potentialAction.configurationId,
@@ -239,12 +240,13 @@ export class AutoPromptManager {
     const shouldShowBlockingPrompt =
       this.shouldShowBlockingPrompt_(
         entitlements,
-        /* hasPotentialAudienceAction */ !!potentialAction.type
+        /* hasPotentialAudienceAction */ !!potentialAction?.type
       ) && promptFn;
 
     if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
       return;
     }
+
     // Second Prompt Delay experiment
     const isContributionFlow =
       params.autoPromptType === AutoPromptType.CONTRIBUTION ||
@@ -270,6 +272,7 @@ export class AutoPromptManager {
     const displayDelayMs =
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
+
     if (shouldShowAutoPrompt) {
       this.deps_.win().setTimeout(() => {
         this.autoPromptDisplayed_ = true;
@@ -280,7 +283,7 @@ export class AutoPromptManager {
       }, displayDelayMs);
     } else {
       const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
-        potentialAction.type
+        potentialAction?.type
       );
       this.deps_
         .win()
@@ -529,8 +532,8 @@ export class AutoPromptManager {
       );
 
       if (contributionIndex > 0) {
-        actionToUse = potentialActions[0].type;
-        this.promptDisplayed_ = actionToUse;
+        actionToUse = potentialActions[0];
+        this.promptDisplayed_ = actionToUse.type;
         return actionToUse;
       }
 
