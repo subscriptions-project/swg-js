@@ -188,13 +188,10 @@ export function feArgs(args: {[key: string]: unknown}): {
 }
 
 export function cacheParam(cacheKey: string): string {
-  let period = CACHE_KEYS[cacheKey];
-  if (period == null) {
-    period = '1';
-  }
-  if (period === '0') {
+  let period = Number(CACHE_KEYS[cacheKey] || 1);
+  if (period === 0) {
     return '_';
   }
   const now = Date.now();
-  return String(+period <= 1 ? now : Math.floor(now / +period));
+  return String(period <= 1 ? now : Math.floor(now / period));
 }
