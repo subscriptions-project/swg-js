@@ -14,78 +14,70 @@
  * limitations under the License.
  */
 
+import {Doc} from '../model/doc';
 import {setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
 export class Graypane {
-  /**
-   * @param {!../model/doc.Doc} doc
-   * @param {number} zIndex
-   */
-  constructor(doc, zIndex) {
-    /** @private @const {!../model/doc.Doc} */
+  private doc_: Doc;
+  private fadeBackground_: HTMLElement;
+
+  constructor(doc: Doc, zIndex: number) {
     this.doc_ = doc;
 
-    /** @private @const {!Element} */
     this.fadeBackground_ = this.doc_
       .getWin()
       .document.createElement('swg-popup-background');
+
     setImportantStyles(this.fadeBackground_, {
-      'z-index': zIndex,
+      'z-index': zIndex.toString(),
       'display': 'none',
       'pointer-events': 'none',
       'position': 'fixed',
-      'top': 0,
-      'right': 0,
-      'bottom': 0,
-      'left': 0,
+      'top': '0',
+      'right': '0',
+      'bottom': '0',
+      'left': '0',
       'background-color': 'rgba(32, 33, 36, .6)',
     });
   }
 
-  /**
-   * @return {!Element}
-   */
-  getElement() {
+  getElement(): Element {
     return this.fadeBackground_;
   }
 
-  /**
-   * @return {boolean}
-   */
-  isAttached() {
+  isAttached(): boolean {
     return !!this.fadeBackground_.parentNode;
   }
 
   /**
    * Attaches the graypane to the document.
    */
-  attach() {
-    this.doc_.getBody().appendChild(this.fadeBackground_);
+  attach(): void {
+    this.doc_.getBody()?.appendChild(this.fadeBackground_);
   }
 
   /**
    * Detaches the graypane to the document.
    */
-  destroy() {
-    this.doc_.getBody().removeChild(this.fadeBackground_);
+  destroy(): void {
+    this.doc_.getBody()?.removeChild(this.fadeBackground_);
   }
 
   /**
    * Shows the graypane.
-   * @param {boolean=} animated
-   * @return {!Promise|undefined}
    */
-  show(animated = true) {
+  show(animated = true): Promise<void> | void {
     setImportantStyles(this.fadeBackground_, {
       'display': 'block',
-      'opacity': animated ? 0 : 1,
+      'opacity': animated ? '0' : '1',
     });
+
     if (animated) {
       return transition(
         this.fadeBackground_,
         {
-          'opacity': 1,
+          'opacity': '1',
         },
         300,
         'ease-out'
@@ -95,15 +87,13 @@ export class Graypane {
 
   /**
    * Hides the graypane.
-   * @param {boolean=} animated
-   * @return {!Promise|undefined}
    */
-  async hide(animated = true) {
+  async hide(animated = true): Promise<void> {
     if (animated) {
       await transition(
         this.fadeBackground_,
         {
-          'opacity': 0,
+          'opacity': '0',
         },
         300,
         'ease-out'

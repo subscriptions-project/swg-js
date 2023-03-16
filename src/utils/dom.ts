@@ -33,13 +33,13 @@ function addAttributesToElement(
 /**
  * Create a new element on document with specified tagName and attributes.
  */
-export function createElement(
+export function createElement<T extends HTMLElement>(
   doc: Document,
   tagName: string,
   attributes: {[key: string]: string},
   content?: string
-): Element {
-  const element = doc.createElement(tagName);
+): T {
+  const element = doc.createElement(tagName) as T;
 
   addAttributesToElement(element, attributes);
 
@@ -72,11 +72,15 @@ export function removeChildren(parent: Element) {
  * @param styleText The style string.
  */
 export function injectStyleSheet(doc: Doc, styleText: string): Element {
-  const styleElement = createElement(doc.getWin().document, 'style', {
-    'type': styleType,
-  });
+  const styleElement: HTMLStyleElement = createElement(
+    doc.getWin().document,
+    'style',
+    {
+      'type': styleType,
+    }
+  );
   styleElement.textContent = styleText;
-  doc.getHead().appendChild(styleElement);
+  doc.getHead()?.appendChild(styleElement);
   return styleElement;
 }
 
