@@ -421,7 +421,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a CompleteAudienceActionResponse with newsletter not completed and opens a custom toast indicating that the user has completed the newsletter before`, async () => {
-    const audienceActionFlow = runtime, {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
       configurationId: 'configId',
       onCancel: onCancelSpy,
