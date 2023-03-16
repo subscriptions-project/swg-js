@@ -14,23 +14,29 @@
  * limitations under the License.
  */
 import {FRONTEND} from '../constants';
+import {Doc} from '../model/doc';
 
-/**
- */
+interface ReportableError extends Error {
+  /** Helps avoid reporting the same error multiple times. */
+  reported?: boolean;
+
+  /**
+   * Non-standard
+   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/lineNumber
+   */
+  lineNumber?: number;
+
+  /**
+   * Non-standard
+   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Stack
+   */
+  stack?: string;
+}
+
 export class JsError {
-  /**
-   * @param {!../model/doc.Doc} doc
-   */
-  constructor(doc) {
-    /** @private @const {!../model/doc.Doc} */
-    this.doc_ = doc;
-  }
+  constructor(private readonly doc_: Doc) {}
 
-  /**
-   * @param {...(!Error|string)} args
-   * @return {!Promise}
-   */
-  async error(...args) {
+  async error(...args: Array<ReportableError | string>): Promise<void> {
     // Wait for next task.
     await 0;
 
@@ -53,18 +59,14 @@ export class JsError {
       '&line=' +
       (error.lineNumber || 1) +
       '&trace=' +
-      encodeURIComponent(error.stack);
+      encodeURIComponent(error.stack || '');
 
     // Avoid reporting error twice.
     error.reported = true;
   }
 }
 
-/**
- * @param {!Array<!Error|string>} args
- * @return {!Error}
- */
-function createErrorFromArgs(args) {
+function createErrorFromArgs(args: Array<Error | string>): ReportableError {
   let error = null;
   let message = '';
   for (const arg of args) {
@@ -88,22 +90,19 @@ function createErrorFromArgs(args) {
 
 /**
  * Some exceptions (DOMException, namely) have read-only message.
- * @param {!Error} error
- * @return {!Error}
  */
-function duplicateErrorIfNecessary(error) {
+function duplicateErrorIfNecessary(error: ReportableError): ReportableError {
   const messageProperty = Object.getOwnPropertyDescriptor(error, 'message');
   if (messageProperty && messageProperty.writable) {
     return error;
   }
 
-  const {message, stack} = error;
-  const e = new Error(message);
+  const {lineNumber, message, reported, stack} = error;
+  const e: ReportableError = new Error(message);
   // Copy all the extraneous things we attach.
-  for (const prop in error) {
-    e[prop] = error[prop];
-  }
-  // Ensure these are copied.
+  e.lineNumber = lineNumber;
   e.stack = stack;
+  e.reported = reported;
+
   return e;
 }

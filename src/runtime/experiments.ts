@@ -60,41 +60,30 @@ import {parseQueryString} from '../utils/url';
  * internal policy; otherwise they are ignored.
  */
 
-/**
- * @enum {string}
- */
-const Selection = {
-  EXPERIMENT: 'e',
-  CONTROL: 'c',
-};
+enum Selection {
+  EXPERIMENT = 'e',
+  CONTROL = 'c',
+}
 
 /**
  * A mutable copy of the comma-separated set of experiments.
- * @type {string}
  */
 let experimentsString = EXPERIMENTS;
 
 /**
  * A parsed map of experiments.
- * @type {?Object<string, boolean>}
  */
-let experimentMap = null;
+let experimentMap: {[key: string]: boolean} | null = null;
 
-/**
- * @param {string} s
- * @package Visible for testing only.
- */
-export function setExperimentsStringForTesting(s) {
+export function setExperimentsStringForTesting(s: string): void {
   experimentsString = s;
   experimentMap = null;
 }
 
 /**
  * Ensures that the experiments have been initialized and returns them.
- * @param {!Window} win
- * @return {!Object<string, boolean>}
  */
-function getExperiments(win) {
+function getExperiments(win: Window): {[key: string]: boolean} {
   if (!experimentMap) {
     experimentMap = {};
     let combinedExperimentString = experimentsString;
@@ -106,7 +95,7 @@ function getExperiments(win) {
       }
     } catch (e) {
       // Ignore: experiment parsing cannot block runtime.
-      ErrorUtils.throwAsync(e);
+      ErrorUtils.throwAsync(e as Error);
     }
 
     // Format:
@@ -120,19 +109,18 @@ function getExperiments(win) {
         parseSetExperiment(win, experimentMap, experimentString);
       } catch (e) {
         // Ignore: experiment parsing cannot block runtime.
-        ErrorUtils.throwAsync(e);
+        ErrorUtils.throwAsync(e as Error);
       }
     }
   }
   return experimentMap;
 }
 
-/**
- * @param {!Window} win
- * @param {?Object<string, boolean>} experimentMap
- * @param {string} spec
- */
-function parseSetExperiment(win, experimentMap, spec) {
+function parseSetExperiment(
+  win: Window,
+  experimentMap: {[key: string]: boolean} | null,
+  spec: string
+) {
   // Format:
   // - experimentSpec = experimentId | experimentId '=' num100 ('c')?
   let experimentId;
@@ -181,8 +169,8 @@ function parseSetExperiment(win, experimentMap, spec) {
       let selection = parseSelection(win.sessionStorage.getItem(storageKey));
       if (!selection) {
         // Is experiment/control range?
-        if (win.Math.random() * 100 <= fraction * (control ? 2 : 1)) {
-          const inExperiment = control ? win.Math.random() <= 0.5 : true;
+        if (Math.random() * 100 <= fraction * (control ? 2 : 1)) {
+          const inExperiment = control ? Math.random() <= 0.5 : true;
           selection = inExperiment ? Selection.EXPERIMENT : Selection.CONTROL;
           win.sessionStorage.setItem(storageKey, selection);
         }
@@ -194,20 +182,17 @@ function parseSetExperiment(win, experimentMap, spec) {
     } catch (e) {
       // Ignore: experiment parsing cannot block runtime.
       on = false;
-      ErrorUtils.throwAsync(e);
+      ErrorUtils.throwAsync(e as Error);
     }
   } else {
     on = false;
   }
 
+  experimentMap ||= {};
   experimentMap[experimentId] = on;
 }
 
-/**
- * @param {?string} s
- * @return {?Selection}
- */
-function parseSelection(s) {
+function parseSelection(s: string | null): Selection | null {
   // Do a simple if-then to inline the whole Selection enum.
   return s == Selection.EXPERIMENT
     ? Selection.EXPERIMENT
@@ -218,29 +203,24 @@ function parseSelection(s) {
 
 /**
  * Whether the specified experiment is on or off.
- * @param {!Window} win
- * @param {string} experimentId
- * @return {boolean}
  */
-export function isExperimentOn(win, experimentId) {
+export function isExperimentOn(win: Window, experimentId: string): boolean {
   return getExperiments(win)[experimentId] || false;
 }
 
 /**
  * Toggles the experiment on or off. Returns the actual value of the experiment
  * after toggling is done.
- * @param {!Window} win
- * @param {string} experimentId
- * @param {boolean} on
  */
-export function setExperiment(win, experimentId, on) {
+export function setExperiment(
+  win: Window,
+  experimentId: string,
+  on: boolean
+): void {
   getExperiments(win)[experimentId] = on;
 }
 
-/**
- * @return {!Array<string>}
- */
-export function getOnExperiments(win) {
+export function getOnExperiments(win: Window): string[] {
   const experimentMap = getExperiments(win);
   const experiments = [];
   for (const experiment in experimentMap) {
