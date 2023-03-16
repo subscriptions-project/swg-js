@@ -21,12 +21,10 @@ import {createElement} from '../utils/dom';
  *
  * Properties:
  * - additionalClasses: List of CSS classes to apply to the loading container.
- *
- * @typedef {{
- *   additionalClasses: (!Array<string>|undefined),
- * }}
  */
-export let LoadingViewConfig;
+export interface LoadingViewConfig {
+  additionalClasses?: string[];
+}
 
 /**
  * Loading indicator class. Builds the loading indicator view to be injected in
@@ -34,15 +32,13 @@ export let LoadingViewConfig;
  * show/hide loading indicator.
  */
 export class LoadingView {
-  /**
-   * @param {!Document} doc
-   * @param {!LoadingViewConfig=} config
-   */
-  constructor(doc, config = {}) {
-    /** @private @const {!Document} */
+  private doc_: Document;
+  private loadingContainer_: HTMLElement;
+  private loading_: HTMLElement;
+
+  constructor(doc: Document, config: LoadingViewConfig = {}) {
     this.doc_ = doc;
 
-    /** @private @const {!Element} */
     this.loadingContainer_ = createElement(
       this.doc_,
       'swg-loading-container',
@@ -54,7 +50,6 @@ export class LoadingView {
       }
     }
 
-    /** @private @const {!Element} */
     this.loading_ = createElement(this.doc_, 'swg-loading', {});
     this.loadingContainer_.appendChild(this.loading_);
 
@@ -66,32 +61,30 @@ export class LoadingView {
 
   /**
    * Gets the populated loading container.
-   * @return {!Element}
    */
-  getElement() {
+  getElement(): Element {
     return this.loadingContainer_;
   }
 
   /**
    * Shows the loading indicator within the container element.
    */
-  show() {
+  show(): void {
     this.loadingContainer_.style.removeProperty('display');
   }
 
   /**
    * Hides the loading indicator within the container element.
    */
-  hide() {
+  hide(): void {
     this.loadingContainer_.style.setProperty('display', 'none', 'important');
   }
 
   /**
    * Populates the loading indivicator. The populated element
    * can be added in any view, when required.
-   * @private
    */
-  buildLoadingIndicator_() {
+  private buildLoadingIndicator_() {
     const loadingContainer = this.loading_;
 
     const loadingIndicatorTopContainer = createElement(

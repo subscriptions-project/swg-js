@@ -24,9 +24,10 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {resolveDoc} from '../model/doc';
+import {Doc, resolveDoc} from '../model/doc';
 import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
+import {View} from './view';
 
 const Z_INDEX = 2147483647;
 
@@ -34,7 +35,6 @@ const Z_INDEX = 2147483647;
  * Default iframe important styles.
  * Note: The iframe responsiveness media query style is injected in the
  * publisher's page since style attribute can not include media query.
- * @const {!Object<string, string|number>}
  */
 const rootElementImportantStyles = {
   'min-height': '50px',
@@ -47,7 +47,6 @@ const rootElementImportantStyles = {
 
 /**
  * Reset view styles.
- * @const {!Object<string, string|number>}
  */
 const resetViewStyles = {
   'position': 'absolute',
@@ -55,15 +54,15 @@ const resetViewStyles = {
   'left': '0',
   'right': '0',
   'bottom': '0',
-  'opacity': 0,
+  'opacity': '0',
   /* These lines are a work around to this issue in iOS:     */
   /* https://bugs.webkit.org/show_bug.cgi?id=155198          */
-  'height': 0,
+  'height': '0',
   'max-height': '100%',
   'max-width': '100%',
   'min-height': '100%',
   'min-width': '100%',
-  'width': 0,
+  'width': '0',
 };
 
 /**
@@ -77,15 +76,13 @@ const resetViewStyles = {
  *       default classes such as swg-dialog.
  * - shouldDisableBodyScrolling: Whether to disable scrolling on the content page
  *       when the dialog is visible.
- *
- * @typedef {{
- *   desktopConfig: (DesktopDialogConfig|undefined),
- *   maxAllowedHeightRatio: (number|undefined),
- *   iframeCssClassOverride: (string|undefined),
- *   shouldDisableBodyScrolling: (boolean|undefined),
- * }}
  */
-export let DialogConfig;
+export interface DialogConfig {
+  desktopConfig?: DesktopDialogConfig;
+  maxAllowedHeightRatio?: number;
+  iframeCssClassOverride?: string;
+  shouldDisableBodyScrolling?: boolean;
+}
 
 /**
  * Display configuration options for dialogs on desktop screens.
@@ -95,28 +92,43 @@ export let DialogConfig;
  *       of the viewport rather than at the bottom on desktop screens.
  * - supportsWideScreen: Whether the dialog supports a 808px width on viewports
  *       that are >= 870px wide.
- *
- * @typedef {{
- *   isCenterPositioned: (boolean|undefined),
- *   supportsWideScreen: (boolean|undefined),
- * }}
  */
-export let DesktopDialogConfig;
+export interface DesktopDialogConfig {
+  isCenterPositioned?: boolean;
+  supportsWideScreen?: boolean;
+}
 
 /**
  * The class for the top level dialog.
- * @final
  */
 export class Dialog {
+  private doc_: Doc;
+  private iframe_: FriendlyIframe;
+  private graypane_: Graypane;
+  private loadingView_: LoadingView | null;
+  private container_: Element | null;
+  private view_: View | null;
+  private animating_: Promise<void> | null;
+  /** Helps identify stale animations. */
+  private animationNumber_: number;
+  private hidden_: boolean;
+  private previousProgressView_: View | null;
+  private maxAllowedHeightRatio_: number;
+  private positionCenterOnDesktop_: boolean;
+  private shouldDisableBodyScrolling_: boolean;
+  private desktopMediaQuery_: MediaQueryList;
+  /** Reference to the listener that acts on changes to desktopMediaQuery. */
+  private desktopMediaQueryListener_: (() => void) | null;
+
   /**
    * Create a dialog for the provided doc.
-   * @param {!../model/doc.Doc} doc
-   * @param {!Object<string, string|number>=} importantStyles
-   * @param {!Object<string, string|number>=} styles
-   * @param {!DialogConfig=} dialogConfig Configuration options for the dialog.
    */
-  constructor(doc, importantStyles = {}, styles = {}, dialogConfig = {}) {
-    /** @private @const {!../model/doc.Doc} */
+  constructor(
+    doc: Doc,
+    importantStyles: {[key: string]: string} = {},
+    styles: {[key: string]: string} = {},
+    dialogConfig: DialogConfig = {}
+  ) {
     this.doc_ = doc;
 
     const desktopDialogConfig = dialogConfig.desktopConfig || {};
@@ -128,12 +140,10 @@ export class Dialog {
     const iframeCssClass =
       dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
 
-    /** @private @const {!FriendlyIframe} */
     this.iframe_ = new FriendlyIframe(doc.getWin().document, {
       'class': iframeCssClass,
     });
 
-    /** @private @const {!Graypane} */
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
 
     const modifiedImportantStyles = Object.assign(
@@ -145,75 +155,55 @@ export class Dialog {
 
     setStyles(this.iframe_.getElement(), styles);
 
-    /** @private {LoadingView} */
     this.loadingView_ = null;
 
-    /** @private {?Element} */
     this.container_ = null; // Depends on constructed document inside iframe.
 
-    /** @private {?./view.View} */
     this.view_ = null;
 
-    /** @private {?Promise} */
     this.animating_ = null;
 
-    /**
-     * Helps identify stale animations.
-     * @private {number}
-     */
     this.animationNumber_ = 0;
 
-    /** @private {boolean} */
     this.hidden_ = false;
 
-    /** @private {?./view.View} */
     this.previousProgressView_ = null;
 
-    /** @const @private {number} */
     this.maxAllowedHeightRatio_ =
       dialogConfig.maxAllowedHeightRatio !== undefined
         ? dialogConfig.maxAllowedHeightRatio
         : 0.9;
 
-    /** @const @private {boolean} */
     this.positionCenterOnDesktop_ = !!desktopDialogConfig.isCenterPositioned;
 
-    /** @const @private {boolean} */
     this.shouldDisableBodyScrolling_ =
       !!dialogConfig.shouldDisableBodyScrolling;
 
-    /** @const @private {!MediaQueryList} */
     this.desktopMediaQuery_ = this.doc_
       .getWin()
       .matchMedia('(min-width: 641px)');
 
-    /**
-     * Reference to the listener that acts on changes to desktopMediaQuery.
-     * @private {?function()}
-     */
     this.desktopMediaQueryListener_ = null;
   }
 
   /**
    * Opens the dialog and builds the iframe container.
-   * @param {boolean=} hidden
-   * @return {!Promise<!Dialog>}
    */
-  async open(hidden = false) {
+  async open(hidden = false): Promise<Dialog> {
     const iframe = this.iframe_;
     if (iframe.isConnected()) {
       throw new Error('already opened');
     }
 
     // Attach.
-    this.doc_.getBody().appendChild(iframe.getElement()); // Fires onload.
+    this.doc_.getBody()?.appendChild(iframe.getElement()); // Fires onload.
 
     this.graypane_.attach();
 
     if (hidden) {
       setImportantStyles(iframe.getElement(), {
         'visibility': 'hidden',
-        'opacity': 0,
+        'opacity': '0',
       });
       this.hidden_ = hidden;
     } else {
@@ -226,30 +216,12 @@ export class Dialog {
   }
 
   /**
-   * Opens the iframe embedded in the given container element.
-   * @param {!Element} containerEl
-   */
-  async openInContainer(containerEl) {
-    const iframe = this.iframe_;
-    if (iframe.isConnected()) {
-      throw new Error('already opened');
-    }
-
-    containerEl.appendChild(iframe.getElement());
-
-    await iframe.whenReady();
-    this.buildIframe_();
-    return this;
-  }
-
-  /**
    * Build the iframe with the styling after iframe is loaded.
-   * @private
    */
-  buildIframe_() {
+  private buildIframe_(): void {
     const iframe = this.iframe_;
     const iframeBody = iframe.getBody();
-    const iframeDoc = /** @type {!HTMLDocument} */ (this.iframe_.getDocument());
+    const iframeDoc = /** @type {!HTMLDocument} */ this.iframe_.getDocument();
 
     // Inject Google fonts in <HEAD> section of the iframe.
     injectStyleSheet(resolveDoc(iframeDoc), UI_CSS);
@@ -280,15 +252,14 @@ export class Dialog {
 
   /**
    * Closes the dialog.
-   * @param {boolean=} animated
-   * @return {!Promise}
    */
-  async close(animated = true) {
+  async close(animated = true): Promise<void> {
     let animating;
     if (animated) {
-      const transitionStyles = this.shouldPositionCenter_()
-        ? {'opacity': 0}
-        : {'transform': 'translateY(100%)'};
+      const transitionStyles: {[key: string]: string} =
+        this.shouldPositionCenter_()
+          ? {'opacity': '0'}
+          : {'transform': 'translateY(100%)'};
 
       animating = this.animate_(() => {
         this.graypane_.hide(/* animate */ true);
@@ -298,12 +269,12 @@ export class Dialog {
       animating = Promise.resolve();
     }
 
-    this.doc_.getBody().classList.remove('swg-disable-scroll');
+    this.doc_.getBody()?.classList.remove('swg-disable-scroll');
 
     await animating;
 
     const iframeEl = this.iframe_.getElement();
-    iframeEl.parentNode.removeChild(iframeEl);
+    iframeEl.parentNode?.removeChild(iframeEl);
 
     this.removePaddingToHtml_();
     this.graypane_.destroy();
@@ -314,9 +285,8 @@ export class Dialog {
 
   /**
    * Gets the container within the dialog.
-   * @return {!Element}
    */
-  getContainer() {
+  getContainer(): Element {
     if (!this.container_) {
       throw new Error('not opened yet');
     }
@@ -325,49 +295,43 @@ export class Dialog {
 
   /**
    * Gets the attached iframe instance.
-   * @return {!FriendlyIframe}
    */
-  getIframe() {
+  getIframe(): FriendlyIframe {
     return this.iframe_;
   }
 
   /**
    * Gets the Iframe element.
-   * @return {!HTMLIFrameElement}
    */
-  getElement() {
+  getElement(): HTMLIFrameElement {
     return this.iframe_.getElement();
   }
 
   /**
    * Gets the LoadingView for this dialog.
-   * @return {LoadingView}
    */
-  getLoadingView() {
+  getLoadingView(): LoadingView | null {
     return this.loadingView_;
   }
 
   /**
    * Returns the max allowed height of the view as a ratio of viewport height.
-   * @return {number}
    */
-  getMaxAllowedHeightRatio() {
+  getMaxAllowedHeightRatio(): number {
     return this.maxAllowedHeightRatio_;
   }
 
   /**
    * Returns whether the dialog is center-positioned on desktop screens.
-   * @return {boolean}
    */
-  isPositionCenterOnDesktop() {
+  isPositionCenterOnDesktop(): boolean {
     return this.positionCenterOnDesktop_;
   }
 
   /**
    * Transitions to the next view.
-   * @private
    */
-  entryTransitionToNextView_() {
+  private entryTransitionToNextView_(): void {
     if (this.view_ && this.view_.hasLoadingIndicator()) {
       // Temporarily cache the old view.
       this.previousProgressView_ = this.view_;
@@ -376,35 +340,31 @@ export class Dialog {
       removeChildren(this.getContainer());
       // When loading indicator was not displayed in the previous view,
       // loading indicator must be displayed while transitioning to new view.
-      this.loadingView_.show();
+      this.loadingView_?.show();
     }
   }
 
   /**
    * Transition out of an old view.
-   * @private
    */
-  exitTransitionFromOldView_() {
+  private exitTransitionFromOldView_(): void {
     // If previous view is still around, remove it.
     if (this.previousProgressView_) {
       removeElement(this.previousProgressView_.getElement());
       this.previousProgressView_ = null;
     } else {
-      this.loadingView_.hide();
+      this.loadingView_?.hide();
     }
   }
 
-  /** @return {?./view.View} */
-  getCurrentView() {
+  getCurrentView(): View | null {
     return this.view_;
   }
 
   /**
    * Opens the given view and removes existing view from the DOM if any.
-   * @param {!./view.View} view
-   * @return {!Promise}
    */
-  async openView(view) {
+  async openView(view: View): Promise<void> {
     setImportantStyles(view.getElement(), resetViewStyles);
     this.entryTransitionToNextView_();
 
@@ -412,7 +372,7 @@ export class Dialog {
     this.getContainer().appendChild(view.getElement());
 
     if (this.shouldDisableBodyScrolling_) {
-      this.doc_.getBody().classList.add('swg-disable-scroll');
+      this.doc_.getBody()?.classList.add('swg-disable-scroll');
     }
 
     // If the current view should fade the parent document.
@@ -422,7 +382,7 @@ export class Dialog {
 
     await view.init(this);
     setImportantStyles(view.getElement(), {
-      'opacity': 1,
+      'opacity': '1',
     });
     if (this.hidden_) {
       if (view.shouldFadeBody()) {
@@ -435,13 +395,12 @@ export class Dialog {
 
   /**
    * Show the iframe.
-   * @private
    */
-  show_() {
+  private show_(): void {
     this.animate_(async () => {
       setImportantStyles(this.getElement(), {
         'transform': 'translateY(100%)',
-        'opactiy': 1,
+        'opactiy': '1',
         'visibility': 'visible',
       });
 
@@ -449,7 +408,7 @@ export class Dialog {
         this.getElement(),
         {
           'transform': this.getDefaultTranslateY_(),
-          'opacity': 1,
+          'opacity': '1',
           'visibility': 'visible',
         },
         300,
@@ -465,12 +424,12 @@ export class Dialog {
 
   /**
    * Resizes the dialog container.
-   * @param {!./view.View} view
-   * @param {number} height
-   * @param {boolean=} animated
-   * @return {?Promise}
    */
-  async resizeView(view, height, animated = true) {
+  async resizeView(
+    view: View,
+    height: number,
+    animated = true
+  ): Promise<null | void> {
     if (this.view_ != view) {
       return null;
     }
@@ -493,7 +452,7 @@ export class Dialog {
             return Promise.resolve();
           }
 
-          const immediateStyles = {
+          const immediateStyles: {[key: string]: string} = {
             'height': `${newHeight}px`,
           };
           if (!this.shouldPositionCenter_()) {
@@ -560,12 +519,7 @@ export class Dialog {
     view.resized();
   }
 
-  /**
-   * @param {function():!Promise} callback
-   * @return {!Promise}
-   * @private
-   */
-  async animate_(callback) {
+  private async animate_(callback: () => Promise<void>): Promise<void> {
     await this.animating_;
 
     try {
@@ -579,11 +533,8 @@ export class Dialog {
 
   /**
    * Returns maximum allowed height for current viewport.
-   * @param {number} height
-   * @return {number}
-   * @private
    */
-  getMaxAllowedHeight_(height) {
+  private getMaxAllowedHeight_(height: number): number {
     return Math.min(
       height,
       this.doc_.getWin()./*OK*/ innerHeight * this.maxAllowedHeightRatio_
@@ -594,10 +545,8 @@ export class Dialog {
    * Update padding-bottom on the containing page to not hide any content
    * behind the popup, if rendered at the bottom. For centered dialogs, there
    * should be no added padding.
-   * @param {number} newHeight
-   * @private
    */
-  updatePaddingToHtml_(newHeight) {
+  private updatePaddingToHtml_(newHeight: number) {
     if (this.shouldPositionCenter_()) {
       // For centered dialogs, there should be no bottom padding.
       this.removePaddingToHtml_();
@@ -612,9 +561,8 @@ export class Dialog {
 
   /**
    * Removes previouly added bottom padding from the document.
-   * @private
    */
-  removePaddingToHtml_() {
+  private removePaddingToHtml_() {
     this.doc_.getRootElement().style.removeProperty('padding-bottom');
   }
 
@@ -622,45 +570,39 @@ export class Dialog {
    * Sets the position of the dialog. Currently only supports 'BOTTOM', with
    * an option of switching to 'CENTER' on desktop screens.
    */
-  setPosition_() {
+  private setPosition_() {
     setImportantStyles(this.getElement(), this.getPositionStyle_());
   }
 
   /**
    * Returns whether or not the dialog should have position 'CENTER'.
-   * @return {boolean}
-   * @private
    */
-  shouldPositionCenter_() {
+  private shouldPositionCenter_(): boolean {
     return this.positionCenterOnDesktop_ && this.desktopMediaQuery_.matches;
   }
 
   /**
    * Returns the styles required to postion the dialog.
-   * @return {!Object<string, string|number>}
-   * @private
    */
-  getPositionStyle_() {
+  private getPositionStyle_(): {[key: string]: string} {
     if (this.shouldPositionCenter_()) {
       return {
         'top': '50%',
-        'bottom': 0,
+        'bottom': '0',
         'transform': this.getDefaultTranslateY_(),
       };
     }
     return {
       'top': 'auto',
-      'bottom': 0,
+      'bottom': '0',
       'transform': this.getDefaultTranslateY_(),
     };
   }
 
   /**
    * Returns default translateY style for the dialog.
-   * @return {string}
-   * @private
    */
-  getDefaultTranslateY_() {
+  private getDefaultTranslateY_(): string {
     if (this.shouldPositionCenter_()) {
       return 'translateY(-50%)';
     }

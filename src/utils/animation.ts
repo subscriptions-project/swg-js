@@ -26,7 +26,7 @@ import {setImportantStyles} from './style';
  */
 export async function transition(
   el: HTMLElement,
-  props: {[key: string]: number | string},
+  props: {[key: string]: string},
   durationMillis: number,
   curve: string
 ): Promise<void> {
