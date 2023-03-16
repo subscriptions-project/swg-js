@@ -65,7 +65,7 @@ const SERVICE_ID = 'subscribe.google.com';
  */
 export let ShowInterventionParams;
 
-class Intervention {
+export class Intervention {
   /** @public @const {string} */
   type;
   /** @public @const {string} */

@@ -227,9 +227,8 @@ export class AutoPromptManager {
           dismissedPrompts,
           shouldShowAutoPrompt,
         })
-      : undefined;
-
-    const promptFn = potentialAction
+      : {};
+    const promptFn = potentialAction.type
       ? this.audienceActionPrompt_({
           action: potentialAction.type,
           configurationId: potentialAction.configurationId,
@@ -246,7 +245,6 @@ export class AutoPromptManager {
     if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
       return;
     }
-
     // Second Prompt Delay experiment
     const isContributionFlow =
       params.autoPromptType === AutoPromptType.CONTRIBUTION ||
@@ -272,7 +270,6 @@ export class AutoPromptManager {
     const displayDelayMs =
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
-
     if (shouldShowAutoPrompt) {
       this.deps_.win().setTimeout(() => {
         this.autoPromptDisplayed_ = true;
@@ -425,7 +422,7 @@ export class AutoPromptManager {
    * Determines what Audience Action prompt type should be shown.
    *
    * Show the first AutoPromptType passed in from Audience Actions.
-   * @param {string[]|undefined} actions
+   * @param {./entitlements-manager.Intervention[]|undefined} actions
    * @return {!AutoPromptType|undefined}
    */
   getAutoPromptType_(actions = []) {
