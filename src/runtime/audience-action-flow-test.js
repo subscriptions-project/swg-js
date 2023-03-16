@@ -865,6 +865,55 @@ describes.realWin('AudienceActionFlow', (env) => {
     onResultMock.verify();
   });
 
+  it(`handles a SurveyDataTransferRequest with onResult logging rejection`, async () => {
+    const onResultMock = sandbox
+      .mock()
+      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
+      .resolves(Promise.reject(new Error('Test Callback Exception')))
+      .once();
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      onResult: onResultMock,
+    });
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs({
+        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+      })
+      .once();
+
+    await audienceActionFlow.start();
+
+    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    failSurveyDataTransferResponse.setSuccess(false);
+
+    const activityIframeViewMock = sandbox
+      .mock(audienceActionFlow.activityIframeView_)
+      .expects('execute')
+      .withExactArgs(failSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
+
+    await tick(10);
+
+    expect(self.console.warn).to.have.been.calledWithExactly(
+      '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
+    );
+    activityIframeViewMock.verify();
+    onResultMock.verify();
+  });
+
   it('opens dialog with scrolling disabled', async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',

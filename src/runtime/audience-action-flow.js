@@ -327,7 +327,7 @@ export class AudienceActionFlow {
     const {onResult} = this.params_;
     if (onResult) {
       try {
-        return onResult(request);
+        return await onResult(request);
       } catch (e) {
         warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
         return false;
