@@ -23,34 +23,18 @@
 module.exports = function (babel) {
   const {types: t} = babel;
 
-  function isGoogDefine(node) {
-    return (
-      t.isCallExpression(node) &&
-      t.isMemberExpression(node.callee) &&
-      t.isIdentifier(node.callee.object, {
-        name: 'goog',
-      }) &&
-      t.isIdentifier(node.callee.property, {
-        name: 'define',
-      })
-    );
-  }
-
   return {
     name: 'transform-define-constants',
     visitor: {
       VariableDeclarator(path, state) {
-        if (isGoogDefine(path.node.init)) {
-          if (
-            state.opts.replacements &&
-            state.opts.replacements[path.node.id.name] != null
-          ) {
-            path.node.init = t.stringLiteral(
-              state.opts.replacements[path.node.id.name]
-            );
-          } else {
-            path.node.init = path.node.init.arguments[1];
-          }
+        // Only modify `src/constants` script.
+        if (!this.file.opts.filename.endsWith('src/constants.ts')) {
+          return;
+        }
+
+        const replacement = state.opts.replacements?.[path.node.id.name];
+        if (replacement) {
+          path.node.init = t.stringLiteral(replacement);
         }
       },
     },

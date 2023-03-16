@@ -18,8 +18,8 @@ import {base64UrlDecodeToBytes, utf8DecodeSync} from './bytes';
 import {tryParseJson} from './json';
 
 interface JwtTokenInternalDef {
-  header: any;
-  payload: any;
+  header: unknown;
+  payload: unknown;
   verifiable: string;
   sig: string;
 }

@@ -85,15 +85,8 @@ export class GaaMetering {
       return false;
     }
 
-    // Validate productId in page markup
-    if (!GaaMetering.getProductIDFromPageConfig_()) {
-      debugLog(
-        '[gaa.js:GaaMetering.init]: Showcase articles must define a productID using either JSON-LD or Microdata.'
-      );
-      return false;
-    }
-
     // Register publisher's callbacks, promises, and parameters
+    const productId = GaaMetering.getProductIDFromPageConfig_();
     const {
       googleApiClientId,
       authorizationUrl,
@@ -125,7 +118,15 @@ export class GaaMetering {
         ? () => {}
         : params.unlockArticle;
 
+    // Provide an option to bypass SwG init for 3P integrations.
+    const shouldInitializeSwG =
+      'shouldInitializeSwG' in params ? params.shouldInitializeSwG : true;
+
     callSwg(async (subscriptions) => {
+      if (shouldInitializeSwG) {
+        subscriptions.init(productId);
+      }
+
       logEvent({
         analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
         isFromUserAction: false,
@@ -456,6 +457,16 @@ export class GaaMetering {
       }
     }
 
+    if (
+      'shouldInitializeSwG' in params &&
+      typeof params.shouldInitializeSwG != 'boolean'
+    ) {
+      debugLog(
+        'shouldInitializeSwG is provided but the value is not a boolean'
+      );
+      noIssues = false;
+    }
+
     return noIssues;
   }
 
@@ -496,7 +507,9 @@ export class GaaMetering {
       return microdataPageConfig;
     }
 
-    return null;
+    throw new Error(
+      'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
+    );
   }
 
   /**

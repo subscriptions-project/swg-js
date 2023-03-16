@@ -458,7 +458,7 @@ export class AutoPromptManager {
    *   dismissedPrompts: (?string|undefined),
    *   shouldShowAutoPrompt: (boolean|undefined),
    * }} params
-   * @return {!Promise<./entitlements-manager.Action|undefined>}
+   * @return {!Promise<./entitlements-manager.Intervention|undefined>}
    */
   async getAudienceActionPromptType_({
     article,
@@ -503,26 +503,22 @@ export class AutoPromptManager {
       autoPromptType === AutoPromptType.CONTRIBUTION ||
       autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     ) {
-      const preferSurveyOverContributionPrompt =
-        await this.isExperimentEnabled_(
-          article,
-          ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
-        );
-
-      if (!preferSurveyOverContributionPrompt && !dismissedPrompts) {
-        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
-        return undefined;
-      }
-
+      let previouslyShownPrompts = [];
       if (dismissedPrompts) {
-        const previousPrompts = dismissedPrompts.split(',');
+        previouslyShownPrompts = dismissedPrompts.split(',');
         potentialActions = potentialActions.filter(
-          (action) => !previousPrompts.includes(action.type)
+          (action) => !previouslyShownPrompts.includes(action.type)
         );
       }
+
+      // Survery take highest priority if this flag is enabled.
+      const prioritizeSurvey = await this.isExperimentEnabled_(
+        article,
+        ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+      );
 
       if (
-        preferSurveyOverContributionPrompt &&
+        prioritizeSurvey &&
         potentialActions
           .map((action) => action.type)
           .includes(TYPE_REWARDED_SURVEY)
@@ -531,9 +527,37 @@ export class AutoPromptManager {
         return TYPE_REWARDED_SURVEY;
       }
 
+      const contributionIndex = potentialActions.findIndex(
+        (action) => action.type === TYPE_CONTRIBUTION
+      );
+
+      if (contributionIndex > 0) {
+        actionToUse = potentialActions[0].type;
+        this.promptDisplayed_ = actionToUse;
+        return actionToUse;
+      }
+
+      // If the first potential action is contribution, or the contribution
+      // action was not passed through audience actions, and it has never been
+      // dismissed before, we will show contribution prompt and record the
+      // contribution dismissal.
+      if (
+        !(
+          previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION) ||
+          previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION_LARGE)
+        )
+      ) {
+        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+        return undefined;
+      }
+
       // If all actions have been dismissed or the frequency indicates that we
       // should show the Contribution prompt again regardless of previous dismissals,
       // we don't want to record the Contribution dismissal
+      potentialActions = potentialActions.filter(
+        (action) => action.type !== TYPE_CONTRIBUTION
+      );
+
       if (potentialActions.length === 0 || shouldShowAutoPrompt) {
         return undefined;
       }

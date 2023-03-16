@@ -417,7 +417,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -465,7 +465,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -487,7 +487,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -509,7 +509,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(clientConfig)
@@ -530,7 +530,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -917,7 +917,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -940,7 +940,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -962,7 +962,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig();
+    const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -988,7 +988,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .resolves(entitlements)
       .once();
 
-    const autoPromptConfig = new AutoPromptConfig();
+    const autoPromptConfig = new AutoPromptConfig({});
     const uiPredicates = new UiPredicates(
       /* canDisplayAutoPrompt */ false,
       /* canDisplayButton */ true
@@ -1019,7 +1019,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .resolves(entitlements)
       .once();
 
-    const autoPromptConfig = new AutoPromptConfig();
+    const autoPromptConfig = new AutoPromptConfig({});
     const uiPredicates = new UiPredicates(
       /* canDisplayAutoPrompt */ true,
       /* canDisplayButton */ true
@@ -1123,7 +1123,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      const clientConfig = new ClientConfig();
+      const clientConfig = new ClientConfig({});
       clientConfigManagerMock
         .expects('getClientConfig')
         .resolves(clientConfig)
@@ -1155,7 +1155,7 @@ describes.realWin('AutoPromptManager', (env) => {
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
-      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
 
@@ -1386,6 +1386,55 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
+      const storedImpressions = (CURRENT_TIME - 5).toString();
+      const storedDismissals = (CURRENT_TIME - 10).toString();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        storedImpressions,
+        storedDismissals,
+        dismissedPrompts: 'contribution,TYPE_REWARDED_SURVEY',
+        dismissedPromptGetCallCount: 2,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'contribution,TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL'
+      );
+    });
+
+    it('should show the third Audience Action flow if the first two were previously dismissed and is not the next Contribution prompt time', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_CONTRIBUTION'},
+              {type: 'TYPE_REWARDED_SURVEY'},
+              {type: 'TYPE_REGISTRATION_WALL'},
+              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
       setupPreviousImpressionAndDismissals(storageMock, {
@@ -1761,7 +1810,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        AutoPromptType.CONTRIBUTION
+      );
     });
 
     it('With SurveyTriggeringPriorityExperiment enabled, should show the second Audience Action flow if the first was previously dismissed and is not the next Contribution prompt time', async () => {
@@ -1835,6 +1886,78 @@ describes.realWin('AutoPromptManager', (env) => {
         storageMock,
         actionFlowSpy,
         'contribution,TYPE_REGISTRATION_WALL'
+      );
+    });
+
+    it('With SurveyTriggeringPriorityExperiment disabled, should show the Survey prompt if it is before contribution in audienceActions', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_REWARDED_SURVEY'},
+              {type: 'TYPE_CONTRIBUTION'},
+              {type: 'TYPE_REGISTRATION_WALL'},
+              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+      });
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        'TYPE_REWARDED_SURVEY'
+      );
+    });
+
+    it('With SurveyTriggeringPriorityExperiment disabled, should show the Contribution prompt if it is the first in audienceActions', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_CONTRIBUTION'},
+              {type: 'TYPE_REWARDED_SURVEY'},
+              {type: 'TYPE_REGISTRATION_WALL'},
+              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.have.been.called;
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        AutoPromptType.CONTRIBUTION
       );
     });
 
@@ -2306,7 +2429,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.promptDisplayed_).to.equal(
+        AutoPromptType.CONTRIBUTION
+      );
     });
   });
 

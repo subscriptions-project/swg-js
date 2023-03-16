@@ -39,16 +39,6 @@ module.exports = {
         {
           presets: ['@babel/preset-env'],
           extensions: ['.js', '.ts'],
-          plugins: [
-            [
-              './build-system/transform-define-constants',
-              {
-                'replacements': {
-                  'PAY_ENVIRONMENT': 'TEST',
-                },
-              },
-            ],
-          ],
         },
       ],
     ],

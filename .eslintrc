@@ -66,10 +66,11 @@
     "@typescript-eslint/no-unused-vars": [
       2,
       {
-        "argsIgnorePattern": "^var_|unused",
+        "argsIgnorePattern": "^var_|unused|^_",
         "varsIgnorePattern": "Def|Interface$"
       }
     ],
+    "@typescript-eslint/no-explicit-any": 2,
     "no-useless-call": 2,
     "no-useless-concat": 2,
     "no-undef": 2,
