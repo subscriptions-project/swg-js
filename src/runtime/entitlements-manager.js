@@ -89,10 +89,10 @@ export class AvailableIntervention extends Intervention {
    * @return {!Promise}
    */
   show(params) {
-    // TODO: implement `onResult`
     const flow = new AudienceActionFlow(this.deps_, {
       isClosable: params.isClosable,
       action: this.type,
+      onResult: params.onResult,
     });
     return flow.start();
   }
