@@ -17,34 +17,21 @@
 import {createElement} from './dom';
 
 export class Preconnect {
-  /**
-   * @param {!Document} doc
-   */
-  constructor(doc) {
-    /** @private @const {!Document} */
+  private doc_: Document;
+
+  constructor(doc: Document) {
     this.doc_ = doc;
   }
 
-  /**
-   * @param {string} url
-   */
-  preconnect(url) {
+  preconnect(url: string): void {
     this.pre_(url, 'preconnect');
   }
 
-  /**
-   * @param {string} url
-   */
-  prefetch(url) {
+  prefetch(url: string): void {
     this.pre_(url, 'preconnect prefetch');
   }
 
-  /**
-   * @param {string} url
-   * @param {string} rel
-   * @private
-   */
-  pre_(url, rel) {
+  private pre_(url: string, rel: string): void {
     // <link rel="prefetch" href="...">
     const linkEl = createElement(this.doc_, 'link', {
       'rel': rel,
