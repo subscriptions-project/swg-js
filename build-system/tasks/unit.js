@@ -187,7 +187,7 @@ function runTests() {
           'test/**/*.js',
           'third_party/**/*.js',
           // This file is auto-generated.
-          'src/proto/api_messages.js',
+          'src/proto/api_messages.ts',
           // Tell istanbul not to instrument the constants file.
           // This is needed because we update it at build time for tests.
           'src/constants.js',
