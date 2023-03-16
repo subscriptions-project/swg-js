@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import {Doc} from '../model/doc';
 import {setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
-import {Doc} from '../model/doc';
 
 export class Graypane {
   private doc_: Doc;

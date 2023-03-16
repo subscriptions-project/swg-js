@@ -15,10 +15,10 @@
  */
 
 import {Dialog, DialogConfig} from './dialog';
-import {Graypane} from './graypane';
-import {isCancelError} from '../utils/errors';
 import {Doc} from '../model/doc';
+import {Graypane} from './graypane';
 import {View} from './view';
+import {isCancelError} from '../utils/errors';
 
 const POPUP_Z_INDEX = 2147483647;
 

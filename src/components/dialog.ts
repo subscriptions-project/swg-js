@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
+import {Doc, resolveDoc} from '../model/doc';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
 import {UI_CSS} from '../ui/ui-css';
+import {View} from './view';
 import {
   createElement,
   injectStyleSheet,
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {Doc, resolveDoc} from '../model/doc';
 import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
-import {View} from './view';
 
 const Z_INDEX = 2147483647;
 
