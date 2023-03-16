@@ -232,8 +232,7 @@ describes.realWin('MeterToastApi', (env) => {
     // Native message.
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
     viewSubscriptionsResponse.setNative(true);
-    const messageCallback =
-      messageMap[viewSubscriptionsResponse.label()];
+    const messageCallback = messageMap[viewSubscriptionsResponse.label()];
     messageCallback(viewSubscriptionsResponse);
     expect(nativeStub).to.be.calledOnce.calledWithExactly();
     // event listeners should be removed.
@@ -252,8 +251,7 @@ describes.realWin('MeterToastApi', (env) => {
     await meterToastApi.start();
     const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
     viewSubscriptionsResponse.setNative(false);
-    const messageCallback =
-      messageMap[viewSubscriptionsResponse.label()];
+    const messageCallback = messageMap[viewSubscriptionsResponse.label()];
     messageCallback(viewSubscriptionsResponse);
     expect(callbackStub).to.be.calledOnce.calledWithExactly();
     // event listeners should be removed.

@@ -246,8 +246,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     completeAudienceActionResponse.setActionCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -290,8 +289,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     completeAudienceActionResponse.setActionCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -335,8 +333,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     completeAudienceActionResponse.setAlreadyCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -377,8 +374,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     completeAudienceActionResponse.setAlreadyCompleted(false);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -422,8 +418,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     completeAudienceActionResponse.setAlreadyCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -465,8 +460,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     completeAudienceActionResponse.setAlreadyCompleted(false);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -502,8 +496,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     const completeAudienceActionResponse = new CompleteAudienceActionResponse();
     completeAudienceActionResponse.setActionCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -535,8 +528,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     completeAudienceActionResponse.setActionCompleted(false);
     completeAudienceActionResponse.setAlreadyCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -568,8 +560,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     completeAudienceActionResponse.setActionCompleted(false);
     completeAudienceActionResponse.setAlreadyCompleted(false);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
-    const messageCallback =
-      messageMap[completeAudienceActionResponse.label()];
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
@@ -684,8 +675,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .withExactArgs(successSurveyDataTransferResponse)
       .once();
 
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
     messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
 
     activityIframeViewMock.verify();
@@ -720,8 +710,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .withExactArgs(successSurveyDataTransferResponse)
       .once();
 
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
     messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
 
     activityIframeViewMock.verify();
