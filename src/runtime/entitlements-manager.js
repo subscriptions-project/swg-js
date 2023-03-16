@@ -92,6 +92,7 @@ export class AvailableIntervention extends Intervention {
     const flow = new AudienceActionFlow(this.deps_, {
       isClosable: params.isClosable,
       action: this.type,
+      configurationId: this.configurationId,
       onResult: params.onResult,
     });
     return flow.start();

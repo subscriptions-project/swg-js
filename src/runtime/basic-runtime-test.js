@@ -891,6 +891,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         configuredBasicRuntime,
         {
           action: 'TYPE_REGISTRATION_WALL',
+          configurationId: 'configId',
           fallback: undefined,
           autoPromptType: AutoPromptType.CONTRIBUTION,
         }
