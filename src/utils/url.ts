@@ -13,54 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Doc} from '../model/doc';
+import {Message} from '../proto/api_messages';
 import {warn} from './log';
 
 // NOTE: This regex was copied from SwG's AMP extension. https://github.com/ampproject/amphtml/blob/c23bf281f817a2ee5df73f6fd45e9f4b71bb68b6/extensions/amp-subscriptions-google/0.1/amp-subscriptions-google.js#L56
 const GOOGLE_DOMAIN_RE = /(^|\.)google\.(com?|[a-z]{2}|com?\.[a-z]{2}|cat)$/;
 
-/**
-  @typedef {{
-    href: string,
-    protocol: string,
-    host: string,
-    hostname: string,
-    port: string,
-    pathname: string,
-    search: string,
-    hash: string,
-    origin: string,
-  }}
-  */
-let LocationDef;
+interface Location {
+  href: string;
+  protocol: string;
+  host: string;
+  hostname: string;
+  port: string;
+  pathname: string;
+  search: string;
+  hash: string;
+  origin: string;
+}
 
 /**
  * Cached a-tag to avoid memory allocation during URL parsing.
- * @type {HTMLAnchorElement}
  */
-let a;
+const a = self.document.createElement('a');
 
 /**
  * We cached all parsed URLs. As of now there are no use cases
  * of AMP docs that would ever parse an actual large number of URLs,
  * but we often parse the same one over and over again.
- * @type {Object<string, !LocationDef>}
  */
-let cache;
+const cache: {[url: string]: Location} = {};
 
 /**
  * Returns a Location-like object for the given URL. If it is relative,
  * the URL gets resolved.
  * Consider the returned object immutable. This is enforced during
  * testing by freezing the object.
- * @param {string} url
- * @return {!LocationDef}
  */
-export function parseUrl(url) {
-  if (!a) {
-    a = /** @type {!HTMLAnchorElement} */ (self.document.createElement('a'));
-    cache = self.UrlCache || (self.UrlCache = Object.create(null));
-  }
-
+export function parseUrl(url: string): Location {
   const fromCache = cache[url];
   if (fromCache) {
     return fromCache;
@@ -74,15 +64,11 @@ export function parseUrl(url) {
 /**
  * Returns a Location-like object for the given URL. If it is relative,
  * the URL gets resolved.
- * @param {!HTMLAnchorElement} a
- * @param {string} url
- * @return {!LocationDef}
  */
-function parseUrlWithA(a, url) {
+function parseUrlWithA(a: HTMLAnchorElement, url: string): Location {
   a.href = url;
 
-  /** @type {!LocationDef} */
-  const info = {
+  const info: Location = {
     href: a.href,
     protocol: a.protocol,
     host: a.host,
@@ -106,10 +92,9 @@ function parseUrlWithA(a, url) {
 
 /**
  * Parses and builds Object of URL query string.
- * @param {string} query The URL query string.
- * @return {!Object<string, string>}
+ * @param query The URL query string.
  */
-export function parseQueryString(query) {
+export function parseQueryString(query: string): {[key: string]: string} {
   if (!query) {
     return {};
   }
@@ -128,17 +113,17 @@ export function parseQueryString(query) {
         warn(`SwG could not parse a URL query param: ${item[0]}`);
       }
       return params;
-    }, {});
+    }, {} as {[key: string]: string});
 }
 
 /**
  * Adds a parameter to a query string.
- * @param {string} url
- * @param {string} param
- * @param {string} value
- * @return {string}
  */
-export function addQueryParam(url, param, value) {
+export function addQueryParam(
+  url: string,
+  param: string,
+  value: string
+): string {
   const queryIndex = url.indexOf('?');
   const fragmentIndex = url.indexOf('#');
   let fragment = '';
@@ -152,26 +137,23 @@ export function addQueryParam(url, param, value) {
     url += '&';
   }
   url += encodeURIComponent(param) + '=' + encodeURIComponent(value);
+
   return url + fragment;
 }
 
-/**
- * @param {!../proto/api_messages.Message} message
- * @return {string}
- */
-export function serializeProtoMessageForUrl(message) {
+export function serializeProtoMessageForUrl(message: Message): string {
   return JSON.stringify(message.toArray(false));
 }
 
 /**
  * Returns the canonical URL from the canonical tag. If the canonical tag is
  * not present, treat the doc URL itself as canonical.
- * @param {!../model/doc.Doc} doc
- * @return {string}
  */
-export function getCanonicalUrl(doc) {
+export function getCanonicalUrl(doc: Doc): string {
   const rootNode = doc.getRootNode();
-  const canonicalTag = rootNode.querySelector("link[rel='canonical']");
+  const canonicalTag = rootNode.querySelector(
+    "link[rel='canonical']"
+  ) as HTMLLinkElement;
   return (
     canonicalTag?.href || rootNode.location.origin + rootNode.location.pathname
   );
@@ -182,31 +164,25 @@ const PARSED_REFERRER = parseUrl(self.document.referrer);
 
 /**
  * True for Google domains
- * @param {LocationDef=} parsedUrl Defaults to the current page's URL
- * @return {boolean}
+ * @param parsedUrl Defaults to the current page's URL
  */
-function isGoogleDomain(parsedUrl) {
-  parsedUrl = parsedUrl || PARSED_URL;
+function isGoogleDomain(parsedUrl: Location): boolean {
   return GOOGLE_DOMAIN_RE.test(parsedUrl.hostname);
 }
 
 /**
  * True for HTTPS URLs
- * @param {LocationDef=} parsedUrl Defaults to the current page's URL
- * @return {boolean}
+ * @param parsedUrl Defaults to the current page's URL
  */
-export function isSecure(parsedUrl) {
-  parsedUrl = parsedUrl || PARSED_URL;
+export function isSecure(parsedUrl = PARSED_URL): boolean {
   return parsedUrl.protocol === 'https' || parsedUrl.protocol === 'https:';
 }
 
 /**
  * True when the page is rendered within a secure Google application or
  * was linked to from a secure Google domain.
- * @param {LocationDef=} parsedReferrer Defaults to the current page's referrer
- * @return {boolean}
+ * @param parsedReferrer Defaults to the current page's referrer
  */
-export function wasReferredByGoogle(parsedReferrer) {
-  parsedReferrer = parsedReferrer || PARSED_REFERRER;
+export function wasReferredByGoogle(parsedReferrer = PARSED_REFERRER): boolean {
   return isSecure(parsedReferrer) && isGoogleDomain(parsedReferrer);
 }

@@ -28,20 +28,25 @@ import {addQueryParam, parseQueryString, parseUrl} from '../utils/url';
  * Have to put these in the map to avoid compiler optimization. Due to
  * optimization issues, this map only allows property-style keys. E.g. "hr1",
  * as opposed to "1hr".
- * @type {!Object<string, number>}
- * @package Visible for testing only.
  */
-export const CACHE_KEYS = {
-  'zero': 0, //testing value
-  'nocache': 1,
-  'hr1': 3600000, // 1hr = 1000 * 60 * 60
-  'hr12': 43200000, // 12hr = 1000 * 60 * 60 * 12
+export const CACHE_KEYS: {[key: string]: string} = {
+  'zero': '0', //testing value
+  'nocache': '1',
+  'hr1': '3600000', // 1hr = 1000 * 60 * 60
+  'hr12': '43200000', // 12hr = 1000 * 60 * 60 * 12
 };
+
+interface OperatingMode {
+  frontEnd: string;
+  payEnv: string;
+  playEnv: string;
+  feCache: string;
+}
 
 /**
  * Default operating Mode
  */
-export const DEFAULT = {
+export const DEFAULT: OperatingMode = {
   frontEnd: FRONTEND,
   payEnv: PAY_ENVIRONMENT,
   playEnv: PLAY_ENVIRONMENT,
@@ -51,7 +56,7 @@ export const DEFAULT = {
 /**
  * Default operating Mode
  */
-const PROD = {
+const PROD: OperatingMode = {
   frontEnd: 'https://news.google.com',
   payEnv: 'PRODUCTION',
   playEnv: 'PROD',
@@ -61,7 +66,7 @@ const PROD = {
 /**
  * Default operating Mode
  */
-const AUTOPUSH = {
+const AUTOPUSH: OperatingMode = {
   frontEnd: 'https://subscribe-autopush.sandbox.google.com',
   payEnv: 'PRODUCTION',
   playEnv: 'AUTOPUSH',
@@ -71,7 +76,7 @@ const AUTOPUSH = {
 /**
  * Default operating Mode
  */
-const QUAL = {
+const QUAL: OperatingMode = {
   frontEnd: 'https://subscribe-qual.sandbox.google.com',
   payEnv: 'SANDBOX',
   playEnv: 'STAGING',
@@ -83,10 +88,8 @@ const QUAL = {
  * Build time modes set the default and are configured in prepare.sh.
  *
  * IMPORTANT: modes other than prod will only work on Google internal networks!
- * @type {!Object<Object>}
- * @package Visible for testing only.
  */
-export const MODES = {
+export const MODES: {[key: string]: OperatingMode} = {
   'default': DEFAULT,
   'prod': PROD,
   'autopush': AUTOPUSH,
@@ -96,9 +99,8 @@ export const MODES = {
 /**
  * Check for swg.mode= in url fragment. If it exists, use it,
  * otherwise use the default build mode.
- * @returns {Object}
  */
-export function getSwgMode() {
+export function getSwgMode(): OperatingMode {
   const query = parseQueryString(self.location.hash);
   const swgMode = query['swg.mode'];
   if (swgMode && MODES[swgMode]) {
@@ -107,18 +109,15 @@ export function getSwgMode() {
   return MODES['default'];
 }
 
-/**
- * @return {string}
- */
-export function feOrigin() {
+export function feOrigin(): string {
   return parseUrl(getSwgMode().frontEnd).origin;
 }
 
 /**
- * @param {string} url Relative URL, e.g. "/service1".
- * @return {string} The complete URL.
+ * @param url Relative URL, e.g. "/service1".
+ * @return The complete URL.
  */
-export function serviceUrl(url) {
+export function serviceUrl(url: string): string {
   // Allows us to make API calls with enabled experiments.
   const query = parseQueryString(self.location.hash);
   const experiments = query['swg.experiments'];
@@ -130,20 +129,24 @@ export function serviceUrl(url) {
 }
 
 /**
- * @param {string} url  Relative URL, e.g. "/service1".
- * @return {string} The complete URL.
+ * @param url Relative URL, e.g. "/service1".
+ * @return The complete URL.
  */
-export function adsUrl(url) {
+export function adsUrl(url: string): string {
   return ADS_SERVER + url;
 }
 
 /**
- * @param {string} url Relative URL, e.g. "/offersiframe".
- * @param {Object<string, string>=} params List of extra params to append to the URL.
- * @param {string=} prefix
- * @return {string} The complete URL.
+ * @param url Relative URL, e.g. "/offersiframe".
+ * @param params List of extra params to append to the URL.
+ * @param prefix
+ * @return The complete URL.
  */
-export function feUrl(url, params = {}, prefix = '') {
+export function feUrl(
+  url: string,
+  params: {[key: string]: string} = {},
+  prefix = ''
+): string {
   // Add cache param.
   const prefixed = prefix ? `swg/${prefix}` : 'swg';
   url = feCached(`${getSwgMode().frontEnd}/${prefixed}/ui/v1${url}`);
@@ -169,33 +172,23 @@ export function feUrl(url, params = {}, prefix = '') {
 }
 
 /**
- * @param {string} url FE URL.
- * @return {string} The complete URL including cache param.
+ * @param url FE URL.
+ * @return The complete URL including cache param.
  */
-export function feCached(url) {
+export function feCached(url: string): string {
   return addQueryParam(url, '_', cacheParam(getSwgMode().feCache));
 }
 
-/**
- * @param {!Object<string, ?>} args
- * @return {!Object<string, ?>}
- */
-export function feArgs(args) {
+export function feArgs(args: {[key: string]: unknown}): {
+  [key: string]: unknown;
+} {
   return Object.assign(args, {
     '_client': `SwG ${INTERNAL_RUNTIME_VERSION}`,
   });
 }
 
-/**
- * @param {string} cacheKey
- * @return {string}
- * @package Visible for testing only.
- */
-export function cacheParam(cacheKey) {
-  let period = CACHE_KEYS[cacheKey];
-  if (period == null) {
-    period = 1;
-  }
+export function cacheParam(cacheKey: string): string {
+  const period = Number(CACHE_KEYS[cacheKey] || 1);
   if (period === 0) {
     return '_';
   }
