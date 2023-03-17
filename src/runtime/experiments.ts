@@ -118,7 +118,7 @@ function getExperiments(win: Window): {[key: string]: boolean} {
 
 function parseSetExperiment(
   win: Window,
-  experimentMap: {[key: string]: boolean} | null,
+  experimentMap: {[key: string]: boolean},
   spec: string
 ) {
   // Format:
@@ -188,7 +188,6 @@ function parseSetExperiment(
     on = false;
   }
 
-  experimentMap ||= {};
   experimentMap[experimentId] = on;
 }
 
