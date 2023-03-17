@@ -14,34 +14,33 @@
  * limitations under the License.
  */
 
-import {Dialog} from './dialog';
+import {Dialog, DialogConfig} from './dialog';
+import {Doc} from '../model/doc';
 import {Graypane} from './graypane';
+import {View} from './view';
 import {isCancelError} from '../utils/errors';
 
 const POPUP_Z_INDEX = 2147483647;
 
 /**
  * The class for the top level dialog.
- * @final
  */
 export class DialogManager {
-  /**
-   * @param {!../model/doc.Doc} doc
-   */
-  constructor(doc) {
-    /** @private @const {!../model/doc.Doc} */
+  private readonly doc_: Doc;
+  private dialog_: Dialog | null;
+  private openPromise_: Promise<Dialog> | null;
+  private readonly popupGraypane_: Graypane;
+  private popupWin_: Window | null;
+
+  constructor(doc: Doc) {
     this.doc_ = doc;
 
-    /** @private {?Dialog} */
     this.dialog_ = null;
 
-    /** @private {?Promise<!Dialog>} */
     this.openPromise_ = null;
 
-    /** @private @const {!Graypane} */
     this.popupGraypane_ = new Graypane(doc, POPUP_Z_INDEX);
 
-    /** @private {?Window} */
     this.popupWin_ = null;
 
     this.popupGraypane_.getElement().addEventListener('click', () => {
@@ -55,13 +54,7 @@ export class DialogManager {
     });
   }
 
-  /**
-   * @param {boolean=} hidden
-   * @param {!./dialog.DialogConfig=} dialogConfig Configuration options for the
-   *     dialog.
-   * @return {!Promise<!Dialog>}
-   */
-  openDialog(hidden = false, dialogConfig = {}) {
+  openDialog(hidden = false, dialogConfig: DialogConfig = {}): Promise<Dialog> {
     if (!this.openPromise_) {
       this.dialog_ = new Dialog(
         this.doc_,
@@ -74,14 +67,11 @@ export class DialogManager {
     return this.openPromise_;
   }
 
-  /**
-   * @param {!./view.View} view
-   * @param {boolean=} hidden
-   * @param {!./dialog.DialogConfig=} dialogConfig Configuration options for the
-   *    dialog.
-   * @return {!Promise}
-   */
-  async openView(view, hidden = false, dialogConfig = {}) {
+  async openView(
+    view: View,
+    hidden = false,
+    dialogConfig: DialogConfig = {}
+  ): Promise<void> {
     this.handleCancellations(view);
     const dialog = await this.openDialog(hidden, dialogConfig);
     return dialog.openView(view);
@@ -89,32 +79,27 @@ export class DialogManager {
 
   /**
    * Handles cancellations (ex: user clicks close button on dialog).
-   * @param {!./view.View} view
-   * @return {!Promise}
    */
-  handleCancellations(view) {
-    return view.whenComplete().catch((reason) => {
-      if (isCancelError(reason)) {
+  async handleCancellations(view: View): Promise<void> {
+    try {
+      await view.whenComplete();
+    } catch (reason) {
+      if (isCancelError(reason as Error)) {
         this.completeView(view);
       }
       throw reason;
-    });
+    }
   }
 
-  /**
-   * @param {?./view.View} view
-   */
-  completeView(view) {
+  completeView(view: View | null) {
     // Give a small amount of time for another view to take over the dialog.
     setTimeout(() => {
-      if (this.dialog_ && this.dialog_.getCurrentView() == view) {
+      if (this.dialog_ && this.dialog_.getCurrentView() === view) {
         this.close_();
       }
     }, 100);
   }
 
-  /**
-   */
   completeAll() {
     if (this.dialog_) {
       this.close_();
@@ -124,24 +109,17 @@ export class DialogManager {
     }
   }
 
-  /**
-   * @returns {?Dialog}
-   */
-  getDialog() {
+  getDialog(): Dialog | null {
     return this.dialog_;
   }
 
-  /** @private */
-  close_() {
-    this.dialog_.close();
+  private close_() {
+    this.dialog_?.close();
     this.dialog_ = null;
     this.openPromise_ = null;
   }
 
-  /**
-   * @param {?Window|undefined} targetWin
-   */
-  popupOpened(targetWin) {
+  popupOpened(targetWin?: Window | null) {
     this.popupWin_ = targetWin || null;
     if (!this.popupGraypane_.isAttached()) {
       this.popupGraypane_.attach();
@@ -149,8 +127,6 @@ export class DialogManager {
     this.popupGraypane_.show();
   }
 
-  /**
-   */
   popupClosed() {
     this.popupWin_ = null;
     try {

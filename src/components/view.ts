@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
+import {Dialog} from './dialog';
+
 /**
  * abstract View Class. Used to render the content within the Dialog. The
  * extended class has actual content.
- * @abstract
  */
-export class View {
+export abstract class View {
   /**
    * Empty constructor.
    */
@@ -27,17 +28,10 @@ export class View {
 
   /**
    * Gets the iframe element.
-   * @return {!Element}
-   * @abstract
    */
-  getElement() {}
+  abstract getElement(): HTMLIFrameElement;
 
-  /**
-   * @param {!./dialog.Dialog} unusedDialog
-   * @return {!Promise}
-   * @abstract
-   */
-  init(unusedDialog) {}
+  abstract init(unusedDialog: Dialog): Promise<void>;
 
   /**
    * Resizes the content.
@@ -48,20 +42,10 @@ export class View {
 
   /**
    * Accept the result.
-   * @return {!Promise}
-   * @abstract
    */
-  whenComplete() {}
+  abstract whenComplete(): Promise<void>;
 
-  /**
-   * @return {boolean}
-   * @abstract
-   */
-  shouldFadeBody() {}
+  abstract shouldFadeBody(): boolean;
 
-  /**
-   * @return {boolean}
-   * @abstract
-   */
-  hasLoadingIndicator() {}
+  abstract hasLoadingIndicator(): boolean;
 }

@@ -17,7 +17,6 @@
 import {createElement} from '../utils/dom';
 import {resetAllStyles} from '../utils/style';
 
-/** @const {!Object<string, string>} */
 const friendlyIframeAttributes = {
   'frameborder': '0',
   'scrolling': 'no',
@@ -28,52 +27,43 @@ const friendlyIframeAttributes = {
  * The class for building friendly iframe.
  */
 export class FriendlyIframe {
-  /**
-   * @param {!Document} doc
-   * @param {!Object<string, string>} attrs
-   */
-  constructor(doc, attrs) {
+  private iframe_: HTMLIFrameElement;
+  private ready_: Promise<void>;
+
+  constructor(doc: Document, attrs: {[s: string]: string}) {
     const mergedAttrs = Object.assign({}, friendlyIframeAttributes, attrs);
 
-    /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ = /** @type {!HTMLIFrameElement} */ (
-      createElement(doc, 'iframe', mergedAttrs)
-    );
+    this.iframe_ = createElement(doc, 'iframe', mergedAttrs);
 
     // Ensure that the new iframe does not inherit any CSS styles.
     resetAllStyles(this.iframe_);
 
-    /** @private @const {!Promise} */
     this.ready_ = new Promise((resolve) => {
-      this.iframe_.onload = resolve;
+      this.iframe_.onload = () => void resolve();
     });
   }
 
   /**
    * When promise is resolved.
-   * @return {!Promise}
    */
-  whenReady() {
+  whenReady(): Promise<void> {
     return this.ready_;
   }
 
   /**
    * Gets the iframe element.
-   * @return {!HTMLIFrameElement}
    */
-  getElement() {
+  getElement(): HTMLIFrameElement {
     return this.iframe_;
   }
 
   /**
    * Gets the document object of the iframe element.
-   * @return {!Document}
    */
-  getDocument() {
+  getDocument(): Document {
     const doc =
       this.getElement().contentDocument ||
-      (this.getElement().contentWindow &&
-        this.getElement().contentWindow.document);
+      this.getElement().contentWindow?.document;
 
     if (!doc) {
       throw new Error('not loaded');
@@ -83,17 +73,15 @@ export class FriendlyIframe {
 
   /**
    * Gets the body of the iframe.
-   * @return {!Element}
    */
-  getBody() {
-    return /** @type {!Element} */ (this.getDocument().body);
+  getBody(): Element {
+    return this.getDocument().body;
   }
 
   /**
    * Whether the iframe is connected.
-   * @return {boolean}
    */
-  isConnected() {
+  isConnected(): boolean {
     return this.getElement().isConnected;
   }
 }

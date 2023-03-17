@@ -95,6 +95,12 @@ describes.realWin('analyticsEventToEntitlementResult', () => {
 
   it('map every EntitlementResult except the unknown value', () => {
     for (const key in EntitlementResult) {
+      // Ignore numerical keys from TypeScript's reverse mapping.
+      // https://www.typescriptlang.org/docs/handbook/enums.html#reverse-mappings
+      if (!isNaN(key)) {
+        continue;
+      }
+
       const result = EntitlementResult[key];
       // Every EntitlementResult should be mapped except the unknown value
       if (result == EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT) {

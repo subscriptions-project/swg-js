@@ -30,19 +30,19 @@ export interface Doc {
   /**
    * The `Document.documentElement` element or analog.
    */
-  getRootElement(): Element;
+  getRootElement(): HTMLElement;
 
   /**
    * The `Document.head` element or analog. Returns `null` if not available
    * yet.
    */
-  getHead(): Element;
+  getHead(): HTMLElement | null;
 
   /**
    * The `Document.body` element or analog. Returns `null` if not available
    * yet.
    */
-  getBody(): Element | null;
+  getBody(): HTMLElement | null;
 
   /**
    * Whether the document has been fully constructed.
