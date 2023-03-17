@@ -149,6 +149,9 @@ const forbiddenTermsSrcInclusive = {
       'error.cancellation() may be applicable.',
     allowlist: [],
   },
+  '\\.getTime\\(\\)': {
+    message: 'Unless you do weird date math (allowlist), use Date.now().',
+  },
   '\\<\\<\\<\\<\\<\\<': {
     message: 'Unresolved merge conflict.',
   },
