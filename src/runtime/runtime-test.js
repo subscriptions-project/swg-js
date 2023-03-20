@@ -27,7 +27,6 @@ import {
   ProductType,
   ReplaceSkuProrationMode,
   ShowcaseEvent,
-  Subscriptions,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ClientConfigManager} from './client-config-manager';
