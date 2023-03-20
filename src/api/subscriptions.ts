@@ -25,94 +25,72 @@ import {Offer as OfferDef} from './offer';
 import {PropensityApi as PropensityApiDef} from './propensity-api';
 import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/**
- * @interface
- */
-export class Subscriptions {
+export interface Subscriptions {
   /**
    * Optionally initializes the subscriptions runtime with publication or
    * product ID. If not called, the runtime will look for the initialization
    * parameters in the page's markup.
-   * @param {string} productOrPublicationId
    */
-  init(productOrPublicationId) {}
+  init(productOrPublicationId: string): void;
 
   /**
    * Optionally configures the runtime with non-default properties. See
    * `Config` definition for details.
-   * @param {!Config} config
-   * @return {?}
    */
-  configure(config) {}
+  configure(config: Config): Promise<void> | void;
 
   /**
    * Starts the entitlement flow.
-   * @return {?}
    */
-  start() {}
+  start(): Promise<void> | void;
 
   /**
    * Resets the entitlements that can be fetched again.
-   * @return {?}
    */
-  reset() {}
+  reset(): Promise<void> | void;
 
   /**
    * Resets the entitlements and clears all of the caches.
-   * @return {?}
    */
-  clear() {}
+  clear(): Promise<void> | void;
 
-  /**
-   * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!EntitlementsDef>}
-   */
-  getEntitlements(params) {}
+  getEntitlements(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<EntitlementsDef>;
 
   /**
    * Set the subscribe callback.
-   * @param {function(!Promise<!EntitlementsDef>)} callback
-   * @return {?}
    */
-  setOnEntitlementsResponse(callback) {}
+  setOnEntitlementsResponse(
+    callback: (entitlements: Promise<EntitlementsDef>) => void
+  ): Promise<void> | void;
 
   /**
    * Returns a set of offers.
-   * @param {{
-   *   productId: (string|undefined),
-   * }=} options
-   * @return {!Promise<!Array<!OfferDef>>}
    */
-  getOffers(options) {}
+  getOffers(options?: {productId?: string}): Promise<OfferDef[]>;
 
   /**
    * Starts the Offers flow.
-   * @param {!OffersRequest=} options
-   * @return {?}
    */
-  showOffers(options) {}
+  showOffers(options?: OffersRequest): Promise<void>;
 
   /**
    * Starts the Offers flow for a subscription update.
    * @param {!OffersRequest=} options
    * @return {?}
    */
-  showUpdateOffers(options) {}
+  showUpdateOffers(options?: OffersRequest): Promise<void>;
 
   /**
    * Show subscription option.
-   * @param {!OffersRequest=} options
-   * @return {?}
    */
-  showSubscribeOption(options) {}
+  showSubscribeOption(options?: OffersRequest): Promise<void>;
 
   /**
    * Show abbreviated offers.
-   * @param {!OffersRequest=} options
-   * @return {?}
    */
-  showAbbrvOffer(options) {}
+  showAbbrvOffer(options?: OffersRequest): Promise<void>;
 
   /**
    * Show contribution options for the users to select from.
@@ -121,112 +99,92 @@ export class Subscriptions {
    * to the publisher. These options are based on the SKUs defined in the Play
    * console for a given publication.
    * Each SKU has Amount, Period, SKUId and other attributes.
-   * @param {!OffersRequest=} options
-   * @return {?}
    */
-  showContributionOptions(options) {}
+  showContributionOptions(options?: OffersRequest): Promise<void>;
 
   /**
    * Set the callback for the native subscribe request. Setting this callback
    * triggers the "native" option in the offers flow.
-   * @param {function()} callback
-   * @return {?}
    */
-  setOnNativeSubscribeRequest(callback) {}
+  setOnNativeSubscribeRequest(callback: () => void): Promise<void> | void;
 
   /**
    * Set the subscribe complete callback.
-   * @param {function(!Promise<!SubscribeResponseDef>)} callback
-   * @return {?}
    */
-  setOnSubscribeResponse(callback) {}
+  setOnSubscribeResponse(
+    callback: (subscribeResponse: Promise<SubscribeResponseDef>) => void
+  ): Promise<void> | void;
 
   /**
    * Starts subscription purchase flow.
-   * @param {string} sku
-   * @return {?}
    */
-  subscribe(sku) {}
+  subscribe(sku: string): Promise<void>;
 
   /**
    * Starts subscription purchase flow.
    * @param {SubscriptionRequest} subscriptionRequest
    * @return {?}
    */
-  updateSubscription(subscriptionRequest) {}
+  updateSubscription(subscriptionRequest: SubscriptionRequest): Promise<void>;
 
   /**
    * Set the contribution complete callback.
    * @param {function(!Promise<!SubscribeResponseDef>)} callback
    * @return {?}
    */
-  setOnContributionResponse(callback) {}
+  setOnContributionResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponseDef>) => void
+  ): Promise<void> | void;
 
   /**
    * Set the payment complete callback.
    * @param {function(!Promise<!SubscribeResponseDef>)} callback
    * @return {?}
    */
-  setOnPaymentResponse(callback) {}
+  setOnPaymentResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponseDef>) => void
+  ): Promise<void> | void;
 
   /**
    * Starts contributions purchase flow.
-   * @param {string|SubscriptionRequest} skuOrSubscriptionRequest
-   * @return {?}
    */
-  contribute(skuOrSubscriptionRequest) {}
+  contribute(
+    skuOrSubscriptionRequest: string | SubscriptionRequest
+  ): Promise<void>;
 
   /**
    * Starts the deferred account creation flow.
    * See `DeferredAccountCreationRequest` for more details.
-   * @param {?DeferredAccountCreationRequest=} options
-   * @return {!Promise<!DeferredAccountCreationResponse>}
    */
-  completeDeferredAccountCreation(options) {}
+  completeDeferredAccountCreation(
+    options?: DeferredAccountCreationRequest | null
+  ): Promise<DeferredAccountCreationResponse>;
 
-  /**
-   * @param {function(!LoginRequest)} callback
-   * @return {?}
-   */
-  setOnLoginRequest(callback) {}
+  setOnLoginRequest(
+    callback: (loginRequest: LoginRequest) => void
+  ): Promise<void> | void;
 
-  /**
-   * @param {!LoginRequest} request
-   * @return {?}
-   */
-  triggerLoginRequest(request) {}
+  triggerLoginRequest(request: LoginRequest): Promise<void> | void;
 
   /**
    * Starts the login prompt flow.
-   * @return {!Promise}
    */
-  showLoginPrompt() {}
+  showLoginPrompt(): Promise<void>;
 
   /**
    * Starts the login notification flow.
-   * @return {!Promise}
    */
-  showLoginNotification() {}
+  showLoginNotification(): Promise<void>;
 
-  /**
-   * @param {function()} callback
-   * @return {?}
-   */
-  setOnLinkComplete(callback) {}
+  setOnLinkComplete(callback: () => void): Promise<void> | void;
 
-  /**
-   * @param {!Promise} accountPromise Publisher's promise to lookup account.
-   * @return {!Promise}
-   */
-  waitForSubscriptionLookup(accountPromise) {}
+  waitForSubscriptionLookup(accountPromise: Promise<unknown>): Promise<void>;
 
   /**
    * Starts the Account linking flow.
    * TODO(dparikh): decide if it's only exposed for testing or PROD purposes.
-   * @param {{ampReaderId: (string|undefined)}=} params
-   * @return {?}
    */
-  linkAccount(params) {}
+  linkAccount(params?: {ampReaderId?: string}): Promise<void>;
 
   /**
    * Notifies the client that a flow has been started. The name of the flow
@@ -235,11 +193,10 @@ export class Subscriptions {
    * See `SubscriptionFlows` for the full list.
    *
    * Also see `setOnFlowCanceled` method.
-   *
-   * @param {function({flow: string, data: !Object})} callback
-   * @return {?}
    */
-  setOnFlowStarted(callback) {}
+  setOnFlowStarted(
+    callback: (params: {flow: string; data: unknown}) => void
+  ): Promise<void> | void;
 
   /**
    * Notifies the client that a flow has been canceled. The name of the flow
@@ -251,88 +208,81 @@ export class Subscriptions {
    * have their own "cancel" events.
    *
    * Also see `setOnFlowStarted` method.
-   *
-   * @param {function({flow: string, data: !Object})} callback
-   * @return {?}
    */
-  setOnFlowCanceled(callback) {}
+  setOnFlowCanceled(
+    callback: (params: {flow: string; data: unknown}) => void
+  ): Promise<void> | void;
 
   /**
    * Starts the save subscriptions flow.
-   * @param {!SaveSubscriptionRequestCallback} requestCallback
-   * @return {!Promise} a promise indicating flow is started
+   * @return a promise indicating flow is started
    */
-  saveSubscription(requestCallback) {}
+  saveSubscription(
+    requestCallback: SaveSubscriptionRequestCallback
+  ): Promise<void>;
 
   /**
    * Starts the subscription linking flow.
-   * @param {!LinkSubscriptionRequest} linkSubscriptionRequest
-   * @return {!Promise<!LinkSubscriptionResult>} promise indicating result of the operation
+   * @return promise indicating result of the operation
    */
-  linkSubscription(linkSubscriptionRequest) {}
+  linkSubscription(
+    linkSubscriptionRequest: LinkSubscriptionRequest
+  ): Promise<LinkSubscriptionResult>;
 
   /**
    * Creates an element with the SwG button style and the provided callback.
    * The default theme is "light".
-   *
-   * @param {!ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {!Element}
    */
-  createButton(optionsOrCallback, callback) {}
+  createButton(
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): Element;
 
   /**
    * Attaches the SwG button style and the provided callback to an existing
    * DOM element. The default theme is "light".
-   *
-   * @param {!Element} button
-   * @param {!ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {?}
    */
-  attachButton(button, optionsOrCallback, callback) {}
+  attachButton(
+    button: Element,
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): void;
 
   /**
    * Attaches smartButton element and the provided callback.
    * The default theme is "light".
-   *
-   * @param {!Element} button
-   * @param {!SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {?}
    */
-  attachSmartButton(button, optionsOrCallback, callback) {}
+  attachSmartButton(
+    button: Element,
+    optionsOrCallback: SmartButtonOptions | (() => void),
+    callback?: () => void
+  ): void;
 
   /**
    * Retrieves the propensity module that provides APIs to
    * get propensity scores based on user state and events
-   * @return {!Promise<PropensityApiDef>}
    */
-  getPropensityModule() {}
+  getPropensityModule(): Promise<PropensityApiDef>;
 
-  /** @return {!Promise<LoggerApiDef>} */
-  getLogger() {}
+  getLogger(): Promise<LoggerApiDef>;
 
-  /** @return {!Promise<ClientEventManagerApiDef>} */
-  getEventManager() {}
+  getEventManager(): Promise<ClientEventManagerApiDef>;
 
   /**
    * Publishers participating in Showcase should call this with their own entitlements
    * and entitlement related UI events.  SwG will automatically do this for Google
    * sourced subscriptions and meters.
-   * @param {!PublisherEntitlement} entitlement
-   * @return {?}
    */
-  setShowcaseEntitlement(entitlement) {}
+  setShowcaseEntitlement(entitlement: PublisherEntitlement): Promise<void>;
 
   /**
    * Publishers, who both (1) participate in Showcase and (2) use server-side paywalls,
    * should call this method to consume Showcase entitlements.
-   * @param {string} showcaseEntitlementJwt
-   * @param {?Function=} onCloseDialog Called after the user closes the dialog.
-   * @return {?}
    */
-  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {}
+  consumeShowcaseEntitlementJwt(
+    showcaseEntitlementJwt: string,
+    onCloseDialog?: Function | null
+  ): Promise<void> | void;
 
   /**
    * Intelligently returns the most interesting action to the
@@ -341,39 +291,31 @@ export class Subscriptions {
    * clicking 'follow-publisher' action, and a frequently
    * visiting user may be shown a 'creating an account' action.
    * TODO(moonbong): Implement this function.
-   * @return {?}
    */
-  showBestAudienceAction() {}
+  showBestAudienceAction(): void;
 
   /**
    * Sets the publisherProvidedId.
-   * @param {string} publisherProvidedId
-   * @return {?}
    */
-  setPublisherProvidedId(publisherProvidedId) {}
+  setPublisherProvidedId(publisherProvidedId: string): Promise<void> | void;
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */
 
-/** @enum {string} */
-export const ShowcaseEvent = {
+export enum ShowcaseEvent {
   // Events indicating content could potentially be unlocked
-  EVENT_SHOWCASE_METER_OFFERED: 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
+  EVENT_SHOWCASE_METER_OFFERED = 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
 
   // Events indicating content was unlocked
-  EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION:
-    'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION', // Publisher managed subscriptions only
-  EVENT_SHOWCASE_UNLOCKED_BY_METER: 'EVENT_SHOWCASE_UNLOCKED_BY_METER', // Publisher managed meters only
-  EVENT_SHOWCASE_UNLOCKED_FREE_PAGE: 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE', // When the article is free for any reason (lead article, etc)
+  EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION = 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION', // Publisher managed subscriptions only
+  EVENT_SHOWCASE_UNLOCKED_BY_METER = 'EVENT_SHOWCASE_UNLOCKED_BY_METER', // Publisher managed meters only
+  EVENT_SHOWCASE_UNLOCKED_FREE_PAGE = 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE', // When the article is free for any reason (lead article, etc)
 
   // Events indicating the user must take action to view content
-  EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL:
-    'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL', // When the user must register (or log in) to view the article
+  EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL = 'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL', // When the user must register (or log in) to view the article
 
   // Events indicating the user must subscribe to view content
-  EVENT_SHOWCASE_INELIGIBLE_PAYWALL: 'EVENT_SHOWCASE_INELIGIBLE_PAYWALL', // When the user is not eligible for showcase entitlements
-  EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL:
-    'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL', // When the user has no remaining showcase entitlements
-};
+  EVENT_SHOWCASE_INELIGIBLE_PAYWALL = 'EVENT_SHOWCASE_INELIGIBLE_PAYWALL', // When the user is not eligible for showcase entitlements
+  EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL = 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL', // When the user has no remaining showcase entitlements
+}
 
 /**
  * PublisherEntitlement
@@ -382,28 +324,26 @@ export const ShowcaseEvent = {
  * - isUserRegistered: Is the user registered currently?
  * - entitlement: Publisher entitlement event type.
  * - subscriptionTimestamp: Timestamp(in millisecond) when the user converted to a subscriber. Null if the user is not a subscriber.
- *  @typedef {{
- *    isUserRegistered:  !boolean,
- *    entitlement: !ShowcaseEvent,
- *    subscriptionTimestamp: (!number|null),
- * }}
  */
-export let PublisherEntitlement;
+export interface PublisherEntitlement {
+  isUserRegistered: boolean;
+  entitlement: ShowcaseEvent;
+  subscriptionTimestamp: number | null;
+}
 
-/** @enum {string} */
-export const SubscriptionFlows = {
-  SHOW_OFFERS: 'showOffers',
-  SHOW_SUBSCRIBE_OPTION: 'showSubscribeOption',
-  SHOW_ABBRV_OFFER: 'showAbbrvOffer',
-  SHOW_CONTRIBUTION_OPTIONS: 'showContributionOptions',
-  SUBSCRIBE: 'subscribe',
-  CONTRIBUTE: 'contribute',
-  COMPLETE_DEFERRED_ACCOUNT_CREATION: 'completeDeferredAccountCreation',
-  LINK_ACCOUNT: 'linkAccount',
-  SHOW_LOGIN_PROMPT: 'showLoginPrompt',
-  SHOW_LOGIN_NOTIFICATION: 'showLoginNotification',
-  SHOW_METER_TOAST: 'showMeterToast',
-};
+export enum SubscriptionFlows {
+  SHOW_OFFERS = 'showOffers',
+  SHOW_SUBSCRIBE_OPTION = 'showSubscribeOption',
+  SHOW_ABBRV_OFFER = 'showAbbrvOffer',
+  SHOW_CONTRIBUTION_OPTIONS = 'showContributionOptions',
+  SUBSCRIBE = 'subscribe',
+  CONTRIBUTE = 'contribute',
+  COMPLETE_DEFERRED_ACCOUNT_CREATION = 'completeDeferredAccountCreation',
+  LINK_ACCOUNT = 'linkAccount',
+  SHOW_LOGIN_PROMPT = 'showLoginPrompt',
+  SHOW_LOGIN_NOTIFICATION = 'showLoginNotification',
+  SHOW_METER_TOAST = 'showMeterToast',
+}
 
 /**
  * Configuration properties:
@@ -419,134 +359,119 @@ export const SubscriptionFlows = {
  * - enablePropensity - If true events from the logger api are sent to the
  *   propensity server.  Note events from the legacy propensity endpoint are
  *   always sent.
- * @typedef {{
- *   experiments: (!Array<string>|undefined),
- *   windowOpenMode: (!WindowOpenMode|undefined),
- *   analyticsMode: (!AnalyticsMode|undefined),
- *   enableSwgAnalytics: (boolean|undefined),
- *   enablePropensity: (boolean|undefined),
- *   publisherProvidedId: (string|undefined),
- *   useArticleEndpoint: (boolean|undefined),
- * }}
  */
-export let Config;
+export interface Config {
+  experiments?: string[];
+  windowOpenMode?: WindowOpenMode;
+  analyticsMode?: AnalyticsMode;
+  enableSwgAnalytics?: boolean;
+  enablePropensity?: boolean;
+  publisherProvidedId?: string;
+  useArticleEndpoint?: boolean;
+}
 
 /**
  * Params for GetEntitlements requests to SwG Client.
  * swg-js constructs objects of this type, but publisher JS won't.
  * swg-js converts these params to a Base64 JSON string
  * before sending them to SwG Client.
- * @typedef {{
- *   metering: (!GetEntitlementsMeteringParamsInternal|undefined),
- * }}
  */
-export let GetEntitlementsParamsInternalDef;
+export interface GetEntitlementsParamsInternalDef {
+  metering?: GetEntitlementsMeteringParamsInternal;
+}
 
 /**
  * Encryption params for GetEntitlements requests.
- * @typedef {{
- *   encryptedDocumentKey: string,
- * }}
  */
-export let GetEntitlementsEncryptionParams;
+export interface GetEntitlementsEncryptionParams {
+  encryptedDocumentKey: string;
+}
 
 /**
  * Metering params for GetEntitlements requests to SwG Client.
  * swg-js constructs objects of this type, but publisher JS won't.
- * @typedef {{
- *   clientTypes: (undefined|!Array<number>),
- *   owner: (undefined|string),
- *   state: (undefined|{
- *     id: string,
- *     attributes: !Array<{
- *       name: string,
- *       timestamp: number,
- *     }>,
- *   }),
- *   token: (undefined|string),
- *   resource: {
- *     hashedCanonicalUrl: string,
- *   },
- * }}
  */
-export let GetEntitlementsMeteringParamsInternal;
+export interface GetEntitlementsMeteringParamsInternal {
+  clientTypes?: number[];
+  owner?: string;
+  state?: {
+    id: string;
+    attributes: {
+      name: string;
+      timestamp: number;
+    }[];
+  };
+  token?: string;
+  resource: {
+    hashedCanonicalUrl: string;
+  };
+}
 
 /**
  * Params for `getEntitlements` calls from publisher JS.
  * swg-js converts objects of this type to GetEntitlementsParamsInternal.
- * @typedef {{
- *   encryption: (!GetEntitlementsEncryptionParams|undefined),
- *   metering: (!GetEntitlementsMeteringParamsExternal|undefined),
- *   publisherProvidedId: (string|undefined),
- * }}
  */
-export let GetEntitlementsParamsExternalDef;
+export interface GetEntitlementsParamsExternalDef {
+  encryption?: GetEntitlementsEncryptionParams;
+  metering?: GetEntitlementsMeteringParamsExternal;
+  publisherProvidedId?: string;
+}
 
 /**
  * Params for `getEntitlements` calls from publisher JS.
  * swg-js converts objects of this type to GetEntitlementsMeteringParamsInternal.
- * @typedef {{
- *   clientTypes: !Array<number>,
- *   owner: string,
- *   state: {
- *     id: string,
- *     standardAttributes: !Object<string, {
- *       timestamp: number,
- *     }>,
- *     customAttributes: !Object<string, {
- *       timestamp: number,
- *     }>,
- *   },
- *   resource: {
- *     hashedCanonicalUrl: string,
- *   },
- * }}
  */
-export let GetEntitlementsMeteringParamsExternal;
+export interface GetEntitlementsMeteringParamsExternal {
+  clientTypes: number[];
+  owner: string;
+  state: {
+    id: string;
+    standardAttributes: {
+      [key: string]: {
+        timestamp: number;
+      };
+    };
+    customAttributes: {
+      [key: string]: {
+        timestamp: number;
+      };
+    };
+  };
+  resource: {
+    hashedCanonicalUrl: string;
+  };
+}
 
-/**
- * @enum {number}
- */
-export const AnalyticsMode = {
-  DEFAULT: 0,
-  IMPRESSIONS: 1,
-};
+export enum AnalyticsMode {
+  DEFAULT = 0,
+  IMPRESSIONS = 1,
+}
 
-/**
- * @enum {string}
- */
-export const WindowOpenMode = {
-  AUTO: 'auto',
-  REDIRECT: 'redirect',
-};
+export enum WindowOpenMode {
+  AUTO = 'auto',
+  REDIRECT = 'redirect',
+}
 
-/**
- * @enum {string}
- */
-export const ReplaceSkuProrationMode = {
+export enum ReplaceSkuProrationMode {
   // The replacement takes effect immediately, and the remaining time will
   // be prorated and credited to the user. This is the current default
   // behavior.
-  IMMEDIATE_WITH_TIME_PRORATION: 'IMMEDIATE_WITH_TIME_PRORATION',
-};
+  IMMEDIATE_WITH_TIME_PRORATION = 'IMMEDIATE_WITH_TIME_PRORATION',
+}
 
 /**
  * The Offers/Contributions UI is rendered differently based on the
  * ProductType. The ProductType parameter is passed to the Payments flow, and
  * then passed back to the Payments confirmation page to render messages/text
  * based on the ProductType.
- * @enum {string}
  */
-export const ProductType = {
-  SUBSCRIPTION: 'SUBSCRIPTION',
-  UI_CONTRIBUTION: 'UI_CONTRIBUTION',
-  VIRTUAL_GIFT: 'VIRTUAL_GIFT',
-};
+export enum ProductType {
+  SUBSCRIPTION = 'SUBSCRIPTION',
+  UI_CONTRIBUTION = 'UI_CONTRIBUTION',
+  VIRTUAL_GIFT = 'VIRTUAL_GIFT',
+}
 
-/**
- * @return {!Config}
- */
-export function defaultConfig() {
+export function defaultConfig(): Config {
   return {
     windowOpenMode: WindowOpenMode.AUTO,
     analyticsMode: AnalyticsMode.DEFAULT,
@@ -565,69 +490,59 @@ export function defaultConfig() {
  * - isClosable - a boolean value to determine whether the view is closable.
  * - oldSku - Optional. The SKU to replace. For example, if a user wants to
  *   upgrade or downgrade their current subscription.
- *
- * @typedef {{
- *   skus: (!Array<string>|undefined),
- *   list: (string|undefined),
- *   isClosable: (boolean|undefined),
- *   oldSku: (string|undefined),
- * }}
  */
-export let OffersRequest;
+export interface OffersRequest {
+  skus?: string[];
+  list?: string;
+  isClosable?: boolean;
+  oldSku?: string;
+}
 
-/**
- * @typedef {{
- *   linkRequested: boolean,
- * }}
- */
-export let LoginRequest;
+export interface LoginRequest {
+  linkRequested: boolean;
+}
 
 /**
  * Properties:
  * - one and only one of "token" or "authCode"
  * AuthCode reference: https://developers.google.com/actions/identity/oauth2-code-flow
  * Token reference: https://developers.google.com/actions/identity/oauth2-implicit-flow
- * @typedef {{
- *   token: (string|undefined),
- *   authCode: (string|undefined),
- * }}
  */
-export let SaveSubscriptionRequest;
+export interface SaveSubscriptionRequest {
+  token?: string;
+  authCode?: string;
+}
 
 /**
  * Callback for retrieving subscription request
- *
- * @typedef {function():(!Promise<SaveSubscriptionRequest> | !SaveSubscriptionRequest)} SaveSubscriptionRequestCallback
  */
-export let SaveSubscriptionRequestCallback;
+export type SaveSubscriptionRequestCallback = () =>
+  | Promise<SaveSubscriptionRequest>
+  | SaveSubscriptionRequest;
 
 /**
  * Properties:
  * - lang: Sets the button SVG and title. Default is "en".
  * - theme: "light" or "dark". Default is "light".
  * - disable: whether to grey out the button.
- *
- * @typedef {{
- *   theme: (string|undefined),
- *   lang: (string|undefined),
- *   disable: (boolean|undefined),
- * }}
  */
-export let ButtonOptions;
+export interface ButtonOptions {
+  theme?: string;
+  lang?: string;
+  disable?: boolean;
+}
 
 /**
  * Properties:
  * - lang: Sets the button SVG and title. Default is "en".
  * - theme: "light" or "dark". Default is "light".
  * - messageTextColor: Overrides theme color for message text. (ex: "#09f")
- *
- * @typedef {{
- *   theme: (string|undefined),
- *   lang: (string|undefined),
- *   messageTextColor: (string|undefined),
- * }}
  */
-export let SmartButtonOptions;
+export interface SmartButtonOptions {
+  theme?: string;
+  lang?: string;
+  messageTextColor?: string;
+}
 
 /**
  * Properties:
@@ -639,27 +554,19 @@ export let SmartButtonOptions;
  *  The default is IMMEDIATE_WITH_TIME_PRORATION.
  * - oneTime: Optional. When a user chooses a contribution, they have the option
  *  to make it non-recurring.
- *
- *  @typedef {{
- *    skuId: string,
- *    oldSku: (string|undefined),
- *    replaceSkuProrationMode: (ReplaceSkuProrationMode|undefined),
- *    oneTime: (boolean|undefined),
- * }}
  */
-export let SubscriptionRequest;
+export interface SubscriptionRequest {
+  skuId: string;
+  oldSku?: string;
+  replaceSkuProrationMode?: ReplaceSkuProrationMode;
+  oneTime?: boolean;
+}
 
-/**
- * @typedef {{
- *  publisherProvidedId: string,
- * }}
- */
-export let LinkSubscriptionRequest;
+export interface LinkSubscriptionRequest {
+  publisherProvidedId: string;
+}
 
-/**
- * @typedef {{
- *  publisherProvidedId: (?string|undefined),
- *  success: boolean,
- * }}
- */
-export let LinkSubscriptionResult;
+export interface LinkSubscriptionResult {
+  publisherProvidedId?: string | null;
+  success: boolean;
+}
