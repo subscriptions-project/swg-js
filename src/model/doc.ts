@@ -25,7 +25,7 @@ export interface Doc {
   /**
    * The `Document` node or analog.
    */
-  getRootNode(): Node;
+  getRootNode(): Document;
 
   /**
    * The `Document.documentElement` element or analog.
@@ -59,9 +59,6 @@ export class GlobalDoc implements Doc {
   private readonly doc_: Document;
   private readonly win_: Window;
 
-  /**
-   * @param {!Window|!Document} winOrDoc
-   */
   constructor(winOrDoc: Window | Document) {
     const isWin = 'document' in winOrDoc;
     this.win_ = isWin ? winOrDoc : winOrDoc.defaultView!;
