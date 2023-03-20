@@ -48,8 +48,8 @@ export class Entitlements {
       entitlements: Entitlements,
       callback?: Function | null
     ) => void,
-    readonly isReadyToPay?: boolean | null,
-    readonly decryptedDocumentKey?: string | null
+    readonly isReadyToPay: boolean | null = false,
+    readonly decryptedDocumentKey: string | null = null
   ) {}
 
   clone(): Entitlements {
