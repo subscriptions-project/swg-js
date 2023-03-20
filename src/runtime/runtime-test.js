@@ -139,9 +139,52 @@ describes.realWin('installRuntime', (env) => {
     installRuntime(win);
 
     const subscriptions = await promise;
-    const keys = Object.getOwnPropertyNames(Subscriptions.prototype);
+    const keys = [
+      'init',
+      'configure',
+      'start',
+      'reset',
+      'clear',
+      'getEntitlements',
+      'setOnEntitlementsResponse',
+      'getOffers',
+      'showOffers',
+      'showUpdateOffers',
+      'showSubscribeOption',
+      'showAbbrvOffer',
+      'showContributionOptions',
+      'setOnNativeSubscribeRequest',
+      'setOnSubscribeResponse',
+      'subscribe',
+      'updateSubscription',
+      'setOnContributionResponse',
+      'setOnPaymentResponse',
+      'contribute',
+      'completeDeferredAccountCreation',
+      'setOnLoginRequest',
+      'triggerLoginRequest',
+      'showLoginPrompt',
+      'showLoginNotification',
+      'setOnLinkComplete',
+      'waitForSubscriptionLookup',
+      'linkAccount',
+      'setOnFlowStarted',
+      'setOnFlowCanceled',
+      'saveSubscription',
+      'linkSubscription',
+      'createButton',
+      'attachButton',
+      'attachSmartButton',
+      'getPropensityModule',
+      'getLogger',
+      'getEventManager',
+      'setShowcaseEntitlement',
+      'consumeShowcaseEntitlementJwt',
+      'showBestAudienceAction',
+      'setPublisherProvidedId',
+    ];
     for (const key of keys) {
-      expect(subscriptions[key]).to.exist;
+      expect(subscriptions).to.have.property(key);
     }
   });
 
@@ -183,22 +226,6 @@ describes.realWin('installRuntime', (env) => {
     await getRuntime().whenReady();
     await getRuntime().whenReady();
     expect(progress).to.equal('123');
-  });
-
-  it('implements all APIs', async () => {
-    installRuntime(win);
-
-    const subscriptions = await new Promise((resolve) => {
-      dep(resolve);
-    });
-
-    const names = Object.getOwnPropertyNames(Subscriptions.prototype);
-    for (const name of names) {
-      if (name == 'constructor') {
-        continue;
-      }
-      expect(subscriptions).to.have.property(name);
-    }
   });
 });
 
