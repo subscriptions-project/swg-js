@@ -522,7 +522,7 @@ export class AutoPromptManager {
           .includes(TYPE_REWARDED_SURVEY)
       ) {
         const surveyAction = potentialActions.find(
-          (action) => action.type === TYPE_REWARDED_SURVEY
+          ({type}) => type === TYPE_REWARDED_SURVEY
         );
         if (surveyAction) {
           this.interventionDisplayed_ = surveyAction;
