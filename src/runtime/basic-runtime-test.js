@@ -118,7 +118,7 @@ describes.realWin('installBasicRuntime', (env) => {
       'dismissSwgUI',
     ];
     for (const key of keys) {
-      expect(basicSubscriptions[key]).to.exist;
+      expect(basicSubscriptions).to.have.property(key);
     }
   });
 
