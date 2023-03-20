@@ -550,6 +550,10 @@ export class AutoPromptManager {
           previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION_LARGE)
         )
       ) {
+        // WARNING: Refers explicity to the Contribution AutoPromptType,
+        // which CANNOT be a potential audience action. This is not to be
+        // confused with the AudienceActionType TYPE_CONTRIBUTION, which
+        // is part of the pre-monetization effort.
         this.interventionDisplayed_ = {type: AutoPromptType.CONTRIBUTION};
         return undefined;
       }
