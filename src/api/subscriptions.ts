@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import {ClientEventManagerApi as ClientEventManagerApiDef} from './client-event-manager-api';
+import {ClientEventManagerApi} from './client-event-manager-api';
 import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
-import {Entitlements as EntitlementsDef} from './entitlements';
-import {LoggerApi as LoggerApiDef} from './logger-api';
-import {Offer as OfferDef} from './offer';
-import {PropensityApi as PropensityApiDef} from './propensity-api';
-import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
+import {Entitlements} from './entitlements';
+import {LoggerApi} from './logger-api';
+import {Offer} from './offer';
+import {PropensityApi} from './propensity-api';
+import {SubscribeResponse} from './subscribe-response';
 
 export interface Subscriptions {
   /**
@@ -56,19 +56,19 @@ export interface Subscriptions {
 
   getEntitlements(
     params?: GetEntitlementsParamsExternalDef
-  ): Promise<EntitlementsDef>;
+  ): Promise<Entitlements>;
 
   /**
    * Set the subscribe callback.
    */
   setOnEntitlementsResponse(
-    callback: (entitlements: Promise<EntitlementsDef>) => void
+    callback: (entitlements: Promise<Entitlements>) => void
   ): Promise<void> | void;
 
   /**
    * Returns a set of offers.
    */
-  getOffers(options?: {productId?: string}): Promise<OfferDef[]>;
+  getOffers(options?: {productId?: string}): Promise<Offer[]>;
 
   /**
    * Starts the Offers flow.
@@ -112,7 +112,7 @@ export interface Subscriptions {
    * Set the subscribe complete callback.
    */
   setOnSubscribeResponse(
-    callback: (subscribeResponse: Promise<SubscribeResponseDef>) => void
+    callback: (subscribeResponse: Promise<SubscribeResponse>) => void
   ): Promise<void> | void;
 
   /**
@@ -129,20 +129,20 @@ export interface Subscriptions {
 
   /**
    * Set the contribution complete callback.
-   * @param {function(!Promise<!SubscribeResponseDef>)} callback
+   * @param {function(!Promise<!SubscribeResponse>)} callback
    * @return {?}
    */
   setOnContributionResponse(
-    callback: (subscribeResponsePromise: Promise<SubscribeResponseDef>) => void
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
   ): Promise<void> | void;
 
   /**
    * Set the payment complete callback.
-   * @param {function(!Promise<!SubscribeResponseDef>)} callback
+   * @param {function(!Promise<!SubscribeResponse>)} callback
    * @return {?}
    */
   setOnPaymentResponse(
-    callback: (subscribeResponsePromise: Promise<SubscribeResponseDef>) => void
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
   ): Promise<void> | void;
 
   /**
@@ -262,11 +262,11 @@ export interface Subscriptions {
    * Retrieves the propensity module that provides APIs to
    * get propensity scores based on user state and events
    */
-  getPropensityModule(): Promise<PropensityApiDef>;
+  getPropensityModule(): Promise<PropensityApi>;
 
-  getLogger(): Promise<LoggerApiDef>;
+  getLogger(): Promise<LoggerApi>;
 
-  getEventManager(): Promise<ClientEventManagerApiDef>;
+  getEventManager(): Promise<ClientEventManagerApi>;
 
   /**
    * Publishers participating in Showcase should call this with their own entitlements
