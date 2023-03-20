@@ -237,7 +237,7 @@ interface EntitlementJson {
   source?: string;
   products?: string[];
   subscriptionToken?: string;
-  subscriptionTimestamp?: Timestamp;
+  subscriptionTimestamp?: Timestamp | null;
 }
 
 /**
@@ -319,8 +319,8 @@ export class Entitlement {
     const timestampJson = json['subscriptionTimestamp'];
     let subscriptionTimestamp;
     try {
-      const seconds = timestampJson?.['seconds_'];
-      const nanos = timestampJson?.['nanos_'];
+      const seconds = timestampJson!['seconds_'];
+      const nanos = timestampJson!['nanos_'];
       subscriptionTimestamp = new Timestamp([seconds, nanos], false);
     } catch (e) {
       subscriptionTimestamp = null;
