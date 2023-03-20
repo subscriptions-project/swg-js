@@ -242,8 +242,6 @@ export class AutoPromptManager {
         entitlements,
         /* hasPotentialAudienceAction */ !!potentialAction?.type
       ) && promptFn;
-    console.log('showblocking');
-    console.log(shouldShowBlockingPrompt);
     if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
       return;
     }
@@ -275,7 +273,6 @@ export class AutoPromptManager {
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
     if (shouldShowAutoPrompt) {
-      console.log('should not be here');
       this.deps_.win().setTimeout(() => {
         this.wasAutoPromptDisplayed_ = true;
         this.showPrompt_(
@@ -518,20 +515,16 @@ export class AutoPromptManager {
         article,
         ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
       );
-      console.log(prioritizeSurvey);
-      console.log(potentialActions);
       if (
         prioritizeSurvey &&
         potentialActions
           .map((action) => action.type)
           .includes(TYPE_REWARDED_SURVEY)
       ) {
-        console.log('here');
         const surveyAction = potentialActions.find(
           (action) => action.type === TYPE_REWARDED_SURVEY
         );
         if (surveyAction) {
-          console.log('yes');
           this.interventionDisplayed_ = surveyAction;
           return surveyAction;
         }
