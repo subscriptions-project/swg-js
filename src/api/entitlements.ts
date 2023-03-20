@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+import {JwtHelper} from '../utils/jwt';
 import {Timestamp} from '../proto/api_messages';
-import {debugLog} from '../utils/log';
+import {debugLog, warn} from '../utils/log';
 import {getPropertyFromJsonString} from '../utils/json';
-import {warn} from '../utils/log';
 
 /** Source for Google-provided non-metering entitlements. */
 export const GOOGLE_SOURCE = 'google';
@@ -38,49 +38,21 @@ export const DEV_MODE_ORDER = 'GOOGLE_DEV_MODE_ORDER';
  * The holder of the entitlements for a service.
  */
 export class Entitlements {
-  /**
-   * @param {string} service
-   * @param {string} raw
-   * @param {!Array<!Entitlement>} entitlements
-   * @param {?string} currentProduct
-   * @param {function(!Entitlements)} ackHandler
-   * @param {function(!Entitlements, ?Function=)} consumeHandler
-   * @param {?boolean|undefined} isReadyToPay
-   * @param {?string|undefined} decryptedDocumentKey
-   */
   constructor(
-    service,
-    raw,
-    entitlements,
-    currentProduct,
-    ackHandler,
-    consumeHandler,
-    isReadyToPay,
-    decryptedDocumentKey
-  ) {
-    /** @const {string} */
-    this.service = service;
-    /** @const {string} */
-    this.raw = raw;
-    /** @const {!Array<!Entitlement>} */
-    this.entitlements = entitlements;
-    /** @const {boolean} */
-    this.isReadyToPay = isReadyToPay || false;
-    /** @const {?string} */
-    this.decryptedDocumentKey = decryptedDocumentKey || null;
+    readonly service: string,
+    readonly raw: string,
+    readonly entitlements: Entitlement[],
+    private readonly product_: string | null,
+    private readonly ackHandler_: (entitlements: Entitlements) => void,
+    private readonly consumeHandler_: (
+      entitlements: Entitlements,
+      callback?: Function | null
+    ) => void,
+    readonly isReadyToPay?: boolean | null,
+    readonly decryptedDocumentKey?: string | null
+  ) {}
 
-    /** @private @const {?string} */
-    this.product_ = currentProduct;
-    /** @private @const {function(!Entitlements)} */
-    this.ackHandler_ = ackHandler;
-    /** @private @const {function(!Entitlements, ?Function=)} */
-    this.consumeHandler_ = consumeHandler;
-  }
-
-  /**
-   * @return {!Entitlements}
-   */
-  clone() {
+  clone(): Entitlements {
     return new Entitlements(
       this.service,
       this.raw,
@@ -93,9 +65,6 @@ export class Entitlements {
     );
   }
 
-  /**
-   * @return {!Object}
-   */
   json() {
     return {
       'service': this.service,
@@ -110,9 +79,8 @@ export class Entitlements {
    * is meant to be used for one article. Subscription entitlements that are
    * not returned by dev mode are cacheable, because subscription entitlements
    * are meant to be used across multiple articles on a publication.
-   * @return {boolean}
    */
-  enablesThisWithCacheableEntitlements() {
+  enablesThisWithCacheableEntitlements(): boolean {
     const entitlement = this.getEntitlementForThis();
     return (
       !!entitlement &&
@@ -128,9 +96,8 @@ export class Entitlements {
    * https://www.blog.google/outreach-initiatives/google-news-initiative/licensing-program-support-news-industry-/
    * They may also come from Google's Subscribe With Google Metering
    * functionality.
-   * @return {boolean}
    */
-  enablesThisWithGoogleMetering() {
+  enablesThisWithGoogleMetering(): boolean {
     const entitlement = this.getEntitlementForThis();
     return !!entitlement && entitlement.source === GOOGLE_METERING_SOURCE;
   }
@@ -138,9 +105,8 @@ export class Entitlements {
   /**
    * Returns true if the current article is unlocked by a Google dev mode
    * entitlement.
-   * @return {boolean}
    */
-  enablesThisWithGoogleDevMode() {
+  enablesThisWithGoogleDevMode(): boolean {
     const entitlement = this.getEntitlementForThis();
     if (!entitlement) {
       return false;
@@ -152,19 +118,11 @@ export class Entitlements {
     return isFirstPartyToken || isThirdPartyToken;
   }
 
-  /**
-   * @param {string=} source
-   * @return {boolean}
-   */
-  enablesThis(source) {
+  enablesThis(source?: string): boolean {
     return this.enables(this.product_, source);
   }
 
-  /**
-   * @param {string=} source
-   * @return {boolean}
-   */
-  enablesAny(source) {
+  enablesAny(source?: string): boolean {
     for (let i = 0; i < this.entitlements.length; i++) {
       if (
         this.entitlements[i].products.length > 0 &&
@@ -179,11 +137,8 @@ export class Entitlements {
   /**
    * Whether these entitlements enable the specified product, optionally also
    * restricting the source.
-   * @param {?string} product
-   * @param {string=} source
-   * @return {boolean}
    */
-  enables(product, source) {
+  enables(product: string | null, source?: string): boolean {
     if (!product) {
       return false;
     }
@@ -193,10 +148,8 @@ export class Entitlements {
   /**
    * Returns the first matching entitlement for the current product,
    * optionally also matching the specified source.
-   * @param {string=} source
-   * @return {?Entitlement}
    */
-  getEntitlementForThis(source) {
+  getEntitlementForThis(source?: string): Entitlement | null {
     return this.getEntitlementFor(this.product_, source);
   }
 
@@ -206,12 +159,11 @@ export class Entitlements {
    *
    * Returns non-metering entitlements if possible, to avoid consuming
    * metered reads unnecessarily.
-   *
-   * @param {?string} product
-   * @param {string=} source
-   * @return {?Entitlement}
    */
-  getEntitlementFor(product, source) {
+  getEntitlementFor(
+    product: string | null,
+    source?: string
+  ): Entitlement | null {
     if (!product) {
       // Require a product ID.
       warn(
@@ -246,10 +198,8 @@ export class Entitlements {
   /**
    * Returns the first matching entitlement for the specified source w/o
    * matching any specific products.
-   * @param {string} source
-   * @return {?Entitlement}
    */
-  getEntitlementForSource(source) {
+  getEntitlementForSource(source: string): Entitlement | null {
     if (this.entitlements.length > 0) {
       for (let i = 0; i < this.entitlements.length; i++) {
         if (
@@ -278,45 +228,31 @@ export class Entitlements {
    * "free reads".
    * @param {?Function=} onCloseDialog Called after the user closes the dialog.
    */
-  consume(onCloseDialog) {
+  consume(onCloseDialog?: Function | null) {
     this.consumeHandler_(this, onCloseDialog);
   }
+}
+
+interface EntitlementJson {
+  source?: string;
+  products?: string[];
+  subscriptionToken?: string;
+  subscriptionTimestamp?: Timestamp;
 }
 
 /**
  * The single entitlement object.
  */
 export class Entitlement {
-  /**
-   * @param {string} source
-   * @param {!Array<string>} products
-   * @param {string} subscriptionToken
-   * @param {JsonObject|null|undefined} subscriptionTokenContents
-   * @param {!Timestamp|null} subscriptionTimestamp
-   */
   constructor(
-    source,
-    products,
-    subscriptionToken,
-    subscriptionTokenContents,
-    subscriptionTimestamp
-  ) {
-    /** @const {string} */
-    this.source = source;
-    /** @const {!Array<string>} */
-    this.products = products;
-    /** @const {string} */
-    this.subscriptionToken = subscriptionToken;
-    /** @const {JsonObject|null|undefined} */
-    this.subscriptionTokenContents = subscriptionTokenContents;
-    /** @const {!Timestamp|null} */
-    this.subscriptionTimestamp = subscriptionTimestamp;
-  }
+    readonly source: string,
+    readonly products: string[],
+    readonly subscriptionToken: string,
+    readonly subscriptionTokenContents: unknown,
+    readonly subscriptionTimestamp: Timestamp | null
+  ) {}
 
-  /**
-   * @return {!Entitlement}
-   */
-  clone() {
+  clone(): Entitlement {
     return new Entitlement(
       this.source,
       this.products.slice(0),
@@ -326,9 +262,6 @@ export class Entitlement {
     );
   }
 
-  /**
-   * @return {!Object}
-   */
   json() {
     return {
       'source': this.source,
@@ -337,11 +270,7 @@ export class Entitlement {
     };
   }
 
-  /**
-   * @param {?string} product
-   * @return {boolean}
-   */
-  enables(product) {
+  enables(product: string | null): boolean {
     if (!product) {
       return false;
     }
@@ -368,18 +297,16 @@ export class Entitlement {
     return this.products.includes(product);
   }
 
-  /**
-   * @param {?Object} json
-   * @param {!../utils/jwt.JwtHelper} jwtHelper
-   * @return {!Entitlement}
-   */
-  static parseFromJson(json, jwtHelper) {
+  static parseFromJson(
+    json: EntitlementJson,
+    jwtHelper: JwtHelper
+  ): Entitlement {
     if (!json) {
       json = {};
     }
     const source = json['source'] || '';
     const products = json['products'] || [];
-    const subscriptionToken = json['subscriptionToken'];
+    const subscriptionToken = json['subscriptionToken'] || '';
     let subscriptionTokenContents;
     try {
       subscriptionTokenContents = subscriptionToken
@@ -392,10 +319,9 @@ export class Entitlement {
     const timestampJson = json['subscriptionTimestamp'];
     let subscriptionTimestamp;
     try {
-      subscriptionTimestamp = new Timestamp(
-        [timestampJson['seconds_'], timestampJson['nanos_']],
-        false
-      );
+      const seconds = timestampJson?.['seconds_'];
+      const nanos = timestampJson?.['nanos_'];
+      subscriptionTimestamp = new Timestamp([seconds, nanos], false);
     } catch (e) {
       subscriptionTimestamp = null;
     }
@@ -412,28 +338,24 @@ export class Entitlement {
    * The JSON is expected in one of the forms:
    * - Single entitlement: `{products: [], ...}`.
    * - A list of entitlements: `[{products: [], ...}, {...}]`.
-   * @param {!Object|!Array<!Object>} json
-   * @param {!../utils/jwt.JwtHelper} jwtHelper
-   * @return {!Array<!Entitlement>}
    */
-  static parseListFromJson(json, jwtHelper) {
-    const jsonList = Array.isArray(json)
-      ? /** @type {!Array<Object>} */ (json)
-      : [json];
+  static parseListFromJson(json: unknown, jwtHelper: JwtHelper): Entitlement[] {
+    const jsonList = Array.isArray(json) ? json : [json];
     return jsonList.map((json) => Entitlement.parseFromJson(json, jwtHelper));
   }
 
   /**
    * Returns the SKU associated with this entitlement.
-   * @return {?string}
    */
-  getSku() {
+  getSku(): string | null {
     if (this.source !== 'google') {
       return null;
     }
-    const sku = /** @type {?string} */ (
-      getPropertyFromJsonString(this.subscriptionToken, 'productId') || null
-    );
+    const sku =
+      (getPropertyFromJsonString(
+        this.subscriptionToken,
+        'productId'
+      ) as string) || null;
     if (!sku) {
       warn('Unable to retrieve SKU from SwG subscription token');
     }
