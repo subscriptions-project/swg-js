@@ -56,10 +56,6 @@ const forbiddenTerms = {
     allowlist: ['src/main.js', 'src/components/activities.js'],
     checkInTestFolder: true,
   },
-  '(?:var|let|const) +IS_DEV +=': {
-    message: 'IS_DEV local var only allowed in mode.js',
-    allowlist: ['src/mode.js'],
-  },
   'cookie\\W': {
     message: requiresReviewPrivacy,
     allowlist: [
@@ -83,15 +79,11 @@ const forbiddenTerms = {
   },
   'localStorage': {
     message: requiresReviewPrivacy,
-    allowlist: ['src/runtime/pay-client.js', 'src/runtime/storage.js'],
+    allowlist: ['src/runtime/pay-client.js', 'src/runtime/storage.ts'],
   },
   'sessionStorage': {
     message: requiresReviewPrivacy,
-    allowlist: [
-      'src/runtime/experiments.js',
-      'src/runtime/storage.js',
-      'src/utils/gaa.js',
-    ],
+    allowlist: ['src/runtime/experiments.ts', 'src/runtime/storage.ts'],
   },
   'indexedDB': {
     message: requiresReviewPrivacy,
@@ -159,17 +151,12 @@ const forbiddenTermsSrcInclusive = {
   },
   '\\.getTime\\(\\)': {
     message: 'Unless you do weird date math (allowlist), use Date.now().',
-    allowlist: ['src/utils/date-utils.js'],
   },
   '\\<\\<\\<\\<\\<\\<': {
     message: 'Unresolved merge conflict.',
   },
   '\\>\\>\\>\\>\\>\\>': {
     message: 'Unresolved merge conflict.',
-  },
-  '\\.trim(Left|Right)\\(\\)': {
-    message: 'Unsupported on IE; use trim() or a helper instead.',
-    allowlist: [],
   },
 };
 

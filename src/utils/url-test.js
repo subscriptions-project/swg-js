@@ -69,6 +69,19 @@ describes.realWin('parseUrl', () => {
       origin: 'https://foo.com:123',
     });
   });
+  it('should handle port 0', () => {
+    compareParse('https://foo.com:0/abc?123#foo', {
+      href: 'https://foo.com:0/abc?123#foo',
+      protocol: 'https:',
+      host: 'foo.com:0',
+      hostname: 'foo.com',
+      port: '',
+      pathname: '/abc',
+      search: '?123',
+      hash: '#foo',
+      origin: 'https://foo.com:0',
+    });
+  });
   it('should omit HTTP default port', () => {
     compareParse('http://foo.com:80/abc?123#foo', {
       href: 'http://foo.com/abc?123#foo',

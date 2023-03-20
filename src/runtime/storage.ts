@@ -24,23 +24,16 @@ const WEEK_IN_MILLIS = 604800000;
  * src/runtime/local-storage.LocalStorage.
  */
 export class Storage {
-  /**
-   * @param {!Window} win
-   */
-  constructor(win) {
-    /** @private @const {!Window} */
+  private readonly win_: Window;
+  private readonly values_: {[key: string]: Promise<string | null>};
+
+  constructor(win: Window) {
     this.win_ = win;
 
-    /** @private @const {!Object<string, !Promise<?string>>} */
     this.values_ = {};
   }
 
-  /**
-   * @param {string} key
-   * @param {boolean=} useLocalStorage
-   * @return {!Promise<?string>}
-   */
-  get(key, useLocalStorage = false) {
+  get(key: string, useLocalStorage = false): Promise<string | null> {
     if (!this.values_[key]) {
       this.values_[key] = new Promise((resolve) => {
         const storage = useLocalStorage
@@ -61,13 +54,7 @@ export class Storage {
     return this.values_[key];
   }
 
-  /**
-   * @param {string} key
-   * @param {string} value
-   * @param {boolean=} useLocalStorage
-   * @return {!Promise}
-   */
-  set(key, value, useLocalStorage = false) {
+  set(key: string, value: string, useLocalStorage = false): Promise<void> {
     this.values_[key] = Promise.resolve(value);
     return new Promise((resolve) => {
       const storage = useLocalStorage
@@ -84,12 +71,7 @@ export class Storage {
     });
   }
 
-  /**
-   * @param {string} key
-   * @param {boolean=} useLocalStorage
-   * @return {!Promise}
-   */
-  remove(key, useLocalStorage = false) {
+  remove(key: string, useLocalStorage = false): Promise<void> {
     delete this.values_[key];
     return new Promise((resolve) => {
       const storage = useLocalStorage
@@ -109,9 +91,8 @@ export class Storage {
   /**
    * Stores the current timestamp to local storage, under the storageKey provided.
    * Removes timestamps older than a week in the process.
-   * @param {string} storageKey
    */
-  async storeEvent(storageKey) {
+  async storeEvent(storageKey: string): Promise<void> {
     const timestamps = await this.getEvent(storageKey);
     timestamps.push(Date.now());
     const valueToStore = this.serializeTimestamps_(timestamps);
@@ -121,20 +102,16 @@ export class Storage {
   /**
    * Retrieves timestamps from local storage, under the storageKey provided.
    * Filters out timestamps older than a week.
-   * @param {string} storageKey
-   * @return {!Promise<!Array<number>>}
    */
-  async getEvent(storageKey) {
+  async getEvent(storageKey: string): Promise<number[]> {
     const value = await this.get(storageKey, /* useLocalStorage */ true);
     return this.pruneTimestamps_(this.deserializeTimestamps_(value));
   }
 
   /**
    * Converts a stored series of timestamps to an array of numbers.
-   * @param {?string} value
-   * @return {!Array<number>}
    */
-  deserializeTimestamps_(value) {
+  deserializeTimestamps_(value: string | null): number[] {
     if (value === null) {
       return [];
     }
@@ -146,19 +123,15 @@ export class Storage {
   /**
    * Converts an array of numbers to a concatenated string of timestamps for
    * storage.
-   * @param {!Array<number>} timestamps
-   * @return {string}
    */
-  serializeTimestamps_(timestamps) {
+  serializeTimestamps_(timestamps: number[]): string {
     return timestamps.join(STORAGE_DELIMITER);
   }
 
   /**
    * Filters out values that are older than a week.
-   * @param {!Array<number>} timestamps
-   * @return {!Array<number>}
    */
-  pruneTimestamps_(timestamps) {
+  pruneTimestamps_(timestamps: number[]): number[] {
     const now = Date.now();
     let sliceIndex = timestamps.length;
     for (let i = 0; i < timestamps.length; i++) {
@@ -174,10 +147,6 @@ export class Storage {
   }
 }
 
-/**
- * @param {string} key
- * @return {string}
- */
-function storageKey(key) {
+function storageKey(key: string): string {
   return PREFIX + ':' + key;
 }

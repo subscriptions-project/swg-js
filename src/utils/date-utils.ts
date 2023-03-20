@@ -16,11 +16,7 @@
 
 import {Timestamp} from '../proto/api_messages';
 
-/**
- * @param {!number} millis
- * @return {!Timestamp}
- */
-export function toTimestamp(millis) {
+export function toTimestamp(millis: number): Timestamp {
   return new Timestamp(
     [Math.floor(millis / 1000), (millis % 1000) * 1000000],
     false
@@ -33,10 +29,9 @@ export function toTimestamp(millis) {
  * milliseconds, but there's a chance they may not follow the instruction.
  * So this function supports the conversion of seconds, milliseconds and
  * microseconds.
- * @param {!number} timestamp represented as seconds, milliseconds or microseconds
- * @return {!number}
+ * @param timestamp represented as seconds, milliseconds or microseconds
  */
-export function convertPotentialTimestampToSeconds(timestamp) {
+export function convertPotentialTimestampToSeconds(timestamp: number): number {
   let timestampInSeconds;
   if (timestamp >= 1e14 || timestamp <= -1e14) {
     // Microseconds
@@ -52,10 +47,11 @@ export function convertPotentialTimestampToSeconds(timestamp) {
 }
 
 /**
- * @param {!number} timestamp represented as seconds, milliseconds or microseconds
- * @return {!number}
+ * @param timestamp represented as seconds, milliseconds or microseconds
  */
-export function convertPotentialTimestampToMilliseconds(timestamp) {
+export function convertPotentialTimestampToMilliseconds(
+  timestamp: number
+): number {
   let timestampInMilliseconds;
   if (timestamp >= 1e14 || timestamp <= -1e14) {
     // Microseconds
