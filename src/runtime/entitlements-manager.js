@@ -65,7 +65,7 @@ const SERVICE_ID = 'subscribe.google.com';
  */
 export let ShowInterventionParams;
 
-class Intervention {
+export class Intervention {
   /** @public @const {string} */
   type;
   /** @public @const {string} */
@@ -92,6 +92,7 @@ export class AvailableIntervention extends Intervention {
     const flow = new AudienceActionFlow(this.deps_, {
       isClosable: params.isClosable,
       action: this.type,
+      configurationId: this.configurationId,
       onResult: params.onResult,
     });
     return flow.start();
