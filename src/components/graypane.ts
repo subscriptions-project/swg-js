@@ -67,7 +67,7 @@ export class Graypane {
   /**
    * Shows the graypane.
    */
-  show(animated = true): Promise<void> | void {
+  show(animated: boolean): Promise<void> | void {
     setImportantStyles(this.fadeBackground_, {
       'display': 'block',
       'opacity': animated ? '0' : '1',

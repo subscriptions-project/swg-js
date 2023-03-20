@@ -124,7 +124,7 @@ export class DialogManager {
     if (!this.popupGraypane_.isAttached()) {
       this.popupGraypane_.attach();
     }
-    this.popupGraypane_.show();
+    this.popupGraypane_.show(/* animated */ true);
   }
 
   popupClosed() {
