@@ -22,11 +22,7 @@ import {
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
-import {
-  AutoPromptType,
-  BasicSubscriptions,
-  ClientTheme,
-} from '../api/basic-subscriptions';
+import {AutoPromptType, ClientTheme} from '../api/basic-subscriptions';
 import {
   BasicRuntime,
   ConfiguredBasicRuntime,
