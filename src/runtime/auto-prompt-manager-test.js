@@ -37,6 +37,18 @@ import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
+const SURVEY_INTERVENTION = {
+  type: 'TYPE_REWARDED_SURVEY',
+  configurationId: 'survey_config_id',
+};
+const NEWSLETTER_INTERVENTION = {
+  type: 'TYPE_NEWSLETTER_SIGNUP',
+  configurationId: 'newsletter_config_id',
+};
+const REGWALL_INTERVENTION = {
+  type: 'TYPE_REGISTRATION_WALL',
+  configurationId: 'regwall_config_id',
+};
 
 describes.realWin('AutoPromptManager', (env) => {
   let autoPromptManager;
@@ -108,7 +120,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
     sandbox.stub(MiniPromptApi.prototype, 'init');
     autoPromptManager = new AutoPromptManager(deps, runtime);
-    autoPromptManager.autoPromptDisplayed_ = true;
+    autoPromptManager.wasAutoPromptDisplayed_ = true;
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
     alternatePromptSpy = sandbox.spy();
@@ -321,7 +333,9 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should record the last dismissed flow if one was setup', async () => {
-    autoPromptManager.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+    autoPromptManager.interventionDisplayed_ = {
+      type: AutoPromptType.CONTRIBUTION,
+    };
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
@@ -361,7 +375,9 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should record survey completed on survey submit action', async () => {
-    autoPromptManager.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+    autoPromptManager.interventionDisplayed_ = {
+      type: AutoPromptType.CONTRIBUTION,
+    };
     storageMock
       .expects('set')
       .withExactArgs(
@@ -1132,7 +1148,12 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [{type: 'TYPE_REGISTRATION_WALL'}],
+            actions: [
+              {
+                type: 'TYPE_REGISTRATION_WALL',
+                configurationId: 'reg_config_id',
+              },
+            ],
             engineId: '123',
           },
         })
@@ -1150,6 +1171,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'reg_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
@@ -1162,9 +1184,12 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_CONTRIBUTION'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
+              REGWALL_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
             ],
             engineId: '123',
           },
@@ -1180,7 +1205,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         AutoPromptType.CONTRIBUTION
       );
     });
@@ -1189,7 +1214,12 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [{type: 'TYPE_SUBSCRIPTION'}],
+            actions: [
+              {
+                type: 'TYPE_SUBSCRIPTION',
+                configurationId: 'subscription_config_id',
+              },
+            ],
             engineId: '123',
           },
         })
@@ -1204,6 +1234,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_SUBSCRIPTION',
+        configurationId: 'subscription_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
       });
@@ -1292,9 +1323,9 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              SURVEY_INTERVENTION,
+              REGWALL_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
             ],
             engineId: '123',
           },
@@ -1319,7 +1350,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         AutoPromptType.CONTRIBUTION
       );
     });
@@ -1346,12 +1377,16 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
+      );
+      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
+        'survey_config_id'
       );
       await verifyOnCancelStores(
         storageMock,
@@ -1382,11 +1417,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -1401,10 +1437,13 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_CONTRIBUTION'},
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
+              SURVEY_INTERVENTION,
+              REGWALL_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
             ],
             engineId: '123',
           },
@@ -1431,11 +1470,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -1469,11 +1509,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -1507,11 +1548,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -1544,7 +1586,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_).to.equal(null);
     });
 
     it('should show the Contribution Flow even if there is an available Audience Action that was previously dismissed and is in the next Contribution prompt time', async () => {
@@ -1570,7 +1612,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_).to.equal(null);
     });
 
     it('should show survey if TYPE_REWARDED_SURVEY is next and is ga eligible but not gtag eligible', async () => {
@@ -1596,12 +1638,16 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
+      );
+      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
+        'survey_config_id'
       );
       await verifyOnCancelStores(
         storageMock,
@@ -1633,12 +1679,16 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
+      );
+      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
+        'survey_config_id'
       );
       await verifyOnCancelStores(
         storageMock,
@@ -1670,11 +1720,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -1723,9 +1774,9 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              SURVEY_INTERVENTION,
+              REGWALL_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
             ],
             engineId: '123',
           },
@@ -1753,8 +1804,14 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
+      );
+      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
+        'survey_config_id'
+      );
+      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
+        'survey_config_id'
       );
     });
 
@@ -1776,7 +1833,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         AutoPromptType.CONTRIBUTION
       );
     });
@@ -1803,11 +1860,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -1841,11 +1899,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -1860,10 +1919,13 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_CONTRIBUTION'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              SURVEY_INTERVENTION,
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
+              REGWALL_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
             ],
             engineId: '123',
           },
@@ -1884,12 +1946,16 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
+      );
+      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
+        'survey_config_id'
       );
     });
 
@@ -1898,10 +1964,13 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {type: 'TYPE_CONTRIBUTION'},
-              {type: 'TYPE_REWARDED_SURVEY'},
-              {type: 'TYPE_REGISTRATION_WALL'},
-              {type: 'TYPE_NEWSLETTER_SIGNUP'},
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
+              SURVEY_INTERVENTION,
+              REGWALL_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
             ],
             engineId: '123',
           },
@@ -1922,7 +1991,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         AutoPromptType.CONTRIBUTION
       );
     });
@@ -1951,11 +2020,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -1988,7 +2058,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_).to.equal(null);
     });
 
     it('With SurveyTriggeringPriorityExperiment enabled, should show the Contribution Flow even if there is an available Audience Action that was previously dismissed and is in the next Contribution prompt time', async () => {
@@ -2014,7 +2084,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_).to.equal(null);
     });
 
     it('With SurveyTriggeringPriorityExperiment enabled, should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for ga nor gTag', async () => {
@@ -2040,11 +2110,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
       await verifyOnCancelStores(
@@ -2092,7 +2163,7 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [{type: 'TYPE_REWARDED_SURVEY'}],
+            actions: [SURVEY_INTERVENTION],
             engineId: '123',
           },
           experimentConfig: {
@@ -2165,7 +2236,7 @@ describes.realWin('AutoPromptManager', (env) => {
             expect(startSpy).to.not.have.been.called;
             expect(actionFlowSpy).to.not.have.been.called;
             expect(contributionPromptFnSpy).to.not.have.been.called;
-            expect(autoPromptManager.promptDisplayed_).to.equal(
+            expect(autoPromptManager.interventionDisplayed_.type).to.equal(
               AutoPromptType.CONTRIBUTION
             );
           });
@@ -2203,7 +2274,7 @@ describes.realWin('AutoPromptManager', (env) => {
               expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(
                 null
               );
-              expect(autoPromptManager.promptDisplayed_).to.equal(null);
+              expect(autoPromptManager.interventionDisplayed_).to.equal(null);
             });
           });
 
@@ -2234,13 +2305,17 @@ describes.realWin('AutoPromptManager', (env) => {
             expect(startSpy).to.have.been.calledOnce;
             expect(actionFlowSpy).to.have.been.calledWith(deps, {
               action: 'TYPE_REWARDED_SURVEY',
+              configurationId: 'survey_config_id',
               onCancel: sandbox.match.any,
               autoPromptType: AutoPromptType.CONTRIBUTION,
             });
             expect(contributionPromptFnSpy).to.not.have.been.called;
-            expect(autoPromptManager.promptDisplayed_).to.equal(
+            expect(autoPromptManager.interventionDisplayed_.type).to.equal(
               'TYPE_REWARDED_SURVEY'
             );
+            expect(
+              autoPromptManager.interventionDisplayed_.configurationId
+            ).to.equal('survey_config_id');
           });
         });
       }
@@ -2284,7 +2359,7 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [{type: 'TYPE_REWARDED_SURVEY'}],
+            actions: [SURVEY_INTERVENTION],
             engineId: '123',
           },
           experimentConfig: {
@@ -2331,8 +2406,11 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
+      );
+      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
+        'survey_config_id'
       );
     });
 
@@ -2357,7 +2435,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
-      expect(autoPromptManager.promptDisplayed_).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_).to.equal(null);
     });
 
     it('With SurveyTrigginerPriorityExperiment and SecondPromptDelayExperiment enabled, on N+1 prompt, should not set secondPromptDelayTimestamps and display contribution prompt', async () => {
@@ -2385,7 +2463,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.promptDisplayed_).to.equal(
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         AutoPromptType.CONTRIBUTION
       );
     });

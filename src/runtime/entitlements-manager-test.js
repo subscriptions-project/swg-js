@@ -2923,6 +2923,7 @@ describes.realWin('EntitlementsManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         isClosable: true,
         action: 'TEST_ACTION',
+        configurationId: 'TEST_CONFIGURATION_ID',
         onResult: undefined,
       });
       expect(startSpy).to.have.been.calledOnce;

@@ -90,7 +90,7 @@ export class AutoPromptManager {
     this.miniPromptAPI_.init();
 
     /** @private {boolean} */
-    this.autoPromptDisplayed_ = false;
+    this.wasAutoPromptDisplayed_ = false;
 
     /** @private {boolean} */
     this.hasStoredImpression = false;
@@ -98,8 +98,8 @@ export class AutoPromptManager {
     /** @private {?AudienceActionFlow} */
     this.lastAudienceActionFlow_ = null;
 
-    /** @private {?string} */
-    this.promptDisplayed_ = null;
+    /** @private {?Intervention} */
+    this.interventionDisplayed_ = null;
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
@@ -220,7 +220,7 @@ export class AutoPromptManager {
       params.autoPromptType
     );
 
-    const potentialActionPromptType = article
+    const potentialAction = article
       ? await this.getAudienceActionPromptType_({
           article,
           autoPromptType: params.autoPromptType,
@@ -229,9 +229,10 @@ export class AutoPromptManager {
         })
       : undefined;
 
-    const promptFn = potentialActionPromptType
+    const promptFn = potentialAction
       ? this.audienceActionPrompt_({
-          action: potentialActionPromptType,
+          action: potentialAction.type,
+          configurationId: potentialAction.configurationId,
           autoPromptType: params.autoPromptType,
         })
       : params.displayLargePromptFn;
@@ -239,9 +240,8 @@ export class AutoPromptManager {
     const shouldShowBlockingPrompt =
       this.shouldShowBlockingPrompt_(
         entitlements,
-        /* hasPotentialAudienceAction */ !!potentialActionPromptType
+        /* hasPotentialAudienceAction */ !!potentialAction?.type
       ) && promptFn;
-
     if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
       return;
     }
@@ -263,7 +263,7 @@ export class AutoPromptManager {
             ?.numImpressionsBetweenPrompts
         );
       if (shouldSuppressAutoprompt) {
-        this.promptDisplayed_ = null;
+        this.interventionDisplayed_ = null;
         return;
       }
     }
@@ -274,7 +274,7 @@ export class AutoPromptManager {
 
     if (shouldShowAutoPrompt) {
       this.deps_.win().setTimeout(() => {
-        this.autoPromptDisplayed_ = true;
+        this.wasAutoPromptDisplayed_ = true;
         this.showPrompt_(
           this.getPromptTypeToDisplay_(params.autoPromptType),
           promptFn
@@ -282,7 +282,7 @@ export class AutoPromptManager {
       }, displayDelayMs);
     } else {
       const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
-        potentialActionPromptType
+        potentialAction?.type
       );
       this.deps_
         .win()
@@ -424,7 +424,7 @@ export class AutoPromptManager {
    * Determines what Audience Action prompt type should be shown.
    *
    * Show the first AutoPromptType passed in from Audience Actions.
-   * @param {string[]|undefined} actions
+   * @param {./entitlements-manager.Intervention[]|undefined} actions
    * @return {!AutoPromptType|undefined}
    */
   getAutoPromptType_(actions = []) {
@@ -457,7 +457,7 @@ export class AutoPromptManager {
    *   dismissedPrompts: (?string|undefined),
    *   shouldShowAutoPrompt: (boolean|undefined),
    * }} params
-   * @return {!Promise<string|undefined>}
+   * @return {!Promise<./entitlements-manager.Intervention|undefined>}
    */
   async getAudienceActionPromptType_({
     article,
@@ -494,7 +494,7 @@ export class AutoPromptManager {
     }
 
     // Default to the first recommended action.
-    let actionToUse = potentialActions[0].type;
+    let actionToUse = potentialActions[0];
 
     // Contribution prompts should appear before recommended actions, so we'll need
     // to check if we have shown it before.
@@ -515,15 +515,19 @@ export class AutoPromptManager {
         article,
         ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
       );
-
       if (
         prioritizeSurvey &&
         potentialActions
           .map((action) => action.type)
           .includes(TYPE_REWARDED_SURVEY)
       ) {
-        this.promptDisplayed_ = TYPE_REWARDED_SURVEY;
-        return TYPE_REWARDED_SURVEY;
+        const surveyAction = potentialActions.find(
+          ({type}) => type === TYPE_REWARDED_SURVEY
+        );
+        if (surveyAction) {
+          this.interventionDisplayed_ = surveyAction;
+          return surveyAction;
+        }
       }
 
       const contributionIndex = potentialActions.findIndex(
@@ -531,8 +535,8 @@ export class AutoPromptManager {
       );
 
       if (contributionIndex > 0) {
-        actionToUse = potentialActions[0].type;
-        this.promptDisplayed_ = actionToUse;
+        actionToUse = potentialActions[0];
+        this.interventionDisplayed_ = actionToUse;
         return actionToUse;
       }
 
@@ -546,7 +550,11 @@ export class AutoPromptManager {
           previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION_LARGE)
         )
       ) {
-        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+        // WARNING: Refers explicity to the Contribution AutoPromptType,
+        // which CANNOT be a potential audience action. This is not to be
+        // confused with the AudienceActionType TYPE_CONTRIBUTION, which
+        // is part of the pre-monetization effort.
+        this.interventionDisplayed_ = {type: AutoPromptType.CONTRIBUTION};
         return undefined;
       }
 
@@ -563,8 +571,8 @@ export class AutoPromptManager {
 
       // Otherwise, set to the next recommended action. If the last dismissal was the
       // Contribution prompt, this will resolve to the first recommended action.
-      actionToUse = potentialActions[0].type;
-      this.promptDisplayed_ = actionToUse;
+      actionToUse = potentialActions[0];
+      this.interventionDisplayed_ = actionToUse;
     }
     return actionToUse;
   }
@@ -572,14 +580,16 @@ export class AutoPromptManager {
   /**
    * @param {{
    *  action: (string|undefined),
+   *  configurationId: (string|undefined),
    *  autoPromptType: (AutoPromptType|undefined)
    * }} params
    * @return {!function()}
    */
-  audienceActionPrompt_({action, autoPromptType}) {
+  audienceActionPrompt_({action, configurationId, autoPromptType}) {
     return () => {
       const params = {
         action,
+        configurationId,
         autoPromptType,
         onCancel: () => this.storeLastDismissal_(),
       };
@@ -707,7 +717,7 @@ export class AutoPromptManager {
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
     if (
-      !this.autoPromptDisplayed_ ||
+      !this.wasAutoPromptDisplayed_ ||
       this.pageConfig_.isLocked() ||
       !event.eventType
     ) {
@@ -749,7 +759,7 @@ export class AutoPromptManager {
    * @returns {!Promise}
    */
   async storeLastDismissal_() {
-    if (!this.promptDisplayed_) {
+    if (!this.interventionDisplayed_) {
       return;
     }
 
@@ -757,10 +767,12 @@ export class AutoPromptManager {
       StorageKeys.DISMISSED_PROMPTS,
       /* useLocalStorage */ true
     );
-    const prompt = /** @type {string} */ (this.promptDisplayed_);
+    const intervention = /** @type {./entitlements-manager/Intervention} */ (
+      this.interventionDisplayed_
+    );
     this.storage_.set(
       StorageKeys.DISMISSED_PROMPTS,
-      value ? value + ',' + prompt : prompt,
+      value ? value + ',' + intervention.type : intervention.type,
       /* useLocalStorage */ true
     );
   }
