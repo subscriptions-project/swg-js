@@ -90,7 +90,7 @@ export class AutoPromptManager {
     this.miniPromptAPI_.init();
 
     /** @private {boolean} */
-    this.autoPromptDisplayed_ = false;
+    this.wasAutoPromptDisplayed_ = false;
 
     /** @private {boolean} */
     this.hasStoredImpression = false;
@@ -98,8 +98,8 @@ export class AutoPromptManager {
     /** @private {?AudienceActionFlow} */
     this.lastAudienceActionFlow_ = null;
 
-    /** @private {?string} */
-    this.promptDisplayed_ = null;
+    /** @private {?Intervention} */
+    this.interventionDisplayed_ = null;
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
@@ -242,7 +242,8 @@ export class AutoPromptManager {
         entitlements,
         /* hasPotentialAudienceAction */ !!potentialAction?.type
       ) && promptFn;
-
+    console.log('showblocking');
+    console.log(shouldShowBlockingPrompt);
     if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
       return;
     }
@@ -264,7 +265,7 @@ export class AutoPromptManager {
             ?.numImpressionsBetweenPrompts
         );
       if (shouldSuppressAutoprompt) {
-        this.promptDisplayed_ = null;
+        this.interventionDisplayed_ = null;
         return;
       }
     }
@@ -274,8 +275,9 @@ export class AutoPromptManager {
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
     if (shouldShowAutoPrompt) {
+      console.log('should not be here');
       this.deps_.win().setTimeout(() => {
-        this.autoPromptDisplayed_ = true;
+        this.wasAutoPromptDisplayed_ = true;
         this.showPrompt_(
           this.getPromptTypeToDisplay_(params.autoPromptType),
           promptFn
@@ -516,15 +518,23 @@ export class AutoPromptManager {
         article,
         ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
       );
-
+      console.log(prioritizeSurvey);
+      console.log(potentialActions);
       if (
         prioritizeSurvey &&
         potentialActions
           .map((action) => action.type)
           .includes(TYPE_REWARDED_SURVEY)
       ) {
-        this.promptDisplayed_ = TYPE_REWARDED_SURVEY;
-        return TYPE_REWARDED_SURVEY;
+        console.log('here');
+        const surveyAction = potentialActions.find(
+          (action) => action.type === TYPE_REWARDED_SURVEY
+        );
+        if (surveyAction) {
+          console.log('yes');
+          this.interventionDisplayed_ = surveyAction;
+          return surveyAction;
+        }
       }
 
       const contributionIndex = potentialActions.findIndex(
@@ -533,7 +543,7 @@ export class AutoPromptManager {
 
       if (contributionIndex > 0) {
         actionToUse = potentialActions[0];
-        this.promptDisplayed_ = actionToUse.type;
+        this.interventionDisplayed_ = actionToUse;
         return actionToUse;
       }
 
@@ -547,7 +557,7 @@ export class AutoPromptManager {
           previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION_LARGE)
         )
       ) {
-        this.promptDisplayed_ = AutoPromptType.CONTRIBUTION;
+        this.interventionDisplayed_ = {type: AutoPromptType.CONTRIBUTION};
         return undefined;
       }
 
@@ -565,7 +575,7 @@ export class AutoPromptManager {
       // Otherwise, set to the next recommended action. If the last dismissal was the
       // Contribution prompt, this will resolve to the first recommended action.
       actionToUse = potentialActions[0];
-      this.promptDisplayed_ = actionToUse.type;
+      this.interventionDisplayed_ = actionToUse;
     }
     return actionToUse;
   }
@@ -710,7 +720,7 @@ export class AutoPromptManager {
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
     if (
-      !this.autoPromptDisplayed_ ||
+      !this.wasAutoPromptDisplayed_ ||
       this.pageConfig_.isLocked() ||
       !event.eventType
     ) {
@@ -752,7 +762,7 @@ export class AutoPromptManager {
    * @returns {!Promise}
    */
   async storeLastDismissal_() {
-    if (!this.promptDisplayed_) {
+    if (!this.interventionDisplayed_) {
       return;
     }
 
@@ -760,10 +770,12 @@ export class AutoPromptManager {
       StorageKeys.DISMISSED_PROMPTS,
       /* useLocalStorage */ true
     );
-    const prompt = /** @type {string} */ (this.promptDisplayed_);
+    const intervention = /** @type {./entitlements-manager/Intervention} */ (
+      this.interventionDisplayed_
+    );
     this.storage_.set(
       StorageKeys.DISMISSED_PROMPTS,
-      value ? value + ',' + prompt : prompt,
+      value ? value + ',' + intervention.type : intervention.type,
       /* useLocalStorage */ true
     );
   }
