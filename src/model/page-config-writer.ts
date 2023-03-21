@@ -148,10 +148,10 @@ export class PageConfigWriter {
       return [];
     }
     if (!valueOne) {
-      return valueTwo || null;
+      return valueTwo;
     }
     if (!valueTwo) {
-      return valueOne || null;
+      return valueOne;
     }
 
     const arrayOne: Array<string> = this.toArray_(valueOne);
