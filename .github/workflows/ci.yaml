@@ -21,30 +21,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --omit optional
 
-      - name: Check
+      - name: Check lint & rules
         run: gulp check
 
+      - name: Check types
+        run: npx tsc --project tsconfig.json
+
   e2e:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install the right version of Nodejs
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Compile Swgjs with Closure
-        run: gulp dist
-
-      - name: E2E Tests
-        run: gulp e2e
-
-  e2e-vite:
     runs-on: ubuntu-latest
 
     steps:

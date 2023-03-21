@@ -57,7 +57,6 @@ import {addQueryParam} from '../../utils/url';
 import {createElement, injectStyleSheet} from '../../utils/dom';
 import {debugLog, warn} from '../../utils/log';
 import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
-import {parseJson} from '../../utils/json';
 import {resolveDoc} from '../../model/doc';
 import {setImportantStyles} from '../../utils/style';
 
@@ -206,9 +205,9 @@ export class GaaMeteringRegwall {
   static render_({iframeUrl, caslUrl, useNativeMode = false}) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
-    const placeholderPatternForPublication = /<ph name="PUBLICATION".+?\/ph>/g;
-    const placeholderPatternForLinkStart = /<ph name="LINK_START".+?\/ph>/g;
-    const placeholderPatternForLinkEnd = /<ph name="LINK_END".+?\/ph>/g;
+    const placeholderPatternForPublication = /{PUBLICATION}/g;
+    const placeholderPatternForLinkStart = /{LINK_START}/g;
+    const placeholderPatternForLinkEnd = /{LINK_END}/g;
 
     // Create and style container element.
     // TODO: Consider using a FriendlyIframe here, to avoid CSS conflicts.
@@ -346,7 +345,7 @@ export class GaaMeteringRegwall {
       self.document.querySelectorAll('script[type="application/ld+json"]')
     );
     const jsonQueue = /** @type {!Array<*>} */ (
-      ldJsonScripts.map((script) => parseJson(script.textContent))
+      ldJsonScripts.map((script) => JSON.parse(script.textContent))
     );
 
     // Search for publisher name, breadth-first.
@@ -515,7 +514,7 @@ export class GaaMeteringRegwall {
     // Create and append button to regwall
     const buttonEl = createElement(self.document, 'div', {
       id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
-      tabIndex: 0,
+      tabIndex: '0',
     });
     parentElement.appendChild(buttonEl);
 
@@ -561,7 +560,7 @@ export class GaaMeteringRegwall {
     // Render the third party Google Sign-In button.
     const buttonEl = createElement(self.document, 'div', {
       id: GOOGLE_3P_SIGN_IN_BUTTON_ID,
-      tabIndex: 0,
+      tabIndex: '0',
     });
     buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
     parentElement.appendChild(buttonEl);

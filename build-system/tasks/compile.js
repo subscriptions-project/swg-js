@@ -20,14 +20,12 @@ const args = require('./args');
 const babelify = require('babelify');
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
-const closureCompile = require('./closure-compile').closureCompile;
-const fs = require('fs-extra');
 const gulp = $$.help(require('gulp'));
-const internalRuntimeVersion = require('./internal-version').VERSION;
 const lazypipe = require('lazypipe');
 const resolveConfig = require('./compile-config').resolveConfig;
 const source = require('vinyl-source-stream');
 const touch = require('touch');
+const tsify = require('tsify');
 const watchify = require('watchify');
 const {endBuildStep, mkdirSync} = require('./helpers');
 const {red} = require('ansi-colors');
@@ -100,20 +98,7 @@ exports.compile = async (options = {}) => {
 };
 
 /**
- * @return {!Promise}
- */
-exports.checkTypes = (opts) =>
-  exports.compile(
-    Object.assign(opts || {}, {
-      toName: 'check-types.max.js',
-      minifiedName: 'check-types.js',
-      minify: true,
-      checkTypes: true,
-    })
-  );
-
-/**
- * Bundles (max) or compiles (min) a javascript file.
+ * Bundles (max) a javascript file.
  *
  * @param {string} srcDir Path to the src directory
  * @param {string} srcFilename Name of the JS source file
@@ -124,52 +109,33 @@ exports.checkTypes = (opts) =>
 function compileJs(srcDir, srcFilename, destDir, options) {
   options = options || {};
 
-  if (options.minify) {
-    const startTime = Date.now();
-    return closureCompile(
-      srcDir + srcFilename + '.js',
-      destDir,
-      options.minifiedName,
-      options
-    )
-      .then(() => {
-        fs.writeFileSync(destDir + '/version.txt', internalRuntimeVersion);
-        if (options.latestName) {
-          fs.copySync(
-            destDir + '/' + options.minifiedName,
-            destDir + '/' + options.latestName
-          );
-        }
-      })
-      .then(() => {
-        endBuildStep('Minified', srcFilename + '.js', startTime);
-      });
-  }
-
   let bundler = browserify(srcDir + srcFilename + '.js', {
     debug: true,
-  }).transform(
-    babelify.configure({
-      'presets': [
-        [
-          '@babel/preset-env',
-          {
-            'targets': {
-              'browsers': ['defaults, not IE 11'],
+  })
+    .plugin(tsify)
+    .transform(
+      babelify.configure({
+        'presets': [
+          [
+            '@babel/preset-env',
+            {
+              'targets': {
+                'browsers': ['defaults, not IE 11'],
+              },
             },
-          },
+          ],
         ],
-      ],
-      'plugins': [
-        [
-          './build-system/transform-define-constants',
-          {
-            'replacements': resolveConfig(),
-          },
+        'extensions': ['.js', '.ts'],
+        'plugins': [
+          [
+            './build-system/transform-define-constants',
+            {
+              'replacements': resolveConfig(),
+            },
+          ],
         ],
-      ],
-    })
-  );
+      })
+    );
   if (options.watch) {
     bundler = watchify(bundler);
   }

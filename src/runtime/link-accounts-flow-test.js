@@ -24,7 +24,6 @@ import {
   LinkSaveTokenRequest,
   LinkingInfoResponse,
 } from '../proto/api_messages';
-import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {Dialog} from '../components/dialog';
@@ -76,7 +75,7 @@ describes.realWin('LinkbackFlow', (env) => {
       .expects('open')
       .withExactArgs(
         'swg-link',
-        'https://news.google.com/swg/_/ui/v1/linkbackstart?_=_',
+        'https://news.google.com/swg/ui/v1/linkbackstart?_=_',
         '_blank',
         {
           '_client': 'SwG 0.0.0',
@@ -100,7 +99,7 @@ describes.realWin('LinkbackFlow', (env) => {
       .expects('open')
       .withExactArgs(
         'swg-link',
-        'https://news.google.com/swg/_/ui/v1/linkbackstart?_=_',
+        'https://news.google.com/swg/ui/v1/linkbackstart?_=_',
         '_blank',
         {
           '_client': 'SwG 0.0.0',
@@ -125,7 +124,7 @@ describes.realWin('LinkbackFlow', (env) => {
       .expects('open')
       .withExactArgs(
         'swg-link',
-        'https://news.google.com/swg/_/ui/v1/linkbackstart?_=_',
+        'https://news.google.com/swg/ui/v1/linkbackstart?_=_',
         '_top',
         {
           '_client': 'SwG 0.0.0',
@@ -182,10 +181,6 @@ describes.realWin('LinkCompleteFlow', (env) => {
   });
 
   it('should trigger on link response', async () => {
-    sandbox
-      .stub(runtime.clientConfigManager(), 'getClientConfig')
-      .resolves(new ClientConfig());
-
     dialogManagerMock.expects('popupClosed').once();
     let handler;
     activitiesMock
@@ -334,13 +329,13 @@ describes.realWin('LinkCompleteFlow', (env) => {
       description: 'should default index to 0',
       activityResultData: {},
       expectedPath:
-        'https://news.google.com/swg/u/0/_/ui/v1/linkconfirmiframe?_=_',
+        'https://news.google.com/swg/u/0/ui/v1/linkconfirmiframe?_=_',
     },
     {
       description: 'should use index in response',
       activityResultData: {index: '1'},
       expectedPath:
-        'https://news.google.com/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
+        'https://news.google.com/swg/u/1/ui/v1/linkconfirmiframe?_=_',
     },
   ].forEach(({description, activityResultData, expectedPath}) => {
     it(description, async () => {
@@ -423,7 +418,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
+        'https://news.google.com/swg/u/1/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG 0.0.0',
           'productId': 'pub1:prod1',
@@ -479,7 +474,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/u/1/_/ui/v1/linkconfirmiframe?_=_',
+        'https://news.google.com/swg/u/1/ui/v1/linkconfirmiframe?_=_',
         {
           '_client': 'SwG 0.0.0',
           'productId': 'pub1:prod1',
@@ -748,7 +743,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/linksaveiframe?_=_',
+        'https://news.google.com/swg/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
       .resolves(port);
@@ -989,7 +984,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/linksaveiframe?_=_',
+        'https://news.google.com/swg/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
       .resolves(port);
@@ -1027,7 +1022,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/linksaveiframe?_=_',
+        'https://news.google.com/swg/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
       .resolves(port);
@@ -1066,7 +1061,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/linksaveiframe?_=_',
+        'https://news.google.com/swg/ui/v1/linksaveiframe?_=_',
         defaultArguments
       )
       .resolves(port);

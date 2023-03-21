@@ -25,7 +25,7 @@ import {Offer as OfferDef} from './offer';
 import {PropensityApi as PropensityApiDef} from './propensity-api';
 import {SubscribeResponse as SubscribeResponseDef} from './subscribe-response';
 
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * @interface
  */
@@ -352,7 +352,7 @@ export class Subscriptions {
    */
   setPublisherProvidedId(publisherProvidedId) {}
 }
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 /** @enum {string} */
 export const ShowcaseEvent = {
@@ -426,6 +426,7 @@ export const SubscriptionFlows = {
  *   enableSwgAnalytics: (boolean|undefined),
  *   enablePropensity: (boolean|undefined),
  *   publisherProvidedId: (string|undefined),
+ *   useArticleEndpoint: (boolean|undefined),
  * }}
  */
 export let Config;

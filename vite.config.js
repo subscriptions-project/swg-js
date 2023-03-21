@@ -26,7 +26,7 @@ const args = require('./build-system/tasks/args');
 // Choose plugins.
 const config = resolveConfig();
 const replacementValues = Object.entries(config).reduce((obj, [key, value]) => {
-  obj[key] = `const ${key} = '${value}' ?? `;
+  obj[key] = `const ${key} = '${value}' ??`;
   return obj;
 }, {});
 const plugins = [
@@ -34,8 +34,8 @@ const plugins = [
     transformMixedEsModules: true,
   }),
   replace({
-    delimiters: ['const ', ' = goog.define'],
-    include: ['./src/constants.js'],
+    delimiters: ['const ', ' = '],
+    include: ['./src/constants.ts'],
     preventAssignment: false,
     values: replacementValues,
   }),
@@ -65,7 +65,7 @@ const plugins = [
         );
 
         // Save changes.
-        writeFileSync(path, JSON.stringify(sourcemap));
+        writeFileSync(path, JSON.stringify(sourcemap) + '\n');
       }
     },
   },

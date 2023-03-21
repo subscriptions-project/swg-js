@@ -1,7 +1,8 @@
 {
   "root": true,
-  "parser": "@babel/eslint-parser",
+  "parser": "@typescript-eslint/parser",
   "plugins": [
+    "@typescript-eslint",
     "google-camelcase",
     "prettier",
     "sort-imports-es6-autofix",
@@ -61,10 +62,15 @@
     "no-sequences": 2,
     "no-throw-literal": 2,
     "no-unused-expressions": 0,
-    "no-unused-vars": [2, {
-      "argsIgnorePattern": "^var_|unused",
-      "varsIgnorePattern": "Def|Interface$"
-    }],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      2,
+      {
+        "argsIgnorePattern": "^var_|unused|^_",
+        "varsIgnorePattern": "Def|Interface$"
+      }
+    ],
+    "@typescript-eslint/no-explicit-any": 2,
     "no-useless-call": 2,
     "no-useless-concat": 2,
     "no-undef": 2,

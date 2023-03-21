@@ -34,7 +34,6 @@ import {
 import {ShowcaseEvent} from '../../api/subscriptions';
 import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
 import {debugLog} from '../../utils/log';
-import {parseJson} from '../../utils/json';
 import {parseUrl, wasReferredByGoogle} from '../../utils/url';
 
 export class GaaMetering {
@@ -103,10 +102,6 @@ export class GaaMetering {
       rawJwt,
     } = params;
 
-    // Disable unlockArticle when showcaseEntilement is provided since articles
-    // are unlocked on the server-side.
-    const unlockArticle = showcaseEntitlement ? () => {} : params.unlockArticle;
-
     // Set class variables
     GaaMetering.userState = userState;
     GaaMetering.publisherEntitlementPromise = publisherEntitlementPromise;
@@ -117,8 +112,19 @@ export class GaaMetering {
       return false;
     }
 
+    // Make unlockArticle optional when showcaseEntilement is provided.
+    const unlockArticle =
+      showcaseEntitlement && !params.unlockArticle
+        ? () => {}
+        : params.unlockArticle;
+
+    // Provide an option to bypass SwG init for 3P integrations.
+    const shouldInitializeSwG = params.shouldInitializeSwG ?? true;
+
     callSwg(async (subscriptions) => {
-      subscriptions.init(productId);
+      if (shouldInitializeSwG) {
+        subscriptions.init(productId);
+      }
 
       logEvent({
         analyticsEvent: AnalyticsEvent.EVENT_SHOWCASE_METERING_INIT,
@@ -134,17 +140,6 @@ export class GaaMetering {
 
       subscriptions.setOnNativeSubscribeRequest(() => showPaywall());
 
-      subscriptions.setOnEntitlementsResponse((googleEntitlementsPromise) =>
-        GaaMetering.setEntitlements(
-          googleEntitlementsPromise,
-          allowedReferrers,
-          unlockArticle,
-          handleSwGEntitlement,
-          showGoogleRegwall,
-          showPaywall
-        )
-      );
-
       if ('granted' in userState && 'grantReason' in userState) {
         unlockArticleIfGranted();
       } else if (GaaMetering.isArticleFreeFromPageConfig_()) {
@@ -154,7 +149,11 @@ export class GaaMetering {
         unlockArticleIfGranted();
       } else if (showcaseEntitlement) {
         debugLog(showcaseEntitlement);
-        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement);
+        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement, () => {
+          // Consume the entitlement and trigger a dialog that lets the user
+          // know Google provided them with a free read.
+          unlockArticle();
+        });
       } else {
         debugLog('resolving publisherEntitlement');
         const fetchedPublisherEntitlements = await publisherEntitlementPromise;
@@ -239,8 +238,16 @@ export class GaaMetering {
         callSwg((subscriptions) => {
           debugLog('getting entitlements from Google');
           debugLog(GaaMetering.newUserStateToUserState(userState));
-          subscriptions.getEntitlements(
+          const googleEntitlementsPromise = subscriptions.getEntitlements(
             GaaMetering.newUserStateToUserState(userState)
+          );
+          GaaMetering.setEntitlements(
+            googleEntitlementsPromise,
+            allowedReferrers,
+            unlockArticle,
+            handleSwGEntitlement,
+            showGoogleRegwall,
+            showPaywall
           );
         });
       } else {
@@ -283,7 +290,7 @@ export class GaaMetering {
       googleEntitlement.consume(() => {
         // Consume the entitlement and trigger a dialog that lets the user
         // know Google provided them with a free read.
-        unlockArticle();
+        unlockArticle(googleEntitlement);
       });
     } else if (googleEntitlement.enablesThis()) {
       // Google returned a non-metering entitlement
@@ -449,6 +456,16 @@ export class GaaMetering {
       }
     }
 
+    if (
+      'shouldInitializeSwG' in params &&
+      typeof params.shouldInitializeSwG !== 'boolean'
+    ) {
+      debugLog(
+        'shouldInitializeSwG is provided but the value is not a boolean'
+      );
+      noIssues = false;
+    }
+
     return noIssues;
   }
 
@@ -507,7 +524,7 @@ export class GaaMetering {
 
     for (let i = 0; i < ldJsonElements.length; i++) {
       const ldJsonElement = ldJsonElements[i];
-      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+      let ldJson = /** @type {*} */ (JSON.parse(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];
@@ -561,7 +578,7 @@ export class GaaMetering {
     ];
 
     for (const ldJsonElement of ldJsonElements) {
-      let ldJson = /** @type {*} */ (parseJson(ldJsonElement.textContent));
+      let ldJson = /** @type {*} */ (JSON.parse(ldJsonElement.textContent));
 
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];

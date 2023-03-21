@@ -119,7 +119,7 @@ describes.realWin('MeterToastApi', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .resolves(port);
@@ -152,7 +152,7 @@ describes.realWin('MeterToastApi', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .resolves(port);
@@ -179,7 +179,7 @@ describes.realWin('MeterToastApi', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .resolves(port);
@@ -214,7 +214,7 @@ describes.realWin('MeterToastApi', (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          'https://news.google.com/swg/_/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc',
+          'https://news.google.com/swg/ui/v1/meteriframe?_=_&origin=about%3Asrcdoc',
           iframeArgs
         )
         .resolves(port);
@@ -436,7 +436,7 @@ describes.realWin('MeterToastApi', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .resolves(port);
@@ -462,7 +462,7 @@ describes.realWin('MeterToastApi', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .resolves(port);
@@ -482,7 +482,7 @@ describes.realWin('MeterToastApi', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
         iframeArgs
       )
       .resolves(port);
@@ -506,21 +506,21 @@ describes.realWin('MeterToastApi', (env) => {
       description:
         'should open the iframe without locale set if no language or forceLangInIframes set in clientConfig',
       expectedPath:
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
     },
     {
       description:
         'should open the iframe without locale set if no language but forceLangInIframes enabled in clientConfig',
       forceLangInIframes: true,
       expectedPath:
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
     },
     {
       description:
         'should open the iframe without locale set if language set but forceLangInIframes disabled in clientConfig',
       lang: 'pt-BR',
       expectedPath:
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc',
     },
     {
       description:
@@ -528,7 +528,7 @@ describes.realWin('MeterToastApi', (env) => {
       lang: 'pt-BR',
       forceLangInIframes: true,
       expectedPath:
-        'https://news.google.com/swg/_/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
+        'https://news.google.com/swg/ui/v1/metertoastiframe?_=_&origin=about%3Asrcdoc&hl=pt-BR',
     },
   ].forEach(({description, lang, forceLangInIframes, expectedPath}) => {
     it(description, async () => {

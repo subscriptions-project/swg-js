@@ -85,28 +85,22 @@ describes.sandboxed('services', () => {
 
   describe('feUrl', () => {
     it('should insert prefix properly', () => {
-      expect(feUrl('/iframe', {}, false, 'u/1')).to.equal(
-        'https://news.google.com/u/1/swg/_/ui/v1/iframe?_=_'
-      );
-    });
-
-    it('should insert prefix properly when hostpath prefixed', () => {
-      expect(feUrl('/iframe', {}, true, 'u/1')).to.equal(
-        'https://news.google.com/swg/u/1/_/ui/v1/iframe?_=_'
+      expect(feUrl('/iframe', {}, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/ui/v1/iframe?_=_'
       );
     });
 
     it('should include experiments if setup on the current page', () => {
       self.location.hash = '#swg.experiments=foo,bar,-foobar';
-      expect(feUrl('/iframe?testParam=test', {}, true, 'u/1')).to.equal(
-        'https://news.google.com/swg/u/1/_/ui/v1/iframe?testParam=test&_=_&e=foo%2Cbar%2C-foobar'
+      expect(feUrl('/iframe?testParam=test', {}, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/ui/v1/iframe?testParam=test&_=_&e=foo%2Cbar%2C-foobar'
       );
     });
 
     it('optionally adds a jsmode param', () => {
       self.location.hash = '#swg.boqjsmode=abc';
-      expect(feUrl('/iframe?testParam=test', {}, true, 'u/1')).to.equal(
-        'https://news.google.com/swg/u/1/_/ui/v1/iframe?testParam=test&_=_&jsmode=abc'
+      expect(feUrl('/iframe?testParam=test', {}, 'u/1')).to.equal(
+        'https://news.google.com/swg/u/1/ui/v1/iframe?testParam=test&_=_&jsmode=abc'
       );
     });
   });

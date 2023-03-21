@@ -396,7 +396,7 @@ describes.realWin('BasicRuntime', (env) => {
 
       expect(openStub).to.be.calledOnceWithExactly(
         'CHECK_ENTITLEMENTS',
-        'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_&publicationId=pub1',
+        'https://news.google.com/swg/ui/v1/checkentitlements?_=_&publicationId=pub1',
         '_blank',
         {publicationId: 'pub1', _client: 'SwG 0.0.0'},
         {'width': 600, 'height': 600}
@@ -891,6 +891,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         configuredBasicRuntime,
         {
           action: 'TYPE_REGISTRATION_WALL',
+          configurationId: 'configId',
           fallback: undefined,
           autoPromptType: AutoPromptType.CONTRIBUTION,
         }

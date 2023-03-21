@@ -43,12 +43,15 @@ import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
+import {warn} from '../utils/log';
 
 /**
  * @typedef {{
  *  action: (string|undefined),
+ *  configurationId: (string|undefined),
  *  onCancel: (function()|undefined),
- *  autoPromptType: (AutoPromptType|undefined)
+ *  autoPromptType: (AutoPromptType|undefined),
+ *  onResult: ((function(!Object):(Promise<Boolean>|Boolean))|undefined),
  * }}
  */
 export let AudienceActionParams;
@@ -108,6 +111,7 @@ export class AudienceActionFlow {
       deps.activities(),
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
+        'configurationId': this.params_.configurationId || '',
         'hl': this.clientConfigManager_.getLanguage(),
         'isClosable': !deps.pageConfig().isLocked(),
       }),
@@ -289,12 +293,10 @@ export class AudienceActionFlow {
    * @param {SurveyDataTransferRequest} request
    * @private
    */
-  // eslint-disable-next-line no-unused-vars
-  handleSurveyDataTransferRequest_(request) {
-    // @TODO(justinchou): execute callback with setOnInterventionComplete
-    // then check for success
-    const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
-    if (gaLoggingSuccess) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async handleSurveyDataTransferRequest_(request) {
+    const dataTransferSuccess = await this.attemptSurveyDataTransfer(request);
+    if (dataTransferSuccess) {
       this.deps_
         .eventManager()
         .logSwgEvent(
@@ -311,8 +313,29 @@ export class AudienceActionFlow {
       this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
+    surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     this.activityIframeView_.execute(surveyDataTransferResponse);
+  }
+
+  /**
+   * Attempts to log survey data.
+   * @param {SurveyDataTransferRequest} request
+   * @return {boolean}
+   * @private
+   */
+  async attemptSurveyDataTransfer(request) {
+    // @TODO(justinchou): execute callback with setOnInterventionComplete
+    // then check for success
+    const {onResult} = this.params_;
+    if (onResult) {
+      try {
+        return await onResult(request);
+      } catch (e) {
+        warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
+        return false;
+      }
+    }
+    return this.logSurveyDataToGoogleAnalytics(request);
   }
 
   /**

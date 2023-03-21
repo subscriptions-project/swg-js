@@ -642,7 +642,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -719,7 +719,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -763,7 +763,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -809,7 +809,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -866,7 +866,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -913,7 +913,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -958,7 +958,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_',
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
@@ -1028,7 +1028,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_' +
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_' +
           '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
           expectedOrigin +
           '&isPaid=true&checkOrderStatus=true' +
@@ -1080,7 +1080,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/_/ui/v1/payconfirmiframe?_=_&hl=fr-CA',
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_&hl=fr-CA',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',
