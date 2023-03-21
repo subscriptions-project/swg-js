@@ -21,6 +21,9 @@ import {hasNextNodeInDocumentOrder} from '../utils/dom';
 import {tryParseJson} from '../utils/json';
 
 const ALREADY_SEEN = '__SWG-SEEN__';
+const ALREADY_SEEN_FOR_ACCESS_INFO = 'alreadySeenForAccessInfo';
+const ALREADY_SEEN_FOR_PRODUCT_INFO = 'alreadySeenForProductInfo';
+
 const CONTROL_FLAG = 'subscriptions-control';
 
 const ALLOWED_TYPES = [
@@ -39,50 +42,43 @@ const ALLOWED_TYPES = [
 // RegExp for quickly scanning LD+JSON for allowed types
 const RE_ALLOWED_TYPES = new RegExp(ALLOWED_TYPES.join('|'));
 
-/**
- */
 export class PageConfigResolver {
-  /**
-   * @param {!Window|!Document|!DocInterface} winOrDoc
-   */
-  constructor(winOrDoc) {
-    /** @private @const {!DocInterface} */
+  private readonly doc_: DocInterface;
+  private configResolver_: ((pageConfig: PageConfig) => void) | null = null;
+  private configRejecter_: ((error: string) => void) | null = null;
+  private readonly configPromise_: Promise<PageConfig>;
+  private readonly metaParser_: MetaParser;
+  private readonly ldParser_: JsonLdParser;
+  private readonly microdataParser_: MicrodataParser;
+
+  constructor(winOrDoc: Window | Document | DocInterface) {
     this.doc_ = resolveDoc(winOrDoc);
 
-    /** @private {?function((!PageConfig|!Promise))} */
-    this.configResolver_ = null;
+    this.configPromise_ = new Promise(
+      (resolve: (pageConfig: PageConfig) => void, reject) => {
+        this.configResolver_ = resolve;
+        this.configRejecter_ = reject;
+      }
+    );
 
-    /** @private @const {!Promise<!PageConfig>} */
-    this.configPromise_ = new Promise((resolve) => {
-      this.configResolver_ = resolve;
-    });
-
-    /** @private @const {!MetaParser} */
     this.metaParser_ = new MetaParser(this.doc_);
-    /** @private @const {!JsonLdParser} */
     this.ldParser_ = new JsonLdParser(this.doc_);
-    /** @private @const {!MicrodataParser} */
     this.microdataParser_ = new MicrodataParser(this.doc_);
   }
 
-  /**
-   * @return {!Promise<!PageConfig>}
-   */
-  resolveConfig() {
+  resolveConfig(): Promise<PageConfig> {
     // Try resolve the config at different times.
     Promise.resolve().then(this.check.bind(this));
     this.doc_.whenReady().then(this.check.bind(this));
     return this.configPromise_;
   }
 
-  /**
-   * @return {?PageConfig}
-   */
-  check() {
+  check(): PageConfig | null {
     // Already resolved.
-    if (!this.configResolver_) {
+    if (!this.configResolver_ || !this.configRejecter_) {
       return null;
     }
+
     const config =
       this.metaParser_.check() ||
       this.ldParser_.check() ||
@@ -91,81 +87,56 @@ export class PageConfigResolver {
       // Product ID has been found: initialize the rest of the config.
       this.configResolver_(config);
       this.configResolver_ = null;
+      this.configRejecter_ = null;
     } else if (this.doc_.isReady()) {
-      this.configResolver_(
-        Promise.reject('No config could be discovered in the page')
-      );
+      this.configRejecter_('No config could be discovered in the page');
       this.configResolver_ = null;
+      this.configRejecter_ = null;
     }
+
     debugLog(config);
     return config;
   }
 }
 
 class TypeChecker {
-  constructor() {}
-
-  /**
-   * Check value from json
-   * @param {?Array|string} value
-   * @param {Array<string>} expectedTypes
-   * @return {boolean}
-   */
-  checkValue(value, expectedTypes) {
-    if (!value) {
+  /** Checks an unknown value from JSON. */
+  checkValue(value: unknown, expectedTypes: string[]): boolean {
+    if (typeof value !== 'string' && !Array.isArray(value)) {
       return false;
     }
-    return this.checkArray(this.toArray_(value), expectedTypes);
+    return this.checkList_(this.toArray_(value), expectedTypes);
   }
 
-  /**
-   * Checks space delimited list of types
-   * @param {string} itemtype
-   * @param {Array<string>} expectedTypes
-   * @return {boolean}
-   */
-  checkString(itemtype, expectedTypes) {
-    return this.checkArray(itemtype.split(/\s+/), expectedTypes);
+  /** Checks space delimited list of types. */
+  checkSpaceDelimitedList(
+    spaceDelimitedList: string,
+    expectedTypes: string[]
+  ): boolean {
+    const types = spaceDelimitedList.split(/\s+/);
+    return this.checkList_(types, expectedTypes);
   }
 
-  /**
-   * @param {!Array<?string>} typeArray
-   * @param {Array<string>} expectedTypes
-   * @return {boolean}
-   */
-  checkArray(typeArray, expectedTypes) {
-    for (const schemaTypeUrl of typeArray) {
-      const schemaType = schemaTypeUrl.replace(/^http:\/\/schema.org\//i, '');
-      if (expectedTypes.includes(schemaType)) {
+  /** Checks list of types. */
+  private checkList_(types: string[], expectedTypes: string[]): boolean {
+    for (let type of types) {
+      type = type.replace(/^http:\/\/schema.org\//i, '');
+      if (expectedTypes.includes(type)) {
         return true;
       }
     }
     return false;
   }
 
-  /*
-   * @param {?Array|string} value
-   * @return {Array}
-   * @private
-   */
-  toArray_(value) {
+  private toArray_(value: string | string[]): string[] {
     return Array.isArray(value) ? value : [value];
   }
 }
 
 class MetaParser {
-  /**
-   * @param {!DocInterface} doc
-   */
-  constructor(doc) {
-    /** @private @const {!DocInterface} */
-    this.doc_ = doc;
-  }
+  constructor(private readonly doc_: DocInterface) {}
 
-  /**
-   * @return {?PageConfig}
-   */
-  check() {
+  check(): PageConfig | null {
     if (!this.doc_.getBody()) {
       // Wait until the whole `<head>` is parsed.
       return null;
@@ -193,21 +164,26 @@ class MetaParser {
   }
 }
 
-class JsonLdParser {
-  /**
-   * @param {!DocInterface} doc
-   */
-  constructor(doc) {
-    /** @private @const {!DocInterface} */
-    this.doc_ = doc;
-    /** @private @const @function */
-    this.checkType_ = new TypeChecker();
-  }
+type AlreadySeenAttribute =
+  | typeof ALREADY_SEEN
+  | typeof ALREADY_SEEN_FOR_ACCESS_INFO
+  | typeof ALREADY_SEEN_FOR_PRODUCT_INFO;
 
-  /**
-   * @return {?PageConfig}
-   */
-  check() {
+/**
+ * Swgjs marks seen elements with a custom property.
+ */
+type SeeableElement = HTMLElement & {
+  [key in AlreadySeenAttribute]: boolean;
+};
+
+type UnknownObject = {[key: string]: unknown};
+
+class JsonLdParser {
+  private readonly checkType_ = new TypeChecker();
+
+  constructor(private readonly doc_: DocInterface) {}
+
+  check(): PageConfig | null {
     if (!this.doc_.getBody()) {
       // Wait until the whole `<head>` is parsed.
       return null;
@@ -216,9 +192,11 @@ class JsonLdParser {
     const domReady = this.doc_.isReady();
 
     // type: 'application/ld+json'
-    const elements = this.doc_
-      .getRootNode()
-      .querySelectorAll('script[type="application/ld+json"]');
+    const elements = Array.from(
+      this.doc_
+        .getRootNode()
+        .querySelectorAll('script[type="application/ld+json"]')
+    ) as SeeableElement[];
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
       if (
@@ -240,12 +218,8 @@ class JsonLdParser {
     return null;
   }
 
-  /**
-   * @param {!Element} element
-   * @return {?PageConfig}
-   */
-  tryExtractConfig_(element) {
-    let possibleConfigs = tryParseJson(element.textContent);
+  tryExtractConfig_(element: Element): PageConfig | null {
+    let possibleConfigs = tryParseJson(element.textContent || '');
     if (!possibleConfigs) {
       return null;
     }
@@ -255,7 +229,7 @@ class JsonLdParser {
       possibleConfigs = [possibleConfigs];
     }
 
-    let configs = /** @type {!Array<!JsonObject>} */ (possibleConfigs);
+    let configs = possibleConfigs as UnknownObject[];
     for (let i = 0; i < configs.length; i++) {
       const config = configs[i];
 
@@ -273,7 +247,7 @@ class JsonLdParser {
       const partOfArray = this.valueArray_(config, 'isPartOf');
       if (partOfArray) {
         for (let j = 0; j < partOfArray.length; j++) {
-          productId = this.discoverProductId_(partOfArray[j]);
+          productId = this.discoverProductId_(partOfArray[j] as UnknownObject);
           if (productId) {
             break;
           }
@@ -295,12 +269,7 @@ class JsonLdParser {
     return null;
   }
 
-  /**
-   * @param {*} value
-   * @param {boolean} defaultValue
-   * @return {boolean}
-   */
-  bool_(value, defaultValue) {
+  bool_(value: unknown, defaultValue: boolean): boolean {
     if (typeof value === 'boolean') {
       return value;
     }
@@ -318,24 +287,16 @@ class JsonLdParser {
     return defaultValue;
   }
 
-  /**
-   * @param {!Object} json
-   * @return {?string}
-   */
-  discoverProductId_(json) {
+  discoverProductId_(json: UnknownObject): string | null {
     // Must have type `Product`.
     if (!this.checkType_.checkValue(json['@type'], ['Product'])) {
       return null;
     }
-    return /** @type {?string} */ (this.singleValue_(json, 'productID'));
+    const productId = this.singleValue_(json, 'productID') as string;
+    return productId || null;
   }
 
-  /**
-   * @param {!Object} json
-   * @param {string} name
-   * @return {?Array}
-   */
-  valueArray_(json, name) {
+  valueArray_(json: UnknownObject, name: string): unknown[] | null {
     const value = json[name];
     if (value == null || value === '') {
       return null;
@@ -343,12 +304,7 @@ class JsonLdParser {
     return Array.isArray(value) ? value : [value];
   }
 
-  /**
-   * @param {!Object} json
-   * @param {string} name
-   * @return {*}
-   */
-  singleValue_(json, name) {
+  singleValue_(json: UnknownObject, name: string): unknown {
     const valueArray = this.valueArray_(json, name);
     const value = valueArray && valueArray[0];
     return value == null || value === '' ? null : value;
@@ -356,40 +312,30 @@ class JsonLdParser {
 }
 
 class MicrodataParser {
-  /**
-   * @param {!DocInterface} doc
-   */
-  constructor(doc) {
-    /** @private @const {!DocInterface} */
-    this.doc_ = doc;
-    /** @private {?boolean} */
-    this.access_ = null;
-    /** @private {?string} */
-    this.productId_ = null;
-    /** @private @const @function */
-    this.checkType_ = new TypeChecker();
-  }
+  private access_: boolean | null = null;
+  private productId_: string | null = null;
+  private readonly checkType_ = new TypeChecker();
+
+  constructor(private readonly doc_: DocInterface) {}
 
   /**
-   * Returns false if access is restricted, otherwise true
-   * @param {!Element} root An element that is an item of type in ALLOWED_TYPES list
-   * @return {?boolean} locked access
-   * @private
+   * Returns false if access is restricted, true if unrestricted, or null if unknown.
+   * @param root An element that is an item of type in ALLOWED_TYPES list.
+   * @return Whether access is locked.
    */
-  discoverAccess_(root) {
-    const ALREADY_SEEN = 'alreadySeenForAccessInfo';
+  private discoverAccess_(root: Element): boolean | null {
     const nodeList = root.querySelectorAll("[itemprop='isAccessibleForFree']");
     for (let i = 0; nodeList[i]; i++) {
-      const element = nodeList[i];
+      const element = nodeList[i] as SeeableElement;
       const content = element.getAttribute('content') || element.textContent;
       if (!content) {
         continue;
       }
-      if (this.isValidElement_(element, root, ALREADY_SEEN)) {
+      if (this.isValidElement_(element, ALREADY_SEEN_FOR_ACCESS_INFO)) {
         let accessForFree = null;
-        if (content.toLowerCase() == 'true') {
+        if (content.toLowerCase() === 'true') {
           accessForFree = true;
-        } else if (content.toLowerCase() == 'false') {
+        } else if (content.toLowerCase() === 'false') {
           accessForFree = false;
         }
         return accessForFree;
@@ -403,28 +349,29 @@ class MicrodataParser {
    * - child of an item of one the the ALLOWED_TYPES
    * - not a child of an item of any other type
    * - not seen before, marked using the alreadySeen tag
-   * @param {?Element} current the element to be verified
-   * @param {!Element} root the parent to track up to
-   * @param {!string} alreadySeen used to tag already visited nodes
-   * @return {!boolean} valid node
-   * @private
+   * @param current the element to be verified.
+   * @param root the parent to track up to.
+   * @param alreadySeenAttribute used to tag already visited nodes.
+   * @return Whether the node is valid.
    */
-  isValidElement_(current, root, alreadySeen) {
+  private isValidElement_(
+    current: SeeableElement | null,
+    alreadySeenAttribute: AlreadySeenAttribute
+  ): boolean {
     for (
       let node = current;
-      node && !node[alreadySeen];
-      node = node.parentNode
+      node && !node[alreadySeenAttribute];
+      node = node.parentNode as SeeableElement
     ) {
-      node[alreadySeen] = true;
+      node[alreadySeenAttribute] = true;
       // document nodes don't have hasAttribute
       if (
         node.hasAttribute &&
         node.hasAttribute('itemscope') &&
         node.hasAttribute('itemtype')
       ) {
-        /**{?string} */
-        const type = node.getAttribute('itemtype');
-        return this.checkType_.checkString(type, ALLOWED_TYPES);
+        const type = node.getAttribute('itemtype') || '';
+        return this.checkType_.checkSpaceDelimitedList(type, ALLOWED_TYPES);
       }
     }
     return false;
@@ -435,22 +382,31 @@ class MicrodataParser {
    * - child of an item of one of ALLOWED_TYPES
    * - Not a child of an item of type 'Section'
    * - child of an item of type 'productID'
-   * @param {!Element} root An element that is an item of an ALLOWED_TYPES
-   * @return {?string} product ID, if found
-   * @private
+   * @param root An element that is an item of an ALLOWED_TYPES
+   * @return Product ID, if found
    */
-  discoverProductId_(root) {
-    const ALREADY_SEEN = 'alreadySeenForProductInfo';
+  private discoverProductId_(root: Element): string | null {
     const nodeList = root.querySelectorAll('[itemprop="productID"]');
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
       const content = element.getAttribute('content') || element.textContent;
       const item = element.closest('[itemtype][itemscope]');
+      if (!item) {
+        continue;
+      }
       const type = item.getAttribute('itemtype');
+      if (!type) {
+        continue;
+      }
       if (type.indexOf('http://schema.org/Product') <= -1) {
         continue;
       }
-      if (this.isValidElement_(item.parentElement, root, ALREADY_SEEN)) {
+      if (
+        this.isValidElement_(
+          item.parentElement as SeeableElement,
+          ALREADY_SEEN_FOR_PRODUCT_INFO
+        )
+      ) {
         return content;
       }
     }
@@ -461,7 +417,7 @@ class MicrodataParser {
    * Returns PageConfig if available
    * @return {?PageConfig} PageConfig found so far
    */
-  getPageConfig_() {
+  getPageConfig_(): PageConfig | null {
     let locked = null;
     if (this.access_ != null) {
       locked = !this.access_;
@@ -479,12 +435,12 @@ class MicrodataParser {
    * Extracts page config from Microdata in the DOM
    * @return {?PageConfig} PageConfig found
    */
-  tryExtractConfig_() {
+  tryExtractConfig_(): PageConfig | null {
     // Grab all the nodes with an itemtype and filter for our allowed types
     const nodeList = Array.prototype.slice
       .call(this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]'))
       .filter((node) =>
-        this.checkType_.checkString(
+        this.checkType_.checkSpaceDelimitedList(
           node.getAttribute('itemtype'),
           ALLOWED_TYPES
         )
@@ -508,10 +464,7 @@ class MicrodataParser {
     return null;
   }
 
-  /**
-   * @return {?PageConfig}
-   */
-  check() {
+  check(): PageConfig | null {
     if (!this.doc_.getBody()) {
       // Wait until the whole `<head>` is parsed.
       return null;
@@ -520,11 +473,7 @@ class MicrodataParser {
   }
 }
 
-/**
- * @param {!Node} rootNode
- * @return {?string}
- */
-export function getControlFlag(rootNode) {
+export function getControlFlag(rootNode: Document): string | null {
   // Look for the flag in `meta`.
   const flag = getMetaTag(rootNode, CONTROL_FLAG);
   if (flag) {
@@ -542,13 +491,8 @@ export function getControlFlag(rootNode) {
  * Returns the value from content attribute of a meta tag with given name.
  *
  * If multiple tags are found, the first value is returned.
- *
- * @param {!Node} rootNode
- * @param {string} name The tag name to look for.
- * @return {?string} attribute value or empty string.
- * @private
  */
-function getMetaTag(rootNode, name) {
+function getMetaTag(rootNode: Document, name: string): string | null {
   const el = rootNode.querySelector(`meta[name="${name}"]`);
   if (el) {
     return el.getAttribute('content');
