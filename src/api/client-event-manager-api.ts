@@ -26,19 +26,15 @@ export enum FilterResult {
   CANCEL_EVENT = 1,
 }
 
-/**
- * Defines a client event in SwG
- * Properties:
- * - eventType: Required. The AnalyticsEvent type that occurred.
- * - eventOriginator: Required.  The codebase that initiated the event.
- * - isFromUserAction: Optional.  True if the user took an action to generate
- *   the event.
- * - additionalParameters: Optional.  A JSON object to store generic data.
- */
+/** Defines a client event in SwG. */
 export interface ClientEvent {
+  /** Required. The AnalyticsEvent type that occurred. */
   eventType: AnalyticsEventDef | null;
+  /** Required. The codebase that initiated the event. */
   eventOriginator: EventOriginatorDef;
+  /** Optional. True if the user took an action to generate the event. */
   isFromUserAction: boolean | null;
+  /** Optional. A JSON object to store generic data. */
   additionalParameters: unknown;
 }
 

@@ -18,14 +18,10 @@ import {Entitlements} from './entitlements';
 import {PurchaseData} from './subscribe-response';
 import {UserData} from './user-data';
 
-/**
- * Properties:
- * - entitlements - the current entitlements.
- * - consent - whether to ask the user for account creation consent.
- *   Default is `true`.
- */
 export interface DeferredAccountCreationRequest {
+  /** The current entitlements. */
   entitlements?: Entitlements | null;
+  /** whether to ask the user for account creation consent. Default is `true`. */
   consent?: boolean;
 }
 

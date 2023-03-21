@@ -48,7 +48,7 @@ export class Entitlements {
       entitlements: Entitlements,
       callback?: Function | null
     ) => void,
-    readonly isReadyToPay: boolean | null = false,
+    readonly isReadyToPay: boolean = false,
     readonly decryptedDocumentKey: string | null = null
   ) {}
 

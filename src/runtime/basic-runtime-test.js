@@ -101,7 +101,7 @@ describes.realWin('installBasicRuntime', (env) => {
     expect(getBasicRuntime()).to.equal(runtime1);
   });
 
-  // TODO: Delete this test after the TypeScript migration.
+  // TODO(b/274686315): Delete this test after the TypeScript migration.
   it('should implement BasicSubscriptions interface', async () => {
     const promise = new Promise((resolve) => {
       dep(resolve);
