@@ -77,8 +77,6 @@ export interface Subscriptions {
 
   /**
    * Starts the Offers flow for a subscription update.
-   * @param {!OffersRequest=} options
-   * @return {?}
    */
   showUpdateOffers(options?: OffersRequest): Promise<void>;
 
@@ -122,15 +120,11 @@ export interface Subscriptions {
 
   /**
    * Starts subscription purchase flow.
-   * @param {SubscriptionRequest} subscriptionRequest
-   * @return {?}
    */
   updateSubscription(subscriptionRequest: SubscriptionRequest): Promise<void>;
 
   /**
    * Set the contribution complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
-   * @return {?}
    */
   setOnContributionResponse(
     callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
@@ -138,8 +132,6 @@ export interface Subscriptions {
 
   /**
    * Set the payment complete callback.
-   * @param {function(!Promise<!SubscribeResponse>)} callback
-   * @return {?}
    */
   setOnPaymentResponse(
     callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
@@ -301,33 +293,42 @@ export interface Subscriptions {
 }
 
 export enum ShowcaseEvent {
-  // Events indicating content could potentially be unlocked
-  EVENT_SHOWCASE_METER_OFFERED = 'EVENT_SHOWCASE_METER_OFFERED', // This event is only required if the user can choose not to use a publisher meter
+  // Events indicating content could potentially be unlocked:
 
-  // Events indicating content was unlocked
-  EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION = 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION', // Publisher managed subscriptions only
-  EVENT_SHOWCASE_UNLOCKED_BY_METER = 'EVENT_SHOWCASE_UNLOCKED_BY_METER', // Publisher managed meters only
-  EVENT_SHOWCASE_UNLOCKED_FREE_PAGE = 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE', // When the article is free for any reason (lead article, etc)
+  /** This event is only required if the user can choose not to use a publisher meter. */
+  EVENT_SHOWCASE_METER_OFFERED = 'EVENT_SHOWCASE_METER_OFFERED',
 
-  // Events indicating the user must take action to view content
-  EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL = 'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL', // When the user must register (or log in) to view the article
+  // Events indicating content was unlocked:
 
-  // Events indicating the user must subscribe to view content
-  EVENT_SHOWCASE_INELIGIBLE_PAYWALL = 'EVENT_SHOWCASE_INELIGIBLE_PAYWALL', // When the user is not eligible for showcase entitlements
-  EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL = 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL', // When the user has no remaining showcase entitlements
+  /** Publisher managed subscriptions only. */
+  EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION = 'EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION',
+  /** Publisher managed meters only. */
+  EVENT_SHOWCASE_UNLOCKED_BY_METER = 'EVENT_SHOWCASE_UNLOCKED_BY_METER',
+  /** When the article is free for any reason (lead article, etc). */
+  EVENT_SHOWCASE_UNLOCKED_FREE_PAGE = 'EVENT_SHOWCASE_UNLOCKED_FREE_PAGE',
+
+  // Events indicating the user must take action to view content:
+
+  /** When the user must register (or log in) to view the article. */
+  EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL = 'EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL',
+
+  // Events indicating the user must subscribe to view content:
+
+  /** When the user is not eligible for showcase entitlements. */
+  EVENT_SHOWCASE_INELIGIBLE_PAYWALL = 'EVENT_SHOWCASE_INELIGIBLE_PAYWALL',
+  /** When the user has no remaining showcase entitlements. */
+  EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL = 'EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL',
 }
 
 /**
- * PublisherEntitlement
- *   In order to participate in News Showcase, publishers must report information about their entitlements.
- * Properties:
- * - isUserRegistered: Is the user registered currently?
- * - entitlement: Publisher entitlement event type.
- * - subscriptionTimestamp: Timestamp(in millisecond) when the user converted to a subscriber. Null if the user is not a subscriber.
+ * In order to participate in News Showcase, publishers must report information about their entitlements.
  */
 export interface PublisherEntitlement {
+  /** Is the user registered currently? */
   isUserRegistered: boolean;
+  /** Publisher entitlement event type. */
   entitlement: ShowcaseEvent;
+  /** Timestamp(in millisecond) when the user converted to a subscriber. Null if the user is not a subscriber. */
   subscriptionTimestamp: number | null;
 }
 
@@ -345,26 +346,29 @@ export enum SubscriptionFlows {
   SHOW_METER_TOAST = 'showMeterToast',
 }
 
-/**
- * Configuration properties:
- * - windowOpenMode - either "auto" or "redirect". The "redirect" value will
- *   force redirect flow for any window.open operation, including payments.
- *   The "auto" value either uses a redirect or a popup flow depending on
- *   what's possible on a specific environment. Defaults to "auto".
- * - enableSwgAnalytics - if set to true then events logged by the publisher's
- *   client will be sent to Google's SwG analytics service.  This information is
- *   used to compare the effectiveness of Google's buy-flow events to those
- *   generated by the publisher's client code.  This includes events sent to
- *   both PropensityApi and LoggerApi.
- * - enablePropensity - If true events from the logger api are sent to the
- *   propensity server.  Note events from the legacy propensity endpoint are
- *   always sent.
- */
 export interface Config {
   experiments?: string[];
+  /**
+   * Either "auto" or "redirect". The "redirect" value will
+   * force redirect flow for any window.open operation, including payments.
+   * The "auto" value either uses a redirect or a popup flow depending on
+   * what's possible on a specific environment. Defaults to "auto".
+   */
   windowOpenMode?: WindowOpenMode;
   analyticsMode?: AnalyticsMode;
+  /**
+   * If set to true then events logged by the publisher's
+   * client will be sent to Google's SwG analytics service.  This information is
+   * used to compare the effectiveness of Google's buy-flow events to those
+   * generated by the publisher's client code.  This includes events sent to
+   * both PropensityApi and LoggerApi.
+   */
   enableSwgAnalytics?: boolean;
+  /**
+   * If true events from the logger api are sent to the
+   * propensity server.  Note events from the legacy propensity endpoint are
+   * always sent.
+   */
   enablePropensity?: boolean;
   publisherProvidedId?: string;
   useArticleEndpoint?: boolean;
@@ -453,9 +457,11 @@ export enum WindowOpenMode {
 }
 
 export enum ReplaceSkuProrationMode {
-  // The replacement takes effect immediately, and the remaining time will
-  // be prorated and credited to the user. This is the current default
-  // behavior.
+  /**
+   * The replacement takes effect immediately, and the remaining time will
+   * be prorated and credited to the user. This is the current default
+   * behavior.
+   */
   IMMEDIATE_WITH_TIME_PRORATION = 'IMMEDIATE_WITH_TIME_PRORATION',
 }
 
