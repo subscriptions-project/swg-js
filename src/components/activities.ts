@@ -16,6 +16,7 @@
 import {
   AnalyticsRequest,
   EventOriginator,
+  Message,
   deserialize,
   getLabel,
 } from '../proto/api_messages';
@@ -24,29 +25,25 @@ import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {Constants} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
 
-const {
-  ActivityIframePort: WebActivityIframePort,
-  ActivityPorts: WebActivityPorts,
-} = require('web-activities/activity-ports');
+import {
+  ActivityIframePort as WebActivityIframePort,
+  ActivityMode,
+  ActivityOpenOptions,
+  ActivityPort as WebActivityPort,
+  ActivityPorts as WebActivityPorts,
+  ActivityResult,
+} from 'web-activities/activity-ports';
+import {DepsDef} from '../runtime/deps';
 
-/**
- * @interface
- */
-export class ActivityPortDef {
-  /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
-   */
-  acceptResult() {}
+export interface ActivityPortDef {
+  acceptResult(): Promise<ActivityResult>;
 }
-/**
- * @interface
- */
-export class ActivityPort extends ActivityPortDef {
+
+export interface ActivityPort extends ActivityPortDef {
   /**
    * Returns the mode of the activity: iframe, popup or redirect.
-   * @return {!web-activities/activity-ports.ActivityMode}
    */
-  getMode() {}
+  getMode(): ActivityMode;
 
   /**
    * Accepts the result when ready. The client should verify the activity's
@@ -55,131 +52,102 @@ export class ActivityPort extends ActivityPortDef {
    *
    * Returns the promise that yields when the activity has been completed and
    * either a result, a cancelation or a failure has been returned.
-   *
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
-   * @override
    */
-  acceptResult() {}
+  acceptResult(): Promise<ActivityResult>;
 
   /**
    * Returns a promise that yields when the iframe is ready to be interacted
    * with.
-   * @return {!Promise}
    */
-  whenReady() {}
+  whenReady(): Promise<void>;
 
   /**
    * Waits until the activity port is connected to the host.
-   * @return {!Promise}
    */
-  connect() {}
+  connect(): Promise<void>;
 
   /**
    * Disconnect the activity binding and cleanup listeners.
    */
-  disconnect() {}
+  disconnect(): void;
 
   /**
    * Register a callback to handle resize requests. Once successfully resized,
    * ensure to call `resized()` method.
-   * @param {function(number)} unusedCallback
    */
-  onResizeRequest(unusedCallback) {}
+  onResizeRequest(callback: (size: number) => void): void;
 
-  /**
-   * @param {!../proto/api_messages.Message} unusedRequest
-   */
-  execute(unusedRequest) {}
+  execute(request: Message): void;
 
-  /**
-   * @param {!function(new: T)} unusedMessage
-   * @param {function(Object)} unusedCallback
-   * @template T
-   */
-  on(unusedMessage, unusedCallback) {}
+  on<T extends Message>(
+    messageType: new (data?: unknown[], includesLabel?: boolean) => T,
+    callback: (p1: T) => void
+  ): void;
 
   /**
    * Signals back to the activity implementation that the client has updated
    * the activity's size.
    */
-  resized() {}
+  resized(): void;
 }
-/**
- * @implements {ActivityPortDef}
- */
-class ActivityPortDeprecated {
-  /**
-   * @param {!web-activities/activity-ports.ActivityPort} port
-   */
-  constructor(port) {
-    /** @private @const {!web-activities/activity-ports.ActivityPort} */
-    this.port_ = port;
-  }
 
-  /**
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
-   */
-  acceptResult() {
+class ActivityPortDeprecated implements ActivityPortDef {
+  constructor(private readonly port_: WebActivityPort) {}
+
+  acceptResult(): Promise<ActivityResult> {
     return this.port_.acceptResult();
   }
 }
 
-/**
- * @implements {ActivityPortDef}
- */
-export class ActivityIframePort {
-  /**
-   * @param {!HTMLIFrameElement} iframe
-   * @param {string} url
-   * @param {!../runtime/deps.DepsDef} deps
-   * @param {?Object=} args
-   */
-  constructor(iframe, url, deps, args) {
-    /** @private @const {!web-activities/activity-ports.ActivityIframePort} */
-    this.iframePort_ = new WebActivityIframePort(iframe, url, args);
-    /** @private @const {!Object<string, function(!../proto/api_messages.Message)>} */
-    this.callbackMap_ = {};
+export class ActivityIframePort implements ActivityPortDef {
+  private readonly iframePort_: WebActivityIframePort;
+  private readonly callbackMap_: {[key: string]: (message: Message) => void};
 
-    /** @private @const {../runtime/deps.DepsDef} */
-    this.deps_ = deps;
+  constructor(
+    iframe: HTMLIFrameElement,
+    url: string,
+    private readonly deps_: DepsDef,
+    args?: unknown
+  ) {
+    this.iframePort_ = new WebActivityIframePort(iframe, url, args);
+    this.callbackMap_ = {};
   }
 
   /**
    * Returns a promise that yields when the iframe is ready to be interacted
    * with.
-   * @return {!Promise}
    */
-  whenReady() {
+  whenReady(): Promise<void> {
     return this.iframePort_.whenReady();
   }
 
   /**
    * Waits until the activity port is connected to the host.
-   * @return {!Promise}
    */
-  async connect() {
+  async connect(): Promise<void> {
     await this.iframePort_.connect();
 
     // Attach a callback to receive messages after connection complete
     this.iframePort_.onMessage((data) => {
-      const response = data && data['RESPONSE'];
+      const response =
+        data && typeof data === 'object' && (data['RESPONSE'] as string[]);
       if (!response) {
         return;
       }
       const cb = this.callbackMap_[response[0]];
       if (cb) {
-        cb(deserialize(response));
+        const message = deserialize(response);
+        cb(message);
       }
     });
 
     if (this.deps_ && this.deps_.eventManager()) {
       this.on(AnalyticsRequest, (request) => {
-        const analyticsRequest = /** @type {AnalyticsRequest} */ (request);
         this.deps_.eventManager().logEvent({
-          eventType: analyticsRequest.getEvent(),
+          eventType: request.getEvent(),
           eventOriginator: EventOriginator.SWG_SERVER,
-          isFromUserAction: analyticsRequest.getMeta().getIsFromUserAction(),
-          additionalParameters: analyticsRequest.getParams(),
+          isFromUserAction: request.getMeta()?.getIsFromUserAction(),
+          additionalParameters: request.getParams(),
         });
       });
     }
@@ -194,9 +162,8 @@ export class ActivityIframePort {
 
   /**
    * Returns the mode of the activity: iframe, popup or redirect.
-   * @return {!web-activities/activity-ports.ActivityMode}
    */
-  getMode() {
+  getMode(): ActivityMode {
     return this.iframePort_.getMode();
   }
 
@@ -207,36 +174,27 @@ export class ActivityIframePort {
    *
    * Returns the promise that yields when the activity has been completed and
    * either a result, a cancelation or a failure has been returned.
-   *
-   * @return {!Promise<!web-activities/activity-ports.ActivityResult>}
-   * @override
    */
-  acceptResult() {
+  acceptResult(): Promise<ActivityResult> {
     return this.iframePort_.acceptResult();
   }
 
   /**
    * Register a callback to handle resize requests. Once successfully resized,
    * ensure to call `resized()` method.
-   * @param {function(number)} callback
    */
-  onResizeRequest(callback) {
+  onResizeRequest(callback: (size: number) => void) {
     return this.iframePort_.onResizeRequest(callback);
   }
 
-  /**
-   * @param {!../proto/api_messages.Message} request
-   */
-  execute(request) {
+  execute(request: Message) {
     this.iframePort_.message({'REQUEST': request.toArray()});
   }
 
-  /**
-   * @param {!function(new: T)} message
-   * @param {function(?)} callback
-   * @template T
-   */
-  on(message, callback) {
+  on<T extends Message>(
+    message: new (data?: unknown[], includesLabel?: boolean) => T,
+    callback: (p1: T) => void
+  ) {
     let label = null;
     try {
       label = getLabel(message);
@@ -247,9 +205,9 @@ export class ActivityIframePort {
     if (!label) {
       throw new Error('Invalid data type');
     } else if (this.callbackMap_[label]) {
-      throw new Error('Invalid type or duplicate callback for ', label);
+      throw new Error('Invalid type or duplicate callback for ' + label);
     }
-    this.callbackMap_[label] = callback;
+    this.callbackMap_[label] = callback as (p1: Message) => void;
   }
 
   /**
@@ -262,23 +220,18 @@ export class ActivityIframePort {
 }
 
 export class ActivityPorts {
-  /**
-   * @param {!../runtime/deps.DepsDef} deps
-   */
-  constructor(deps) {
-    /** @private @const {!../runtime/deps.DepsDef} */
-    this.deps_ = deps;
+  activityPorts_: WebActivityPorts;
 
-    /** @private @const {!web-activities/activity-ports.ActivityPorts} */
-    this.activityPorts_ = new WebActivityPorts(deps.win());
+  constructor(private readonly deps_: DepsDef) {
+    this.activityPorts_ = new WebActivityPorts(deps_.win());
   }
 
   /**
    * Adds client version, publication, product and logging context information.
-   * @param {?Object=} args
-   * @return {!Object}
    */
-  addDefaultArguments(args) {
+  addDefaultArguments(args?: {[key: string]: string} | null): {
+    [key: string]: string;
+  } {
     const deps = this.deps_;
     const pageConfig = deps.pageConfig();
     const context = deps.analytics().getContext();
@@ -296,12 +249,12 @@ export class ActivityPorts {
 
   /*
    * Start an activity within the specified iframe.
-   * @param {!HTMLIFrameElement} iframe
-   * @param {string} url
-   * @param {?Object=} args
-   * @return {!Promise<!ActivityIframePort>}
    */
-  async openActivityIframePort_(iframe, url, args) {
+  private async openActivityIframePort_(
+    iframe: HTMLIFrameElement,
+    url: string,
+    args?: unknown
+  ) {
     const activityPort = new ActivityIframePort(iframe, url, this.deps_, args);
     await activityPort.connect();
     return activityPort;
@@ -309,13 +262,13 @@ export class ActivityPorts {
 
   /**
    * Start an activity within the specified iframe.
-   * @param {!HTMLIFrameElement} iframe
-   * @param {string} url
-   * @param {?Object=} args
-   * @param {boolean=} addDefaultArguments
-   * @return {!Promise<!ActivityIframePort>}
    */
-  async openIframe(iframe, url, args, addDefaultArguments = false) {
+  async openIframe(
+    iframe: HTMLIFrameElement,
+    url: string,
+    args?: {[key: string]: string} | null,
+    addDefaultArguments = false
+  ): Promise<ActivityIframePort> {
     if (addDefaultArguments) {
       args = this.addDefaultArguments(args);
     }
@@ -354,16 +307,15 @@ export class ActivityPorts {
    * allow popups and they either force redirect or fail the window open
    * request. In this case, the activity will try to fallback to the "redirect"
    * mode.
-   *
-   * @param {string} requestId
-   * @param {string} url
-   * @param {string} target
-   * @param {?Object=} args
-   * @param {?web-activities/activity-ports.ActivityOpenOptions=} options
-   * @param {boolean=} addDefaultArguments
-   * @return {{targetWin: ?Window}}
    */
-  open(requestId, url, target, args, options, addDefaultArguments = false) {
+  open(
+    requestId: string,
+    url: string,
+    target: string,
+    args?: {[key: string]: string} | null,
+    options?: ActivityOpenOptions | null,
+    addDefaultArguments = false
+  ): {targetWin: Window | null} {
     if (addDefaultArguments) {
       args = this.addDefaultArguments(args);
     }
@@ -396,27 +348,18 @@ export class ActivityPorts {
    *
    * ports.open('request1', request1Url, '_blank');
    * ```
-   *
-   * @param {string} requestId
-   * @param {function(!ActivityPortDef)} callback
    */
-  onResult(requestId, callback) {
+  onResult(requestId: string, callback: (port: ActivityPortDef) => void): void {
     this.activityPorts_.onResult(requestId, (port) => {
       callback(new ActivityPortDeprecated(port));
     });
   }
 
-  /**
-   * @param {function(!Error)} handler
-   */
-  onRedirectError(handler) {
+  onRedirectError(handler: (error: Error) => void) {
     this.activityPorts_.onRedirectError(handler);
   }
 
-  /**
-   * @return {!web-activities/activity-ports.ActivityPorts}
-   */
-  getOriginalWebActivityPorts() {
+  getOriginalWebActivityPorts(): WebActivityPorts {
     return this.activityPorts_;
   }
 }
