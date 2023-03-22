@@ -218,7 +218,7 @@ class JsonLdParser {
     return null;
   }
 
-  tryExtractConfig_(element: Element): PageConfig | null {
+  private tryExtractConfig_(element: Element): PageConfig | null {
     let possibleConfigs = tryParseJson(element.textContent || '');
     if (!possibleConfigs) {
       return null;
@@ -269,7 +269,7 @@ class JsonLdParser {
     return null;
   }
 
-  bool_(value: unknown, defaultValue: boolean): boolean {
+  private bool_(value: unknown, defaultValue: boolean): boolean {
     if (typeof value === 'boolean') {
       return value;
     }
@@ -287,7 +287,7 @@ class JsonLdParser {
     return defaultValue;
   }
 
-  discoverProductId_(json: UnknownObject): string | null {
+  private discoverProductId_(json: UnknownObject): string | null {
     // Must have type `Product`.
     if (!this.checkType_.checkValue(json['@type'], ['Product'])) {
       return null;
@@ -296,7 +296,7 @@ class JsonLdParser {
     return productId || null;
   }
 
-  valueArray_(json: UnknownObject, name: string): unknown[] | null {
+  private valueArray_(json: UnknownObject, name: string): unknown[] | null {
     const value = json[name];
     if (value == null || value === '') {
       return null;
@@ -304,7 +304,7 @@ class JsonLdParser {
     return Array.isArray(value) ? value : [value];
   }
 
-  singleValue_(json: UnknownObject, name: string): unknown {
+  private singleValue_(json: UnknownObject, name: string): unknown {
     const valueArray = this.valueArray_(json, name);
     const value = valueArray && valueArray[0];
     return value == null || value === '' ? null : value;
@@ -395,10 +395,7 @@ class MicrodataParser {
         continue;
       }
       const type = item.getAttribute('itemtype');
-      if (!type) {
-        continue;
-      }
-      if (type.indexOf('http://schema.org/Product') <= -1) {
+      if (!type || type.indexOf('http://schema.org/Product') <= -1) {
         continue;
       }
       if (
@@ -414,10 +411,10 @@ class MicrodataParser {
   }
 
   /**
-   * Returns PageConfig if available
-   * @return {?PageConfig} PageConfig found so far
+   * Returns PageConfig if available.
+   * @return PageConfig found so far.
    */
-  getPageConfig_(): PageConfig | null {
+  private getPageConfig_(): PageConfig | null {
     let locked = null;
     if (this.access_ != null) {
       locked = !this.access_;
@@ -432,10 +429,10 @@ class MicrodataParser {
   }
 
   /**
-   * Extracts page config from Microdata in the DOM
-   * @return {?PageConfig} PageConfig found
+   * Extracts page config from Microdata in the DOM.
+   * @return PageConfig found.
    */
-  tryExtractConfig_(): PageConfig | null {
+  private tryExtractConfig_(): PageConfig | null {
     // Grab all the nodes with an itemtype and filter for our allowed types
     const nodeList = Array.prototype.slice
       .call(this.doc_.getRootNode().querySelectorAll('[itemscope][itemtype]'))
