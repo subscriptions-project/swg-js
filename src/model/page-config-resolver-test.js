@@ -444,6 +444,25 @@ describes.realWin('PageConfigResolver', (env) => {
       expect(config.getProductId()).to.equal('pub1:premium');
     });
 
+    it('should handle product ID in textContent', async () => {
+      const divElement = createElement(doc, 'div');
+      divElement.innerHTML =
+        '<div itemscope itemtype="http://schema.org/NewsArticle http://schema.org/Other"> \
+            <meta itemprop="isAccessibleForFree" content="True"/> \
+            <div itemprop="isPartOf" itemscope itemtype="http://schema.org/CreativeWork http://schema.org/Product"> \
+              <meta itemprop="name" content="New York Times"/> \
+              <div itemprop="productID">pub1:premium</div> \
+            </div> \
+            <div itemprop="articleBody" class="paywalled-section"> \
+              Paid content possibly. \
+            </div> \
+          </div>';
+      addMicrodata(divElement);
+      const resolver = new PageConfigResolver(gd);
+      const config = await resolver.resolveConfig();
+      expect(config.getProductId()).to.equal('pub1:premium');
+    });
+
     it('should return null for multiple invalid types', () => {
       const divElement = createElement(doc, 'div');
       divElement.innerHTML =

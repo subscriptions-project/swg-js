@@ -192,25 +192,25 @@ class JsonLdParser {
     const domReady = this.doc_.isReady();
 
     // type: 'application/ld+json'
-    const elements = Array.from(
+    const ldJsonScripts = Array.from(
       this.doc_
         .getRootNode()
         .querySelectorAll('script[type="application/ld+json"]')
     ) as SeeableElement[];
-    for (let i = 0; i < elements.length; i++) {
-      const element = elements[i];
+    for (let i = 0; i < ldJsonScripts.length; i++) {
+      const ldJsonScript = ldJsonScripts[i];
       if (
-        element[ALREADY_SEEN] ||
-        !element.textContent ||
-        (!domReady && !hasNextNodeInDocumentOrder(element))
+        ldJsonScript[ALREADY_SEEN] ||
+        !ldJsonScript.textContent ||
+        (!domReady && !hasNextNodeInDocumentOrder(ldJsonScript))
       ) {
         continue;
       }
-      element[ALREADY_SEEN] = true;
-      if (!RE_ALLOWED_TYPES.test(element.textContent)) {
+      ldJsonScript[ALREADY_SEEN] = true;
+      if (!RE_ALLOWED_TYPES.test(ldJsonScript.textContent)) {
         continue;
       }
-      const possibleConfig = this.tryExtractConfig_(element);
+      const possibleConfig = this.tryExtractConfig_(ldJsonScript);
       if (possibleConfig) {
         return possibleConfig;
       }
@@ -218,8 +218,9 @@ class JsonLdParser {
     return null;
   }
 
+  /** Tries extracting a config from an ld+json script element. */
   private tryExtractConfig_(element: Element): PageConfig | null {
-    let possibleConfigs = tryParseJson(element.textContent || '');
+    let possibleConfigs = tryParseJson(element.textContent!);
     if (!possibleConfigs) {
       return null;
     }
@@ -243,7 +244,7 @@ class JsonLdParser {
       }
 
       // Must have a isPartOf[@type=Product].
-      let productId = null;
+      let productId: string | null = null;
       const partOfArray = this.valueArray_(config, 'isPartOf');
       if (partOfArray) {
         for (let j = 0; j < partOfArray.length; j++) {
@@ -292,8 +293,8 @@ class JsonLdParser {
     if (!this.checkType_.checkValue(json['@type'], ['Product'])) {
       return null;
     }
-    const productId = this.singleValue_(json, 'productID') as string;
-    return productId || null;
+    const productId = this.singleValue_(json, 'productID') as string | null;
+    return productId;
   }
 
   private valueArray_(json: UnknownObject, name: string): unknown[] | null {
@@ -370,7 +371,7 @@ class MicrodataParser {
         node.hasAttribute('itemscope') &&
         node.hasAttribute('itemtype')
       ) {
-        const type = node.getAttribute('itemtype') || '';
+        const type = node.getAttribute('itemtype')!;
         return this.checkType_.checkSpaceDelimitedList(type, ALLOWED_TYPES);
       }
     }
