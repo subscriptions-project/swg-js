@@ -390,12 +390,9 @@ class MicrodataParser {
     for (let i = 0; nodeList[i]; i++) {
       const element = nodeList[i];
       const content = element.getAttribute('content') || element.textContent;
-      const item = element.closest('[itemtype][itemscope]');
-      if (!item) {
-        continue;
-      }
-      const type = item.getAttribute('itemtype');
-      if (!type || type.indexOf('http://schema.org/Product') <= -1) {
+      const item = element.closest('[itemtype][itemscope]')!;
+      const type = item.getAttribute('itemtype')!;
+      if (type.indexOf('http://schema.org/Product') <= -1) {
         continue;
       }
       if (
