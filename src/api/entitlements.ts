@@ -38,6 +38,8 @@ export const DEV_MODE_ORDER = 'GOOGLE_DEV_MODE_ORDER';
  * The holder of the entitlements for a service.
  */
 export class Entitlements {
+  isReadyToPay: boolean;
+
   constructor(
     readonly service: string,
     readonly raw: string,
@@ -48,9 +50,12 @@ export class Entitlements {
       entitlements: Entitlements,
       callback?: Function | null
     ) => void,
-    readonly isReadyToPay: boolean = false,
+    isReadyToPay: boolean | null = false,
     readonly decryptedDocumentKey: string | null = null
-  ) {}
+  ) {
+    // Simplify to boolean.
+    this.isReadyToPay = !!isReadyToPay;
+  }
 
   clone(): Entitlements {
     return new Entitlements(

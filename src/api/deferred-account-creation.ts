@@ -21,7 +21,7 @@ import {UserData} from './user-data';
 export interface DeferredAccountCreationRequest {
   /** The current entitlements. */
   entitlements?: Entitlements | null;
-  /** whether to ask the user for account creation consent. Default is `true`. */
+  /** Whether to ask the user for account creation consent. Default is `true`. */
   consent?: boolean;
 }
 

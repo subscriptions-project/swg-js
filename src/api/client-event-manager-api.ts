@@ -33,9 +33,9 @@ export interface ClientEvent {
   /** Required. The codebase that initiated the event. */
   eventOriginator: EventOriginatorDef;
   /** Optional. True if the user took an action to generate the event. */
-  isFromUserAction: boolean | null;
+  isFromUserAction?: boolean | null;
   /** Optional. A JSON object to store generic data. */
-  additionalParameters: unknown;
+  additionalParameters?: unknown;
 }
 
 export interface ClientEventManagerApi {

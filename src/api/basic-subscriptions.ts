@@ -98,18 +98,18 @@ export enum AutoPromptType {
 
 /**
  * Options for configuring all client UI.
- * Properties:
- * - disableButton: whether to enable button.
- * - forceLangInIframes: whether to force the specified lang in iframes.
- * - lang: Sets the button and prompt language. Default is "en".
- * - theme: "light" or "dark". Default is "light".
  */
 export interface ClientOptions {
-  disableButton: boolean | undefined;
-  lang: string | undefined;
-  forceLangInIframes: boolean | undefined;
-  theme: ClientTheme | undefined;
-  allowScroll: boolean | undefined;
+  /** Whether to enable button. */
+  disableButton?: boolean;
+  /** Sets the button and prompt language. Default is "en". */
+  lang?: string;
+  /** Whether to force the specified lang in iframes. */
+  forceLangInIframes?: boolean;
+  /** "Light" or "dark". Default is "light". */
+  theme?: ClientTheme;
+  /** Whether to allow scrolling. */
+  allowScroll?: boolean;
 }
 
 export interface LoginRequest {

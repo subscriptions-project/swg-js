@@ -486,21 +486,27 @@ export function defaultConfig(): Config {
   };
 }
 
-/**
- * Properties:
- * - skus - a list of SKUs to return from the defined or default list. The
- *   order is preserved. Required if oldSku is specified (to indicate which
- *   SKUs the user can upgrade or downgrade to).
- * - list - a predefined list of SKUs. Use of this property is uncommon.
- *   Possible values are "default" and "amp". Default is "default".
- * - isClosable - a boolean value to determine whether the view is closable.
- * - oldSku - Optional. The SKU to replace. For example, if a user wants to
- *   upgrade or downgrade their current subscription.
- */
 export interface OffersRequest {
+  /**
+   * A list of SKUs to return from the defined or default list. The
+   * order is preserved. Required if oldSku is specified (to indicate which
+   * SKUs the user can upgrade or downgrade to).
+   */
   skus?: string[];
+
+  /**
+   * A predefined list of SKUs. Use of this property is uncommon.
+   * Possible values are "default" and "amp". Default is "default".
+   */
   list?: string;
+
+  /** A boolean value to determine whether the view is closable. */
   isClosable?: boolean;
+
+  /**
+   * Optional. The SKU to replace. For example, if a user wants to
+   * upgrade or downgrade their current subscription.
+   */
   oldSku?: string;
 }
 
@@ -526,45 +532,42 @@ export type SaveSubscriptionRequestCallback = () =>
   | Promise<SaveSubscriptionRequest>
   | SaveSubscriptionRequest;
 
-/**
- * Properties:
- * - lang: Sets the button SVG and title. Default is "en".
- * - theme: "light" or "dark". Default is "light".
- * - disable: whether to grey out the button.
- */
 export interface ButtonOptions {
+  /** Sets the button SVG and title. Default is "en". */
   theme?: string;
+  /** "Light" or "dark". Default is "light". */
   lang?: string;
+  /** Whether to grey out the button. */
   disable?: boolean;
 }
 
-/**
- * Properties:
- * - lang: Sets the button SVG and title. Default is "en".
- * - theme: "light" or "dark". Default is "light".
- * - messageTextColor: Overrides theme color for message text. (ex: "#09f")
- */
 export interface SmartButtonOptions {
+  /** Sets the button SVG and title. Default is "en". */
   theme?: string;
+  /** "Light" or "dark". Default is "light". */
   lang?: string;
+  /** Overrides theme color for message text. (ex: "#09f") */
   messageTextColor?: string;
 }
 
-/**
- * Properties:
- * - sku: Required. Sku to add to the user's subscriptions.
- * - oldSku: Optional. This is if you want to replace one sku with another. For
- *  example, if a user wants to upgrade or downgrade their current subscription.
- * - prorationMode: Optional. When replacing a subscription you can decide on a
- *  specific proration mode to charge the user.
- *  The default is IMMEDIATE_WITH_TIME_PRORATION.
- * - oneTime: Optional. When a user chooses a contribution, they have the option
- *  to make it non-recurring.
- */
 export interface SubscriptionRequest {
+  /** Required. Sku to add to the user's subscriptions. */
   skuId: string;
+  /**
+   * Optional. This is if you want to replace one sku with another. For
+   * example, if a user wants to upgrade or downgrade their current subscription.
+   */
   oldSku?: string;
+  /**
+   * Optional. When replacing a subscription you can decide on a
+   * specific proration mode to charge the user.
+   * The default is IMMEDIATE_WITH_TIME_PRORATION.
+   */
   replaceSkuProrationMode?: ReplaceSkuProrationMode;
+  /**
+   * Optional. When a user chooses a contribution, they have the option
+   * to make it non-recurring.
+   */
   oneTime?: boolean;
 }
 
