@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Doc, resolveDoc} from './doc'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import {Doc, resolveDoc} from './doc';
 import {createElement} from '../utils/dom';
 import {tryParseJson} from '../utils/json';
 
@@ -26,25 +26,19 @@ import {tryParseJson} from '../utils/json';
  * precedence.
  */
 export class PageConfigWriter {
-  /**
-   * @param {!Window|!Document|!Doc} winOrDoc
-   */
-  constructor(winOrDoc) {
-    /** @private @const {!Doc} */
+  private readonly doc_: Doc;
+  private markupValues_: {
+    type: string | string[];
+    isAccessibleForFree: boolean;
+    isPartOfType: string | string[];
+    isPartOfProductId: string;
+  } | null = null;
+  private configWrittenResolver_: (() => void) | null = null;
+  private readonly configWrittenPromise_: Promise<void>;
+
+  constructor(winOrDoc: Window | Document | Doc) {
     this.doc_ = resolveDoc(winOrDoc);
 
-    /** @private {?{
-     *   type: (string|!Array<string>),
-     *   isAccessibleForFree: boolean,
-     *   isPartOfType: (string|!Array<string>),
-     *   isPartOfProductId: string,
-     * }} */
-    this.markupValues_ = null;
-
-    /** @private {?function()} */
-    this.configWrittenResolver_ = null;
-
-    /** @private @const {!Promise} */
     this.configWrittenPromise_ = new Promise((resolve) => {
       this.configWrittenResolver_ = resolve;
     });
@@ -52,14 +46,13 @@ export class PageConfigWriter {
 
   /**
    * Writes the markup to the DOM, when ready.
-   * @param {{
-   *   type: (string|!Array<string>),
-   *   isAccessibleForFree: boolean,
-   *   isPartOfType: (string|!Array<string>),
-   *   isPartOfProductId: string,
-   * }} markupValues
-   * @return {!Promise} */
-  writeConfigWhenReady(markupValues) {
+   */
+  writeConfigWhenReady(markupValues: {
+    type: string | Array<string>;
+    isAccessibleForFree: boolean;
+    isPartOfType: string | Array<string>;
+    isPartOfProductId: string;
+  }): Promise<void> {
     this.markupValues_ = markupValues;
     this.doc_.whenReady().then(() => {
       this.writeConfig_();
@@ -68,7 +61,7 @@ export class PageConfigWriter {
   }
 
   /** Parses the DOM and modifies it to include the new markup values. */
-  writeConfig_() {
+  private writeConfig_() {
     // Already resolved.
     if (!this.configWrittenResolver_) {
       return;
@@ -76,13 +69,13 @@ export class PageConfigWriter {
 
     // Create the markup object according to values specified in the parameters.
     const isPartOfObj = {
-      'productID': this.markupValues_.isPartOfProductId,
-      '@type': this.markupValues_.isPartOfType,
+      'productID': this.markupValues_?.isPartOfProductId,
+      '@type': this.markupValues_?.isPartOfType,
     };
     const obj = {
       '@context': 'http://schema.org',
-      '@type': this.markupValues_.type,
-      'isAccessibleForFree': this.markupValues_.isAccessibleForFree,
+      '@type': this.markupValues_?.type,
+      'isAccessibleForFree': this.markupValues_?.isAccessibleForFree,
       'isPartOf': isPartOfObj,
     };
 
@@ -110,19 +103,19 @@ export class PageConfigWriter {
         // existing values
         possibleConfig['@type'] = this.merge_(
           possibleConfig['@type'],
-          this.markupValues_.type
+          this.markupValues_?.type
         );
         possibleConfig['isAccessibleForFree'] =
           possibleConfig['isAccessibleForFree'] ||
-          this.markupValues_.isAccessibleForFree;
+          this.markupValues_?.isAccessibleForFree;
         if (possibleConfig['isPartOf']) {
           possibleConfig['isPartOf']['@type'] = this.merge_(
             possibleConfig['isPartOf']['@type'],
-            this.markupValues_.isPartOfType
+            this.markupValues_?.isPartOfType
           );
           possibleConfig['isPartOf']['productID'] =
             possibleConfig['isPartOf']['productID'] ||
-            this.markupValues_.isPartOfProductId;
+            this.markupValues_?.isPartOfProductId;
         } else {
           possibleConfig['isPartOf'] = isPartOfObj;
         }
@@ -142,18 +135,15 @@ export class PageConfigWriter {
       {'type': 'application/ld+json'},
       JSON.stringify(obj)
     );
-    this.doc_.getHead().appendChild(element);
+    this.doc_.getHead()?.appendChild(element);
     this.configWrittenResolver_();
     this.configWrittenResolver_ = null;
   }
 
-  /*
-   * @param {?Array|string} valueOne
-   * @param {?Array|string} valueTwo
-   * @return {Array|string}
-   * @private
-   */
-  merge_(valueOne, valueTwo) {
+  private merge_(
+    valueOne?: string | string[] | null,
+    valueTwo?: string | string[] | null
+  ): string | string[] | null | undefined {
     if (!valueOne && !valueTwo) {
       return [];
     }
@@ -164,8 +154,7 @@ export class PageConfigWriter {
       return valueOne;
     }
 
-    /** @type {Array} */
-    const arrayOne = this.toArray_(valueOne);
+    const arrayOne: Array<string> = this.toArray_(valueOne);
     const arrayTwo = this.toArray_(valueTwo);
     const mergedArray = arrayOne.concat(
       arrayTwo.filter((item) => arrayOne.indexOf(item) < 0)
@@ -176,12 +165,7 @@ export class PageConfigWriter {
     return mergedArray;
   }
 
-  /*
-   * @param {?Array|string} value
-   * @return {Array}
-   * @private
-   */
-  toArray_(value) {
+  private toArray_(value: string | string[]): string[] {
     return Array.isArray(value) ? value : [value];
   }
 }
