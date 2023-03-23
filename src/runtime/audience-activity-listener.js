@@ -24,21 +24,28 @@ import {serviceUrl} from './services';
 
 /** @const {!Set<!AnalyticsEvent>} */
 const audienceActivityLoggingEvents = new Set([
-  AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
-  AnalyticsEvent.IMPRESSION_PAGE_LOAD,
-  AnalyticsEvent.IMPRESSION_PAYWALL,
-  AnalyticsEvent.IMPRESSION_OFFERS,
-  AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
-  AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+  // Keep sorted
+  AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED,
+  AnalyticsEvent.ACTION_NEWSLETTER_ALREADY_OPTED_IN_CLICK,
+  AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
   AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
   AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
-  AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED,
-  AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
   AnalyticsEvent.ACTION_REGWALL_ALREADY_OPTED_IN_CLICK,
-  AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
-  AnalyticsEvent.ACTION_NEWSLETTER_ALREADY_OPTED_IN_CLICK,
-  AnalyticsEvent.EVENT_REGWALL_OPTED_IN,
+  AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
+  AnalyticsEvent.ACTION_SURVEY_CLOSED,
+  AnalyticsEvent.ACTION_SURVEY_NEXT_BUTTON_CLICK,
+  AnalyticsEvent.ACTION_SURVEY_PREVIOUS_BUTTON_CLICK,
+  AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
   AnalyticsEvent.EVENT_NEWSLETTER_OPTED_IN,
+  AnalyticsEvent.EVENT_REGWALL_OPTED_IN,
+  AnalyticsEvent.EVENT_SURVEY_SUBMITTED,
+  AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+  AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+  AnalyticsEvent.IMPRESSION_OFFERS,
+  AnalyticsEvent.IMPRESSION_PAGE_LOAD,
+  AnalyticsEvent.IMPRESSION_PAYWALL,
+  AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+  AnalyticsEvent.IMPRESSION_SURVEY,
 ]);
 
 export class AudienceActivityEventListener {
