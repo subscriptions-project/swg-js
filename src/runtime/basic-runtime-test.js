@@ -22,11 +22,7 @@ import {
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
-import {
-  AutoPromptType,
-  BasicSubscriptions,
-  ClientTheme,
-} from '../api/basic-subscriptions';
+import {AutoPromptType, ClientTheme} from '../api/basic-subscriptions';
 import {
   BasicRuntime,
   ConfiguredBasicRuntime,
@@ -105,6 +101,7 @@ describes.realWin('installBasicRuntime', (env) => {
     expect(getBasicRuntime()).to.equal(runtime1);
   });
 
+  // TODO(b/274686315): Delete this test after the TypeScript migration.
   it('should implement BasicSubscriptions interface', async () => {
     const promise = new Promise((resolve) => {
       dep(resolve);
@@ -112,9 +109,16 @@ describes.realWin('installBasicRuntime', (env) => {
     installBasicRuntime(win);
 
     const basicSubscriptions = await promise;
-    const keys = Object.getOwnPropertyNames(BasicSubscriptions.prototype);
+    const keys = [
+      'init',
+      'setOnEntitlementsResponse',
+      'setOnPaymentResponse',
+      'setOnLoginRequest',
+      'setupAndShowAutoPrompt',
+      'dismissSwgUI',
+    ];
     for (const key of keys) {
-      expect(basicSubscriptions[key]).to.exist;
+      expect(basicSubscriptions).to.have.property(key);
     }
   });
 
@@ -154,22 +158,6 @@ describes.realWin('installBasicRuntime', (env) => {
     await getBasicRuntime().whenReady();
     await getBasicRuntime().whenReady();
     expect(progress).to.equal('123');
-  });
-
-  it('should implement all APIs', async () => {
-    installBasicRuntime(win);
-
-    const basicSubscriptions = await new Promise((resolve) => {
-      dep(resolve);
-    });
-
-    const names = Object.getOwnPropertyNames(BasicSubscriptions.prototype);
-    for (const name of names) {
-      if (name == 'constructor') {
-        continue;
-      }
-      expect(basicSubscriptions).to.have.property(name);
-    }
   });
 });
 
