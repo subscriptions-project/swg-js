@@ -14,62 +14,24 @@
  * limitations under the License.
  */
 
-import {Entitlements as EntitlementsDef} from './entitlements';
-import {UserData as UserDataDef} from './user-data';
+import {Entitlements} from './entitlements';
+import {UserData} from './user-data';
 
-/**
- */
 export class SubscribeResponse {
-  /**
-   * @param {string} raw
-   * @param {!PurchaseData} purchaseData
-   * @param {?UserDataDef} userData
-   * @param {?EntitlementsDef} entitlements
-   * @param {!string} productType
-   * @param {function():!Promise} completeHandler
-   * @param {?string=} oldSku
-   * @param {?string=} swgUserToken
-   * @param {?number=} paymentRecurrence
-   * @param {?Object=} requestMetadata
-   */
   constructor(
-    raw,
-    purchaseData,
-    userData,
-    entitlements,
-    productType,
-    completeHandler,
-    oldSku = null,
-    swgUserToken = null,
-    paymentRecurrence = null,
-    requestMetadata = null
-  ) {
-    /** @const {string} */
-    this.raw = raw;
-    /** @const {!PurchaseData} */
-    this.purchaseData = purchaseData;
-    /** @const {?UserDataDef} */
-    this.userData = userData;
-    /** @const {?EntitlementsDef} */
-    this.entitlements = entitlements;
-    /** @const {string} */
-    this.productType = productType;
-    /** @private @const {function():!Promise} */
-    this.completeHandler_ = completeHandler;
-    /** @const {?string} */
-    this.oldSku = oldSku;
-    /** @const {?string} */
-    this.swgUserToken = swgUserToken;
-    /** @const {?number} */
-    this.paymentRecurrence = paymentRecurrence;
-    /** @const {?Object} */
-    this.requestMetadata = requestMetadata;
-  }
+    readonly raw: string,
+    readonly purchaseData: PurchaseData,
+    readonly userData: UserData | null,
+    readonly entitlements: Entitlements | null,
+    readonly productType: string,
+    private readonly completeHandler_: () => Promise<void>,
+    readonly oldSku: string | null = null,
+    readonly swgUserToken: string | null = null,
+    readonly paymentRecurrence: number | null = null,
+    readonly requestMetadata: unknown | null = null
+  ) {}
 
-  /**
-   * @return {!SubscribeResponse}
-   */
-  clone() {
+  clone(): SubscribeResponse {
     return new SubscribeResponse(
       this.raw,
       this.purchaseData,
@@ -82,9 +44,6 @@ export class SubscribeResponse {
     );
   }
 
-  /**
-   * @return {!Object}
-   */
   json() {
     return {
       'purchaseData': this.purchaseData.json(),
@@ -106,40 +65,23 @@ export class SubscribeResponse {
    * upon receiving this call will show the confirmation to the user.
    * The promise returned by this method will yield once the user closes
    * the confirmation.
-   *
-   * @return {!Promise}
    */
-  complete() {
+  complete(): Promise<void> {
     return this.completeHandler_();
   }
 }
 
-/**
- */
 export class PurchaseData {
-  /**
-   * @param {string} raw
-   * @param {string} signature
-   */
-  constructor(raw, signature) {
-    /** @const {string} */
-    this.raw = raw;
-    /** @const {string} */
+  readonly data: string;
+
+  constructor(readonly raw: string, readonly signature: string) {
     this.data = raw;
-    /** @const {string} */
-    this.signature = signature;
   }
 
-  /**
-   * @return {!PurchaseData}
-   */
-  clone() {
+  clone(): PurchaseData {
     return new PurchaseData(this.raw, this.signature);
   }
 
-  /**
-   * @return {!Object}
-   */
   json() {
     return {
       'data': this.raw,
