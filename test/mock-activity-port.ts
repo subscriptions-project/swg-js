@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import {ActivityPort as ActivityPortDef} from '../src/components/activities';
-
 /**
  * This mock exists for unit tests.
- * @implements {ActivityPortDef}
  */
 export class MockActivityPort {
   getMode() {}

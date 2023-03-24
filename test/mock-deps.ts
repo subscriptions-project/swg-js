@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import {DepsDef} from '../src/runtime/deps';
-
 /**
  * This mock exists for unit tests.
- * @implements {DepsDef}
  */
 export class MockDeps {
   doc() {}
