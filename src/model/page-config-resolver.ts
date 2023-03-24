@@ -351,7 +351,6 @@ class MicrodataParser {
    * - not a child of an item of any other type
    * - not seen before, marked using the alreadySeen tag
    * @param current the element to be verified.
-   * @param root the parent to track up to.
    * @param alreadySeenAttribute used to tag already visited nodes.
    * @return Whether the node is valid.
    */
