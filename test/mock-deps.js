@@ -1,8 +1,8 @@
-import {DepsDep} from '../src/runtime/deps';
+import {DepsDef} from '../src/runtime/deps';
 
 /**
  * This mock exists for unit tests.
- * @implements {DepsDep}
+ * @implements {DepsDef}
  */
 export class MockDeps {
   doc() {}

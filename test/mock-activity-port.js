@@ -1,8 +1,8 @@
-import {ActivityPort} from '../src/components/activities';
+import {ActivityPort as ActivityPortDef} from '../src/components/activities';
 
 /**
  * This mock exists for unit tests.
- * @implements {ActivityPort}
+ * @implements {ActivityPortDef}
  */
 export class MockActivityPort {
   getMode() {}

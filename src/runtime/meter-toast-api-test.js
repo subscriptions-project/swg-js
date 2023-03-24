@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
