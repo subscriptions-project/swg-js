@@ -14,78 +14,51 @@
  * limitations under the License.
  */
 
-// TODO(b/274815354): Add typings in a followup TypeScript migration PR.
-export type DepsDef = any;
+import {ActivityPorts} from '../components/activities';
+import {Config} from '../api/subscriptions';
+import {DialogManager} from '../components/dialog-manager';
+import {Doc} from '../model/doc';
+import {JsError} from './jserror';
+import {PageConfig} from '../model/page-config';
 
-// /** @interface */
-// export class DepsDef {
-//   /**
-//    * @return {!../model/doc.Doc}
-//    */
-//   doc() {}
+export interface DepsDef {
+  doc(): Doc;
 
-//   /**
-//    * @return {!Window}
-//    */
-//   win() {}
+  win(): Window;
 
-//   /**
-//    * @return {!../api/subscriptions.Config}
-//    */
-//   config() {}
+  config(): Config;
 
-//   /**
-//    * @return {!../model/page-config.PageConfig}
-//    */
-//   pageConfig() {}
+  pageConfig(): PageConfig;
 
-//   /**
-//    * @return {!../components/activities.ActivityPorts}
-//    */
-//   activities() {}
+  activities(): ActivityPorts;
 
-//   /**
-//    * @return {!./pay-client.PayClient}
-//    */
-//   payClient() {}
+  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
+  // {!./pay-client.PayClient}
+  payClient(): any;
 
-//   /**
-//    * @return {!../components/dialog-manager.DialogManager}
-//    */
-//   dialogManager() {}
+  dialogManager(): DialogManager;
 
-//   /**
-//    * @return {!./entitlements-manager.EntitlementsManager}
-//    */
-//   entitlementsManager() {}
+  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
+  // {!./entitlements-manager.EntitlementsManager}
+  entitlementsManager(): any;
 
-//   /**
-//    * @return {!./callbacks.Callbacks}
-//    */
-//   callbacks() {}
+  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
+  // {!./callbacks.Callbacks}
+  callbacks(): any;
 
-//   /**
-//    * @return {!../runtime/storage.Storage}
-//    */
-//   storage() {}
+  storage(): Storage;
 
-//   /**
-//    * @return {!../runtime/analytics-service.AnalyticsService}
-//    */
-//   analytics() {}
+  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
+  // {!../runtime/analytics-service.AnalyticsService}
+  analytics(): any;
 
-//   /**
-//    * @return {!../runtime/jserror.JsError}
-//    */
-//   jserror() {}
+  jserror(): JsError;
 
-//   /**
-//    * @return {!../runtime/client-event-manager.ClientEventManager}
-//    */
-//   eventManager() {}
+  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
+  // {!../runtime/client-event-manager.ClientEventManager}
+  eventManager(): any;
 
-//   /**
-//    * @return {!../runtime/client-config-manager.ClientConfigManager}
-//    */
-//   clientConfigManager() {}
-// }
+  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
+  // {!../runtime/client-config-manager.ClientConfigManager}
+  clientConfigManager(): any;
+}
