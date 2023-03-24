@@ -26,12 +26,12 @@ import {Constants} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
 
 import {
-  ActivityIframePort as WebActivityIframePort,
   ActivityMode,
   ActivityOpenOptions,
+  ActivityResult,
+  ActivityIframePort as WebActivityIframePort,
   ActivityPort as WebActivityPort,
   ActivityPorts as WebActivityPorts,
-  ActivityResult,
 } from 'web-activities/activity-ports';
 import {DepsDef} from '../runtime/deps';
 
