@@ -50,7 +50,7 @@ function payUrl() {
  */
 export class PayClient {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
     /** @private @const {!Window} */

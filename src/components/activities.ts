@@ -33,7 +33,7 @@ import {
   ActivityPort as WebActivityPort,
   ActivityPorts as WebActivityPorts,
 } from 'web-activities/activity-ports';
-import {DepsDef} from '../runtime/deps';
+import {Deps} from '../runtime/deps';
 
 export interface ActivityPortDef {
   acceptResult(): Promise<ActivityResult>;
@@ -106,7 +106,7 @@ export class ActivityIframePort implements ActivityPortDef {
   constructor(
     iframe: HTMLIFrameElement,
     url: string,
-    private readonly deps_: DepsDef,
+    private readonly deps_: Deps,
     args?: unknown
   ) {
     this.iframePort_ = new WebActivityIframePort(iframe, url, args);
@@ -221,7 +221,7 @@ export class ActivityIframePort implements ActivityPortDef {
 export class ActivityPorts {
   activityPorts_: WebActivityPorts;
 
-  constructor(private readonly deps_: DepsDef) {
+  constructor(private readonly deps_: Deps) {
     this.activityPorts_ = new WebActivityPorts(deps_.win());
   }
 

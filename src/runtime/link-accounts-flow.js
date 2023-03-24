@@ -33,10 +33,10 @@ const LINK_REQUEST_ID = 'swg-link';
  */
 export class LinkbackFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../components/activities.ActivityPorts} */
@@ -84,7 +84,7 @@ export class LinkbackFlow {
  */
 export class LinkCompleteFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   static configurePending(deps) {
     /**
@@ -136,11 +136,11 @@ export class LinkCompleteFlow {
   }
 
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {?Object} response
    */
   constructor(deps, response) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */
@@ -267,14 +267,14 @@ export class LinkCompleteFlow {
  */
 export class LinkSaveFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!../api/subscriptions.SaveSubscriptionRequestCallback} callback
    */
   constructor(deps, callback) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../components/activities.ActivityPorts} */

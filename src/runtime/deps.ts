@@ -21,7 +21,7 @@ import {Doc} from '../model/doc';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 
-export interface DepsDef {
+export interface Deps {
   doc(): Doc;
 
   win(): Window;

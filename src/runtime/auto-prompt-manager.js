@@ -55,11 +55,11 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
  */
 export class AutoPromptManager {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!./runtime.ConfiguredRuntime} configuredRuntime
    */
   constructor(deps, configuredRuntime) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../model/doc.Doc} */
@@ -112,7 +112,7 @@ export class AutoPromptManager {
    * Returns an instance of MiniPromptApi. Can be overwridden by subclasses,
    * such as in order to instantiate a different implementation of
    * MiniPromptApi.
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @return {!MiniPromptApi}
    * @protected
    */

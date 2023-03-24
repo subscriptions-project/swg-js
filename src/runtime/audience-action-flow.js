@@ -78,11 +78,11 @@ const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
  */
 export class AudienceActionFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!AudienceActionParams} params
    */
   constructor(deps, params) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!AudienceActionParams} */
