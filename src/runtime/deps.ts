@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// TODO(b/274815354): Add typings when possible.
+// TODO(b/274815354): Add typings in a followup TypeScript migration PR.
 export type DepsDef = any;
 
 // /** @interface */
