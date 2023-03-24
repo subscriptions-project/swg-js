@@ -103,21 +103,6 @@ declare module 'web-activities/activity-ports' {
    * to size requests.
    */
   export class ActivityIframePort {
-    private readonly win_: Window;
-    private readonly targetOrigin_: string;
-    private connected_: boolean;
-    private connectedResolver_: (() => void) | null;
-    private readonly connectedPromise_: Promise<void>;
-    private readyResolver_: (() => void) | null;
-    private readonly readyPromise_: Promise<void>;
-    private resultResolver_:
-      | ((result: ActivityResult | Promise<ActivityResult>) => void)
-      | null;
-    private readonly resultPromise_: Promise<ActivityResult>;
-    private onResizeRequest_: ((size: number) => void) | null;
-    private requestedHeight_: number | null;
-    private readonly messenger_: Messenger;
-
     constructor(
       private readonly iframe_: HTMLIFrameElement,
       private readonly url_: string,
@@ -163,8 +148,6 @@ declare module 'web-activities/activity-ports' {
      * the activity's size.
      */
     resized(): void;
-
-    private handleCommand_(cmd: string, payload: object | null): void;
   }
 
   /**
@@ -174,13 +157,6 @@ declare module 'web-activities/activity-ports' {
    */
   class ActivityPorts {
     readonly version: string;
-    private readonly fragment_: string;
-    private readonly requestHandlers_: {
-      [key: string]: ((port: ActivityPort) => void)[];
-    };
-    /** The result buffer is indexed by `requestId`. */
-    private readonly resultBuffer_: {[key: string]: ActivityPort};
-    private redirectErrorResolver_: (error: Error) => void | null;
     redirectErrorPromise_: Promise<Error>;
 
     constructor(private readonly win_: Window);
@@ -265,23 +241,6 @@ declare module 'web-activities/activity-ports' {
     onResult(requestId: string, callback: (port: ActivityPort) => void);
 
     onRedirectError(handler: (error: Error) => void);
-
-    private openWin_(
-      requestId: string,
-      url: string,
-      target: string,
-      opt_args?: object | null,
-      opt_options?: ActivityOpenOptions | null
-    ): unknown;
-
-    private discoverResult_(requestId: string): ActivityPort | null;
-
-    private consumeResult_(
-      port: ActivityPort,
-      callback: (port: ActivityPort) => void
-    ): void;
-
-    private consumeResultAll_(requestId: string, port: ActivityPort): void;
   }
 
   /**
