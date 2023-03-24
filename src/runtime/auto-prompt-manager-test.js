@@ -24,13 +24,13 @@ import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants, StorageKeys} from '../utils/constants';
-import {DepsDef} from './deps';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
+import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {setExperiment} from './experiments';
@@ -76,7 +76,7 @@ describes.realWin('AutoPromptManager', (env) => {
   const pubId = 'pub1';
 
   beforeEach(() => {
-    deps = new DepsDef();
+    deps = new MockDeps();
 
     sandbox.useFakeTimers(CURRENT_TIME);
     win = Object.assign({}, env.win, {gtag: () => {}, ga: () => {}});

@@ -281,7 +281,7 @@ export class BasicRuntime {
 
 /**
  * @implements  {../api/basic-subscriptions.BasicSubscriptions}
- * @implements {./deps.DepsDef}
+ * @implements {./deps.Deps}
  */
 export class ConfiguredBasicRuntime {
   /**

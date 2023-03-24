@@ -75,12 +75,12 @@ export class Intervention {
 export class AvailableIntervention extends Intervention {
   /**
    * @param {Intervention} original
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(original, deps) {
     super();
     Object.assign(this, original);
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
   }
   /**
@@ -125,7 +125,7 @@ export class EntitlementsManager {
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!./fetcher.Fetcher} fetcher
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!boolean} useArticleEndpoint
    * @param {!boolean} enableDefaultMeteringHandler
    */
@@ -149,7 +149,7 @@ export class EntitlementsManager {
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!JwtHelper} */

@@ -15,7 +15,6 @@
  */
 
 import {AbbrvOfferFlow, OffersFlow, SubscribeOptionFlow} from './offers-flow';
-import {ActivityPort} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {
   AlreadySubscribedResponse,
@@ -28,6 +27,7 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType} from '../api/subscriptions';
@@ -63,7 +63,7 @@ describes.realWin('OffersFlow', (env) => {
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     offersFlow = new OffersFlow(runtime, {'isClosable': false});
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
@@ -597,7 +597,7 @@ describes.realWin('SubscribeOptionFlow', (env) => {
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     subscribeOptionFlow = new SubscribeOptionFlow(runtime);
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     sandbox.stub(port, 'on').callsFake((ctor, callback) => {
@@ -779,7 +779,7 @@ describes.realWin('AbbrvOfferFlow', (env) => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     abbrvOfferFlow = new AbbrvOfferFlow(runtime);
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.acceptResult = () => Promise.resolve();
     port.whenReady = () => Promise.resolve();

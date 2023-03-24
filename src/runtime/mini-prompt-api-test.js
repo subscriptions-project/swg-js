@@ -18,10 +18,10 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType, ClientTheme} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {DepsDef} from './deps';
 import {Fetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
+import {MockDeps} from '../../test/mock-deps';
 
 describes.realWin('MiniPromptApi', (env) => {
   let miniPromptApi;
@@ -34,7 +34,7 @@ describes.realWin('MiniPromptApi', (env) => {
   let clickCallbackSpy;
 
   beforeEach(() => {
-    deps = new DepsDef();
+    deps = new MockDeps();
 
     doc = env.win.document;
     gd = new GlobalDoc(env.win);

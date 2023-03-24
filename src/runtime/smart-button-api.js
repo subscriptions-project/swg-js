@@ -38,13 +38,13 @@ export const Theme = {
  */
 export class SmartSubscriptionButtonApi {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!Element} button
    * @param {!../api/subscriptions.SmartButtonOptions} options
    * @param {function(!Event=)=} callback
    */
   constructor(deps, button, options, callback) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */
