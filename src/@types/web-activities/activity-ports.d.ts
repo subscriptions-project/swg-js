@@ -19,9 +19,6 @@
  */
 
 declare module 'web-activities/activity-ports' {
-  export interface ActivityResult {}
-  export interface Messenger {}
-
   /**
    * Activity client-side binding. The port provides limited ways to communicate
    * with the activity and receive signals and results from it. Not every type
@@ -277,4 +274,25 @@ declare module 'web-activities/activity-ports' {
 
     private consumeResultAll_(requestId: string, port: ActivityPort): void;
   }
+
+  /**
+   * The result of an activity. The activity implementation returns this object
+   * for a successful result, a cancelation or a failure.
+   */
+  export interface ActivityResult {
+    readonly ok: boolean;
+    readonly error: Error | null;
+
+    constructor(
+      readonly code: ActivityResultCode,
+      readonly data: unknown,
+      readonly mode: ActivityMode,
+      readonly origin: string,
+      readonly originVerified: boolean,
+      readonly secureChannel: boolean
+    );
+  }
+
+  /** Not currently needed in Swgjs' TypeScript. */
+  export interface Messenger {}
 }
