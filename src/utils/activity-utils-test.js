@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActivityPortDef} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
@@ -41,10 +42,7 @@ describes.sandboxed('acceptPortResultData', () => {
   let port;
 
   beforeEach(() => {
-    // Mock an activity port.
-    port = {
-      acceptResult() {},
-    };
+    port = new ActivityPortDef();
   });
 
   function result(code, dataOrError, origin, originVerified, secureChannel) {
