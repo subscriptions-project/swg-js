@@ -18,6 +18,7 @@ import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientTheme} from '../api/basic-subscriptions';
+import {DepsDef} from './deps';
 import {Fetcher} from './fetcher';
 
 describes.realWin('ClientConfigManager', () => {
@@ -29,7 +30,7 @@ describes.realWin('ClientConfigManager', () => {
   let entitlementsManagerMock;
 
   beforeEach(() => {
-    deps = {entitlementsManager: () => {}};
+    deps = new DepsDef();
     fetcher = new Fetcher();
     fetcherMock = sandbox.mock(fetcher);
     depsMock = sandbox.mock(deps);

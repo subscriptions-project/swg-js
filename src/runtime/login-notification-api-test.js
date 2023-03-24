@@ -39,16 +39,15 @@ describes.realWin('LoginNotificationApi', (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    port = new ActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
     loginNotificationApi = new LoginNotificationApi(runtime);
     resultResolver = null;
     const resultPromise = new Promise((resolve) => {
       resultResolver = resolve;
     });
-    port = {
-      acceptResult: () => resultPromise,
-      onResizeRequest: () => {},
-      whenReady: () => Promise.resolve(),
-    };
+    port.acceptResult = () => resultPromise;
   });
 
   afterEach(() => {
