@@ -34,31 +34,37 @@ export interface DepsDef {
 
   // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
   // {!./pay-client.PayClient}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payClient(): any;
 
   dialogManager(): DialogManager;
 
   // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
   // {!./entitlements-manager.EntitlementsManager}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entitlementsManager(): any;
 
   // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
   // {!./callbacks.Callbacks}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callbacks(): any;
 
   storage(): Storage;
 
   // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
   // {!../runtime/analytics-service.AnalyticsService}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   analytics(): any;
 
   jserror(): JsError;
 
   // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
   // {!../runtime/client-event-manager.ClientEventManager}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   eventManager(): any;
 
   // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
   // {!../runtime/client-config-manager.ClientConfigManager}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   clientConfigManager(): any;
 }
