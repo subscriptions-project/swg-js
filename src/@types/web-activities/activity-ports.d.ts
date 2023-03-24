@@ -89,6 +89,15 @@ declare module 'web-activities/activity-ports' {
   }
 
   /**
+   * The result code used for `ActivityResult`.
+   */
+  export enum ActivityResultCode {
+    OK = 'ok',
+    CANCELED = 'canceled',
+    FAILED = 'failed',
+  }
+
+  /**
    * The `ActivityPort` implementation for the iframe case. Unlike other types
    * of activities, iframe-based activities are always connected and can react
    * to size requests.
@@ -263,7 +272,7 @@ declare module 'web-activities/activity-ports' {
       target: string,
       opt_args?: object | null,
       opt_options?: ActivityOpenOptions | null
-    ): ActivityWindowPort;
+    ): unknown;
 
     private discoverResult_(requestId: string): ActivityPort | null;
 
@@ -291,6 +300,35 @@ declare module 'web-activities/activity-ports' {
       readonly originVerified: boolean,
       readonly secureChannel: boolean
     );
+  }
+
+  /**
+   * Activity client-side binding for messaging.
+   *
+   * Whether the host can or cannot receive a message depends on the type of
+   * host and its state. Ensure that the code has an alternative path if
+   * messaging is not available.
+   */
+  export interface ActivityMessagingPort {
+    /**
+     * Returns the target window where host is loaded. May be unavailable.
+     */
+    getTargetWin(): Window | null;
+
+    /**
+     * Sends a message to the host.
+     */
+    message(payload): unknown;
+
+    /**
+     * Registers a callback to receive messages from the host.
+     */
+    onMessage(callback): (data: unknown) => void;
+
+    /**
+     * Creates a new communication channel or returns an existing one.
+     */
+    messageChannel(name?: string): Promise<MessagePort>;
   }
 
   /** Not currently needed in Swgjs' TypeScript. */
