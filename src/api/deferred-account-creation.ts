@@ -14,50 +14,32 @@
  * limitations under the License.
  */
 
-import {Entitlements as EntitlementsDef} from './entitlements';
-import {PurchaseData as PurchaseDataDef} from './subscribe-response';
-import {UserData as UserDataDef} from './user-data';
+import {Entitlements} from './entitlements';
+import {PurchaseData} from './subscribe-response';
+import {UserData} from './user-data';
 
-/**
- * Properties:
- * - entitlements - the current entitlements.
- * - consent - whether to ask the user for account creation consent.
- *   Default is `true`.
- *
- * @typedef {{
- *   entitlements: (?EntitlementsDef|undefined),
- *   consent: (boolean|undefined),
- * }}
- */
-export let DeferredAccountCreationRequest;
+export interface DeferredAccountCreationRequest {
+  /** The current entitlements. */
+  entitlements?: Entitlements | null;
+  /** Whether to ask the user for account creation consent. Default is `true`. */
+  consent?: boolean;
+}
 
-/**
- */
 export class DeferredAccountCreationResponse {
-  /**
-   * @param {!EntitlementsDef} entitlements
-   * @param {!UserDataDef} userData
-   * @param {!Array<!PurchaseDataDef>} purchaseDataList
-   * @param {function():!Promise} completeHandler
-   */
-  constructor(entitlements, userData, purchaseDataList, completeHandler) {
-    /** @const {!EntitlementsDef} */
-    this.entitlements = entitlements;
-    /** @const {!UserDataDef} */
-    this.userData = userData;
-    /** @const {!Array<!PurchaseDataDef>} */
-    this.purchaseDataList = purchaseDataList;
+  // TODO(dvoytenko): deprecate.
+  purchaseData: PurchaseData;
+
+  constructor(
+    readonly entitlements: Entitlements,
+    readonly userData: UserData,
+    readonly purchaseDataList: Array<PurchaseData>,
+    private readonly completeHandler_: () => Promise<void>
+  ) {
     // TODO(dvoytenko): deprecate.
-    /** @const {!PurchaseDataDef} */
     this.purchaseData = purchaseDataList[0];
-    /** @private @const {function():!Promise} */
-    this.completeHandler_ = completeHandler;
   }
 
-  /**
-   * @return {!DeferredAccountCreationResponse}
-   */
-  clone() {
+  clone(): DeferredAccountCreationResponse {
     return new DeferredAccountCreationResponse(
       this.entitlements,
       this.userData,
@@ -66,9 +48,6 @@ export class DeferredAccountCreationResponse {
     );
   }
 
-  /**
-   * @return {!Object}
-   */
   json() {
     return {
       'entitlements': this.entitlements.json(),
@@ -89,10 +68,8 @@ export class DeferredAccountCreationResponse {
    * upon receiving this call will show the confirmation to the user.
    * The promise returned by this method will yield once the user closes
    * the confirmation.
-   *
-   * @return {!Promise}
    */
-  complete() {
+  complete(): Promise<void> {
     return this.completeHandler_();
   }
 }
