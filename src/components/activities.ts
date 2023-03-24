@@ -129,12 +129,11 @@ export class ActivityIframePort implements ActivityPortDef {
 
     // Attach a callback to receive messages after connection complete
     this.iframePort_.onMessage((data) => {
-      const response =
-        data && typeof data === 'object' && (data['RESPONSE'] as string[]);
+      const response = data?.['RESPONSE'];
       if (!response) {
         return;
       }
-      const cb = this.callbackMap_[response[0]];
+      const cb = this.callbackMap_[response[0] as string];
       if (cb) {
         const message = deserialize(response);
         cb(message);

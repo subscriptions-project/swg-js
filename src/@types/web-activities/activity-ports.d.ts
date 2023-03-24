@@ -133,7 +133,7 @@ declare module 'web-activities/activity-ports' {
 
     message(payload: unknown): void;
 
-    onMessage(callback: (message: unknown) => void): void;
+    onMessage(callback: (data: {'RESPONSE'?: unknown[]}) => void): void;
 
     messageChannel(opt_name?: string): Promise<MessagePort>;
 
