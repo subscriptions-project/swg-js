@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from '../runtime/runtime';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {Toast} from './toast';
 
@@ -42,7 +42,7 @@ describes.realWin('Toast', (env) => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     toast = new Toast(runtime, src, args);
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     iframe = toast.getElement();

@@ -35,7 +35,6 @@ import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
-import {DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {
   Entitlement,
@@ -45,6 +44,7 @@ import {
 } from '../api/entitlements';
 import {GlobalDoc} from '../model/doc';
 import {MeterClientTypes} from '../api/metering';
+import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {Toast} from '../ui/toast';
@@ -109,7 +109,7 @@ describes.realWin('EntitlementsManager', (env) => {
     eventManagerMock = sandbox.mock(eventManager);
     fetcherMock = sandbox.mock(fetcher);
     config = defaultConfig();
-    deps = new DepsDef();
+    deps = new MockDeps();
     sandbox.stub(deps, 'win').returns(win);
     const globalDoc = new GlobalDoc(win);
 

@@ -24,6 +24,7 @@ import {
   MeterToastApi,
 } from './meter-toast-api';
 import {MeterClientTypes} from '../api/metering';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {
   ToastCloseRequest,
@@ -84,7 +85,7 @@ describes.realWin('MeterToastApi', (env) => {
     sandbox.stub(meterToastApi, 'isMobile_').returns(isMobile);
     onConsumeCallbackFake = sandbox.fake();
     meterToastApi.setOnConsumeCallback(onConsumeCallbackFake);
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();

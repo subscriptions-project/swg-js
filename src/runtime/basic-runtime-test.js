@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as runtime from './runtime';
-import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
@@ -35,6 +34,7 @@ import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -407,7 +407,7 @@ describes.realWin('BasicRuntime', (env) => {
       await basicRuntime.processEntitlements();
       expect(handler).to.exist;
 
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.onResizeRequest = () => {};
       port.whenReady = () => Promise.resolve();
       const result = new ActivityResult(
@@ -770,7 +770,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should handle an EntitlementsResponse with jwt and usertoken', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {'jwt': 'abc', 'usertoken': 'xyz'};
@@ -807,7 +807,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should handle an empty EntitlementsResponse from subscription offers flow', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {}; // no data
@@ -836,7 +836,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should handle an empty EntitlementsResponse from contributions flow', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {}; // no data
@@ -865,7 +865,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should handle an empty EntitlementsResponse from audience action flow', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {}; // no data
@@ -903,7 +903,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should handle an empty EntitlementsResponse with no active flow', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {}; // no data

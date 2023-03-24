@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonApi} from './button-api';
 import {ConfiguredRuntime} from './runtime';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {Theme} from './smart-button-api';
 import {resolveDoc} from '../model/doc';
@@ -58,7 +58,7 @@ describes.realWin('ButtonApi', (env) => {
         events.push({eventType, isFromUserAction, params});
       });
     buttonApi = new ButtonApi(resolveDoc(doc), Promise.resolve(runtime));
-    port = new ActivityPort();
+    port = new MockActivityPort();
     handler = sandbox.spy();
     events = [];
   });
