@@ -22,11 +22,11 @@ const NO_PROMISE_ERR = 'No account promise provided';
 
 export class WaitForSubscriptionLookupApi {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {?Promise} accountPromise
    */
   constructor(deps, accountPromise) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */

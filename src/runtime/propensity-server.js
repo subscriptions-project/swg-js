@@ -32,13 +32,13 @@ export class PropensityServer {
    * is available, publication ID is therefore used
    * in constructor for the server interface.
    * @param {!Window} win
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!./fetcher.Fetcher} fetcher
    */
   constructor(win, deps, fetcher) {
     /** @private @const {!Window} */
     this.win_ = win;
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
     /** @private @const {string} */
     this.publicationId_ = this.deps_.pageConfig().getPublicationId();

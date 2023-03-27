@@ -51,11 +51,11 @@ const ALL_SKUS = '*';
  */
 export class OffersFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */
@@ -315,11 +315,11 @@ export class OffersFlow {
  */
 export class SubscribeOptionFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
@@ -411,11 +411,11 @@ export class SubscribeOptionFlow {
  */
 export class AbbrvOfferFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!../api/subscriptions.OffersRequest=} options
    */
   constructor(deps, options = {}) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../api/subscriptions.OffersRequest|undefined} */

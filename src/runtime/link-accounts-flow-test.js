@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
@@ -33,6 +32,7 @@ import {
   LinkSaveFlow,
   LinkbackFlow,
 } from './link-accounts-flow';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {createCancelError} from '../utils/errors';
 import {tick} from '../../test/tick';
@@ -206,7 +206,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.EVENT_LINK_ACCOUNT_SUCCESS);
 
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     const activityResultData = {'index': '1'};
@@ -264,7 +264,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     expect(triggerLinkCompleteSpy).to.not.be.called;
     expect(triggerFlowCancelSpy).to.not.be.called;
 
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () =>
@@ -303,7 +303,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     expect(triggerLinkCompleteSpy).to.not.be.called;
     expect(triggerFlowCancelSpy).to.not.be.called;
 
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.reject(new Error());
@@ -341,7 +341,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     it(description, async () => {
       dialogManagerMock.expects('popupClosed').once();
       linkCompleteFlow = new LinkCompleteFlow(runtime, activityResultData);
-      port = new ActivityPort();
+      port = new MockActivityPort();
       port.onResizeRequest = () => {};
       port.whenReady = () => Promise.resolve();
 
@@ -406,7 +406,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
 
   it('should trigger events and reset entitlements', async () => {
     dialogManagerMock.expects('popupClosed').once();
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
@@ -462,7 +462,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
 
   it('should push new entitlements when available', async () => {
     dialogManagerMock.expects('popupClosed').once();
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
@@ -545,7 +545,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
 
   it('should reset entitlements for unsuccessful response', async () => {
     dialogManagerMock.expects('popupClosed').once();
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
@@ -592,7 +592,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
       .exactly(1);
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
@@ -640,7 +640,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
       .expects('set')
       .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
       .throws(new Error('example error'));
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     let resultResolver;
@@ -712,7 +712,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       runtime.callbacks(),
       'triggerLinkProgress'
     );
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     messageMap = {};
     sandbox.stub(port, 'on').callsFake((ctor, cb) => {

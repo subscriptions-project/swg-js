@@ -43,14 +43,14 @@ const audienceActivityLoggingEvents = new Set([
 
 export class AudienceActivityEventListener {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!./fetcher.Fetcher} fetcher
    */
   constructor(deps, fetcher) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!./client-event-manager.ClientEventManager} */

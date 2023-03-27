@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {
   AlreadySubscribedResponse,
   EntitlementsResponse,
@@ -23,6 +22,7 @@ import {
 import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
 import {ContributionsFlow} from './contributions-flow';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {ProductType, SubscriptionFlows} from '../api/subscriptions';
@@ -47,7 +47,7 @@ describes.realWin('ContributionsFlow', (env) => {
     callbacksMock = sandbox.mock(runtime.callbacks());
     contributionsFlow = new ContributionsFlow(runtime, {'isClosable': true});
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();

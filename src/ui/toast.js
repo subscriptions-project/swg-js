@@ -42,7 +42,7 @@ const iframeAttributes = {
  */
 export class Toast {
   /**
-   * @param {!../runtime/deps.DepsDef} deps
+   * @param {!../runtime/deps.Deps} deps
    * @param {string} src
    * @param {?Object<string, ?>=} args
    */

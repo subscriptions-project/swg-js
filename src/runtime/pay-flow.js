@@ -86,7 +86,7 @@ function getEventParams(sku, subscriptionFlow = null) {
  */
 export class PayStartFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!../api/subscriptions.SubscriptionRequest} subscriptionRequest
    * @param {!../api/subscriptions.ProductType} productType
    */
@@ -95,7 +95,7 @@ export class PayStartFlow {
     subscriptionRequest,
     productType = ProductType.SUBSCRIPTION
   ) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!./pay-client.PayClient} */
@@ -216,7 +216,7 @@ export class PayStartFlow {
  */
 export class PayCompleteFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   static configurePending(deps) {
     /** @const @type {./client-event-manager.ClientEventManager} */
@@ -270,13 +270,13 @@ export class PayCompleteFlow {
   }
 
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
     /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../components/activities.ActivityPorts} */
@@ -468,7 +468,7 @@ export class PayCompleteFlow {
 PayCompleteFlow.waitingForPayClient_ = false;
 
 /**
- * @param {!./deps.DepsDef} deps
+ * @param {!./deps.Deps} deps
  * @param {!Promise<!Object>} payPromise
  * @param {function():!Promise} completeHandler
  * @return {!Promise<!SubscribeResponse>}
@@ -520,7 +520,7 @@ async function validatePayResponse(deps, payPromise, completeHandler) {
 }
 
 /**
- * @param {!./deps.DepsDef} deps
+ * @param {!./deps.Deps} deps
  * @param {*} data
  * @param {function():!Promise} completeHandler
  * @return {!SubscribeResponse}
@@ -611,7 +611,7 @@ export function parseUserData(swgData) {
 }
 
 /**
- * @param {!./deps.DepsDef} deps
+ * @param {!./deps.Deps} deps
  * @param {!Object} swgData
  * @return {?../api/entitlements.Entitlements}
  * @package Visible for testing.

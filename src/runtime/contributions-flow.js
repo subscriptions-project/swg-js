@@ -29,11 +29,11 @@ import {feArgs, feUrl} from './services';
  */
 export class ContributionsFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!../api/subscriptions.OffersRequest|undefined} options
    */
   constructor(deps, options) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../api/subscriptions.OffersRequest|undefined} */

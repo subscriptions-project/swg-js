@@ -27,13 +27,13 @@ import {warn} from '../utils/log';
  */
 export class ClientConfigManager {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {string} publicationId
    * @param {!./fetcher.Fetcher} fetcher
    * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
    */
   constructor(deps, publicationId, fetcher, clientOptions) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../api/basic-subscriptions.ClientOptions} */
