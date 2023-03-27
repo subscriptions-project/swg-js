@@ -158,13 +158,13 @@ function runLinter(filePath, stream, options) {
 }
 
 /**
- * Extracts the list of JS files in this PR from the commit log.
+ * Extracts the list of JS and TS files in this PR from the commit log.
  *
  * @return {!Array<string>}
  */
-function jsFilesChanged() {
+function scriptFilesChanged() {
   return gitDiffNameOnlyMain().filter((file) => {
-    return fs.existsSync(file) && path.extname(file) == '.js';
+    return fs.existsSync(file) && ['.js', '.ts'].includes(path.extname(file));
   });
 }
 
@@ -216,12 +216,12 @@ function lint() {
     !eslintRulesChanged() &&
     (process.env.LOCAL_PR_CHECK || args.local_changes)
   ) {
-    const jsFiles = jsFilesChanged();
-    if (jsFiles.length == 0) {
-      log(green('INFO: ') + 'No JS files in this PR');
+    const scriptFiles = scriptFilesChanged();
+    if (scriptFiles.length == 0) {
+      log(green('INFO: ') + 'No JS or TS files in this PR');
       return Promise.resolve();
     }
-    setFilesToLint(jsFiles);
+    setFilesToLint(scriptFiles);
   }
   const basePath = '.';
   const stream = initializeStream(config.lintGlobs, {base: basePath});
