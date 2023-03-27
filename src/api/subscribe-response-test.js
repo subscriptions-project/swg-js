@@ -27,14 +27,17 @@ function createObjectWithJsonMethod(jsonValue) {
 
 describes.realWin('SubscribeResponse', () => {
   describe('json', () => {
-    it('passes truthy `userData` and `entitlements` args', () => {
+    it('calls the `json` method of the `purchaseData`, `userData`, and `entitlements` args', () => {
       const subscribeResponse = new SubscribeResponse(
         DUMMY_VALUE,
-        DUMMY_OBJECT,
+        createObjectWithJsonMethod('...purchaseData...'),
         createObjectWithJsonMethod('...userData...'),
         createObjectWithJsonMethod('...entitlements...')
       );
 
+      expect(subscribeResponse.json().purchaseData).to.equal(
+        '...purchaseData...'
+      );
       expect(subscribeResponse.json().userData).to.equal('...userData...');
       expect(subscribeResponse.json().entitlements).to.equal(
         '...entitlements...'
