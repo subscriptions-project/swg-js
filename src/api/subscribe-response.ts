@@ -28,7 +28,7 @@ export class SubscribeResponse {
     readonly oldSku: string | null = null,
     readonly swgUserToken: string | null = null,
     readonly paymentRecurrence: number | null = null,
-    readonly requestMetadata: unknown | null = null
+    readonly requestMetadata: unknown = null
   ) {}
 
   clone(): SubscribeResponse {
