@@ -45,7 +45,7 @@ export class ActivityIframeView extends View {
     private readonly activityPorts_: ActivityPorts,
     private readonly src_: string,
     /** Additional data to be passed to the iframe. */
-    private readonly args_?: {[key: string]: string},
+    private readonly args_: {[key: string]: string} = {},
     private readonly shouldFadeBody_: boolean = false,
     private readonly hasLoadingIndicator_: boolean = false
   ) {
