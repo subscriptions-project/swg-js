@@ -14,26 +14,34 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {FilterResult} from '../api/client-event-manager-api';
+import {
+  AnalyticsEvent,
+  EventOriginator,
+  EventParams,
+} from '../proto/api_messages';
+import {
+  ClientEvent,
+  ClientEventManagerApi,
+  ClientEventParams,
+  FilterResult,
+} from '../api/client-event-manager-api';
 import {isBoolean, isEnumValue, isFunction, isObject} from '../utils/types';
 import {log} from '../utils/log';
 
 /**
  * Helper function to describe an issue with an event object
  * @param {!string} valueName
- * @param {?*} value
+ * @param {unknown} value
  * @returns {!string}
  */
-function createEventErrorMessage(valueName, value) {
+function createEventErrorMessage(valueName: string, value: unknown): string {
   return 'Event has an invalid ' + valueName + '(' + value + ')';
 }
 
 /**
  * Throws an error if the event is invalid.
- * @param {!../api/client-event-manager-api.ClientEvent} event
  */
-function validateEvent(event) {
+function validateEvent(event: ClientEvent) {
   if (!isObject(event)) {
     throw new Error('Event must be a valid object');
   }
@@ -67,73 +75,56 @@ function validateEvent(event) {
   }
 }
 
-/** @implements {../api/client-event-manager-api.ClientEventManagerApi} */
-export class ClientEventManager {
-  /**
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @return {boolean}
-   */
-  static isPublisherEvent(event) {
+export class ClientEventManager implements ClientEventManagerApi {
+  static isPublisherEvent(event: ClientEvent): boolean {
     return (
       event.eventOriginator === EventOriginator.PROPENSITY_CLIENT ||
       event.eventOriginator === EventOriginator.PUBLISHER_CLIENT
     );
   }
 
-  /**
-   *
-   * @param {!Promise} configuredPromise
-   */
-  constructor(configuredPromise) {
-    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent, (!../api/client-event-manager-api.ClientEventParams|undefined)=)>} */
-    this.listeners_ = [];
+  private listeners_: ((
+    clientEvent: ClientEvent,
+    params?: ClientEventParams
+  ) => void)[] = [];
+  private filterers_: ((clientEvent: ClientEvent) => FilterResult)[] = [];
 
-    /** @private {!Array<function(!../api/client-event-manager-api.ClientEvent):!FilterResult>} */
-    this.filterers_ = [];
+  /** Visible for testing. */
+  lastAction: Promise<void> | null = null;
 
-    /** @private {?Promise} */
-    this.lastAction_ = null;
+  constructor(private readonly isReadyPromise_: Promise<void>) {}
 
-    /** @private @const {!Promise} */
-    this.isReadyPromise_ = configuredPromise;
-  }
-
-  /**
-   * @overrides
-   */
-  registerEventListener(listener) {
+  registerEventListener(
+    listener: (
+      clientEvent: ClientEvent,
+      clientEventParams?: ClientEventParams
+    ) => void
+  ) {
     if (!isFunction(listener)) {
       throw new Error('Event manager listeners must be a function');
     }
     this.listeners_.push(listener);
   }
 
-  /**
-   * @overrides
-   */
-  registerEventFilterer(filterer) {
+  registerEventFilterer(filterer: (clientEvent: ClientEvent) => FilterResult) {
     if (!isFunction(filterer)) {
       throw new Error('Event manager filterers must be a function');
     }
     this.filterers_.push(filterer);
   }
 
-  /**
-   * @overrides
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
-   */
-  logEvent(event, eventParams = undefined) {
+  logEvent(event: ClientEvent, eventParams?: ClientEventParams) {
     validateEvent(event);
-    this.lastAction_ = this.handleEvent_(event, eventParams);
+    this.lastAction = this.handleEvent_(event, eventParams);
   }
 
   /**
    * Triggers event listeners, unless filterers cancel the event.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
-  async handleEvent_(event, eventParams = undefined) {
+  private async handleEvent_(
+    event: ClientEvent,
+    eventParams?: ClientEventParams
+  ) {
     await this.isReadyPromise_;
 
     // Bail if a filterer cancels the event.
@@ -159,11 +150,12 @@ export class ClientEventManager {
 
   /**
    * Creates an event with the arguments provided and calls logEvent.
-   * @param {!AnalyticsEvent} eventType
-   * @param {?boolean=} isFromUserAction
-   * @param {../proto/api_messages.EventParams=} eventParams
    */
-  logSwgEvent(eventType, isFromUserAction = false, eventParams = null) {
+  logSwgEvent(
+    eventType: AnalyticsEvent,
+    isFromUserAction: boolean | null = false,
+    eventParams: EventParams | null = null
+  ) {
     this.logEvent({
       eventType,
       eventOriginator: EventOriginator.SWG_CLIENT,
@@ -172,8 +164,7 @@ export class ClientEventManager {
     });
   }
 
-  /** @return {!Promise<null>} */
-  getReadyPromise() {
+  getReadyPromise(): Promise<void> {
     return this.isReadyPromise_;
   }
 }
