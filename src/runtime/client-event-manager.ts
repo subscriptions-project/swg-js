@@ -89,8 +89,8 @@ export class ClientEventManager implements ClientEventManagerApi {
   ) => void)[] = [];
   private filterers_: ((clientEvent: ClientEvent) => FilterResult)[] = [];
 
-  /** @ts-ignore: Visible for testing. */
-  private lastAction_: Promise<void> | null = null;
+  /** Visible for testing. */
+  lastAction: Promise<void> | null = null;
 
   constructor(private readonly isReadyPromise_: Promise<void>) {}
 
@@ -115,7 +115,7 @@ export class ClientEventManager implements ClientEventManagerApi {
 
   logEvent(event: ClientEvent, eventParams?: ClientEventParams) {
     validateEvent(event);
-    this.lastAction_ = this.handleEvent_(event, eventParams);
+    this.lastAction = this.handleEvent_(event, eventParams);
   }
 
   /**
