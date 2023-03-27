@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from './dialog';
 
 /**
@@ -43,7 +44,7 @@ export abstract class View {
   /**
    * Accept the result.
    */
-  abstract whenComplete(): Promise<void>;
+  abstract whenComplete(): Promise<ActivityResult>;
 
   abstract shouldFadeBody(): boolean;
 
