@@ -2010,7 +2010,7 @@ describes.realWin('EntitlementsManager', (env) => {
         eventOriginator: originator,
         additionalParameters: params,
       });
-      return eventManager.lastAction_;
+      return eventManager.lastAction;
     }
 
     function expectPingback(
@@ -2032,7 +2032,7 @@ describes.realWin('EntitlementsManager', (env) => {
         eventOriginator: originator,
         additionalParameters: params,
       });
-      return eventManager.lastAction_;
+      return eventManager.lastAction;
     }
 
     const PINGBACK_EVENTS = {
@@ -2243,7 +2243,7 @@ describes.realWin('EntitlementsManager', (env) => {
           fetcherMock.verify();
         }
       }
-      return eventManager.lastAction_;
+      return eventManager.lastAction;
     });
   });
 
