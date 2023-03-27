@@ -60,7 +60,7 @@ export let MeterToastApiParams;
 
 export class MeterToastApi {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!MeterToastApiParams=} params
    */
   constructor(
@@ -70,7 +70,7 @@ export class MeterToastApi {
       meterClientUserAttribute = ANONYMOUS_USER_ATTRIBUTE,
     } = {}
   ) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */

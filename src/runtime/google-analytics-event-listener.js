@@ -27,10 +27,10 @@ let WindowWithAnalyticsMethods;
 
 export class GoogleAnalyticsEventListener {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
-    /** @private @const {!./deps.DepsDef} deps */
+    /** @private @const {!./deps.Deps} deps */
     this.deps_ = deps;
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
@@ -122,7 +122,7 @@ export class GoogleAnalyticsEventListener {
 
   /**
    * Function to determine whether event is eligible for GA logging.
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @returns {boolean}
    */
   static isGaEligible(deps) {
@@ -133,7 +133,7 @@ export class GoogleAnalyticsEventListener {
 
   /**
    * Function to determine whether event is eligible for gTag logging.
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @returns {boolean}
    */
   static isGtagEligible(deps) {
@@ -144,7 +144,7 @@ export class GoogleAnalyticsEventListener {
 
   /**
    * Function to determine whether event is eligible for GTM logging.
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @returns {boolean}
    */
   static isGtmEligible(deps) {

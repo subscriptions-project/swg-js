@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 
 describes.realWin('LoginNotificationApi', (env) => {
@@ -39,7 +39,7 @@ describes.realWin('LoginNotificationApi', (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     loginNotificationApi = new LoginNotificationApi(runtime);

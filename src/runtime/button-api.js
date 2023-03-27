@@ -296,7 +296,7 @@ export class ButtonApi {
   }
 
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!Element} button
    * @param {../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
    * @param {function()=} callback

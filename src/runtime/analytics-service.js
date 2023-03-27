@@ -68,7 +68,7 @@ function createErrorResponse(error) {
 
 export class AnalyticsService {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!./fetcher.Fetcher} fetcher
    */
   constructor(deps, fetcher) {
@@ -78,7 +78,7 @@ export class AnalyticsService {
     /** @private @const {!../model/doc.Doc} */
     this.doc_ = deps.doc();
 
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!../components/activities.ActivityPorts} */

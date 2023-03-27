@@ -20,7 +20,7 @@ import {feArgs, feUrl} from './services';
 
 export class SubscriptionLinkingFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
     /** @private @const {!../components/activities.ActivityPorts} */

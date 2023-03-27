@@ -30,7 +30,7 @@ import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
-import {DepsDef} from './deps';
+import {Deps as DepsDef} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc as DocInterface, resolveDoc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {
   AlreadySubscribedResponse,
   AnalyticsEvent,
@@ -31,6 +30,7 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
@@ -113,7 +113,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     const eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();

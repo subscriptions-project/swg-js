@@ -25,7 +25,7 @@ export function isObject(value: unknown): boolean {
 /**
  * Checks whether `enumObj` has a given `value`.
  */
-export function isEnumValue(enumObj: object, value: string | number): boolean {
+export function isEnumValue(enumObj: object, value: unknown): boolean {
   return Object.values(enumObj).includes(value);
 }
 

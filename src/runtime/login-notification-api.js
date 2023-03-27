@@ -20,10 +20,10 @@ import {feArgs, feUrl} from './services';
 
 export class LoginNotificationApi {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */
