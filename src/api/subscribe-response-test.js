@@ -16,16 +16,89 @@
 
 import {PurchaseData, SubscribeResponse} from './subscribe-response';
 
+const DUMMY_VALUE = '...';
+const DUMMY_OBJECT = createObjectWithJsonMethod(DUMMY_VALUE);
+
+function createObjectWithJsonMethod(jsonValue) {
+  return {
+    json: () => jsonValue,
+  };
+}
+
 describes.realWin('SubscribeResponse', () => {
   describe('json', () => {
+    it('passes truthy `userData` and `entitlements` args', () => {
+      const subscribeResponse = new SubscribeResponse(
+        DUMMY_VALUE,
+        DUMMY_OBJECT,
+        createObjectWithJsonMethod('...userData...'),
+        createObjectWithJsonMethod('...entitlements...')
+      );
+
+      expect(subscribeResponse.json().userData).to.equal('...userData...');
+      expect(subscribeResponse.json().entitlements).to.equal(
+        '...entitlements...'
+      );
+    });
+
     it('defaults `userData` and `entitlements` to `null`', () => {
       const subscribeResponse = new SubscribeResponse(
-        '...',
-        new PurchaseData('...', '...')
+        DUMMY_VALUE,
+        DUMMY_OBJECT
       );
 
       expect(subscribeResponse.json().userData).to.be.null;
       expect(subscribeResponse.json().entitlements).to.be.null;
+    });
+  });
+
+  describe('clone', () => {
+    it('clones response', () => {
+      const subscribeResponse = new SubscribeResponse(
+        DUMMY_VALUE,
+        DUMMY_OBJECT
+      );
+      const clonedSubscribeResponse = subscribeResponse.clone();
+      expect(clonedSubscribeResponse).to.deep.equal(subscribeResponse);
+    });
+  });
+
+  describe('complete', () => {
+    it('calls the complete handler passed into the constructor', () => {
+      const mockCompleteHandler = sandbox.fake();
+      const subscribeResponse = new SubscribeResponse(
+        DUMMY_VALUE,
+        DUMMY_OBJECT,
+        DUMMY_OBJECT,
+        DUMMY_OBJECT,
+        DUMMY_VALUE,
+        mockCompleteHandler
+      );
+
+      expect(mockCompleteHandler).not.to.be.called;
+      subscribeResponse.complete();
+      expect(mockCompleteHandler).to.be.called;
+    });
+  });
+});
+
+describes.realWin('PurchaseData', () => {
+  describe('json', () => {
+    it('returns JSON', () => {
+      const purchaseData = new PurchaseData(DUMMY_VALUE, DUMMY_VALUE);
+
+      expect(purchaseData.json()).to.deep.equal({
+        data: DUMMY_VALUE,
+        signature: DUMMY_VALUE,
+      });
+    });
+  });
+
+  describe('clone', () => {
+    it('clones data', () => {
+      const purchaseData = new PurchaseData(DUMMY_VALUE, DUMMY_VALUE);
+      const clonedPurchaseData = purchaseData.clone();
+      expect(clonedPurchaseData).to.deep.equal(purchaseData);
     });
   });
 });
