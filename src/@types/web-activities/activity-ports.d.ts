@@ -69,16 +69,22 @@ declare module 'web-activities/activity-ports' {
    * for a successful result, a cancelation or a failure.
    */
   interface ActivityResult {
+    readonly code: ActivityResultCode;
+    readonly data: unknown;
+    readonly mode: ActivityMode;
+    readonly origin: string;
+    readonly originVerified: boolean;
+    readonly secureChannel: boolean;
     readonly ok: boolean;
     readonly error: Error | null;
 
     constructor(
-      readonly code: ActivityResultCode,
-      readonly data: unknown,
-      readonly mode: ActivityMode,
-      readonly origin: string,
-      readonly originVerified: boolean,
-      readonly secureChannel: boolean
+      code: ActivityResultCode,
+      data: unknown,
+      mode: ActivityMode,
+      origin: string,
+      originVerified: boolean,
+      secureChannel: boolean
     );
   }
 
