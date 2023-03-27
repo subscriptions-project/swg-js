@@ -92,13 +92,7 @@ export class ClientEventManager implements ClientEventManagerApi {
   /** @ts-ignore: Visible for testing. */
   private lastAction_: Promise<void> | null = null;
 
-  constructor(private readonly isReadyPromise_: Promise<void>) {
-    /** @private {!Array<function(!ClientEvent, (!ClientEventParams|undefined)=)>} */
-    this.listeners_ = [];
-
-    /** @private {!Array<function(!ClientEvent):!FilterResult>} */
-    this.filterers_ = [];
-  }
+  constructor(private readonly isReadyPromise_: Promise<void>) {}
 
   registerEventListener(
     listener: (
@@ -160,7 +154,7 @@ export class ClientEventManager implements ClientEventManagerApi {
   logSwgEvent(
     eventType: AnalyticsEvent,
     isFromUserAction: boolean | null = false,
-    eventParams?: EventParams
+    eventParams: EventParams | null = null
   ) {
     this.logEvent({
       eventType,
