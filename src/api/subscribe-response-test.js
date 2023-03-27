@@ -87,7 +87,7 @@ describes.realWin('SubscribeResponse', () => {
 
 describes.realWin('PurchaseData', () => {
   describe('json', () => {
-    it('returns JSON', () => {
+    it('returns a serializeable object', () => {
       const purchaseData = new PurchaseData(DUMMY_VALUE, DUMMY_VALUE);
 
       expect(purchaseData.json()).to.deep.equal({
