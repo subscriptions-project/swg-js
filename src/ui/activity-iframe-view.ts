@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {ActivityResult} from 'web-activities/activity-ports';
 import {ActivityIframePort, ActivityPorts} from '../components/activities';
+import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
-import {View} from '../components/view';
 import {Message} from '../proto/api_messages';
+import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
