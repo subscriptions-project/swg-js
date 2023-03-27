@@ -146,7 +146,7 @@ export class ActivityIframeView extends View {
   /**
    * Completes the flow.
    */
-  async whenComplete(): Promise<ActivityResult> {
+  whenComplete(): Promise<ActivityResult> {
     return this.acceptResult();
   }
 
