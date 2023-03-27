@@ -109,11 +109,7 @@ declare module 'web-activities/activity-ports' {
    * to size requests.
    */
   export class ActivityIframePort {
-    constructor(
-      private readonly iframe_: HTMLIFrameElement,
-      private readonly url_: string,
-      private readonly args_?: unknown
-    );
+    constructor(iframe: HTMLIFrameElement, url: string, args?: unknown);
 
     getMode(): ActivityMode;
 
@@ -163,9 +159,8 @@ declare module 'web-activities/activity-ports' {
    */
   class ActivityPorts {
     readonly version: string;
-    redirectErrorPromise_: Promise<Error>;
 
-    constructor(private readonly win_: Window);
+    constructor(win: Window);
 
     /**
      * Start an activity within the specified iframe.
@@ -254,16 +249,22 @@ declare module 'web-activities/activity-ports' {
    * for a successful result, a cancelation or a failure.
    */
   export interface ActivityResult {
+    readonly code: ActivityResultCode;
+    readonly data: unknown;
+    readonly mode: ActivityMode;
+    readonly origin: string;
+    readonly originVerified: boolean;
+    readonly secureChannel: boolean;
     readonly ok: boolean;
     readonly error: Error | null;
 
     constructor(
-      readonly code: ActivityResultCode,
-      readonly data: unknown,
-      readonly mode: ActivityMode,
-      readonly origin: string,
-      readonly originVerified: boolean,
-      readonly secureChannel: boolean
+      code: ActivityResultCode,
+      data: unknown,
+      mode: ActivityMode,
+      origin: string,
+      originVerified: boolean,
+      secureChannel: boolean
     );
   }
 
