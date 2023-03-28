@@ -192,15 +192,14 @@ export class AutoPromptManager {
     // isClosable should only be set by the old snippet.
     let isClosable = params.autoPromptType
       ? !this.pageConfig_.isLocked()
-      : null;
+      : undefined;
 
     // Override autoPromptType if it is undefined.
-    params.autoPromptType =
-      params.autoPromptType ||
+    params.autoPromptType ??=
       this.getAutoPromptType_(article?.audienceActions?.actions);
 
-    isClosable ??= params.autoPromptType == AutoPromptType.CONTRIBUTION ||
-                   params.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
+    isClosable ??= params.autoPromptType != AutoPromptType.SUBSCRIPTION &&
+                   params.autoPromptType != AutoPromptType.SUBSCRIPTION_LARGE;
 
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
