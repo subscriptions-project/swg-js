@@ -1165,6 +1165,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
+        isAccessibleForFree: false,
       });
       await tick(7);
 

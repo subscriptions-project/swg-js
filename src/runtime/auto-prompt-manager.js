@@ -132,6 +132,7 @@ export class AutoPromptManager {
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    *   displayLargePromptFn: (function()|undefined),
+   *   isAccessibleForFree: (boolean|undefined),
    * }} params
    * @return {!Promise}
    */
@@ -179,6 +180,7 @@ export class AutoPromptManager {
    *   autoPromptType: (AutoPromptType|undefined),
    *   alwaysShow: (boolean|undefined),
    *   displayLargePromptFn: (function()|undefined),
+   *   isAccessibleForFree: (boolean|undefined),
    * }} params
    * @return {!Promise}
    */
@@ -189,17 +191,14 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
-    // isClosable should only be set by the old snippet.
-    let isClosable = params.autoPromptType
-      ? !this.pageConfig_.isLocked()
-      : undefined;
-
     // Override autoPromptType if it is undefined.
     params.autoPromptType ??=
       this.getAutoPromptType_(article?.audienceActions?.actions);
 
-    isClosable ??= params.autoPromptType != AutoPromptType.SUBSCRIPTION &&
-                   params.autoPromptType != AutoPromptType.SUBSCRIPTION_LARGE;
+    // isClosable should only be set by the old snippet.
+    const isClosable  = !!params.isAccessibleForFree ||
+      (params.autoPromptType != AutoPromptType.SUBSCRIPTION &&
+       params.autoPromptType != AutoPromptType.SUBSCRIPTION_LARGE);
 
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
