@@ -57,7 +57,7 @@ export class SmartSubscriptionButtonApi {
 
     const frontendArguments: {[key: string]: string} = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'theme': (this.options_ && this.options_.theme) || 'light',
+      'theme': (this.options_ && this.options_.theme) || Theme.LIGHT,
       'lang': (this.options_ && this.options_.lang) || 'en',
     };
     const messageTextColor = this.options_ && this.options_.messageTextColor;
