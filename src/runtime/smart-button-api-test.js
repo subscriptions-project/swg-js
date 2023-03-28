@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
+import {SmartSubscriptionButtonApi} from './smart-button-api';
 
 describes.realWin('SmartSubscriptionButtonApi', (env) => {
   let addDefaultArguments;
@@ -23,7 +23,7 @@ describes.realWin('SmartSubscriptionButtonApi', (env) => {
 
   beforeEach(() => {
     addDefaultArguments = sandbox.fake();
-    button = document.createElement('button');
+    button = self.document.createElement('button');
     deps = {
       activities: () => ({
         addDefaultArguments,
