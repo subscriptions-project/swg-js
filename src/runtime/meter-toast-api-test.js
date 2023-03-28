@@ -30,6 +30,7 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {getStyle} from '../utils/style';
+import {tick} from '../../test/tick';
 
 const AUTO_PINGBACK_TIMEOUT = 10000;
 const TOAST_CLOSE_REQUEST = new ToastCloseRequest();
@@ -341,6 +342,7 @@ describes.realWin('MeterToastApi', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     const messageStub = sandbox.stub(port, 'execute');
     await meterToastApi.start();
+    await tick(1);
     expect(messageStub).to.not.be.called;
     expect(onConsumeCallbackFake).to.be.calledOnce;
     expect(self.console.error).to.be.calledWithExactly(
@@ -356,6 +358,7 @@ describes.realWin('MeterToastApi', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     const messageStub = sandbox.stub(port, 'execute');
     await meterToastApi.start();
+    await tick(1);
     expect(messageStub).to.not.be.called;
     expect(onConsumeCallbackFake).to.be.calledOnce;
     expect(self.console.error).to.not.be.called;
