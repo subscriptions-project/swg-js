@@ -31,7 +31,7 @@ export abstract class View {
    */
   abstract getElement(): HTMLIFrameElement;
 
-  abstract init(unusedDialog: Dialog): Promise<void>;
+  abstract init(dialog: Dialog): Promise<void>;
 
   /**
    * Resizes the content.
