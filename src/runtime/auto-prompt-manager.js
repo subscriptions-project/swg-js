@@ -189,10 +189,18 @@ export class AutoPromptManager {
     dismissedPrompts,
     params
   ) {
+    // isClosable should only be set by the old snippet.
+    let isClosable = params.autoPromptType
+      ? !this.pageConfig_.isLocked()
+      : null;
+
     // Override autoPromptType if it is undefined.
     params.autoPromptType =
       params.autoPromptType ||
       this.getAutoPromptType_(article?.audienceActions?.actions);
+
+    isClosable ??= params.autoPromptType == AutoPromptType.CONTRIBUTION ||
+                   params.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
 
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
@@ -200,7 +208,7 @@ export class AutoPromptManager {
     ) {
       params.displayLargePromptFn = () => {
         this.configuredRuntime.showOffers({
-          isClosable: !this.pageConfig_.isLocked(),
+          isClosable,
         });
       };
     } else if (
@@ -209,7 +217,7 @@ export class AutoPromptManager {
     ) {
       params.displayLargePromptFn = () => {
         this.configuredRuntime.showContributionOptions({
-          isClosable: !this.pageConfig_.isLocked(),
+          isClosable,
         });
       };
     }
@@ -234,6 +242,7 @@ export class AutoPromptManager {
           action: potentialAction.type,
           configurationId: potentialAction.configurationId,
           autoPromptType: params.autoPromptType,
+          isClosable,
         })
       : params.displayLargePromptFn;
 
@@ -582,6 +591,7 @@ export class AutoPromptManager {
    *  action: (string|undefined),
    *  configurationId: (string|undefined),
    *  autoPromptType: (AutoPromptType|undefined)
+   *  isClosable: (boolean|undefined)
    * }} params
    * @return {!function()}
    */
@@ -592,6 +602,7 @@ export class AutoPromptManager {
         configurationId,
         autoPromptType,
         onCancel: () => this.storeLastDismissal_(),
+        isClosable,
       };
       const lastAudienceActionFlow = new AudienceActionFlow(this.deps_, params);
       this.setLastAudienceActionFlow(lastAudienceActionFlow);
