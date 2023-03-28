@@ -89,9 +89,7 @@ export class SmartSubscriptionButtonApi {
       'width': '100%',
     });
     this.button_.appendChild(this.iframe_);
-    const args = this.activityPorts_.addDefaultArguments(
-      this.args_ as {[key: string]: string}
-    );
+    const args = this.activityPorts_.addDefaultArguments(this.args_);
     this.activityPorts_
       .openIframe(this.iframe_, this.src_, args)
       .then((port) => {
