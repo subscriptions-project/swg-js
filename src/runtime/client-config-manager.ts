@@ -17,7 +17,8 @@
 import {AttributionParams} from '../model/attribution-params';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig, UiPredicates} from '../model/client-config';
-import {ClientTheme} from '../api/basic-subscriptions';
+import {ClientOptions, ClientTheme} from '../api/basic-subscriptions';
+import {Deps} from './deps';
 import {serviceUrl} from './services';
 import {warn} from '../utils/log';
 
@@ -26,41 +27,25 @@ import {warn} from '../utils/log';
  * configuration details from the server.
  */
 export class ClientConfigManager {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {string} publicationId
-   * @param {!./fetcher.Fetcher} fetcher
-   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
-   */
-  constructor(deps, publicationId, fetcher, clientOptions) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private responsePromise_: Promise<ClientConfig> | null = null;
+  private readonly defaultConfig_: ClientConfig;
 
-    /** @private @const {!../api/basic-subscriptions.ClientOptions} */
-    this.clientOptions_ = clientOptions || {};
-
-    /** @private @const {string} */
-    this.publicationId_ = publicationId;
-
-    /** @private @const {!./fetcher.Fetcher} */
-    this.fetcher_ = fetcher;
-
-    /** @private {?Promise<!ClientConfig>} */
-    this.responsePromise_ = null;
-
-    /** @private @const {ClientConfig} */
+  constructor(
+    private readonly deps_: Deps,
+    private readonly publicationId_: string,
+    private readonly fetcher_: Fetcher,
+    private readonly clientOptions_: ClientOptions = {}
+  ) {
     this.defaultConfig_ = new ClientConfig({
-      skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
+      skipAccountCreationScreen: clientOptions_.skipAccountCreationScreen,
     });
   }
 
   /**
    * Fetches the client config from the server.
-   * @param {Promise<void>=} readyPromise optional promise to wait on before
-   * attempting to fetch the clientConfiguration.
-   * @return {!Promise<!ClientConfig>}
+   * @param readyPromise optional promise to wait on before attempting to fetch the clientConfiguration.
    */
-  fetchClientConfig(readyPromise) {
+  fetchClientConfig(readyPromise?: Promise<void>): Promise<ClientConfig> {
     if (!this.publicationId_) {
       throw new Error('fetchClientConfig requires publicationId');
     }
@@ -74,18 +59,16 @@ export class ClientConfigManager {
   /**
    * Gets the client config, if already requested. Otherwise returns a Promise
    * with an empty ClientConfig.
-   * @return {!Promise<!ClientConfig>}
    */
-  getClientConfig() {
+  getClientConfig(): Promise<ClientConfig> {
     return this.responsePromise_ || Promise.resolve(this.defaultConfig_);
   }
 
   /**
    * Convenience method for retrieving the auto prompt portion of the client
    * configuration.
-   * @return {!Promise<!../model/auto-prompt-config.AutoPromptConfig|null|undefined>}
    */
-  async getAutoPromptConfig() {
+  async getAutoPromptConfig(): Promise<AutoPromptConfig | null | undefined> {
     if (!this.responsePromise_) {
       this.fetchClientConfig();
     }
@@ -96,18 +79,16 @@ export class ClientConfigManager {
   /**
    * Gets the language the UI should be displayed in. See
    * src/api/basic-subscriptions.ClientOptions.lang.
-   * @return {string}
    */
-  getLanguage() {
+  getLanguage(): string {
     return this.clientOptions_.lang || 'en';
   }
 
   /**
    * Gets the theme the UI should be displayed in. See
    * src/api/basic-subscriptions.ClientOptions.theme.
-   * @return {!../api/basic-subscriptions.ClientTheme}
    */
-  getTheme() {
+  getTheme(): ClientTheme {
     const themeDefault = self.matchMedia(`(prefers-color-scheme: dark)`).matches
       ? ClientTheme.DARK
       : ClientTheme.LIGHT;
@@ -117,9 +98,8 @@ export class ClientConfigManager {
   /**
    * Returns whether scrolling on main page should be allowed when
    * subscription or contribution dialog is displayed.
-   * @return {boolean}
    */
-  shouldAllowScroll() {
+  shouldAllowScroll(): boolean {
     return !!this.clientOptions_.allowScroll;
   }
 
@@ -128,9 +108,8 @@ export class ClientConfigManager {
    * client options, rather than the default of letting the iframes decide the
    * display language. Note that this will return false if the lang option is
    * not set, even if forceLangInIframes was set.
-   * @return {boolean}
    */
-  shouldForceLangInIframes() {
+  shouldForceLangInIframes(): boolean {
     return (
       !!this.clientOptions_.forceLangInIframes && !!this.clientOptions_.lang
     );
@@ -138,9 +117,8 @@ export class ClientConfigManager {
 
   /**
    * Determines whether a subscription or contribution button should be disabled.
-   * @returns {!Promise<boolean|undefined>}
    */
-  async shouldEnableButton() {
+  async shouldEnableButton(): Promise<boolean | void> {
     // Disable button if disableButton is set to be true in clientOptions.
     // If disableButton is set to be false or not set, then always enable button.
     // This is for testing purpose.
@@ -153,15 +131,14 @@ export class ClientConfigManager {
     }
 
     // UI predicates decides whether to enable button.
-    const {uiPredicates} = await this.responsePromise_;
-    return uiPredicates?.canDisplayButton;
+    const clientConfig = await this.responsePromise_;
+    return clientConfig?.uiPredicates?.canDisplayButton;
   }
 
   /**
    * Fetches the client config from the server.
-   * @return {!Promise<!ClientConfig>}
    */
-  async fetch_() {
+  async fetch_(): Promise<ClientConfig> {
     const article = await this.deps_.entitlementsManager().getArticle();
 
     if (article) {
@@ -186,12 +163,10 @@ export class ClientConfigManager {
 
   /**
    * Parses the fetched config into the ClientConfig container object.
-   * @param {!Object} json
-   * @return {!ClientConfig}
    */
-  parseClientConfig_(json) {
-    const paySwgVersion = json['paySwgVersion'];
-    const autoPromptConfigJson = json['autoPromptConfig'];
+  parseClientConfig_(json: {[key: string]: unknown}): ClientConfig {
+    const paySwgVersion = json['paySwgVersion'] as string;
+    const autoPromptConfigJson = json['autoPromptConfig'] as AutoPromptConfig;
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig({
@@ -213,7 +188,7 @@ export class ClientConfigManager {
       });
     }
 
-    const uiPredicatesJson = json['uiPredicates'];
+    const uiPredicatesJson = json['uiPredicates'] as UiPredicates;
     let uiPredicates = undefined;
     if (uiPredicatesJson) {
       uiPredicates = new UiPredicates(
@@ -223,7 +198,9 @@ export class ClientConfigManager {
       );
     }
 
-    const attributionParamsJson = json['attributionParams'];
+    const attributionParamsJson = json[
+      'attributionParams'
+    ] as AttributionParams;
     let attributionParams;
     if (attributionParamsJson) {
       attributionParams = new AttributionParams(
@@ -235,7 +212,7 @@ export class ClientConfigManager {
     return new ClientConfig({
       autoPromptConfig,
       paySwgVersion,
-      useUpdatedOfferFlows: json['useUpdatedOfferFlows'],
+      useUpdatedOfferFlows: json['useUpdatedOfferFlows'] as boolean | undefined,
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
       uiPredicates,
       attributionParams,
