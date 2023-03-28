@@ -6,3 +6,6 @@ coverage:
       default:
         threshold: 1%
         if_not_found: success
+parsers:
+  javascript:
+    enable_partials: no # default yes
