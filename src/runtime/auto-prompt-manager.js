@@ -196,7 +196,7 @@ export class AutoPromptManager {
       article?.audienceActions?.actions
     );
 
-    // isClosable should only be set by the old snippet.
+    // Override isClosable if isAccessibleForFree is defined.
     const isClosable =
       !!params.isAccessibleForFree ||
       (params.autoPromptType != AutoPromptType.SUBSCRIPTION &&
