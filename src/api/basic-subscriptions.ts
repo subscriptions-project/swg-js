@@ -110,7 +110,7 @@ export interface ClientOptions {
   theme?: ClientTheme;
   /** Whether to allow scrolling. */
   allowScroll?: boolean;
-  /** Skip account creation screen if requested (needed for AMP). */
+  /** Skip account creation screen if requested. */
   skipAccountCreationScreen?: boolean;
 }
 
