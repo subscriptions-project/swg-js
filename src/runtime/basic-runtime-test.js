@@ -695,12 +695,13 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
         .withExactArgs({
-          isClosable: false,
+          isClosable: true,
         })
         .once();
 
       await configuredBasicRuntime.setupAndShowAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
+        isAccessibleForFree: true,
       });
     });
 

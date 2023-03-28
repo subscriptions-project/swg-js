@@ -114,7 +114,7 @@ export class AudienceActionFlow {
         'origin': parseUrl(deps.win().location.href).origin,
         'configurationId': this.params_.configurationId || '',
         'hl': this.clientConfigManager_.getLanguage(),
-        'isClosable': !!(params.isClosable),
+        'isClosable': !!params.isClosable,
       }),
       feArgs({
         'supportsEventManager': true,

@@ -192,13 +192,15 @@ export class AutoPromptManager {
     params
   ) {
     // Override autoPromptType if it is undefined.
-    params.autoPromptType ??=
-      this.getAutoPromptType_(article?.audienceActions?.actions);
+    params.autoPromptType ??= this.getAutoPromptType_(
+      article?.audienceActions?.actions
+    );
 
     // isClosable should only be set by the old snippet.
-    const isClosable  = !!params.isAccessibleForFree ||
+    const isClosable =
+      !!params.isAccessibleForFree ||
       (params.autoPromptType != AutoPromptType.SUBSCRIPTION &&
-       params.autoPromptType != AutoPromptType.SUBSCRIPTION_LARGE);
+        params.autoPromptType != AutoPromptType.SUBSCRIPTION_LARGE);
 
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
@@ -593,7 +595,7 @@ export class AutoPromptManager {
    * }} params
    * @return {!function()}
    */
-  audienceActionPrompt_({action, configurationId, autoPromptType}) {
+  audienceActionPrompt_({action, configurationId, autoPromptType, isClosable}) {
     return () => {
       const params = {
         action,
