@@ -701,7 +701,6 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
       await configuredBasicRuntime.setupAndShowAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isAccessibleForFree: true,
       });
     });
 

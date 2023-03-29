@@ -198,10 +198,10 @@ export class AutoPromptManager {
 
     // Override isClosable if isAccessibleForFree is defined.
     const isClosable =
-      !!params.isAccessibleForFree ||
-      (params.autoPromptType != AutoPromptType.SUBSCRIPTION &&
-        params.autoPromptType != AutoPromptType.SUBSCRIPTION_LARGE);
-
+      params.isAccessibleForFree != undefined
+        ? !this.pageConfig_.isLocked()
+        : params.autoPromptType !== AutoPromptType.SUBSCRIPTION &&
+          params.autoPromptType !== AutoPromptType.SUBSCRIPTION_LARGE;
     if (
       params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
       params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
