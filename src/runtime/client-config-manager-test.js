@@ -235,6 +235,18 @@ describes.realWin('ClientConfigManager', (env) => {
     expect(clientConfigManager.getTheme()).to.equal(ClientTheme.LIGHT);
   });
 
+  it('should default theme to dark if the user prefers it', () => {
+    const mockMatchMedia = sandbox
+      .mock(self, 'matchMedia')
+      .expects('matchMedia')
+      .withExactArgs('(prefers-color-scheme: dark)')
+      .returns({matches: true});
+
+    expect(clientConfigManager.getTheme()).to.equal(ClientTheme.DARK);
+
+    mockMatchMedia.verify();
+  });
+
   it('should return the language set in the constructor', () => {
     clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
       lang: 'fr',
