@@ -14,69 +14,50 @@
  * limitations under the License.
  */
 
+import {ActivityPorts} from '../components/activities';
+import {Deps} from './deps';
 import {SmartBoxMessage} from '../proto/api_messages';
+import {SmartButtonOptions} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
-/** @const {!Object<string, string>} */
 const iframeAttributes = {
   'frameborder': '0',
   'scrolling': 'no',
 };
 
-/**
- * @enum {string}
- */
-export const Theme = {
-  LIGHT: 'light',
-  DARK: 'dark',
-};
+export enum Theme {
+  LIGHT = 'light',
+  DARK = 'dark',
+}
 
 /**
  * The class for Smart button Api.
  */
 export class SmartSubscriptionButtonApi {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!Element} button
-   * @param {!../api/subscriptions.SmartButtonOptions} options
-   * @param {function(!Event=)=} callback
-   */
-  constructor(deps, button, options, callback) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly iframe_: HTMLIFrameElement;
+  private readonly src_ = feUrl('/smartboxiframe');
+  private readonly args_: {[key: string]: string};
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+  constructor(
+    private readonly deps_: Deps,
+    private readonly button_: Element,
+    private readonly options_: SmartButtonOptions,
+    private readonly callback_?: (event?: Event) => void
+  ) {
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!Document} */
-    this.doc_ = this.win_.document;
-
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
-
-    /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ = /** @type {!HTMLIFrameElement} */ (
-      createElement(this.doc_, 'iframe', iframeAttributes)
+    this.iframe_ = createElement(
+      deps_.win().document,
+      'iframe',
+      iframeAttributes
     );
 
-    /** @private @const {!Element} */
-    this.button_ = button;
-
-    /** @private {!../api/subscriptions.SmartButtonOptions} */
-    this.options_ = options;
-
-    /** @private @const */
-    this.callback_ = callback;
-
-    /** @private @const {string} */
-    this.src_ = feUrl('/smartboxiframe');
-
-    const frontendArguments = {
-      'productId': this.deps_.pageConfig().getProductId(),
+    const frontendArguments: {[key: string]: string} = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
-      'theme': (this.options_ && this.options_.theme) || 'light',
+      'theme': (this.options_ && this.options_.theme) || Theme.LIGHT,
       'lang': (this.options_ && this.options_.lang) || 'en',
     };
     const messageTextColor = this.options_ && this.options_.messageTextColor;
@@ -84,32 +65,27 @@ export class SmartSubscriptionButtonApi {
       frontendArguments['messageTextColor'] = messageTextColor;
     }
 
-    /** @private @const {!Object} */
     this.args_ = feArgs(frontendArguments);
   }
 
-  /**
-   * @param {SmartBoxMessage} smartBoxMessage
-   */
-  handleSmartBoxClick_(smartBoxMessage) {
+  handleSmartBoxClick_(smartBoxMessage: SmartBoxMessage) {
     if (smartBoxMessage && smartBoxMessage.getIsClicked()) {
-      this.callback_();
+      this.callback_?.();
     }
   }
 
   /**
    * Make a call to build button content and listens for the 'click' message.
-   * @return {!Element}
    */
-  start() {
+  start(): Element {
     setImportantStyles(this.iframe_, {
-      'opacity': 1,
+      'opacity': '1',
       'position': 'absolute',
-      'top': 0,
-      'bottom': 0,
-      'left': 0,
+      'top': '0',
+      'bottom': '0',
+      'left': '0',
       'height': '100%',
-      'right': 0,
+      'right': '0',
       'width': '100%',
     });
     this.button_.appendChild(this.iframe_);

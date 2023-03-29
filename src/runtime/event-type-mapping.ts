@@ -18,8 +18,7 @@ import {AnalyticsEvent, EntitlementResult} from '../proto/api_messages';
 import {Event} from '../api/logger-api';
 import {ShowcaseEvent, SubscriptionFlows} from '../api/subscriptions';
 
-/** @const {!Object<string,AnalyticsEvent>} */
-const PublisherEventToAnalyticsEvent = {
+const PublisherEventToAnalyticsEvent: {[key in Event]: AnalyticsEvent} = {
   [Event.IMPRESSION_PAYWALL]: AnalyticsEvent.IMPRESSION_PAYWALL,
   [Event.IMPRESSION_AD]: AnalyticsEvent.IMPRESSION_AD,
   [Event.IMPRESSION_OFFERS]: AnalyticsEvent.IMPRESSION_OFFERS,
@@ -32,28 +31,27 @@ const PublisherEventToAnalyticsEvent = {
   [Event.EVENT_CUSTOM]: AnalyticsEvent.EVENT_CUSTOM,
 };
 
-/** @const {!Object<?AnalyticsEvent,?Event>} */
-const AnalyticsEventToPublisherEvent = {
-  [AnalyticsEvent.UNKNOWN]: null,
-  [AnalyticsEvent.IMPRESSION_PAYWALL]: Event.IMPRESSION_PAYWALL,
-  [AnalyticsEvent.IMPRESSION_AD]: Event.IMPRESSION_AD,
-  [AnalyticsEvent.IMPRESSION_OFFERS]: Event.IMPRESSION_OFFERS,
-  [AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON]: null,
-  [AnalyticsEvent.IMPRESSION_SMARTBOX]: null,
-  [AnalyticsEvent.ACTION_SUBSCRIBE]: null,
-  [AnalyticsEvent.ACTION_PAYMENT_COMPLETE]: Event.ACTION_PAYMENT_COMPLETED,
-  [AnalyticsEvent.ACTION_ACCOUNT_CREATED]: null,
-  [AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED]: null,
-  [AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE]:
-    Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
-  [AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED]:
-    Event.ACTION_PAYMENT_FLOW_STARTED,
-  [AnalyticsEvent.ACTION_OFFER_SELECTED]: Event.ACTION_OFFER_SELECTED,
-  [AnalyticsEvent.EVENT_PAYMENT_FAILED]: null,
-  [AnalyticsEvent.EVENT_CUSTOM]: Event.EVENT_CUSTOM,
-};
+const AnalyticsEventToPublisherEvent: {[key in AnalyticsEvent]?: Event | null} =
+  {
+    [AnalyticsEvent.UNKNOWN]: null,
+    [AnalyticsEvent.IMPRESSION_PAYWALL]: Event.IMPRESSION_PAYWALL,
+    [AnalyticsEvent.IMPRESSION_AD]: Event.IMPRESSION_AD,
+    [AnalyticsEvent.IMPRESSION_OFFERS]: Event.IMPRESSION_OFFERS,
+    [AnalyticsEvent.IMPRESSION_SUBSCRIBE_BUTTON]: null,
+    [AnalyticsEvent.IMPRESSION_SMARTBOX]: null,
+    [AnalyticsEvent.ACTION_SUBSCRIBE]: null,
+    [AnalyticsEvent.ACTION_PAYMENT_COMPLETE]: Event.ACTION_PAYMENT_COMPLETED,
+    [AnalyticsEvent.ACTION_ACCOUNT_CREATED]: null,
+    [AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED]: null,
+    [AnalyticsEvent.ACTION_SUBSCRIPTIONS_LANDING_PAGE]:
+      Event.ACTION_SUBSCRIPTIONS_LANDING_PAGE,
+    [AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED]:
+      Event.ACTION_PAYMENT_FLOW_STARTED,
+    [AnalyticsEvent.ACTION_OFFER_SELECTED]: Event.ACTION_OFFER_SELECTED,
+    [AnalyticsEvent.EVENT_PAYMENT_FAILED]: null,
+    [AnalyticsEvent.EVENT_CUSTOM]: Event.EVENT_CUSTOM,
+  };
 
-/** @const {!Object<string,?Array<AnalyticsEvent>>} */
 const ShowcaseEvents = {
   // Events related to content being potentially unlockable
   [ShowcaseEvent.EVENT_SHOWCASE_METER_OFFERED]: [
@@ -91,8 +89,9 @@ const ShowcaseEvents = {
   ],
 };
 
-/** @const {!Object<?AnalyticsEvent,?Event>} */
-const AnalyticsEventToEntitlementResult = {
+const AnalyticsEventToEntitlementResult: {
+  [key in AnalyticsEvent]?: EntitlementResult;
+} = {
   [AnalyticsEvent.IMPRESSION_REGWALL]: EntitlementResult.LOCKED_REGWALL,
   [AnalyticsEvent.EVENT_UNLOCKED_BY_METER]: EntitlementResult.UNLOCKED_METER,
   [AnalyticsEvent.EVENT_UNLOCKED_BY_SUBSCRIPTION]:
@@ -103,27 +102,30 @@ const AnalyticsEventToEntitlementResult = {
     EntitlementResult.INELIGIBLE_PAYWALL,
 };
 
-/**
- * @param {!string} eventCategory
- * @param {!string} eventAction
- * @param {!string} eventLabel
- * @param {!boolean} nonInteraction
- * @returns {!Object}
- */
-const createGoogleAnalyticsEvent = (
-  eventCategory,
-  eventAction,
-  eventLabel,
-  nonInteraction
-) => ({
-  eventCategory,
-  eventAction,
-  eventLabel,
-  nonInteraction,
-});
+interface GoogleAnalyticsEvent {
+  eventCategory: string;
+  eventAction: string;
+  eventLabel: string;
+  nonInteraction: boolean;
+}
 
-/** @const {!Object<?AnalyticsEvent,?Object>} */
-export const AnalyticsEventToGoogleAnalyticsEvent = {
+function createGoogleAnalyticsEvent(
+  eventCategory: string,
+  eventAction: string,
+  eventLabel: string,
+  nonInteraction: boolean
+): GoogleAnalyticsEvent {
+  return {
+    eventCategory,
+    eventAction,
+    eventLabel,
+    nonInteraction,
+  };
+}
+
+export const AnalyticsEventToGoogleAnalyticsEvent: {
+  [key in AnalyticsEvent]?: GoogleAnalyticsEvent;
+} = {
   [AnalyticsEvent.IMPRESSION_OFFERS]: createGoogleAnalyticsEvent(
     'NTG paywall',
     'paywall modal impression',
@@ -203,8 +205,9 @@ export const AnalyticsEventToGoogleAnalyticsEvent = {
   ),
 };
 
-/** @const {!Object<?AnalyticsEvent,?Object>} */
-export const SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent = {
+export const SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent: {
+  [key in AnalyticsEvent]?: GoogleAnalyticsEvent;
+} = {
   [AnalyticsEvent.ACTION_PAYMENT_COMPLETE]: createGoogleAnalyticsEvent(
     'NTG subscription',
     'submit',
@@ -213,8 +216,9 @@ export const SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent = {
   ),
 };
 
-/** @const {!Object<?AnalyticsEvent,?Object>} */
-export const ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent = {
+export const ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent: {
+  [key in AnalyticsEvent]?: GoogleAnalyticsEvent;
+} = {
   [AnalyticsEvent.ACTION_PAYMENT_COMPLETE]: createGoogleAnalyticsEvent(
     'NTG membership',
     'submit',
@@ -225,49 +229,53 @@ export const ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent = {
 
 /**
  * Converts a propensity event enum into an analytics event enum.
- * @param {!Event|string} propensityEvent
- * @returns {!AnalyticsEvent}
  */
-export function publisherEventToAnalyticsEvent(propensityEvent) {
+export function publisherEventToAnalyticsEvent(
+  propensityEvent: Event
+): AnalyticsEvent {
   return PublisherEventToAnalyticsEvent[propensityEvent];
 }
 
 /**
  * Converts an analytics event enum into a propensity event enum.
- * @param {?AnalyticsEvent} analyticsEvent
- * @returns {?Event}
  */
-export function analyticsEventToPublisherEvent(analyticsEvent) {
-  return AnalyticsEventToPublisherEvent[analyticsEvent];
+export function analyticsEventToPublisherEvent(
+  analyticsEvent: AnalyticsEvent | null
+): Event | null {
+  return (
+    (analyticsEvent && AnalyticsEventToPublisherEvent[analyticsEvent]) || null
+  );
 }
 
 /**
  * Converts a publisher entitlement event enum into an array analytics events.
- * @param {!ShowcaseEvent} event
- * @returns {!Array<AnalyticsEvent>}
  */
-export function showcaseEventToAnalyticsEvents(event) {
+export function showcaseEventToAnalyticsEvents(
+  event: ShowcaseEvent
+): Array<AnalyticsEvent> {
   return ShowcaseEvents[event] || [];
 }
 
-export function analyticsEventToEntitlementResult(event) {
+export function analyticsEventToEntitlementResult(event: AnalyticsEvent) {
   return AnalyticsEventToEntitlementResult[event];
 }
 
 /**
  * Converts an analytics event enum into a Google Analytics event object.
- * @param {?AnalyticsEvent} event
- * @param {string} subscriptionFlow
- * @returns {?Object}
  */
-export function analyticsEventToGoogleAnalyticsEvent(event, subscriptionFlow) {
-  let gaEvent = null;
-  if (subscriptionFlow) {
-    if (subscriptionFlow == SubscriptionFlows.SUBSCRIBE) {
-      gaEvent = SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent[event];
-    } else if (subscriptionFlow == SubscriptionFlows.CONTRIBUTE) {
-      gaEvent = ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent[event];
-    }
+export function analyticsEventToGoogleAnalyticsEvent(
+  event: AnalyticsEvent | null,
+  subscriptionFlow: string
+): GoogleAnalyticsEvent | void {
+  if (!event) {
+    return;
+  }
+
+  let gaEvent: GoogleAnalyticsEvent | undefined;
+  if (subscriptionFlow === SubscriptionFlows.SUBSCRIBE) {
+    gaEvent = SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent[event];
+  } else if (subscriptionFlow === SubscriptionFlows.CONTRIBUTE) {
+    gaEvent = ContributionSpecificAnalyticsEventToGoogleAnalyticsEvent[event];
   }
   return gaEvent || AnalyticsEventToGoogleAnalyticsEvent[event];
 }
