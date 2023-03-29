@@ -69,7 +69,7 @@ export class UiPredicates {
 }
 
 /**
- * The ClientConfig API sends this JSON representation of the Client Config.
+ * The server sends this JSON representation of the client config.
  */
 export interface ClientConfigJson {
   attributionParams?: {
