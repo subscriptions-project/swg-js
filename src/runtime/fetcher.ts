@@ -21,7 +21,7 @@ import {parseUrl, serializeProtoMessageForUrl} from '../utils/url';
 const jsonSaftyPrefix = /^(\)\]\}'\n)/;
 
 export interface Fetcher {
-  fetchCredentialedJson(url: string): Promise<object>;
+  fetchCredentialedJson(url: string): Promise<{[key: string]: unknown}>;
 
   fetch(url: string, init: RequestInit): Promise<Response>;
 
@@ -33,13 +33,13 @@ export interface Fetcher {
   /**
    * POST data to a URL endpoint, get a Promise for a response
    */
-  sendPost(url: string, message: Message): Promise<object>;
+  sendPost(url: string, message: Message): Promise<{[key: string]: unknown}>;
 }
 
 export class XhrFetcher implements Fetcher {
   constructor(private readonly win_: Window) {}
 
-  async fetchCredentialedJson(url: string) {
+  async fetchCredentialedJson(url: string): Promise<{[key: string]: unknown}> {
     const init: RequestInit = {
       method: 'GET',
       headers: {'Accept': 'text/plain, application/json'},
@@ -52,7 +52,10 @@ export class XhrFetcher implements Fetcher {
     return JSON.parse(cleanedText);
   }
 
-  async sendPost(url: string, message: Message) {
+  async sendPost(
+    url: string,
+    message: Message
+  ): Promise<{[key: string]: unknown}> {
     const init: RequestInit = {
       method: 'POST',
       headers: {
@@ -77,7 +80,7 @@ export class XhrFetcher implements Fetcher {
     }
   }
 
-  async fetch(url: string, init: RequestInit) {
+  async fetch(url: string, init: RequestInit): Promise<Response> {
     try {
       // Wait for the request to succeed before returning the response,
       // allowing this method to catch failures.
@@ -98,7 +101,7 @@ export class XhrFetcher implements Fetcher {
     }
   }
 
-  sendBeacon(url: string, message: Message) {
+  sendBeacon(url: string, message: Message): void {
     const headers = {type: 'application/x-www-form-urlencoded;charset=UTF-8'};
     const blob = new Blob(
       ['f.req=' + serializeProtoMessageForUrl(message)],

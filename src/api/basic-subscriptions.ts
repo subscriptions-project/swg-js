@@ -110,6 +110,8 @@ export interface ClientOptions {
   theme?: ClientTheme;
   /** Whether to allow scrolling. */
   allowScroll?: boolean;
+  /** Skip account creation screen if requested. */
+  skipAccountCreationScreen?: boolean;
 }
 
 export interface LoginRequest {
