@@ -1133,6 +1133,7 @@ describes.realWin('AutoPromptManager', (env) => {
     let getArticleExpectation;
 
     beforeEach(() => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
       entitlementsManagerMock
         .expects('getEntitlements')
@@ -1179,13 +1180,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
 
-    it('should override isClosable with isLocked if isAccessibleForFree is defined', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(false);
+    it('should override isClosable if isAccessibleForFree is defined', async () => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
-        isAccessibleForFree: 'foo',
+        isAccessibleForFree: true,
       });
       await tick(7);
 
@@ -1202,7 +1202,6 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the Contribution prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -1268,7 +1267,6 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should call the original prompt for no article actions', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       getArticleExpectation
         .resolves({
           audienceActions: {},
@@ -1289,7 +1287,6 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should return the last AudienceActionFlow', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       const lastAudienceActionFlow = new audienceActionFlow.AudienceActionFlow(
         deps,
         {
