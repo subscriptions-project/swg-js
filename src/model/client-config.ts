@@ -67,3 +67,37 @@ export class UiPredicates {
     public readonly purchaseUnavailableRegion?: boolean
   ) {}
 }
+
+/**
+ * The ClientConfig API sends this JSON representation of the Client Config.
+ */
+export interface ClientConfigJson {
+  attributionParams?: {
+    displayName: string;
+    avatarUrl: string;
+  };
+  autoPromptConfig?: {
+    clientDisplayTrigger?: {
+      displayDelaySeconds?: number;
+      numImpressionsBetweenPrompts?: number;
+    };
+    explicitDismissalConfig?: {
+      backOffSeconds?: number;
+      maxDismissalsPerWeek?: number;
+      maxDismissalsResultingHideSeconds?: number;
+    };
+    impressionConfig?: {
+      backOffSeconds?: number;
+      maxImpressions?: number;
+      maxImpressionsResultingHideSeconds?: number;
+    };
+  };
+  paySwgVersion?: string;
+  uiPredicates?: {
+    canDisplayAutoPrompt?: boolean;
+    canDisplayButton?: boolean;
+    purchaseUnavailableRegion?: boolean;
+  };
+  useUpdatedOfferFlows?: boolean;
+  skipAccountCreationScreen?: boolean;
+}

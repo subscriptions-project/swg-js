@@ -16,7 +16,11 @@
 
 import {AttributionParams} from '../model/attribution-params';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
-import {ClientConfig, UiPredicates} from '../model/client-config';
+import {
+  ClientConfig,
+  ClientConfigJson,
+  UiPredicates,
+} from '../model/client-config';
 import {ClientOptions, ClientTheme} from '../api/basic-subscriptions';
 import {Deps} from './deps';
 import {Fetcher} from './fetcher';
@@ -159,9 +163,9 @@ export class ClientConfigManager {
   /**
    * Parses the fetched config into the ClientConfig container object.
    */
-  parseClientConfig_(json: {[key: string]: unknown}): ClientConfig {
-    const paySwgVersion = json['paySwgVersion'] as string;
-    const autoPromptConfigJson = json['autoPromptConfig'] as AutoPromptConfig;
+  parseClientConfig_(json: ClientConfigJson): ClientConfig {
+    const paySwgVersion = json['paySwgVersion'];
+    const autoPromptConfigJson = json['autoPromptConfig'];
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
       autoPromptConfig = new AutoPromptConfig({
@@ -183,7 +187,7 @@ export class ClientConfigManager {
       });
     }
 
-    const uiPredicatesJson = json['uiPredicates'] as UiPredicates;
+    const uiPredicatesJson = json['uiPredicates'];
     let uiPredicates = undefined;
     if (uiPredicatesJson) {
       uiPredicates = new UiPredicates(
@@ -193,9 +197,7 @@ export class ClientConfigManager {
       );
     }
 
-    const attributionParamsJson = json[
-      'attributionParams'
-    ] as AttributionParams;
+    const attributionParamsJson = json['attributionParams'];
     let attributionParams;
     if (attributionParamsJson) {
       attributionParams = new AttributionParams(
@@ -207,7 +209,7 @@ export class ClientConfigManager {
     return new ClientConfig({
       autoPromptConfig,
       paySwgVersion,
-      useUpdatedOfferFlows: json['useUpdatedOfferFlows'] as boolean | undefined,
+      useUpdatedOfferFlows: json['useUpdatedOfferFlows'],
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
       uiPredicates,
       attributionParams,
