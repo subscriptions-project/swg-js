@@ -19,8 +19,8 @@ import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientOptions, ClientTheme} from '../api/basic-subscriptions';
 import {Deps} from './deps';
+import {Fetcher} from './fetcher';
 import {serviceUrl} from './services';
-import {warn} from '../utils/log';
 
 /**
  * Manager of how the client should be configured. Fetches and stores
@@ -153,11 +153,6 @@ export class ClientConfigManager {
         '/clientconfiguration'
     );
     const json = await this.fetcher_.fetchCredentialedJson(url);
-    if (json.errorMessages && json.errorMessages.length > 0) {
-      for (const errorMessage of json.errorMessages) {
-        warn('SwG ClientConfigManager: ' + errorMessage);
-      }
-    }
     return this.parseClientConfig_(json);
   }
 

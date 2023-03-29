@@ -224,23 +224,6 @@ describes.realWin('ClientConfigManager', (env) => {
     ).to.equal(8);
   });
 
-  it('fetchClientConfig should log errors from the response', async () => {
-    const expectedUrl =
-      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
-    fetcherMock
-      .expects('fetchCredentialedJson')
-      .withExactArgs(expectedUrl)
-      .resolves({
-        errorMessages: ['Something went wrong'],
-      })
-      .once();
-
-    await clientConfigManager.getAutoPromptConfig();
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      'SwG ClientConfigManager: Something went wrong'
-    );
-  });
-
   it('getClientConfig should return a Promise with an empty config if fetchClientConfig is not called', async () => {
     const clientConfig = await clientConfigManager.getClientConfig();
     const expectedClientConfig = new ClientConfig({usePrefixedHostPath: true});
