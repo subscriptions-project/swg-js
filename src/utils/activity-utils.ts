@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-/**
- * @param {!../components/activities.ActivityPortDef} port
- * @param {string} requireOrigin
- * @param {boolean} requireOriginVerified
- * @param {boolean} requireSecureChannel
- * @return {!Promise<!Object>}
- */
+import {ActivityPortDef} from '../components/activities';
+
 export async function acceptPortResultData(
-  port,
-  requireOrigin,
-  requireOriginVerified,
-  requireSecureChannel
-) {
+  port: ActivityPortDef,
+  requireOrigin: string,
+  requireOriginVerified: boolean,
+  requireSecureChannel: boolean
+): Promise<unknown> {
   const result = await port.acceptResult();
   if (
     result.origin != requireOrigin ||
@@ -35,5 +30,5 @@ export async function acceptPortResultData(
   ) {
     throw new Error('channel mismatch');
   }
-  return /** @type {!Object} */ (result.data);
+  return result.data;
 }
