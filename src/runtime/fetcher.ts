@@ -15,79 +15,52 @@
  */
 
 import {ErrorUtils} from '../utils/errors';
+import {Message} from '../proto/api_messages';
 import {parseUrl, serializeProtoMessageForUrl} from '../utils/url';
 
 const jsonSaftyPrefix = /^(\)\]\}'\n)/;
 
-/**
- * @interface
- */
-export class Fetcher {
-  /**
-   * @param {string} unusedUrl
-   * @return {!Promise<!Object>}
-   */
-  fetchCredentialedJson(unusedUrl) {}
+export interface Fetcher {
+  fetchCredentialedJson(url: string): Promise<object>;
 
-  /**
-   * @param {string} unusedUrl
-   * @param {!RequestInit} unusedInit
-   * @return {!Promise<!Response>}
-   */
-  async fetch(unusedUrl, unusedInit) {}
+  fetch(url: string, init: RequestInit): Promise<Response>;
 
   /**
    * POST data to a URL endpoint, do not wait for a response.
-   * @param {!string} unusedUrl
-   * @param {!../proto/api_messages.Message} unusedData
    */
-  sendBeacon(unusedUrl, unusedData) {}
+  sendBeacon(url: string, message: Message): void;
 
   /**
    * POST data to a URL endpoint, get a Promise for a response
-   * @param {!string} unusedUrl
-   * @param {!../proto/api_messages.Message} unusedMessage
-   * @return {!Promise<!Object>}
    */
-  sendPost(unusedUrl, unusedMessage) {}
+  sendPost(url: string, message: Message): Promise<object>;
 }
 
-/**
- * @implements {Fetcher}
- */
-export class XhrFetcher {
-  /**
-   * @param {!Window} win
-   */
-  constructor(win) {
-    /** @const {!Window} */
-    this.win_ = win;
-  }
+export class XhrFetcher implements Fetcher {
+  constructor(private readonly win_: Window) {}
 
-  /** @override */
-  async fetchCredentialedJson(url) {
-    const init = /** @type {!RequestInit} */ ({
+  async fetchCredentialedJson(url: string) {
+    const init: RequestInit = {
       method: 'GET',
       headers: {'Accept': 'text/plain, application/json'},
       credentials: 'include',
-    });
+    };
     const response = await this.fetch(url, init);
     const text = await response.text();
     // Remove "")]}'\n" XSSI prevention prefix in safe responses.
     const cleanedText = text.replace(jsonSaftyPrefix, '');
-    return /** @type {!Object} */ (JSON.parse(cleanedText));
+    return JSON.parse(cleanedText);
   }
 
-  /** @override */
-  async sendPost(url, message) {
-    const init = /** @type {!RequestInit} */ ({
+  async sendPost(url: string, message: Message) {
+    const init: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       },
       credentials: 'include',
       body: 'f.req=' + serializeProtoMessageForUrl(message),
-    });
+    };
     const response = await this.fetch(url, init);
     if (!response) {
       return {};
@@ -97,15 +70,14 @@ export class XhrFetcher {
     try {
       // Remove "")]}'\n" XSSI prevention prefix in safe responses.
       const cleanedText = text.replace(jsonSaftyPrefix, '');
-      return /** @type {!Object} */ (JSON.parse(cleanedText));
-    } catch (e) {
-      ErrorUtils.throwAsync(e);
+      return JSON.parse(cleanedText);
+    } catch (err) {
+      ErrorUtils.throwAsync(err as Error);
       return {};
     }
   }
 
-  /** @override */
-  async fetch(url, init) {
+  async fetch(url: string, init: RequestInit) {
     try {
       // Wait for the request to succeed before returning the response,
       // allowing this method to catch failures.
@@ -126,11 +98,10 @@ export class XhrFetcher {
     }
   }
 
-  /** @override */
-  sendBeacon(url, data) {
+  sendBeacon(url: string, message: Message) {
     const headers = {type: 'application/x-www-form-urlencoded;charset=UTF-8'};
     const blob = new Blob(
-      ['f.req=' + serializeProtoMessageForUrl(data)],
+      ['f.req=' + serializeProtoMessageForUrl(message)],
       headers
     );
     navigator.sendBeacon(url, blob);

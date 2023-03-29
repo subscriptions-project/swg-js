@@ -18,10 +18,10 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType, ClientTheme} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {Fetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {MockDeps} from '../../test/mock-deps';
+import {XhrFetcher} from './fetcher';
 
 describes.realWin('MiniPromptApi', (env) => {
   let miniPromptApi;
@@ -43,7 +43,7 @@ describes.realWin('MiniPromptApi', (env) => {
     clientConfigManager = new ClientConfigManager(
       deps,
       'pubId',
-      new Fetcher(env.win)
+      new XhrFetcher(env.win)
     );
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
