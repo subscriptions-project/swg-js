@@ -228,7 +228,6 @@ export class BasicRuntime {
     this.setupAndShowAutoPrompt({
       autoPromptType,
       alwaysShow,
-      isAccessibleForFree,
     });
     this.setOnLoginRequest();
     this.processEntitlements();

@@ -1174,28 +1174,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'reg_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-        isClosable: false,
-      });
-      expect(subscriptionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
-    });
-
-    it('should override isClosable if isAccessibleForFree is defined', async () => {
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-        alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
-        isAccessibleForFree: true,
-      });
-      await tick(7);
-
-      expect(startSpy).to.have.been.calledOnce;
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REGISTRATION_WALL',
-        configurationId: 'reg_config_id',
-        onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-        isClosable: true,
       });
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
@@ -1259,7 +1237,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'subscription_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-        isClosable: false,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
@@ -1403,7 +1380,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1444,7 +1420,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1498,7 +1473,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1538,7 +1512,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1578,7 +1551,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1669,7 +1641,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1711,7 +1682,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1753,7 +1723,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1894,7 +1863,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1934,7 +1902,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -1982,7 +1949,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -2057,7 +2023,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -2148,7 +2113,6 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
@@ -2344,7 +2308,6 @@ describes.realWin('AutoPromptManager', (env) => {
               configurationId: 'survey_config_id',
               onCancel: sandbox.match.any,
               autoPromptType: AutoPromptType.CONTRIBUTION,
-              isClosable: true,
             });
             expect(contributionPromptFnSpy).to.not.have.been.called;
             expect(autoPromptManager.interventionDisplayed_.type).to.equal(

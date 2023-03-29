@@ -51,8 +51,8 @@ import {warn} from '../utils/log';
  *  configurationId: (string|undefined),
  *  onCancel: (function()|undefined),
  *  autoPromptType: (AutoPromptType|undefined),
- *  onResult: ((function(!Object):(Promise<boolean>|boolean))|undefined),
- *  isClosable: (boolean|undefined),
+ *  onResult: ((function(!Object):(Promise<Boolean>|Boolean))|undefined),
+ *  isClosable: (Boolean|undefined),
  * }}
  */
 export let AudienceActionParams;
@@ -114,7 +114,7 @@ export class AudienceActionFlow {
         'origin': parseUrl(deps.win().location.href).origin,
         'configurationId': this.params_.configurationId || '',
         'hl': this.clientConfigManager_.getLanguage(),
-        'isClosable': !!params.isClosable,
+        'isClosable': isClosable,
       }),
       feArgs({
         'supportsEventManager': true,
