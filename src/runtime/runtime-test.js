@@ -43,7 +43,6 @@ import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
-import {Fetcher, XhrFetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
@@ -62,6 +61,7 @@ import {Propensity} from './propensity';
 import {SubscribeResponse} from '../api/subscribe-response';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
+import {XhrFetcher} from './fetcher';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 import {
@@ -877,7 +877,7 @@ describes.realWin('Runtime', (env) => {
 
     it('should override fetcher', async () => {
       const ents = {};
-      const otherFetcher = new Fetcher();
+      const otherFetcher = new XhrFetcher(env.win);
       const fetchStub = sandbox
         .stub(otherFetcher, 'fetchCredentialedJson')
         .callsFake(() => Promise.resolve(ents));
@@ -895,7 +895,11 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should return propensity module', async () => {
-      const propensity = new Propensity(win, configuredRuntime, new Fetcher());
+      const propensity = new Propensity(
+        win,
+        configuredRuntime,
+        new XhrFetcher(env.win)
+      );
       configuredRuntimeMock
         .expects('getPropensityModule')
         .once()
