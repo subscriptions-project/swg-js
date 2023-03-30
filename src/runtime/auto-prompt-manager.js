@@ -200,9 +200,8 @@ export class AutoPromptManager {
     // Otherwise, for publications with a subscription revenue model the
     // prompt is blocking, while all others can be dismissed.
     const isClosable =
-      params.isAccessibleForFree !== undefined
-        ? params.isAccessibleForFree
-        : !this.isSubscription_(params);
+      params.isAccessibleForFree ?? !this.isSubscription_(params);
+
     if (this.isSubscription_(params)) {
       params.displayLargePromptFn = () => {
         this.configuredRuntime.showOffers({
