@@ -434,7 +434,7 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
-      const options = {alwaysShow: true};
+      const options = {alwaysShow: true, isAccessibleForFree: true};
       configuredBasicRuntimeMock
         .expects('setupAndShowAutoPrompt')
         .withExactArgs(options)
@@ -695,7 +695,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
         .withExactArgs({
-          isClosable: false,
+          isClosable: true,
         })
         .once();
 

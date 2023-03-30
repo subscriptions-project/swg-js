@@ -971,4 +971,35 @@ describes.realWin('AudienceActionFlow', (env) => {
     await audienceActionFlow.start();
     dialogManagerMock.verify();
   });
+
+  it(`opens an AudienceActionFlow and passes isClosable in query param`, async () => {
+    sandbox.stub(runtime.storage(), 'get').resolves(null);
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: undefined,
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      isClosable: true,
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        `https://news.google.com/swg/ui/v1/surveyiframe?_=_&origin=${encodeURIComponent(
+          WINDOW_LOCATION_DOMAIN
+        )}&configurationId=&hl=en&isClosable=true`,
+        {
+          _client: 'SwG 0.0.0',
+          productType: ProductType.SUBSCRIPTION,
+          supportsEventManager: true,
+          windowHeight: WINDOW_INNER_HEIGHT,
+        }
+      )
+      .resolves(port);
+
+    await audienceActionFlow.start();
+
+    activitiesMock.verify();
+    expect(onCancelSpy).to.not.be.called;
+  });
 });

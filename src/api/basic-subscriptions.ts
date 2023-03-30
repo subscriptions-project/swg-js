@@ -73,6 +73,7 @@ export interface BasicSubscriptions {
   setupAndShowAutoPrompt(options: {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
+    isAccessibleForFree?: boolean;
   }): Promise<void>;
 
   /**
