@@ -15,6 +15,7 @@
  */
 
 import {ActivityPorts} from '../components/activities';
+import {ClientConfigManager} from './client-config-manager';
 import {Config} from '../api/subscriptions';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc} from '../model/doc';
@@ -63,8 +64,5 @@ export interface Deps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   eventManager(): any;
 
-  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
-  // {!../runtime/client-config-manager.ClientConfigManager}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  clientConfigManager(): any;
+  clientConfigManager(): ClientConfigManager;
 }

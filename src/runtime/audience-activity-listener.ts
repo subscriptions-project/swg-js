@@ -18,12 +18,15 @@ import {
   AnalyticsEvent,
   AudienceActivityClientLogsRequest,
 } from '../proto/api_messages';
+import {ClientEvent} from '../api/client-event-manager-api';
+import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
+import {Deps} from './deps';
+import {Fetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {serviceUrl} from './services';
 
-/** @const {!Set<!AnalyticsEvent>} */
-const audienceActivityLoggingEvents = new Set([
+const audienceActivityLoggingEvents = new Set<AnalyticsEvent>([
   AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
   AnalyticsEvent.IMPRESSION_PAGE_LOAD,
   AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -42,42 +45,30 @@ const audienceActivityLoggingEvents = new Set([
 ]);
 
 export class AudienceActivityEventListener {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!./fetcher.Fetcher} fetcher
-   */
-  constructor(deps, fetcher) {
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+  private readonly eventManager_: ClientEventManager;
+  private readonly storage_: Storage;
 
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
-
-    /** @private @const {!./client-event-manager.ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
-
-    /** @private @const {!./fetcher.Fetcher} */
-    this.fetcher_ = fetcher;
-
-    /** @private @const {!../runtime/storage.Storage} */
+  constructor(
+    private readonly deps_: Deps,
+    private readonly fetcher_: Fetcher
+  ) {
+    this.eventManager_ = this.deps_.eventManager();
     this.storage_ = this.deps_.storage();
   }
+
   /**
    * Start listening to client events.
-   * @public
    */
-  start() {
+  start(): void {
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
     );
   }
 
   /**
-   *  Listens for new audience activity events from the events manager and sends them to the SwG Client Server.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @private
+   * Listens for new audience activity events from the events manager and sends them to the SwG Client Server.
    */
-  async handleClientEvent_(event) {
+  private async handleClientEvent_(event: ClientEvent): Promise<void> {
     // Bail if event is unrelated to Audience Activity.
     if (
       !event.eventType ||
@@ -104,14 +95,11 @@ export class AudienceActivityEventListener {
     );
   }
 
-  /**
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @return {!AudienceActivityClientLogsRequest}
-   * @private
-   */
-  createLogRequest_(event) {
+  private createLogRequest_(
+    event: ClientEvent
+  ): AudienceActivityClientLogsRequest {
     const request = new AudienceActivityClientLogsRequest();
-    request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
+    request.setEvent(event.eventType!);
     return request;
   }
 }

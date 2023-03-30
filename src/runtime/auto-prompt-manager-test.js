@@ -27,12 +27,12 @@ import {Constants, StorageKeys} from '../utils/constants';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
-import {Fetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
+import {XhrFetcher} from './fetcher';
 import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
@@ -100,7 +100,7 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock = sandbox.mock(storage);
     sandbox.stub(deps, 'storage').returns(storage);
 
-    fetcher = new Fetcher(win);
+    fetcher = new XhrFetcher(win);
     entitlementsManager = new EntitlementsManager(
       win,
       pageConfig,
