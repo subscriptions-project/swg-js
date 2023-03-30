@@ -50,6 +50,16 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
 ]);
 
 /**
+ * @typedef {{
+ *   autoPromptType: (AutoPromptType|undefined),
+ *   alwaysShow: (boolean|undefined),
+ *   displayLargePromptFn: (function()|undefined),
+ *   isAccessibleForFree: (boolean|undefined),
+ * }}
+ */
+export let ShowAutoPromptParams;
+
+/**
  * Manages the display of subscription/contribution prompts automatically
  * displayed to the user.
  */
@@ -128,12 +138,7 @@ export class AutoPromptManager {
    *   - The user had not reached the maximum impressions allowed, as specified
    *     by the publisher
    * A prompt may not be displayed if the appropriate criteria are not met.
-   * @param {{
-   *   autoPromptType: (AutoPromptType|undefined),
-   *   alwaysShow: (boolean|undefined),
-   *   displayLargePromptFn: (function()|undefined),
-   *   isAccessibleForFree: (boolean|undefined),
-   * }} params
+   * @param {!ShowAutoPromptParams} params
    * @return {!Promise}
    */
   async showAutoPrompt(params) {
@@ -176,12 +181,7 @@ export class AutoPromptManager {
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {?./entitlements-manager.Article} article
    * @param {?string|undefined} dismissedPrompts
-   * @param {{
-   *   autoPromptType: (AutoPromptType|undefined),
-   *   alwaysShow: (boolean|undefined),
-   *   displayLargePromptFn: (function()|undefined),
-   *   isAccessibleForFree: (boolean|undefined),
-   * }} params
+   * @param {!ShowAutoPromptParams} params
    * @return {!Promise}
    */
   async showAutoPrompt_(
@@ -196,25 +196,20 @@ export class AutoPromptManager {
       article?.audienceActions?.actions
     );
 
-    // Override isClosable if isAccessibleForFree is defined.
+    // Override isClosable if isAccessibleForFree is set in the page config.
+    // Otherwise, for publications with a subscription revenue model the
+    // prompt is blocking, while all others can be dismissed.
     const isClosable =
       params.isAccessibleForFree !== undefined
         ? params.isAccessibleForFree
-        : params.autoPromptType !== AutoPromptType.SUBSCRIPTION &&
-          params.autoPromptType !== AutoPromptType.SUBSCRIPTION_LARGE;
-    if (
-      params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
-    ) {
+        : !this.isSubscription_(params);
+    if (this.isSubscription_(params)) {
       params.displayLargePromptFn = () => {
         this.configuredRuntime.showOffers({
           isClosable,
         });
       };
-    } else if (
-      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
-      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
-    ) {
+    } else if (this.isContribution_(params)) {
       params.displayLargePromptFn = () => {
         this.configuredRuntime.showContributionOptions({
           isClosable,
@@ -256,16 +251,13 @@ export class AutoPromptManager {
     }
 
     // Second Prompt Delay experiment
-    const isContributionFlow =
-      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
-      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE;
     const delaySecondPrompt = article
       ? await this.isExperimentEnabled_(
           article,
           ExperimentFlags.SECOND_PROMPT_DELAY
         )
       : false;
-    if (isContributionFlow && delaySecondPrompt) {
+    if (this.isContribution_(params) && delaySecondPrompt) {
       const shouldSuppressAutoprompt =
         await this.secondPromptDelayExperimentSuppressesPrompt_(
           clientConfig?.autoPromptConfig?.clientDisplayTrigger
@@ -300,6 +292,28 @@ export class AutoPromptManager {
           isBlockingPromptWithDelay ? displayDelayMs : 0
         );
     }
+  }
+
+  /**
+   * @param {!ShowAutoPromptParams} params
+   * @return {!boolean}
+   */
+  isSubscription_(params) {
+    return (
+      params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+    );
+  }
+
+  /**
+   * @param {!ShowAutoPromptParams} params
+   * @return {!boolean}
+   */
+  isContribution_(params) {
+    return (
+      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+    );
   }
 
   /**
