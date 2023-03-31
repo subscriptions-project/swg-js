@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import {queryStringHasFreshGaaParams} from './';
-import {callSwg} from './utils';
+import {callSwg, queryStringHasFreshGaaParams} from './utils';
 
 describes.realWin('queryStringHasFreshGaaParams', () => {
   let clock;
