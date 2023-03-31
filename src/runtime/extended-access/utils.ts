@@ -82,7 +82,7 @@ export async function configureGoogleSignIn(): Promise<void> {
   });
 
   // Load Auth2 module.
-  await new Promise<void>((resolve) => self.gapi.load('auth2', resolve));
+  await new Promise<void>((resolve) => void self.gapi.load('auth2', resolve));
 
   // Specify "redirect" mode. It plays nicer with webviews.
   // Only initialize Google Sign-In once.
