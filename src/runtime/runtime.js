@@ -174,7 +174,12 @@ export class Runtime {
     this.productOrPublicationId_ = null;
 
     /** @private @const {!../api/subscriptions.Config} */
-    this.config_ = {};
+    this.config_ = {
+      useArticleEndpoint: isExperimentOn(
+        win,
+        ExperimentFlags.USE_ARTICLE_ENDPOINT_CLASSIC
+      ),
+    };
 
     /** @private {boolean} */
     this.startedConfiguringRuntime_ = false;
