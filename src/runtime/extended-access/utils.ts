@@ -91,6 +91,8 @@ export async function configureGoogleSignIn(): Promise<void> {
 
 /**
  * Logs Showcase events.
+ *
+ * Callers must pass either the `analyticsEvent` or `showcaseEvent` param.
  */
 export function logEvent({
   analyticsEvent,
