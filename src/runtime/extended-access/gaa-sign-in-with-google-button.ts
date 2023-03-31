@@ -54,7 +54,7 @@ export class GaaSignInWithGoogleButton {
     clientId: string;
     allowedOrigins: string[];
     rawJwt: boolean;
-  }) {
+  }): Promise<void> {
     // Optionally grab language code from URL.
     const queryString = QueryStringUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
