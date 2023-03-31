@@ -27,12 +27,14 @@ export interface GaaUserDef {
   imageUrl: string;
   email: string;
   authorizationData: {
+    /* eslint-disable google-camelcase/google-camelcase */
     access_token: string;
     id_token: string;
     scope: string;
     expires_in: number;
     first_issued_at: number;
     expires_at: number;
+    /* eslint-enable google-camelcase/google-camelcase */
   };
 }
 
@@ -41,6 +43,7 @@ export interface GaaUserDef {
  * https://developers.google.com/identity/gsi/web/reference/js-reference#CredentialResponse
  */
 export interface GoogleIdentityV1Def {
+  /* eslint-disable google-camelcase/google-camelcase */
   iss: string;
   nbf: number;
   aud: string;
@@ -56,6 +59,7 @@ export interface GoogleIdentityV1Def {
   iat: number;
   exp: number;
   jti: string;
+  /* eslint-enable google-camelcase/google-camelcase */
 }
 
 /**
@@ -64,12 +68,14 @@ export interface GoogleIdentityV1Def {
  */
 export interface GoogleUserDef {
   getAuthResponse: (something: boolean) => {
+    /* eslint-disable google-camelcase/google-camelcase */
     access_token: string;
     id_token: string;
     scope: string;
     expires_in: number;
     first_issued_at: number;
     expires_at: number;
+    /* eslint-enable google-camelcase/google-camelcase */
   };
   getBasicProfile: () => {
     getName: () => string;

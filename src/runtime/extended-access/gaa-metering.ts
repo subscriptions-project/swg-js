@@ -22,13 +22,14 @@
 // Thanks!
 
 import {AnalyticsEvent} from '../../proto/api_messages';
+import {Entitlements} from '../../api/entitlements';
 import {GaaMeteringRegwall} from './gaa-metering-regwall';
 import {
   GetEntitlementsParamsExternalDef,
   ShowcaseEvent,
 } from '../../api/subscriptions';
-import {GrantReasonType, PaywallReasonType} from './constants';
 import {GoogleIdentityV1Def, InitParamsDef, UserState} from './interfaces';
+import {GrantReasonType, PaywallReasonType} from './constants';
 import {
   QueryStringUtils,
   callSwg,
@@ -38,7 +39,6 @@ import {
 import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
 import {debugLog} from '../../utils/log';
 import {parseUrl, wasReferredByGoogle} from '../../utils/url';
-import {Entitlements} from '../../api/entitlements';
 
 export class GaaMetering {
   static userState: UserState;
