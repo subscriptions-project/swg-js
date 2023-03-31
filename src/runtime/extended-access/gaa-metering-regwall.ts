@@ -109,7 +109,8 @@ export class GaaMeteringRegwall {
 
   /**
    * Returns a promise for a Google user object.
-   * The user object will be a GoogleIdentityV1Def
+   * The user object will be a GoogleIdentityV1Def,
+   * or a raw JWT if requested.
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
