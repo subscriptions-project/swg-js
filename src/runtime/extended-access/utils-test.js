@@ -77,7 +77,7 @@ describes.realWin('callSwg', () => {
     expect(self.SWG.length).to.equal(1);
   });
 
-  it('pushes to existing SWG array', () => {
+  it('pushes to existing SWG array if available', () => {
     self.SWG = [() => {}];
     callSwg(() => {});
     expect(self.SWG.length).to.equal(2);
