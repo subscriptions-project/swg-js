@@ -32,7 +32,7 @@ import {
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
 } from './html-templates';
-import {GaaUserDef, GoogleIdentityV1Def, GoogleUserDef} from './interfaces';
+import {GaaUserDef, GoogleIdentityV1Def} from './interfaces';
 import {I18N_STRINGS} from '../../i18n/strings';
 import {JwtHelper} from '../../utils/jwt';
 import {
@@ -409,7 +409,9 @@ export class GaaMeteringRegwall {
   /**
    * Returns the GAA user, after the user signs in.
    */
-  private static getGaaUser_(): Promise<GoogleUserDef> {
+  private static getGaaUser_(): Promise<
+    GaaUserDef | GoogleIdentityV1Def | object
+  > {
     // Listen for GAA user.
     return new Promise((resolve, reject) => {
       self.addEventListener('message', (e) => {
