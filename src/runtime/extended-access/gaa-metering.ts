@@ -623,8 +623,10 @@ export class GaaMetering {
     return false;
   }
 
-  static isPromise(p: Promise<unknown> | null): boolean {
-    return !!p && Object.prototype.toString.call(p) === '[object Promise]';
+  static isPromise(value: unknown): boolean {
+    return (
+      !!value && Object.prototype.toString.call(value) === '[object Promise]'
+    );
   }
 
   static newUserStateToUserState(
