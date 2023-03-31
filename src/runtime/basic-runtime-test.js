@@ -581,8 +581,14 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     let winMock;
     let audienceActivityEventListener;
     let audienceActivityEventListenerMock;
+    let entitlementsStub;
 
     beforeEach(() => {
+      entitlementsStub = sandbox.stub(
+        EntitlementsManager.prototype,
+        'getEntitlements'
+      );
+      entitlementsStub.resolves(new Entitlements());
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
       entitlementsManagerMock = sandbox.mock(
         configuredBasicRuntime.configuredClassicRuntime_.entitlementsManager_
@@ -672,8 +678,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
     it('should configure subscription auto prompts to show offers for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
-      const entitlements = new Entitlements();
-      entitlementsManagerMock.expects('getEntitlements').resolves(entitlements);
+
       clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showOffers')
@@ -689,8 +694,6 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
     it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
-      const entitlements = new Entitlements();
-      entitlementsManagerMock.expects('getEntitlements').resolves(entitlements);
       clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
@@ -930,18 +933,13 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       );
     });
 
-    it('passes getEntitlements to fetchClientConfig if useArticleEndpoint is enabled', async () => {
-      setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT, true);
+    it('passes getEntitlements to fetchClientConfig', async () => {
       const entitlements = new Entitlements(
         'foo.service',
         'RaW',
         [],
         null,
         null
-      );
-      const entitlementsStub = sandbox.stub(
-        EntitlementsManager.prototype,
-        'getEntitlements'
       );
       entitlementsStub.resolves(entitlements);
       const clientConfigManagerStub = sandbox.stub(
@@ -951,8 +949,6 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
 
-      expect(isExperimentOn(win, ExperimentFlags.USE_ARTICLE_ENDPOINT)).to.be
-        .true;
       expect(clientConfigManagerStub).to.be.calledOnce;
       expect(await clientConfigManagerStub.args[0][0]).to.deep.equal(
         entitlements
