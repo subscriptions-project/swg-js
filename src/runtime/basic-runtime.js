@@ -307,10 +307,7 @@ export class ConfiguredBasicRuntime {
     integr.configPromise = integr.configPromise || Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
     integr.enableGoogleAnalytics = true;
-    integr.useArticleEndpoint = isExperimentOn(
-      this.win_,
-      ExperimentFlags.USE_ARTICLE_ENDPOINT
-    );
+    integr.useArticleEndpoint = true;
 
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = integr.fetcher;
