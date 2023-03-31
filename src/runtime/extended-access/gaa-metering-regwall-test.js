@@ -764,7 +764,7 @@ describes.realWin('GaaMeteringRegwall', () => {
         GaaMeteringRegwall.createNativeRegistrationButton({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
         })
-      ).to.be.false;
+      ).to.be.undefined;
     });
 
     it('renders Google Sign-In button', async () => {
@@ -874,7 +874,7 @@ describes.realWin('GaaMeteringRegwall', () => {
         GaaMeteringRegwall.createNative3PRegistrationButton({
           authorizationUrl: GOOGLE_3P_AUTH_URL,
         })
-      ).to.be.false;
+      ).to.be.undefined;
     });
 
     it('renders third party Google Sign-In button', async () => {

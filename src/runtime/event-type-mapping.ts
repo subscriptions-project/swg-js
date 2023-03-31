@@ -252,7 +252,7 @@ export function analyticsEventToPublisherEvent(
  */
 export function showcaseEventToAnalyticsEvents(
   event: ShowcaseEvent
-): Array<AnalyticsEvent> {
+): AnalyticsEvent[] {
   return ShowcaseEvents[event] || [];
 }
 

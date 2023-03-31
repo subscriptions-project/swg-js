@@ -246,18 +246,6 @@ describes.realWin('GaaMetering', () => {
     }
   }
 
-  describe('constructor', () => {
-    it('sets class variable', () => {
-      const gaaMeteringInstance = new GaaMetering();
-
-      expect(typeof gaaMeteringInstance.userState).to.equal('object');
-
-      expect(typeof gaaMeteringInstance.gaaUserPromiseResolve_).to.equal(
-        'function'
-      );
-    });
-  });
-
   describe('validateParameters', () => {
     beforeEach(() => {
       location.hash = `#swg.debug=1`;

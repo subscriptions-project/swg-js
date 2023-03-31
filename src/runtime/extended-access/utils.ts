@@ -14,27 +14,18 @@
  * limitations under the License.
  */
 
-import {
-  AnalyticsEvent as AnalyticsEventDef,
-  EventOriginator,
-} from '../../proto/api_messages';
-import {
-  ShowcaseEvent as ShowcaseEventDef,
-  Subscriptions as SubscriptionsDef,
-} from '../../api/subscriptions';
+import {AnalyticsEvent, EventOriginator} from '../../proto/api_messages';
+import {ShowcaseEvent, Subscriptions} from '../../api/subscriptions';
 import {parseQueryString} from '../../utils/url';
 import {showcaseEventToAnalyticsEvents} from '../event-type-mapping';
 
 /**
  * Returns true if the query string contains fresh Google Article Access (GAA) params.
- * @param {string} queryString
- * @param {boolean} allowAllAccessTypes
- * @return {boolean}
  */
 export function queryStringHasFreshGaaParams(
-  queryString,
+  queryString: string,
   allowAllAccessTypes = false
-) {
+): boolean {
   const params = parseQueryString(queryString);
 
   // Verify GAA params exist.
@@ -67,9 +58,8 @@ export function queryStringHasFreshGaaParams(
 
 /**
  * Calls Swgjs.
- * @param { function(!SubscriptionsDef) } callback
  */
-export function callSwg(callback) {
+export function callSwg(callback: (api: Subscriptions) => void) {
   (self.SWG = self.SWG || []).push(callback);
 }
 
@@ -79,12 +69,10 @@ export function callSwg(callback) {
  * This function is used in two places.
  * 1. The publisher's Google Sign-In iframe.
  * 2. (Optional) Demos that allow users to sign out.
- *
- * @return {!Promise}
  */
-export async function configureGoogleSignIn() {
+export async function configureGoogleSignIn(): Promise<void> {
   // Wait for Google Sign-In API.
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     const apiCheckInterval = setInterval(() => {
       if (!!self.gapi) {
         clearInterval(apiCheckInterval);
@@ -94,7 +82,7 @@ export async function configureGoogleSignIn() {
   });
 
   // Load Auth2 module.
-  await new Promise((resolve) => self.gapi.load('auth2', resolve));
+  await new Promise<void>((resolve) => self.gapi.load('auth2', resolve));
 
   // Specify "redirect" mode. It plays nicer with webviews.
   // Only initialize Google Sign-In once.
@@ -103,17 +91,16 @@ export async function configureGoogleSignIn() {
 
 /**
  * Logs Showcase events.
- * @param {{
- *   analyticsEvent: (AnalyticsEventDef|undefined),
- *   showcaseEvent: (ShowcaseEventDef|undefined),
- *   isFromUserAction: boolean,
- * }} params
  */
 export function logEvent({
   analyticsEvent,
   showcaseEvent,
   isFromUserAction,
-} = {}) {
+}: {
+  analyticsEvent?: AnalyticsEvent;
+  showcaseEvent?: ShowcaseEvent;
+  isFromUserAction: boolean;
+}) {
   callSwg(async (swg) => {
     // Get reference to event manager.
     const eventManager = await swg.getEventManager();
@@ -125,7 +112,7 @@ export function logEvent({
     // Log each analytics event.
     for (const eventType of eventTypes) {
       eventManager.logEvent({
-        eventType,
+        eventType: eventType || null,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction,
         additionalParameters: null,
@@ -138,9 +125,8 @@ export class QueryStringUtils {
   /**
    * Returns query string from current URL.
    * Tests can override this method to return different URLs.
-   * @return {string}
    */
-  static getQueryString() {
+  static getQueryString(): string {
     return self.location.search;
   }
 }

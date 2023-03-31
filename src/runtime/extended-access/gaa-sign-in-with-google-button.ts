@@ -22,19 +22,18 @@
 // Thanks!
 
 import {
-  GOOGLE_3P_SIGN_IN_BUTTON_HTML,
-  GOOGLE_3P_SIGN_IN_BUTTON_ID,
-  GOOGLE_3P_SIGN_IN_IFRAME_STYLES,
+  GOOGLE_SIGN_IN_IFRAME_STYLES,
+  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
 } from './html-templates';
-import {GaaUserDef} from './typedefs';
+import {GoogleIdentityV1Def} from './interfaces';
 import {I18N_STRINGS} from '../../i18n/strings';
+import {JwtHelper} from '../../utils/jwt';
 import {
-  POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_INTRODUCTION,
+  POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
-  REDIRECT_DELAY,
 } from './constants';
 import {QueryStringUtils} from './utils';
 import {createElement, injectStyleSheet} from '../../utils/dom';
@@ -43,63 +42,39 @@ import {parseQueryString} from '../../utils/url';
 import {resolveDoc} from '../../model/doc';
 import {warn} from '../../utils/log';
 
-export class GaaGoogle3pSignInButton {
+export class GaaSignInWithGoogleButton {
   /**
-   * Renders the third party Google Sign-In button for external authentication.
-   * @nocollapse
-   * @param {{
-   *    allowedOrigins: !Array<string>,
-   *    authorizationUrl: string,
-   *    redirectMode: boolean,
-   * }} params GaaGoogle3pSignInButton operates in two modes: redirect and
-   * popup. The default mode is pop-up mode which opens the authorizationUrl
-   * in a new window. To use a redirect mode and open the authorizationUrl in
-   * the same window, set redirectMode to true. For webview applications
-   * redirectMode is recommended.
+   * Renders the Google Sign-In button.
    */
-  static show({allowedOrigins, authorizationUrl, redirectMode = false}) {
+  static async show({
+    clientId,
+    allowedOrigins,
+    rawJwt = false,
+  }: {
+    clientId: string;
+    allowedOrigins: string[];
+    rawJwt: boolean;
+  }) {
     // Optionally grab language code from URL.
     const queryString = QueryStringUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
     const languageCode = queryParams['lang'] || 'en';
 
     // Apply iframe styles.
-    const styleText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
+    const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
-
-    // Render the third party Google Sign-In button.
-    const buttonEl = createElement(self.document, 'div', {
-      id: GOOGLE_3P_SIGN_IN_BUTTON_ID,
-      tabIndex: '0',
-    });
-    buttonEl./*OK*/ innerHTML = GOOGLE_3P_SIGN_IN_BUTTON_HTML;
-    buttonEl.onclick = async () => {
-      const sendMessageToParent = await sendMessageToParentFnPromise;
-      sendMessageToParent({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
-      });
-
-      if (redirectMode) {
-        // TODO(b/242998655): Fix the downstream calls for logEvent to be chained to remove the need of delaying redirect.
-        self.setTimeout(() => {
-          self.open(authorizationUrl, '_parent');
-        }, REDIRECT_DELAY);
-      } else {
-        self.open(authorizationUrl);
-      }
-    };
-    self.document.body.appendChild(buttonEl);
 
     // Promise a function that sends messages to the parent frame.
     // Note: A function is preferable to a reference to the parent frame
     // because referencing the parent frame outside of the 'message' event
     // handler throws an Error. A function defined within the handler can
     // effectively save a reference to the parent frame though.
-    const sendMessageToParentFnPromise = new Promise((resolve) => {
+    const sendMessageToParentFnPromise = new Promise<
+      (message: unknown) => void
+    >((resolve) => {
       self.addEventListener('message', (e) => {
         if (
           allowedOrigins.indexOf(e.origin) !== -1 &&
@@ -107,7 +82,7 @@ export class GaaGoogle3pSignInButton {
           e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
         ) {
           resolve((message) => {
-            e.source.postMessage(message, e.origin);
+            (e.source as Window).postMessage(message, e.origin);
           });
         }
       });
@@ -118,6 +93,14 @@ export class GaaGoogle3pSignInButton {
       sendMessageToParent({
         stamp: POST_MESSAGE_STAMP,
         command: POST_MESSAGE_COMMAND_ERROR,
+      });
+    }
+
+    async function sendClickMessageToParent() {
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
       });
     }
 
@@ -133,35 +116,58 @@ export class GaaGoogle3pSignInButton {
 
       if (!isValidOrigin) {
         warn(
-          `[swg-gaa.js:GaaGoogle3pSignInButton.show]: You specified an invalid origin: ${allowedOrigin}`
+          `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${allowedOrigin}`
         );
         sendErrorMessageToParent();
         return;
       }
     }
 
-    // Relay message to the parent frame (GAA Intervention).
-    self.addEventListener('message', (e) => {
-      if (
-        allowedOrigins.indexOf(e.origin) !== -1 &&
-        e.data.stamp === POST_MESSAGE_STAMP &&
-        e.data.command === POST_MESSAGE_COMMAND_USER
-      ) {
-        self.parent.postMessage(e.data, e.origin);
-      }
-    });
-  }
+    try {
+      const buttonEl = createElement(self.document, 'div', {
+        id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
+        tabIndex: '0',
+      });
+      self.document.body.appendChild(buttonEl);
 
-  /**
-   * Notify Google Intervention of a complete sign-in event.
-   * @nocollapse
-   * @param {{ gaaUser: GaaUserDef}} params
-   */
-  static gaaNotifySignIn({gaaUser}) {
-    self.opener.postMessage({
-      stamp: POST_MESSAGE_STAMP,
-      command: POST_MESSAGE_COMMAND_USER,
-      gaaUser,
-    });
+      const jwt = await new Promise<{credential: string}>((resolve) => {
+        self.google.accounts.id.initialize({
+          /* eslint-disable google-camelcase/google-camelcase */
+          client_id: clientId,
+          callback: resolve,
+          allowed_parent_origin: allowedOrigins,
+          /* eslint-enable google-camelcase/google-camelcase */
+        });
+        self.google.accounts.id.renderButton(
+          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
+          {
+            'type': 'standard',
+            'theme': 'outline',
+            'text': 'continue_with',
+            'logo_alignment': 'center',
+            'width': buttonEl.offsetWidth,
+            'height': buttonEl.offsetHeight,
+            'click_listener': sendClickMessageToParent,
+          }
+        );
+      });
+
+      const jwtPayload = new JwtHelper().decode(
+        jwt.credential
+      ) as GoogleIdentityV1Def;
+      const returnedJwt = rawJwt ? jwt : jwtPayload;
+
+      // Send GAA user to parent frame.
+      const sendMessageToParent = await sendMessageToParentFnPromise;
+      sendMessageToParent({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        // Note: jwtPayload is deprecated in favor of returnedJwt.
+        jwtPayload,
+        returnedJwt,
+      });
+    } catch (err) {
+      sendErrorMessageToParent();
+    }
   }
 }

@@ -90,7 +90,7 @@ const builds = {
   },
   gaa: {
     output: args.minifiedGaaName || 'subscriptions-gaa.js',
-    input: './src/gaa-main.js',
+    input: './src/gaa-main.ts',
   },
 };
 

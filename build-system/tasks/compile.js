@@ -43,9 +43,9 @@ exports.compile = async (options = {}) => {
   // For compilation with babel we start with the main-babel entry point,
   // but then rename to the subscriptions.js which we've been using all along.
   await Promise.all([
-    compileJs(
+    compileScript(
       './src/',
-      'main',
+      'main.js',
       './dist',
       Object.assign(
         {
@@ -60,9 +60,9 @@ exports.compile = async (options = {}) => {
         options
       )
     ),
-    compileJs(
+    compileScript(
       './src/',
-      'gaa-main',
+      'gaa-main.ts',
       './dist',
       Object.assign(
         {
@@ -77,9 +77,9 @@ exports.compile = async (options = {}) => {
         options
       )
     ),
-    compileJs(
+    compileScript(
       './src/',
-      'basic-main',
+      'basic-main.js',
       './dist',
       Object.assign(
         {
@@ -101,15 +101,15 @@ exports.compile = async (options = {}) => {
  * Bundles (max) a javascript file.
  *
  * @param {string} srcDir Path to the src directory
- * @param {string} srcFilename Name of the JS source file
+ * @param {string} srcFilename Name of the JS or TS source file
  * @param {string} destDir Destination folder for output script
  * @param {?Object} options
  * @return {!Promise}
  */
-function compileJs(srcDir, srcFilename, destDir, options) {
+function compileScript(srcDir, srcFilename, destDir, options) {
   options = options || {};
 
-  let bundler = browserify(srcDir + srcFilename + '.js', {
+  let bundler = browserify(srcDir + srcFilename, {
     debug: true,
   })
     .plugin(tsify)
@@ -142,9 +142,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
 
   const wrapper = options.wrapper || '<%= contents %>';
 
-  let lazybuild = lazypipe()
-    .pipe(source, srcFilename + '.js')
-    .pipe(buffer);
+  let lazybuild = lazypipe().pipe(source, srcFilename).pipe(buffer);
 
   // Complete build with wrapper and sourcemaps.
   lazybuild = lazybuild
@@ -155,7 +153,7 @@ function compileJs(srcDir, srcFilename, destDir, options) {
     .pipe($$.sourcemaps.write.bind($$.sourcemaps), './')
     .pipe(gulp.dest.bind(gulp), destDir);
 
-  const destFilename = options.toName || srcFilename + '.js';
+  const destFilename = options.toName || srcFilename;
   async function rebundle() {
     const startTime = Date.now();
     await toPromise(

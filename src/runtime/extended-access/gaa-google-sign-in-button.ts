@@ -22,33 +22,30 @@
 // Thanks!
 
 import {
+  GOOGLE_SIGN_IN_BUTTON_ID,
   GOOGLE_SIGN_IN_IFRAME_STYLES,
-  SIGN_IN_WITH_GOOGLE_BUTTON_ID,
 } from './html-templates';
-import {GoogleIdentityV1Def} from './typedefs';
+import {GaaUserDef, GoogleUserDef} from './interfaces';
 import {I18N_STRINGS} from '../../i18n/strings';
-import {JwtHelper} from '../../utils/jwt';
 import {
   POST_MESSAGE_COMMAND_ERROR,
+  POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_INTRODUCTION,
-  POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_USER,
   POST_MESSAGE_STAMP,
 } from './constants';
-import {QueryStringUtils} from './utils';
+import {QueryStringUtils, configureGoogleSignIn} from './utils';
 import {createElement, injectStyleSheet} from '../../utils/dom';
 import {msg} from '../../utils/i18n';
 import {parseQueryString} from '../../utils/url';
 import {resolveDoc} from '../../model/doc';
 import {warn} from '../../utils/log';
 
-export class GaaSignInWithGoogleButton {
+export class GaaGoogleSignInButton {
   /**
    * Renders the Google Sign-In button.
-   * @nocollapse
-   * @param {{ clientId: string, allowedOrigins: !Array<string>, rawJwt: boolean }} params
    */
-  static async show({clientId, allowedOrigins, rawJwt = false}) {
+  static async show({allowedOrigins}: {allowedOrigins: string[]}) {
     // Optionally grab language code from URL.
     const queryString = QueryStringUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -57,7 +54,7 @@ export class GaaSignInWithGoogleButton {
     // Apply iframe styles.
     const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 
@@ -66,7 +63,9 @@ export class GaaSignInWithGoogleButton {
     // because referencing the parent frame outside of the 'message' event
     // handler throws an Error. A function defined within the handler can
     // effectively save a reference to the parent frame though.
-    const sendMessageToParentFnPromise = new Promise((resolve) => {
+    const sendMessageToParentFnPromise = new Promise<
+      (message: unknown) => void
+    >((resolve) => {
       self.addEventListener('message', (e) => {
         if (
           allowedOrigins.indexOf(e.origin) !== -1 &&
@@ -74,7 +73,7 @@ export class GaaSignInWithGoogleButton {
           e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
         ) {
           resolve((message) => {
-            e.source.postMessage(message, e.origin);
+            (e.source as Window).postMessage(message, e.origin);
           });
         }
       });
@@ -88,17 +87,8 @@ export class GaaSignInWithGoogleButton {
       });
     }
 
-    async function sendClickMessageToParent() {
-      const sendMessageToParent = await sendMessageToParentFnPromise;
-      sendMessageToParent({
-        stamp: POST_MESSAGE_STAMP,
-        command: POST_MESSAGE_COMMAND_SIWG_BUTTON_CLICK,
-      });
-    }
-
     // Validate origins.
-    for (let i = 0; i < allowedOrigins.length; i++) {
-      const allowedOrigin = allowedOrigins[i];
+    for (const allowedOrigin of allowedOrigins) {
       const url = new URL(allowedOrigin);
 
       const isOrigin = url.origin === allowedOrigin;
@@ -108,55 +98,65 @@ export class GaaSignInWithGoogleButton {
 
       if (!isValidOrigin) {
         warn(
-          `[swg-gaa.js:GaaSignInWithGoogleButton.show]: You specified an invalid origin: ${allowedOrigin}`
+          `[swg-gaa.js:GaaGoogleSignInButton.show]: You specified an invalid origin: ${allowedOrigin}`
         );
         sendErrorMessageToParent();
         return;
       }
     }
 
+    // Render the Google Sign-In button.
     try {
+      await configureGoogleSignIn();
+
+      // Render the Google Sign-In button.
       const buttonEl = createElement(self.document, 'div', {
-        id: SIGN_IN_WITH_GOOGLE_BUTTON_ID,
+        id: GOOGLE_SIGN_IN_BUTTON_ID,
         tabIndex: '0',
       });
       self.document.body.appendChild(buttonEl);
 
-      const jwt = await new Promise((resolve) => {
-        self.google.accounts.id.initialize({
-          /* eslint-disable google-camelcase/google-camelcase */
-          client_id: clientId,
-          callback: resolve,
-          allowed_parent_origin: allowedOrigins,
-          /* eslint-enable google-camelcase/google-camelcase */
+      // Track button clicks.
+      buttonEl.addEventListener('click', async () => {
+        // Tell parent frame about button click.
+        const sendMessageToParent = await sendMessageToParentFnPromise;
+        sendMessageToParent({
+          stamp: POST_MESSAGE_STAMP,
+          command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
         });
-        self.google.accounts.id.renderButton(
-          self.document.getElementById(SIGN_IN_WITH_GOOGLE_BUTTON_ID),
-          {
-            'type': 'standard',
-            'theme': 'outline',
-            'text': 'continue_with',
-            'logo_alignment': 'center',
-            'width': buttonEl.offsetWidth,
-            'height': buttonEl.offsetHeight,
-            'click_listener': sendClickMessageToParent,
-          }
-        );
       });
 
-      const jwtPayload = /** @type {!GoogleIdentityV1Def} */ (
-        new JwtHelper().decode(jwt.credential)
-      );
-      const returnedJwt = rawJwt ? jwt : jwtPayload;
+      // Promise credentials.
+      const googleUser = await new Promise<GoogleUserDef>((resolve) => {
+        self.gapi.signin2.render(GOOGLE_SIGN_IN_BUTTON_ID, {
+          'longtitle': true,
+          'onsuccess': resolve,
+          'prompt': 'select_account',
+          'scope': 'profile email',
+          'theme': 'dark',
+        });
+      });
+
+      // Gather GAA user details.
+      const basicProfile = googleUser.getBasicProfile();
+      // Gather authorization response.
+      const authorizationData = googleUser.getAuthResponse(true);
+      const gaaUser: GaaUserDef = {
+        idToken: authorizationData.id_token,
+        name: basicProfile.getName(),
+        givenName: basicProfile.getGivenName(),
+        familyName: basicProfile.getFamilyName(),
+        imageUrl: basicProfile.getImageUrl(),
+        email: basicProfile.getEmail(),
+        authorizationData,
+      };
 
       // Send GAA user to parent frame.
       const sendMessageToParent = await sendMessageToParentFnPromise;
       sendMessageToParent({
         stamp: POST_MESSAGE_STAMP,
         command: POST_MESSAGE_COMMAND_USER,
-        // Note: jwtPayload is deprecated in favor of returnedJwt.
-        jwtPayload,
-        returnedJwt,
+        gaaUser,
       });
     } catch (err) {
       sendErrorMessageToParent();

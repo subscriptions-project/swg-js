@@ -41,19 +41,17 @@ export const REDIRECT_DELAY = 10;
 /**
  * Types of grantReason that can be specified by the user as part of
  * the userState object
- * @enum {string}
  */
-export const GrantReasonType = {
-  FREE: 'FREE',
-  SUBSCRIBER: 'SUBSCRIBER',
-  METERING: 'METERING',
-};
+export enum GrantReasonType {
+  FREE = 'FREE',
+  SUBSCRIBER = 'SUBSCRIBER',
+  METERING = 'METERING',
+}
 
 /**
  * Types of paywallReason that can be specified by the user as part of
  * the userState object
- * @enum {string}
  */
-export const PaywallReasonType = {
-  RESERVED_USER: 'RESERVED_USER',
-};
+export enum PaywallReasonType {
+  RESERVED_USER = 'RESERVED_USER',
+}
