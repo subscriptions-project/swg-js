@@ -1424,6 +1424,54 @@ describes.realWin('GaaMetering', () => {
       expect(unlockArticle).to.be.called;
     });
 
+    it('makes unlockArticle optional when showcaseEntitlements is provided', () => {
+      const unlockArticle = undefined;
+
+      removeJsonLdScripts();
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>
+      `;
+
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+
+      GaaMetering.init({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          id: 'user1235',
+          registrationTimestamp: 1602763054,
+        },
+        showcaseEntitlement: 'test showcaseEntitlement',
+        unlockArticle,
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+      });
+
+      expect(self.console.log).to.calledWith(
+        '[Subscriptions]',
+        'test showcaseEntitlement'
+      );
+
+      expect(subscriptionsMock.consumeShowcaseEntitlementJwt).to.calledWith(
+        'test showcaseEntitlement'
+      );
+    });
+
     it('has publisherEntitlements', async () => {
       location.hash = `#swg.debug=1`;
       self.document.referrer = 'https://www.google.com';
