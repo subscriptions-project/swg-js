@@ -115,16 +115,7 @@ function compileScript(srcDir, srcFilename, destDir, options) {
     .plugin(tsify)
     .transform(
       babelify.configure({
-        'presets': [
-          [
-            '@babel/preset-env',
-            {
-              'targets': {
-                'browsers': ['defaults, not IE 11'],
-              },
-            },
-          ],
-        ],
+        'presets': ['@babel/preset-env'],
         'extensions': ['.js', '.ts'],
         'plugins': [
           [
