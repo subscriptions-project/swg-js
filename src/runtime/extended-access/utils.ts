@@ -96,11 +96,17 @@ export function logEvent({
   analyticsEvent,
   showcaseEvent,
   isFromUserAction,
-}: {
-  analyticsEvent?: AnalyticsEvent;
-  showcaseEvent?: ShowcaseEvent;
-  isFromUserAction: boolean;
-}) {
+}:
+  | {
+      analyticsEvent: AnalyticsEvent;
+      showcaseEvent?: ShowcaseEvent;
+      isFromUserAction: boolean;
+    }
+  | {
+      analyticsEvent?: AnalyticsEvent;
+      showcaseEvent: ShowcaseEvent;
+      isFromUserAction: boolean;
+    }) {
   callSwg(async (swg) => {
     // Get reference to event manager.
     const eventManager = await swg.getEventManager();
@@ -112,7 +118,7 @@ export function logEvent({
     // Log each analytics event.
     for (const eventType of eventTypes) {
       eventManager.logEvent({
-        eventType: eventType || null,
+        eventType,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction,
         additionalParameters: null,
