@@ -18,7 +18,6 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {Deps} from './deps';
-import {Dialog} from '../components/dialog';
 import {DialogManager} from '../components/dialog-manager';
 import {MeterClientTypes} from '../api/metering';
 import {SubscriptionFlows} from '../api/subscriptions';
