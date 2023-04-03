@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {queryStringHasFreshGaaParams} from './';
+import {callSwg, queryStringHasFreshGaaParams} from './utils';
 
 describes.realWin('queryStringHasFreshGaaParams', () => {
   let clock;
@@ -63,5 +63,23 @@ describes.realWin('queryStringHasFreshGaaParams', () => {
   it('succeeds if gaa_at param specifies "no access" but allowAllAccessTypes is true', () => {
     const queryString = '?gaa_at=na&gaa_n=n&gaa_sig=sig&gaa_ts=99999';
     expect(queryStringHasFreshGaaParams(queryString, true)).to.be.true;
+  });
+});
+
+describes.realWin('callSwg', () => {
+  beforeEach(() => {
+    delete self.SWG;
+  });
+
+  it('creates SWG array if necessary', () => {
+    expect(self.SWG).to.be.undefined;
+    callSwg(() => {});
+    expect(self.SWG.length).to.equal(1);
+  });
+
+  it('pushes to existing SWG array if available', () => {
+    self.SWG = [() => {}];
+    callSwg(() => {});
+    expect(self.SWG.length).to.equal(2);
   });
 });

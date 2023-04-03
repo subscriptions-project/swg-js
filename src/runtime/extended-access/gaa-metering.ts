@@ -22,48 +22,52 @@
 // Thanks!
 
 import {AnalyticsEvent} from '../../proto/api_messages';
+import {Entitlements} from '../../api/entitlements';
 import {GaaMeteringRegwall} from './gaa-metering-regwall';
+import {
+  GetEntitlementsParamsExternalDef,
+  ShowcaseEvent,
+} from '../../api/subscriptions';
+import {GoogleIdentityV1Def, InitParamsDef, UserState} from './interfaces';
 import {GrantReasonType, PaywallReasonType} from './constants';
-import {InitParamsDef} from './typedefs';
 import {
   QueryStringUtils,
   callSwg,
   logEvent,
   queryStringHasFreshGaaParams,
 } from './utils';
-import {ShowcaseEvent} from '../../api/subscriptions';
 import {convertPotentialTimestampToSeconds} from '../../utils/date-utils';
 import {debugLog} from '../../utils/log';
 import {parseUrl, wasReferredByGoogle} from '../../utils/url';
 
 export class GaaMetering {
-  constructor() {
-    this.userState = {};
-    this.gaaUserPromiseResolve_ = () => {};
-    this.loginPromiseResolve_ = () => {};
-  }
+  static userState: UserState;
+  static publisherEntitlementPromise: Promise<UserState> | null;
+
+  private static gaaUserPromiseResolve_: (
+    gaaUser: GoogleIdentityV1Def | {credential: string}
+  ) => void;
+  private static loginPromiseResolve_: () => void;
 
   /**
    * Returns a promise that resolves with a gaaUser.
-   * @nocollapse
-   * @return {!Promise}
    */
-  static getGaaUserPromise() {
+  static getGaaUserPromise(): Promise<
+    GoogleIdentityV1Def | {credential: string}
+  > {
     return new Promise((resolve) => {
       GaaMetering.gaaUserPromiseResolve_ = resolve;
     });
   }
 
-  static setGaaUser(jwt) {
+  static setGaaUser(jwt: GoogleIdentityV1Def | {credential: string}): void {
     GaaMetering.gaaUserPromiseResolve_(jwt);
   }
 
   /**
    * Returns a promise that resolves when the user clicks "Already registered? Sign in".
-   * @nocollapse
-   * @return {!Promise}
    */
-  static getLoginPromise() {
+  static getLoginPromise(): Promise<void> {
     return new Promise((resolve) => {
       GaaMetering.loginPromiseResolve_ = resolve;
     });
@@ -75,10 +79,8 @@ export class GaaMetering {
 
   /**
    * Initialize GaaMetering flow
-   * @nocollapse
-   * @param {InitParamsDef} params
    */
-  static init(params) {
+  static init(params: InitParamsDef): boolean {
     // Validate GaaMetering parameters
     if (!params || !GaaMetering.validateParameters(params)) {
       debugLog('[gaa.js:GaaMetering.init]: Invalid params.');
@@ -158,7 +160,7 @@ export class GaaMetering {
         debugLog('resolving publisherEntitlement');
         const fetchedPublisherEntitlements = await publisherEntitlementPromise;
         if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
-          GaaMetering.userState = fetchedPublisherEntitlements;
+          GaaMetering.userState = fetchedPublisherEntitlements as UserState;
 
           unlockArticleIfGranted();
         } else {
@@ -182,26 +184,28 @@ export class GaaMetering {
 
         // Handle registration for new users
         // Save credentials object so that registerUserPromise can use it using getGaaUser.
-        GaaMetering.setGaaUser(jwt);
+        if (jwt) {
+          GaaMetering.setGaaUser(jwt);
+        }
         const registerUserUserState = await registerUserPromise;
         debugLog('registerUserPromise resolved');
         if (GaaMetering.validateUserState(registerUserUserState)) {
-          GaaMetering.userState = registerUserUserState;
+          GaaMetering.userState = registerUserUserState as UserState;
 
           unlockArticleIfGranted();
         }
       } else {
         GaaMeteringRegwall.showWithNative3PRegistrationButton({
           caslUrl,
-          authorizationUrl,
+          authorizationUrl: authorizationUrl!,
         });
       }
     }
 
-    function unlockArticleIfGranted() {
+    function unlockArticleIfGranted(): void {
       if (!GaaMetering.validateUserState(GaaMetering.userState)) {
         debugLog('Invalid userState object');
-        return false;
+        return;
       } else if (GaaMetering.userState.granted === true) {
         const grantReasonToShowCaseEventMap = {
           [GrantReasonType.SUBSCRIBER]:
@@ -232,7 +236,7 @@ export class GaaMetering {
       }
     }
 
-    function checkShowcaseEntitlement(userState) {
+    function checkShowcaseEntitlement(userState: UserState) {
       if (userState.registrationTimestamp) {
         // Send userState to Google
         callSwg((subscriptions) => {
@@ -257,16 +261,22 @@ export class GaaMetering {
         showGoogleRegwall();
       }
     }
+
+    return true;
   }
 
-  static async handleLoginRequest(handleLoginPromise, unlockArticleIfGranted) {
+  static async handleLoginRequest(
+    handleLoginPromise: Promise<UserState> | null,
+    unlockArticleIfGranted: () => void
+  ): Promise<boolean> {
     GaaMetering.resolveLogin();
-    const handleLoginUserState = await handleLoginPromise;
-    if (GaaMetering.validateUserState(handleLoginUserState)) {
-      GaaMetering.userState = handleLoginUserState;
+    const userState = await handleLoginPromise;
+    if (GaaMetering.validateUserState(userState)) {
+      GaaMetering.userState = userState!;
       GaaMeteringRegwall.remove();
       debugLog('GaaMeteringRegwall removed');
       unlockArticleIfGranted();
+      return true;
     } else {
       debugLog('invalid handleLoginUserState');
       return false;
@@ -274,12 +284,12 @@ export class GaaMetering {
   }
 
   static async setEntitlements(
-    googleEntitlementsPromise,
-    allowedReferrers,
-    unlockArticle,
-    handleSwGEntitlement,
-    showGoogleRegwall,
-    showPaywall
+    googleEntitlementsPromise: Promise<Entitlements>,
+    allowedReferrers: string[] | null,
+    unlockArticle: (entitlements: Entitlements) => void,
+    handleSwGEntitlement: (entitlements: Entitlements) => void,
+    showGoogleRegwall: () => Promise<void>,
+    showPaywall: () => void
   ) {
     // Wait for Google check to finish
     const googleEntitlement = await googleEntitlementsPromise;
@@ -326,20 +336,18 @@ export class GaaMetering {
     }
   }
 
-  static isCurrentUserRegistered() {
+  static isCurrentUserRegistered(): boolean {
     return GaaMetering.isUserRegistered(GaaMetering.userState);
   }
 
-  static isUserRegistered(userState) {
-    return userState.id !== undefined && userState.id != '';
+  static isUserRegistered(userState: UserState): boolean {
+    return userState.id !== undefined && userState.id !== '';
   }
 
   /**
    * Validates parameters for GaaMetering.init flow
-   * @nocollapse
-   * @param {InitParamsDef} params
    */
-  static validateParameters(params) {
+  static validateParameters(params: InitParamsDef): boolean {
     let noIssues = true;
     if (
       ('googleApiClientId' in params && 'authorizationUrl' in params) ||
@@ -359,7 +367,7 @@ export class GaaMetering {
       }
     } else if (
       !(typeof params.googleApiClientId === 'string') ||
-      params.googleApiClientId.indexOf('.apps.googleusercontent.com') == -1
+      params.googleApiClientId.indexOf('.apps.googleusercontent.com') === -1
     ) {
       debugLog(
         'Missing googleApiClientId, or it is not a string, or it is not in a correct format'
@@ -374,7 +382,7 @@ export class GaaMetering {
       noIssues = false;
     }
 
-    const reqFunc =
+    const reqFunc: ('showPaywall' | 'unlockArticle')[] =
       'showcaseEntitlement' in params
         ? ['showPaywall']
         : ['showPaywall', 'unlockArticle'];
@@ -393,13 +401,13 @@ export class GaaMetering {
 
     if (
       'handleSwGEntitlement' in params &&
-      typeof params.handleSwGEntitlement != 'function'
+      typeof params.handleSwGEntitlement !== 'function'
     ) {
       debugLog('handleSwGEntitlement is provided but it is not a function');
       noIssues = false;
     }
 
-    const reqPromise =
+    const reqPromise: ('handleLoginPromise' | 'registerUserPromise')[] =
       'authorizationUrl' in params
         ? ['handleLoginPromise']
         : ['handleLoginPromise', 'registerUserPromise'];
@@ -437,7 +445,7 @@ export class GaaMetering {
     ) {
       debugLog(`userState or publisherEntitlementPromise needs to be provided`);
       noIssues = false;
-    } else if ('userState' in params && typeof params.userState != 'object') {
+    } else if ('userState' in params && typeof params.userState !== 'object') {
       debugLog(`userState is not an object`);
       noIssues = false;
     } else {
@@ -469,7 +477,7 @@ export class GaaMetering {
     return noIssues;
   }
 
-  static isGaa(publisherReferrers = []) {
+  static isGaa(publisherReferrers: string[] | null = []): boolean {
     // Validate GAA params.
     const queryString = QueryStringUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString, true)) {
@@ -480,7 +488,7 @@ export class GaaMetering {
     const referrer = parseUrl(self.document.referrer);
     if (
       !wasReferredByGoogle(referrer) &&
-      publisherReferrers.indexOf(referrer.hostname) == -1
+      publisherReferrers?.indexOf(referrer.hostname) === -1
     ) {
       // Real publications should bail if this referrer check fails.
       // This script is only logging a warning for metering demo purposes.
@@ -494,7 +502,7 @@ export class GaaMetering {
     return true;
   }
 
-  static getProductIDFromPageConfig_() {
+  static getProductIDFromPageConfig_(): string {
     const jsonLdPageConfig = GaaMetering.getProductIDFromJsonLdPageConfig_();
     if (jsonLdPageConfig) {
       return jsonLdPageConfig;
@@ -513,25 +521,24 @@ export class GaaMetering {
 
   /**
    * Gets publisher ID from JSON-LD page config.
-   * @private
-   * @nocollapse
-   * @return {string|undefined}
    */
-  static getProductIDFromJsonLdPageConfig_() {
-    const ldJsonElements = self.document.querySelectorAll(
-      'script[type="application/ld+json"]'
+  private static getProductIDFromJsonLdPageConfig_(): string | void {
+    const ldJsonElements = Array.from(
+      self.document.querySelectorAll<HTMLScriptElement>(
+        'script[type="application/ld+json"]'
+      )
     );
 
-    for (let i = 0; i < ldJsonElements.length; i++) {
-      const ldJsonElement = ldJsonElements[i];
-      let ldJson = /** @type {*} */ (JSON.parse(ldJsonElement.textContent));
+    for (const ldJsonElement of ldJsonElements) {
+      let ldJson = JSON.parse(ldJsonElement.textContent!);
 
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];
       }
 
-      const productId = ldJson.find((entry) => entry?.isPartOf?.productID)
-        ?.isPartOf.productID;
+      const productId = ldJson.find(
+        (entry: {isPartOf?: {productID: string}}) => entry?.isPartOf?.productID
+      )?.isPartOf.productID;
 
       if (productId) {
         return productId;
@@ -541,25 +548,23 @@ export class GaaMetering {
 
   /**
    * Gets product ID from Microdata page config.
-   * @private
-   * @nocollapse
-   * @return {string|undefined}
    */
-  static getProductIDFromMicrodataPageConfig_() {
-    const productIdElements = self.document.querySelectorAll(
-      '[itemscope][itemtype][itemprop="isPartOf"] [itemprop="productID"]'
+  private static getProductIDFromMicrodataPageConfig_(): string | void {
+    const productIdElements = Array.from(
+      self.document.querySelectorAll(
+        '[itemscope][itemtype][itemprop="isPartOf"] [itemprop="productID"]'
+      )
     );
 
-    for (let i = 0; i < productIdElements.length; i++) {
-      const productIdElement = productIdElements[i];
-      const productId = productIdElement.content;
+    for (const productIdElement of productIdElements) {
+      const productId = productIdElement.getAttribute('content');
       if (productId) {
         return productId;
       }
     }
   }
 
-  static isArticleFreeFromPageConfig_() {
+  private static isArticleFreeFromPageConfig_(): boolean {
     return (
       GaaMetering.isArticleFreeFromJsonLdPageConfig_() ||
       GaaMetering.isArticleFreeFromMicrodataPageConfig_() ||
@@ -567,25 +572,23 @@ export class GaaMetering {
     );
   }
 
-  /**
-   * @private
-   * @nocollapse
-   * @return {boolean}
-   */
-  static isArticleFreeFromJsonLdPageConfig_() {
-    const ldJsonElements = [
-      ...self.document.querySelectorAll('script[type="application/ld+json"]'),
-    ];
+  private static isArticleFreeFromJsonLdPageConfig_(): boolean {
+    const ldJsonElements = Array.from(
+      self.document.querySelectorAll<HTMLScriptElement>(
+        'script[type="application/ld+json"]'
+      )
+    );
 
     for (const ldJsonElement of ldJsonElements) {
-      let ldJson = /** @type {*} */ (JSON.parse(ldJsonElement.textContent));
+      let ldJson = JSON.parse(ldJsonElement.textContent!);
 
       if (!Array.isArray(ldJson)) {
         ldJson = [ldJson];
       }
 
       const accessibleForFree = ldJson.find(
-        (entry) => entry?.isAccessibleForFree
+        (entry: {isAccessibleForFree?: boolean | string}) =>
+          entry?.isAccessibleForFree
       )?.isAccessibleForFree;
 
       if (typeof accessibleForFree === 'boolean') {
@@ -600,34 +603,35 @@ export class GaaMetering {
     return false;
   }
 
-  /**
-   * @private
-   * @nocollapse
-   * @return {boolean}
-   */
-  static isArticleFreeFromMicrodataPageConfig_() {
-    const accessibleForFreeElements = self.document.querySelectorAll(
-      '[itemscope][itemtype] [itemprop="isAccessibleForFree"]'
+  private static isArticleFreeFromMicrodataPageConfig_(): boolean {
+    const accessibleForFreeElements = Array.from(
+      self.document.querySelectorAll(
+        '[itemscope][itemtype] [itemprop="isAccessibleForFree"]'
+      )
     );
 
-    for (let i = 0; i < accessibleForFreeElements.length; i++) {
-      const accessibleForFreeElement = accessibleForFreeElements[i];
-      const accessibleForFree = accessibleForFreeElement.content;
+    for (const accessibleForFreeElement of accessibleForFreeElements) {
+      const accessibleForFree =
+        accessibleForFreeElement.getAttribute('content');
       debugLog(typeof accessibleForFree);
       if (accessibleForFree) {
         const lowercase = accessibleForFree.toLowerCase();
-        return lowercase == 'true';
+        return lowercase === 'true';
       }
     }
 
     return false;
   }
 
-  static isPromise(p) {
-    return p && Object.prototype.toString.call(p) === '[object Promise]';
+  static isPromise(value: unknown): boolean {
+    return (
+      !!value && Object.prototype.toString.call(value) === '[object Promise]'
+    );
   }
 
-  static newUserStateToUserState(newUserState) {
+  static newUserStateToUserState(
+    newUserState: UserState
+  ): GetEntitlementsParamsExternalDef {
     // Convert registrationTimestamp to seconds
     const registrationTimestampSeconds = convertPotentialTimestampToSeconds(
       newUserState.registrationTimestamp
@@ -647,7 +651,7 @@ export class GaaMetering {
     };
   }
 
-  static validateUserState(newUserState) {
+  static validateUserState(newUserState: UserState | null): boolean {
     if (!newUserState) {
       return false;
     }
@@ -666,7 +670,7 @@ export class GaaMetering {
 
     if (
       newUserState.granted === true &&
-      GrantReasonType[newUserState.grantReason] === undefined
+      !(newUserState.grantReason in GrantReasonType)
     ) {
       debugLog(
         'if userState.granted is true then userState.grantReason has to be either METERING, or SUBSCRIBER'
@@ -763,7 +767,7 @@ export class GaaMetering {
         noIssues = false;
       }
 
-      if (PaywallReasonType[newUserState.paywallReason] === undefined) {
+      if (!(newUserState.paywallReason in PaywallReasonType)) {
         debugLog(
           'userState.paywallReason has to be empty or set to RESERVED_USER.'
         );
@@ -773,7 +777,7 @@ export class GaaMetering {
     return noIssues;
   }
 
-  static getOnReadyPromise() {
+  static getOnReadyPromise(): Promise<void> {
     return new Promise((resolve) => {
       if (self.document.readyState === 'complete') {
         resolve();
@@ -785,7 +789,7 @@ export class GaaMetering {
     });
   }
 
-  static getSubscriptionTimestamp() {
+  static getSubscriptionTimestamp(): number | null {
     return GaaMetering?.userState?.subscriptionTimestamp || null;
   }
 }
