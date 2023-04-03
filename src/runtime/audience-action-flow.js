@@ -36,7 +36,7 @@ import {
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {Constants, StorageKeys} from '../utils/constants';
-import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
