@@ -405,6 +405,14 @@ describes.realWin('Runtime', (env) => {
       expect(entitlementsManager.useArticleEndpoint_).to.be.false;
     });
 
+    it('sets article endpoint on when experiment is enabled', async () => {
+      setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT_CLASSIC, true);
+      runtime = new Runtime(win);
+      const configuredRuntime = await runtime.configured_(true);
+      const entitlementsManager = configuredRuntime.entitlementsManager();
+      expect(entitlementsManager.useArticleEndpoint_).to.be.true;
+    });
+
     it('sets article endpoint on', async () => {
       runtime.configure({useArticleEndpoint: true});
       runtime.init('pub2');
