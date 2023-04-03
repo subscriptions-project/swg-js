@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+import {ActivityPorts} from '../components/activities';
+import {Deps} from '../runtime/deps';
+import {Doc} from '../model/doc';
 import {createElement} from '../utils/dom';
 import {resetStyles, setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
-import {Deps} from '../runtime/deps';
-import {ActivityPorts} from '../components/activities';
-import {Doc} from '../model/doc';
 
 export const toastImportantStyles = {
   'height': '0',
