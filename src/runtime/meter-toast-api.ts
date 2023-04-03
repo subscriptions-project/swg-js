@@ -204,8 +204,8 @@ export class MeterToastApi {
 
     const dialog = await this.dialogManager_.openDialog();
 
-    this.setDialogBoxShadow_(dialog);
-    this.setLoadingViewWidth_(dialog);
+    this.setDialogBoxShadow_();
+    this.setLoadingViewWidth_();
 
     await dialog.openView(activityIframeView);
 
@@ -265,11 +265,11 @@ export class MeterToastApi {
   /**
    * Changes the iframe box shadow to match desired specifications on mobile.
    */
-  private setDialogBoxShadow_(dialog: Dialog): void {
+  private setDialogBoxShadow_(): void {
     const mobileMediaQuery = this.win_.matchMedia(
       '(max-width: 640px), (max-height: 640px)'
     );
-    const element = dialog.getElement();
+    const element = this.dialogManager_.getDialog()!.getElement();
     if (mobileMediaQuery.matches) {
       setImportantStyles(element, {'box-shadow': IFRAME_BOX_SHADOW});
     }
@@ -286,12 +286,15 @@ export class MeterToastApi {
    * Changes the size of the loading iframe on desktop to match the size of
    * the meter toast iframe.
    */
-  private setLoadingViewWidth_(dialog: Dialog): void {
+  private setLoadingViewWidth_(): void {
     const desktopMediaQuery = this.win_.matchMedia(
       '(min-width: 640px) and (min-height: 640px)'
     );
     if (desktopMediaQuery.matches) {
-      const element = dialog.getLoadingView()!.getElement();
+      const element = this.dialogManager_
+        .getDialog()!
+        .getLoadingView()!
+        .getElement();
       setImportantStyles(element, {
         'width': MINIMIZED_IFRAME_SIZE,
         'margin': 'auto',
