@@ -17,6 +17,7 @@
 import {
   AnalyticsEvent as AnalyticsEventDef,
   EventOriginator as EventOriginatorDef,
+  EventParams,
 } from '../proto/api_messages';
 
 export enum FilterResult {
@@ -35,10 +36,8 @@ export interface ClientEvent {
   /** Optional. True if the user took an action to generate the event. */
   isFromUserAction?: boolean | null;
   /** Optional. A JSON object to store generic data. */
-  additionalParameters?: {
+  additionalParameters?: EventParams & {
     subscriptionFlow?: string;
-    getSubscriptionFlow?: () => string;
-    [key: string]: unknown;
   };
 }
 

@@ -154,7 +154,7 @@ export class ClientEventManager implements ClientEventManagerApi {
   logSwgEvent(
     eventType: AnalyticsEvent,
     isFromUserAction: boolean | null = false,
-    eventParams: EventParams | null = null
+    eventParams?: EventParams
   ) {
     this.logEvent({
       eventType,

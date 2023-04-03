@@ -123,7 +123,6 @@ export function logEvent({
         eventType,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction,
-        additionalParameters: null,
       });
     }
   });
