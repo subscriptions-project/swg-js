@@ -24,7 +24,11 @@ import {Deps} from './deps';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {isFunction} from '../utils/types';
 
-type AnalyticsMethod = (a: string, b: string, c: unknown) => void;
+type AnalyticsMethod = (
+  command: string,
+  eventAction: string,
+  eventParams: unknown
+) => void;
 
 interface WindowWithAnalyticsMethods {
   ga?: AnalyticsMethod;
