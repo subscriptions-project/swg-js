@@ -179,9 +179,7 @@ export function feCached(url: string): string {
   return addQueryParam(url, '_', cacheParam(getSwgMode().feCache));
 }
 
-export function feArgs(args: {[key: string]: string}): {
-  [key: string]: string;
-} {
+export function feArgs(args: {}): {} {
   return Object.assign(args, {
     '_client': `SwG ${INTERNAL_RUNTIME_VERSION}`,
   });
