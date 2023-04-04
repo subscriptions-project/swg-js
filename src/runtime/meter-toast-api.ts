@@ -15,7 +15,10 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
 import {MeterClientTypes} from '../api/metering';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {
@@ -33,90 +36,76 @@ export const IFRAME_BOX_SHADOW =
 export const MINIMIZED_IFRAME_SIZE = '420px';
 export const DEFAULT_IFRAME_URL = '/metertoastiframe';
 export const ANONYMOUS_USER_ATTRIBUTE = 'anonymous_user';
+
 /**
  * The iframe URLs to be used per MeterClientType
- * @type {Object.<MeterClientTypes, string>}
  */
-export const IframeUrlByMeterClientType = {
+export const IframeUrlByMeterClientType: {[key in MeterClientTypes]: string} = {
   [MeterClientTypes.LICENSED_BY_GOOGLE]: '/metertoastiframe',
   [MeterClientTypes.METERED_BY_GOOGLE]: '/meteriframe',
 };
-/** @enum {string} */
-const MeterType = {
-  UNKNOWN: 'UNKNOWN',
-  KNOWN: 'KNOWN',
-};
 
-/**
- * Properties:
- * - iframeUrl: Relative URL of the iframe, e.g. "/meteriframe".
- * - iframeUrlParams: List of extra params appended to the URL.
- *
- * @typedef {{
- *   meterClientType: (MeterClientTypes|undefined),
- * }}
- */
-export let MeterToastApiParams;
+enum MeterType {
+  UNKNOWN = 'UNKNOWN',
+  KNOWN = 'KNOWN',
+}
+
+export interface MeterToastApiParams {
+  meterClientType?: MeterClientTypes;
+  meterClientUserAttribute?: string;
+}
 
 export class MeterToastApi {
+  private readonly win_: Window;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly meterClientType_: MeterClientTypes;
+  private readonly meterClientUserAttribute_: string;
   /**
-   * @param {!./deps.Deps} deps
-   * @param {!MeterToastApiParams=} params
+   * Function this class calls when a user dismisses the toast to consume a
+   * free read.
    */
+  private onConsumeCallback_: (() => void) | null = null;
+  /**
+   * Boolean indicating whether or not the onConsumeCallback_ has been handled
+   * (either called or ignored). This is used to protect against unexpected
+   * cancellations not consuming a meter.
+   */
+  private onConsumeCallbackHandled_ = false;
+  private scrollEventListener_: (() => void) | null = null;
+  private sendCloseRequestFunction_ = () => {};
+
   constructor(
-    deps,
+    private readonly deps_: Deps,
     {
       meterClientType = MeterClientTypes.LICENSED_BY_GOOGLE,
       meterClientUserAttribute = ANONYMOUS_USER_ATTRIBUTE,
-    } = {}
+    }: MeterToastApiParams = {}
   ) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+    this.win_ = deps_.win();
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
-
-    /** @private @const {!MeterClientTypes} */
     this.meterClientType_ = meterClientType;
 
-    /** @private @const {string} */
     this.meterClientUserAttribute_ = meterClientUserAttribute;
-
-    /**
-     * Function this class calls when a user dismisses the toast to consume a
-     * free read.
-     * @private {?function()}
-     */
-    this.onConsumeCallback_ = null;
-
-    /**
-     * Boolean indicating whether or not the onConsumeCallback_ has been handled
-     * (either called or ignored). This is used to protect against unexpected
-     * cancellations not consuming a meter.
-     * @private {!boolean}
-     */
-    this.onConsumeCallbackHandled_ = false;
-
-    /** @private {?function()} */
-    this.scrollEventListener_ = null;
   }
 
   /**
    * Shows the user the metering toast.
-   * @return {!Promise}
    */
-  async start() {
+  async start(): Promise<void> {
     const additionalArguments = {
       isClosable: true,
       hasSubscriptionCallback: this.deps_
         .callbacks()
         .hasSubscribeRequestCallback(),
+    } as {
+      isClosable: boolean;
+      hasSubscriptionCallback: boolean;
+      meterType?: MeterType;
     };
     if (this.meterClientType_ === MeterClientTypes.METERED_BY_GOOGLE) {
       additionalArguments['meterType'] =
@@ -127,21 +116,20 @@ export class MeterToastApi {
     const iframeArgs =
       this.activityPorts_.addDefaultArguments(additionalArguments);
 
-    const iframeUrl =
-      IframeUrlByMeterClientType[
-        this.meterClientType_ ?? MeterClientTypes.LICENSED_BY_GOOGLE
-      ];
+    const iframeUrl = IframeUrlByMeterClientType[this.meterClientType_];
 
     const iframeUrlParams = {
       'origin': parseUrl(this.win_.location.href).origin,
+    } as {
+      origin: string;
+      hl?: string;
     };
 
     if (this.deps_.clientConfigManager().shouldForceLangInIframes()) {
       iframeUrlParams['hl'] = this.deps_.clientConfigManager().getLanguage();
     }
 
-    /** @private @const {!ActivityIframeView} */
-    this.activityIframeView_ = new ActivityIframeView(
+    const activityIframeView = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl(iframeUrl, iframeUrlParams),
@@ -149,11 +137,10 @@ export class MeterToastApi {
       /* shouldFadeBody */ false
     );
 
-    /** @private @const {!function()} */
     this.sendCloseRequestFunction_ = () => {
       const closeRequest = new ToastCloseRequest();
       closeRequest.setClose(true);
-      this.activityIframeView_.execute(closeRequest);
+      activityIframeView.execute(closeRequest);
       this.removeCloseEventListener();
 
       this.deps_
@@ -172,7 +159,7 @@ export class MeterToastApi {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
-    this.activityIframeView_.on(
+    activityIframeView.on(
       ViewSubscriptionsResponse,
       this.startSubscriptionFlow_.bind(this)
     );
@@ -190,7 +177,7 @@ export class MeterToastApi {
     }
 
     this.dialogManager_
-      .handleCancellations(this.activityIframeView_)
+      .handleCancellations(activityIframeView)
       .catch((reason) => {
         // Possibly call onConsumeCallback on all dialog cancellations to
         // ensure unexpected dialog closures don't give access without a
@@ -216,7 +203,7 @@ export class MeterToastApi {
     this.setDialogBoxShadow_();
     this.setLoadingViewWidth_();
 
-    await dialog.openView(this.activityIframeView_);
+    await dialog.openView(activityIframeView);
 
     // Allow closing of the iframe with any scroll or click event.
     this.win_.addEventListener('click', this.sendCloseRequestFunction_);
@@ -228,7 +215,8 @@ export class MeterToastApi {
       const $body = this.win_.document.body;
       setStyle($body, 'overflow', 'hidden');
     } else {
-      let start, scrollTimeout;
+      let start: number;
+      let scrollTimeout: number;
       this.scrollEventListener_ = () => {
         start = start || this.win_./*REVIEW*/ pageYOffset;
         this.win_.clearTimeout(scrollTimeout);
@@ -250,23 +238,22 @@ export class MeterToastApi {
 
   /**
    * Sets a callback function this class calls when a user dismisses the toast to consume a free read.
-   * @param {function()} onConsumeCallback
    */
-  setOnConsumeCallback(onConsumeCallback) {
+  setOnConsumeCallback(onConsumeCallback: () => void): void {
     this.onConsumeCallback_ = onConsumeCallback;
   }
 
   /**
    * Removes the event listeners that close the iframe and make the body visible.
    */
-  removeCloseEventListener() {
+  removeCloseEventListener(): void {
     this.win_.removeEventListener('click', this.sendCloseRequestFunction_);
     this.win_.removeEventListener('touchstart', this.sendCloseRequestFunction_);
     this.win_.removeEventListener('mousedown', this.sendCloseRequestFunction_);
     if (this.isMobile_()) {
       const $body = this.win_.document.body;
       setStyle($body, 'overflow', 'visible');
-    } else {
+    } else if (this.scrollEventListener_) {
       this.win_.removeEventListener('scroll', this.scrollEventListener_);
     }
   }
@@ -274,11 +261,11 @@ export class MeterToastApi {
   /**
    * Changes the iframe box shadow to match desired specifications on mobile.
    */
-  setDialogBoxShadow_() {
+  private setDialogBoxShadow_(): void {
     const mobileMediaQuery = this.win_.matchMedia(
       '(max-width: 640px), (max-height: 640px)'
     );
-    const element = this.dialogManager_.getDialog().getElement();
+    const element = this.dialogManager_.getDialog()!.getElement();
     if (mobileMediaQuery.matches) {
       setImportantStyles(element, {'box-shadow': IFRAME_BOX_SHADOW});
     }
@@ -295,14 +282,14 @@ export class MeterToastApi {
    * Changes the size of the loading iframe on desktop to match the size of
    * the meter toast iframe.
    */
-  setLoadingViewWidth_() {
+  private setLoadingViewWidth_(): void {
     const desktopMediaQuery = this.win_.matchMedia(
       '(min-width: 640px) and (min-height: 640px)'
     );
     if (desktopMediaQuery.matches) {
       const element = this.dialogManager_
-        .getDialog()
-        .getLoadingView()
+        .getDialog()!
+        .getLoadingView()!
         .getElement();
       setImportantStyles(element, {
         'width': MINIMIZED_IFRAME_SIZE,
@@ -311,11 +298,7 @@ export class MeterToastApi {
     }
   }
 
-  /**
-   * @param {ViewSubscriptionsResponse} response
-   * @private
-   */
-  startSubscriptionFlow_(response) {
+  private startSubscriptionFlow_(response: ViewSubscriptionsResponse): void {
     this.removeCloseEventListener();
     // We shouldn't decrement the meter on redirects, so don't call onConsumeCallback.
     this.onConsumeCallbackHandled_ = true;
@@ -328,9 +311,8 @@ export class MeterToastApi {
 
   /**
    * Returns true if the window userAgent is a mobile platform.
-   * @private
    */
-  isMobile_() {
+  private isMobile_(): boolean {
     return !!this.win_.navigator.userAgent.match(
       /Android|iPhone|iPad|iPod|BlackBerry|IEMobile/i
     );
