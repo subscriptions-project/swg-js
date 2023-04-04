@@ -961,7 +961,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     onResultMock.verify();
   });
 
-  it(`handles an empty SurveyDataTransferRequest`, async () => {
+  it(`handles an empty SurveyDataTransferRequest without onResult logging`, async () => {
     eventManagerMock
       .expects('logEvent')
       .withExactArgs(
