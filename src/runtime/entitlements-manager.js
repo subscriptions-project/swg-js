@@ -23,7 +23,8 @@ import {
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
-import {Constants} from '../utils/constants';
+import {AudienceActionFlow} from './audience-action-flow';
+import {Constants, StorageKeys} from '../utils/constants';
 import {
   Entitlement,
   Entitlements,
@@ -43,15 +44,60 @@ import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from '../runtime/services';
 import {hash} from '../utils/string';
-import {queryStringHasFreshGaaParams} from '../utils/gaa';
+import {queryStringHasFreshGaaParams} from './extended-access';
 import {serviceUrl} from './services';
 import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
-const TOAST_STORAGE_KEY = 'toast';
-const ENTS_STORAGE_KEY = 'ents';
-const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
+
+/**
+ * Properties:
+ *   - isClosable - determine whether the view is closable.
+ *   - onResult - callback to get the intervention result and decide if it completes.
+ *                Takes either a normal or async function and returns `true` if the
+ *                intervention should be marked complete.
+ *
+ * @typedef {{
+ *   isClosable: (boolean|undefined),
+ *   onResult: ((function(!Object):(Promise<Boolean>|Boolean))|undefined),
+ * }}
+ */
+export let ShowInterventionParams;
+
+export class Intervention {
+  /** @public @const {string} */
+  type;
+  /** @public @const {string} */
+  configurationId;
+}
+
+export class AvailableIntervention extends Intervention {
+  /**
+   * @param {Intervention} original
+   * @param {!./deps.Deps} deps
+   */
+  constructor(original, deps) {
+    super();
+    Object.assign(this, original);
+    /** @private @const {!./deps.Deps} */
+    this.deps_ = deps;
+  }
+  /**
+   * Starts the intervention flow.
+   * @param {!ShowInterventionParams=} params
+   * @return {!Promise}
+   */
+  show(params) {
+    const flow = new AudienceActionFlow(this.deps_, {
+      isClosable: params.isClosable,
+      action: this.type,
+      configurationId: this.configurationId,
+      onResult: params.onResult,
+    });
+    return flow.start();
+  }
+}
 
 /**
  * Article response object.
@@ -60,9 +106,7 @@ const IS_READY_TO_PAY_STORAGE_KEY = 'isreadytopay';
  *  entitlements: (../api/entitlements.Entitlements),
  *  clientConfig: (../model/client-config.ClientConfig),
  *  audienceActions: ({
- *    actions: Array<{
- *      type: (string)
- *    }>,
+ *    actions: Array<!Intervention>,
  *    engineId: (string)
  *  }),
  *  experimentConfig: ({
@@ -81,7 +125,7 @@ export class EntitlementsManager {
    * @param {!Window} win
    * @param {!../model/page-config.PageConfig} pageConfig
    * @param {!./fetcher.Fetcher} fetcher
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!boolean} useArticleEndpoint
    * @param {!boolean} enableDefaultMeteringHandler
    */
@@ -105,7 +149,7 @@ export class EntitlementsManager {
     /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = fetcher;
 
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!JwtHelper} */
@@ -180,8 +224,8 @@ export class EntitlementsManager {
       expectPositive ? 3 : 0
     );
     if (expectPositive) {
-      this.storage_.remove(ENTS_STORAGE_KEY);
-      this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
+      this.storage_.remove(StorageKeys.ENTITLEMENTS);
+      this.storage_.remove(StorageKeys.IS_READY_TO_PAY);
     }
   }
 
@@ -192,16 +236,16 @@ export class EntitlementsManager {
     this.responsePromise_ = null;
     this.positiveRetries_ = 0;
     this.unblockNextNotification();
-    this.storage_.remove(ENTS_STORAGE_KEY);
-    this.storage_.remove(TOAST_STORAGE_KEY);
-    this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
+    this.storage_.remove(StorageKeys.ENTITLEMENTS);
+    this.storage_.remove(StorageKeys.TOAST);
+    this.storage_.remove(StorageKeys.IS_READY_TO_PAY);
   }
 
   /**
    * @param {!GetEntitlementsParamsExternalDef=} params
    * @return {!Promise<!Entitlements>}
    */
-  getEntitlements(params) {
+  async getEntitlements(params) {
     // Remain backwards compatible by accepting
     // `encryptedDocumentKey` string as a first param.
     if (typeof params === 'string') {
@@ -222,12 +266,11 @@ export class EntitlementsManager {
     if (!this.responsePromise_) {
       this.responsePromise_ = this.getEntitlementsFlow_(params);
     }
-    return this.responsePromise_.then((response) => {
-      if (response.isReadyToPay != null) {
-        this.analyticsService_.setReadyToPay(response.isReadyToPay);
-      }
-      return response;
-    });
+    const response = await this.responsePromise_;
+    if (response.isReadyToPay != null) {
+      this.analyticsService_.setReadyToPay(response.isReadyToPay);
+    }
+    return response;
   }
 
   /**
@@ -242,7 +285,7 @@ export class EntitlementsManager {
       isReadyToPay
     );
     if (entitlements && entitlements.enablesThis()) {
-      this.storage_.set(ENTS_STORAGE_KEY, raw);
+      this.storage_.set(StorageKeys.ENTITLEMENTS, raw);
       return true;
     }
     return false;
@@ -297,7 +340,7 @@ export class EntitlementsManager {
     const jwt = new EntitlementJwt();
     jwt.setSource(entitlement.source);
     jwt.setJwt(entitlement.subscriptionToken);
-    return this.postEntitlementsRequest_(
+    this.entitlementsPostPromise = this.postEntitlementsRequest_(
       /* usedEntitlement */ jwt,
       /* entitlementResult */ EntitlementResult.UNLOCKED_METER,
       /* entitlementSource */ entitlementSource,
@@ -352,7 +395,7 @@ export class EntitlementsManager {
       event?.additionalParameters?.getIsUserRegistered?.();
     const subscriptionTimestamp =
       event?.additionalParameters?.getSubscriptionTimestamp?.();
-    this.postEntitlementsRequest_(
+    this.entitlementsPostPromise = this.postEntitlementsRequest_(
       new EntitlementJwt(),
       result,
       source,
@@ -364,7 +407,7 @@ export class EntitlementsManager {
 
   // Informs the Entitlements server about the entitlement used
   // to unlock the page.
-  postEntitlementsRequest_(
+  async postEntitlementsRequest_(
     usedEntitlement,
     entitlementResult,
     entitlementSource,
@@ -389,90 +432,88 @@ export class EntitlementsManager {
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
     url = addDevModeParamsToUrl(this.win_.location, url);
 
-    // Promise that sets this.encodedParams_ when it resolves.
-    const encodedParamsPromise = this.encodedParams_
-      ? Promise.resolve()
-      : hash(getCanonicalUrl(this.deps_.doc())).then((hashedCanonicalUrl) => {
-          /** @type {!GetEntitlementsParamsInternalDef} */
-          const encodableParams = {
-            metering: {
-              resource: {
-                hashedCanonicalUrl,
-              },
-            },
-          };
-          this.encodedParams_ = base64UrlEncodeFromBytes(
-            utf8EncodeSync(JSON.stringify(encodableParams))
-          );
-        });
+    // Set encoded params, once.
+    if (!this.encodedParams_) {
+      /** @type {!GetEntitlementsParamsInternalDef} */
+      const encodableParams = {
+        metering: {
+          resource: {
+            hashedCanonicalUrl: await this.getHashedCanonicalUrl_(),
+          },
+        },
+      };
+
+      this.encodedParams_ = base64UrlEncodeFromBytes(
+        utf8EncodeSync(JSON.stringify(encodableParams))
+      );
+    }
 
     // Get swgUserToken from local storage
-    const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
-    this.entitlementsPostPromise = Promise.all([
-      swgUserTokenPromise,
-      encodedParamsPromise,
-    ]).then((values) => {
-      const swgUserToken = values[0];
-      if (swgUserToken) {
-        url = addQueryParam(url, 'sut', swgUserToken);
-      }
-      url = addQueryParam(
-        url,
-        this.encodedParamName_,
-        /** @type {!string} */ (this.encodedParams_)
+    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
+    if (swgUserToken) {
+      url = addQueryParam(url, 'sut', swgUserToken);
+    }
+    url = addQueryParam(
+      url,
+      this.encodedParamName_,
+      /** @type {!string} */ (this.encodedParams_)
+    );
+
+    return this.fetcher_.sendPost(serviceUrl(url), message);
+  }
+
+  /**
+   * @return {!Promise<string>}
+   * @private
+   */
+  async getHashedCanonicalUrl_() {
+    return hash(getCanonicalUrl(this.deps_.doc()));
+  }
+
+  /**
+   * @param {!GetEntitlementsParamsExternalDef=} params
+   * @return {!Promise<!Entitlements>}
+   * @private
+   */
+  async getEntitlementsFlow_(params) {
+    const entitlements = await this.fetchEntitlementsWithCaching_(params);
+    this.onEntitlementsFetched_(entitlements);
+    return entitlements;
+  }
+
+  /**
+   * @param {!GetEntitlementsParamsExternalDef=} params
+   * @return {!Promise<!Entitlements>}
+   * @private
+   */
+  async fetchEntitlementsWithCaching_(params) {
+    const raw = await this.storage_.get(StorageKeys.ENTITLEMENTS);
+    const irtp = await this.storage_.get(StorageKeys.IS_READY_TO_PAY);
+
+    // Try cache first.
+    const needsDecryption = !!(params && params.encryption);
+    if (raw && !needsDecryption) {
+      const cached = this.getValidJwtEntitlements_(
+        raw,
+        /* requireNonExpired */ true,
+        irtpStringToBoolean(irtp)
       );
-
-      return this.fetcher_.sendPost(serviceUrl(url), message);
-    });
-  }
-
-  /**
-   * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
-   * @private
-   */
-  getEntitlementsFlow_(params) {
-    return this.fetchEntitlementsWithCaching_(params).then((entitlements) => {
-      this.onEntitlementsFetched_(entitlements);
-      return entitlements;
-    });
-  }
-
-  /**
-   * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
-   * @private
-   */
-  fetchEntitlementsWithCaching_(params) {
-    return Promise.all([
-      this.storage_.get(ENTS_STORAGE_KEY),
-      this.storage_.get(IS_READY_TO_PAY_STORAGE_KEY),
-    ]).then((cachedValues) => {
-      const raw = cachedValues[0];
-      const irtp = cachedValues[1];
-      // Try cache first.
-      const needsDecryption = !!(params && params.encryption);
-      if (raw && !needsDecryption) {
-        const cached = this.getValidJwtEntitlements_(
-          raw,
-          /* requireNonExpired */ true,
-          irtpStringToBoolean(irtp)
-        );
-        if (cached && cached.enablesThis()) {
-          // Already have a positive response.
-          this.positiveRetries_ = 0;
-          return cached;
-        }
+      if (cached && cached.enablesThis()) {
+        // Already have a positive response.
+        this.positiveRetries_ = 0;
+        return cached;
       }
-      // If cache didn't match, perform fetch.
-      return this.fetchEntitlements_(params).then((ents) => {
-        // If the product is enabled by cacheable entitlements, store them in cache.
-        if (ents && ents.enablesThisWithCacheableEntitlements() && ents.raw) {
-          this.storage_.set(ENTS_STORAGE_KEY, ents.raw);
-        }
-        return ents;
-      });
-    });
+    }
+
+    // If cache didn't match, perform fetch.
+    const ents = await this.fetchEntitlements_(params);
+
+    // If the product is enabled by cacheable entitlements, store them in cache.
+    if (ents && ents.enablesThisWithCacheableEntitlements() && ents.raw) {
+      this.storage_.set(StorageKeys.ENTITLEMENTS, ents.raw);
+    }
+
+    return ents;
   }
 
   /**
@@ -480,30 +521,42 @@ export class EntitlementsManager {
    * will be accessible from here and should resolve a null promise otherwise.
    * @returns {!Promise<?Article>}
    */
-  getArticle() {
+  async getArticle() {
     // The base manager only fetches from the entitlements endpoint, which does
     // not contain an Article.
     if (!this.useArticleEndpoint_ || !this.responsePromise_) {
-      return Promise.resolve();
+      return null;
     }
-    return this.responsePromise_.then(() => Promise.resolve(this.article_));
+
+    await this.responsePromise_;
+
+    return this.article_;
   }
 
   /**
    * The experiment flags that are returned by the article endpoint should be accessible from here.
    * @returns {Promise<Array<string>>}
    */
-  getExperimentConfigFlags() {
-    return this.getArticle().then((article) => {
-      const expConfig = article['experimentConfig'];
-      if (expConfig != null) {
-        const expFlags = expConfig['experimentFlags'];
-        if (expFlags != null) {
-          return expFlags;
-        }
+  async getExperimentConfigFlags() {
+    const article = await this.getArticle();
+    return this.parseArticleExperimentConfigFlags(article);
+  }
+
+  /**
+   * Parses the experiment flags from the Article.
+   * @param {?Article} article
+   * @returns {Array<string>}
+   */
+  parseArticleExperimentConfigFlags(article) {
+    const expConfig = article['experimentConfig'];
+    if (expConfig != null) {
+      const expFlags = expConfig['experimentFlags'];
+      if (expFlags != null) {
+        return expFlags;
       }
-      return [];
-    });
+    }
+
+    return [];
   }
 
   /**
@@ -515,17 +568,18 @@ export class EntitlementsManager {
     // TODO(dvoytenko): Replace retries with consistent fetch.
     let positiveRetries = this.positiveRetries_;
     this.positiveRetries_ = 0;
-    const attempt = () => {
+    const attempt = async () => {
       positiveRetries--;
-      return this.fetch_(params).then((entitlements) => {
-        if (entitlements.enablesThis() || positiveRetries <= 0) {
-          return entitlements;
-        }
-        return new Promise((resolve) => {
-          this.win_.setTimeout(() => {
-            resolve(attempt());
-          }, 550);
-        });
+
+      const entitlements = await this.fetch_(params);
+      if (entitlements.enablesThis() || positiveRetries <= 0) {
+        return entitlements;
+      }
+
+      return new Promise((resolve) => {
+        this.win_.setTimeout(() => {
+          resolve(attempt());
+        }, 550);
       });
     };
     return attempt();
@@ -535,7 +589,7 @@ export class EntitlementsManager {
    * @param {boolean} value
    */
   setToastShown(value) {
-    this.storage_.set(TOAST_STORAGE_KEY, value ? '1' : '0');
+    this.storage_.set(StorageKeys.TOAST, value ? '1' : '0');
   }
 
   /**
@@ -572,9 +626,9 @@ export class EntitlementsManager {
   parseEntitlements(json) {
     const isReadyToPay = json['isReadyToPay'];
     if (isReadyToPay == null) {
-      this.storage_.remove(IS_READY_TO_PAY_STORAGE_KEY);
+      this.storage_.remove(StorageKeys.IS_READY_TO_PAY);
     } else {
-      this.storage_.set(IS_READY_TO_PAY_STORAGE_KEY, String(isReadyToPay));
+      this.storage_.set(StorageKeys.IS_READY_TO_PAY, String(isReadyToPay));
     }
     const signedData = json['signedEntitlements'];
     const decryptedDocumentKey = json['decryptedDocumentKey'];
@@ -730,7 +784,7 @@ export class EntitlementsManager {
    * @return {!Promise}
    * @private
    */
-  maybeShowToast_(entitlement) {
+  async maybeShowToast_(entitlement) {
     // Don't show toast for metering entitlements.
     if (entitlement.source === GOOGLE_METERING_SOURCE) {
       this.deps_
@@ -753,23 +807,21 @@ export class EntitlementsManager {
     this.deps_.eventManager().logSwgEvent(eventType, false, params);
 
     // Check if storage bit is set. It's only set by the `Entitlements.ack` method.
-    return this.storage_.get(TOAST_STORAGE_KEY).then((value) => {
-      const toastWasShown = value === '1';
-      if (toastWasShown) {
-        return;
-      }
+    const toastWasShown = (await this.storage_.get(StorageKeys.TOAST)) === '1';
+    if (toastWasShown) {
+      return;
+    }
 
-      // Show toast.
-      const source = entitlement.source || GOOGLE_METERING_SOURCE;
-      return new Toast(
-        this.deps_,
-        feUrl('/toastiframe'),
-        feArgs({
-          'publicationId': this.publicationId_,
-          'source': source,
-        })
-      ).open();
-    });
+    // Show toast.
+    const source = entitlement.source || GOOGLE_METERING_SOURCE;
+    return new Toast(
+      this.deps_,
+      feUrl('/toastiframe'),
+      feArgs({
+        'publicationId': this.publicationId_,
+        'source': source,
+      })
+    ).open();
   }
 
   /**
@@ -833,12 +885,12 @@ export class EntitlementsManager {
    * @return {!Promise<!Entitlements>}
    * @private
    */
-  fetch_(params) {
+  async fetch_(params) {
     // Get swgUserToken from local storage
-    const swgUserTokenPromise = this.storage_.get(Constants.USER_TOKEN, true);
+    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
 
     // Get read_time from session storage
-    const readTimePromise = this.storage_.get(
+    const readTime = await this.storage_.get(
       Constants.READ_TIME,
       /*useLocalStorage=*/ false
     );
@@ -846,172 +898,179 @@ export class EntitlementsManager {
     let url =
       '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
 
-    return Promise.all([
-      hash(getCanonicalUrl(this.deps_.doc())),
-      swgUserTokenPromise,
-      readTimePromise,
-    ])
-      .then((values) => {
-        const hashedCanonicalUrl = values[0];
-        const swgUserToken = values[1];
-        const readTime = values[2];
+    url = addDevModeParamsToUrl(this.win_.location, url);
 
-        url = addDevModeParamsToUrl(this.win_.location, url);
+    // Add encryption param.
+    if (params?.encryption) {
+      url = addQueryParam(url, 'crypt', params.encryption.encryptedDocumentKey);
+    }
 
-        // Add encryption param.
-        if (params?.encryption) {
+    // Add swgUserToken param.
+    if (swgUserToken) {
+      url = addQueryParam(url, 'sut', swgUserToken);
+    }
+
+    // Add publisherProvidedId param for swg-basic.
+    if (this.config_.publisherProvidedId) {
+      url = addQueryParam(url, 'ppid', this.config_.publisherProvidedId);
+    }
+
+    // Add publisherProvidedId param for swg-classic.
+    else if (
+      params?.publisherProvidedId &&
+      typeof params.publisherProvidedId === 'string' &&
+      params.publisherProvidedId.length > 0
+    ) {
+      url = addQueryParam(url, 'ppid', params.publisherProvidedId);
+    }
+
+    // Add interaction_age param.
+    if (readTime) {
+      const last = parseInt(readTime, 10);
+      if (last) {
+        const interactionAge = Math.floor((Date.now() - last) / 1000);
+        if (interactionAge >= 0) {
           url = addQueryParam(
             url,
-            'crypt',
-            params.encryption.encryptedDocumentKey
+            'interaction_age',
+            interactionAge.toString()
           );
         }
+      }
+    }
 
-        // Add swgUserToken param.
-        if (swgUserToken) {
-          url = addQueryParam(url, 'sut', swgUserToken);
-        }
-        // Add publisherProvidedId param for swg-basic.
-        if (this.config_.publisherProvidedId) {
-          url = addQueryParam(url, 'ppid', this.config_.publisherProvidedId);
-        }
-        // Add publisherProvidedId param for swg-classic.
-        else if (
-          params?.publisherProvidedId &&
-          typeof params.publisherProvidedId === 'string' &&
-          params.publisherProvidedId.length > 0
-        ) {
-          url = addQueryParam(url, 'ppid', params.publisherProvidedId);
-        }
+    const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
-        // Add interaction_age param.
-        if (readTime) {
-          const last = parseInt(readTime, 10);
-          if (last) {
-            const interactionAge = Math.floor((Date.now() - last) / 1000);
-            if (interactionAge >= 0) {
-              url = addQueryParam(
-                url,
-                'interaction_age',
-                interactionAge.toString()
+    /** @type {!GetEntitlementsParamsInternalDef|undefined} */
+    let encodableParams = this.enableMeteredByGoogle_
+      ? {
+          metering: {
+            clientTypes: [MeterClientTypes.METERED_BY_GOOGLE],
+            owner: this.publicationId_,
+            resource: {
+              hashedCanonicalUrl,
+            },
+          },
+        }
+      : undefined;
+
+    // Add metering params.
+    if (
+      this.publicationId_ &&
+      params?.metering?.state &&
+      queryStringHasFreshGaaParams(this.win_.location.search)
+    ) {
+      const meteringStateId = params.metering.state.id;
+      if (typeof meteringStateId === 'string' && meteringStateId.length > 0) {
+        encodableParams = {
+          metering: {
+            clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
+            owner: this.publicationId_,
+            resource: {
+              hashedCanonicalUrl,
+            },
+            // Add publisher provided state and additional fields.
+            state: {
+              id: meteringStateId,
+              attributes: [],
+            },
+            token: this.getGaaToken_(),
+          },
+        };
+
+        // Collect attributes.
+        function collectAttributes({attributes, category}) {
+          if (!attributes) {
+            return;
+          }
+
+          const attributeNames = Object.keys(attributes);
+          for (const attributeName of attributeNames) {
+            const name = `${category}_${attributeName}`;
+            const timestamp = Number(attributes[attributeName].timestamp);
+
+            // Validate timestamp.
+            const timestampIsTooFarInTheFuture =
+              timestamp > (Date.now() / 1000) * 2;
+            if (!timestamp || timestampIsTooFarInTheFuture) {
+              warn(
+                `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "${attributeName}" ${category} attribute. The timestamp you passed (${attributes[attributeName].timestamp}) looks invalid.`
               );
             }
-          }
-        }
 
-        /** @type {!GetEntitlementsParamsInternalDef|undefined} */
-        let encodableParams = this.enableMeteredByGoogle_
-          ? {
-              metering: {
-                clientTypes: [MeterClientTypes.METERED_BY_GOOGLE],
-                owner: this.publicationId_,
-                resource: {
-                  hashedCanonicalUrl,
-                },
-              },
-            }
-          : undefined;
-
-        // Add metering params.
-        if (
-          this.publicationId_ &&
-          params?.metering?.state &&
-          queryStringHasFreshGaaParams(this.win_.location.search)
-        ) {
-          const meteringStateId = params.metering.state.id;
-          if (
-            typeof meteringStateId === 'string' &&
-            meteringStateId.length > 0
-          ) {
-            encodableParams = {
-              metering: {
-                clientTypes: [MeterClientTypes.LICENSED_BY_GOOGLE],
-                owner: this.publicationId_,
-                resource: {
-                  hashedCanonicalUrl,
-                },
-                // Add publisher provided state and additional fields.
-                state: {
-                  id: meteringStateId,
-                  attributes: [],
-                },
-                token: this.getGaaToken_(),
-              },
-            };
-
-            // Collect attributes.
-            function collectAttributes({attributes, category}) {
-              if (!attributes) {
-                return;
-              }
-
-              const attributeNames = Object.keys(attributes);
-              for (const attributeName of attributeNames) {
-                const name = `${category}_${attributeName}`;
-                const timestamp = Number(attributes[attributeName].timestamp);
-
-                // Validate timestamp.
-                const timestampIsTooFarInTheFuture =
-                  timestamp > (Date.now() / 1000) * 2;
-                if (!timestamp || timestampIsTooFarInTheFuture) {
-                  warn(
-                    `SwG Entitlements: Please specify a Unix timestamp, in seconds, for the "${attributeName}" ${category} attribute. The timestamp you passed (${attributes[attributeName].timestamp}) looks invalid.`
-                  );
-                }
-
-                // Collect attribute.
-                encodableParams.metering.state.attributes.push({
-                  name,
-                  timestamp,
-                });
-              }
-            }
-            collectAttributes({
-              attributes: params.metering.state.standardAttributes,
-              category: 'standard',
+            // Collect attribute.
+            encodableParams.metering.state.attributes.push({
+              name,
+              timestamp,
             });
-            collectAttributes({
-              attributes: params.metering.state.customAttributes,
-              category: 'custom',
-            });
-          } else {
-            warn(
-              `SwG Entitlements: Please specify a metering state ID string, ideally a hash to avoid PII.`
-            );
           }
         }
 
-        if (encodableParams) {
-          // Encode params.
-          this.encodedParams_ = base64UrlEncodeFromBytes(
-            utf8EncodeSync(JSON.stringify(encodableParams))
-          );
-          url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
-        }
+        collectAttributes({
+          attributes: params.metering.state.standardAttributes,
+          category: 'standard',
+        });
 
-        // Build URL.
-        return serviceUrl(url);
-      })
-      .then((url) => {
-        this.deps_
-          .eventManager()
-          .logSwgEvent(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
-        return this.fetcher_.fetchCredentialedJson(url);
-      })
-      .then((json) => {
-        let response = json;
-        if (this.useArticleEndpoint_) {
-          this.article_ = json;
-          response = json['entitlements'];
-        }
+        collectAttributes({
+          attributes: params.metering.state.customAttributes,
+          category: 'custom',
+        });
+      } else {
+        warn(
+          `SwG Entitlements: Please specify a metering state ID string, ideally a hash to avoid PII.`
+        );
+      }
+    }
 
-        if (json.errorMessages && json.errorMessages.length > 0) {
-          for (const errorMessage of json.errorMessages) {
-            warn('SwG Entitlements: ' + errorMessage);
-          }
-        }
-        return this.parseEntitlements(response);
-      });
+    // Build URL.
+    if (encodableParams) {
+      // Encode params.
+      this.encodedParams_ = base64UrlEncodeFromBytes(
+        utf8EncodeSync(JSON.stringify(encodableParams))
+      );
+      url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
+    }
+    url = serviceUrl(url);
+
+    // Get entitlements.
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
+    const json = await this.fetcher_.fetchCredentialedJson(url);
+    let response = json;
+    if (this.useArticleEndpoint_) {
+      this.article_ = /** @type {Article} */ (json);
+      response = json['entitlements'];
+    }
+
+    // Log errors.
+    if (json['errorMessages']?.length > 0) {
+      for (const errorMessage of json['errorMessages']) {
+        warn('SwG Entitlements: ' + errorMessage);
+      }
+    }
+
+    return this.parseEntitlements(response);
+  }
+
+  /**
+   * Returns a list of available interventions. If there are no interventions available
+   * an empty array is returned. If the article does not exist, null is returned.
+   * @return {!Promise<Array<AvailableIntervention> | null>}
+   */
+  async getAvailableInterventions() {
+    const article = await this.getArticle();
+    if (!article) {
+      warn(
+        '[swg.js:getAvailableInterventions] Article is null. Make sure you have enabled it in the client ready callback with: `subscriptions.configure({enableArticleEndpoint: true})`'
+      );
+      return null;
+    }
+    return (
+      article.audienceActions?.actions?.map(
+        (action) => new AvailableIntervention(action, this.deps_)
+      ) || []
+    );
   }
 }
 
@@ -1034,7 +1093,7 @@ function addDevModeParamsToUrl(location, url) {
 /**
  * Convert String value of isReadyToPay
  * (from JSON or Cache) to a boolean value.
- * @param {string} value
+ * @param {string|null} value
  * @return {boolean|undefined}
  * @private
  */

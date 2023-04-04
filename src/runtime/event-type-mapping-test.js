@@ -24,53 +24,41 @@ import {
   publisherEventToAnalyticsEvent,
   showcaseEventToAnalyticsEvents,
 } from './event-type-mapping';
-import {Event} from '../api/propensity-api';
+import {Event} from '../api/logger-api';
 import {ShowcaseEvent, SubscriptionFlows} from '../api/subscriptions';
 
-describes.realWin('Logger and Propensity events', {}, () => {
-  it('propensity to analytics to propensity should be identical', () => {
-    let analyticsEvent;
-    let propensityEvent;
-    //ensure the second propensity event is identical to the first:
-    //propensity event -> analytics events -> propensity event
-    for (const propensityEnum in Event) {
-      propensityEvent = Event[propensityEnum];
-      analyticsEvent = publisherEventToAnalyticsEvent(propensityEvent);
-      expect(analyticsEventToPublisherEvent(analyticsEvent)).to.equal(
-        propensityEvent
-      );
+describes.realWin('Publisher and analytics events', () => {
+  it('publisher to analytics to publisher should be identical', () => {
+    // Ensure all publisher events convert to analytics events and back.
+    for (const publisherEvent of Object.values(Event)) {
+      const analyticsEvent = publisherEventToAnalyticsEvent(publisherEvent);
       expect(analyticsEvent).to.not.be.null;
       expect(analyticsEvent).to.not.be.undefined;
+
+      const publisherEvent2 = analyticsEventToPublisherEvent(analyticsEvent);
+      expect(publisherEvent2).to.equal(publisherEvent);
     }
   });
 
-  it('analytics to propensity to analytics should be identical', () => {
-    let analyticsEvent;
-    let propensityEvent;
-    for (const analyticsEnum in AnalyticsEvent) {
-      analyticsEvent = AnalyticsEvent[analyticsEnum];
-      propensityEvent = analyticsEventToPublisherEvent(analyticsEvent);
-      //not all analytics events convert to propensity events - this is OK
-      if (propensityEvent == null) {
+  it('analytics to publisher to analytics should be identical', () => {
+    for (const analyticsEvent of Object.values(AnalyticsEvent)) {
+      const publisherEvent = analyticsEventToPublisherEvent(analyticsEvent);
+
+      // Not all analytics events convert to publisher events - this is OK.
+      if (publisherEvent == null) {
         continue;
       }
-      //but if the analytics event converted to the propensity event it should
-      //be able to convert back to the same analytics event
-      expect(publisherEventToAnalyticsEvent(propensityEvent)).to.equal(
+
+      // But all analytics events that convert to publisher events should also
+      // be able to convert back.
+      expect(publisherEventToAnalyticsEvent(publisherEvent)).to.equal(
         analyticsEvent
       );
     }
   });
-
-  it('all publisher types mapped', () => {
-    for (const publisherEvent in Event) {
-      const converted = publisherEventToAnalyticsEvent(Event[publisherEvent]);
-      expect(!!converted).to.be.true;
-    }
-  });
 });
 
-describes.realWin('showcaseEventToAnalyticsEvents', {}, () => {
+describes.realWin('showcaseEventToAnalyticsEvents', () => {
   it('all types mapped', () => {
     for (const publisherEvent in ShowcaseEvent) {
       const converted = showcaseEventToAnalyticsEvents(
@@ -84,7 +72,7 @@ describes.realWin('showcaseEventToAnalyticsEvents', {}, () => {
   });
 });
 
-describes.realWin('analyticsEventToEntitlementResult', {}, () => {
+describes.realWin('analyticsEventToEntitlementResult', () => {
   let mapped;
 
   beforeEach(() => {
@@ -107,6 +95,12 @@ describes.realWin('analyticsEventToEntitlementResult', {}, () => {
 
   it('map every EntitlementResult except the unknown value', () => {
     for (const key in EntitlementResult) {
+      // Ignore numerical keys from TypeScript's reverse mapping.
+      // https://www.typescriptlang.org/docs/handbook/enums.html#reverse-mappings
+      if (!isNaN(key)) {
+        continue;
+      }
+
       const result = EntitlementResult[key];
       // Every EntitlementResult should be mapped except the unknown value
       if (result == EntitlementResult.UNKNOWN_ENTITLEMENT_RESULT) {
@@ -117,7 +111,7 @@ describes.realWin('analyticsEventToEntitlementResult', {}, () => {
   });
 });
 
-describes.realWin('analyticsEventToGoogleAnalyticsEvent', {}, () => {
+describes.realWin('analyticsEventToGoogleAnalyticsEvent', () => {
   it('not allow the same event to be mapped to twice', () => {
     const mapped = {};
     for (const event in AnalyticsEvent) {

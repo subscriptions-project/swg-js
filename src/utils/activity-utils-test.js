@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {ActivityPortDef} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
 } from 'web-activities/activity-ports';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {acceptPortResultData} from './activity-utils';
 
 const OK = ActivityResultCode.OK;
@@ -38,11 +38,11 @@ const NOT_SECURE = false;
 const REQUIRE_SECURE = true;
 const DONT_REQUIRE_SECURE = false;
 
-describes.sandboxed('acceptPortResultData', {}, () => {
+describes.sandboxed('acceptPortResultData', () => {
   let port;
 
   beforeEach(() => {
-    port = new ActivityPortDef();
+    port = new MockActivityPort();
   });
 
   function result(code, dataOrError, origin, originVerified, secureChannel) {

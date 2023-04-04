@@ -22,11 +22,11 @@ const NO_PROMISE_ERR = 'No account promise provided';
 
 export class WaitForSubscriptionLookupApi {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {?Promise} accountPromise
    */
   constructor(deps, accountPromise) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */
@@ -62,21 +62,19 @@ export class WaitForSubscriptionLookupApi {
    * Starts the Login Flow.
    * @return {!Promise}
    */
-  start() {
+  async start() {
     this.openViewPromise_ = this.dialogManager_.openView(
       this.activityIframeView_
     );
 
-    return this.accountPromise_.then(
-      (account) => {
-        // Account was found.
-        this.dialogManager_.completeView(this.activityIframeView_);
-        return account;
-      },
-      (reason) => {
-        this.dialogManager_.completeView(this.activityIframeView_);
-        throw reason;
-      }
-    );
+    try {
+      const account = await this.accountPromise_;
+      // Account was found.
+      this.dialogManager_.completeView(this.activityIframeView_);
+      return account;
+    } catch (reason) {
+      this.dialogManager_.completeView(this.activityIframeView_);
+      throw reason;
+    }
   }
 }

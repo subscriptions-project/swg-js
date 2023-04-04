@@ -15,7 +15,7 @@
  */
 'use strict';
 
-module.exports = function (context) {
+module.exports = (context) => {
   /**
    * @param {!Array<!Node>|undefined} commentLines
    * @return {boolean}
@@ -24,9 +24,9 @@ module.exports = function (context) {
     if (!commentLines) {
       return false;
     }
-    return commentLines.some(function (comment) {
-      return comment.type == 'Block' && /@private/.test(comment.value);
-    });
+    return commentLines.some(
+      ({type, value}) => type == 'Block' && /@private/.test(value)
+    );
   }
 
   /**
@@ -55,7 +55,7 @@ module.exports = function (context) {
     );
   }
   return {
-    MethodDefinition: function (node) {
+    MethodDefinition: (node) => {
       if (
         hasPrivateAnnotation(node.leadingComments) &&
         !hasExplicitNoInline(node.key.name) &&
@@ -67,7 +67,7 @@ module.exports = function (context) {
         );
       }
     },
-    AssignmentExpression: function (node) {
+    AssignmentExpression: (node) => {
       if (
         node.parent.type == 'ExpressionStatement' &&
         hasPrivateAnnotation(node.parent.leadingComments) &&

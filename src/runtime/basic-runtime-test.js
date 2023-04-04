@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as runtime from './runtime';
-import {ActivityPort} from '../components/activities';
 import {
   ActivityResult,
   ActivityResultCode,
@@ -22,11 +21,7 @@ import {
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
-import {
-  AutoPromptType,
-  BasicSubscriptions,
-  ClientTheme,
-} from '../api/basic-subscriptions';
+import {AutoPromptType, ClientTheme} from '../api/basic-subscriptions';
 import {
   BasicRuntime,
   ConfiguredBasicRuntime,
@@ -39,6 +34,7 @@ import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -52,7 +48,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 
-describes.realWin('installBasicRuntime', {}, (env) => {
+describes.realWin('installBasicRuntime', (env) => {
   let win;
 
   beforeEach(() => {
@@ -66,24 +62,20 @@ describes.realWin('installBasicRuntime', {}, (env) => {
   it('should chain and execute dependencies in order', async () => {
     // Before runtime is installed.
     let progress = '';
-    dep(function () {
+    dep(() => {
       progress += '1';
     });
-    dep(function () {
+    dep(() => {
       progress += '2';
     });
     expect(progress).to.equal('');
 
     // Install runtime and schedule few more dependencies.
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
-    dep(function () {
+    installBasicRuntime(win);
+    dep(() => {
       progress += '3';
     });
-    dep(function () {
+    dep(() => {
       progress += '4';
     });
 
@@ -92,10 +84,10 @@ describes.realWin('installBasicRuntime', {}, (env) => {
     expect(progress).to.equal('1234');
 
     // Few more.
-    dep(function () {
+    dep(() => {
       progress += '5';
     });
-    dep(function () {
+    dep(() => {
       progress += '6';
     });
     await getBasicRuntime().whenReady();
@@ -103,16 +95,13 @@ describes.realWin('installBasicRuntime', {}, (env) => {
   });
 
   it('should reuse the same runtime on multiple runs', () => {
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
     const runtime1 = getBasicRuntime();
     installBasicRuntime(win);
     expect(getBasicRuntime()).to.equal(runtime1);
   });
 
+  // TODO(b/274686315): Delete this test after the TypeScript migration.
   it('should implement BasicSubscriptions interface', async () => {
     const promise = new Promise((resolve) => {
       dep(resolve);
@@ -120,18 +109,21 @@ describes.realWin('installBasicRuntime', {}, (env) => {
     installBasicRuntime(win);
 
     const basicSubscriptions = await promise;
-    const keys = Object.getOwnPropertyNames(BasicSubscriptions.prototype);
+    const keys = [
+      'init',
+      'setOnEntitlementsResponse',
+      'setOnPaymentResponse',
+      'setOnLoginRequest',
+      'setupAndShowAutoPrompt',
+      'dismissSwgUI',
+    ];
     for (const key of keys) {
-      expect(basicSubscriptions[key]).to.exist;
+      expect(basicSubscriptions).to.have.property(key);
     }
   });
 
   it('handles recursive calls after installation', async () => {
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
     let progress = '';
     dep(() => {
       progress += '1';
@@ -160,36 +152,16 @@ describes.realWin('installBasicRuntime', {}, (env) => {
         });
       });
     });
-    try {
-      installBasicRuntime(win);
-    } catch (e) {
-      // Page doesn't have valid subscription and hence this function throws.
-    }
+    installBasicRuntime(win);
 
     await getBasicRuntime().whenReady();
     await getBasicRuntime().whenReady();
     await getBasicRuntime().whenReady();
     expect(progress).to.equal('123');
   });
-
-  it('should implement all APIs', async () => {
-    installBasicRuntime(win);
-
-    const basicSubscriptions = await new Promise((resolve) => {
-      dep(resolve);
-    });
-
-    const names = Object.getOwnPropertyNames(BasicSubscriptions.prototype);
-    for (const name of names) {
-      if (name == 'constructor') {
-        continue;
-      }
-      expect(basicSubscriptions).to.have.property(name);
-    }
-  });
 });
 
-describes.realWin('BasicRuntime', {}, (env) => {
+describes.realWin('BasicRuntime', (env) => {
   let win;
   let doc;
   let basicRuntime;
@@ -345,7 +317,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnEntitlementsResponse" to ConfiguredBasicRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredBasicRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -355,7 +327,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnEntitlementsResponse" to the shared ConfiguredRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredClassicRuntimeMock
         .expects('setOnEntitlementsResponse')
         .withExactArgs(callback)
@@ -365,7 +337,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnPaymentResponse" to ConfiguredBasicRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredBasicRuntimeMock
         .expects('setOnPaymentResponse')
         .withExactArgs(callback)
@@ -375,7 +347,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setOnPaymentResponse" to ConfiguredRuntime', async () => {
-      const callback = function () {};
+      const callback = () => {};
       configuredClassicRuntimeMock
         .expects('setOnPaymentResponse')
         .withExactArgs(callback)
@@ -412,9 +384,9 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       expect(openStub).to.be.calledOnceWithExactly(
         'CHECK_ENTITLEMENTS',
-        'https://news.google.com/swg/_/ui/v1/checkentitlements?_=_&publicationId=pub1',
+        'https://news.google.com/swg/ui/v1/checkentitlements?_=_&publicationId=pub1',
         '_blank',
-        {publicationId: 'pub1', _client: 'SwG $internalRuntimeVersion$'},
+        {publicationId: 'pub1', _client: 'SwG 0.0.0'},
         {'width': 600, 'height': 600}
       );
     });
@@ -435,7 +407,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
       await basicRuntime.processEntitlements();
       expect(handler).to.exist;
 
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.onResizeRequest = () => {};
       port.whenReady = () => Promise.resolve();
       const result = new ActivityResult(
@@ -462,7 +434,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
     });
 
     it('should delegate "setupAndShowAutoPrompt"', async () => {
-      const options = {alwaysShow: true};
+      const options = {alwaysShow: true, isAccessibleForFree: true};
       configuredBasicRuntimeMock
         .expects('setupAndShowAutoPrompt')
         .withExactArgs(options)
@@ -475,20 +447,6 @@ describes.realWin('BasicRuntime', {}, (env) => {
       configuredBasicRuntimeMock.expects('dismissSwgUI').once();
 
       await basicRuntime.dismissSwgUI();
-    });
-
-    it('delegates linkSubscription', async () => {
-      const mockResult = {success: true};
-      const request = {};
-      configuredBasicRuntimeMock
-        .expects('linkSubscription')
-        .withExactArgs(request)
-        .returns(Promise.resolve(mockResult))
-        .once();
-
-      const result = await basicRuntime.linkSubscription(request);
-
-      expect(result).to.deep.equal(mockResult);
     });
 
     it('should call attach on all buttons with the correct attribute if buttons should be enable', async () => {
@@ -504,7 +462,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(true))
+        .resolves(true)
         .once();
 
       await basicRuntime.setupButtons();
@@ -538,7 +496,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(false))
+        .resolves(false)
         .once();
 
       await basicRuntime.setupButtons();
@@ -574,7 +532,7 @@ describes.realWin('BasicRuntime', {}, (env) => {
 
       clientConfigManagerMock
         .expects('shouldEnableButton')
-        .returns(Promise.resolve(true))
+        .resolves(true)
         .once();
 
       await basicRuntime.setupButtons();
@@ -603,13 +561,14 @@ describes.realWin('BasicRuntime', {}, (env) => {
   });
 });
 
-describes.realWin('BasicConfiguredRuntime', {}, (env) => {
+describes.realWin('BasicConfiguredRuntime', (env) => {
   let win;
   let pageConfig;
 
   beforeEach(() => {
     win = Object.assign({}, env.win, {
       ga: () => {},
+      setTimeout: (callback) => callback(),
     });
     pageConfig = new PageConfig('pub1:label1', true);
   });
@@ -714,12 +673,8 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     it('should configure subscription auto prompts to show offers for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .returns(Promise.resolve(entitlements));
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .returns(Promise.resolve({}));
+      entitlementsManagerMock.expects('getEntitlements').resolves(entitlements);
+      clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showOffers')
         .withExactArgs({
@@ -735,16 +690,12 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .returns(Promise.resolve(entitlements));
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .returns(Promise.resolve({}));
+      entitlementsManagerMock.expects('getEntitlements').resolves(entitlements);
+      clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
         .withExactArgs({
-          isClosable: false,
+          isClosable: true,
         })
         .once();
 
@@ -819,7 +770,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     });
 
     it('should handle an EntitlementsResponse with jwt and usertoken', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {'jwt': 'abc', 'usertoken': 'xyz'};
@@ -856,7 +807,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     });
 
     it('should handle an empty EntitlementsResponse from subscription offers flow', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {}; // no data
@@ -885,7 +836,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     });
 
     it('should handle an empty EntitlementsResponse from contributions flow', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {}; // no data
@@ -914,7 +865,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     });
 
     it('should handle an empty EntitlementsResponse from audience action flow', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {}; // no data
@@ -928,6 +879,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
         configuredBasicRuntime,
         {
           action: 'TYPE_REGISTRATION_WALL',
+          configurationId: 'configId',
           fallback: undefined,
           autoPromptType: AutoPromptType.CONTRIBUTION,
         }
@@ -951,7 +903,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
     });
 
     it('should handle an empty EntitlementsResponse with no active flow', async () => {
-      const port = new ActivityPort();
+      const port = new MockActivityPort();
       port.acceptResult = () => {
         const result = new ActivityResult();
         result.data = {}; // no data
@@ -978,14 +930,20 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       );
     });
 
-    it('should pass getEntitlemnts to fetchClientConfig if useArticleEndpoint is enabled', () => {
+    it('passes getEntitlements to fetchClientConfig if useArticleEndpoint is enabled', async () => {
       setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT, true);
-      const entitlements = new Entitlements('foo.service');
+      const entitlements = new Entitlements(
+        'foo.service',
+        'RaW',
+        [],
+        null,
+        null
+      );
       const entitlementsStub = sandbox.stub(
         EntitlementsManager.prototype,
         'getEntitlements'
       );
-      entitlementsStub.returns(Promise.resolve(entitlements));
+      entitlementsStub.resolves(entitlements);
       const clientConfigManagerStub = sandbox.stub(
         ClientConfigManager.prototype,
         'fetchClientConfig'
@@ -996,7 +954,7 @@ describes.realWin('BasicConfiguredRuntime', {}, (env) => {
       expect(isExperimentOn(win, ExperimentFlags.USE_ARTICLE_ENDPOINT)).to.be
         .true;
       expect(clientConfigManagerStub).to.be.calledOnce;
-      expect(clientConfigManagerStub.args[0][0]).to.eventually.be.equal(
+      expect(await clientConfigManagerStub.args[0][0]).to.deep.equal(
         entitlements
       );
     });

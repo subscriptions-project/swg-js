@@ -27,7 +27,7 @@ import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 export class Propensity {
   /**
    * @param {!Window} win
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!./fetcher.Fetcher} fetcher
    *
    * IMPORTANT: deps may not be full initialized config and pageConfig are

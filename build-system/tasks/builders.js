@@ -16,15 +16,14 @@
 'use strict';
 
 const compile = require('./compile').compile;
-const compileCheckTypes = require('./compile').checkTypes;
-const del = require('del');
 
 /**
  * Clean up the build artifacts.
  * @return {!Promise}
  */
-function clean() {
-  return del(['dist', 'build']);
+async function clean() {
+  const {deleteAsync} = await import('del');
+  return deleteAsync(['dist', 'build']);
 }
 
 /**
@@ -32,61 +31,25 @@ function clean() {
  * @return {!Promise}
  */
 function watch() {
-  return Promise.all([compile({watch: true})]);
+  return compile({watch: true});
 }
 
 /**
  * Main development build.
  * @return {!Promise}
  */
-function build() {
+function build(options = {}) {
   process.env.NODE_ENV = 'development';
-  return Promise.all([compile()]);
-}
-
-/**
- * Dist build for prod.
- * @return {!Promise}
- */
-function dist() {
-  process.env.NODE_ENV = 'production';
-  return clean().then(() => {
-    return Promise.all([
-      compile({minify: true, checkTypes: false, isProdBuild: true}),
-    ]).then(() => {
-      // Check types now.
-      return compile({minify: true, checkTypes: true});
-    });
-  });
-}
-
-/**
- * Type check path.
- * @return {!Promise}
- */
-function checkTypes() {
-  process.env.NODE_ENV = 'production';
-  return compileCheckTypes();
+  return compile(options);
 }
 
 module.exports = {
   build,
-  checkTypes,
   clean,
-  dist,
   watch,
 };
 watch.description = 'Watches for changes in files, re-build';
 
-checkTypes.description = 'Check JS types';
-
 clean.description = 'Removes build output';
 
 build.description = 'Builds the library';
-
-dist.description = 'Build production binaries';
-dist.flags = {
-  pseudoNames:
-    'Compiles with readable names. ' +
-    'Great for profiling and debugging production code.',
-};

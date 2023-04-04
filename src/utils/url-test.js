@@ -25,7 +25,7 @@ import {
   wasReferredByGoogle,
 } from './url';
 
-describes.realWin('parseUrl', {}, () => {
+describes.realWin('parseUrl', () => {
   const currentPort = location.port;
 
   function compareParse(url, result) {
@@ -67,6 +67,19 @@ describes.realWin('parseUrl', {}, () => {
       search: '?123',
       hash: '#foo',
       origin: 'https://foo.com:123',
+    });
+  });
+  it('should handle port 0', () => {
+    compareParse('https://foo.com:0/abc?123#foo', {
+      href: 'https://foo.com:0/abc?123#foo',
+      protocol: 'https:',
+      host: 'foo.com:0',
+      hostname: 'foo.com',
+      port: '',
+      pathname: '/abc',
+      search: '?123',
+      hash: '#foo',
+      origin: 'https://foo.com:0',
     });
   });
   it('should omit HTTP default port', () => {
@@ -302,14 +315,12 @@ describe('getCanonicalUrl', () => {
     const url = 'https://norcal.com/article1';
     let pageQuery = null;
     const FAKE_DOC = {
-      getRootNode: function () {
-        return {
-          querySelector: function (qry) {
-            pageQuery = qry;
-            return {href: url};
-          },
-        };
-      },
+      getRootNode: () => ({
+        querySelector: (qry) => {
+          pageQuery = qry;
+          return {href: url};
+        },
+      }),
     };
     expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
     expect(pageQuery).to.equal("link[rel='canonical']");
@@ -317,20 +328,16 @@ describe('getCanonicalUrl', () => {
   it('should return the page URL without a query string when a canonical tag is not present', () => {
     const url = 'https://example.com/article1';
     const FAKE_DOC = {
-      getRootNode: function () {
-        return {
-          querySelector: function (unused) {
-            return null;
-          },
-          location: {
-            href: 'https://example.com/article1?foo=bar',
-            hostname: 'example.com',
-            origin: 'https://example.com',
-            pathname: '/article1',
-            search: '?foo=bar',
-          },
-        };
-      },
+      getRootNode: () => ({
+        querySelector: () => null,
+        location: {
+          href: 'https://example.com/article1?foo=bar',
+          hostname: 'example.com',
+          origin: 'https://example.com',
+          pathname: '/article1',
+          search: '?foo=bar',
+        },
+      }),
     };
     expect(getCanonicalUrl(FAKE_DOC)).to.equal(url);
   });

@@ -1,8 +1,8 @@
 {
   "root": true,
-  "parser": "@babel/eslint-parser",
+  "parser": "@typescript-eslint/parser",
   "plugins": [
-    "swg-internal",
+    "@typescript-eslint",
     "google-camelcase",
     "prettier",
     "sort-imports-es6-autofix",
@@ -37,12 +37,8 @@
     "describes": true
   },
   "rules": {
-    "swg-internal/dict-string-keys": 2,
-    "swg-internal/enforce-private-props": 2,
-    "swg-internal/no-es2015-number-props": 2,
-    "swg-internal/no-export-side-effect": 2,
-    "swg-internal/no-global": 0,
-    "swg-internal/todo-format": 0,
+    "enforce-private-props": 2,
+    "no-export-side-effect": 2,
     "curly": 2,
     "google-camelcase/google-camelcase": 2,
     "no-alert": 2,
@@ -66,13 +62,17 @@
     "no-sequences": 2,
     "no-throw-literal": 2,
     "no-unused-expressions": 0,
-    "no-unused-vars": [2, {
-      "argsIgnorePattern": "^var_|unused",
-      "varsIgnorePattern": "Def|Interface$"
-    }],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      2,
+      {
+        "argsIgnorePattern": "^var_|unused|^_",
+        "varsIgnorePattern": "Def|Interface$"
+      }
+    ],
+    "@typescript-eslint/no-explicit-any": 2,
     "no-useless-call": 2,
     "no-useless-concat": 2,
-    "no-undef": 2,
     "no-var": 2,
     "no-warning-comments": [2, { "terms": ["do not submit"], "location": "anywhere" }],
     "object-curly-spacing": [2, "never", {
@@ -91,6 +91,17 @@
     "sort-requires/sort-requires": 2
   },
   "overrides": [
+    {
+      "files": ["src/**/*-test.js"],
+      "rules": {
+        "no-restricted-syntax": [2,
+          {
+            "selector": "TryStatement",
+            "message": "Within unit tests, try/catch can hide silent failures. Explicitly expect errors/rejects instead. Ex: `expect(fn).to.throw` or `await expect(promise).to.eventually.be.rejected`"
+          }
+        ]
+      }
+    },
     {
       "files": ["assets/i18n/strings/*.js"],
       "globals": {
@@ -113,6 +124,18 @@
       },
       "rules": {
         "no-console": 0
+      }
+    },
+    {
+      "files": ["src/stories/**/*"],
+      "rules": {
+        "no-export-side-effect": 0
+      }
+    },
+    {
+      "files": ["src/constants.js"],
+      "globals": {
+        "goog": false
       }
     }
   ]

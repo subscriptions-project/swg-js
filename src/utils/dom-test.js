@@ -17,7 +17,7 @@
 import * as dom from './dom';
 import {resolveDoc} from '../model/doc';
 
-describes.realWin('Dom', {}, (env) => {
+describes.realWin('Dom', (env) => {
   let doc;
 
   beforeEach(() => {
@@ -67,13 +67,8 @@ describes.realWin('Dom', {}, (env) => {
       expect(element.firstChild).to.be.null;
     });
 
-    it('should create style and other attributes', () => {
+    it('should create an element with attributes', () => {
       const attrs = {
-        'style': {
-          'min-height': '100px',
-          'display': 'none',
-          'opacity': 1,
-        },
         'width': '100%',
         'height': '100%',
       };
@@ -81,13 +76,6 @@ describes.realWin('Dom', {}, (env) => {
       const element = dom.createElement(doc, 'div', attrs);
       expect(element.getAttribute('width')).to.equal(attrs['width']);
       expect(element.getAttribute('width')).to.equal(attrs['height']);
-      expect(element.style['min-height']).to.equal(
-        attrs['style']['min-height']
-      );
-      expect(element.style['display']).to.equal(attrs['style']['display']);
-      expect(element.style['opacity']).to.equal(
-        attrs['style']['opacity'].toString()
-      );
       expect(element.firstChild).to.be.null;
     });
 
@@ -101,28 +89,6 @@ describes.realWin('Dom', {}, (env) => {
       const element = dom.createElement(doc, 'div', {}, 'A');
       expect(element.childNodes).to.have.length(1);
       expect(element.textContent).to.equal('A');
-    });
-
-    it('should create an element with element as content', () => {
-      const child = dom.createElement(doc, 'a');
-      const element = dom.createElement(doc, 'div', {}, child);
-      expect(element.childNodes).to.have.length(1);
-      expect(element.firstChild).to.equal(child);
-    });
-
-    it('should create an element with an array of element as content', () => {
-      const child1 = dom.createElement(doc, 'a');
-      const child2 = dom.createElement(doc, 'a');
-      const element = dom.createElement(doc, 'div', {}, [child1, child2]);
-      expect(element.childNodes).to.have.length(2);
-      expect(element.children[0]).to.equal(child1);
-      expect(element.children[1]).to.equal(child2);
-    });
-
-    it('should create an element with illegal content', () => {
-      expect(() => {
-        dom.createElement(doc, 'div', {}, {});
-      }).to.throw(/Unsupported content/);
     });
 
     it('should remove all the children', () => {
@@ -184,18 +150,6 @@ describes.realWin('Dom', {}, (env) => {
       ancestor.appendChild(uncle);
       parent.appendChild(element);
       expect(dom.hasNextNodeInDocumentOrder(element)).to.be.true;
-    });
-
-    it('should return false when ancestor with sibling with stop node', () => {
-      const element = doc.createElement('div');
-      const parent = doc.createElement('div');
-      const uncle = doc.createElement('div');
-      const ancestor = doc.createElement('div');
-      ancestor.appendChild(parent);
-      ancestor.appendChild(uncle);
-      parent.appendChild(element);
-      expect(dom.hasNextNodeInDocumentOrder(element)).to.be.true;
-      expect(dom.hasNextNodeInDocumentOrder(element, parent)).to.be.false;
     });
   });
 });

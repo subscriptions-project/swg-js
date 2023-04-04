@@ -45,7 +45,7 @@ const commonTestPaths = [
   },
 ];
 
-const basicTestPaths = ['src/**/*-test.js'];
+const basicTestPaths = ['src/**/*-test.{js,ts}'];
 
 const unitTestPaths = commonTestPaths.concat(basicTestPaths);
 
@@ -55,24 +55,25 @@ module.exports = {
   basicTestPaths,
   unitTestPaths,
   lintGlobs: [
-    '**/*.js',
+    '**/*.{js,ts}',
     '!**/*.extern.js',
-    '!exports/*.js', // Exports only.
     '!src/api/*.js', // Avoid "unused" prefixes in APIs.
     '!src/proto/*.js', // Auto generated code,
-    '!{node_modules,build,dist,third_party}/**/*.*',
+    '!{node_modules,build,dist,third_party,tests_output}/**/*.*',
     '!{testing,examples}/**/*.*',
     '!eslint-rules/**/*.*',
     '!test/coverage/**/*.*',
     '!test/describes.js',
     '!build-system/extern.js',
+    '!vite.config.js',
   ],
   jsonGlobs: [
     '**/*.json',
     '!{node_modules,build,dist,third_party,build-system}/**/*.*',
   ],
   presubmitGlobs: [
-    '**/*.{css,js,go}',
+    '**/*.{css,js,ts}',
+    '!**/*.stories.js',
     '!{node_modules,build,dist}/**/*.*',
     '!build-system/tasks/*.js',
     '!build-system/server/*.js',

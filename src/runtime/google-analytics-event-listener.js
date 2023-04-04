@@ -17,20 +17,20 @@
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {isFunction} from '../utils/types';
 
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /** @typedef {?function(string, string, Object)} */
 let AnalyticsMethod;
 
-/** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod}} */
+/** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod, dataLayer: Object}} */
 let WindowWithAnalyticsMethods;
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export class GoogleAnalyticsEventListener {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
-    /** @private @const {!./deps.DepsDef} deps */
+    /** @private @const {!./deps.Deps} deps */
     this.deps_ = deps;
 
     /** @private @const {!./client-event-manager.ClientEventManager} */
@@ -52,18 +52,22 @@ export class GoogleAnalyticsEventListener {
    * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
    */
   handleClientEvent_(event, eventParams = undefined) {
-    // Require either ga function (analytics.js) or gtag function (gtag.js).
+    // Require either ga function (analytics.js) or gtag function (gtag.js) or dataLayer.push function (gtm.js).
     const gaIsEligible = GoogleAnalyticsEventListener.isGaEligible(this.deps_);
     const gtagIsEligible = GoogleAnalyticsEventListener.isGtagEligible(
       this.deps_
     );
-    const neitherIsEligible = !gaIsEligible && !gtagIsEligible;
-    if (neitherIsEligible) {
+    const gtmIsEligible = GoogleAnalyticsEventListener.isGtmEligible(
+      this.deps_
+    );
+    const anyGoogleAnalyticsLoggingIsEligible =
+      gaIsEligible || gtagIsEligible || gtmIsEligible;
+    if (!anyGoogleAnalyticsLoggingIsEligible) {
       return;
     }
 
     // Extract methods from window.
-    const {ga, gtag} = /** @type {!WindowWithAnalyticsMethods} */ (
+    const {ga, gtag, dataLayer} = /** @type {!WindowWithAnalyticsMethods} */ (
       this.deps_.win()
     );
 
@@ -103,11 +107,22 @@ export class GoogleAnalyticsEventListener {
       };
       gtag('event', gaEvent.eventAction, gtagEvent);
     }
+
+    // Support google tag manager.
+    if (gtmIsEligible) {
+      dataLayer.push({
+        'event': gaEvent.eventAction,
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+        ...analyticsParams,
+      });
+    }
   }
 
   /**
    * Function to determine whether event is eligible for GA logging.
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @returns {boolean}
    */
   static isGaEligible(deps) {
@@ -118,12 +133,21 @@ export class GoogleAnalyticsEventListener {
 
   /**
    * Function to determine whether event is eligible for gTag logging.
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @returns {boolean}
    */
   static isGtagEligible(deps) {
     return isFunction(
       /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).gtag
     );
+  }
+
+  /**
+   * Function to determine whether event is eligible for GTM logging.
+   * @param {!./deps.Deps} deps
+   * @returns {boolean}
+   */
+  static isGtmEligible(deps) {
+    return isFunction(deps.win().dataLayer?.push);
   }
 }

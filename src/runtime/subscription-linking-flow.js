@@ -20,7 +20,7 @@ import {feArgs, feUrl} from './services';
 
 export class SubscriptionLinkingFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
     /** @private @const {!../components/activities.ActivityPorts} */
@@ -44,7 +44,7 @@ export class SubscriptionLinkingFlow {
    * @param {!../api/subscriptions.LinkSubscriptionRequest} request
    * @return {!Promise<!../api/subscriptions.LinkSubscriptionResult>}
    */
-  start(request) {
+  async start(request) {
     const {publisherProvidedId} = request;
     if (!publisherProvidedId) {
       throw new Error('Missing required field: publisherProvidedId');
@@ -61,7 +61,7 @@ export class SubscriptionLinkingFlow {
         ppid: publisherProvidedId,
       }),
       args,
-      /* shouldFadeBody= */ true
+      /* shouldFadeBody= */ false
     );
     activityIframeView.on(
       SubscriptionLinkingCompleteResponse,
@@ -77,10 +77,14 @@ export class SubscriptionLinkingFlow {
       this.completionResolver_ = resolve;
     });
 
-    return this.dialogManager_
-      .openView(activityIframeView, /* hidden= */ false, {
-        desktopConfig: {isCenterPositioned: true},
-      })
-      .then(() => completionPromise);
+    await this.dialogManager_.openView(
+      activityIframeView,
+      /* hidden= */ false,
+      {
+        desktopConfig: {isCenterPositioned: false},
+      }
+    );
+
+    return completionPromise;
   }
 }

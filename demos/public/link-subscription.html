@@ -10,24 +10,12 @@
 
   <link rel="stylesheet" href="demos.css">
 
-  <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg-basic.js"></script>
+  <script async subscriptions-control="manual" type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
 
   <script>
-    (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
-      basicSubscriptions.init({
-        type: "NewsArticle",
-        isPartOfType: ["Product"],
-        isPartOfProductId: "CAow64SFCw",
-      });
+    (self.SWG = self.SWG || []).push(subscriptions => {
+      subscriptions.init("CAowz7enCw");
     });
-    function linkSubscription() {
-        self.SWG_BASIC.push(async (basicSubscriptions) => {
-          const element = document.getElementById('link-result');
-          element.innerText = '';
-          const result = await basicSubscriptions.linkSubscription({publisherProvidedId: 'testPpid'});
-          element.innerText = JSON.stringify(result, null, 2);
-        });
-      }
   </script>
 </head>
 
@@ -41,14 +29,12 @@
         caramels pie.
       </p>
 
-      <p>
-        <button onclick="linkSubscription();">Link Subscription</button>
-      </p>
-      <p>Result</p>
-      <code id="link-result" style="white-space: pre"></code>
+      <div class="subscription-linking"></div>
+
     </article>
   </div>
 
+  <script src="subscription-linking.js"></script>
   <script src="demos.js"></script>
 </body>
 

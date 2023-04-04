@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 
-describes.realWin('WaitForSubscriptionLookupApi', {}, (env) => {
+describes.realWin('WaitForSubscriptionLookupApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -41,7 +41,7 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     accountPromise = Promise.resolve(account);
@@ -64,14 +64,14 @@ describes.realWin('WaitForSubscriptionLookupApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/waitforsubscriptionlookupiframe?_=_',
+        'https://news.google.com/swg/ui/v1/waitforsubscriptionlookupiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId,
           productId,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     dialogManagerMock.expects('completeView').once();
     waitingApi.start();
     await waitingApi.openViewPromise_;

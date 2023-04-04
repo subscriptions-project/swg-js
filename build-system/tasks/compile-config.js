@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const internalRuntimeVersion = require('./internal-version').VERSION;
 
 const ASSETS = '/assets';
@@ -32,8 +32,8 @@ const overrides = {};
 /**
  * @return {!Object<string, string>}
  */
-exports.resolveConfig = function () {
-  const swgServerOrigin = argv.frontend || FRONTEND;
+exports.resolveConfig = () => {
+  const swgServerOrigin = args.frontend || FRONTEND;
 
   console.log(green('Configuration'));
   console.log(green('  --frontend ') + cyan(swgServerOrigin));
@@ -45,14 +45,14 @@ exports.resolveConfig = function () {
   }
 
   const config = {
-    'frontend': swgServerOrigin,
-    'internalRuntimeVersion': internalRuntimeVersion,
-    'frontendCache': argv.frontendCache || FRONTEND_CACHE,
-    'assets': argv.assets || ASSETS,
-    'payEnvironment': argv.payEnvironment || PAY_ENVIRONMENT,
-    'playEnvironment': argv.playEnvironment || PLAY_ENVIRONMENT,
-    'experiments': argv.experiments || EXPERIMENTS,
-    'adsServer': argv.adsServer || ADS_SERVER,
+    'FRONTEND': swgServerOrigin,
+    'INTERNAL_RUNTIME_VERSION': internalRuntimeVersion,
+    'FRONTEND_CACHE': args.frontendCache || FRONTEND_CACHE,
+    'ASSETS': args.assets || ASSETS,
+    'PAY_ENVIRONMENT': args.payEnvironment || PAY_ENVIRONMENT,
+    'PLAY_ENVIRONMENT': args.playEnvironment || PLAY_ENVIRONMENT,
+    'EXPERIMENTS': args.experiments || EXPERIMENTS,
+    'ADS_SERVER': args.adsServer || ADS_SERVER,
   };
   return Object.assign(config, overrides);
 };
@@ -60,7 +60,7 @@ exports.resolveConfig = function () {
 /**
  * @param {!Object<string, string>} config
  */
-exports.overrideConfig = function (config) {
+exports.overrideConfig = (config) => {
   for (const k in config) {
     overrides[k] = config[k];
   }

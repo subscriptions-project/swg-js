@@ -15,8 +15,7 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
-const through = require('through2');
+const args = require('./args');
 const {isCiBuild} = require('../ci');
 
 /**
@@ -26,28 +25,22 @@ module.exports = {
   frameworks: ['fixture', 'browserify', 'mocha', 'sinon-chai', 'chai'],
 
   preprocessors: {
-    'src/**/*.js': ['browserify'],
-    'test/**/*.js': ['browserify'],
+    '{src,test}/**/*.{js,ts}': ['browserify'],
   },
 
   browserify: {
     watch: true,
     debug: true,
     fast: true,
+    plugin: ['tsify'],
     transform: [
-      ['babelify', {presets: ['@babel/preset-env']}],
-      () =>
-        through(function (buf, enc, next) {
-          this.push(
-            buf
-              .toString('utf8')
-              // Set Pay environment to indicate we're in a Karma test.
-              .replace(/\$payEnvironment\$/g, 'TEST')
-              // Some tests need a valid SwG server origin.
-              .replace(/\$frontend\$/g, 'https://news.google.com')
-          );
-          next();
-        }),
+      [
+        'babelify',
+        {
+          presets: ['@babel/preset-env'],
+          extensions: ['.js', '.ts'],
+        },
+      ],
     ],
     bundleDelay: 900,
   },
@@ -99,7 +92,7 @@ module.exports = {
   autoWatch: true,
 
   browsers: [
-    argv.headless ? 'Chrome_no_extensions_headless' : 'Chrome_no_extensions',
+    args.headless ? 'Chrome_no_extensions_headless' : 'Chrome_no_extensions',
   ],
 
   // Number of sauce tests to start in parallel

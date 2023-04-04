@@ -22,7 +22,7 @@ import {GlobalDoc} from '../model/doc';
 import {SkuSelectedResponse} from '../proto/api_messages';
 import {setExperimentsStringForTesting} from '../runtime/experiments';
 
-describes.realWin('ActivityIframeView', {}, (env) => {
+describes.realWin('ActivityIframeView', (env) => {
   let win;
   let src;
   let activityPorts;
@@ -40,7 +40,7 @@ describes.realWin('ActivityIframeView', {}, (env) => {
 
   beforeEach(() => {
     win = env.win;
-    src = '$frontend$/offersiframe';
+    src = 'https://news.google.com/offersiframe';
     dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
     deps = {
       win: () => win,

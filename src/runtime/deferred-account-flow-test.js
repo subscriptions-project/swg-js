@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
-import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {Entitlement, Entitlements} from '../api/entitlements';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {PayCompleteFlow} from './pay-flow';
 
 const EMPTY_ID_TOK =
   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJRF9UT0sifQ.SIG';
 
-describes.realWin('DeferredAccountFlow', {}, (env) => {
-  const ack = function () {};
+describes.realWin('DeferredAccountFlow', (env) => {
+  const ack = () => {};
   let win;
   let pageConfig;
   let runtime;
@@ -65,7 +64,7 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
       entitlements: ents,
     });
 
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     resultResolver = null;
@@ -97,14 +96,14 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
     expect(flow.options_.entitlements).to.equal(ents);
   });
 
-  it('should disallow no entitlement', () => {
+  it('should disallow no entitlement', async () => {
     flow = new DeferredAccountFlow(runtime);
-    expect(() => {
-      flow.start();
-    }).to.throw(/\"google\" source/);
+    await expect(flow.start()).to.eventually.be.rejectedWith(
+      /\"google\" source/
+    );
   });
 
-  it('should disallow empty entitlement', () => {
+  it('should disallow empty entitlement', async () => {
     ents = new Entitlements(
       'subscribe.google.com',
       'RaW',
@@ -115,12 +114,12 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
     flow = new DeferredAccountFlow(runtime, {
       entitlements: ents,
     });
-    expect(() => {
-      flow.start();
-    }).to.throw(/\"google\" source/);
+    await expect(flow.start()).to.eventually.be.rejectedWith(
+      /\"google\" source/
+    );
   });
 
-  it('should require "google" entitlement', () => {
+  it('should require "google" entitlement', async () => {
     ents = new Entitlements(
       'subscribe.google.com',
       'RaW',
@@ -131,9 +130,9 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
     flow = new DeferredAccountFlow(runtime, {
       entitlements: ents,
     });
-    expect(() => {
-      flow.start();
-    }).to.throw(/\"google\" source/);
+    await expect(flow.start()).to.eventually.be.rejectedWith(
+      /\"google\" source/
+    );
   });
 
   it('should start flow', () => {
@@ -146,16 +145,16 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/recoveriframe?_=_',
+        'https://news.google.com/swg/ui/v1/recoveriframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId: 'pub1',
           productId: 'pub1:product1',
           entitlements: 'RaW',
           consent: true,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
     flow.start();
     return flow.openPromise_;
   });
@@ -165,7 +164,7 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
       .expects('triggerFlowCanceled')
       .withExactArgs('completeDeferredAccountCreation')
       .once();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     resultResolver(Promise.reject(new DOMException('cancel', 'AbortError')));
     dialogManagerMock.expects('completeView').once();
     await expect(flow.start()).to.be.rejectedWith(/cancel/);
@@ -173,7 +172,7 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
 
   it('should handle failure', async () => {
     callbacksMock.expects('triggerFlowCanceled').never();
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
     await expect(flow.start()).to.be.rejectedWith(/broken/);
@@ -187,7 +186,7 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
       'pub1:product1',
       ack
     );
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('blockNextNotification').once();
     entitlementsManagerMock
       .expects('parseEntitlements')
@@ -246,7 +245,7 @@ describes.realWin('DeferredAccountFlow', {}, (env) => {
       'pub1:product1',
       ack
     );
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('blockNextNotification').once();
     entitlementsManagerMock
       .expects('parseEntitlements')

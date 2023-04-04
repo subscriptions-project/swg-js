@@ -18,10 +18,10 @@ import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientTheme} from '../api/basic-subscriptions';
-import {DepsDef} from './deps';
-import {Fetcher} from './fetcher';
+import {MockDeps} from '../../test/mock-deps';
+import {XhrFetcher} from './fetcher';
 
-describes.realWin('ClientConfigManager', {}, () => {
+describes.realWin('ClientConfigManager', (env) => {
   let clientConfigManager;
   let fetcher;
   let fetcherMock;
@@ -30,8 +30,8 @@ describes.realWin('ClientConfigManager', {}, () => {
   let entitlementsManagerMock;
 
   beforeEach(() => {
-    deps = new DepsDef();
-    fetcher = new Fetcher();
+    deps = new MockDeps();
+    fetcher = new XhrFetcher(env.win);
     fetcherMock = sandbox.mock(fetcher);
     depsMock = sandbox.mock(deps);
     entitlementsManagerMock = depsMock.expects('entitlementsManager').returns({
@@ -47,9 +47,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should return default config', async () => {
     const clientConfig = await clientConfigManager.getClientConfig();
-    expect(clientConfig).to.deep.equal(
-      new ClientConfig({usePrefixedHostPath: true})
-    );
+    expect(clientConfig).to.deep.equal(new ClientConfig({}));
   });
 
   it('getClientConfig should include skipAccountCreation override if specified', async () => {
@@ -60,14 +58,13 @@ describes.realWin('ClientConfigManager', {}, () => {
     expect(clientConfig).to.deep.equal(
       new ClientConfig({
         skipAccountCreationScreen: true,
-        usePrefixedHostPath: true,
       })
     );
   });
 
   it('fetchClientConfig should fetch the client config', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -90,7 +87,7 @@ describes.realWin('ClientConfigManager', {}, () => {
       skipAccountCreationScreen: true,
     });
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -132,7 +129,7 @@ describes.realWin('ClientConfigManager', {}, () => {
         new Promise((resolve) => {
           sequence++;
           resolve({
-            clientConfig: new ClientConfig(),
+            clientConfig: new ClientConfig({}),
           });
         }),
     });
@@ -160,7 +157,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getAutoPromptConfig should return undefined if the autoPromptConfig is not present in the response', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -173,7 +170,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getAutoPromptConfig should return AutoPromptConfig object even if part of the config is missing', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -188,7 +185,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getAutoPromptConfig should return AutoPromptConfig object', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -227,23 +224,6 @@ describes.realWin('ClientConfigManager', {}, () => {
     ).to.equal(8);
   });
 
-  it('fetchClientConfig should log errors from the response', async () => {
-    const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
-    fetcherMock
-      .expects('fetchCredentialedJson')
-      .withExactArgs(expectedUrl)
-      .resolves({
-        errorMessages: ['Something went wrong'],
-      })
-      .once();
-
-    await clientConfigManager.getAutoPromptConfig();
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      'SwG ClientConfigManager: Something went wrong'
-    );
-  });
-
   it('getClientConfig should return a Promise with an empty config if fetchClientConfig is not called', async () => {
     const clientConfig = await clientConfigManager.getClientConfig();
     const expectedClientConfig = new ClientConfig({usePrefixedHostPath: true});
@@ -253,6 +233,18 @@ describes.realWin('ClientConfigManager', {}, () => {
   it('should return default client options if unspecified', () => {
     expect(clientConfigManager.getLanguage()).to.equal('en');
     expect(clientConfigManager.getTheme()).to.equal(ClientTheme.LIGHT);
+  });
+
+  it('should default theme to dark if the user prefers it', () => {
+    const mockMatchMedia = sandbox
+      .mock(self, 'matchMedia')
+      .expects('matchMedia')
+      .withExactArgs('(prefers-color-scheme: dark)')
+      .returns({matches: true});
+
+    expect(clientConfigManager.getTheme()).to.equal(ClientTheme.DARK);
+
+    mockMatchMedia.verify();
   });
 
   it('should return the language set in the constructor', () => {
@@ -372,7 +364,7 @@ describes.realWin('ClientConfigManager', {}, () => {
     });
 
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -383,28 +375,26 @@ describes.realWin('ClientConfigManager', {}, () => {
       })
       .once();
 
-    clientConfigManager.shouldEnableButton().then((data) => {
-      expect(data).to.equal.to.be.true;
-    });
+    const data = await clientConfigManager.shouldEnableButton();
+    expect(data).to.be.true;
   });
 
   it('shouldEnableButton should return undefined if ClientConfig has UI predicate canDisplayButton is not set', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
       .resolves({})
       .once();
 
-    clientConfigManager.shouldEnableButton().then((data) => {
-      expect(data).to.equal.to.be.undefined;
-    });
+    const data = await clientConfigManager.shouldEnableButton();
+    expect(data).to.be.undefined;
   });
 
   it('getClientConfig should have paySwgVersion after fetch', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -417,7 +407,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should have useUpdatedOfferFlows after fetch', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -430,7 +420,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should use default useUpdatedOfferFlows value after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -443,7 +433,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should have uiPredicates after fetch if the response did not contain a useUpdatedOfferFlows value', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     fetcherMock
       .expects('fetchCredentialedJson')
       .withExactArgs(expectedUrl)
@@ -462,7 +452,7 @@ describes.realWin('ClientConfigManager', {}, () => {
 
   it('getClientConfig should have attributionParams', async () => {
     const expectedUrl =
-      '$frontend$/swg/_/api/v1/publication/pubId/clientconfiguration';
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
     const expectedDisplayName = 'Display Name';
     const expectedAvatarUrl = 'avatar.png';
     fetcherMock

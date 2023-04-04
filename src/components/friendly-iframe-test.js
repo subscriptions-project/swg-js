@@ -15,7 +15,7 @@
  */
 
 import {FriendlyIframe} from './friendly-iframe';
-import {getStyle, setImportantStyles, setStyles} from '../utils/style';
+import {getStyle, setImportantStyles} from '../utils/style';
 
 /** @const {!Object<string, string|number} */
 const importantStyles = {
@@ -32,7 +32,7 @@ const importantStyles = {
   'box-sizing': 'border-box',
 };
 
-describes.realWin('FriendlyIframe', {}, (env) => {
+describes.realWin('FriendlyIframe', (env) => {
   let doc;
   let friendlyIframe;
 
@@ -61,7 +61,6 @@ describes.realWin('FriendlyIframe', {}, (env) => {
       expect(friendlyIframe.isConnected()).to.be.true;
 
       setImportantStyles(iframe, importantStyles);
-      setStyles(iframe);
 
       expect(getStyle(iframe, 'opacity')).to.equal('1');
       expect(getStyle(iframe, 'display')).to.equal('block');

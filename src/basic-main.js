@@ -19,9 +19,10 @@
  * The entry point for runtime (swg-basic.js).
  */
 
+import {INTERNAL_RUNTIME_VERSION} from './constants';
 import {installBasicRuntime} from './runtime/basic-runtime';
 import {log} from './utils/log';
 
-log('BasicSubscriptions Runtime: $internalRuntimeVersion$');
+log(`BasicSubscriptions Runtime: ${INTERNAL_RUNTIME_VERSION}`);
 
 installBasicRuntime(self);

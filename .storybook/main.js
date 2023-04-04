@@ -10,5 +10,13 @@ module.exports = {
     '../src/stories/static',
     // CSS
     '../assets',
+    // JS files
+    '../dist',
   ],
+  'babel': {
+    'plugins': ['./build-system/transform-define-constants'],
+  },
+  core: {
+    builder: 'webpack5',
+  },
 };

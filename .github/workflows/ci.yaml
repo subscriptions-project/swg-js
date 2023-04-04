@@ -1,12 +1,14 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
 
 jobs:
   check:
-    # Canonical will support this LTS until April 2027.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -17,15 +19,16 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn
+        run: npm ci --omit optional
 
-      - name: Check
+      - name: Check lint & rules
         run: gulp check
 
+      - name: Check types
+        run: npx tsc --project tsconfig.json
+
   e2e:
-    # Canonical will support this LTS until April 2027.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -36,15 +39,22 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn
+        run: npm ci
+
+      - name: Compile Swgjs Classic with Vite
+        run: npx vite build -- --target=classic
+
+      - name: Compile Swgjs Extended Access with Vite
+        run: npx vite build -- --target=gaa
+
+      - name: Compile Swgjs Basic with Vite
+        run: npx vite build -- --target=basic
 
       - name: E2E Tests
-        run: gulp e2e --retries=3
+        run: gulp e2e
 
   unit:
-    # Canonical will support this LTS until April 2027.
-    # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +65,7 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: yarn
+        run: npm ci --omit optional
 
       - name: Unit Tests
         run: gulp unit --headless --coverage

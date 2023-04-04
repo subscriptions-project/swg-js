@@ -18,12 +18,12 @@ import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType, ClientTheme} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {DepsDef} from './deps';
-import {Fetcher} from './fetcher';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
+import {MockDeps} from '../../test/mock-deps';
+import {XhrFetcher} from './fetcher';
 
-describes.realWin('MiniPromptApi', {}, (env) => {
+describes.realWin('MiniPromptApi', (env) => {
   let miniPromptApi;
   let deps;
   let doc;
@@ -34,7 +34,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
   let clickCallbackSpy;
 
   beforeEach(() => {
-    deps = new DepsDef();
+    deps = new MockDeps();
 
     doc = env.win.document;
     gd = new GlobalDoc(env.win);
@@ -43,7 +43,7 @@ describes.realWin('MiniPromptApi', {}, (env) => {
     clientConfigManager = new ClientConfigManager(
       deps,
       'pubId',
-      new Fetcher(env.win)
+      new XhrFetcher(env.win)
     );
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
@@ -71,34 +71,34 @@ describes.realWin('MiniPromptApi', {}, (env) => {
   it('should insert the mini prompt css on init', () => {
     miniPromptApi.init();
     const links = doc.querySelectorAll(
-      'link[href="$assets$/swg-mini-prompt.css"]'
+      'link[href="/assets/swg-mini-prompt.css"]'
     );
     expect(links).to.have.length(1);
     const link = links[0];
     expect(link.getAttribute('rel')).to.equal('stylesheet');
     expect(link.getAttribute('type')).to.equal('text/css');
-    expect(link.getAttribute('href')).to.equal('$assets$/swg-mini-prompt.css');
+    expect(link.getAttribute('href')).to.equal('/assets/swg-mini-prompt.css');
   });
 
   it('should not insert the mini prompt css twice', () => {
     miniPromptApi.init();
     let links = doc.querySelectorAll(
-      'link[href="$assets$/swg-mini-prompt.css"]'
+      'link[href="/assets/swg-mini-prompt.css"]'
     );
     expect(links).to.have.length(1);
     let link = links[0];
     expect(link.getAttribute('rel')).to.equal('stylesheet');
     expect(link.getAttribute('type')).to.equal('text/css');
-    expect(link.getAttribute('href')).to.equal('$assets$/swg-mini-prompt.css');
+    expect(link.getAttribute('href')).to.equal('/assets/swg-mini-prompt.css');
 
     // Try to init a second time.
     miniPromptApi.init();
-    links = doc.querySelectorAll('link[href="$assets$/swg-mini-prompt.css"]');
+    links = doc.querySelectorAll('link[href="/assets/swg-mini-prompt.css"]');
     expect(links).to.have.length(1);
     link = links[0];
     expect(link.getAttribute('rel')).to.equal('stylesheet');
     expect(link.getAttribute('type')).to.equal('text/css');
-    expect(link.getAttribute('href')).to.equal('$assets$/swg-mini-prompt.css');
+    expect(link.getAttribute('href')).to.equal('/assets/swg-mini-prompt.css');
   });
 
   it('should warn when document head is not available', () => {

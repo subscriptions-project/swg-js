@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const argv = require('minimist')(process.argv.slice(2));
+const args = require('./args');
 const fs = require('fs-extra');
 
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -23,6 +23,6 @@ const packageVersion = packageJson.version;
 
 // Used to e.g. references the ads binary from the runtime to get
 // version lock.
-exports.VERSION = argv.swgVersion
-  ? String(argv.swgVersion)
-  : packageVersion + '-' + (argv.subversion || Date.now());
+exports.VERSION = args.swgVersion
+  ? String(args.swgVersion)
+  : packageVersion + '-' + Date.now();

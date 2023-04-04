@@ -20,10 +20,10 @@ import {feArgs, feUrl} from './services';
 
 export class LoginNotificationApi {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!Window} */
@@ -57,7 +57,7 @@ export class LoginNotificationApi {
    * Continues the Login flow (after waiting).
    * @return {!Promise}
    */
-  start() {
+  async start() {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_LOGIN_NOTIFICATION);
@@ -66,15 +66,13 @@ export class LoginNotificationApi {
       this.activityIframeView_
     );
 
-    return this.activityIframeView_.acceptResult().then(
-      () => {
-        // The consent part is complete.
-        this.dialogManager_.completeView(this.activityIframeView_);
-      },
-      (reason) => {
-        this.dialogManager_.completeView(this.activityIframeView_);
-        throw reason;
-      }
-    );
+    try {
+      await this.activityIframeView_.acceptResult();
+    } catch (reason) {
+      this.dialogManager_.completeView(this.activityIframeView_);
+      throw reason;
+    }
+
+    this.dialogManager_.completeView(this.activityIframeView_);
   }
 }

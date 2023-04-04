@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
 import {ConfiguredRuntime} from './runtime';
 import {LoginNotificationApi} from './login-notification-api';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 
-describes.realWin('LoginNotificationApi', {}, (env) => {
+describes.realWin('LoginNotificationApi', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -39,7 +39,7 @@ describes.realWin('LoginNotificationApi', {}, (env) => {
     activitiesMock = sandbox.mock(runtime.activities());
     callbacksMock = sandbox.mock(runtime.callbacks());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = new ActivityPort();
+    port = new MockActivityPort();
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     loginNotificationApi = new LoginNotificationApi(runtime);
@@ -62,22 +62,24 @@ describes.realWin('LoginNotificationApi', {}, (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        '$frontend$/swg/_/ui/v1/loginiframe?_=_',
+        'https://news.google.com/swg/ui/v1/loginiframe?_=_',
         {
-          _client: 'SwG $internalRuntimeVersion$',
+          _client: 'SwG 0.0.0',
           publicationId,
           productId,
           userConsent: false,
         }
       )
-      .returns(Promise.resolve(port));
+      .resolves(port);
+    resultResolver();
+    dialogManagerMock.expects('completeView').once();
 
     loginNotificationApi.start();
     await loginNotificationApi.openViewPromise_;
   });
 
   it('should handle failure', async () => {
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    activitiesMock.expects('openIframe').resolves(port);
     resultResolver(Promise.reject(new Error('broken')));
     dialogManagerMock.expects('completeView').once();
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ASSETS} from '../constants';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
@@ -36,7 +37,7 @@ const CLOSE_CONTAINER_DIV_HTML = `
  */
 export class MiniPromptApi {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    */
   constructor(deps) {
     /** @private @const {!../model/doc.Doc} */
@@ -66,7 +67,7 @@ export class MiniPromptApi {
       return;
     }
 
-    const url = '$assets$/swg-mini-prompt.css';
+    const url = `${ASSETS}/swg-mini-prompt.css`;
     const existing = head.querySelector(`link[href="${url}"]`);
     if (existing) {
       return;

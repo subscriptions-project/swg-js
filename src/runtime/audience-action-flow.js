@@ -35,7 +35,7 @@ import {
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {Constants} from '../utils/constants';
+import {Constants, StorageKeys} from '../utils/constants';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
@@ -48,8 +48,11 @@ import {log, warn} from '../utils/log';
 /**
  * @typedef {{
  *  action: (string|undefined),
+ *  configurationId: (string|undefined),
  *  onCancel: (function()|undefined),
- *  autoPromptType: (AutoPromptType|undefined)
+ *  autoPromptType: (AutoPromptType|undefined),
+ *  onResult: ((function(!Object):(Promise<boolean>|boolean))|undefined),
+ *  isClosable: (boolean|undefined),
  * }}
  */
 export let AudienceActionParams;
@@ -70,19 +73,17 @@ const autopromptTypeToProductTypeMapping = {
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
 const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
-const STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED =
-  'surveydatatransferfailed';
 
 /**
  * The flow to initiate and manage handling an audience action.
  */
 export class AudienceActionFlow {
   /**
-   * @param {!./deps.DepsDef} deps
+   * @param {!./deps.Deps} deps
    * @param {!AudienceActionParams} params
    */
   constructor(deps, params) {
-    /** @private @const {!./deps.DepsDef} */
+    /** @private @const {!./deps.Deps} */
     this.deps_ = deps;
 
     /** @private @const {!AudienceActionParams} */
@@ -105,17 +106,20 @@ export class AudienceActionFlow {
     /** @private @const {!./storage.Storage} */
     this.storage_ = deps.storage();
 
-    /** @private {?ActivityIframeView} */
+    /** @private {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       deps.win(),
       deps.activities(),
       feUrl(actionToIframeMapping[this.params_.action], {
         'origin': parseUrl(deps.win().location.href).origin,
+        'configurationId': this.params_.configurationId || '',
         'hl': this.clientConfigManager_.getLanguage(),
+        'isClosable': !!params.isClosable,
       }),
       feArgs({
         'supportsEventManager': true,
         'productType': this.productType_,
+        'windowHeight': deps.win()./* OK */ innerHeight,
       }),
       /* shouldFadeBody */ true
     );
@@ -127,10 +131,6 @@ export class AudienceActionFlow {
    * @return {!Promise}
    */
   start() {
-    if (!this.activityIframeView_) {
-      return Promise.resolve();
-    }
-
     this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
       this.handleCompleteAudienceActionResponse_(response)
     );
@@ -294,19 +294,24 @@ export class AudienceActionFlow {
    * @param {SurveyDataTransferRequest} request
    * @private
    */
-  // eslint-disable-next-line no-unused-vars
-  handleSurveyDataTransferRequest_(request) {
-    // @TODO(justinchou): execute callback with setOnInterventionComplete
-    // then check for success
-    const gaLoggingSuccess = this.logSurveyDataToGoogleAnalytics(request);
-    if (!gaLoggingSuccess) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async handleSurveyDataTransferRequest_(request) {
+    const dataTransferSuccess = await this.attemptSurveyDataTransfer(request);
+    if (dataTransferSuccess) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+          /* isFromUserAction */ true
+        );
+    } else {
       this.deps_
         .eventManager()
         .logSwgEvent(
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
           /* isFromUserAction */ false
         );
-      this.storage_.storeEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED);
+      this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     // TODO: change to handle experiment flag && whether or not GPT is set up in publisher's page
@@ -318,9 +323,51 @@ export class AudienceActionFlow {
         configurePpsSuccess && gaLoggingSuccess
       );
     } else {
-      surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
+      surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     }
     this.activityIframeView_.execute(surveyDataTransferResponse);
+  }
+
+  /**
+   * Attempts to log survey data.
+   * @param {SurveyDataTransferRequest} request
+   * @return {boolean}
+   * @private
+   */
+  async attemptSurveyDataTransfer(request) {
+    // @TODO(justinchou): execute callback with setOnInterventionComplete
+    // then check for success
+    const {onResult} = this.params_;
+    if (onResult) {
+      try {
+        return await onResult(request);
+      } catch (e) {
+        warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
+        return false;
+      }
+    }
+    return this.logSurveyDataToGoogleAnalytics(request);
+  }
+
+  /**
+   * Attempts to log survey data.
+   * @param {SurveyDataTransferRequest} request
+   * @return {boolean}
+   * @private
+   */
+  async attemptSurveyDataTransfer(request) {
+    // @TODO(justinchou): execute callback with setOnInterventionComplete
+    // then check for success
+    const {onResult} = this.params_;
+    if (onResult) {
+      try {
+        return await onResult(request);
+      } catch (e) {
+        warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
+        return false;
+      }
+    }
+    return this.logSurveyDataToGoogleAnalytics(request);
   }
 
   /**
@@ -410,8 +457,6 @@ export class AudienceActionFlow {
    * @public
    */
   showNoEntitlementFoundToast() {
-    if (this.activityIframeView_) {
-      this.activityIframeView_.execute(new EntitlementsResponse());
-    }
+    this.activityIframeView_.execute(new EntitlementsResponse());
   }
 }

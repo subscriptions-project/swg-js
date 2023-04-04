@@ -25,7 +25,7 @@ Before you start developing in Subscribe with Google, check out these resources:
 
 ## Setup
 
-Now that you have all of the files copied locally you can actually build the code and run a local server to try things out. We use Node.js, the Yarn package manager, Closure Compiler, and the Gulp build system to build `swg-js` and start up a local server that lets you try out your changes.
+Now that you have all of the files copied locally you can actually build the code and run a local server to try things out. We use Node.js, Closure Compiler, and the Gulp build system to build `swg-js` and start up a local server that lets you try out your changes.
 
 - Install the latest LTS version of [Node.js](https://nodejs.org/) (which includes npm). If you're on Mac or Linux, an easy way to install Node.js is with `nvm`: [here](https://github.com/creationix/nvm).
 
@@ -36,7 +36,7 @@ Now that you have all of the files copied locally you can actually build the cod
 - If you have a global install of [Gulp](https://gulpjs.com/), uninstall it. (Instructions [here](https://github.com/gulpjs/gulp/blob/v3.9.1/docs/getting-started.md). See [this article](https://medium.com/gulpjs/gulp-sips-command-line-interface-e53411d4467) for why.)
 
   ```
-  npx yarn global remove gulp
+  npm uninstall -g gulp
   ```
 
 - Install Swgjs with the following bash commands, instead of simply cloning the repo. These commands install Swgjs in a standardized location and they also install helpful bash scripts, like `swgjs_start_server`.
@@ -49,7 +49,7 @@ Now that you have all of the files copied locally you can actually build the cod
 
 - In your local repository directory (e.g. `~/projects/swgjs`), install the packages that SWG uses by running
   ```
-  npx yarn
+  npm i
   ```
   You should see a progress indicator and some messages scrolling by.
 
@@ -125,8 +125,6 @@ For manual testing build Subscribe with Google and start the Node.js server by r
   build-system/   - build infrastructure and development server
   contributing/   - docs for code contributors
   dist/           - (generated) Web releases are compiled here, then deployed to a CDN
-  exports/        - AMP releases use these files to export specific JavaScript symbols
-                    for AMP extensions (ex: amp-subscriptions-google) to reference
   docs/           - documentation for publishers
   examples/       - example publisher website, used for local development
   src/            - source code and unit tests

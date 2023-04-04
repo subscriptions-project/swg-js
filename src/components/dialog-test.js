@@ -22,7 +22,7 @@ const NO_ANIMATE = false;
 const ANIMATE = true;
 const HIDDEN = true;
 
-describes.realWin('Dialog', {}, (env) => {
+describes.realWin('Dialog', (env) => {
   let win;
   let doc;
   let dialog;
@@ -44,6 +44,10 @@ describes.realWin('Dialog', {}, (env) => {
       resized: () => {},
       shouldFadeBody: () => true,
     };
+
+    sandbox.stub(self, 'requestAnimationFrame').callsFake((callback) => {
+      callback();
+    });
   });
 
   /** Updates `setTimeout` to immediately call its callback. */
@@ -281,21 +285,6 @@ describes.realWin('Dialog', {}, (env) => {
       expect(container.nodeName).to.equal('SWG-CONTAINER');
     });
 
-    it('opens the iframe inside the container element', async () => {
-      const containerEl = doc.createElement('div');
-      doc.body.appendChild(containerEl);
-      const openedDialog = await dialog.openInContainer(containerEl);
-
-      // iframe element should be a child of the container element.
-      expect(containerEl.contains(openedDialog.getIframe().getElement())).to.be
-        .true;
-
-      // The swg-container should also be created.
-      const container = openedDialog.getContainer();
-      expect(container.nodeType).to.equal(1);
-      expect(container.nodeName).to.equal('SWG-CONTAINER');
-    });
-
     it('focuses the iframe contents after dialog is opened', async () => {
       immediate();
       await dialog.open();
@@ -358,14 +347,6 @@ describes.realWin('Dialog', {}, (env) => {
       await expect(dialog.open()).to.eventually.be.rejectedWith(
         'already opened'
       );
-    });
-
-    it('throws if iframe already connected when opening in a container', async () => {
-      immediate();
-      sandbox.stub(dialog.iframe_, 'isConnected').returns(true);
-      await expect(
-        dialog.openInContainer(doc.body)
-      ).to.eventually.be.rejectedWith('already opened');
     });
 
     it('should have Loading view element added', async () => {

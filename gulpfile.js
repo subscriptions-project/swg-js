@@ -19,23 +19,13 @@ const {execOrDie} = require('./build-system/exec');
 const {isCiBuild} = require('./build-system/ci');
 if (!isCiBuild()) {
   // CI systems will have already installed dependencies.
-  execOrDie('npx yarn');
+  execOrDie('npm i');
 }
 
 const $$ = require('gulp-load-plugins')();
 const gulp = $$.help(require('gulp'));
-const {
-  build,
-  checkTypes,
-  clean,
-  dist,
-  watch,
-} = require('./build-system/tasks/builders');
-const {
-  runAllExportsToEs,
-  runAllExportsToAmp,
-} = require('./build-system/tasks/export-to-es');
 const {assets} = require('./build-system/tasks/assets');
+const {build, clean, watch} = require('./build-system/tasks/builders');
 const {changelog} = require('./build-system/tasks/changelog');
 const {checkRules} = require('./build-system/tasks/check-rules');
 const {e2e} = require('./build-system/tasks/e2e');
@@ -50,20 +40,16 @@ gulp.task('build', build);
 gulp.task('changelog', changelog);
 gulp.task('publish', publish);
 gulp.task('lint', lint);
-gulp.task('check-types', checkTypes);
 gulp.task('check-rules', checkRules);
 gulp.task('unit', unit);
 gulp.task('watch', watch);
 gulp.task('serve', serve);
 gulp.task('clean', clean);
 gulp.task('e2e', e2e);
-gulp.task('dist', dist);
-gulp.task('export-to-es-all', runAllExportsToEs);
-gulp.task('export-to-amp', runAllExportsToAmp);
 
 gulp.task('default', gulp.series(['watch', 'serve']));
 
-const check = gulp.series('lint', 'check-types', 'check-rules');
+const check = gulp.series('lint', 'check-rules');
 check.description = 'Run through all checks';
 gulp.task('check', check);
 

@@ -20,11 +20,7 @@
  * release based off the generated changelog.
  */
 
-const argv = require('minimist')(process.argv.slice(2), {
-  default: {
-    draft: false,
-  },
-});
+const args = require('./args');
 const changelog = require('./changelog').changelog;
 const githubRequest = require('./github').githubRequest;
 const logger = require('fancy-log');
@@ -56,7 +52,7 @@ async function publishRelease(release) {
       name: `SwG Release ${release.version}`,
       body: release.changelog,
       prerelease: true,
-      draft: argv.draft,
+      draft: args.draft || false,
     },
   });
 }

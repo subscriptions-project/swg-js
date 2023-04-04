@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+import {Offer} from '../api/offer';
 import {serviceUrl} from './services';
 
 export class OffersApi {
@@ -31,7 +33,7 @@ export class OffersApi {
 
   /**
    * @param {?string=} productId
-   * @return {!Promise<!Array<!../api/offer.Offer>>}
+   * @return {!Promise<!Array<!Offer>>}
    */
   getOffers(productId = this.config_.getProductId()) {
     if (!productId) {
@@ -42,10 +44,10 @@ export class OffersApi {
 
   /**
    * @param {string} productId
-   * @return {!Promise<!Array<!../api/offer.Offer>>}
+   * @return {!Promise<!Array<!Offer>>}
    * @private
    */
-  fetch_(productId) {
+  async fetch_(productId) {
     const url = serviceUrl(
       '/publication/' +
         encodeURIComponent(this.config_.getPublicationId()) +
@@ -54,8 +56,7 @@ export class OffersApi {
         encodeURIComponent(productId)
     );
     // TODO(dvoytenko): switch to a non-credentialed request after launch.
-    return this.fetcher_.fetchCredentialedJson(url).then((json) => {
-      return json['offers'] || [];
-    });
+    const json = await this.fetcher_.fetchCredentialedJson(url);
+    return json['offers'] || [];
   }
 }
