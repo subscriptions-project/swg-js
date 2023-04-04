@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {
   AnalyticsContext,
   AnalyticsEvent,
@@ -24,6 +25,7 @@ import {
   FinishedLoggingResponse,
   Timestamp,
 } from '../proto/api_messages';
+import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
@@ -38,8 +40,6 @@ import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {toTimestamp} from '../utils/date-utils';
-import {ActivityIframePort, ActivityPorts} from '../components/activities';
-import {ClientEvent} from '../api/client-event-manager-api';
 
 const iframeStyles = {
   opacity: '0',
