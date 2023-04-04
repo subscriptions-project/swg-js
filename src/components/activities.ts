@@ -228,9 +228,7 @@ export class ActivityPorts {
   /**
    * Adds client version, publication, product and logging context information.
    */
-  addDefaultArguments(args?: {[key: string]: string} | null): {
-    [key: string]: string;
-  } {
+  addDefaultArguments(args?: {} | null): {} {
     const deps = this.deps_;
     const pageConfig = deps.pageConfig();
     const context = deps.analytics().getContext();
@@ -265,7 +263,7 @@ export class ActivityPorts {
   async openIframe(
     iframe: HTMLIFrameElement,
     url: string,
-    args?: {[key: string]: string} | null,
+    args?: {} | null,
     addDefaultArguments = false
   ): Promise<ActivityIframePort> {
     if (addDefaultArguments) {
@@ -311,7 +309,7 @@ export class ActivityPorts {
     requestId: string,
     url: string,
     target: string,
-    args?: {[key: string]: string} | null,
+    args?: {} | null,
     options?: ActivityOpenOptions | null,
     addDefaultArguments = false
   ): {targetWin: Window | null} {
