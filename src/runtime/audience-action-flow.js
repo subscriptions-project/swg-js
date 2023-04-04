@@ -43,6 +43,7 @@ import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
+import {log, warn} from '../utils/log';
 
 /**
  * @typedef {{
@@ -308,11 +309,68 @@ export class AudienceActionFlow {
       this.storage_.storeEvent(STORAGE_KEY_EVENT_SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
+    // TODO: change to handle experiment flag && whether or not GPT is set up in publisher's page
+    // TODO: import experiments from autoPromptManager
+    const isPpsEligible = true;
+    if (isPpsEligible) {
+      const configurePpsSuccess = this.configureAnswerPpsData_(request);
+      surveyDataTransferResponse.setSuccess(
+        configurePpsSuccess && gaLoggingSuccess
+      );
+    } else {
+      surveyDataTransferResponse.setSuccess(gaLoggingSuccess);
+    }
     this.activityIframeView_.execute(surveyDataTransferResponse);
   }
 
   /**
+   * Populates localStorage with PPS configuration parameters based on
+   * SurveyDataTransferRequest.
+   * @param {SurveyDataTransferRequest} request
+   * @return {boolean}
+   * @private
+   **/
+
+  configureAnswerPpsData_(request) {
+    const localStorage = this.deps_.win().localStorage;
+    const iabAudienceKey = this.storage_.PREFIX + ':iabTaxonomiesValues';
+    const ppsConfigParams = request.getSurveyQuestionsList().map((question) => {
+      const answer = question.getSurveyAnswersList()[0];
+      const answerPpsParams = answer.getPpsValue();
+      // PPS value field is optional and category may not be populated
+      // in accordance to IAB taxonomies.
+      if (answerPpsParams) {
+        return answerPpsParams;
+      }
+    });
+
+    try {
+      const iabAudienceTaxonomyVersion =
+        '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]';
+
+      if (ppsConfigParams.length) {
+        const existingIabTaxonomyMap = localStorage.getItem(iabAudienceKey);
+        if (!existingIabTaxonomyMap) {
+          const iabTaxonomyMap = {
+            iabAudienceTaxonomyVersion: ppsConfigParams,
+          };
+          localStorage.setItem(iabAudienceKey, JSON.stringify(iabTaxonomyMap));
+        } else {
+          existingIabTaxonomyMap[iabAudienceTaxonomyVersion] =
+            existingIabTaxonomyMap + ppsConfigParams;
+        }
+      }
+    } catch (e) {
+      warn(
+        `[swg.js] Exception in storing PPS value data of survey answers in local storage: ${e}`
+      );
+      return false;
+    }
+
+    return ppsConfigParams.length && localStorage.getItem(iabAudienceKey);
+  }
+
+  /*
    * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
    * for whether or not logging was successful.
    * @param {SurveyDataTransferRequest} request
