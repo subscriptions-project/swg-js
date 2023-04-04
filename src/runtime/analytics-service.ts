@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {
   AnalyticsContext,
   AnalyticsEvent,
@@ -22,8 +23,12 @@ import {
   EventOriginator,
   EventParams,
   FinishedLoggingResponse,
+  Timestamp,
 } from '../proto/api_messages';
+import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
+import {Deps} from './deps';
+import {Doc} from '../model/doc';
 import {ExperimentFlags} from './experiment-flags';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {createElement} from '../utils/dom';
@@ -36,7 +41,6 @@ import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {toTimestamp} from '../utils/date-utils';
 
-/** @const {!Object<string, string>} */
 const iframeStyles = {
   opacity: '0',
   position: 'absolute',
@@ -46,20 +50,22 @@ const iframeStyles = {
   width: '1px',
 };
 
-// The initial iframe load takes ~500 ms.  We will wait at least that long
-// before a page redirect.  Subsequent logs are much faster.  We will wait at
-// most 100 ms.
+/**
+ * The initial iframe load takes ~500 ms. We will wait at least that long
+ * before a page redirect. Subsequent logs are much faster.
+ */
 const MAX_FIRST_WAIT = 500;
+
+/** We will wait at most 200 ms. */
 const MAX_WAIT = 200;
-// If we logged and rapidly redirected, we will add a short delay in case
-// a message hasn't been transmitted yet.
-const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
 
 /**
- *
- * @param {!string} error
+ * If we logged and rapidly redirected, we will add a short delay in case
+ * a message hasn't been transmitted yet.
  */
-function createErrorResponse(error) {
+const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
+
+function createErrorResponse(error: string): FinishedLoggingResponse {
   const response = new FinishedLoggingResponse();
   response.setComplete(false);
   response.setError(error);
@@ -67,84 +73,55 @@ function createErrorResponse(error) {
 }
 
 export class AnalyticsService {
+  private readonly activityPorts_: ActivityPorts;
+  private readonly context_ = new AnalyticsContext();
+  private readonly doc_: Doc;
+  private readonly eventManager_: ClientEventManager;
+  private readonly iframe_: HTMLIFrameElement;
+
+  private everFinishedLog_ = false;
+  /** If logging doesn't work don't force the user to wait. */
+  private loggingBroken_ = false;
+  private loggingResolver_: ((success: boolean) => void) | null = null;
+  /** Stores log events while we wait to be ready for logging. */
+  private logs_: ClientEvent[] = [];
+  private portPromise_: Promise<ActivityIframePort | null> | null = null;
+  private promiseToLog_: Promise<boolean> | null = null;
+  /** While false, we will buffer logs instead of sending them to the analytics service. */
+  private readyForLogging_ = false;
   /**
-   * @param {!./deps.Deps} deps
-   * @param {!./fetcher.Fetcher} fetcher
+   * If logging exceeds the timeouts (see const comments above) don't make
+   * the user wait too long.
    */
-  constructor(deps, fetcher) {
-    /** @private @const {!./fetcher.Fetcher} */
-    this.fetcher_ = fetcher;
+  private timeout_: number | null = null;
+  /**
+   * This code creates a 'promise to log' that we can use to ensure all
+   * logging is finished prior to redirecting the page.
+   */
+  private unfinishedLogs_ = 0;
 
-    /** @private @const {!../model/doc.Doc} */
-    this.doc_ = deps.doc();
+  lastAction: Promise<void> | null = null;
 
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  constructor(private readonly deps_: Deps) {
+    this.doc_ = deps_.doc();
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!HTMLIFrameElement} */
-    this.iframe_ = /** @type {!HTMLIFrameElement} */ (
-      createElement(this.doc_.getWin().document, 'iframe', {})
-    );
+    this.iframe_ = createElement(this.doc_.getWin().document, 'iframe', {});
     setImportantStyles(this.iframe_, iframeStyles);
-    this.doc_.getBody().appendChild(this.getElement());
+    this.doc_.getBody()?.appendChild(this.getElement());
 
-    /** @private @type {!boolean} */
-    this.everFinishedLog_ = false;
-
-    /**
-     * @private @const {!AnalyticsContext}
-     */
-    this.context_ = new AnalyticsContext();
     this.setStaticContext_();
 
-    /** @private {?Promise<?../components/activities.ActivityIframePort>} */
-    this.portPromise_ = null;
-
-    /** @private {?Promise} */
-    this.lastAction_ = null;
-
-    /** @private @const {!ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
+    this.eventManager_ = deps_.eventManager();
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
     );
+  }
 
-    // This code creates a 'promise to log' that we can use to ensure all
-    // logging is finished prior to redirecting the page.
-    /** @private {!number} */
-    this.unfinishedLogs_ = 0;
-
-    /** @private {?function(boolean)} */
-    this.loggingResolver_ = null;
-
-    /** @private {?Promise} */
-    this.promiseToLog_ = null;
-
-    // If logging doesn't work don't force the user to wait
-    /** @private {!boolean} */
-    this.loggingBroken_ = false;
-
-    // If logging exceeds the timeouts (see const comments above) don't make
-    // the user wait too long.
-    /** @private {?number} */
-    this.timeout_ = null;
-
-    // A callback for setting the client timestamp before sending requests.
-    /** @private {function():!../proto/api_messages.Timestamp} */
-    this.getTimestamp_ = () => {
-      return toTimestamp(Date.now());
-    };
-
-    // While false, we will buffer logs instead of sending them to the analytics service.
-    /** @private {boolean} */
-    this.readyForLogging_ = false;
-
-    // Stores log events while we wait to be ready for logging.
-    /** @private {!Array<!../api/client-event-manager-api.ClientEvent>}*/
-    this.logs_ = [];
+  /** A callback for setting the client timestamp before sending requests. */
+  private getTimestamp_(): Timestamp {
+    return toTimestamp(Date.now());
   }
 
   /**
@@ -157,10 +134,7 @@ export class AnalyticsService {
     }
   }
 
-  /**
-   * @param {string} transactionId
-   */
-  setTransactionId(transactionId) {
+  setTransactionId(transactionId: string): void {
     const oldTransactionId = this.context_.getTransactionId();
     this.context_.setTransactionId(transactionId);
     if (oldTransactionId != null && oldTransactionId != transactionId) {
@@ -175,40 +149,25 @@ export class AnalyticsService {
     }
   }
 
-  /**
-   * @return {string}
-   */
-  getTransactionId() {
-    return /** @type {string} */ (this.context_.getTransactionId());
+  getTransactionId(): string | null {
+    return this.context_.getTransactionId();
   }
 
-  /**
-   * @return {?string}
-   */
-  getSku() {
+  getSku(): string | null {
     return this.context_.getSku();
   }
 
-  /**
-   * @param {string} sku
-   */
-  setSku(sku) {
+  setSku(sku: string): void {
     this.context_.setSku(sku);
   }
 
-  /**
-   * @param {string} url
-   */
-  setUrl(url) {
+  setUrl(url: string): void {
     this.context_.setUrl(url);
   }
 
-  /**
-   * @param {!Array<string>} labels
-   */
-  addLabels(labels) {
+  addLabels(labels: string[]): void {
     if (labels && labels.length > 0) {
-      const newLabels = [].concat(this.context_.getLabelList());
+      const newLabels = ([] as string[]).concat(this.context_.getLabelList()!);
       for (const label of labels) {
         if (newLabels.indexOf(label) == -1) {
           newLabels.push(label);
@@ -218,33 +177,19 @@ export class AnalyticsService {
     }
   }
 
-  /**
-   * @return {!HTMLIFrameElement}
-   */
-  getElement() {
+  getElement(): HTMLIFrameElement {
     return this.iframe_;
   }
 
-  /**
-   * @return {string}
-   * @private
-   */
-  getQueryString_() {
+  private getQueryString_(): string {
     return this.doc_.getWin().location.search;
   }
 
-  /**
-   * @return {string}
-   * @private
-   */
-  getReferrer_() {
+  private getReferrer_(): string {
     return this.doc_.getWin().document.referrer;
   }
 
-  /**
-   * @private
-   */
-  setStaticContext_() {
+  private setStaticContext_(): void {
     const context = this.context_;
     // These values should all be available during page load.
     if (
@@ -276,10 +221,7 @@ export class AnalyticsService {
     }
   }
 
-  /**
-   * @return {!Promise<?../components/activities.ActivityIframePort>}
-   */
-  start() {
+  start(): Promise<ActivityIframePort | null> {
     // Only prepare port once.
     if (!this.portPromise_) {
       // Please note that currently openIframe reads the current analytics
@@ -292,10 +234,7 @@ export class AnalyticsService {
     return this.portPromise_;
   }
 
-  /**
-   * @return {!Promise<?../components/activities.ActivityIframePort>}
-   */
-  async preparePort() {
+  async preparePort(): Promise<ActivityIframePort | null> {
     // Open iframe.
     let port;
     try {
@@ -327,31 +266,19 @@ export class AnalyticsService {
     return port;
   }
 
-  /**
-   * @param {boolean} isReadyToPay
-   */
-  setReadyToPay(isReadyToPay) {
+  setReadyToPay(isReadyToPay: boolean): void {
     this.context_.setReadyToPay(isReadyToPay);
   }
 
-  /**
-   */
-  close() {
-    this.doc_.getBody().removeChild(this.getElement());
+  close(): void {
+    this.doc_.getBody()?.removeChild(this.getElement());
   }
 
-  /**
-   * @return {!AnalyticsContext}
-   */
-  getContext() {
+  getContext(): AnalyticsContext {
     return this.context_;
   }
 
-  /**
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @return {!AnalyticsRequest}
-   */
-  createLogRequest_(event) {
+  private createLogRequest_(event: ClientEvent): AnalyticsRequest {
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(!!event.isFromUserAction);
@@ -359,7 +286,7 @@ export class AnalyticsService {
     // This needs to be current for log analysis.
     this.context_.setClientTimestamp(this.getTimestamp_());
     const request = new AnalyticsRequest();
-    request.setEvent(/** @type {!AnalyticsEvent} */ (event.eventType));
+    request.setEvent(event.eventType!);
     request.setContext(this.context_);
     request.setMeta(meta);
     if (event.additionalParameters instanceof EventParams) {
@@ -368,18 +295,14 @@ export class AnalyticsService {
     return request;
   }
 
-  /**
-   * @return {boolean}
-   */
-  shouldLogPublisherEvents_() {
+  private shouldLogPublisherEvents_(): boolean {
     return this.deps_.config().enableSwgAnalytics === true;
   }
 
   /**
    * Listens for new events from the events manager and handles logging
-   * @param {!../api/client-event-manager-api.ClientEvent} event
    */
-  handleClientEvent_(event) {
+  private handleClientEvent_(event: ClientEvent): void {
     //this event is just used to communicate information internally.  It should
     //not be reported to the SwG analytics service.
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
@@ -411,27 +334,21 @@ export class AnalyticsService {
     this.unfinishedLogs_++;
 
     // Send log.
-    this.lastAction_ = this.sendLog_(event);
+    this.lastAction = this.sendLog_(event);
   }
 
-  /**
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @return {!Promise}
-   */
-  async sendLog_(event) {
+  async sendLog_(event: ClientEvent): Promise<void> {
     const port = await this.start();
     const analyticsRequest = this.createLogRequest_(event);
-    port.execute(analyticsRequest);
+    port?.execute(analyticsRequest);
   }
 
   /**
    * This function is called by the iframe after it sends the log to the server.
-   * @param {../proto/api_messages.Message=} message
    */
-  afterLogging_(message) {
-    const response = /** @type {!FinishedLoggingResponse} */ (message);
-    const success = (response && response.getComplete()) || false;
-    const error = (response && response.getError()) || 'Unknown logging Error';
+  afterLogging_(message?: FinishedLoggingResponse): void {
+    const success = message?.getComplete() || false;
+    const error = message?.getError() || 'Unknown logging Error';
     const isTimeout = error === TIMEOUT_ERROR;
 
     if (!success) {
@@ -464,24 +381,22 @@ export class AnalyticsService {
    * guaranteed to be finished when the promise is resolved.  You should call
    * this function just prior to redirecting the page after SwG is finished
    * logging.
-   * @return {!Promise}
    */
-  getLoggingPromise() {
+  getLoggingPromise(): Promise<boolean | void> {
     if (this.unfinishedLogs_ === 0 || this.loggingBroken_) {
       return Promise.resolve(true);
     }
     if (this.promiseToLog_ === null) {
-      this.promiseToLog_ = new Promise((resolve) => {
+      this.promiseToLog_ = new Promise<boolean>((resolve) => {
         this.loggingResolver_ = resolve;
       });
 
       // The promise above should not wait forever if things go wrong.  Let
       // the user proceed!
-      const whenDone = this.afterLogging_.bind(this);
-      this.timeout_ = setTimeout(
+      this.timeout_ = self.setTimeout(
         () => {
           this.timeout_ = null;
-          whenDone(createErrorResponse(TIMEOUT_ERROR));
+          this.afterLogging_(createErrorResponse(TIMEOUT_ERROR));
         },
         this.everFinishedLog_ ? MAX_WAIT : MAX_FIRST_WAIT
       );
