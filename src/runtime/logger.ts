@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {ClientEventManagerApi} from '../api/client-event-manager-api';
 import {Deps} from './deps';
 import {Event, LoggerApi, SubscriptionState} from '../api/logger-api';
+import {PublisherEvent} from '../api/logger-api';
 import {isBoolean, isEnumValue, isObject} from '../utils/types';
 import {publisherEventToAnalyticsEvent} from './event-type-mapping';
-import {ClientEventManagerApi} from '../api/client-event-manager-api';
-import {PublisherEvent} from '../api/logger-api';
 
 export class Logger implements LoggerApi {
   private readonly eventManager_: ClientEventManagerApi;
