@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {Event, SubscriptionState} from '../api/logger-api';
+import {Deps} from './deps';
+import {Event, LoggerApi, SubscriptionState} from '../api/logger-api';
 import {isBoolean, isEnumValue, isObject} from '../utils/types';
 import {publisherEventToAnalyticsEvent} from './event-type-mapping';
+import {ClientEventManagerApi} from '../api/client-event-manager-api';
+import {PublisherEvent} from '../api/logger-api';
 
-/**
- * @implements {../api/logger-api.LoggerApi}
- */
-export class Logger {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  constructor(deps) {
-    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
+export class Logger implements LoggerApi {
+  private readonly eventManager_: ClientEventManagerApi;
+
+  constructor(deps: Deps) {
     this.eventManager_ = deps.eventManager();
   }
 
-  /** @override */
-  sendSubscriptionState(state, jsonProducts) {
+  sendSubscriptionState(
+    state: SubscriptionState,
+    jsonProducts?: {product: string[]}
+  ): void {
     if (!isEnumValue(SubscriptionState, state)) {
       throw new Error('Invalid subscription state provided');
     }
@@ -63,8 +63,7 @@ export class Logger {
     });
   }
 
-  /** @override */
-  sendEvent(userEvent) {
+  sendEvent(userEvent: PublisherEvent): void {
     let data = null;
     if (
       !isEnumValue(Event, userEvent.name) ||

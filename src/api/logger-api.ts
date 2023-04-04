@@ -213,7 +213,7 @@ export enum Event {
  *         enum listed in the Event enum above.
  */
 export interface PublisherEvent {
-  name: string;
+  name: Event;
   active: boolean;
   data: unknown;
 }
