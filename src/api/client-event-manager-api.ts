@@ -17,7 +17,6 @@
 import {
   AnalyticsEvent as AnalyticsEventDef,
   EventOriginator as EventOriginatorDef,
-  EventParams,
 } from '../proto/api_messages';
 
 export enum FilterResult {
