@@ -15,7 +15,9 @@
  */
 
 import {ActivityPorts} from '../components/activities';
+import {AnalyticsService} from './analytics-service';
 import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc} from '../model/doc';
@@ -52,17 +54,11 @@ export interface Deps {
 
   storage(): Storage;
 
-  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
-  // {!../runtime/analytics-service.AnalyticsService}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  analytics(): any;
+  analytics(): AnalyticsService;
 
   jserror(): JsError;
 
-  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
-  // {!../runtime/client-event-manager.ClientEventManager}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventManager(): any;
+  eventManager(): ClientEventManager;
 
   clientConfigManager(): ClientConfigManager;
 }
