@@ -72,6 +72,14 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_2,
 ]);
 
+const TEST_SURVEYANSWER_TEST = new SurveyAnswer();
+const TEST_SURVEYQUESTION_EMPTY = new SurveyQuestion();
+TEST_SURVEYQUESTION_EMPTY.setSurveyAnswersList([TEST_SURVEYANSWER_TEST]);
+const TEST_EMPTY_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
+TEST_EMPTY_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
+  TEST_SURVEYQUESTION_EMPTY,
+]);
+
 describes.realWin('AudienceActionFlow', (env) => {
   let win;
   let runtime;
@@ -949,6 +957,51 @@ describes.realWin('AudienceActionFlow', (env) => {
     expect(self.console.warn).to.have.been.calledWithExactly(
       '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
     );
+    activityIframeViewMock.verify();
+    onResultMock.verify();
+  });
+
+  it(`handles an empty SurveyDataTransferRequest`, async () => {
+    const onResultMock = sandbox
+      .mock()
+      .withExactArgs(TEST_EMPTY_SURVEYDATATRANSFERREQUEST)
+      .resolves(true)
+      .once();
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      onResult: onResultMock,
+    });
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock.expects('logEvent').withExactArgs({
+      eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: true,
+      additionalParameters: null,
+    });
+
+    await audienceActionFlow.start();
+
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+
+    const activityIframeViewMock = sandbox
+      .mock(audienceActionFlow.activityIframeView_)
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback =
+      messageMap[TEST_EMPTY_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_EMPTY_SURVEYDATATRANSFERREQUEST);
+
+    await tick(10);
+
     activityIframeViewMock.verify();
     onResultMock.verify();
   });
