@@ -962,10 +962,24 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles an empty SurveyDataTransferRequest`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_EMPTY_SURVEYDATATRANSFERREQUEST)
-      .resolves(true)
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+        },
+        {
+          googleAnalyticsParameters: {
+            'event_category': '',
+            'event_label': '',
+            'survey_question': '',
+            'survey_answer_category': '',
+          },
+        }
+      )
       .once();
 
     const audienceActionFlow = new AudienceActionFlow(runtime, {
@@ -973,7 +987,6 @@ describes.realWin('AudienceActionFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
     });
 
     activitiesMock.expects('openIframe').resolves(port);
@@ -990,20 +1003,11 @@ describes.realWin('AudienceActionFlow', (env) => {
     const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
     successSurveyDataTransferResponse.setSuccess(true);
 
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
     const messageCallback =
       messageMap[TEST_EMPTY_SURVEYDATATRANSFERREQUEST.label()];
     messageCallback(TEST_EMPTY_SURVEYDATATRANSFERREQUEST);
 
     await tick(10);
-
-    activityIframeViewMock.verify();
-    onResultMock.verify();
   });
 
   it('opens dialog with scrolling disabled', async () => {
