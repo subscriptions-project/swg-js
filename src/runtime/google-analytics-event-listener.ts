@@ -21,6 +21,7 @@ import {
 } from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {Deps} from './deps';
+import {EventParams} from '../proto/api_messages';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {isFunction} from '../utils/types';
 
@@ -79,8 +80,10 @@ export class GoogleAnalyticsEventListener {
 
     // additionalParameters isn't strongly typed so checking for both object and class notation.
     const subscriptionFlow =
-      event.additionalParameters?.subscriptionFlow ||
-      event.additionalParameters?.getSubscriptionFlow?.() ||
+      (event.additionalParameters as {[key: string]: string})?.[
+        'subscriptionFlow'
+      ] ||
+      (event.additionalParameters as EventParams)?.getSubscriptionFlow?.() ||
       '';
     let gaEvent = analyticsEventToGoogleAnalyticsEvent(
       event.eventType,
