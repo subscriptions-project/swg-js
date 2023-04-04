@@ -81,7 +81,7 @@ export class GoogleAnalyticsEventListener {
     // additionalParameters isn't strongly typed so checking for both object and class notation.
     const subscriptionFlow =
       (event.additionalParameters as {[key: string]: string})?.[
-        'subscriptionFlow '
+        'subscriptionFlow'
       ] ||
       (event.additionalParameters as EventParams)?.getSubscriptionFlow?.() ||
       '';
