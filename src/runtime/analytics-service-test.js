@@ -377,6 +377,34 @@ describes.realWin('AnalyticsService', (env) => {
       const val = await analyticsService.getLoggingPromise();
       expect(val).to.be.true;
     });
+
+    it('reduces timeout after successful event', async () => {
+      sandbox.stub(self, 'setTimeout');
+
+      async function fireEvent() {
+        eventManagerCallback({
+          eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: {droppedData: true},
+        });
+        await analyticsService.lastAction;
+        const loggingPromise = analyticsService.getLoggingPromise();
+        const loggingResponse = new FinishedLoggingResponse();
+        loggingResponse.setComplete(true);
+        iframeCallback(loggingResponse);
+        await loggingPromise;
+      }
+
+      // Fire first event.
+      await fireEvent();
+      expect(self.setTimeout).to.be.calledWith(sandbox.match.any, 500);
+      self.setTimeout.resetHistory();
+
+      // Fire second event.
+      await fireEvent();
+      expect(self.setTimeout).to.be.calledWith(sandbox.match.any, 200);
+    });
   });
 
   it('should not log the subscription state change event', () => {

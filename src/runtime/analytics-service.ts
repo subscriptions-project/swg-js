@@ -56,7 +56,7 @@ const iframeStyles = {
  */
 const MAX_FIRST_WAIT = 500;
 
-/** We will wait at most 100 ms. */
+/** We will wait at most 200 ms. */
 const MAX_WAIT = 200;
 
 /**
@@ -393,11 +393,10 @@ export class AnalyticsService {
 
       // The promise above should not wait forever if things go wrong.  Let
       // the user proceed!
-      const whenDone = this.afterLogging_.bind(this);
       this.timeout_ = self.setTimeout(
         () => {
           this.timeout_ = null;
-          whenDone(createErrorResponse(TIMEOUT_ERROR));
+          this.afterLogging_(createErrorResponse(TIMEOUT_ERROR));
         },
         this.everFinishedLog_ ? MAX_WAIT : MAX_FIRST_WAIT
       );
