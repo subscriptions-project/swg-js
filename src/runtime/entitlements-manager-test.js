@@ -1950,7 +1950,6 @@ describes.realWin('EntitlementsManager', (env) => {
         deps,
         /* useArticleEndpoint */ false
       );
-      sandbox.stub(manager, 'getArticle').resolves(null);
 
       expect(await manager.getAvailableInterventions()).to.equal(
         null,

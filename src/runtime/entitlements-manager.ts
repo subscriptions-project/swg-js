@@ -981,10 +981,8 @@ export class EntitlementsManager {
       );
       return null;
     }
-    return (
-      article.audienceActions?.actions?.map(
-        (action) => new AvailableIntervention(action, this.deps_)
-      ) || []
+    return article.audienceActions.actions.map(
+      (action) => new AvailableIntervention(action, this.deps_)
     );
   }
 }
