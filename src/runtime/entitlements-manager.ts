@@ -738,9 +738,12 @@ export class EntitlementsManager {
     }
   }
 
+  /**
+   * @param entitlements
+   * @param onCloseDialog Called after the user closes the dialog.
+   */
   private consume_(
     entitlements: Entitlements,
-    /** Called after the user closes the dialog. */
     onCloseDialog?: (() => void) | null
   ): Promise<void> | void {
     if (entitlements.enablesThisWithGoogleMetering()) {
@@ -756,7 +759,7 @@ export class EntitlementsManager {
       const subscriptionTokenContents =
         entitlement.subscriptionTokenContents as
           | {
-              metering: {
+              metering?: {
                 clientType?: MeterClientTypes;
                 clientUserAttribute?: string;
                 showToast: boolean;
@@ -770,7 +773,7 @@ export class EntitlementsManager {
         return onConsumeCallback();
       }
 
-      if (subscriptionTokenContents['metering']['showToast'] === true) {
+      if (subscriptionTokenContents['metering']?.['showToast'] === true) {
         // Return a delegation to the meterToastApi, which will return the
         // onConsumeCallback when the toast is dismissed.
         const meterToastApi = new MeterToastApi(this.deps_, {
