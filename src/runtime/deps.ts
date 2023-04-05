@@ -21,6 +21,7 @@ import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc} from '../model/doc';
+import {EntitlementsManager} from './entitlements-manager';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 
@@ -42,10 +43,7 @@ export interface Deps {
 
   dialogManager(): DialogManager;
 
-  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
-  // {!./entitlements-manager.EntitlementsManager}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  entitlementsManager(): any;
+  entitlementsManager(): EntitlementsManager;
 
   // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
   // {!./callbacks.Callbacks}
