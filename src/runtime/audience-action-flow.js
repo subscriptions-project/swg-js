@@ -314,8 +314,7 @@ export class AudienceActionFlow {
       this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    // TODO: change to handle experiment flag && whether or not GPT is set up in publisher's page
-    // TODO: import experiments from autoPromptManager
+    // TODO: change to handle experiment flag && whether or not GAM is set up in publisher's page
     const isPpsEligible = true;
     if (isPpsEligible) {
       const configurePpsSuccess = this.configureAnswerPpsData_(request);
@@ -326,27 +325,6 @@ export class AudienceActionFlow {
       surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     }
     this.activityIframeView_.execute(surveyDataTransferResponse);
-  }
-
-  /**
-   * Attempts to log survey data.
-   * @param {SurveyDataTransferRequest} request
-   * @return {boolean}
-   * @private
-   */
-  async attemptSurveyDataTransfer(request) {
-    // @TODO(justinchou): execute callback with setOnInterventionComplete
-    // then check for success
-    const {onResult} = this.params_;
-    if (onResult) {
-      try {
-        return await onResult(request);
-      } catch (e) {
-        warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
-        return false;
-      }
-    }
-    return this.logSurveyDataToGoogleAnalytics(request);
   }
 
   /**
