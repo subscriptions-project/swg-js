@@ -233,7 +233,6 @@ export class Entitlements {
    * "free reads".
    *
    * @param onCloseDialog Called after the user closes the dialog.
-   *
    */
   consume(onCloseDialog?: (() => void) | null) {
     this.consumeHandler_(this, onCloseDialog);
