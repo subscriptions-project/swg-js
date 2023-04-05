@@ -1641,7 +1641,6 @@ a subscription. Use the showUpdateOffers() method instead.'
     });
 
     it('should call "showUpdateOffers"', async () => {
-      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       await expect(runtime.showUpdateOffers()).to.be.rejectedWith(
         'The showUpdateOffers() method cannot be used for \
 new subscribers. Use the showOffers() method instead.'
@@ -1649,7 +1648,6 @@ new subscribers. Use the showOffers() method instead.'
     });
 
     it('should call "showUpdateOffers" with options', async () => {
-      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       let offersFlow;
       sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
         offersFlow = this;
@@ -1663,7 +1661,6 @@ new subscribers. Use the showOffers() method instead.'
     });
 
     it('should throw an error if showUpdateOffers is used without an oldSku', async () => {
-      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       await expect(
         runtime.showUpdateOffers({skuId: 'newSku'})
       ).to.be.rejectedWith(
@@ -1800,7 +1797,6 @@ updateSubscription() method'
     });
 
     it('throws if updateSubscription is used to initiate a new subscription', async () => {
-      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       await expect(
         runtime.updateSubscription({skuId: 'newSku'})
       ).to.eventually.be.rejectedWith(
@@ -1814,7 +1810,6 @@ subscribe() method'
       'should start PayStartFlow for replaceSubscription ' +
         '(no proration mode)',
       async () => {
-        setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
         let flowInstance;
         const startStub = sandbox
           .stub(PayStartFlow.prototype, 'start')
@@ -1833,7 +1828,6 @@ subscribe() method'
     );
 
     it('should start PayStartFlow for replaceSubscription', async () => {
-      setExperiment(win, ExperimentFlags.REPLACE_SUBSCRIPTION, true);
       let flowInstance;
       const startStub = sandbox
         .stub(PayStartFlow.prototype, 'start')
