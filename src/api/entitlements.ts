@@ -48,7 +48,7 @@ export class Entitlements {
     private readonly ackHandler_: (entitlements: Entitlements) => void,
     private readonly consumeHandler_: (
       entitlements: Entitlements,
-      callback?: Function | null
+      callback?: (() => void) | null
     ) => void,
     isReadyToPay: boolean | null = false,
     readonly decryptedDocumentKey: string | null = null
@@ -231,9 +231,10 @@ export class Entitlements {
    * When a metering entitlement is consumed, SwG shows the user a metering dialog.
    * When the user closes the dialog, SwG depletes one of the user's remaining
    * "free reads".
-   * @param {?Function=} onCloseDialog Called after the user closes the dialog.
+   *
+   * @param onCloseDialog Called after the user closes the dialog.
    */
-  consume(onCloseDialog?: Function | null) {
+  consume(onCloseDialog?: (() => void) | null) {
     this.consumeHandler_(this, onCloseDialog);
   }
 }

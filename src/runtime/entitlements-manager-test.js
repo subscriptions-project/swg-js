@@ -1950,7 +1950,6 @@ describes.realWin('EntitlementsManager', (env) => {
         deps,
         /* useArticleEndpoint */ false
       );
-      sandbox.stub(manager, 'getArticle').resolves(null);
 
       expect(await manager.getAvailableInterventions()).to.equal(
         null,
@@ -1959,6 +1958,28 @@ describes.realWin('EntitlementsManager', (env) => {
 
       expect(self.console.warn).to.have.been.calledWithExactly(
         '[swg.js:getAvailableInterventions] Article is null. Make sure you have enabled it in the client ready callback with: `subscriptions.configure({enableArticleEndpoint: true})`'
+      );
+    });
+
+    it('should return empty array promise when fetching interventions without a fully populated article', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ false
+      );
+
+      sandbox.stub(manager, 'getArticle').resolves({});
+      expect(await manager.getAvailableInterventions()).to.deep.equal(
+        [],
+        'getAvailableInterventions should return []'
+      );
+
+      manager.getArticle.resolves({audienceActions: {}});
+      expect(await manager.getAvailableInterventions()).to.deep.equal(
+        [],
+        'getAvailableInterventions should return []'
       );
     });
 

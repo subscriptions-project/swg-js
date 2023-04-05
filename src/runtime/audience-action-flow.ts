@@ -39,7 +39,6 @@ import {ClientConfigManager} from './client-config-manager';
 import {Constants, StorageKeys} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
-// @ts-ignore: TODO(b/276949133): Remove temporary @ts-ignore comment.
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {ProductType} from '../api/subscriptions';
