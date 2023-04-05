@@ -923,10 +923,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   async showUpdateOffers(options) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
-      'Not yet launched!'
-    );
     await this.documentParsed_;
     const errorMessage =
       'The showUpdateOffers() method cannot be used for new subscribers. ' +
@@ -1038,10 +1034,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   async updateSubscription(subscriptionRequest) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
-      'Not yet launched!'
-    );
     const errorMessage =
       'The updateSubscription() method should be used for subscription ' +
       'updates; for new subscriptions please use the subscribe() method';
