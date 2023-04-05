@@ -1003,7 +1003,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
     activitiesMock.expects('openIframe').resolves(port);
 
-    // TODO: mock localStorage
+    // TODO: mock localtorage
 
     await audienceActionFlow.start();
     const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
