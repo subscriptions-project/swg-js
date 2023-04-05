@@ -1961,6 +1961,28 @@ describes.realWin('EntitlementsManager', (env) => {
       );
     });
 
+    it('should return empty array promise when fetching interventions without a fully populated article', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ false
+      );
+
+      sandbox.stub(manager, 'getArticle').resolves({});
+      expect(await manager.getAvailableInterventions()).to.deep.equal(
+        [],
+        'getAvailableInterventions should return []'
+      );
+
+      manager.getArticle.resolves({audienceActions: {}});
+      expect(await manager.getAvailableInterventions()).to.deep.equal(
+        [],
+        'getAvailableInterventions should return []'
+      );
+    });
+
     it('should return correct AvailableInterventions', async () => {
       manager = new EntitlementsManager(
         win,
