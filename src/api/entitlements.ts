@@ -231,11 +231,11 @@ export class Entitlements {
    * When a metering entitlement is consumed, SwG shows the user a metering dialog.
    * When the user closes the dialog, SwG depletes one of the user's remaining
    * "free reads".
+   *
+   * @param onCloseDialog Called after the user closes the dialog.
+   *
    */
-  consume(
-    /** Called after the user closes the dialog. */
-    onCloseDialog?: (() => void) | null
-  ) {
+  consume(onCloseDialog?: (() => void) | null) {
     this.consumeHandler_(this, onCloseDialog);
   }
 }
