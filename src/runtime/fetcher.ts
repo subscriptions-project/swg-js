@@ -21,7 +21,7 @@ import {parseUrl, serializeProtoMessageForUrl} from '../utils/url';
 const jsonSaftyPrefix = /^(\)\]\}'\n)/;
 
 export interface Fetcher {
-  fetchCredentialedJson(url: string): Promise<{[key: string]: unknown}>;
+  fetchCredentialedJson(url: string): Promise<{}>;
 
   fetch(url: string, init: RequestInit): Promise<Response>;
 
@@ -39,7 +39,7 @@ export interface Fetcher {
 export class XhrFetcher implements Fetcher {
   constructor(private readonly win_: Window) {}
 
-  async fetchCredentialedJson(url: string): Promise<{[key: string]: unknown}> {
+  async fetchCredentialedJson(url: string): Promise<{}> {
     const init: RequestInit = {
       method: 'GET',
       headers: {'Accept': 'text/plain, application/json'},

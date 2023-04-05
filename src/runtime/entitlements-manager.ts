@@ -22,27 +22,35 @@ import {
   EntitlementsRequest,
   EventOriginator,
   EventParams,
+  Timestamp,
 } from '../proto/api_messages';
+import {AnalyticsService} from './analytics-service';
 import {AudienceActionFlow} from './audience-action-flow';
+import {ClientConfig} from '../model/client-config';
+import {ClientEvent} from '../api/client-event-manager-api';
 import {Constants, StorageKeys} from '../utils/constants';
+import {Deps} from './deps';
 import {
   Entitlement,
   Entitlements,
   GOOGLE_METERING_SOURCE,
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
+import {Fetcher} from './fetcher';
 import {
+  Config,
   GetEntitlementsParamsExternalDef,
   GetEntitlementsParamsInternalDef,
 } from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
+import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
 import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
-import {feArgs, feUrl} from '../runtime/services';
+import {feArgs, feUrl} from './services';
 import {hash} from '../utils/string';
 import {queryStringHasFreshGaaParams} from './extended-access';
 import {serviceUrl} from './services';
@@ -51,44 +59,36 @@ import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
 
-/**
- * Properties:
- *   - isClosable - determine whether the view is closable.
- *   - onResult - callback to get the intervention result and decide if it completes.
- *                Takes either a normal or async function and returns `true` if the
- *                intervention should be marked complete.
- *
- * @typedef {{
- *   isClosable: (boolean|undefined),
- *   onResult: ((function(!Object):(Promise<Boolean>|Boolean))|undefined),
- * }}
- */
-export let ShowInterventionParams;
+export interface ShowInterventionParams {
+  /** Determine whether the view is closable. */
+  isClosable?: boolean;
 
-export class Intervention {
-  /** @public @const {string} */
-  type;
-  /** @public @const {string} */
-  configurationId;
+  /**
+   * Callback to get the intervention result and decide if it completes.
+   * Takes either a normal or async function and returns `true` if the
+   * intervention should be marked complete.
+   */
+  onResult?: (result: {}) => Promise<boolean> | boolean;
 }
 
-export class AvailableIntervention extends Intervention {
-  /**
-   * @param {Intervention} original
-   * @param {!./deps.Deps} deps
-   */
-  constructor(original, deps) {
-    super();
-    Object.assign(this, original);
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+export interface Intervention {
+  readonly type: string;
+  readonly configurationId: string;
+}
+
+export class AvailableIntervention implements Intervention {
+  readonly type: string;
+  readonly configurationId: string;
+
+  constructor(original: Intervention, private readonly deps_: Deps) {
+    this.type = original.type;
+    this.configurationId = original.configurationId;
   }
+
   /**
    * Starts the intervention flow.
-   * @param {!ShowInterventionParams=} params
-   * @return {!Promise}
    */
-  show(params) {
+  show(params: ShowInterventionParams): Promise<void> {
     const flow = new AudienceActionFlow(this.deps_, {
       isClosable: params.isClosable,
       action: this.type,
@@ -101,123 +101,76 @@ export class AvailableIntervention extends Intervention {
 
 /**
  * Article response object.
- *
- * @typedef {{
- *  entitlements: (../api/entitlements.Entitlements),
- *  clientConfig: (../model/client-config.ClientConfig),
- *  audienceActions: ({
- *    actions: Array<!Intervention>,
- *    engineId: (string)
- *  }),
- *  experimentConfig: ({
- *    experimentFlags: Array<{
- *      type: (string)
- *    }>
- *  })
- * }}
  */
-export let Article;
+export interface Article {
+  entitlements: Entitlements;
+  clientConfig: ClientConfig;
+  audienceActions: {
+    actions: Intervention[];
+    engineId: string;
+  };
+  experimentConfig: {
+    experimentFlags: string[];
+  };
+}
 
-/**
- */
 export class EntitlementsManager {
+  private readonly analyticsService_: AnalyticsService;
+  private readonly config_: Config;
+  private readonly jwtHelper_: JwtHelper;
+  private readonly publicationId_: string;
+  private readonly storage_: Storage;
+
+  private action_: string;
+  private article_: Article | null = null;
+  private blockNextNotification_ = false;
+  private blockNextToast_ = false;
+  private enableMeteredByGoogle_ = false;
+  private encodedParamName_: string;
   /**
-   * @param {!Window} win
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @param {!./fetcher.Fetcher} fetcher
-   * @param {!./deps.Deps} deps
-   * @param {!boolean} useArticleEndpoint
-   * @param {!boolean} enableDefaultMeteringHandler
+   * String containing encoded metering parameters currently.
+   * We may expand this to contain more information in the future.
    */
+  private encodedParams_: string | null = null;
+  private positiveRetries_ = 0;
+  private responsePromise_: Promise<Entitlements> | null = null;
+
+  /**
+   * Tests can use this promise to wait for POST requests to finish.
+   * Visible for testing.
+   */
+  entitlementsPostPromise: Promise<void> | null = null;
+
   constructor(
-    win,
-    pageConfig,
-    fetcher,
-    deps,
-    useArticleEndpoint,
-    enableDefaultMeteringHandler
+    private readonly win_: Window,
+    private readonly pageConfig_: PageConfig,
+    private readonly fetcher_: Fetcher,
+    private readonly deps_: Deps,
+    private readonly useArticleEndpoint_: boolean,
+    private readonly enableDefaultMeteringHandler_: boolean
   ) {
-    /** @private @const {!Window} */
-    this.win_ = win;
-
-    /** @private @const {!../model/page-config.PageConfig} */
-    this.pageConfig_ = pageConfig;
-
-    /** @private @const {string} */
     this.publicationId_ = this.pageConfig_.getPublicationId();
 
-    /** @private @const {!./fetcher.Fetcher} */
-    this.fetcher_ = fetcher;
-
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
-
-    /** @private @const {!JwtHelper} */
     this.jwtHelper_ = new JwtHelper();
 
-    /** @private {?Promise<!Entitlements>} */
-    this.responsePromise_ = null;
-
-    /** @private {number} */
-    this.positiveRetries_ = 0;
-
-    /** @private {boolean} */
-    this.blockNextNotification_ = false;
-
-    /** @private {boolean} */
-    this.blockNextToast_ = false;
-
-    /**
-     * String containing encoded metering parameters currently.
-     * We may expand this to contain more information in the future.
-     * @private {?string}
-     */
-    this.encodedParams_ = null;
-
-    /** @protected {!string} */
-    this.encodedParamName_ = useArticleEndpoint
+    this.encodedParamName_ = useArticleEndpoint_
       ? 'encodedEntitlementsParams'
       : 'encodedParams';
 
-    /** @protected {!string} */
-    this.action_ = useArticleEndpoint ? '/article' : '/entitlements';
+    this.action_ = useArticleEndpoint_ ? '/article' : '/entitlements';
 
-    /** @private @const {!./storage.Storage} */
-    this.storage_ = deps.storage();
+    this.storage_ = deps_.storage();
 
-    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
-    this.analyticsService_ = deps.analytics();
+    this.analyticsService_ = deps_.analytics();
 
-    /** @private @const {!../api/subscriptions.Config} */
-    this.config_ = deps.config();
-
-    /**
-     * Tests can use this promise to wait for POST requests to finish.
-     * @visibleForTesting
-     */
-    this.entitlementsPostPromise = null;
-
-    /** @private @const {boolean} */
-    this.useArticleEndpoint_ = useArticleEndpoint;
-
-    /** @private @const {boolean} */
-    this.enableDefaultMeteringHandler_ = enableDefaultMeteringHandler;
-
-    /** @private {?Article} */
-    this.article_ = null;
-
-    /** @private {boolean} */
-    this.enableMeteredByGoogle_ = false;
+    this.config_ = deps_.config();
 
     this.deps_
       .eventManager()
       .registerEventListener(this.possiblyPingbackOnClientEvent_.bind(this));
   }
 
-  /**
-   * @param {boolean=} expectPositive
-   */
-  reset(expectPositive) {
+  reset(expectPositive = false): void {
     this.responsePromise_ = null;
     this.positiveRetries_ = Math.max(
       this.positiveRetries_,
@@ -232,7 +185,7 @@ export class EntitlementsManager {
   /**
    * Clears all of the entitlements state and cache.
    */
-  clear() {
+  clear(): void {
     this.responsePromise_ = null;
     this.positiveRetries_ = 0;
     this.unblockNextNotification();
@@ -241,11 +194,9 @@ export class EntitlementsManager {
     this.storage_.remove(StorageKeys.IS_READY_TO_PAY);
   }
 
-  /**
-   * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
-   */
-  async getEntitlements(params) {
+  async getEntitlements(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<Entitlements> {
     // Remain backwards compatible by accepting
     // `encryptedDocumentKey` string as a first param.
     if (typeof params === 'string') {
@@ -259,7 +210,7 @@ export class EntitlementsManager {
       }
 
       params = {
-        encryption: {encryptedDocumentKey: /**@type {string} */ (params)},
+        encryption: {encryptedDocumentKey: params},
       };
     }
 
@@ -273,12 +224,7 @@ export class EntitlementsManager {
     return response;
   }
 
-  /**
-   * @param {string} raw
-   * @param {boolean=} isReadyToPay
-   * @return {boolean}
-   */
-  pushNextEntitlements(raw, isReadyToPay) {
+  pushNextEntitlements(raw: string, isReadyToPay?: boolean): boolean {
     const entitlements = this.getValidJwtEntitlements_(
       raw,
       /* requireNonExpired */ true,
@@ -294,15 +240,14 @@ export class EntitlementsManager {
   /**
    * Retrieves the 'gaa_n' parameter from the query string.
    */
-  getGaaToken_() {
+  private getGaaToken_(): string {
     return parseQueryString(this.win_.location.search)['gaa_n'];
   }
 
   /**
    * Sends a pingback that marks a metering entitlement as used.
-   * @param {!Entitlement|null} entitlement
    */
-  consumeMeter_(entitlement) {
+  private consumeMeter_(entitlement: Entitlement | null): void {
     if (!entitlement || entitlement.source !== GOOGLE_METERING_SOURCE) {
       return;
     }
@@ -311,9 +256,11 @@ export class EntitlementsManager {
     let gaaToken;
     let entitlementSource;
     if (
-      entitlement.subscriptionTokenContents &&
-      entitlement.subscriptionTokenContents['metering']['clientType'] ===
-        MeterClientTypes.METERED_BY_GOOGLE
+      (
+        entitlement.subscriptionTokenContents as {
+          metering: {clientType: number};
+        }
+      )?.['metering']['clientType'] === MeterClientTypes.METERED_BY_GOOGLE
     ) {
       // If clientType is METERED_BY_GOOGLE, this is the appropriate
       // EntitlementSource, and no GAA params are required.
@@ -351,9 +298,8 @@ export class EntitlementsManager {
   /**
    * Listens for events from the event manager and informs the server
    * about publisher entitlements and non-consumable Google entitlements.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
    */
-  possiblyPingbackOnClientEvent_(event) {
+  private possiblyPingbackOnClientEvent_(event: ClientEvent): void {
     // Verify GAA params are present, otherwise bail since the pingback
     // shouldn't happen on non-metering requests.
     // We don't validate access type since we want to pingback on all access types.
@@ -367,7 +313,7 @@ export class EntitlementsManager {
     }
 
     // A subset of analytics events are also an entitlement result
-    const result = analyticsEventToEntitlementResult(event.eventType);
+    const result = analyticsEventToEntitlementResult(event.eventType!);
     if (!result) {
       return;
     }
@@ -391,10 +337,12 @@ export class EntitlementsManager {
         return;
     }
     const token = this.getGaaToken_();
-    const isUserRegistered =
-      event?.additionalParameters?.getIsUserRegistered?.();
-    const subscriptionTimestamp =
-      event?.additionalParameters?.getSubscriptionTimestamp?.();
+    const isUserRegistered = (
+      event?.additionalParameters as EntitlementsRequest
+    )?.getIsUserRegistered?.();
+    const subscriptionTimestamp = (
+      event?.additionalParameters as EntitlementsRequest
+    )?.getSubscriptionTimestamp?.();
     this.entitlementsPostPromise = this.postEntitlementsRequest_(
       new EntitlementJwt(),
       result,
@@ -405,16 +353,18 @@ export class EntitlementsManager {
     );
   }
 
-  // Informs the Entitlements server about the entitlement used
-  // to unlock the page.
-  async postEntitlementsRequest_(
-    usedEntitlement,
-    entitlementResult,
-    entitlementSource,
+  /**
+   * Informs the Entitlements server about the entitlement used
+   * to unlock the page.
+   */
+  private async postEntitlementsRequest_(
+    usedEntitlement: EntitlementJwt,
+    entitlementResult: EntitlementResult,
+    entitlementSource: EntitlementSource,
     optionalToken = '',
-    optionalIsUserRegistered = null,
-    optionalSubscriptionTimestamp = null
-  ) {
+    optionalIsUserRegistered: boolean | null = null,
+    optionalSubscriptionTimestamp: Timestamp | null = null
+  ): Promise<void> {
     const message = new EntitlementsRequest();
     message.setUsedEntitlement(usedEntitlement);
     message.setClientEventTime(toTimestamp(Date.now()));
@@ -434,7 +384,6 @@ export class EntitlementsManager {
 
     // Set encoded params, once.
     if (!this.encodedParams_) {
-      /** @type {!GetEntitlementsParamsInternalDef} */
       const encodableParams = {
         metering: {
           resource: {
@@ -453,40 +402,26 @@ export class EntitlementsManager {
     if (swgUserToken) {
       url = addQueryParam(url, 'sut', swgUserToken);
     }
-    url = addQueryParam(
-      url,
-      this.encodedParamName_,
-      /** @type {!string} */ (this.encodedParams_)
-    );
+    url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
 
-    return this.fetcher_.sendPost(serviceUrl(url), message);
+    await this.fetcher_.sendPost(serviceUrl(url), message);
   }
 
-  /**
-   * @return {!Promise<string>}
-   * @private
-   */
-  async getHashedCanonicalUrl_() {
+  private async getHashedCanonicalUrl_(): Promise<string> {
     return hash(getCanonicalUrl(this.deps_.doc()));
   }
 
-  /**
-   * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
-   * @private
-   */
-  async getEntitlementsFlow_(params) {
+  private async getEntitlementsFlow_(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<Entitlements> {
     const entitlements = await this.fetchEntitlementsWithCaching_(params);
     this.onEntitlementsFetched_(entitlements);
     return entitlements;
   }
 
-  /**
-   * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
-   * @private
-   */
-  async fetchEntitlementsWithCaching_(params) {
+  private async fetchEntitlementsWithCaching_(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<Entitlements> {
     const raw = await this.storage_.get(StorageKeys.ENTITLEMENTS);
     const irtp = await this.storage_.get(StorageKeys.IS_READY_TO_PAY);
 
@@ -519,9 +454,8 @@ export class EntitlementsManager {
   /**
    * If the manager is also responsible for fetching the Article, it
    * will be accessible from here and should resolve a null promise otherwise.
-   * @returns {!Promise<?Article>}
    */
-  async getArticle() {
+  async getArticle(): Promise<Article | null> {
     // The base manager only fetches from the entitlements endpoint, which does
     // not contain an Article.
     if (!this.useArticleEndpoint_ || !this.responsePromise_) {
@@ -535,36 +469,32 @@ export class EntitlementsManager {
 
   /**
    * The experiment flags that are returned by the article endpoint should be accessible from here.
-   * @returns {Promise<Array<string>>}
    */
-  async getExperimentConfigFlags() {
+  async getExperimentConfigFlags(): Promise<string[]> {
     const article = await this.getArticle();
     return this.parseArticleExperimentConfigFlags(article);
   }
 
   /**
    * Parses the experiment flags from the Article.
-   * @param {?Article} article
-   * @returns {Array<string>}
    */
-  parseArticleExperimentConfigFlags(article) {
-    const expConfig = article['experimentConfig'];
-    if (expConfig != null) {
-      const expFlags = expConfig['experimentFlags'];
-      if (expFlags != null) {
-        return expFlags;
+  parseArticleExperimentConfigFlags(article: Article | null): string[] {
+    if (article) {
+      const expConfig = article['experimentConfig'];
+      if (expConfig != null) {
+        const expFlags = expConfig['experimentFlags'];
+        if (expFlags != null) {
+          return expFlags;
+        }
       }
     }
 
     return [];
   }
 
-  /**
-   * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
-   * @private
-   */
-  fetchEntitlements_(params) {
+  private fetchEntitlements_(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<Entitlements> {
     // TODO(dvoytenko): Replace retries with consistent fetch.
     let positiveRetries = this.positiveRetries_;
     this.positiveRetries_ = 0;
@@ -576,7 +506,7 @@ export class EntitlementsManager {
         return entitlements;
       }
 
-      return new Promise((resolve) => {
+      return new Promise<Entitlements>((resolve) => {
         this.win_.setTimeout(() => {
           resolve(attempt());
         }, 550);
@@ -585,35 +515,26 @@ export class EntitlementsManager {
     return attempt();
   }
 
-  /**
-   * @param {boolean} value
-   */
-  setToastShown(value) {
+  setToastShown(value: boolean): void {
     this.storage_.set(StorageKeys.TOAST, value ? '1' : '0');
   }
 
-  /**
-   */
-  blockNextNotification() {
+  blockNextNotification(): void {
     this.blockNextNotification_ = true;
   }
 
-  /**
-   */
-  blockNextToast() {
+  blockNextToast(): void {
     this.blockNextToast_ = true;
   }
 
-  /**
-   */
-  unblockNextNotification() {
+  unblockNextNotification(): void {
     this.blockNextNotification_ = false;
   }
 
   /**
    * Allow Google to handle metering for the given page.
    */
-  enableMeteredByGoogle() {
+  enableMeteredByGoogle(): void {
     this.enableMeteredByGoogle_ = true;
   }
 
@@ -623,7 +544,13 @@ export class EntitlementsManager {
    * @param {!Object} json
    * @return {!Entitlements}
    */
-  parseEntitlements(json) {
+  parseEntitlements(json: {
+    isReadyToPay?: boolean;
+    signedEntitlements?: string;
+    decryptedDocumentKey?: string | null;
+    swgUserToken?: string | null;
+    entitlements?: {};
+  }): Entitlements {
     const isReadyToPay = json['isReadyToPay'];
     if (isReadyToPay == null) {
       this.storage_.remove(StorageKeys.IS_READY_TO_PAY);
@@ -663,31 +590,24 @@ export class EntitlementsManager {
 
   /**
    * Persist swgUserToken in local storage if entitlements and swgUserToken exist
-   * @param {?string|undefined} swgUserToken
-   * @private
    */
-  saveSwgUserToken_(swgUserToken) {
+  private saveSwgUserToken_(swgUserToken?: string | null): void {
     if (swgUserToken) {
       this.storage_.set(Constants.USER_TOKEN, swgUserToken, true);
     }
   }
 
-  /**
-   * @param {string} raw
-   * @param {boolean} requireNonExpired
-   * @param {boolean=} isReadyToPay
-   * @param {?string=} decryptedDocumentKey
-   * @return {?Entitlements}
-   * @private
-   */
-  getValidJwtEntitlements_(
-    raw,
-    requireNonExpired,
-    isReadyToPay,
-    decryptedDocumentKey
-  ) {
+  private getValidJwtEntitlements_(
+    raw: string,
+    requireNonExpired: boolean,
+    isReadyToPay?: boolean,
+    decryptedDocumentKey?: string | null
+  ): Entitlements | null {
     try {
-      const jwt = this.jwtHelper_.decode(raw);
+      const jwt = this.jwtHelper_.decode(raw) as {
+        exp: string;
+        entitlements?: {};
+      };
       if (requireNonExpired) {
         const now = Date.now();
         const exp = jwt['exp'];
@@ -715,15 +635,12 @@ export class EntitlementsManager {
     return null;
   }
 
-  /**
-   * @param {string} raw
-   * @param {!Object|!Array<!Object>} json
-   * @param {boolean=} isReadyToPay
-   * @param {?string=} decryptedDocumentKey
-   * @return {!Entitlements}
-   * @private
-   */
-  createEntitlements_(raw, json, isReadyToPay, decryptedDocumentKey) {
+  private createEntitlements_(
+    raw: string,
+    json: unknown,
+    isReadyToPay?: boolean,
+    decryptedDocumentKey?: string | null
+  ): Entitlements {
     return new Entitlements(
       SERVICE_ID,
       raw,
@@ -736,11 +653,7 @@ export class EntitlementsManager {
     );
   }
 
-  /**
-   * @param {!Entitlements} entitlements
-   * @private
-   */
-  onEntitlementsFetched_(entitlements) {
+  private onEntitlementsFetched_(entitlements: Entitlements): void {
     // Skip any notifications and toast if other flows are ongoing.
     // TODO(dvoytenko): what's the right action when pay flow was canceled?
     const blockNotification = this.blockNextNotification_;
@@ -779,12 +692,7 @@ export class EntitlementsManager {
     this.maybeShowToast_(entitlement);
   }
 
-  /**
-   * @param {!Entitlement} entitlement
-   * @return {!Promise}
-   * @private
-   */
-  async maybeShowToast_(entitlement) {
+  private async maybeShowToast_(entitlement: Entitlement): Promise<void> {
     // Don't show toast for metering entitlements.
     if (entitlement.source === GOOGLE_METERING_SOURCE) {
       this.deps_
@@ -824,24 +732,19 @@ export class EntitlementsManager {
     ).open();
   }
 
-  /**
-   * @param {!Entitlements} entitlements
-   * @private
-   */
-  ack_(entitlements) {
+  private ack_(entitlements: Entitlements): void {
     if (entitlements.getEntitlementForThis()) {
       this.setToastShown(true);
     }
   }
 
-  /**
-   * @param {!Entitlements} entitlements
-   * @param {?Function=} onCloseDialog Called after the user closes the dialog.
-   * @private
-   */
-  consume_(entitlements, onCloseDialog) {
+  private consume_(
+    entitlements: Entitlements,
+    /** Called after the user closes the dialog. */
+    onCloseDialog?: (() => void) | null
+  ): Promise<void> | void {
     if (entitlements.enablesThisWithGoogleMetering()) {
-      const entitlement = entitlements.getEntitlementForThis();
+      const entitlement = entitlements.getEntitlementForThis()!;
 
       const onConsumeCallback = () => {
         if (onCloseDialog) {
@@ -850,25 +753,30 @@ export class EntitlementsManager {
         this.consumeMeter_(entitlement);
       };
 
-      if (!entitlement.subscriptionTokenContents) {
+      const subscriptionTokenContents =
+        entitlement.subscriptionTokenContents as
+          | {
+              metering: {
+                clientType?: MeterClientTypes;
+                clientUserAttribute?: string;
+                showToast: boolean;
+              };
+            }
+          | undefined;
+
+      if (!subscriptionTokenContents) {
         // Ignore decoding errors. Don't show a toast, and return
         // onConsumeCallback directly.
         return onConsumeCallback();
       }
 
-      if (
-        entitlement.subscriptionTokenContents['metering'] &&
-        entitlement.subscriptionTokenContents['metering']['showToast'] === true
-      ) {
+      if (subscriptionTokenContents['metering']['showToast'] === true) {
         // Return a delegation to the meterToastApi, which will return the
         // onConsumeCallback when the toast is dismissed.
         const meterToastApi = new MeterToastApi(this.deps_, {
-          meterClientType:
-            entitlement.subscriptionTokenContents['metering']['clientType'],
+          meterClientType: subscriptionTokenContents['metering']['clientType'],
           meterClientUserAttribute:
-            entitlement.subscriptionTokenContents['metering'][
-              'clientUserAttribute'
-            ],
+            subscriptionTokenContents['metering']['clientUserAttribute'],
         });
         meterToastApi.setOnConsumeCallback(onConsumeCallback);
         return meterToastApi.start();
@@ -880,12 +788,9 @@ export class EntitlementsManager {
     }
   }
 
-  /**
-   * @param {!GetEntitlementsParamsExternalDef=} params
-   * @return {!Promise<!Entitlements>}
-   * @private
-   */
-  async fetch_(params) {
+  private async fetch_(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<Entitlements> {
     // Get swgUserToken from local storage
     const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
 
@@ -941,8 +846,8 @@ export class EntitlementsManager {
 
     const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
-    /** @type {!GetEntitlementsParamsInternalDef|undefined} */
-    let encodableParams = this.enableMeteredByGoogle_
+    let encodableParams: GetEntitlementsParamsInternalDef | undefined = this
+      .enableMeteredByGoogle_
       ? {
           metering: {
             clientTypes: [MeterClientTypes.METERED_BY_GOOGLE],
@@ -979,7 +884,17 @@ export class EntitlementsManager {
         };
 
         // Collect attributes.
-        function collectAttributes({attributes, category}) {
+        function collectAttributes({
+          attributes,
+          category,
+        }: {
+          attributes?: {
+            [key: string]: {
+              timestamp: number;
+            };
+          };
+          category: string;
+        }) {
           if (!attributes) {
             return;
           }
@@ -999,7 +914,7 @@ export class EntitlementsManager {
             }
 
             // Collect attribute.
-            encodableParams.metering.state.attributes.push({
+            encodableParams!.metering!.state!.attributes.push({
               name,
               timestamp,
             });
@@ -1037,15 +952,16 @@ export class EntitlementsManager {
       .eventManager()
       .logSwgEvent(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
     const json = await this.fetcher_.fetchCredentialedJson(url);
-    let response = json;
+    let response = json as Entitlements;
     if (this.useArticleEndpoint_) {
-      this.article_ = /** @type {Article} */ (json);
-      response = json['entitlements'];
+      this.article_ = json as Article;
+      response = this.article_['entitlements'];
     }
 
     // Log errors.
-    if (json['errorMessages']?.length > 0) {
-      for (const errorMessage of json['errorMessages']) {
+    const errorMessages = (json as {errorMessages?: string[]})['errorMessages'];
+    if (Number(errorMessages?.length) > 0) {
+      for (const errorMessage of errorMessages!) {
         warn('SwG Entitlements: ' + errorMessage);
       }
     }
@@ -1056,9 +972,8 @@ export class EntitlementsManager {
   /**
    * Returns a list of available interventions. If there are no interventions available
    * an empty array is returned. If the article does not exist, null is returned.
-   * @return {!Promise<Array<AvailableIntervention> | null>}
    */
-  async getAvailableInterventions() {
+  async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
     const article = await this.getArticle();
     if (!article) {
       warn(
@@ -1077,11 +992,8 @@ export class EntitlementsManager {
 /**
  * Parses entitlement dev mode params from the given hash fragment and adds it
  * to the given URL.
- * @param {!Location} location
- * @param {string} url
- * @return {string}
  */
-function addDevModeParamsToUrl(location, url) {
+function addDevModeParamsToUrl(location: Location, url: string): string {
   const hashParams = parseQueryString(location.hash);
   const devModeScenario = hashParams['swg.deventitlement'];
   if (devModeScenario === undefined) {
@@ -1093,11 +1005,8 @@ function addDevModeParamsToUrl(location, url) {
 /**
  * Convert String value of isReadyToPay
  * (from JSON or Cache) to a boolean value.
- * @param {string|null} value
- * @return {boolean|undefined}
- * @private
  */
-function irtpStringToBoolean(value) {
+function irtpStringToBoolean(value: string | null): boolean | undefined {
   switch (value) {
     case 'true':
       return true;
