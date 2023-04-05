@@ -45,10 +45,20 @@ const TEST_QUESTION_CATEGORY_1 = 'Test Question Category 1';
 const TEST_QUESTION_TEXT_1 = 'Test Question 1';
 const TEST_QUESTION_CATEGORY_2 = 'Test Question Category 2';
 const TEST_QUESTION_TEXT_2 = 'Test Question 2';
+const TEST_QUESTION_CATEGORY_3 = 'Test Question Category 3';
+const TEST_QUESTION_TEXT_3 = 'Test Question 3';
+const TEST_QUESTION_CATEGORY_4 = 'Test Question Category 4';
+const TEST_QUESTION_TEXT_4 = 'Test Question 4';
 const TEST_ANSWER_CATEGORY_1 = 'Test Answer Category 1';
 const TEST_ANSWER_TEXT_1 = 'Test Answer 1';
 const TEST_ANSWER_CATEGORY_2 = 'Test Answer Category 2';
 const TEST_ANSWER_TEXT_2 = 'Test Answer 2';
+const TEST_ANSWER_CATEGORY_3 = 'Test Answer Category 3';
+const TEST_ANSWER_TEXT_3 = 'Test Answer 3';
+const TEST_ANSWER_PPS_3 = '3';
+const TEST_ANSWER_CATEGORY_4 = 'Test Answer Category 4';
+const TEST_ANSWER_TEXT_4 = 'Test Answer 4';
+const TEST_ANSWER_PPS_4 = '4';
 
 const TEST_SURVEYANSWER_1 = new SurveyAnswer();
 TEST_SURVEYANSWER_1.setAnswerCategory(TEST_ANSWER_CATEGORY_1);
@@ -66,10 +76,34 @@ TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
 TEST_SURVEYQUESTION_2.setQuestionText(TEST_QUESTION_TEXT_2);
 TEST_SURVEYQUESTION_2.setSurveyAnswersList([TEST_SURVEYANSWER_2]);
 
+const TEST_SURVEYANSWER_3 = new SurveyAnswer();
+TEST_SURVEYANSWER_3.setAnswerCategory(TEST_ANSWER_CATEGORY_3);
+TEST_SURVEYANSWER_3.setAnswerText(TEST_ANSWER_TEXT_3);
+TEST_SURVEYANSWER_3.setPpsValue(TEST_ANSWER_PPS_3);
+const TEST_SURVEYQUESTION_3 = new SurveyQuestion();
+TEST_SURVEYQUESTION_3.setQuestionCategory(TEST_QUESTION_CATEGORY_3);
+TEST_SURVEYQUESTION_3.setQuestionText(TEST_QUESTION_TEXT_3);
+TEST_SURVEYQUESTION_3.setSurveyAnswersList([TEST_SURVEYANSWER_3]);
+
+const TEST_SURVEYANSWER_4 = new SurveyAnswer();
+TEST_SURVEYANSWER_4.setAnswerCategory(TEST_ANSWER_CATEGORY_4);
+TEST_SURVEYANSWER_4.setAnswerText(TEST_ANSWER_TEXT_4);
+TEST_SURVEYANSWER_4.setPpsValue(TEST_ANSWER_PPS_4);
+const TEST_SURVEYQUESTION_4 = new SurveyQuestion();
+TEST_SURVEYQUESTION_4.setQuestionCategory(TEST_QUESTION_CATEGORY_4);
+TEST_SURVEYQUESTION_4.setQuestionText(TEST_QUESTION_TEXT_4);
+TEST_SURVEYQUESTION_4.setSurveyAnswersList([TEST_SURVEYANSWER_4]);
+
 const TEST_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
 TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_1,
   TEST_SURVEYQUESTION_2,
+]);
+
+const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS = new SurveyDataTransferRequest();
+TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setSurveyQuestionsList([
+  TEST_SURVEYQUESTION_3,
+  TEST_SURVEYQUESTION_4,
 ]);
 
 describes.realWin('AudienceActionFlow', (env) => {
@@ -951,6 +985,82 @@ describes.realWin('AudienceActionFlow', (env) => {
     );
     activityIframeViewMock.verify();
     onResultMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest with successful PPS storage in initially empty localStorage`, async () => {
+    const onResultMock = sandbox
+      .mock()
+      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS)
+      .resolves(true)
+      .once();
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      onResult: onResultMock,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    // TODO: mock localStorage
+
+    await audienceActionFlow.start();
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
+
+    await tick(10);
+
+    activityIframeViewMock.verify();
+  });
+
+  // TODO: mock localStorage for already exists
+
+  it(`handles a SurveyDataTransferRequest with failed PPS storage in localStorage`, async () => {
+    const onResultMock = sandbox
+      .mock()
+      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS)
+      .resolves(false)
+      .once();
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      onResult: onResultMock,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(false);
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
+
+    await tick(10);
+
+    activityIframeViewMock.verify();
   });
 
   it('opens dialog with scrolling disabled', async () => {
