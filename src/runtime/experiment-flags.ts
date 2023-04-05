@@ -16,18 +16,6 @@
 
 export enum ExperimentFlags {
   /**
-   * Enables the feature that allows you to replace one subscription
-   * for another in the subscribe() API.
-   */
-  REPLACE_SUBSCRIPTION = 'replace-subscription',
-
-  /**
-   * Enables the contributions feature.
-   * DEPRECATED. This flag can be removed once not used by anyone.
-   */
-  CONTRIBUTIONS = 'contributions',
-
-  /**
    * Enables the Propensity feature
    */
   PROPENSITY = 'propensity',
@@ -37,8 +25,9 @@ export enum ExperimentFlags {
    */
   SMARTBOX = 'smartbox',
 
-  /** Enables googleTransactionID change. With the experiment on the ID is
-   *  changed from '<uuid>' to '<uuid>.swg'.
+  /**
+   * Enables googleTransactionID change. With the experiment on the ID is
+   * changed from '<uuid>' to '<uuid>.swg'.
    */
   UPDATE_GOOGLE_TRANSACTION_ID = 'update-google-transaction-id',
 
@@ -53,17 +42,20 @@ export enum ExperimentFlags {
   LOGGING_AUDIENCE_ACTIVITY = 'logging-audience-activity',
 
   /**
-   * Experiment flag for disabling the miniprompt icon on desktop screens wider than 480px.
+   * Experiment flag for disabling the miniprompt icon on desktop screens wider
+   * than 480px.
    */
   DISABLE_DESKTOP_MINIPROMPT = 'disable-desktop-miniprompt',
 
   /**
-   * The triggering of a survey prompt takes priority over a contribution prompt.
+   * The triggering of a survey prompt takes priority over a contribution
+   * prompt.
    */
   SURVEY_TRIGGERING_PRIORITY = 'survey_triggering_priority_experiment',
 
   /**
-   * Experiment flag for delaying the second prompt by allowing free reads after the first.
+   * Experiment flag for delaying the second prompt by allowing free reads after
+   * the first.
    */
   SECOND_PROMPT_DELAY = 'second_prompt_delay_experiment',
 
