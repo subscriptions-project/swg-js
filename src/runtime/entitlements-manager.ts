@@ -28,6 +28,11 @@ import {AnalyticsService} from './analytics-service';
 import {AudienceActionFlow} from './audience-action-flow';
 import {ClientConfig} from '../model/client-config';
 import {ClientEvent} from '../api/client-event-manager-api';
+import {
+  Config,
+  GetEntitlementsParamsExternalDef,
+  GetEntitlementsParamsInternalDef,
+} from '../api/subscriptions';
 import {Constants, StorageKeys} from '../utils/constants';
 import {Deps} from './deps';
 import {
@@ -37,11 +42,6 @@ import {
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
 import {Fetcher} from './fetcher';
-import {
-  Config,
-  GetEntitlementsParamsExternalDef,
-  GetEntitlementsParamsInternalDef,
-} from '../api/subscriptions';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
