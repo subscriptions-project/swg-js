@@ -105,9 +105,9 @@ export class AvailableIntervention implements Intervention {
 export interface Article {
   entitlements: Entitlements;
   clientConfig: ClientConfig;
-  audienceActions: {
-    actions: Intervention[];
-    engineId: string;
+  audienceActions?: {
+    actions?: Intervention[];
+    engineId?: string;
   };
   experimentConfig: {
     experimentFlags: string[];
@@ -981,8 +981,10 @@ export class EntitlementsManager {
       );
       return null;
     }
-    return article.audienceActions.actions.map(
-      (action) => new AvailableIntervention(action, this.deps_)
+    return (
+      article.audienceActions?.actions?.map(
+        (action) => new AvailableIntervention(action, this.deps_)
+      ) || []
     );
   }
 }
