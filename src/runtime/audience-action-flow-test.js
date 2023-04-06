@@ -105,6 +105,7 @@ TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_3,
   TEST_SURVEYQUESTION_4,
 ]);
+TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setStorePpsInLocalStorage(true);
 
 describes.realWin('AudienceActionFlow', (env) => {
   let win;
@@ -172,6 +173,16 @@ describes.realWin('AudienceActionFlow', (env) => {
     delete winWithNoGtag.gtag;
     runtime.win.restore();
     sandbox.stub(runtime, 'win').returns(winWithNoGtag);
+  }
+
+  function addToLocalStorage(key, value) {
+    runtime.storage().set(key, value, true);
+    storageMock = sandbox.mock(runtime.storage());
+  }
+
+  function deleteFromLocalStorage(key, value) {
+    runtime.storage().remove(key, value, true);
+    storageMock = sandbox.mock(runtime.storage());
   }
 
   [
@@ -1003,15 +1014,25 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
     activitiesMock.expects('openIframe').resolves(port);
 
-    // TODO: mock localtorage
+    storageMock
+      .expects('get')
+      .withExactArgs(Constants.IAB_AUDIENCE_TAXONOMIES, true)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        Constants.IAB_AUDIENCE_TAXONOMIES,
+        `iabAudienceTaxonomyVersion: ['3', '4']`,
+        true
+      )
+      .once();
 
     await audienceActionFlow.start();
     const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
     successSurveyDataTransferResponse.setSuccess(true);
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock
+
+    const activityIframeViewMock = sandbox
+      .mock(audienceActionFlow.activityIframeView_)
       .expects('execute')
       .withExactArgs(successSurveyDataTransferResponse)
       .once();
@@ -1023,9 +1044,70 @@ describes.realWin('AudienceActionFlow', (env) => {
     await tick(10);
 
     activityIframeViewMock.verify();
+    onResultMock.verify();
+    storageMock.verify();
   });
 
-  // TODO: mock localStorage for already exists
+  // it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {
+  //   const onResultMock = sandbox
+  //     .mock()
+  //     .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS)
+  //     .resolves(true)
+  //     .once();
+
+  //   const audienceActionFlow = new AudienceActionFlow(runtime, {
+  //     action: 'TYPE_REWARDED_SURVEY',
+  //     configurationId: 'configId',
+  //     onCancel: onCancelSpy,
+  //     autoPromptType: AutoPromptType.CONTRIBUTION,
+  //     onResult: onResultMock,
+  //   });
+  //   activitiesMock.expects('openIframe').resolves(port);
+
+  //   addToLocalStorage(
+  //     Constants.IAB_AUDIENCE_TAXONOMIES,
+  //     `[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]: ['1', '2']`
+  //   );
+
+  //   storageMock
+  //     .expects('get')
+  //     .withExactArgs(Constants.IAB_AUDIENCE_TAXONOMIES, true)
+  //     .once();
+  //   storageMock
+  //     .expects('set')
+  //     .withExactArgs(
+  //       Constants.IAB_AUDIENCE_TAXONOMIES,
+  //       `iabAudienceTaxonomyVersion: ['1', '2', '3', '4']`,
+  //       true
+  //     )
+  //     .once();
+
+  //   await audienceActionFlow.start();
+  //   const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+  //   successSurveyDataTransferResponse.setSuccess(true);
+  //   const activityIframeViewMock = sandbox.mock(
+  //     audienceActionFlow.activityIframeView_
+  //   );
+  //   activityIframeViewMock
+  //     .expects('execute')
+  //     .withExactArgs(successSurveyDataTransferResponse)
+  //     .once();
+
+  //   const messageCallback =
+  //     messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
+  //   messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
+
+  //   await tick(10);
+
+  //   activityIframeViewMock.verify();
+  //   onResultMock.verify();
+  //   storageMock.verify();
+
+  //   deleteFromLocalStorage(
+  //     Constants.IAB_AUDIENCE_TAXONOMIES,
+  //     `iabAudienceTaxonomyVersion: ['1', '2']`
+  //   );
+  // });
 
   it(`handles a SurveyDataTransferRequest with failed PPS storage in localStorage`, async () => {
     const onResultMock = sandbox
@@ -1112,4 +1194,4 @@ describes.realWin('AudienceActionFlow', (env) => {
     activitiesMock.verify();
     expect(onCancelSpy).to.not.be.called;
   });
-});
+};);

@@ -44,6 +44,8 @@ import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {log, warn} from '../utils/log';
+import {configure} from 'babelify';
+import {data} from 'cheerio/lib/api/attributes';
 
 /**
  * @typedef {{
@@ -314,13 +316,16 @@ export class AudienceActionFlow {
       this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    const isPpsEligible = true;
+    const isPpsEligible = request.getStorePpsInLocalStorage();
 
     if (isPpsEligible) {
-      const configurePpsSuccess = this.configureAnswerPpsData_(request);
+      const configurePpsSuccess = await this.configureAnswerPpsData_(request);
       surveyDataTransferResponse.setSuccess(
         configurePpsSuccess && dataTransferSuccess
       );
+      log('pps success', configurePpsSuccess);
+      log('data transfer success', dataTransferSuccess);
+      log('success', surveyDataTransferResponse.getSuccess());
     } else {
       surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     }
@@ -356,15 +361,10 @@ export class AudienceActionFlow {
    * @private
    **/
 
-  configureAnswerPpsData_(request) {
-    // const localStorage = this.deps_.win().localStorage;
-    const localStorage = this.storage_.win_.localStorage;
-    const iabAudienceKey = this.storage_.PREFIX + ':iabTaxonomiesValues';
+  async configureAnswerPpsData_(request) {
+    const iabAudienceKey = Constants.IAB_AUDIENCE_TAXONOMIES;
     // PPS value field is optional and category may not be populated
     // in accordance to IAB taxonomies.
-
-    console.log('LOCALSTORAGE', localStorage);
-
     const ppsConfigParams = request
       .getSurveyQuestionsList()
       .filter(
@@ -372,41 +372,39 @@ export class AudienceActionFlow {
       )
       .map((question) => question.getSurveyAnswersList()[0].getPpsValue());
 
-    console.log('config params', ppsConfigParams);
-
-    try {
-      const iabAudienceTaxonomyVersion =
-        '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]';
-
-      if (ppsConfigParams.length > 0) {
-        console.log('length', ppsConfigParams.length);
-        const existingIabTaxonomyMap = localStorage.getItem(iabAudienceKey);
-        console.log('existing taxonomy map', existingIabTaxonomyMap);
-        if (!existingIabTaxonomyMap) {
-          const iabTaxonomyMap = {
-            iabAudienceTaxonomyVersion: ppsConfigParams,
-          };
-          localStorage.setItem(iabAudienceKey, JSON.stringify(iabTaxonomyMap));
-          console.log('localstorage', localStorage);
-        } else {
-          console.log('existing iab taxonomy map');
-
-          existingIabTaxonomyMap[iabAudienceTaxonomyVersion] =
-            existingIabTaxonomyMap + ppsConfigParams;
-        }
-      } else {
-        return false;
-      }
-    } catch (e) {
-      warn(
-        `[swg.js] Exception in storing PPS value data of survey answers in local storage: ${e}`
+    if (ppsConfigParams.length > 0) {
+      const existingIabTaxonomy = await Promise.resolve(
+        this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
       );
-      return false;
+
+      log('localstorage result', existingIabTaxonomy);
+      if (!existingIabTaxonomy) {
+        log('new iab taxonomy');
+        const existingIabTaxonomyMap = {
+          '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]': ppsConfigParams,
+        };
+        await this.storage_.set(
+          iabAudienceKey,
+          JSON.stringify(existingIabTaxonomyMap),
+          /* useLocalStorage= */ true
+        );
+      } else {
+        // TODO: parse string for the actual numerical values
+        log('iab taxonomy exists');
+        const storedValue = Regex.replace(existingIabTaxonomy.substring(existingIabTaxonomy.indexOf(':')),  @"\D", "");
+        return {
+          iabAudienceTaxonomyVersion:
+            existingIabTaxonomy[iabAudienceTaxonomyVersion] + ppsConfigParams,
+        };
+      }
+      return await !!Promise.resolve(
+        this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
+      );
+    } else {
+      // Answers with no PPS parameters should always evaluate to true with
+      // the feature flag enabled.
+      return true;
     }
-
-    console.log('localStorage', localStorage.getItem(iabAudienceKey));
-
-    return !!localStorage.getItem(iabAudienceKey);
   }
 
   /*

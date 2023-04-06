@@ -43,6 +43,11 @@ const StorageKeys = {
   ENTITLEMENTS: 'ents',
 
   /**
+   * Local storage key for IAB Audience Taxonomy values.
+   */
+  IAB_AUDIENCE_TAXONOMIES: 'iabAudienceTaxonomiesValues',
+
+  /**
    * Local storage key for autoprompt impression timestamps.
    */
   IMPRESSIONS: 'autopromptimp',
