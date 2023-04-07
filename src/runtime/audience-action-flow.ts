@@ -365,8 +365,9 @@ export class AudienceActionFlow {
     } else {
       const existingIabMap = this.filterDigits_(existingIabTaxonomy);
       existingIabTaxonomyMap = {
-        '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]':
-          existingIabMap.concat(ppsConfigParams as string[]),
+        '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]': existingIabMap.concat(
+          ppsConfigParams as string[]
+        ),
       };
     }
     await Promise.resolve(

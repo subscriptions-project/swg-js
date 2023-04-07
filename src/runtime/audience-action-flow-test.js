@@ -163,7 +163,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     storageMock = sandbox.mock(runtime.storage());
   }
 
-  function deleteFromLocalStorage(key, value) {
+  function deleteFromLocalStorage(key) {
     runtime.storage().remove(key, true);
     storageMock = sandbox.mock(runtime.storage());
   }
