@@ -397,7 +397,6 @@ export class AudienceActionFlow {
         /* useLocalStorage= */ true
       )
     );
-    const result = Promise.resolve(this.storage_.get(iabAudienceKey, true));
     return await !!Promise.resolve(
       this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
     );
