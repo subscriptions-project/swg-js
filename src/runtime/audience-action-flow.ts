@@ -47,9 +47,7 @@ import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
-import {log, warn} from '../utils/log';
-import {configure} from 'babelify';
-import {data} from 'cheerio/lib/api/attributes';
+import {warn} from '../utils/log';
 
 export interface AudienceActionParams {
   action: string;
@@ -338,16 +336,16 @@ export class AudienceActionFlow {
    * @return {boolean}
    * @private
    **/
-  async configureAnswerPpsData(request) {
+  async configureAnswerPpsData(request: SurveyDataTransferRequest) {
     const iabAudienceKey = 'iabtaxonomiesvalues';
     // PPS value field is optional and category may not be populated
     // in accordance to IAB taxonomies.
     const ppsConfigParams = request
-      .getSurveyQuestionsList()
+      .getSurveyQuestionsList()!
       .filter(
-        (question) => question.getSurveyAnswersList()[0].getPpsValue() !== null
+        (question) => question.getSurveyAnswersList()![0].getPpsValue() !== null
       )
-      .map((question) => question.getSurveyAnswersList()[0].getPpsValue());
+      .map((question) => question.getSurveyAnswersList()![0].getPpsValue());
 
     if (ppsConfigParams.length === 0) {
       // Answers with no PPS parameters should always evaluate to true with
@@ -368,7 +366,7 @@ export class AudienceActionFlow {
       const existingIabMap = this.filterDigits_(existingIabTaxonomy);
       existingIabTaxonomyMap = {
         '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]':
-          existingIabMap.concat(ppsConfigParams),
+          existingIabMap.concat(ppsConfigParams as string[]),
       };
     }
     await Promise.resolve(
@@ -389,8 +387,8 @@ export class AudienceActionFlow {
    * @param {Array} list
    * @returns
    */
-  filterDigits_(list) {
-    return [...list.substring(list.indexOf(':')).replace(/\D/g, '')];
+  filterDigits_(param: string) {
+    return [...param.substring(param.indexOf(':')).replace(/\D/g, '')];
   }
 
   /*
