@@ -426,8 +426,8 @@ export interface GetEntitlementsParamsExternalDef {
  * swg-js converts objects of this type to GetEntitlementsMeteringParamsInternal.
  */
 export interface GetEntitlementsMeteringParamsExternal {
-  clientTypes: number[];
-  owner: string;
+  clientTypes?: number[];
+  owner?: string;
   state: {
     id: string;
     standardAttributes: {
@@ -435,13 +435,13 @@ export interface GetEntitlementsMeteringParamsExternal {
         timestamp: number;
       };
     };
-    customAttributes: {
+    customAttributes?: {
       [key: string]: {
         timestamp: number;
       };
     };
   };
-  resource: {
+  resource?: {
     hashedCanonicalUrl: string;
   };
 }

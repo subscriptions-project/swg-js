@@ -52,7 +52,7 @@ const AnalyticsEventToPublisherEvent: {[key in AnalyticsEvent]?: Event | null} =
     [AnalyticsEvent.EVENT_CUSTOM]: Event.EVENT_CUSTOM,
   };
 
-const ShowcaseEvents = {
+const ShowcaseEvents: {[key in ShowcaseEvent]: AnalyticsEvent[]} = {
   // Events related to content being potentially unlockable
   [ShowcaseEvent.EVENT_SHOWCASE_METER_OFFERED]: [
     AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS,
@@ -252,7 +252,7 @@ export function analyticsEventToPublisherEvent(
  */
 export function showcaseEventToAnalyticsEvents(
   event: ShowcaseEvent
-): Array<AnalyticsEvent> {
+): AnalyticsEvent[] {
   return ShowcaseEvents[event] || [];
 }
 

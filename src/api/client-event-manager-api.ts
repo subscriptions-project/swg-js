@@ -35,7 +35,7 @@ export interface ClientEvent {
   /** Optional. True if the user took an action to generate the event. */
   isFromUserAction?: boolean | null;
   /** Optional. A JSON object to store generic data. */
-  additionalParameters?: unknown;
+  additionalParameters?: {} | null;
 }
 
 export interface ClientEventManagerApi {
@@ -74,12 +74,14 @@ export interface ClientEventManagerApi {
  * properties to skip SwG logging but still be handled via callback.
  */
 export interface ClientEventParams {
-  googleAnalyticsParameters?: {
-    /* eslint-disable google-camelcase/google-camelcase */
-    event_category: string;
-    survey_question: string;
-    survey_answer_category: string;
-    event_label: string;
-    /* eslint-enable google-camelcase/google-camelcase */
-  };
+  googleAnalyticsParameters?: GoogleAnalyticsParameters;
+}
+
+export interface GoogleAnalyticsParameters {
+  /* eslint-disable google-camelcase/google-camelcase */
+  event_category?: string;
+  survey_question?: string;
+  survey_answer_category?: string;
+  event_label?: string;
+  /* eslint-enable google-camelcase/google-camelcase */
 }

@@ -418,6 +418,21 @@ describes.realWin('GaaMeteringRegwall', () => {
       expect(await gaaUserPromise).to.deep.equal(gaaUser);
     });
 
+    it('returns JWT, if it is available instead of the GAA User', async () => {
+      const returnedJwt = {name: 'Hello'};
+      const returnedJwtPromise = GaaMeteringRegwall.show({
+        iframeUrl: GSI_IFRAME_URL,
+      });
+
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_USER,
+        returnedJwt,
+      });
+
+      expect(await returnedJwtPromise).to.deep.equal(returnedJwt);
+    });
+
     it('removes Regwall from DOM', async () => {
       postMessage({
         stamp: POST_MESSAGE_STAMP,
@@ -664,6 +679,28 @@ describes.realWin('GaaMeteringRegwall', () => {
         },
       ]);
     });
+
+    it('handles failure to create button', async () => {
+      sandbox.stub(self.document, 'getElementById').returns(null);
+
+      location.hash = '#swg.debug=1';
+
+      const gaaUserPromise =
+        GaaMeteringRegwall.showWithNativeRegistrationButton({
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+        });
+      clock.tick(100);
+      await tick(10);
+
+      // Reject promise.
+      await gaaUserPromise;
+      expect(self.console.log).to.calledWithExactly(
+        '[Subscriptions]',
+        'Regwall failed: Error: Could not create native registration button.'
+      );
+
+      self.document.getElementById.restore();
+    });
   });
 
   describe('showWithNative3PRegistrationButton', () => {
@@ -764,7 +801,7 @@ describes.realWin('GaaMeteringRegwall', () => {
         GaaMeteringRegwall.createNativeRegistrationButton({
           googleApiClientId: GOOGLE_API_CLIENT_ID,
         })
-      ).to.be.false;
+      ).to.be.undefined;
     });
 
     it('renders Google Sign-In button', async () => {
@@ -874,7 +911,7 @@ describes.realWin('GaaMeteringRegwall', () => {
         GaaMeteringRegwall.createNative3PRegistrationButton({
           authorizationUrl: GOOGLE_3P_AUTH_URL,
         })
-      ).to.be.false;
+      ).to.be.undefined;
     });
 
     it('renders third party Google Sign-In button', async () => {

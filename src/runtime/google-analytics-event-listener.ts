@@ -14,44 +14,52 @@
  * limitations under the License.
  */
 
+import {
+  ClientEvent,
+  ClientEventParams,
+  GoogleAnalyticsParameters,
+} from '../api/client-event-manager-api';
+import {ClientEventManager} from './client-event-manager';
+import {Deps} from './deps';
+import {EventParams} from '../proto/api_messages';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {isFunction} from '../utils/types';
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/** @typedef {?function(string, string, Object)} */
-let AnalyticsMethod;
+type AnalyticsMethod = (
+  command: string,
+  eventAction: string,
+  eventParams: unknown
+) => void;
 
-/** @typedef {{ga: AnalyticsMethod, gtag: AnalyticsMethod, dataLayer: Object}} */
-let WindowWithAnalyticsMethods;
-/* eslint-enable @typescript-eslint/no-unused-vars */
+interface WindowWithAnalyticsMethods {
+  ga?: AnalyticsMethod;
+  gtag?: AnalyticsMethod;
+  dataLayer?: unknown[];
+}
 
 export class GoogleAnalyticsEventListener {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  constructor(deps) {
-    /** @private @const {!./deps.Deps} deps */
-    this.deps_ = deps;
+  private readonly eventManager_: ClientEventManager;
 
-    /** @private @const {!./client-event-manager.ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
+  constructor(private readonly deps_: Deps) {
+    this.eventManager_ = deps_.eventManager();
   }
 
   /**
    * Start listening to client events
    */
-  start() {
+  start(): void {
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
     );
   }
 
   /**
-   *  Listens for new events from the events manager and logs appropriate events to Google Analytics.
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   * @param {(!../api/client-event-manager-api.ClientEventParams|undefined)=} eventParams
+   * Listens for new events from the events manager and logs appropriate events to Google Analytics.
    */
-  handleClientEvent_(event, eventParams = undefined) {
+  handleClientEvent_(
+    event: ClientEvent,
+    eventParams?: ClientEventParams
+  ): void {
     // Require either ga function (analytics.js) or gtag function (gtag.js) or dataLayer.push function (gtm.js).
     const gaIsEligible = GoogleAnalyticsEventListener.isGaEligible(this.deps_);
     const gtagIsEligible = GoogleAnalyticsEventListener.isGtagEligible(
@@ -67,17 +75,16 @@ export class GoogleAnalyticsEventListener {
     }
 
     // Extract methods from window.
-    const {ga, gtag, dataLayer} = /** @type {!WindowWithAnalyticsMethods} */ (
-      this.deps_.win()
-    );
+    const {ga, gtag, dataLayer} =
+      this.deps_.win() as WindowWithAnalyticsMethods;
 
-    let subscriptionFlow = '';
-    if (event.additionalParameters) {
-      // additionalParameters isn't strongly typed so checking for both object and class notation.
-      subscriptionFlow =
-        event.additionalParameters.subscriptionFlow ||
-        event.additionalParameters.getSubscriptionFlow();
-    }
+    // additionalParameters isn't strongly typed so checking for both object and class notation.
+    const subscriptionFlow =
+      (event.additionalParameters as {[key: string]: string})?.[
+        'subscriptionFlow'
+      ] ||
+      (event.additionalParameters as EventParams)?.getSubscriptionFlow?.() ||
+      '';
     let gaEvent = analyticsEventToGoogleAnalyticsEvent(
       event.eventType,
       subscriptionFlow
@@ -86,7 +93,8 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
-    const analyticsParams = eventParams?.googleAnalyticsParameters || {};
+    const analyticsParams: GoogleAnalyticsParameters =
+      eventParams?.googleAnalyticsParameters || {};
     gaEvent = {
       ...gaEvent,
       eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
@@ -95,7 +103,7 @@ export class GoogleAnalyticsEventListener {
 
     // TODO(b/234825847): Remove this once universal analytics is deprecated in 2023.
     if (gaIsEligible) {
-      ga('send', 'event', gaEvent);
+      ga!('send', 'event', gaEvent);
     }
 
     if (gtagIsEligible) {
@@ -105,12 +113,12 @@ export class GoogleAnalyticsEventListener {
         'non_interaction': gaEvent.nonInteraction,
         ...analyticsParams,
       };
-      gtag('event', gaEvent.eventAction, gtagEvent);
+      gtag!('event', gaEvent.eventAction, gtagEvent);
     }
 
     // Support google tag manager.
     if (gtmIsEligible) {
-      dataLayer.push({
+      dataLayer!.push({
         'event': gaEvent.eventAction,
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
@@ -122,32 +130,24 @@ export class GoogleAnalyticsEventListener {
 
   /**
    * Function to determine whether event is eligible for GA logging.
-   * @param {!./deps.Deps} deps
-   * @returns {boolean}
    */
-  static isGaEligible(deps) {
-    return isFunction(
-      /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).ga
-    );
+  static isGaEligible(deps: Deps): boolean {
+    return isFunction((deps.win() as WindowWithAnalyticsMethods).ga);
   }
 
   /**
    * Function to determine whether event is eligible for gTag logging.
-   * @param {!./deps.Deps} deps
-   * @returns {boolean}
    */
-  static isGtagEligible(deps) {
-    return isFunction(
-      /** @type {!WindowWithAnalyticsMethods} */ (deps.win()).gtag
-    );
+  static isGtagEligible(deps: Deps): boolean {
+    return isFunction((deps.win() as WindowWithAnalyticsMethods).gtag);
   }
 
   /**
    * Function to determine whether event is eligible for GTM logging.
-   * @param {!./deps.Deps} deps
-   * @returns {boolean}
    */
-  static isGtmEligible(deps) {
-    return isFunction(deps.win().dataLayer?.push);
+  static isGtmEligible(deps: Deps): boolean {
+    return isFunction(
+      (deps.win() as WindowWithAnalyticsMethods).dataLayer?.push
+    );
   }
 }

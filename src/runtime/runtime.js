@@ -174,7 +174,12 @@ export class Runtime {
     this.productOrPublicationId_ = null;
 
     /** @private @const {!../api/subscriptions.Config} */
-    this.config_ = {};
+    this.config_ = {
+      useArticleEndpoint: isExperimentOn(
+        win,
+        ExperimentFlags.USE_ARTICLE_ENDPOINT_CLASSIC
+      ),
+    };
 
     /** @private {boolean} */
     this.startedConfiguringRuntime_ = false;
@@ -627,7 +632,7 @@ export class ConfiguredRuntime {
     this.activityPorts_ = new ActivityPorts(this);
 
     /** @private @const {!AnalyticsService} */
-    this.analyticsService_ = new AnalyticsService(this, this.fetcher_);
+    this.analyticsService_ = new AnalyticsService(this);
 
     /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
@@ -918,10 +923,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   async showUpdateOffers(options) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
-      'Not yet launched!'
-    );
     await this.documentParsed_;
     const errorMessage =
       'The showUpdateOffers() method cannot be used for new subscribers. ' +
@@ -1033,10 +1034,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   async updateSubscription(subscriptionRequest) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.REPLACE_SUBSCRIPTION),
-      'Not yet launched!'
-    );
     const errorMessage =
       'The updateSubscription() method should be used for subscription ' +
       'updates; for new subscriptions please use the subscribe() method';

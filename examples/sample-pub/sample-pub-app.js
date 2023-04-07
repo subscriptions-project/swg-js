@@ -37,7 +37,7 @@ const SWG_JS_URLS = {
   /* eslint-enable google-camelcase/google-camelcase */
   prod: 'https://news.google.com/swg/js/v1/swg.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-autopush.js',
-  tt: 'https://news.google.com/swg/js/v1/swg-tt.js',
+  qual: 'https://news.google.com/swg/js/v1/swg-qual.js',
 };
 
 const SWG_GAA_JS_URLS = {
@@ -46,7 +46,7 @@ const SWG_GAA_JS_URLS = {
   local_min: '/dist/subscriptions-gaa.js',
   prod: 'https://news.google.com/swg/js/v1/swg-gaa.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-gaa-autopush.js',
-  tt: 'https://news.google.com/swg/js/v1/swg-gaa-tt.js',
+  qual: 'https://news.google.com/swg/js/v1/swg-gaa-qual.js',
 };
 
 const SWG_BASIC_JS_URLS = {
@@ -55,7 +55,7 @@ const SWG_BASIC_JS_URLS = {
   local_min: '/dist/basic-subscriptions.js',
   prod: 'https://news.google.com/swg/js/v1/swg-basic.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-basic-autopush.js',
-  tt: 'https://news.google.com/swg/js/v1/swg-basic-tt.js',
+  qual: 'https://news.google.com/swg/js/v1/swg-basic-qual.js',
 };
 
 const AUTH_COOKIE = 'SCENIC_AUTH';

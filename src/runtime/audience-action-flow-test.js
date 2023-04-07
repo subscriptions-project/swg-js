@@ -76,6 +76,13 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_2,
 ]);
 
+const TEST_SURVEYANSWER_EMPTY = new SurveyAnswer();
+const TEST_SURVEYQUESTION_EMPTY = new SurveyQuestion();
+TEST_SURVEYQUESTION_EMPTY.setSurveyAnswersList([TEST_SURVEYANSWER_EMPTY]);
+const TEST_EMPTY_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
+TEST_EMPTY_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
+  TEST_SURVEYQUESTION_EMPTY,
+]);
 const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS = new SurveyDataTransferRequest();
 TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_1,
@@ -972,6 +979,55 @@ describes.realWin('AudienceActionFlow', (env) => {
     );
     activityIframeViewMock.verify();
     onResultMock.verify();
+  });
+
+  it(`handles an empty SurveyDataTransferRequest without onResult logging`, async () => {
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+        },
+        {
+          googleAnalyticsParameters: {
+            'event_category': '',
+            'event_label': '',
+            'survey_question': '',
+            'survey_answer_category': '',
+          },
+        }
+      )
+      .once();
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock.expects('logEvent').withExactArgs({
+      eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: true,
+      additionalParameters: null,
+    });
+
+    await audienceActionFlow.start();
+
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+
+    const messageCallback =
+      messageMap[TEST_EMPTY_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_EMPTY_SURVEYDATATRANSFERREQUEST);
+
+    await tick(10);
   });
 
   it(`handles a SurveyDataTransferRequest with successful PPS storage in empty localStorage`, async () => {

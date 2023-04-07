@@ -35,8 +35,12 @@ import {
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientConfigManager} from './client-config-manager';
 import {Constants, StorageKeys} from '../utils/constants';
-import {GoogleAnalyticsEventListener} from './google-analytics-event-listener.js';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {EntitlementsManager} from './entitlements-manager';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
@@ -47,25 +51,24 @@ import {log, warn} from '../utils/log';
 import {configure} from 'babelify';
 import {data} from 'cheerio/lib/api/attributes';
 
-/**
- * @typedef {{
- *  action: (string|undefined),
- *  configurationId: (string|undefined),
- *  onCancel: (function()|undefined),
- *  autoPromptType: (AutoPromptType|undefined),
- *  onResult: ((function(!Object):(Promise<boolean>|boolean))|undefined),
- *  isClosable: (boolean|undefined),
- * }}
- */
-export let AudienceActionParams;
+export interface AudienceActionParams {
+  action: string;
+  configurationId?: string;
+  onCancel?: () => void;
+  autoPromptType?: AutoPromptType;
+  onResult?: (result: {}) => Promise<boolean> | boolean;
+  isClosable?: boolean;
+}
 
-const actionToIframeMapping = {
+const actionToIframeMapping: {[key: string]: string} = {
   'TYPE_REGISTRATION_WALL': '/regwalliframe',
   'TYPE_NEWSLETTER_SIGNUP': '/newsletteriframe',
   'TYPE_REWARDED_SURVEY': '/surveyiframe',
 };
 
-const autopromptTypeToProductTypeMapping = {
+const autopromptTypeToProductTypeMapping: {
+  [key in AutoPromptType]?: ProductType;
+} = {
   [AutoPromptType.SUBSCRIPTION]: ProductType.SUBSCRIPTION,
   [AutoPromptType.SUBSCRIPTION_LARGE]: ProductType.SUBSCRIPTION,
   [AutoPromptType.CONTRIBUTION]: ProductType.UI_CONTRIBUTION,
@@ -80,48 +83,42 @@ const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
  * The flow to initiate and manage handling an audience action.
  */
 export class AudienceActionFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!AudienceActionParams} params
-   */
-  constructor(deps, params) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private readonly productType_: ProductType;
+  private readonly dialogManager_: DialogManager;
+  private readonly entitlementsManager_: EntitlementsManager;
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly storage_: Storage;
+  private readonly activityIframeView_: ActivityIframeView;
 
-    /** @private @const {!AudienceActionParams} */
-    this.params_ = params;
-
-    /** @private @const {!ProductType} */
-    this.productType_ = params.autoPromptType
-      ? autopromptTypeToProductTypeMapping[params.autoPromptType]
+  constructor(
+    private readonly deps_: Deps,
+    private readonly params_: AudienceActionParams
+  ) {
+    this.productType_ = params_.autoPromptType
+      ? autopromptTypeToProductTypeMapping[params_.autoPromptType]!
       : DEFAULT_PRODUCT_TYPE;
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private @const {!./entitlements-manager.EntitlementsManager} */
-    this.entitlementsManager_ = deps.entitlementsManager();
+    this.entitlementsManager_ = deps_.entitlementsManager();
 
-    /** @private @const {?./client-config-manager.ClientConfigManager} */
-    this.clientConfigManager_ = deps.clientConfigManager();
+    this.clientConfigManager_ = deps_.clientConfigManager();
 
-    /** @private @const {!./storage.Storage} */
-    this.storage_ = deps.storage();
+    this.storage_ = deps_.storage();
 
-    /** @private {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-      deps.win(),
-      deps.activities(),
-      feUrl(actionToIframeMapping[this.params_.action], {
-        'origin': parseUrl(deps.win().location.href).origin,
+      deps_.win(),
+      deps_.activities(),
+      feUrl(actionToIframeMapping[params_.action], {
+        'origin': parseUrl(deps_.win().location.href).origin,
         'configurationId': this.params_.configurationId || '',
         'hl': this.clientConfigManager_.getLanguage(),
-        'isClosable': !!params.isClosable,
+        'isClosable': (!!params_.isClosable).toString(),
       }),
       feArgs({
         'supportsEventManager': true,
         'productType': this.productType_,
-        'windowHeight': deps.win()./* OK */ innerHeight,
+        'windowHeight': deps_.win()./* OK */ innerHeight,
       }),
       /* shouldFadeBody */ true
     );
@@ -129,10 +126,8 @@ export class AudienceActionFlow {
 
   /**
    * Starts the flow for the suggested audience action.
-   * @public
-   * @return {!Promise}
    */
-  start() {
+  start(): Promise<void> {
     this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
       this.handleCompleteAudienceActionResponse_(response)
     );
@@ -166,10 +161,10 @@ export class AudienceActionFlow {
    * 2) Clear existing entitlements from the page
    * 3) Update READ_TIME in local storage to indicate that entitlements may have changed recently
    * 4) Re-fetch entitlements which may potentially provide access to the page
-   * @param {CompleteAudienceActionResponse} response
-   * @private
    */
-  handleCompleteAudienceActionResponse_(response) {
+  private handleCompleteAudienceActionResponse_(
+    response: CompleteAudienceActionResponse
+  ): void {
     this.dialogManager_.completeView(this.activityIframeView_);
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
@@ -190,11 +185,7 @@ export class AudienceActionFlow {
     this.entitlementsManager_.getEntitlements();
   }
 
-  /**
-   * @param {string} userEmail
-   * @private
-   */
-  showSignedInToast_(userEmail) {
+  private showSignedInToast_(userEmail: string): void {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     switch (this.params_.action) {
@@ -202,13 +193,13 @@ export class AudienceActionFlow {
         customText = msg(
           SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED_LANG_MAP,
           lang
-        ).replace(placeholderPatternForEmail, userEmail);
+        )!.replace(placeholderPatternForEmail, userEmail);
         break;
       case 'TYPE_NEWSLETTER_SIGNUP':
         customText = msg(
           SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_LANG_MAP,
           lang
-        ).replace(placeholderPatternForEmail, userEmail);
+        )!.replace(placeholderPatternForEmail, userEmail);
         break;
       default:
         // Do not show toast for other types.
@@ -223,8 +214,7 @@ export class AudienceActionFlow {
     ).open();
   }
 
-  /** @private */
-  showAlreadyOptedInToast_() {
+  private showAlreadyOptedInToast_(): void {
     let urlParams;
     switch (this.params_.action) {
       case 'TYPE_REGISTRATION_WALL':
@@ -238,7 +228,7 @@ export class AudienceActionFlow {
         const customText = msg(
           SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
           lang
-        );
+        )!;
         urlParams = {
           flavor: 'custom',
           customText,
@@ -251,8 +241,7 @@ export class AudienceActionFlow {
     new Toast(this.deps_, feUrl('/toastiframe', urlParams)).open();
   }
 
-  /** @private */
-  showFailedOptedInToast_() {
+  private showFailedOptedInToast_(): void {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     switch (this.params_.action) {
@@ -260,13 +249,13 @@ export class AudienceActionFlow {
         customText = msg(
           SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED_LANG_MAP,
           lang
-        );
+        )!;
         break;
       case 'TYPE_NEWSLETTER_SIGNUP':
         customText = msg(
           SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED_LANG_MAP,
           lang
-        );
+        )!;
         break;
       default:
         // Do not show toast for other types.
@@ -282,22 +271,15 @@ export class AudienceActionFlow {
     ).open();
   }
 
-  /**
-   * @param {AlreadySubscribedResponse} response
-   * @private
-   */
-  handleLinkRequest_(response) {
+  private handleLinkRequest_(response: AlreadySubscribedResponse): void {
     if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
   }
 
-  /**
-   * @param {SurveyDataTransferRequest} request
-   * @private
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async handleSurveyDataTransferRequest_(request) {
+  private async handleSurveyDataTransferRequest_(
+    request: SurveyDataTransferRequest
+  ): Promise<void> {
     const dataTransferSuccess = await this.attemptSurveyDataTransfer(request);
     if (dataTransferSuccess) {
       this.deps_
@@ -331,11 +313,10 @@ export class AudienceActionFlow {
 
   /**
    * Attempts to log survey data.
-   * @param {SurveyDataTransferRequest} request
-   * @return {boolean}
-   * @private
    */
-  async attemptSurveyDataTransfer(request) {
+  private async attemptSurveyDataTransfer(
+    request: SurveyDataTransferRequest
+  ): Promise<boolean> {
     // @TODO(justinchou): execute callback with setOnInterventionComplete
     // then check for success
     const {onResult} = this.params_;
@@ -415,19 +396,18 @@ export class AudienceActionFlow {
   /*
    * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
    * for whether or not logging was successful.
-   * @param {SurveyDataTransferRequest} request
-   * @return {boolean}
-   * @private
    */
-  logSurveyDataToGoogleAnalytics(request) {
+  private logSurveyDataToGoogleAnalytics(
+    request: SurveyDataTransferRequest
+  ): boolean {
     if (
       !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
       !GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
     ) {
       return false;
     }
-    request.getSurveyQuestionsList().map((question) => {
-      const answer = question.getSurveyAnswersList()[0];
+    request.getSurveyQuestionsList()?.map((question) => {
+      const answer = question.getSurveyAnswersList()![0];
       const event = {
         eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
         eventOriginator: EventOriginator.SWG_CLIENT,
@@ -449,9 +429,8 @@ export class AudienceActionFlow {
 
   /**
    * Shows the toast of 'no entitlement found' on activity iFrame view.
-   * @public
    */
-  showNoEntitlementFoundToast() {
+  showNoEntitlementFoundToast(): void {
     this.activityIframeView_.execute(new EntitlementsResponse());
   }
 }

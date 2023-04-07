@@ -62,7 +62,7 @@ export class LoadingView {
   /**
    * Gets the populated loading container.
    */
-  getElement(): Element {
+  getElement(): HTMLElement {
     return this.loadingContainer_;
   }
 

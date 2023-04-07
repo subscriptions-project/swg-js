@@ -32,7 +32,7 @@ import {
   REGWALL_TITLE_ID,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
 } from './html-templates';
-import {GaaUserDef, GoogleIdentityV1Def, GoogleUserDef} from './typedefs';
+import {GaaUserDef, GoogleIdentityV1Def} from './interfaces';
 import {I18N_STRINGS} from '../../i18n/strings';
 import {JwtHelper} from '../../utils/jwt';
 import {
@@ -70,11 +70,14 @@ export class GaaMeteringRegwall {
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
-   * @nocollapse
-   * @param {{ iframeUrl: string, caslUrl: string }} params
-   * @return {!Promise<!GaaUserDef|!GoogleIdentityV1Def|!Object>}
    */
-  static async show({iframeUrl, caslUrl}) {
+  static async show({
+    iframeUrl,
+    caslUrl,
+  }: {
+    iframeUrl: string;
+    caslUrl: string;
+  }): Promise<GaaUserDef | GoogleIdentityV1Def | object> {
     const queryString = QueryStringUtils.getQueryString();
     if (!queryStringHasFreshGaaParams(queryString)) {
       const errorMessage =
@@ -106,19 +109,21 @@ export class GaaMeteringRegwall {
 
   /**
    * Returns a promise for a Google user object.
-   * The user object will be a GoogleIdentityV1Def
+   * The user object will be a GoogleIdentityV1Def,
+   * or a raw JWT if requested.
    *
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
-   * @nocollapse
-   * @param {{ caslUrl: string, googleApiClientId: string, rawJwt: (boolean|null) }} params
-   * @return {!Promise<!GoogleIdentityV1Def|JsonObject|undefined>}
    */
   static async showWithNativeRegistrationButton({
     caslUrl,
     googleApiClientId,
     rawJwt = true,
-  }) {
+  }: {
+    caslUrl: string;
+    googleApiClientId: string;
+    rawJwt: boolean | null;
+  }): Promise<GoogleIdentityV1Def | {credential: string} | void> {
     logEvent({
       showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
       isFromUserAction: false,
@@ -135,10 +140,15 @@ export class GaaMeteringRegwall {
         googleApiClientId,
       });
       GaaMeteringRegwall.remove();
+
+      if (!jwt) {
+        throw new Error('Could not create native registration button.');
+      }
+
       if (rawJwt) {
         return jwt;
       } else {
-        return new JwtHelper().decode(jwt.credential);
+        return new JwtHelper().decode(jwt.credential) as GoogleIdentityV1Def;
       }
     } catch (err) {
       // Close the Regwall, since the flow failed.
@@ -152,12 +162,14 @@ export class GaaMeteringRegwall {
   /**
    * This method opens a metering regwall dialog,
    * where users can sign in with Google.
-   *
-   * @nocollapse
-   * @param {{ caslUrl: string, authorizationUrl: string }} params
-   * @return {boolean}
    */
-  static showWithNative3PRegistrationButton({caslUrl, authorizationUrl}) {
+  static showWithNative3PRegistrationButton({
+    caslUrl,
+    authorizationUrl,
+  }: {
+    caslUrl: string;
+    authorizationUrl: string;
+  }): void {
     logEvent({
       showcaseEvent: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_REGWALL,
       isFromUserAction: false,
@@ -168,14 +180,13 @@ export class GaaMeteringRegwall {
       caslUrl,
       useNativeMode: true,
     });
-    return GaaMeteringRegwall.createNative3PRegistrationButton({
+    GaaMeteringRegwall.createNative3PRegistrationButton({
       authorizationUrl,
     });
   }
 
   /**
    * Removes the Regwall.
-   * @nocollapse
    */
   static remove() {
     const regwallContainer = self.document.getElementById(REGWALL_CONTAINER_ID);
@@ -188,21 +199,24 @@ export class GaaMeteringRegwall {
    * Signs out of Google Sign-In.
    * This is useful for developers who are testing their
    * SwG integrations.
-   * @nocollapse
-   * @return {!Promise}
    */
-  static async signOut() {
+  static async signOut(): Promise<void> {
     await configureGoogleSignIn();
     await self.gapi.auth2.getAuthInstance().signOut();
   }
 
   /**
    * Renders the Regwall.
-   * @private
-   * @nocollapse
-   * @param {{ iframeUrl: string, caslUrl: string, useNativeMode: (boolean|undefined)}} params
    */
-  static render_({iframeUrl, caslUrl, useNativeMode = false}) {
+  private static render_({
+    iframeUrl,
+    caslUrl,
+    useNativeMode = false,
+  }: {
+    iframeUrl: string;
+    caslUrl: string;
+    useNativeMode?: boolean;
+  }) {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const publisherName = GaaMeteringRegwall.getPublisherNameFromPageConfig_();
     const placeholderPatternForPublication = /{PUBLICATION}/g;
@@ -228,7 +242,7 @@ export class GaaMeteringRegwall {
       'transition': 'opacity 0.5s',
       'top': '0',
       'width': '100%',
-      'z-index': 2147483646,
+      'z-index': '2147483646',
     });
 
     // Optionally include CASL HTML.
@@ -236,7 +250,7 @@ export class GaaMeteringRegwall {
     if (caslUrl) {
       caslHtml = CASL_HTML.replace(
         '$SHOWCASE_REGWALL_CASL$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)!
       )
         // Update link.
         .replace(
@@ -270,11 +284,11 @@ export class GaaMeteringRegwall {
     )
       .replace(
         '$SHOWCASE_REGWALL_TITLE$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_TITLE'], languageCode)
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_TITLE'], languageCode)!
       )
       .replace(
         '$SHOWCASE_REGWALL_DESCRIPTION$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)
+        msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)!
           // Update publisher name.
           .replace(placeholderPatternForPublication, publisherName)
       )
@@ -283,7 +297,7 @@ export class GaaMeteringRegwall {
         msg(
           I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],
           languageCode
-        )
+        )!
       )
       .replace('$SHOWCASE_REGWALL_CASL$', caslHtml);
 
@@ -291,9 +305,8 @@ export class GaaMeteringRegwall {
     self.document.body.appendChild(containerEl);
 
     // Trigger a fade-in transition.
-    /** @suppress {suspiciousCode} */
     containerEl.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
-    setImportantStyles(containerEl, {'opacity': 1});
+    setImportantStyles(containerEl, {'opacity': '1'});
 
     // Listen for clicks.
     GaaMeteringRegwall.addClickListenerOnPublisherSignInButton_();
@@ -301,9 +314,9 @@ export class GaaMeteringRegwall {
     // Focus on the title after the dialog animates in.
     // This helps people using screenreaders.
     const dialogEl = self.document.getElementById(REGWALL_DIALOG_ID);
-    dialogEl.addEventListener('animationend', () => {
+    dialogEl?.addEventListener('animationend', () => {
       const titleEl = self.document.getElementById(REGWALL_TITLE_ID);
-      titleEl.focus();
+      titleEl?.focus();
     });
 
     return containerEl;
@@ -311,11 +324,8 @@ export class GaaMeteringRegwall {
 
   /**
    * Gets publisher name from page config.
-   * @private
-   * @nocollapse
-   * @return {string}
    */
-  static getPublisherNameFromPageConfig_() {
+  private static getPublisherNameFromPageConfig_(): string {
     const jsonLdPageConfig =
       GaaMeteringRegwall.getPublisherNameFromJsonLdPageConfig_();
     if (jsonLdPageConfig) {
@@ -335,22 +345,19 @@ export class GaaMeteringRegwall {
 
   /**
    * Gets publisher name from JSON-LD page config.
-   * @private
-   * @nocollapse
-   * @return {string|undefined}
    */
-  static getPublisherNameFromJsonLdPageConfig_() {
+  private static getPublisherNameFromJsonLdPageConfig_(): string | void {
     // Get JSON from ld+json scripts.
     const ldJsonScripts = Array.prototype.slice.call(
       self.document.querySelectorAll('script[type="application/ld+json"]')
     );
-    const jsonQueue = /** @type {!Array<*>} */ (
-      ldJsonScripts.map((script) => JSON.parse(script.textContent))
+    const jsonQueue = ldJsonScripts.map((script) =>
+      JSON.parse(script.textContent)
     );
 
     // Search for publisher name, breadth-first.
     for (let i = 0; i < jsonQueue.length; i++) {
-      const json = /** @type {!Object<?,?>} */ (jsonQueue[i]);
+      const json = jsonQueue[i];
 
       // Return publisher name, if possible.
       const publisherName = json?.publisher?.name;
@@ -367,17 +374,14 @@ export class GaaMeteringRegwall {
 
   /**
    * Gets publisher name from Microdata page config.
-   * @private
-   * @nocollapse
-   * @return {string|undefined}
    */
-  static getPublisherNameFromMicrodataPageConfig_() {
+  private static getPublisherNameFromMicrodataPageConfig_(): string | void {
     const publisherNameElements = self.document.querySelectorAll(
       '[itemscope][itemtype][itemprop="publisher"] [itemprop="name"]'
     );
 
-    for (const publisherNameElement of publisherNameElements) {
-      const publisherName = publisherNameElement.content;
+    for (const publisherNameElement of Array.from(publisherNameElements)) {
+      const publisherName = publisherNameElement.getAttribute('content');
       if (publisherName) {
         return publisherName;
       }
@@ -386,13 +390,11 @@ export class GaaMeteringRegwall {
 
   /**
    * Adds a click listener on the publisher sign-in button.
-   * @private
-   * @nocollapse
    */
-  static addClickListenerOnPublisherSignInButton_() {
+  private static addClickListenerOnPublisherSignInButton_() {
     self.document
       .getElementById(PUBLISHER_SIGN_IN_BUTTON_ID)
-      .addEventListener('click', (e) => {
+      ?.addEventListener('click', (e) => {
         e.preventDefault();
 
         logEvent({
@@ -407,11 +409,10 @@ export class GaaMeteringRegwall {
 
   /**
    * Returns the GAA user, after the user signs in.
-   * @private
-   * @nocollapse
-   * @return {!Promise<!GoogleUserDef>}
    */
-  static getGaaUser_() {
+  private static getGaaUser_(): Promise<
+    GaaUserDef | GoogleIdentityV1Def | object
+  > {
     // Listen for GAA user.
     return new Promise((resolve, reject) => {
       self.addEventListener('message', (e) => {
@@ -432,10 +433,8 @@ export class GaaMeteringRegwall {
 
   /**
    * Logs button click events.
-   * @private
-   * @nocollapse
    */
-  static logButtonClickEvents_() {
+  private static logButtonClickEvents_(): void {
     // Listen for button event messages.
     self.addEventListener('message', (e) => {
       if (
@@ -474,19 +473,20 @@ export class GaaMeteringRegwall {
 
   /**
    * Sends intro post message to Google Sign-In iframe.
-   * @private
-   * @nocollapse
-   * @param {{ iframeUrl: string }} params
    */
-  static sendIntroMessageToGsiIframe_({iframeUrl}) {
+  private static sendIntroMessageToGsiIframe_({
+    iframeUrl,
+  }: {
+    iframeUrl: string;
+  }): void {
     // Introduce this window to the publisher's Google Sign-In iframe.
     // This lets the iframe send post messages back to this window.
     // Without the introduction, the iframe wouldn't have a reference to this window.
-    const googleSignInIframe = /** @type {!HTMLIFrameElement} */ (
-      self.document.getElementById(GOOGLE_SIGN_IN_IFRAME_ID)
-    );
+    const googleSignInIframe = self.document.getElementById(
+      GOOGLE_SIGN_IN_IFRAME_ID
+    ) as HTMLIFrameElement;
     googleSignInIframe.onload = () => {
-      googleSignInIframe.contentWindow.postMessage(
+      googleSignInIframe.contentWindow?.postMessage(
         {
           stamp: POST_MESSAGE_STAMP,
           command: POST_MESSAGE_COMMAND_INTRODUCTION,
@@ -496,18 +496,22 @@ export class GaaMeteringRegwall {
     };
   }
 
-  static createNativeRegistrationButton({googleApiClientId}) {
+  static createNativeRegistrationButton({
+    googleApiClientId,
+  }: {
+    googleApiClientId: string;
+  }): Promise<{credential: string}> | void {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const parentElement = self.document.getElementById(
       REGISTRATION_BUTTON_CONTAINER_ID
     );
     if (!parentElement) {
-      return false;
+      return;
     }
     // Apply iframe styles.
     const styleText = GOOGLE_SIGN_IN_BUTTON_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 
@@ -542,18 +546,22 @@ export class GaaMeteringRegwall {
     });
   }
 
-  static createNative3PRegistrationButton({authorizationUrl}) {
+  static createNative3PRegistrationButton({
+    authorizationUrl,
+  }: {
+    authorizationUrl: string;
+  }): void {
     const languageCode = getLanguageCodeFromElement(self.document.body);
     const parentElement = self.document.getElementById(
       REGISTRATION_BUTTON_CONTAINER_ID
     );
     if (!parentElement) {
-      return false;
+      return;
     }
     // Apply iframe styles.
     const styleText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 
@@ -577,7 +585,5 @@ export class GaaMeteringRegwall {
         self.open(authorizationUrl, '_parent');
       }, REDIRECT_DELAY);
     });
-
-    return buttonEl;
   }
 }

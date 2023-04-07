@@ -25,7 +25,7 @@ import {
   GOOGLE_SIGN_IN_IFRAME_STYLES,
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
 } from './html-templates';
-import {GoogleIdentityV1Def} from './typedefs';
+import {GoogleIdentityV1Def} from './interfaces';
 import {I18N_STRINGS} from '../../i18n/strings';
 import {JwtHelper} from '../../utils/jwt';
 import {
@@ -45,10 +45,16 @@ import {warn} from '../../utils/log';
 export class GaaSignInWithGoogleButton {
   /**
    * Renders the Google Sign-In button.
-   * @nocollapse
-   * @param {{ clientId: string, allowedOrigins: !Array<string>, rawJwt: boolean }} params
    */
-  static async show({clientId, allowedOrigins, rawJwt = false}) {
+  static async show({
+    clientId,
+    allowedOrigins,
+    rawJwt = false,
+  }: {
+    clientId: string;
+    allowedOrigins: string[];
+    rawJwt: boolean;
+  }): Promise<void> {
     // Optionally grab language code from URL.
     const queryString = QueryStringUtils.getQueryString();
     const queryParams = parseQueryString(queryString);
@@ -57,7 +63,7 @@ export class GaaSignInWithGoogleButton {
     // Apply iframe styles.
     const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)
+      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 
@@ -66,7 +72,9 @@ export class GaaSignInWithGoogleButton {
     // because referencing the parent frame outside of the 'message' event
     // handler throws an Error. A function defined within the handler can
     // effectively save a reference to the parent frame though.
-    const sendMessageToParentFnPromise = new Promise((resolve) => {
+    const sendMessageToParentFnPromise = new Promise<
+      (message: unknown) => void
+    >((resolve) => {
       self.addEventListener('message', (e) => {
         if (
           allowedOrigins.indexOf(e.origin) !== -1 &&
@@ -74,7 +82,7 @@ export class GaaSignInWithGoogleButton {
           e.data.command === POST_MESSAGE_COMMAND_INTRODUCTION
         ) {
           resolve((message) => {
-            e.source.postMessage(message, e.origin);
+            (e.source as Window).postMessage(message, e.origin);
           });
         }
       });
@@ -122,7 +130,7 @@ export class GaaSignInWithGoogleButton {
       });
       self.document.body.appendChild(buttonEl);
 
-      const jwt = await new Promise((resolve) => {
+      const jwt = await new Promise<{credential: string}>((resolve) => {
         self.google.accounts.id.initialize({
           /* eslint-disable google-camelcase/google-camelcase */
           client_id: clientId,
@@ -144,9 +152,9 @@ export class GaaSignInWithGoogleButton {
         );
       });
 
-      const jwtPayload = /** @type {!GoogleIdentityV1Def} */ (
-        new JwtHelper().decode(jwt.credential)
-      );
+      const jwtPayload = new JwtHelper().decode(
+        jwt.credential
+      ) as GoogleIdentityV1Def;
       const returnedJwt = rawJwt ? jwt : jwtPayload;
 
       // Send GAA user to parent frame.
