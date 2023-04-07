@@ -21,11 +21,6 @@ export enum ExperimentFlags {
   PROPENSITY = 'propensity',
 
   /**
-   * Enables the Smartbox feature.
-   */
-  SMARTBOX = 'smartbox',
-
-  /**
    * Experiment flag for logging audience activity.
    */
   LOGGING_AUDIENCE_ACTIVITY = 'logging-audience-activity',
