@@ -15,11 +15,9 @@
  */
 
 import {ConfiguredRuntime} from './runtime';
-import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {PayClient, RedirectVerifierHelper} from './pay-client';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
-import {setExperiment, setExperimentsStringForTesting} from './experiments';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -97,7 +95,6 @@ describes.realWin('PayClient', (env) => {
   });
 
   afterEach(() => {
-    setExperimentsStringForTesting('');
     analyticsMock.verify();
   });
 
@@ -124,14 +121,13 @@ describes.realWin('PayClient', (env) => {
     expect(payClient.response_).to.not.equal(expectedResponse);
   });
 
-  it('should initialize Payments client correctly upon redirect in experiment', () => {
+  it('initializes Payments client correctly upon redirect', () => {
     sandbox.reset();
     win = Object.assign({}, env.win, {
       location: {
         hash: ENCODED_WA_RES_REDIRECT_HASH,
       },
     });
-    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     expect(payClient.getType()).to.equal('PAYJS');
@@ -145,33 +141,13 @@ describes.realWin('PayClient', (env) => {
     expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
-  it('should not initialize Payments client correctly upon redirect when not in experiment', () => {
-    sandbox.reset();
-    win = Object.assign({}, env.win, {
-      location: {
-        hash: ENCODED_WA_RES_REDIRECT_HASH,
-      },
-    });
-    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, false);
-    pageConfig = new PageConfig('pub1:label1');
-    runtime = new ConfiguredRuntime(win, pageConfig);
-    expect(payClient.getType()).to.equal('PAYJS');
-    expect(payClientStubs.create).to.not.be.called;
-    expect(redirectVerifierHelperStubs.restoreKey).to.not.be.called;
-    const el = win.document.head.querySelector(
-      'link[rel="preconnect prefetch"][href*="/pay?"]'
-    );
-    expect(el).to.not.exist;
-  });
-
-  it('should not initialize Payments client with bad redirect in experiment', () => {
+  it('does not initialize Payments client with bad redirect', () => {
     sandbox.reset();
     win = Object.assign({}, env.win, {
       location: {
         hash: '#__WA_RES__=%7B%7D',
       },
     });
-    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     expect(payClient.getType()).to.equal('PAYJS');
@@ -183,13 +159,12 @@ describes.realWin('PayClient', (env) => {
     expect(el).to.not.exist;
   });
 
-  it('should not initialize Payments client upon start with redirect in experiment', () => {
+  it('does not initialize Payments client upon start with redirect', () => {
     win = Object.assign({}, env.win, {
       location: {
         hash: ENCODED_WA_RES_REDIRECT_HASH,
       },
     });
-    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     sandbox.reset();
@@ -254,8 +229,7 @@ describes.realWin('PayClient', (env) => {
     expect(data).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
-  it('should accept a correct payment response in redirect handle experiment', async () => {
-    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
+  it('accepts a correct payment response', async () => {
     const tmpPayClient = new PayClient(runtime);
     tmpPayClient.onResponse(resultStub);
     tmpPayClient.start({});
@@ -273,16 +247,7 @@ describes.realWin('PayClient', (env) => {
   });
 
   it('handles cancellation', async () => {
-    payClient.start({});
-    await expect(withResult(Promise.reject({'statusCode': 'CANCELED'})))
-      .to.be.rejectedWith(/AbortError/)
-      .and.eventually.have.property('productType');
-  });
-
-  it('handles cancellation in redirect experiment', async () => {
-    // Enable experiment.
     win.location.hash = ENCODED_WA_RES_REDIRECT_HASH;
-    setExperiment(win, ExperimentFlags.PAY_CLIENT_REDIRECT, true);
     payClient = new PayClient(runtime);
 
     // Simulate cancellation.

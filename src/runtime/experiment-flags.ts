@@ -32,11 +32,6 @@ export enum ExperimentFlags {
   UPDATE_GOOGLE_TRANSACTION_ID = 'update-google-transaction-id',
 
   /**
-   * Experiment flag for guarding changes to fix PayClient redirect flow.
-   */
-  PAY_CLIENT_REDIRECT = 'pay-client-redirect',
-
-  /**
    * Experiment flag for logging audience activity.
    */
   LOGGING_AUDIENCE_ACTIVITY = 'logging-audience-activity',
