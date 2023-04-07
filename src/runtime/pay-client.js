@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ExperimentFlags} from './experiment-flags';
 import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
 import {StorageKeys} from '../utils/constants';
@@ -22,7 +21,6 @@ import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
 import {getSwgMode} from './services';
-import {isExperimentOn} from './experiments';
 
 /**
  * @typedef {{
@@ -82,10 +80,7 @@ export class PayClient {
 
     // If the page is started from a redirect, immediately initialize
     // client to avoid dropping user state.
-    if (
-      isExperimentOn(this.win_, ExperimentFlags.PAY_CLIENT_REDIRECT) &&
-      this.pageIsInitializedFromPayRedirect_()
-    ) {
+    if (this.pageIsInitializedFromPayRedirect_()) {
       this.preconnect(this.preconnect_);
       this.initializePaymentsClient_();
     }
