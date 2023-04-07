@@ -319,13 +319,10 @@ export class AudienceActionFlow {
     const isPpsEligible = request.getStorePpsInLocalStorage();
 
     if (isPpsEligible) {
-      const configurePpsSuccess = await this.configureAnswerPpsData_(request);
+      const configurePpsSuccess = await this.configureAnswerPpsData(request);
       surveyDataTransferResponse.setSuccess(
         configurePpsSuccess && dataTransferSuccess
       );
-      log('pps success', configurePpsSuccess);
-      log('data transfer success', dataTransferSuccess);
-      log('success', surveyDataTransferResponse.getSuccess());
     } else {
       surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     }
@@ -361,8 +358,8 @@ export class AudienceActionFlow {
    * @private
    **/
 
-  async configureAnswerPpsData_(request) {
-    const iabAudienceKey = Constants.IAB_AUDIENCE_TAXONOMIES;
+  async configureAnswerPpsData(request) {
+    const iabAudienceKey = 'iabtaxonomiesvalues';
     // PPS value field is optional and category may not be populated
     // in accordance to IAB taxonomies.
     const ppsConfigParams = request
@@ -373,30 +370,34 @@ export class AudienceActionFlow {
       .map((question) => question.getSurveyAnswersList()[0].getPpsValue());
 
     if (ppsConfigParams.length > 0) {
-      const existingIabTaxonomy = await Promise.resolve(
-        this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
+      const existingIabTaxonomy = await this.storage_.get(
+        iabAudienceKey,
+        /* useLocalStorage= */ true
       );
-
-      log('localstorage result', existingIabTaxonomy);
+      let existingIabTaxonomyMap;
       if (!existingIabTaxonomy) {
-        log('new iab taxonomy');
-        const existingIabTaxonomyMap = {
+        existingIabTaxonomyMap = {
           '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]': ppsConfigParams,
         };
-        await this.storage_.set(
+      } else {
+        const existingIabMap = [
+          ...existingIabTaxonomy
+            .substring(existingIabTaxonomy.indexOf(':'))
+            .replace(/\D/g, ''),
+        ];
+        existingIabTaxonomyMap = {
+          '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]':
+            existingIabMap.concat(ppsConfigParams),
+        };
+      }
+      await Promise.resolve(
+        this.storage_.set(
           iabAudienceKey,
           JSON.stringify(existingIabTaxonomyMap),
           /* useLocalStorage= */ true
-        );
-      } else {
-        // TODO: parse string for the actual numerical values
-        log('iab taxonomy exists');
-        const storedValue = Regex.replace(existingIabTaxonomy.substring(existingIabTaxonomy.indexOf(':')),  @"\D", "");
-        return {
-          iabAudienceTaxonomyVersion:
-            existingIabTaxonomy[iabAudienceTaxonomyVersion] + ppsConfigParams,
-        };
-      }
+        )
+      );
+      const result = Promise.resolve(this.storage_.get(iabAudienceKey, true));
       return await !!Promise.resolve(
         this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
       );

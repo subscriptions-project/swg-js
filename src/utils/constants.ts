@@ -45,7 +45,7 @@ const StorageKeys = {
   /**
    * Local storage key for IAB Audience Taxonomy values.
    */
-  IAB_AUDIENCE_TAXONOMIES: 'iabAudienceTaxonomiesValues',
+  IAB_AUDIENCE_TAXONOMIES: 'iabvaxonomiesvalues',
 
   /**
    * Local storage key for autoprompt impression timestamps.
