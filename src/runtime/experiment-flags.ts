@@ -16,11 +16,6 @@
 
 export enum ExperimentFlags {
   /**
-   * Enables the Propensity feature
-   */
-  PROPENSITY = 'propensity',
-
-  /**
    * Experiment flag for logging audience activity.
    */
   LOGGING_AUDIENCE_ACTIVITY = 'logging-audience-activity',
