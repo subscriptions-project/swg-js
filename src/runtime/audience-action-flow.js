@@ -357,7 +357,6 @@ export class AudienceActionFlow {
    * @return {boolean}
    * @private
    **/
-
   async configureAnswerPpsData(request) {
     const iabAudienceKey = 'iabtaxonomiesvalues';
     // PPS value field is optional and category may not be populated
@@ -369,43 +368,49 @@ export class AudienceActionFlow {
       )
       .map((question) => question.getSurveyAnswersList()[0].getPpsValue());
 
-    if (ppsConfigParams.length > 0) {
-      const existingIabTaxonomy = await this.storage_.get(
-        iabAudienceKey,
-        /* useLocalStorage= */ true
-      );
-      let existingIabTaxonomyMap;
-      if (!existingIabTaxonomy) {
-        existingIabTaxonomyMap = {
-          '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]': ppsConfigParams,
-        };
-      } else {
-        const existingIabMap = [
-          ...existingIabTaxonomy
-            .substring(existingIabTaxonomy.indexOf(':'))
-            .replace(/\D/g, ''),
-        ];
-        existingIabTaxonomyMap = {
-          '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]':
-            existingIabMap.concat(ppsConfigParams),
-        };
-      }
-      await Promise.resolve(
-        this.storage_.set(
-          iabAudienceKey,
-          JSON.stringify(existingIabTaxonomyMap),
-          /* useLocalStorage= */ true
-        )
-      );
-      const result = Promise.resolve(this.storage_.get(iabAudienceKey, true));
-      return await !!Promise.resolve(
-        this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
-      );
-    } else {
+    if (ppsConfigParams.length === 0) {
       // Answers with no PPS parameters should always evaluate to true with
       // the feature flag enabled.
       return true;
     }
+
+    const existingIabTaxonomy = await this.storage_.get(
+      iabAudienceKey,
+      /* useLocalStorage= */ true
+    );
+    let existingIabTaxonomyMap;
+    if (!existingIabTaxonomy) {
+      existingIabTaxonomyMap = {
+        '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]': ppsConfigParams,
+      };
+    } else {
+      const existingIabMap = this.filterDigits_(existingIabTaxonomy);
+      existingIabTaxonomyMap = {
+        '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]':
+          existingIabMap.concat(ppsConfigParams),
+      };
+    }
+    await Promise.resolve(
+      this.storage_.set(
+        iabAudienceKey,
+        JSON.stringify(existingIabTaxonomyMap),
+        /* useLocalStorage= */ true
+      )
+    );
+    const result = Promise.resolve(this.storage_.get(iabAudienceKey, true));
+    return await !!Promise.resolve(
+      this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
+    );
+  }
+
+  /**
+   * Filters array to contain only an array of digits after the identifier key
+   * in localStorage.
+   * @param {Array} list
+   * @returns
+   */
+  filterDigits_(list) {
+    return [...list.substring(list.indexOf(':')).replace(/\D/g, '')];
   }
 
   /*
