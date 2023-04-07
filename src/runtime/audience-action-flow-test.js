@@ -51,6 +51,10 @@ const TEST_ANSWER_PPS_1 = '1';
 const TEST_ANSWER_CATEGORY_2 = 'Test Answer Category 2';
 const TEST_ANSWER_TEXT_2 = 'Test Answer 2';
 const TEST_ANSWER_PPS_2 = '2';
+const TEST_QUESTION_CATEGORY_3 = 'Test Question Category 3';
+const TEST_QUESTION_TEXT_3 = 'Test Question 3';
+const TEST_ANSWER_CATEGORY_3 = 'Test Answer Category 3';
+const TEST_ANSWER_TEXT_3 = 'Test Answer 3';
 
 const TEST_SURVEYANSWER_1 = new SurveyAnswer();
 TEST_SURVEYANSWER_1.setAnswerCategory(TEST_ANSWER_CATEGORY_1);
@@ -83,12 +87,24 @@ const TEST_EMPTY_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
 TEST_EMPTY_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_EMPTY,
 ]);
+
 const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS = new SurveyDataTransferRequest();
 TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_1,
   TEST_SURVEYQUESTION_2,
 ]);
 TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setStorePpsInLocalStorage(true);
+
+const TEST_SURVEYANSWER_3 = new SurveyAnswer();
+TEST_SURVEYANSWER_3.setAnswerCategory(TEST_ANSWER_CATEGORY_3);
+TEST_SURVEYANSWER_3.setAnswerText(TEST_ANSWER_TEXT_3);
+const TEST_SURVEYQUESTION_3 = new SurveyQuestion();
+TEST_SURVEYQUESTION_3.setQuestionCategory(TEST_QUESTION_CATEGORY_3);
+TEST_SURVEYQUESTION_3.setQuestionText(TEST_QUESTION_TEXT_3);
+TEST_SURVEYQUESTION_3.setSurveyAnswersList([TEST_SURVEYANSWER_3]);
+const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES =
+  new SurveyDataTransferRequest();
+TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
 
 describes.realWin('AudienceActionFlow', (env) => {
   let win;
@@ -1114,6 +1130,81 @@ describes.realWin('AudienceActionFlow', (env) => {
     activityIframeViewMock.verify();
 
     deleteFromLocalStorage(Constants.IAB_AUDIENCE_TAXONOMIES);
+  });
+
+  it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await addToLocalStorage(
+      'iabtaxonomiesvalues',
+      `[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]: ['3', '4']`
+    );
+
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        'iabtaxonomiesvalues',
+        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":["3","4","1","2"]}',
+        true
+      )
+      .once();
+
+    await audienceActionFlow.start();
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
+
+    await tick(10);
+
+    storageMock.verify();
+    activityIframeViewMock.verify();
+
+    deleteFromLocalStorage(Constants.IAB_AUDIENCE_TAXONOMIES);
+  });
+
+  it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS values but flag enabled`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES);
+
+    await tick(10);
+
+    activityIframeViewMock.verify();
   });
 
   it('opens dialog with scrolling disabled', async () => {
