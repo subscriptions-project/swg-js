@@ -29,13 +29,12 @@ import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
-import {ExperimentFlags} from './experiment-flags';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
 import {getCanonicalUrl} from '../utils/url';
-import {getOnExperiments, isExperimentOn} from './experiments';
-import {getSwgTransactionId, getUuid} from '../utils/string';
+import {getOnExperiments} from './experiments';
+import {getSwgTransactionId} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
@@ -192,16 +191,7 @@ export class AnalyticsService {
   private setStaticContext_(): void {
     const context = this.context_;
     // These values should all be available during page load.
-    if (
-      isExperimentOn(
-        this.doc_.getWin(),
-        ExperimentFlags.UPDATE_GOOGLE_TRANSACTION_ID
-      )
-    ) {
-      context.setTransactionId(getSwgTransactionId());
-    } else {
-      context.setTransactionId(getUuid());
-    }
+    context.setTransactionId(getSwgTransactionId());
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
     context.setUrl(getCanonicalUrl(this.doc_));

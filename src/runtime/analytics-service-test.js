@@ -25,7 +25,6 @@ import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
-import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {feUrl} from './services';
 import {getStyle} from '../utils/style';
@@ -127,7 +126,7 @@ describes.realWin('AnalyticsService', (env) => {
 
     it('constructs analyticsService', () => {
       const transactionId = analyticsService.getTransactionId();
-      expect(transactionId).to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}$/g);
+      expect(transactionId).to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}\.swg$/g);
 
       const activityIframe = analyticsService.getElement();
       expect(activityIframe.nodeType).to.equal(1);
@@ -275,18 +274,6 @@ describes.realWin('AnalyticsService', (env) => {
       await p;
       await analyticsService.getLoggingPromise();
       expect(loggedErrors.length).to.equal(0);
-    });
-  });
-
-  describe('Update Google Transaction ID Experiment', () => {
-    it('sets SwG transaction ID', async () => {
-      setExperimentsStringForTesting(
-        ExperimentFlags.UPDATE_GOOGLE_TRANSACTION_ID
-      );
-
-      const analyticsService = new AnalyticsService(runtime);
-      const transactionId = analyticsService.getTransactionId();
-      expect(transactionId).to.match(/^.{8}-.{4}-.{4}-.{4}-.{12}\.swg$/g);
     });
   });
 
@@ -444,7 +431,7 @@ describes.realWin('AnalyticsService', (env) => {
       expect(context.getUrl()).to.equal(URL);
       expect(context.getReadyToPay()).to.be.true;
       expect(context.getTransactionId()).to.match(
-        /^.{8}-.{4}-.{4}-.{4}-.{12}$/g
+        /^.{8}-.{4}-.{4}-.{4}-.{12}\.swg$/g
       );
       expect(context.getReferringOrigin()).to.equal(
         'https://scenic-2017.appspot.com'
