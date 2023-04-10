@@ -45,9 +45,9 @@ import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
+import {log, warn} from '../utils/log';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
-import {warn, log} from '../utils/log';
 
 export interface AudienceActionParams {
   action: string;
@@ -330,8 +330,11 @@ export class AudienceActionFlow {
    * Populates localStorage with PPS configuration parameters based on
    * SurveyDataTransferRequest.
    **/
-  private async configureAnswerPpsData(request: SurveyDataTransferRequest): Promise<void> {
+  private async configureAnswerPpsData(
+    request: SurveyDataTransferRequest
+  ): Promise<void> {
     const iabAudienceKey = StorageKeys.PPS_TAXONOMIES;
+    // const ppsVersion = '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]';
     // PPS value field is optional and category may not be populated
     // in accordance to IAB taxonomies.
     const ppsConfigParams = request
@@ -377,8 +380,7 @@ export class AudienceActionFlow {
     );
 
     log(`[swg.js] ${ppsSuccess}}`);
-
-    }
+  }
   /**
    * Filters string to contain only array of digits after the identifier key
    * in localStorage.
