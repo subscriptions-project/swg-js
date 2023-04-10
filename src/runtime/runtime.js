@@ -1091,10 +1091,6 @@ export class ConfiguredRuntime {
 
   /** @override */
   attachSmartButton(button, optionsOrCallback, callback) {
-    assert(
-      isExperimentOn(this.win_, ExperimentFlags.SMARTBOX),
-      'Not yet launched!'
-    );
     this.buttonApi_.attachSmartButton(
       this,
       button,
