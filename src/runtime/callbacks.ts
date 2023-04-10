@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Entitlements} from '../api/entitlements';
-import {SubscribeResponse} from '../api/subscribe-response';
-import {LoginRequest} from '../api/subscriptions';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {Entitlements} from '../api/entitlements';
+import {LoginRequest} from '../api/subscriptions';
+import {SubscribeResponse} from '../api/subscribe-response';
 import {isCancelError} from '../utils/errors';
 import {warn} from '../utils/log';
 
