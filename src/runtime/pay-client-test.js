@@ -262,6 +262,14 @@ describes.realWin('PayClient', (env) => {
       .and.eventually.have.property('productType').be.null;
   });
 
+  it('handles cancellation with request present', async () => {
+    payClient.start({i: {productType: 'DUMMY_PRODUCT_TYPE'}});
+    await expect(withResult(Promise.reject({'statusCode': 'CANCELED'})))
+      .to.be.rejectedWith(/AbortError/)
+      .and.eventually.have.property('productType')
+      .equal('DUMMY_PRODUCT_TYPE');
+  });
+
   it('should accept other errors', async () => {
     payClient.start({});
     await expect(withResult(Promise.reject('intentional'))).to.be.rejectedWith(
