@@ -1059,7 +1059,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .expects('set')
       .withExactArgs(
         'ppstaxonomies',
-        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":["1","2"]}',
+        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":{"values":["1","2"]}}',
         true
       )
       .once();
@@ -1100,7 +1100,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .expects('set')
       .withExactArgs(
         'ppstaxonomies',
-        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":["3","4","1","2"]}',
+        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":{"values":["3","4","1","2"]}}',
         true
       )
       .once();
@@ -1142,7 +1142,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .expects('set')
       .withExactArgs(
         'ppstaxonomies',
-        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":["3","4","1","2"]}',
+        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":{"values":["3","4","1","2"]}}',
         true
       )
       .once();
@@ -1165,7 +1165,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     deleteFromLocalStorage(Constants.IAB_AUDIENCE_TAXONOMIES);
   });
 
-  it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS values but flag enabled`, async () => {
+  it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS ppstaxonomies but flag enabled`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
@@ -1175,8 +1175,6 @@ describes.realWin('AudienceActionFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     await audienceActionFlow.start();
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
     const activityIframeViewMock = sandbox.mock(
       audienceActionFlow.activityIframeView_
     );

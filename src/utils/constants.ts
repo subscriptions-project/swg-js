@@ -43,7 +43,8 @@ const StorageKeys = {
   ENTITLEMENTS: 'ents',
 
   /**
-   * Local storage key for IAB Audience Taxonomy values.
+   * Local storage key for IAB Audience Taxonomy values. It must take on the
+   * 'values' as defined by the PPS GPT API.
    */
   PPS_TAXONOMIES: 'ppstaxonomies',
 
