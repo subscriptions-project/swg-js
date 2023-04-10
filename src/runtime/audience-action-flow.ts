@@ -47,7 +47,7 @@ import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
-import {warn} from '../utils/log';
+import {warn, log} from '../utils/log';
 
 export interface AudienceActionParams {
   action: string;
@@ -299,10 +299,7 @@ export class AudienceActionFlow {
     const isPpsEligible = request.getStorePpsInLocalStorage();
 
     if (isPpsEligible) {
-      const configurePpsSuccess = await this.configureAnswerPpsData(request);
-      surveyDataTransferResponse.setSuccess(
-        configurePpsSuccess && dataTransferSuccess
-      );
+      await this.configureAnswerPpsData(request);
     } else {
       surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     }
@@ -332,12 +329,9 @@ export class AudienceActionFlow {
   /**
    * Populates localStorage with PPS configuration parameters based on
    * SurveyDataTransferRequest.
-   * @param {SurveyDataTransferRequest} request
-   * @return {boolean}
-   * @private
    **/
-  async configureAnswerPpsData(request: SurveyDataTransferRequest) {
-    const iabAudienceKey = 'iabtaxonomiesvalues';
+  private async configureAnswerPpsData(request: SurveyDataTransferRequest): Promise<void> {
+    const iabAudienceKey = StorageKeys.PPS_TAXONOMIES;
     // PPS value field is optional and category may not be populated
     // in accordance to IAB taxonomies.
     const ppsConfigParams = request
@@ -348,9 +342,7 @@ export class AudienceActionFlow {
       .map((question) => question.getSurveyAnswersList()![0].getPpsValue());
 
     if (ppsConfigParams.length === 0) {
-      // Answers with no PPS parameters should always evaluate to true with
-      // the feature flag enabled.
-      return true;
+      log(`[swg.js] No PPS values found in survey answer choices.`);
     }
 
     const existingIabTaxonomy = await this.storage_.get(
@@ -369,6 +361,9 @@ export class AudienceActionFlow {
           ppsConfigParams as string[]
         ),
       };
+      await Promise.resolve(
+        this.storage_.remove(iabAudienceKey, /* useLocalStorage= */ true)
+      );
     }
     await Promise.resolve(
       this.storage_.set(
@@ -377,18 +372,18 @@ export class AudienceActionFlow {
         /* useLocalStorage= */ true
       )
     );
-    return await !!Promise.resolve(
+    const ppsSuccess = Promise.resolve(
       this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
     );
-  }
 
+    log(`[swg.js] ${ppsSuccess}}`);
+
+    }
   /**
-   * Filters array to contain only an array of digits after the identifier key
+   * Filters string to contain only array of digits after the identifier key
    * in localStorage.
-   * @param {Array} list
-   * @returns
    */
-  filterDigits_(param: string) {
+  private filterDigits_(param: string): string[] {
     return [...param.substring(param.indexOf(':')).replace(/\D/g, '')];
   }
 

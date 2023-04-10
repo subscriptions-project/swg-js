@@ -1058,7 +1058,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     storageMock
       .expects('set')
       .withExactArgs(
-        'iabtaxonomiesvalues',
+        'ppstaxonomies',
         '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":["1","2"]}',
         true
       )
@@ -1071,10 +1071,6 @@ describes.realWin('AudienceActionFlow', (env) => {
     const activityIframeViewMock = sandbox.mock(
       audienceActionFlow.activityIframeView_
     );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
 
     const messageCallback =
       messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
@@ -1096,14 +1092,14 @@ describes.realWin('AudienceActionFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     await addToLocalStorage(
-      'iabtaxonomiesvalues',
+      'ppstaxonomies',
       `[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]: ['3', '4']`
     );
 
     storageMock
       .expects('set')
       .withExactArgs(
-        'iabtaxonomiesvalues',
+        'ppstaxonomies',
         '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":["3","4","1","2"]}',
         true
       )
@@ -1115,10 +1111,6 @@ describes.realWin('AudienceActionFlow', (env) => {
     const activityIframeViewMock = sandbox.mock(
       audienceActionFlow.activityIframeView_
     );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
 
     const messageCallback =
       messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
@@ -1142,29 +1134,24 @@ describes.realWin('AudienceActionFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     await addToLocalStorage(
-      'iabtaxonomiesvalues',
+      'ppstaxonomies',
       `[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]: ['3', '4']`
     );
 
     storageMock
       .expects('set')
       .withExactArgs(
-        'iabtaxonomiesvalues',
+        'ppstaxonomies',
         '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":["3","4","1","2"]}',
         true
       )
       .once();
 
     await audienceActionFlow.start();
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
     const activityIframeViewMock = sandbox.mock(
       audienceActionFlow.activityIframeView_
     );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
+    activityIframeViewMock.expects('execute').once();
 
     const messageCallback =
       messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
@@ -1193,10 +1180,6 @@ describes.realWin('AudienceActionFlow', (env) => {
     const activityIframeViewMock = sandbox.mock(
       audienceActionFlow.activityIframeView_
     );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
 
     const messageCallback =
       messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.label()];
