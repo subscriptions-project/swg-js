@@ -515,12 +515,12 @@ export class AutoPromptManager {
     // Default to the first recommended action.
     let actionToUse = potentialActions[0];
 
+    // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
       return actionToUse;
     }
 
-    // Contribution prompts should appear before recommended actions, so we'll need
-    // to check if we have shown it before.
+    // Suppress previously dismissed prompts.
     let previouslyShownPrompts = [];
     if (dismissedPrompts) {
       previouslyShownPrompts = dismissedPrompts.split(',');
@@ -529,7 +529,7 @@ export class AutoPromptManager {
       );
     }
 
-    // Survery take highest priority if this flag is enabled.
+    // Survey take highest priority if this flag is enabled.
     const prioritizeSurvey = await this.isExperimentEnabled_(
       article,
       ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
@@ -554,6 +554,8 @@ export class AutoPromptManager {
         (action) => action.type === TYPE_CONTRIBUTION
       );
 
+      // If there is an audience action with explicit higher priority than the contribution
+      // action, show the first audience action.
       if (contributionIndex > 0) {
         actionToUse = potentialActions[0];
         this.interventionDisplayed_ = actionToUse;
