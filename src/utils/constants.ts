@@ -24,6 +24,11 @@ const Constants = {
    * Local storage key for read time.
    */
   READ_TIME: 'READ_TIME',
+
+  /**
+   * IAB Audience taxonomy version for logging PPS values to localStorage.
+   */
+  PPS_AUDIENCE_TAXONOMY_KEY: '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]',
 };
 
 const StorageKeys = {

@@ -45,9 +45,9 @@ import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
-import {log, warn} from '../utils/log';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
+import {warn} from '../utils/log';
 
 export interface AudienceActionParams {
   action: string;
@@ -300,9 +300,9 @@ export class AudienceActionFlow {
 
     if (isPpsEligible) {
       await this.configureAnswerPpsData(request);
-    } else {
-      surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     }
+
+    surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     this.activityIframeView_.execute(surveyDataTransferResponse);
   }
 
@@ -342,29 +342,16 @@ export class AudienceActionFlow {
       .map((answer) => answer?.getPpsValue())
       .filter((ppsValue) => ppsValue !== null);
 
-    if (ppsConfigParams.length === 0 || !ppsConfigParams) {
-      log(`[swg.js] No PPS values found in survey answer choices.`);
-    }
-
-    const existingIabTaxonomy = await this.storage_.get(
-      iabAudienceKey,
-      /* useLocalStorage= */ true
+    const existingIabTaxonomy =
+      (await this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)) ||
+      [];
+    const iabTaxonomyValues = Array.from(
+      new Set(ppsConfigParams.concat(this.filterDigits(existingIabTaxonomy)))
     );
-    let ppsConfigParamsValues;
-    if (!existingIabTaxonomy) {
-      ppsConfigParamsValues = {values: ppsConfigParams};
-    } else {
-      const existingIabMap = this.filterDigits(existingIabTaxonomy);
-      ppsConfigParamsValues = {
-        values: existingIabMap.concat(ppsConfigParams as string[]),
-      };
-      await Promise.resolve(
-        this.storage_.remove(iabAudienceKey, /* useLocalStorage= */ true)
-      );
-    }
     const existingIabTaxonomyMap = {
-      '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]': ppsConfigParamsValues,
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
     };
+
     await Promise.resolve(
       this.storage_.set(
         iabAudienceKey,
@@ -372,20 +359,19 @@ export class AudienceActionFlow {
         /* useLocalStorage= */ true
       )
     );
-    const ppsSuccess = JSON.stringify(
-      Promise.resolve(
-        this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)
-      )
-    );
 
-    log(`[swg.js] PPS configure status: ${ppsSuccess}`);
+    // TODO(caroljli): clearcut event logging
   }
+
   /**
-   * Filters string to contain only array of digits after the identifier key
+   * Filters array to contain only an array of digits after the identifier key
    * in localStorage.
    */
-  private filterDigits(param: string): string[] {
-    return [...param.substring(param.indexOf(':')).replace(/\D/g, '')];
+  private filterDigits(param: string) {
+    const parseIndex = param.indexOf(':');
+    return parseIndex === -1
+      ? []
+      : [...param.substring(parseIndex).replace(/\D/g, '')];
   }
 
   /*

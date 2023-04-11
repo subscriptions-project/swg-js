@@ -1100,49 +1100,8 @@ describes.realWin('AudienceActionFlow', (env) => {
       .expects('set')
       .withExactArgs(
         'ppstaxonomies',
-        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":{"values":["3","4","1","2"]}}',
-        true
-      )
-      .once();
+        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":{"values":["1","2","3","4"]}}',
 
-    await audienceActionFlow.start();
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
-
-    await tick(10);
-
-    storageMock.verify();
-    activityIframeViewMock.verify();
-
-    deleteFromLocalStorage(Constants.IAB_AUDIENCE_TAXONOMIES);
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    await addToLocalStorage(
-      'ppstaxonomies',
-      `[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]: ['3', '4']`
-    );
-
-    storageMock
-      .expects('set')
-      .withExactArgs(
-        'ppstaxonomies',
-        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":{"values":["3","4","1","2"]}}',
         true
       )
       .once();
