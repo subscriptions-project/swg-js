@@ -342,8 +342,14 @@ export class AudienceActionFlow {
       .map((answer) => answer?.getPpsValue())
       .filter((ppsValue) => ppsValue !== null);
 
-    const existingIabTaxonomy = await this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true);
-    const existingIabTaxonomyValues = existingIabTaxonomy ? JSON.parse(existingIabTaxonomy)[Constants.PPS_AUDIENCE_TAXONOMY_KEY].values : [];
+    const existingIabTaxonomy = await this.storage_.get(
+      iabAudienceKey,
+      /* useLocalStorage= */ true
+    );
+    const existingIabTaxonomyValues = existingIabTaxonomy
+      ? JSON.parse(existingIabTaxonomy)[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
+          .values
+      : [];
     const iabTaxonomyValues = Array.from(
       new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
     );
