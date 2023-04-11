@@ -1055,22 +1055,19 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
     activitiesMock.expects('openIframe').resolves(port);
 
+    const newIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
+    };
     storageMock
       .expects('set')
-      .withExactArgs(
-        'ppstaxonomies',
-        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":{"values":["1","2"]}}',
-        true
-      )
+      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
       .once();
 
     await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
     const activityIframeViewMock = sandbox.mock(
       audienceActionFlow.activityIframeView_
     );
+    activityIframeViewMock.expects('execute').once();
 
     const messageCallback =
       messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
@@ -1091,19 +1088,20 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
     activitiesMock.expects('openIframe').resolves(port);
 
+    const existingIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['3', '4']},
+    };
+    const newIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2', '3', '4']},
+    };
     await addToLocalStorage(
       'ppstaxonomies',
-      `[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]: ['3', '4']`
+      JSON.stringify(existingIabTaxonomyMap)
     );
 
     storageMock
       .expects('set')
-      .withExactArgs(
-        'ppstaxonomies',
-        '{"[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]":{"values":["1","2","3","4"]}}',
-
-        true
-      )
+      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
       .once();
 
     await audienceActionFlow.start();
