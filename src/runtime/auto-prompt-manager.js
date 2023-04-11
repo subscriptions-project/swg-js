@@ -352,10 +352,7 @@ export class AutoPromptManager {
     }
 
     // Don't cap subscription prompts.
-    if (
-      autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
-    ) {
+    if (this.isSubscription_({autoPromptType})) {
       return Promise.resolve(true);
     }
 
@@ -518,40 +515,41 @@ export class AutoPromptManager {
     // Default to the first recommended action.
     let actionToUse = potentialActions[0];
 
+    if (this.isSubscription_({autoPromptType})) {
+      return actionToUse;
+    }
+
     // Contribution prompts should appear before recommended actions, so we'll need
     // to check if we have shown it before.
-    if (
-      autoPromptType === AutoPromptType.CONTRIBUTION ||
-      autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
-    ) {
-      let previouslyShownPrompts = [];
-      if (dismissedPrompts) {
-        previouslyShownPrompts = dismissedPrompts.split(',');
-        potentialActions = potentialActions.filter(
-          (action) => !previouslyShownPrompts.includes(action.type)
-        );
-      }
-
-      // Survery take highest priority if this flag is enabled.
-      const prioritizeSurvey = await this.isExperimentEnabled_(
-        article,
-        ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+    let previouslyShownPrompts = [];
+    if (dismissedPrompts) {
+      previouslyShownPrompts = dismissedPrompts.split(',');
+      potentialActions = potentialActions.filter(
+        (action) => !previouslyShownPrompts.includes(action.type)
       );
-      if (
-        prioritizeSurvey &&
-        potentialActions
-          .map((action) => action.type)
-          .includes(TYPE_REWARDED_SURVEY)
-      ) {
-        const surveyAction = potentialActions.find(
-          ({type}) => type === TYPE_REWARDED_SURVEY
-        );
-        if (surveyAction) {
-          this.interventionDisplayed_ = surveyAction;
-          return surveyAction;
-        }
-      }
+    }
 
+    // Survery take highest priority if this flag is enabled.
+    const prioritizeSurvey = await this.isExperimentEnabled_(
+      article,
+      ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
+    );
+    if (
+      prioritizeSurvey &&
+      potentialActions
+        .map((action) => action.type)
+        .includes(TYPE_REWARDED_SURVEY)
+    ) {
+      const surveyAction = potentialActions.find(
+        ({type}) => type === TYPE_REWARDED_SURVEY
+      );
+      if (surveyAction) {
+        this.interventionDisplayed_ = surveyAction;
+        return surveyAction;
+      }
+    }
+
+    if (this.isContribution_({autoPromptType})) {
       const contributionIndex = potentialActions.findIndex(
         (action) => action.type === TYPE_CONTRIBUTION
       );
@@ -580,22 +578,26 @@ export class AutoPromptManager {
         return undefined;
       }
 
-      // If all actions have been dismissed or the frequency indicates that we
-      // should show the Contribution prompt again regardless of previous dismissals,
-      // we don't want to record the Contribution dismissal
-      potentialActions = potentialActions.filter(
-        (action) => action.type !== TYPE_CONTRIBUTION
-      );
-
-      if (potentialActions.length === 0 || shouldShowAutoPrompt) {
+      // If frequency indicates that we should show the Contribution prompt again
+      // regardless of previous dismissals, we don't want to record the Contribution dismissal
+      if (shouldShowAutoPrompt) {
         return undefined;
       }
 
-      // Otherwise, set to the next recommended action. If the last dismissal was the
-      // Contribution prompt, this will resolve to the first recommended action.
-      actionToUse = potentialActions[0];
-      this.interventionDisplayed_ = actionToUse;
+      potentialActions = potentialActions.filter(
+        (action) => action.type !== TYPE_CONTRIBUTION
+      );
     }
+
+    // If all actions have been dismissed, we don't want to record the Contribution dismissal
+    if (potentialActions.length === 0) {
+      return undefined;
+    }
+
+    // Otherwise, set to the next recommended action. If the last dismissal was the
+    // Contribution prompt, this will resolve to the first recommended action.
+    actionToUse = potentialActions[0];
+    this.interventionDisplayed_ = actionToUse;
     return actionToUse;
   }
 
