@@ -2070,8 +2070,6 @@ subscribe() method'
     });
 
     it('attaches smart button', async () => {
-      setExperiment(win, ExperimentFlags.SMARTBOX, true);
-
       const stub = sandbox.stub(runtime.buttonApi_, 'attachSmartButton');
 
       const args = [1, 2, 3];

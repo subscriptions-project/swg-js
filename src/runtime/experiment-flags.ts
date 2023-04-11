@@ -16,22 +16,6 @@
 
 export enum ExperimentFlags {
   /**
-   * Enables the Propensity feature
-   */
-  PROPENSITY = 'propensity',
-
-  /**
-   * Enables the Smartbox feature.
-   */
-  SMARTBOX = 'smartbox',
-
-  /**
-   * Enables googleTransactionID change. With the experiment on the ID is
-   * changed from '<uuid>' to '<uuid>.swg'.
-   */
-  UPDATE_GOOGLE_TRANSACTION_ID = 'update-google-transaction-id',
-
-  /**
    * Experiment flag for logging audience activity.
    */
   LOGGING_AUDIENCE_ACTIVITY = 'logging-audience-activity',
