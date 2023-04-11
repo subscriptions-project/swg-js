@@ -342,11 +342,10 @@ export class AudienceActionFlow {
       .map((answer) => answer?.getPpsValue())
       .filter((ppsValue) => ppsValue !== null);
 
-    const existingIabTaxonomy =
-      (await this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true)) ||
-      [];
+    const existingIabTaxonomy = await this.storage_.get(iabAudienceKey, /* useLocalStorage= */ true);
+    const existingIabTaxonomyValues = existingIabTaxonomy ? JSON.parse(existingIabTaxonomy)[Constants.PPS_AUDIENCE_TAXONOMY_KEY].values : [];
     const iabTaxonomyValues = Array.from(
-      new Set(ppsConfigParams.concat(this.filterDigits(existingIabTaxonomy)))
+      new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
     );
     const existingIabTaxonomyMap = {
       [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
@@ -359,19 +358,7 @@ export class AudienceActionFlow {
         /* useLocalStorage= */ true
       )
     );
-
     // TODO(caroljli): clearcut event logging
-  }
-
-  /**
-   * Filters array to contain only an array of digits after the identifier key
-   * in localStorage.
-   */
-  private filterDigits(param: string) {
-    const parseIndex = param.indexOf(':');
-    return parseIndex === -1
-      ? []
-      : [...param.substring(parseIndex).replace(/\D/g, '')];
   }
 
   /*

@@ -27,8 +27,9 @@ const Constants = {
 
   /**
    * IAB Audience taxonomy version for logging PPS values to localStorage.
+   * Value mapped to googletag.enums.Taxonomy.IAB_AUDIENCE_1_1.
    */
-  PPS_AUDIENCE_TAXONOMY_KEY: '[googletag.enums.Taxonomy.IAB_AUDIENCE_1_1]',
+  PPS_AUDIENCE_TAXONOMY_KEY: 1,
 };
 
 const StorageKeys = {
