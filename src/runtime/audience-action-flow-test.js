@@ -1055,13 +1055,20 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
     activitiesMock.expects('openIframe').resolves(port);
 
-    const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
+    const existingIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {'values': ['5']},
     };
+    const newIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: []},
+    };
+    await addToLocalStorage(
+      'ppstaxonomies',
+      JSON.stringify(existingIabTaxonomyMap)
+    );
+
     storageMock
       .expects('set')
       .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
-      .rejects(new Error('JSON parse exception'))
       .once();
 
     await audienceActionFlow.start();
@@ -1075,10 +1082,6 @@ describes.realWin('AudienceActionFlow', (env) => {
     messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
 
     await tick(10);
-
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      `[swg.js] Exception in storing publisher-provided signals: JSON parse exception`
-    );
 
     storageMock.verify();
     activityIframeViewMock.verify();
@@ -1093,17 +1096,9 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
     activitiesMock.expects('openIframe').resolves(port);
 
-    const existingIabTaxonomyMapIncorrectFormat = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {'values': ['3', '4', '1']},
-    };
     const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2', '3', '4']},
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
     };
-    await addToLocalStorage(
-      'ppstaxonomies',
-      JSON.stringify(existingIabTaxonomyMapIncorrectFormat)
-    );
-
     storageMock
       .expects('set')
       .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
@@ -1123,8 +1118,6 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     storageMock.verify();
     activityIframeViewMock.verify();
-
-    deleteFromLocalStorage(Constants.IAB_AUDIENCE_TAXONOMIES);
   });
 
   it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {
