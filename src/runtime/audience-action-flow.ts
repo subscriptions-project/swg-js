@@ -356,19 +356,19 @@ export class AudienceActionFlow {
     }
 
     const iabTaxonomyValues = Array.from(
-        new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
-      );
-      const iabTaxonomy = {
-        [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
-      };
+      new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
+    );
+    const iabTaxonomy = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
+    };
 
-      await Promise.resolve(
-        this.storage_.set(
-          iabAudienceKey,
-          JSON.stringify(iabTaxonomy),
-          /* useLocalStorage= */ true
-        )
-      );
+    await Promise.resolve(
+      this.storage_.set(
+        iabAudienceKey,
+        JSON.stringify(iabTaxonomy),
+        /* useLocalStorage= */ true
+      )
+    );
     // TODO(caroljli): clearcut event logging
   }
 

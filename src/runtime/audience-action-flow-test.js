@@ -1046,7 +1046,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     await tick(10);
   });
 
-  it(`handles a SurveyDataTransferRequest with improper formatted PPS`, async () => {
+  it(`handles a SurveyDataTransferRequest with improper existing PPS`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
@@ -1055,15 +1055,15 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
     activitiesMock.expects('openIframe').resolves(port);
 
-    const existingIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {'values': ['5']},
+    const existingIabTaxonomyMapBadFormat = {
+      'test': {'values': ['5']},
     };
     const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: []},
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
     };
     await addToLocalStorage(
       'ppstaxonomies',
-      JSON.stringify(existingIabTaxonomyMap)
+      JSON.stringify(existingIabTaxonomyMapBadFormat)
     );
 
     storageMock
@@ -1085,6 +1085,8 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     storageMock.verify();
     activityIframeViewMock.verify();
+
+    deleteFromLocalStorage(Constants.IAB_AUDIENCE_TAXONOMIES);
   });
 
   it(`handles a SurveyDataTransferRequest with successful PPS storage in empty localStorage`, async () => {
