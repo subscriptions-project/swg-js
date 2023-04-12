@@ -1046,7 +1046,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     await tick(10);
   });
 
-  it(`handles a SurveyDataTransferRequest with PPS storage rejection`, async () => {
+  it(`handles a SurveyDataTransferRequest with improper formatted PPS`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
@@ -1077,7 +1077,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     await tick(10);
 
     expect(self.console.warn).to.have.been.calledWithExactly(
-      '[swg.js] Exception in storing publisher-provided signals: JSON parse exception'
+      `[swg.js] Exception in storing publisher-provided signals: JSON parse exception`
     );
 
     storageMock.verify();
@@ -1093,9 +1093,17 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
     activitiesMock.expects('openIframe').resolves(port);
 
-    const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
+    const existingIabTaxonomyMapIncorrectFormat = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {'values': ['3', '4', '1']},
     };
+    const newIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2', '3', '4']},
+    };
+    await addToLocalStorage(
+      'ppstaxonomies',
+      JSON.stringify(existingIabTaxonomyMapIncorrectFormat)
+    );
+
     storageMock
       .expects('set')
       .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
@@ -1115,6 +1123,8 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     storageMock.verify();
     activityIframeViewMock.verify();
+
+    deleteFromLocalStorage(Constants.IAB_AUDIENCE_TAXONOMIES);
   });
 
   it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {

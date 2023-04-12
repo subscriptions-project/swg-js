@@ -346,11 +346,16 @@ export class AudienceActionFlow {
       iabAudienceKey,
       /* useLocalStorage= */ true
     );
+    let existingIabTaxonomyValues;
     try {
-      const existingIabTaxonomyValues =
+      existingIabTaxonomyValues =
         JSON.parse(existingIabTaxonomy)?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
           ?.values || [];
-      const iabTaxonomyValues = Array.from(
+    } catch (e) {
+      existingIabTaxonomyValues = [];
+    }
+
+    const iabTaxonomyValues = Array.from(
         new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
       );
       const iabTaxonomy = {
@@ -364,9 +369,6 @@ export class AudienceActionFlow {
           /* useLocalStorage= */ true
         )
       );
-    } catch (e) {
-      warn(`[swg.js] Exception in storing publisher-provided signals: ${e}`);
-    }
     // TODO(caroljli): clearcut event logging
   }
 
