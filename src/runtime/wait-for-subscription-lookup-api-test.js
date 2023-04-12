@@ -74,7 +74,7 @@ describes.realWin('WaitForSubscriptionLookupApi', (env) => {
       .resolves(port);
     dialogManagerMock.expects('completeView').once();
     waitingApi.start();
-    await waitingApi.openViewPromise_;
+    await waitingApi.openViewPromise;
   });
 
   it('should return the account on success', async () => {
@@ -93,7 +93,7 @@ describes.realWin('WaitForSubscriptionLookupApi', (env) => {
   });
 
   it('should reject null account promise', async () => {
-    waitingApi = new WaitForSubscriptionLookupApi(runtime);
+    waitingApi = new WaitForSubscriptionLookupApi(runtime, null);
     dialogManagerMock.expects('completeView').once();
     await expect(waitingApi.start()).to.be.rejectedWith(
       'No account promise provided'
