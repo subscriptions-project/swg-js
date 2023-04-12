@@ -346,13 +346,18 @@ export class AudienceActionFlow {
       iabAudienceKey,
       /* useLocalStorage= */ true
     );
-    let existingIabTaxonomyValues;
+    let existingIabTaxonomyValues: string[] = [];
     try {
-      existingIabTaxonomyValues =
+      const parsedExistingIabTaxonomyValues =
         JSON.parse(existingIabTaxonomy)?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
           ?.values || [];
+      // If array is empty should default to empty array anyway.
+      existingIabTaxonomyValues =
+        typeof parsedExistingIabTaxonomyValues[0] === 'string'
+          ? parsedExistingIabTaxonomyValues
+          : [];
     } catch (e) {
-      existingIabTaxonomyValues = [];
+      // Ignore error since it defaults to empty array.
     }
 
     const iabTaxonomyValues = Array.from(
