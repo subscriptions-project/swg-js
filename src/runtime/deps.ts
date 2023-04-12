@@ -16,6 +16,7 @@
 
 import {ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
+import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
@@ -45,10 +46,7 @@ export interface Deps {
 
   entitlementsManager(): EntitlementsManager;
 
-  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
-  // {!./callbacks.Callbacks}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  callbacks(): any;
+  callbacks(): Callbacks;
 
   storage(): Storage;
 
