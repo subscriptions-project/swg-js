@@ -75,7 +75,7 @@ describes.realWin('LoginNotificationApi', (env) => {
     dialogManagerMock.expects('completeView').once();
 
     loginNotificationApi.start();
-    await loginNotificationApi.openViewPromise_;
+    await loginNotificationApi.openViewPromise;
   });
 
   it('should handle failure', async () => {

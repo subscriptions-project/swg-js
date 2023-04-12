@@ -15,38 +15,35 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {isCancelError} from '../utils/errors';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
-import {isCancelError} from '../utils/errors';
 
 export class LoginPromptApi {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  constructor(deps) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  openViewPromise: Promise<void> | null = null;
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+  private readonly activityIframeView_: ActivityIframeView;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly win_: Window;
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+  constructor(private readonly deps_: Deps) {
+    this.win_ = deps_.win();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.activityPorts_ = deps_.activities();
 
-    /** @private {?Promise} */
-    this.openViewPromise_ = null;
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/loginiframe'),
       feArgs({
-        publicationId: deps.pageConfig().getPublicationId(),
-        productId: deps.pageConfig().getProductId(),
+        publicationId: deps_.pageConfig().getPublicationId(),
+        productId: deps_.pageConfig().getProductId(),
         // First ask the user if they want us to log them in.
         userConsent: true,
       }),
@@ -56,21 +53,20 @@ export class LoginPromptApi {
 
   /**
    * Prompts the user to login.
-   * @return {!Promise}
    */
-  async start() {
+  async start(): Promise<void> {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_LOGIN_PROMPT);
 
-    this.openViewPromise_ = this.dialogManager_.openView(
+    this.openViewPromise = this.dialogManager_.openView(
       this.activityIframeView_
     );
 
     try {
       await this.activityIframeView_.acceptResult();
     } catch (reason) {
-      if (isCancelError(reason)) {
+      if (isCancelError(reason as Error)) {
         this.deps_
           .callbacks()
           .triggerFlowCanceled(SubscriptionFlows.SHOW_LOGIN_PROMPT);
