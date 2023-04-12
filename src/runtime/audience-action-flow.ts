@@ -299,7 +299,7 @@ export class AudienceActionFlow {
     const isPpsEligible = request.getStorePpsInLocalStorage();
 
     if (isPpsEligible) {
-      await this.configureAnswerPpsData(request);
+      await this.storePpsValuesFromSurveyAnswers(request);
     }
 
     surveyDataTransferResponse.setSuccess(dataTransferSuccess);
@@ -330,7 +330,7 @@ export class AudienceActionFlow {
    * Populates localStorage with PPS configuration parameters based on
    * SurveyDataTransferRequest.
    **/
-  private async configureAnswerPpsData(
+  private async storePpsValuesFromSurveyAnswers(
     request: SurveyDataTransferRequest
   ): Promise<void> {
     const iabAudienceKey = StorageKeys.PPS_TAXONOMIES;
@@ -346,24 +346,27 @@ export class AudienceActionFlow {
       iabAudienceKey,
       /* useLocalStorage= */ true
     );
-    const existingIabTaxonomyValues = existingIabTaxonomy
-      ? JSON.parse(existingIabTaxonomy)[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
-          .values
-      : [];
-    const iabTaxonomyValues = Array.from(
-      new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
-    );
-    const existingIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
-    };
+    try {
+      const existingIabTaxonomyValues =
+        JSON.parse(existingIabTaxonomy)?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
+          ?.values || [];
+      const iabTaxonomyValues = Array.from(
+        new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
+      );
+      const iabTaxonomy = {
+        [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
+      };
 
-    await Promise.resolve(
-      this.storage_.set(
-        iabAudienceKey,
-        JSON.stringify(existingIabTaxonomyMap),
-        /* useLocalStorage= */ true
-      )
-    );
+      await Promise.resolve(
+        this.storage_.set(
+          iabAudienceKey,
+          JSON.stringify(iabTaxonomy),
+          /* useLocalStorage= */ true
+        )
+      );
+    } catch (e) {
+      warn(`[swg.js] Exception in storing publisher-provided signals: ${e}`);
+    }
     // TODO(caroljli): clearcut event logging
   }
 

@@ -1089,7 +1089,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     const existingIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['3', '4']},
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['3', '4', '1']},
     };
     const newIabTaxonomyMap = {
       [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2', '3', '4']},
