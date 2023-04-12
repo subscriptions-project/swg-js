@@ -214,7 +214,7 @@ export class Callbacks {
   }
 
   setOnFlowCanceled(
-    callback: (params: {flow: string; data: unknown}) => void
+    callback: (params: {flow: string; data: object}) => void
   ): void {
     this.setCallback_(CallbackId.FLOW_CANCELED, callback as Callback);
   }
