@@ -198,7 +198,7 @@ export class Callbacks {
   }
 
   setOnFlowStarted(
-    callback: ({flow, data}: {flow: string; data: unknown}) => void
+    callback: ({flow, data}: {flow: string; data: object}) => void
   ): void {
     this.setCallback_(CallbackId.FLOW_STARTED, callback as Callback);
   }
