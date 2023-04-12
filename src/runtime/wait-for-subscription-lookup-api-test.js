@@ -77,6 +77,11 @@ describes.realWin('WaitForSubscriptionLookupApi', (env) => {
     await waitingApi.openViewPromise;
   });
 
+  it('should return the account on success', async () => {
+    const foundAccount = await waitingApi.start();
+    expect(foundAccount).to.equal(account);
+  });
+
   it('it should fail correctly', async () => {
     const noAccountFound = 'no account found';
     accountPromise = Promise.reject(noAccountFound);
