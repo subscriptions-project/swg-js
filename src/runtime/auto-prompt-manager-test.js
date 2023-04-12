@@ -1810,9 +1810,6 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
         'survey_config_id'
       );
-      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
-        'survey_config_id'
-      );
     });
 
     it('With SurveyTriggeringPriorityExperiment enabled, should show the contribution prompt after the Survey prompt', async () => {
