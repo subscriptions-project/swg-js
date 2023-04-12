@@ -15,36 +15,34 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
+import {ActivityPorts} from '../components/activities';
+import {Deps} from './deps';
 import {feArgs, feUrl} from './services';
+import {DialogManager} from '../components/dialog-manager';
 
 const NO_PROMISE_ERR = 'No account promise provided';
 
 export class WaitForSubscriptionLookupApi {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {?Promise} accountPromise
-   */
-  constructor(deps, accountPromise) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  /** Visible for testing. */
+  openViewPromise: Promise<void> | null = null;
 
-    /** @private @const {!Window} */
+  private readonly win_: Window;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly activityIframeView_: ActivityIframeView;
+
+  constructor(
+    deps: Deps,
+    private readonly accountPromise_: Promise<unknown> | null
+  ) {
     this.win_ = deps.win();
 
-    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
 
-    /** @private {?Promise} */
-    this.openViewPromise_ = null;
+    this.accountPromise_ ||= Promise.reject(NO_PROMISE_ERR);
 
-    /** @private {!Promise} */
-    this.accountPromise_ = accountPromise || Promise.reject(NO_PROMISE_ERR);
-
-    /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
@@ -60,18 +58,16 @@ export class WaitForSubscriptionLookupApi {
 
   /**
    * Starts the Login Flow.
-   * @return {!Promise}
    */
-  async start() {
-    this.openViewPromise_ = this.dialogManager_.openView(
+  async start(): Promise<void> {
+    this.openViewPromise = this.dialogManager_.openView(
       this.activityIframeView_
     );
 
     try {
-      const account = await this.accountPromise_;
+      await this.accountPromise_;
       // Account was found.
       this.dialogManager_.completeView(this.activityIframeView_);
-      return account;
     } catch (reason) {
       this.dialogManager_.completeView(this.activityIframeView_);
       throw reason;

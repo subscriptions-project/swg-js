@@ -15,36 +15,41 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {
+  LinkSubscriptionRequest,
+  LinkSubscriptionResult,
+} from '../api/subscriptions';
+import {PageConfig} from '../model/page-config';
 import {SubscriptionLinkingCompleteResponse} from '../proto/api_messages';
 import {feArgs, feUrl} from './services';
 
 export class SubscriptionLinkingFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  constructor(deps) {
-    /** @private @const {!../components/activities.ActivityPorts} */
+  private readonly activityPorts_: ActivityPorts;
+  private readonly win_: Window;
+  private readonly pageConfig_: PageConfig;
+  private readonly dialogManager_: DialogManager;
+  private completionResolver_: (result: LinkSubscriptionResult) => void =
+    () => {};
+
+  constructor(deps: Deps) {
     this.activityPorts_ = deps.activities();
 
-    /** @private @const {!Window} */
     this.win_ = deps.win();
 
-    /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = deps.pageConfig();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
     this.dialogManager_ = deps.dialogManager();
-
-    /** @private {function(!../api/subscriptions.LinkSubscriptionResult): undefined} */
-    this.completionResolver_ = () => {};
   }
 
   /**
    * Starts the subscription linking flow.
-   * @param {!../api/subscriptions.LinkSubscriptionRequest} request
-   * @return {!Promise<!../api/subscriptions.LinkSubscriptionResult>}
    */
-  async start(request) {
+  async start(
+    request: LinkSubscriptionRequest
+  ): Promise<LinkSubscriptionResult> {
     const {publisherProvidedId} = request;
     if (!publisherProvidedId) {
       throw new Error('Missing required field: publisherProvidedId');
@@ -57,7 +62,7 @@ export class SubscriptionLinkingFlow {
       this.win_,
       this.activityPorts_,
       feUrl('/linksaveiframe', {
-        subscriptionLinking: true,
+        subscriptionLinking: 'true',
         ppid: publisherProvidedId,
       }),
       args,
@@ -65,7 +70,9 @@ export class SubscriptionLinkingFlow {
     );
     activityIframeView.on(
       SubscriptionLinkingCompleteResponse,
-      (/** @type {!SubscriptionLinkingCompleteResponse} */ response) => {
+      (
+        /** @type {!SubscriptionLinkingCompleteResponse} */ response: SubscriptionLinkingCompleteResponse
+      ) => {
         this.completionResolver_({
           publisherProvidedId: response.getPublisherProvidedId(),
           success: response.getSuccess() ?? false,
@@ -73,7 +80,7 @@ export class SubscriptionLinkingFlow {
       }
     );
 
-    const completionPromise = new Promise((resolve) => {
+    const completionPromise = new Promise<LinkSubscriptionResult>((resolve) => {
       this.completionResolver_ = resolve;
     });
 
