@@ -70,9 +70,7 @@ export class SubscriptionLinkingFlow {
     );
     activityIframeView.on(
       SubscriptionLinkingCompleteResponse,
-      (
-        /** @type {!SubscriptionLinkingCompleteResponse} */ response: SubscriptionLinkingCompleteResponse
-      ) => {
+      (response: SubscriptionLinkingCompleteResponse) => {
         this.completionResolver_({
           publisherProvidedId: response.getPublisherProvidedId(),
           success: response.getSuccess() ?? false,
