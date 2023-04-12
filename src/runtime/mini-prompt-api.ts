@@ -17,15 +17,15 @@
 import {ASSETS} from '../constants';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
+import {Deps} from './deps';
+import {Doc} from '../model/doc';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {assert, warn} from '../utils/log';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {setStyle} from '../utils/style';
-import {Deps} from './deps';
-import {Doc} from '../model/doc';
-import {ClientConfigManager} from './client-config-manager';
-import {ClientEventManager} from './client-event-manager';
 
 const TITLE_CONTAINER_DIV_HTML = `
 <div class="swg-mini-prompt-icon-$theme$"></div>

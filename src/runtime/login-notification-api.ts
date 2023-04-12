@@ -15,11 +15,11 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
 import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
-import {ActivityPorts} from '../components/activities';
-import {DialogManager} from '../components/dialog-manager';
 
 export class LoginNotificationApi {
   /** Visible for testing. */

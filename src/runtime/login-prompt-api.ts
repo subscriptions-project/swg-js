@@ -18,9 +18,9 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
-import {isCancelError} from '../utils/errors';
 import {SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
+import {isCancelError} from '../utils/errors';
 
 export class LoginPromptApi {
   openViewPromise: Promise<void> | null = null;
