@@ -274,7 +274,9 @@ export class AutoPromptManager {
 
     const interventionDisplayedIsAutoPromptType =
       this.interventionDisplayed_ === null ||
-      this.isAutoPromptType_(this.interventionDisplayed_.type);
+      // Only need to check contributions because Subsciptions interventions
+      // will not be saved.
+      this.isContribution_({autoPromptType: this.interventionDisplayed_.type});
     if (shouldShowAutoPrompt && interventionDisplayedIsAutoPromptType) {
       this.deps_.win().setTimeout(() => {
         this.wasAutoPromptDisplayed_ = true;
@@ -315,19 +317,6 @@ export class AutoPromptManager {
     return (
       params.autoPromptType === AutoPromptType.CONTRIBUTION ||
       params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
-    );
-  }
-
-  /**
-   * @param {!AutoPromptType} type
-   * @return {!boolean}
-   */
-  isAutoPromptType_(type) {
-    return (
-      type === AutoPromptType.CONTRIBUTION ||
-      type === AutoPromptType.CONTRIBUTION_LARGE ||
-      type === AutoPromptType.SUBSCRIPTION ||
-      type === AutoPromptType.SUBSCRIPTION_LARGE
     );
   }
 
