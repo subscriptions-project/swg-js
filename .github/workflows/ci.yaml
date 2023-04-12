@@ -70,6 +70,12 @@ jobs:
       - name: Unit Tests
         run: gulp unit --headless --coverage
 
-      - uses: codecov/codecov-action@v3
+      - name: Codecov
+        uses: codecov/codecov-action@v3
         with:
           files: ./test/coverage/lcov-unit.info
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v1
+        with:
+          path-to-lcov: ./test/coverage/lcov-unit.info
