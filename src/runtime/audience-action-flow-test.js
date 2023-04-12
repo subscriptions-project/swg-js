@@ -1046,6 +1046,44 @@ describes.realWin('AudienceActionFlow', (env) => {
     await tick(10);
   });
 
+  it(`handles a SurveyDataTransferRequest with PPS storage rejection`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const newIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
+    };
+    storageMock
+      .expects('set')
+      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
+      .rejects(new Error('JSON parse exception'))
+      .once();
+
+    await audienceActionFlow.start();
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock.expects('execute').once();
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
+
+    await tick(10);
+
+    expect(self.console.warn).to.have.been.calledWithExactly(
+      '[swg.js] Exception in storing publisher-provided signals: JSON parse exception'
+    );
+
+    storageMock.verify();
+    activityIframeViewMock.verify();
+  });
+
   it(`handles a SurveyDataTransferRequest with successful PPS storage in empty localStorage`, async () => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
