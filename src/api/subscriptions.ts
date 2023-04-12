@@ -170,7 +170,7 @@ export interface Subscriptions {
 
   setOnLinkComplete(callback: () => void): Promise<void> | void;
 
-  waitForSubscriptionLookup(accountPromise: Promise<unknown>): Promise<void>;
+  waitForSubscriptionLookup(accountPromise: Promise<unknown>): Promise<unknown>;
 
   /**
    * Starts the Account linking flow.
