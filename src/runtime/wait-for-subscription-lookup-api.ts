@@ -17,8 +17,8 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {Deps} from './deps';
-import {feArgs, feUrl} from './services';
 import {DialogManager} from '../components/dialog-manager';
+import {feArgs, feUrl} from './services';
 
 const NO_PROMISE_ERR = 'No account promise provided';
 
