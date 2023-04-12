@@ -187,7 +187,7 @@ export interface Subscriptions {
    * Also see `setOnFlowCanceled` method.
    */
   setOnFlowStarted(
-    callback: (params: {flow: string; data: unknown}) => void
+    callback: (params: {flow: string; data: object}) => void
   ): Promise<void> | void;
 
   /**
@@ -202,7 +202,7 @@ export interface Subscriptions {
    * Also see `setOnFlowStarted` method.
    */
   setOnFlowCanceled(
-    callback: (params: {flow: string; data: unknown}) => void
+    callback: (params: {flow: string; data: object}) => void
   ): Promise<void> | void;
 
   /**
