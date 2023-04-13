@@ -77,7 +77,7 @@ describes.realWin('LoginPromptApi', (env) => {
     dialogManagerMock.expects('completeView').once();
 
     loginPromptApi.start();
-    await loginPromptApi.openViewPromise_;
+    await loginPromptApi.openViewPromise;
   });
 
   it('should handle cancel', async () => {

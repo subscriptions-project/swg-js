@@ -24,6 +24,12 @@ const Constants = {
    * Local storage key for read time.
    */
   READ_TIME: 'READ_TIME',
+
+  /**
+   * IAB Audience taxonomy version for logging PPS values to localStorage.
+   * Value mapped to googletag.enums.Taxonomy.IAB_AUDIENCE_1_1.
+   */
+  PPS_AUDIENCE_TAXONOMY_KEY: 1,
 };
 
 const StorageKeys = {
@@ -41,6 +47,12 @@ const StorageKeys = {
    * Local storage key for cacheable entitlements.
    */
   ENTITLEMENTS: 'ents',
+
+  /**
+   * Local storage key for IAB Audience Taxonomy values. It must take on the
+   * 'values' as defined by the PPS GPT API.
+   */
+  PPS_TAXONOMIES: 'ppstaxonomies',
 
   /**
    * Local storage key for autoprompt impression timestamps.
