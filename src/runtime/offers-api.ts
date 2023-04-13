@@ -14,40 +14,27 @@
  * limitations under the License.
  */
 
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+import {Fetcher} from './fetcher';
 import {Offer} from '../api/offer';
+import {PageConfig} from '../model/page-config';
 import {serviceUrl} from './services';
 
 export class OffersApi {
-  /**
-   * @param {!../model/page-config.PageConfig} config
-   * @param {!./fetcher.Fetcher} fetcher
-   */
-  constructor(config, fetcher) {
-    /** @private @const {!../model/page-config.PageConfig} */
-    this.config_ = config;
+  constructor(
+    private readonly config_: PageConfig,
+    private readonly fetcher_: Fetcher
+  ) {}
 
-    /** @private @const {!./fetcher.Fetcher} */
-    this.fetcher_ = fetcher;
-  }
-
-  /**
-   * @param {?string=} productId
-   * @return {!Promise<!Array<!Offer>>}
-   */
-  getOffers(productId = this.config_.getProductId()) {
+  getOffers(
+    productId: string | null = this.config_.getProductId()
+  ): Promise<Offer[]> {
     if (!productId) {
       throw new Error('getOffers requires productId in config or arguments');
     }
     return this.fetch_(productId);
   }
 
-  /**
-   * @param {string} productId
-   * @return {!Promise<!Array<!Offer>>}
-   * @private
-   */
-  async fetch_(productId) {
+  private async fetch_(productId: string): Promise<Offer[]> {
     const url = serviceUrl(
       '/publication/' +
         encodeURIComponent(this.config_.getPublicationId()) +
@@ -56,7 +43,9 @@ export class OffersApi {
         encodeURIComponent(productId)
     );
     // TODO(dvoytenko): switch to a non-credentialed request after launch.
-    const json = await this.fetcher_.fetchCredentialedJson(url);
+    const json = (await this.fetcher_.fetchCredentialedJson(url)) as {
+      offers?: Offer[];
+    };
     return json['offers'] || [];
   }
 }
