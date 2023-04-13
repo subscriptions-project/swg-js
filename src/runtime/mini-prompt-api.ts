@@ -17,6 +17,10 @@
 import {ASSETS} from '../constants';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
+import {Deps} from './deps';
+import {Doc} from '../model/doc';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {assert, warn} from '../utils/log';
 import {createElement} from '../utils/dom';
@@ -36,21 +40,19 @@ const CLOSE_CONTAINER_DIV_HTML = `
  * Class for handling the display (and logging) of the mini prompt.
  */
 export class MiniPromptApi {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  constructor(deps) {
-    /** @private @const {!../model/doc.Doc} */
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly doc_: Doc;
+  private readonly eventManager_: ClientEventManager;
+
+  constructor(deps: Deps) {
     this.doc_ = deps.doc();
 
-    /** @private @const {?./client-config-manager.ClientConfigManager} */
     this.clientConfigManager_ = deps.clientConfigManager();
     assert(
       this.clientConfigManager_,
       'MiniPromptApi requires an instance of ClientConfigManager.'
     );
 
-    /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
   }
 
@@ -58,7 +60,7 @@ export class MiniPromptApi {
    * Does the setup required for the mini prompt's display, including injecting
    * the mini prompt's css.
    */
-  init() {
+  init(): void {
     const head = this.doc_.getHead();
     if (!head) {
       warn(
@@ -85,12 +87,11 @@ export class MiniPromptApi {
 
   /**
    * Creates the element and displays it on the page.
-   * @param {{
-   *   autoPromptType: (!AutoPromptType|undefined),
-   *   clickCallback: (function()|undefined),
-   * }} options
    */
-  create(options) {
+  create(options: {
+    autoPromptType: AutoPromptType;
+    clickCallback?: () => void;
+  }): void {
     if (
       options.autoPromptType !== AutoPromptType.CONTRIBUTION &&
       options.autoPromptType !== AutoPromptType.SUBSCRIPTION
@@ -102,11 +103,9 @@ export class MiniPromptApi {
     const lang = this.clientConfigManager_.getLanguage();
     let textContent = '';
     if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
-      textContent =
-        msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, lang) || '';
+      textContent = msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, lang)!;
     } else if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
-      textContent =
-        msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, lang) || '';
+      textContent = msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, lang)!;
     }
 
     // Create all the elements for the mini prompt.
@@ -161,9 +160,8 @@ export class MiniPromptApi {
 
   /**
    * Logs an impression of the mini prompt.
-   * @param {!AutoPromptType|undefined} autoPromptType
    */
-  logImpression_(autoPromptType) {
+  private logImpression_(autoPromptType: AutoPromptType): void {
     let event;
     if (autoPromptType === AutoPromptType.CONTRIBUTION) {
       event = AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT;
@@ -178,9 +176,8 @@ export class MiniPromptApi {
 
   /**
    * Logs a click of the mini prompt.
-   * @param {!AutoPromptType|undefined} autoPromptType
    */
-  logClick_(autoPromptType) {
+  private logClick_(autoPromptType: AutoPromptType): void {
     let event;
     if (autoPromptType === AutoPromptType.CONTRIBUTION) {
       event = AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLICK;
@@ -195,9 +192,8 @@ export class MiniPromptApi {
 
   /**
    * Logs a user initiated dismissal of the mini prompt.
-   * @param {!AutoPromptType|undefined} autoPromptType
    */
-  logClose_(autoPromptType) {
+  private logClose_(autoPromptType: AutoPromptType) {
     let event;
     if (autoPromptType === AutoPromptType.CONTRIBUTION) {
       event = AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE;
