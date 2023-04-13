@@ -13,39 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as PropensityApi from '../api/propensity-api';
+import {ClientEventManager} from './client-event-manager';
+import {Deps} from './deps';
 import {Event, SubscriptionState} from '../api/logger-api';
 import {EventOriginator} from '../proto/api_messages';
+import {Fetcher} from './fetcher';
+import {
+  PropensityApi,
+  PropensityScore,
+  PropensityType,
+} from '../api/propensity-api';
 import {PropensityServer} from './propensity-server';
+import {PublisherEvent} from '../api/logger-api';
 import {isBoolean} from '../utils/types';
 import {isEnumValue, isObject} from '../utils/types';
 import {publisherEventToAnalyticsEvent} from './event-type-mapping';
 
-/**
- * @implements {PropensityApi.PropensityApi}
- */
-export class Propensity {
+export class Propensity implements PropensityApi {
+  private readonly eventManager_: ClientEventManager;
+  private propensityServer_: PropensityServer;
+
   /**
-   * @param {!Window} win
-   * @param {!./deps.Deps} deps
-   * @param {!./fetcher.Fetcher} fetcher
-   *
    * IMPORTANT: deps may not be full initialized config and pageConfig are
    * available immediately, other function should be gated on a ready promise.
    * #TODO(jpettitt) switch refactor to take out the win and use deps to get win
    */
-  constructor(win, deps, fetcher) {
-    /** @private @const {!Window} */
-    this.win_ = win;
-    /** @private {PropensityServer} */
-    this.propensityServer_ = new PropensityServer(win, deps, fetcher);
+  constructor(private readonly win_: Window, deps: Deps, fetcher: Fetcher) {
+    this.propensityServer_ = new PropensityServer(win_, deps, fetcher);
 
-    /** @private @const {!../api/client-event-manager-api.ClientEventManagerApi} */
     this.eventManager_ = deps.eventManager();
   }
 
-  /** @override */
-  sendSubscriptionState(state, jsonProducts) {
+  sendSubscriptionState(
+    state: SubscriptionState,
+    jsonProducts?: {product: string[]}
+  ): void {
     if (!Object.values(SubscriptionState).includes(state)) {
       throw new Error('Invalid subscription state provided');
     }
@@ -69,13 +71,12 @@ export class Propensity {
     this.propensityServer_.sendSubscriptionState(state, productsOrSkus);
   }
 
-  /** @override */
-  getPropensity(type) {
-    if (type && !Object.values(PropensityApi.PropensityType).includes(type)) {
+  getPropensity(type?: PropensityType): Promise<PropensityScore | null> {
+    if (type && !Object.values(PropensityType).includes(type)) {
       throw new Error('Invalid propensity type requested');
     }
     if (!type) {
-      type = PropensityApi.PropensityType.GENERAL;
+      type = PropensityType.GENERAL;
     }
     return this.propensityServer_.getPropensity(
       this.win_.document.referrer,
@@ -83,8 +84,7 @@ export class Propensity {
     );
   }
 
-  /** @override */
-  sendEvent(userEvent) {
+  sendEvent(userEvent: PublisherEvent): void {
     const analyticsEvent = publisherEventToAnalyticsEvent(userEvent.name);
     let data = null;
     if (!isEnumValue(Event, userEvent.name) || !analyticsEvent) {
