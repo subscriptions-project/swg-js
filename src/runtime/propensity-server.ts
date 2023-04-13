@@ -18,56 +18,63 @@ import {
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
+import {ClientEvent} from '../api/client-event-manager-api';
+import {Deps} from './deps';
+import {Fetcher} from './fetcher';
+import {PropensityScore} from '../api/propensity-api';
+import {Score} from '../api/propensity-api';
+import {ScoreDetail} from '../api/propensity-api';
 import {addQueryParam} from '../utils/url';
 import {adsUrl} from './services';
 import {analyticsEventToPublisherEvent} from './event-type-mapping';
 import {isBoolean, isObject} from '../utils/types';
 
+interface PropensityResponse {
+  header: {
+    ok: boolean;
+  };
+  scores: {
+    error_message?: string;
+    product: string;
+    score_type: number;
+    score: number;
+  }[];
+  error?: string;
+}
+
 /**
  * Implements interface to Propensity server
  */
 export class PropensityServer {
+  private readonly publicationId_: string;
+  clientId_: string | null = null;
+  version_ = 1;
+
   /**
    * Page configuration is known when Propensity API
    * is available, publication ID is therefore used
    * in constructor for the server interface.
-   * @param {!Window} win
-   * @param {!./deps.Deps} deps
-   * @param {!./fetcher.Fetcher} fetcher
    */
-  constructor(win, deps, fetcher) {
-    /** @private @const {!Window} */
-    this.win_ = win;
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
-    /** @private @const {string} */
+  constructor(
+    private readonly win_: Window,
+    private readonly deps_: Deps,
+    private readonly fetcher_: Fetcher
+  ) {
     this.publicationId_ = this.deps_.pageConfig().getPublicationId();
-    /** @private {?string} */
-    this.clientId_ = null;
-    /** @private @const {!./fetcher.Fetcher} */
-    this.fetcher_ = fetcher;
-    /** @private @const {number} */
-    this.version_ = 1;
 
     this.deps_
       .eventManager()
       .registerEventListener(this.handleClientEvent_.bind(this));
   }
 
-  /**
-   * @private
-   * @return {string}
-   */
-  getDocumentCookie_() {
+  private getDocumentCookie_(): string {
     return this.win_.document.cookie;
   }
 
   /**
    * Returns the client ID to be used.
-   * @return {?string}
-   * @private
    */
-  getClientId_() {
+  private getClientId_(): string | null {
     if (!this.clientId_) {
       // Match '__gads' (name of the cookie) dropped by Ads Tag.
       const gadsmatch = this.getDocumentCookie_().match(
@@ -75,17 +82,12 @@ export class PropensityServer {
       );
       // Since the cookie will be consumed using decodeURIComponent(),
       // use encodeURIComponent() here to match.
-      this.clientId_ = gadsmatch && encodeURIComponent(gadsmatch.pop());
+      this.clientId_ = gadsmatch && encodeURIComponent(gadsmatch.pop()!);
     }
     return this.clientId_;
   }
 
-  /**
-   * @private
-   * @param {string} url
-   * @return {string}
-   */
-  propensityUrl_(url) {
+  private propensityUrl_(url: string): string {
     url = addQueryParam(url, 'u_tz', '240');
     url = addQueryParam(url, 'v', String(this.version_));
     const clientId = this.getClientId_();
@@ -96,15 +98,14 @@ export class PropensityServer {
     return url;
   }
 
-  /**
-   * @param {string} state
-   * @param {?string} productsOrSkus
-   */
-  sendSubscriptionState(state, productsOrSkus) {
-    const init = /** @type {!RequestInit} */ ({
+  sendSubscriptionState(
+    state: string,
+    productsOrSkus: string | null
+  ): Promise<Response> {
+    const init: RequestInit = {
       method: 'GET',
       credentials: 'include',
-    });
+    };
     let url = adsUrl('/subopt/data');
     url = addQueryParam(url, 'states', this.publicationId_ + ':' + state);
     if (productsOrSkus) {
@@ -113,16 +114,11 @@ export class PropensityServer {
     return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
-  /**
-   * @param {string} event
-   * @param {?string} context
-   * @private
-   */
-  sendEvent_(event, context) {
-    const init = /** @type {!RequestInit} */ ({
+  private sendEvent_(event: string, context: string | null): Promise<Response> {
+    const init: RequestInit = {
       method: 'GET',
       credentials: 'include',
-    });
+    };
     let url = adsUrl('/subopt/data');
     url = addQueryParam(url, 'events', this.publicationId_ + ':' + event);
     if (context) {
@@ -131,11 +127,7 @@ export class PropensityServer {
     return this.fetcher_.fetch(this.propensityUrl_(url), init);
   }
 
-  /**
-   *
-   * @param {!../api/client-event-manager-api.ClientEvent} event
-   */
-  handleClientEvent_(event) {
+  handleClientEvent_(event: ClientEvent): void {
     // Propensity does not need this data and does not have the right to
     // it at this time.  We can consider this if necessary in the future.
     if (event.eventOriginator === EventOriginator.SHOWCASE_CLIENT) {
@@ -153,10 +145,17 @@ export class PropensityServer {
       return;
     }
 
+    let additionalParameters = event.additionalParameters as
+      | {
+          state?: string;
+          productsOrSkus?: string | null;
+          is_active?: boolean | null;
+        }
+      | undefined;
     if (event.eventType === AnalyticsEvent.EVENT_SUBSCRIPTION_STATE) {
       this.sendSubscriptionState(
-        event.additionalParameters['state'],
-        event.additionalParameters['productsOrSkus']
+        additionalParameters!['state']!,
+        additionalParameters!['productsOrSkus']!
       );
       return;
     }
@@ -164,7 +163,6 @@ export class PropensityServer {
     if (propEvent == null) {
       return;
     }
-    let additionalParameters = event.additionalParameters;
     // The EventParams object is private to SwG analytics.  Do not send.
     if (additionalParameters instanceof EventParams) {
       additionalParameters = undefined;
@@ -173,78 +171,69 @@ export class PropensityServer {
       if (!isObject(additionalParameters)) {
         additionalParameters = {};
       }
-      additionalParameters['is_active'] = event.isFromUserAction;
+      additionalParameters!['is_active'] = event.isFromUserAction;
     }
-    this.sendEvent_(
-      propEvent,
-      JSON.stringify(/** @type {?JsonObject} */ (additionalParameters))
-    );
+    this.sendEvent_(propEvent, JSON.stringify(additionalParameters));
   }
 
-  /**
-   * @param {JsonObject} response
-   * @return {!../api/propensity-api.PropensityScore}
-   */
-  parsePropensityResponse_(response) {
-    let defaultScore =
-      /** @type {!../api/propensity-api.PropensityScore} */ ({});
+  parsePropensityResponse_(
+    response: PropensityResponse
+  ): PropensityScore | null {
     if (!response['header']) {
-      defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
+      return {
         header: {ok: false},
         body: {error: 'No valid response'},
-      });
-      return defaultScore;
+      };
     }
+
     const status = response['header'];
-    let scoreDetails = undefined;
     if (status['ok']) {
+      let propensityScore: PropensityScore | null = null;
       const scores = response['scores'];
-      scoreDetails = [];
+      const scoreDetails = [];
       for (let i = 0; i < scores.length; i++) {
         const result = scores[i];
         const scoreStatus = !!result['score'];
-        let scoreDetail;
+        let scoreDetail: ScoreDetail;
         if (scoreStatus) {
-          const value = /** @type {!../api/propensity-api.Score} */ ({
+          const value: Score = {
             value: result['score'],
             bucketed: result['score_type'] == 2,
-          });
-          scoreDetail = /** @type {!../api/propensity-api.Body} */ ({
+          };
+          scoreDetail = {
             product: result['product'],
             score: value,
-          });
+          };
         } else {
-          scoreDetail = /** @type {!../api/propensity-api.Body} */ ({
+          scoreDetail = {
             product: result['product'],
             error: result['error_message'],
-          });
+          };
         }
         scoreDetails.push(scoreDetail);
-      }
-      if (scoreDetails) {
-        defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
+
+        propensityScore = {
           header: {ok: true},
           body: {scores: scoreDetails},
-        });
+        };
       }
-      return defaultScore;
+      return propensityScore;
     }
-    defaultScore = /** @type {!../api/propensity-api.PropensityScore} */ ({
+
+    return {
       header: {ok: false},
       body: {error: response['error']},
-    });
-    return defaultScore;
+    };
   }
-  /**
-   * @param {string} referrer
-   * @param {string} type
-   * @return {?Promise<../api/propensity-api.PropensityScore>}
-   */
-  async getPropensity(referrer, type) {
-    const init = /** @type {!RequestInit} */ ({
+
+  async getPropensity(
+    referrer: string,
+    type: string
+  ): Promise<PropensityScore | null> {
+    const init: RequestInit = {
       method: 'GET',
       credentials: 'include',
-    });
+    };
     const url =
       adsUrl('/subopt/pts?products=') +
       this.publicationId_ +
@@ -253,7 +242,7 @@ export class PropensityServer {
       '&ref=' +
       referrer;
     const response = await this.fetcher_.fetch(this.propensityUrl_(url), init);
-    const responseJson = /** @type {JsonObject} */ (await response.json());
+    const responseJson = await response.json();
     return this.parsePropensityResponse_(responseJson);
   }
 }
