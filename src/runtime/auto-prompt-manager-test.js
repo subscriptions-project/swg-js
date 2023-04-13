@@ -1643,88 +1643,57 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.interventionDisplayed_).to.equal(null);
     });
 
-    it('should show survey if TYPE_REWARDED_SURVEY is next and is ga eligible but not gtag eligible', async () => {
-      setWinWithAnalytics(/* gtag */ false, /* ga */ true);
-      const storedImpressions = (CURRENT_TIME - 5).toString();
-      const storedDismissals = (CURRENT_TIME - 10).toString();
-      setupPreviousImpressionAndDismissals(storageMock, {
-        storedImpressions,
-        storedDismissals,
-        dismissedPrompts: AutoPromptType.CONTRIBUTION,
-        dismissedPromptGetCallCount: 2,
-        getUserToken: true,
-      });
-      miniPromptApiMock.expects('create').never();
+    [
+      {
+        gaEligible: false,
+        gtagEligible: true,
+      },
+      {
+        gaEligible: true,
+        gtagEligible: false,
+      },
+    ].forEach(({gaEligible, gtagEligible}) => {
+      it(`should show survey if TYPE_REWARDED_SURVEY is next and is ga eligible: ${gaEligible}, is gTag eligible: ${gtagEligible}`, async () => {
+        setWinWithAnalytics(/* gtag */ gtagEligible, /* ga */ gaEligible);
+        const storedImpressions = (CURRENT_TIME - 5).toString();
+        const storedDismissals = (CURRENT_TIME - 10).toString();
+        setupPreviousImpressionAndDismissals(storageMock, {
+          storedImpressions,
+          storedDismissals,
+          dismissedPrompts: AutoPromptType.CONTRIBUTION,
+          dismissedPromptGetCallCount: 2,
+          getUserToken: true,
+        });
+        miniPromptApiMock.expects('create').never();
 
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.CONTRIBUTION,
-        alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
-      });
-      await tick(10);
+        await autoPromptManager.showAutoPrompt({
+          autoPromptType: AutoPromptType.CONTRIBUTION,
+          alwaysShow: false,
+          displayLargePromptFn: alternatePromptSpy,
+        });
+        await tick(10);
 
-      expect(startSpy).to.have.been.calledOnce;
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REWARDED_SURVEY',
-        configurationId: 'survey_config_id',
-        onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
+        expect(startSpy).to.have.been.calledOnce;
+        expect(actionFlowSpy).to.have.been.calledWith(deps, {
+          action: 'TYPE_REWARDED_SURVEY',
+          configurationId: 'survey_config_id',
+          onCancel: sandbox.match.any,
+          autoPromptType: AutoPromptType.CONTRIBUTION,
+          isClosable: true,
+        });
+        expect(contributionPromptFnSpy).to.not.have.been.called;
+        expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+          'TYPE_REWARDED_SURVEY'
+        );
+        expect(
+          autoPromptManager.interventionDisplayed_.configurationId
+        ).to.equal('survey_config_id');
+        await verifyOnCancelStores(
+          storageMock,
+          actionFlowSpy,
+          'contribution,TYPE_REWARDED_SURVEY'
+        );
       });
-      expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        'TYPE_REWARDED_SURVEY'
-      );
-      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
-        'survey_config_id'
-      );
-      await verifyOnCancelStores(
-        storageMock,
-        actionFlowSpy,
-        'contribution,TYPE_REWARDED_SURVEY'
-      );
-    });
-
-    it('should show survey if TYPE_REWARDED_SURVEY is next and is gtag eligible but not ga eligible', async () => {
-      setWinWithAnalytics(/* gtag */ true, /* ga */ false);
-      const storedImpressions = (CURRENT_TIME - 5).toString();
-      const storedDismissals = (CURRENT_TIME - 10).toString();
-      setupPreviousImpressionAndDismissals(storageMock, {
-        storedImpressions,
-        storedDismissals,
-        dismissedPrompts: AutoPromptType.CONTRIBUTION,
-        dismissedPromptGetCallCount: 2,
-        getUserToken: true,
-      });
-      miniPromptApiMock.expects('create').never();
-
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.CONTRIBUTION,
-        alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
-      });
-      await tick(10);
-
-      expect(startSpy).to.have.been.calledOnce;
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REWARDED_SURVEY',
-        configurationId: 'survey_config_id',
-        onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.CONTRIBUTION,
-        isClosable: true,
-      });
-      expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        'TYPE_REWARDED_SURVEY'
-      );
-      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
-        'survey_config_id'
-      );
-      await verifyOnCancelStores(
-        storageMock,
-        actionFlowSpy,
-        'contribution,TYPE_REWARDED_SURVEY'
-      );
     });
 
     it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for ga nor gTag', async () => {
@@ -2525,6 +2494,357 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  describe('Non-Monetary Revenue Model with Audience Actions', () => {
+    let getArticleExpectation;
+
+    beforeEach(() => {
+      const autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        numImpressionsBetweenPrompts: 2,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+      });
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(false);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              SURVEY_INTERVENTION,
+              REGWALL_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+    });
+
+    it('should show the first Audience Action flow', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 2,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        // autoPromptType value not provided
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: undefined,
+        isClosable: true,
+      });
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REWARDED_SURVEY'
+      );
+      expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
+        'survey_config_id'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'TYPE_REWARDED_SURVEY'
+      );
+    });
+
+    it('should show the second Audience Action flow if the first was previously dismissed', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPrompts: 'TYPE_REWARDED_SURVEY',
+          dismissedPromptGetCallCount: 2,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        // autoPromptType value not provided
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: undefined,
+        isClosable: true,
+      });
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL'
+      );
+    });
+
+    it('should show the third Audience Action flow if the first two were previously dismissed', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPrompts: 'TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL',
+          dismissedPromptGetCallCount: 2,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        // autoPromptType value not provided
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        configurationId: 'newsletter_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: undefined,
+        isClosable: true,
+      });
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_NEWSLETTER_SIGNUP'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP'
+      );
+    });
+
+    it('should skip survey and show second Audience Action flow if survey was completed', async () => {
+      const storedSurveyCompleted = (CURRENT_TIME - 5).toString();
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 2,
+          storedSurveyCompleted,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        // autoPromptType value not provided
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: undefined,
+        isClosable: true,
+      });
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'TYPE_REGISTRATION_WALL'
+      );
+    });
+
+    it('should skip survey and show second Audience Action flow if survey data transfer failed', async () => {
+      const storedSurveyFailed = (CURRENT_TIME - 5).toString();
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 2,
+          storedSurveyFailed,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        // autoPromptType value not provided
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: undefined,
+        isClosable: true,
+      });
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'TYPE_REGISTRATION_WALL'
+      );
+    });
+
+    it('should show nothing if the the last Audience Action was previously dismissed', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPrompts:
+            'TYPE_REWARDED_SURVEY,TYPE_REGISTRATION_WALL,TYPE_NEWSLETTER_SIGNUP',
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        // autoPromptType value not provided
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(autoPromptManager.interventionDisplayed_).to.equal(null);
+    });
+
+    [
+      {
+        gaEligible: false,
+        gtagEligible: true,
+      },
+      {
+        gaEligible: true,
+        gtagEligible: false,
+      },
+    ].forEach(({gaEligible, gtagEligible}) => {
+      it(`should show survey if TYPE_REWARDED_SURVEY is next and is ga eligible ${gaEligible}, and is gTag eligible: ${gtagEligible}`, async () => {
+        setWinWithAnalytics(/* gtag */ gtagEligible, /* ga */ gaEligible);
+        setupPreviousImpressionAndDismissals(
+          storageMock,
+          {
+            dismissedPromptGetCallCount: 2,
+            getUserToken: true,
+          },
+          /* setAutopromptExpectations */ false
+        );
+        miniPromptApiMock.expects('create').never();
+
+        await autoPromptManager.showAutoPrompt({
+          // autoPromptType value not provided
+          alwaysShow: false,
+          displayLargePromptFn: alternatePromptSpy,
+        });
+        await tick(10);
+
+        expect(startSpy).to.have.been.calledOnce;
+        expect(actionFlowSpy).to.have.been.calledWith(deps, {
+          action: 'TYPE_REWARDED_SURVEY',
+          configurationId: 'survey_config_id',
+          onCancel: sandbox.match.any,
+          autoPromptType: undefined,
+          isClosable: true,
+        });
+        expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+          'TYPE_REWARDED_SURVEY'
+        );
+        expect(
+          autoPromptManager.interventionDisplayed_.configurationId
+        ).to.equal('survey_config_id');
+        await verifyOnCancelStores(
+          storageMock,
+          actionFlowSpy,
+          'TYPE_REWARDED_SURVEY'
+        );
+      });
+    });
+
+    it('should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for ga nor gTag', async () => {
+      setWinWithAnalytics(/* gtag */ false, /* ga */ false);
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 2,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        // autoPromptType value not provided
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: undefined,
+        isClosable: true,
+      });
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'TYPE_REGISTRATION_WALL'
+      );
+    });
+  });
+
   async function verifyOnCancelStores(storageMock, actionFlowSpy, setValue) {
     storageMock
       .expects('set')
@@ -2540,7 +2860,11 @@ describes.realWin('AutoPromptManager', (env) => {
     await tick(2);
   }
 
-  function setupPreviousImpressionAndDismissals(storageMock, setupArgs) {
+  function setupPreviousImpressionAndDismissals(
+    storageMock,
+    setupArgs,
+    setAutopromptExpectations = true
+  ) {
     const {
       storedImpressions,
       storedDismissals,
@@ -2560,16 +2884,18 @@ describes.realWin('AutoPromptManager', (env) => {
       setsNewShouldShowAutoPromptTimestamp: false,
       ...setupArgs,
     };
-    storageMock
-      .expects('get')
-      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
-      .resolves(storedImpressions)
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
-      .resolves(storedDismissals)
-      .once();
+    if (setAutopromptExpectations) {
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+        .resolves(storedImpressions)
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
+        .resolves(storedDismissals)
+        .once();
+    }
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.DISMISSED_PROMPTS, /* useLocalStorage */ true)
