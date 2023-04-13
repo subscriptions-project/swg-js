@@ -62,7 +62,7 @@ const forbiddenTerms = {
       'examples/sample-pub/sample-pub-app.js',
       'examples/sample-pub/service/sample-pub-oauth-app.js',
       'examples/sample-pub/service/authorization-app.js',
-      'src/runtime/propensity-server.js',
+      'src/runtime/propensity-server.ts',
     ],
   },
   'getCookie\\W': {
