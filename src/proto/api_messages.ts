@@ -1633,6 +1633,7 @@ export class SurveyAnswer implements Message {
 /** */
 export class SurveyDataTransferRequest implements Message {
   private surveyQuestions_: SurveyQuestion[] | null;
+  private storePpsInLocalStorage_: boolean | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1640,6 +1641,9 @@ export class SurveyDataTransferRequest implements Message {
     this.surveyQuestions_ = ((data[base] as unknown[][]) || []).map(
       (item) => new SurveyQuestion(item, includesLabel)
     );
+
+    this.storePpsInLocalStorage_ =
+      data[1 + base] == null ? null : (data[1 + base] as boolean);
   }
 
   getSurveyQuestionsList(): SurveyQuestion[] | null {
@@ -1650,11 +1654,20 @@ export class SurveyDataTransferRequest implements Message {
     this.surveyQuestions_ = value;
   }
 
+  getStorePpsInLocalStorage(): boolean | null {
+    return this.storePpsInLocalStorage_;
+  }
+
+  setStorePpsInLocalStorage(value: boolean): void {
+    this.storePpsInLocalStorage_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.surveyQuestions_
         ? this.surveyQuestions_.map((item) => item.toArray(includeLabel))
         : [], // field 1 - survey_questions
+      this.storePpsInLocalStorage_, // field 2 - store_pps_in_local_storage
     ];
     if (includeLabel) {
       arr.unshift(this.label());

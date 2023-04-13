@@ -47,12 +47,19 @@ const TEST_QUESTION_CATEGORY_2 = 'Test Question Category 2';
 const TEST_QUESTION_TEXT_2 = 'Test Question 2';
 const TEST_ANSWER_CATEGORY_1 = 'Test Answer Category 1';
 const TEST_ANSWER_TEXT_1 = 'Test Answer 1';
+const TEST_ANSWER_PPS_1 = '1';
 const TEST_ANSWER_CATEGORY_2 = 'Test Answer Category 2';
 const TEST_ANSWER_TEXT_2 = 'Test Answer 2';
+const TEST_ANSWER_PPS_2 = '2';
+const TEST_QUESTION_CATEGORY_3 = 'Test Question Category 3';
+const TEST_QUESTION_TEXT_3 = 'Test Question 3';
+const TEST_ANSWER_CATEGORY_3 = 'Test Answer Category 3';
+const TEST_ANSWER_TEXT_3 = 'Test Answer 3';
 
 const TEST_SURVEYANSWER_1 = new SurveyAnswer();
 TEST_SURVEYANSWER_1.setAnswerCategory(TEST_ANSWER_CATEGORY_1);
 TEST_SURVEYANSWER_1.setAnswerText(TEST_ANSWER_TEXT_1);
+TEST_SURVEYANSWER_1.setPpsValue(TEST_ANSWER_PPS_1);
 const TEST_SURVEYQUESTION_1 = new SurveyQuestion();
 TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_QUESTION_CATEGORY_1);
 TEST_SURVEYQUESTION_1.setQuestionText(TEST_QUESTION_TEXT_1);
@@ -61,6 +68,7 @@ TEST_SURVEYQUESTION_1.setSurveyAnswersList([TEST_SURVEYANSWER_1]);
 const TEST_SURVEYANSWER_2 = new SurveyAnswer();
 TEST_SURVEYANSWER_2.setAnswerCategory(TEST_ANSWER_CATEGORY_2);
 TEST_SURVEYANSWER_2.setAnswerText(TEST_ANSWER_TEXT_2);
+TEST_SURVEYANSWER_2.setPpsValue(TEST_ANSWER_PPS_2);
 const TEST_SURVEYQUESTION_2 = new SurveyQuestion();
 TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
 TEST_SURVEYQUESTION_2.setQuestionText(TEST_QUESTION_TEXT_2);
@@ -79,6 +87,24 @@ const TEST_EMPTY_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
 TEST_EMPTY_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_EMPTY,
 ]);
+
+const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS = new SurveyDataTransferRequest();
+TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setSurveyQuestionsList([
+  TEST_SURVEYQUESTION_1,
+  TEST_SURVEYQUESTION_2,
+]);
+TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setStorePpsInLocalStorage(true);
+
+const TEST_SURVEYANSWER_3 = new SurveyAnswer();
+TEST_SURVEYANSWER_3.setAnswerCategory(TEST_ANSWER_CATEGORY_3);
+TEST_SURVEYANSWER_3.setAnswerText(TEST_ANSWER_TEXT_3);
+const TEST_SURVEYQUESTION_3 = new SurveyQuestion();
+TEST_SURVEYQUESTION_3.setQuestionCategory(TEST_QUESTION_CATEGORY_3);
+TEST_SURVEYQUESTION_3.setQuestionText(TEST_QUESTION_TEXT_3);
+TEST_SURVEYQUESTION_3.setSurveyAnswersList([TEST_SURVEYANSWER_3]);
+const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES =
+  new SurveyDataTransferRequest();
+TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
 
 describes.realWin('AudienceActionFlow', (env) => {
   let win;
@@ -1008,6 +1034,150 @@ describes.realWin('AudienceActionFlow', (env) => {
     messageCallback(TEST_EMPTY_SURVEYDATATRANSFERREQUEST);
 
     await tick(10);
+  });
+
+  it(`handles a SurveyDataTransferRequest with successful PPS storage in empty localStorage`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const newIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
+    };
+    storageMock
+      .expects('set')
+      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
+      .once();
+
+    await audienceActionFlow.start();
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock.expects('execute').once();
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
+
+    await tick(10);
+
+    storageMock.verify();
+    activityIframeViewMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const existingIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['2', '3', '4']},
+    };
+    const newIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {
+        values: ['1', '2', '3', '4'],
+      },
+    };
+
+    storageMock
+      .expects('get')
+      .withExactArgs('ppstaxonomies', true)
+      .resolves(JSON.stringify(existingIabTaxonomyMap))
+      .once();
+
+    storageMock
+      .expects('set')
+      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
+      .once();
+
+    await audienceActionFlow.start();
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock.expects('execute').once();
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
+
+    await tick(10);
+
+    storageMock.verify();
+    activityIframeViewMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS ppstaxonomies but flag enabled`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES);
+
+    await tick(10);
+
+    activityIframeViewMock.verify();
+  });
+
+  it(`handles a SurveyDataTransferRequest with improper existing PPS`, async () => {
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const existingIabTaxonomyMapBadFormat = {
+      'test': {'values': ['5']},
+    };
+    const newIabTaxonomyMap = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
+    };
+
+    storageMock
+      .expects('get')
+      .withExactArgs('ppstaxonomies', true)
+      .resolves(JSON.stringify(existingIabTaxonomyMapBadFormat))
+      .once();
+
+    storageMock
+      .expects('set')
+      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
+      .once();
+
+    await audienceActionFlow.start();
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock.expects('execute').once();
+
+    const messageCallback =
+      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
+
+    await tick(10);
+
+    storageMock.verify();
+    activityIframeViewMock.verify();
   });
 
   it('opens dialog with scrolling disabled', async () => {

@@ -296,6 +296,12 @@ export class AudienceActionFlow {
       this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
+    const isPpsEligible = request.getStorePpsInLocalStorage();
+
+    if (isPpsEligible) {
+      await this.storePpsValuesFromSurveyAnswers(request);
+    }
+
     surveyDataTransferResponse.setSuccess(dataTransferSuccess);
     this.activityIframeView_.execute(surveyDataTransferResponse);
   }
@@ -321,6 +327,55 @@ export class AudienceActionFlow {
   }
 
   /**
+   * Populates localStorage with PPS configuration parameters based on
+   * SurveyDataTransferRequest.
+   **/
+  private async storePpsValuesFromSurveyAnswers(
+    request: SurveyDataTransferRequest
+  ): Promise<void> {
+    const iabAudienceKey = StorageKeys.PPS_TAXONOMIES;
+    // PPS value field is optional and category may not be populated
+    // in accordance to IAB taxonomies.
+    const ppsConfigParams = request
+      .getSurveyQuestionsList()!
+      .flatMap((question) => question.getSurveyAnswersList())
+      .map((answer) => answer?.getPpsValue())
+      .filter((ppsValue) => ppsValue !== null);
+
+    const existingIabTaxonomy = await this.storage_.get(
+      iabAudienceKey,
+      /* useLocalStorage= */ true
+    );
+    let existingIabTaxonomyValues: string[] = [];
+    try {
+      const parsedExistingIabTaxonomyValues =
+        JSON.parse(existingIabTaxonomy)?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
+          ?.values;
+      existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
+        ? parsedExistingIabTaxonomyValues
+        : [];
+    } catch (e) {
+      // Ignore error since it defaults to empty array.
+    }
+
+    const iabTaxonomyValues = Array.from(
+      new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
+    );
+    const iabTaxonomy = {
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
+    };
+
+    await Promise.resolve(
+      this.storage_.set(
+        iabAudienceKey,
+        JSON.stringify(iabTaxonomy),
+        /* useLocalStorage= */ true
+      )
+    );
+    // TODO(caroljli): clearcut event logging
+  }
+
+  /*
    * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
    * for whether or not logging was successful.
    */
