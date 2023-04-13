@@ -351,11 +351,9 @@ export class AudienceActionFlow {
       const parsedExistingIabTaxonomyValues =
         JSON.parse(existingIabTaxonomy)?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
           ?.values || [];
-      // If array is empty should default to empty array anyway.
-      existingIabTaxonomyValues =
-        typeof parsedExistingIabTaxonomyValues[0] === 'string'
-          ? parsedExistingIabTaxonomyValues
-          : [];
+      existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
+        ? parsedExistingIabTaxonomyValues
+        : [];
     } catch (e) {
       // Ignore error since it defaults to empty array.
     }

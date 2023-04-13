@@ -174,16 +174,6 @@ describes.realWin('AudienceActionFlow', (env) => {
     sandbox.stub(runtime, 'win').returns(winWithNoGtag);
   }
 
-  async function addToLocalStorage(key, value) {
-    await runtime.storage().set(key, value, true);
-    storageMock = sandbox.mock(runtime.storage());
-  }
-
-  function deleteFromLocalStorage(key) {
-    runtime.storage().remove(key, true);
-    storageMock = sandbox.mock(runtime.storage());
-  }
-
   [
     {
       action: 'TYPE_REGISTRATION_WALL',
@@ -1089,15 +1079,19 @@ describes.realWin('AudienceActionFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     const existingIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['3', '4', '1']},
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['2', '3', '4']},
     };
     const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2', '3', '4']},
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {
+        values: ['1', '2', '3', '4'],
+      },
     };
-    await addToLocalStorage(
-      'ppstaxonomies',
-      JSON.stringify(existingIabTaxonomyMap)
-    );
+
+    storageMock
+      .expects('get')
+      .withExactArgs('ppstaxonomies', true)
+      .resolves(JSON.stringify(existingIabTaxonomyMap))
+      .once();
 
     storageMock
       .expects('set')
@@ -1118,8 +1112,6 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     storageMock.verify();
     activityIframeViewMock.verify();
-
-    deleteFromLocalStorage(Constants.IAB_AUDIENCE_TAXONOMIES);
   });
 
   it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS ppstaxonomies but flag enabled`, async () => {
@@ -1160,10 +1152,12 @@ describes.realWin('AudienceActionFlow', (env) => {
     const newIabTaxonomyMap = {
       [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
     };
-    await addToLocalStorage(
-      'ppstaxonomies',
-      JSON.stringify(existingIabTaxonomyMapBadFormat)
-    );
+
+    storageMock
+      .expects('get')
+      .withExactArgs('ppstaxonomies', true)
+      .resolves(JSON.stringify(existingIabTaxonomyMapBadFormat))
+      .once();
 
     storageMock
       .expects('set')
@@ -1184,8 +1178,6 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     storageMock.verify();
     activityIframeViewMock.verify();
-
-    deleteFromLocalStorage('test');
   });
 
   it('opens dialog with scrolling disabled', async () => {
