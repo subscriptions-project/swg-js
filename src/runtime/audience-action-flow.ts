@@ -350,7 +350,7 @@ export class AudienceActionFlow {
     try {
       const parsedExistingIabTaxonomyValues =
         JSON.parse(existingIabTaxonomy)?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
-          ?.values || [];
+          ?.values;
       existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
         ? parsedExistingIabTaxonomyValues
         : [];
