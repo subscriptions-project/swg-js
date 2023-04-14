@@ -173,7 +173,9 @@ export class PayClient {
     );
 
     let resolver: (result: boolean) => void;
-    const promise = new Promise<boolean>((resolve) => (resolver = resolve));
+    const promise = new Promise<boolean>((resolve) => {
+      resolver = resolve;
+    });
 
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(async (verifier) => {
