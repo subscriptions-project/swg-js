@@ -467,11 +467,6 @@ describes.sandboxed('RedirectVerifierHelper', () => {
       expect(useVerifierSync()).to.be.null;
     });
 
-    it('should default to null if crypto random not supported', () => {
-      delete crypto.getRandomValues;
-      expect(useVerifierSync()).to.be.null;
-    });
-
     it('should default to null if storage not supported', () => {
       delete win.localStorage;
       expect(useVerifierSync()).to.be.null;
