@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+import {ActivityPorts} from '../components/activities';
+import {AnalyticsService} from './analytics-service';
+import {ClientEventManager} from './client-event-manager';
+import {Deps} from './deps';
 import {
   PaymentData,
   PaymentDataError,
@@ -27,10 +31,6 @@ import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
 import {getSwgMode} from './services';
-import {Deps} from './deps';
-import {ActivityPorts} from '../components/activities';
-import {AnalyticsService} from './analytics-service';
-import {ClientEventManager} from './client-event-manager';
 
 export interface PayOptionsDef {
   forceRedirect?: boolean;
