@@ -79,7 +79,7 @@ const forbiddenTerms = {
   },
   'localStorage': {
     message: requiresReviewPrivacy,
-    allowlist: ['src/runtime/pay-client.js', 'src/runtime/storage.ts'],
+    allowlist: ['src/runtime/pay-client.ts', 'src/runtime/storage.ts'],
   },
   'sessionStorage': {
     message: requiresReviewPrivacy,

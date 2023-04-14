@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import {ActivityPorts} from '../components/activities';
+import {AnalyticsService} from './analytics-service';
+import {ClientEventManager} from './client-event-manager';
+import {Deps} from './deps';
+import {
+  PaymentData,
+  PaymentDataError,
+  PaymentDataRequest,
+  PaymentOptions,
+  PaymentsAsyncClient,
+} from '../../third_party/gpay/src/payjs_async';
 import {Preconnect} from '../utils/preconnect';
 import {StorageKeys} from '../utils/constants';
 import {bytesToString, stringToBytes} from '../utils/bytes';
@@ -22,60 +32,51 @@ import {createCancelError} from '../utils/errors';
 import {feCached} from './services';
 import {getSwgMode} from './services';
 
-/**
- * @typedef {{
- *   forceRedirect: (boolean|undefined),
- *   forceDisableNative: (boolean|undefined),
- * }}
- */
-export let PayOptionsDef;
+export interface PayOptionsDef {
+  forceRedirect?: boolean;
+  forceDisableNative?: boolean;
+}
 
 /**
- * @const {!Object<string, string>}
- * @package Visible for testing only.
+ * Visible for testing only.
  */
-export const PAY_ORIGIN = {
+export const PAY_ORIGIN: {[key: string]: string} = {
   'PRODUCTION': 'https://pay.google.com',
   'SANDBOX': 'https://pay.sandbox.google.com',
 };
 
-/** @return {string} */
-function payUrl() {
+function payUrl(): string {
   return feCached(PAY_ORIGIN[getSwgMode().payEnv] + '/gp/p/ui/pay');
 }
 
-/**
- */
+interface PaymentCancelledError extends Error {
+  productType: string | null;
+}
+
 export class PayClient {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  constructor(deps) {
-    /** @private @const {!Window} */
+  private readonly activityPorts_: ActivityPorts;
+  private readonly analytics_: AnalyticsService;
+  private readonly eventManager_: ClientEventManager;
+  private readonly preconnect_: Preconnect;
+  private readonly win_: Window;
+
+  private client_: PaymentsAsyncClient | null = null;
+  private redirectVerifierHelper_: RedirectVerifierHelper;
+  private response_: Promise<PaymentData> | null = null;
+  private responseCallback_:
+    | ((paymentDataPromise: Promise<PaymentData>) => void)
+    | null = null;
+  private request_: PaymentDataRequest | null = null;
+
+  constructor(deps: Deps) {
     this.win_ = deps.win();
 
-    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = deps.activities();
 
-    /** @private {?function(!Promise<!PaymentData>)} */
-    this.responseCallback_ = null;
-
-    /** @private {?PaymentDataRequest} */
-    this.request_ = null;
-
-    /** @private {?Promise<!PaymentData>} */
-    this.response_ = null;
-
-    /** @private @const {!./analytics-service.AnalyticsService} */
     this.analytics_ = deps.analytics();
 
-    /** @private @const {!RedirectVerifierHelper} */
     this.redirectVerifierHelper_ = new RedirectVerifierHelper(this.win_);
 
-    /** @private {?PaymentsAsyncClient} */
-    this.client_ = null;
-
-    /** @private @const {!Preconnect} */
     this.preconnect_ = new Preconnect(this.win_.document);
 
     // If the page is started from a redirect, immediately initialize
@@ -88,18 +89,14 @@ export class PayClient {
     // Prepare new verifier pair.
     this.redirectVerifierHelper_.prepare();
 
-    /** @private @const {!./client-event-manager.ClientEventManager} */
     this.eventManager_ = deps.eventManager();
   }
 
-  /**
-   * @param {!PaymentOptions} options
-   * @param {string} googleTransactionId
-   * @param {function(!Promise<!PaymentData>)} handler
-   * @return {!PaymentsAsyncClient}
-   * @private
-   */
-  createClient_(options, googleTransactionId, handler) {
+  private createClient_(
+    options: PaymentOptions,
+    googleTransactionId: string,
+    handler: (paymentDataPromise: Promise<PaymentData>) => void
+  ): PaymentsAsyncClient {
     // Assign Google Transaction ID to PaymentsAsyncClient.googleTransactionId_
     // so it can be passed to gpay_async.js and stored in payment clearcut log.
     PaymentsAsyncClient.googleTransactionId_ = googleTransactionId;
@@ -111,10 +108,7 @@ export class PayClient {
     );
   }
 
-  /**
-   * @param {!../utils/preconnect.Preconnect} pre
-   */
-  preconnect(pre) {
+  preconnect(pre: Preconnect): void {
     pre.prefetch(payUrl());
     pre.prefetch(
       'https://payments.google.com/payments/v4/js/integrator.js?ss=md'
@@ -125,16 +119,15 @@ export class PayClient {
   /**
    * Initializes Payments client.
    */
-  initializePaymentsClient_() {
+  private initializePaymentsClient_(): void {
     this.client_ = this.createClient_(
-      /** @type {!PaymentOptions} */
-      ({
+      {
         environment: getSwgMode().payEnv,
         'i': {
           'redirectKey': this.redirectVerifierHelper_.restoreKey(),
         },
-      }),
-      this.analytics_.getTransactionId(),
+      },
+      this.analytics_.getTransactionId()!,
       this.handleResponse_.bind(this)
     );
   }
@@ -151,19 +144,15 @@ export class PayClient {
     return hasRedirectEncryptedCallbackData && hasSwgRequest;
   }
 
-  /**
-   * @return {string}
-   */
-  getType() {
+  getType(): string {
     // TODO(alin04): remove once all references removed.
     return 'PAYJS';
   }
 
-  /**
-   * @param {!PaymentDataRequest} paymentRequest
-   * @param {!PayOptionsDef=} options
-   */
-  start(paymentRequest, options = {}) {
+  start(
+    paymentRequest: PaymentDataRequest,
+    options: PayOptionsDef = {}
+  ): Promise<boolean> {
     this.request_ = paymentRequest;
 
     if (!this.client_) {
@@ -172,9 +161,7 @@ export class PayClient {
     }
 
     if (options.forceRedirect) {
-      paymentRequest = Object.assign(paymentRequest, {
-        'forceRedirect': options.forceRedirect || false,
-      });
+      paymentRequest.forceRedirect = true;
     }
 
     setInternalParam(
@@ -185,8 +172,10 @@ export class PayClient {
       options.forceDisableNative || this.win_ != this.top_()
     );
 
-    let resolver = null;
-    const promise = new Promise((resolve) => (resolver = resolve));
+    let resolver: (result: boolean) => void;
+    const promise = new Promise<boolean>((resolve) => {
+      resolver = resolve;
+    });
 
     // Notice that the callback for verifier may execute asynchronously.
     this.redirectVerifierHelper_.useVerifier(async (verifier) => {
@@ -199,17 +188,16 @@ export class PayClient {
         await this.analytics_.getLoggingPromise();
       }
 
-      this.client_.loadPaymentData(paymentRequest);
+      this.client_!.loadPaymentData(paymentRequest);
       resolver(true);
     });
 
     return promise;
   }
 
-  /**
-   * @param {function(!Promise<!PaymentData>)} callback
-   */
-  async onResponse(callback) {
+  async onResponse(
+    callback: (paymentDataPromise: Promise<PaymentData>) => void
+  ): Promise<void> {
     this.responseCallback_ = callback;
 
     if (!this.response_) {
@@ -222,11 +210,7 @@ export class PayClient {
     callback(this.convertResponse_(this.response_, this.request_));
   }
 
-  /**
-   * @param {!Promise<!PaymentData>} responsePromise
-   * @private
-   */
-  handleResponse_(responsePromise) {
+  private handleResponse_(responsePromise: Promise<PaymentData>): void {
     this.response_ = responsePromise;
     if (this.responseCallback_) {
       this.responseCallback_(
@@ -235,13 +219,10 @@ export class PayClient {
     }
   }
 
-  /**
-   * @param {!Promise<!PaymentData>} response
-   * @param {?PaymentDataRequest} request
-   * @return {!Promise<!PaymentData>}
-   * @private
-   */
-  async convertResponse_(response, request) {
+  private async convertResponse_(
+    response: Promise<PaymentData>,
+    request: PaymentDataRequest | null
+  ): Promise<PaymentData> {
     try {
       const res = await response;
       // Temporary client side solution to remember the
@@ -251,13 +232,12 @@ export class PayClient {
         res['paymentRequest'] = request;
       }
       return res;
-    } catch (reason) {
-      if (typeof reason == 'object' && reason['statusCode'] == 'CANCELED') {
-        const error = createCancelError('Cancelled');
+    } catch (err) {
+      const reason = err as PaymentDataError;
+      if (typeof reason == 'object' && reason['statusCode'] === 'CANCELED') {
+        const error = createCancelError('Cancelled') as PaymentCancelledError;
         if (request) {
-          error['productType'] = /** @type {!PaymentDataRequest} */ (request)[
-            'i'
-          ]['productType'];
+          error['productType'] = request['i']!['productType']!;
         } else {
           error['productType'] = null;
         }
@@ -268,23 +248,16 @@ export class PayClient {
     }
   }
 
-  /**
-   * @return {!Window}
-   * @private
-   */
-  top_() {
-    // Only exists for testing since it's not possible to override `window.top`.
-    return this.win_.top;
+  /** Only exists for testing since it's not possible to override `window.top`. */
+  private top_(): Window {
+    return this.win_.top!;
   }
 }
 
-/**
- * @typedef {{
- *   key: string,
- *   verifier: string,
- * }}
- */
-let RedirectVerifierPairDef;
+interface RedirectVerifierPairDef {
+  key: string;
+  verifier: string;
+}
 
 /**
  * This helper generates key/verifier pair for the redirect mode. When the
@@ -294,29 +267,23 @@ let RedirectVerifierPairDef;
  * verifier in use: we also use GAIA. However, we have to fallback to this
  * verifier when GAIA is not available.
  *
- * @package Visible for testing only.
+ * Visible for testing only.
  */
 export class RedirectVerifierHelper {
-  /**
-   * @param {!Window} win
-   */
-  constructor(win) {
-    /** @private @const {!Window} */
-    this.win_ = win;
+  pairPromise_: Promise<RedirectVerifierPairDef | null> | null = null;
+  pair_: RedirectVerifierPairDef | null = null;
 
-    /** @private {?Promise<?RedirectVerifierPairDef>} */
+  constructor(private readonly win_: Window) {
     this.pairPromise_ = null;
 
-    /** @private {?RedirectVerifierPairDef} */
     this.pair_ = null;
   }
 
   /**
    * To avoid popup blockers, the key/verifier pair is created as soon as
    * possible.
-   * @return {?Promise}
    */
-  prepare() {
+  prepare(): Promise<void> {
     return this.getOrCreatePair_(() => {});
   }
 
@@ -335,10 +302,8 @@ export class RedirectVerifierHelper {
    *
    * The key corresponding to the returned verifier is stored in the session
    * storage and can be later restored using `restoreKey` method.
-   *
-   * @param {function(?string)} callback
    */
-  useVerifier(callback) {
+  useVerifier(callback: (verifier: string | null) => void): void {
     this.getOrCreatePair_((pair) => {
       if (pair) {
         try {
@@ -356,9 +321,8 @@ export class RedirectVerifierHelper {
 
   /**
    * Restores the redirect key from the session storage. The key may be null.
-   * @return {?string}
    */
-  restoreKey() {
+  restoreKey(): string | null {
     try {
       return (
         (this.win_.localStorage &&
@@ -370,12 +334,9 @@ export class RedirectVerifierHelper {
     }
   }
 
-  /**
-   * @param {function(?RedirectVerifierPairDef)} callback
-   * @return {?Promise}
-   * @private
-   */
-  async getOrCreatePair_(callback) {
+  private async getOrCreatePair_(
+    callback: (pair: RedirectVerifierPairDef | null) => void
+  ): Promise<void> {
     // Only create pair once.
     if (!this.pairPromise_) {
       if (this.supportsVerification_()) {
@@ -383,7 +344,7 @@ export class RedirectVerifierHelper {
         this.pair_ = await this.pairPromise_;
       } else {
         // Handle lack of verification support immediately.
-        this.pairPromise_ = Promise.resolve();
+        this.pairPromise_ = Promise.resolve(null);
         this.pair_ = null;
       }
     }
@@ -391,11 +352,7 @@ export class RedirectVerifierHelper {
     callback(this.pair_);
   }
 
-  /**
-   * @return {boolean}
-   * @private
-   */
-  supportsVerification_() {
+  private supportsVerification_(): boolean {
     // Check that the platform can fully support verification. That means
     // that it's expected to implement the following APIs:
     // a. Local storage (localStorage);
@@ -416,17 +373,12 @@ export class RedirectVerifierHelper {
     return !!(
       supportsLocalStorage &&
       crypto &&
-      crypto.getRandomValues &&
       crypto.subtle &&
       crypto.subtle.digest
     );
   }
 
-  /**
-   * @return {!Promise<?RedirectVerifierPairDef>}
-   * @private
-   */
-  async createPair_() {
+  private async createPair_(): Promise<RedirectVerifierPairDef | null> {
     // Support test mocks.
     const crypto = this.win_.crypto;
 
@@ -445,9 +397,7 @@ export class RedirectVerifierHelper {
       );
 
       // 4. Create a verifier.
-      const verifier = btoa(
-        bytesToString(new Uint8Array(/** @type {!ArrayBuffer} */ (buffer)))
-      );
+      const verifier = btoa(bytesToString(new Uint8Array(buffer)));
 
       return {key, verifier};
     } catch (reason) {
@@ -458,12 +408,11 @@ export class RedirectVerifierHelper {
   }
 }
 
-/**
- * @param {!PaymentDataRequest} paymentRequest
- * @param {string} param
- * @param {*} value
- */
-function setInternalParam(paymentRequest, param, value) {
+function setInternalParam(
+  paymentRequest: PaymentDataRequest,
+  param: string,
+  value: unknown
+): void {
   paymentRequest['i'] = Object.assign(paymentRequest['i'] || {}, {
     [param]: value,
   });
