@@ -300,8 +300,6 @@ export class RedirectVerifierHelper {
    *
    * The key corresponding to the returned verifier is stored in the session
    * storage and can be later restored using `restoreKey` method.
-   *
-   * @param {function(?string)} callback
    */
   useVerifier(callback: (verifier: string | null) => void): void {
     this.getOrCreatePair_((pair) => {
@@ -397,9 +395,7 @@ export class RedirectVerifierHelper {
       );
 
       // 4. Create a verifier.
-      const verifier = btoa(
-        bytesToString(new Uint8Array(/** @type {!ArrayBuffer} */ buffer))
-      );
+      const verifier = btoa(bytesToString(new Uint8Array(buffer)));
 
       return {key, verifier};
     } catch (reason) {
