@@ -412,7 +412,7 @@ function setInternalParam(
   paymentRequest: PaymentDataRequest,
   param: string,
   value: unknown
-) {
+): void {
   paymentRequest['i'] = Object.assign(paymentRequest['i'] || {}, {
     [param]: value,
   });
