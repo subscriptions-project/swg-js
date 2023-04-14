@@ -161,9 +161,7 @@ export class PayClient {
     }
 
     if (options.forceRedirect) {
-      paymentRequest = Object.assign(paymentRequest, {
-        'forceRedirect': options.forceRedirect || false,
-      });
+      paymentRequest.forceRedirect = true;
     }
 
     setInternalParam(

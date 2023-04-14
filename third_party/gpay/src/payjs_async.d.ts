@@ -90,6 +90,7 @@ interface PaymentDataRequest {
   transactionInfo?: TransactionInfo;
   swg?: SwgParameters;
   i?: InternalParameters;
+  forceRedirect?: boolean;
 }
 
 /**
