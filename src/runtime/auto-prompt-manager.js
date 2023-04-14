@@ -274,9 +274,7 @@ export class AutoPromptManager {
 
     const interventionDisplayedIsAutoPromptType =
       this.interventionDisplayed_ === null ||
-      // Only need to check contributions because Subsciptions interventions
-      // will not be saved.
-      this.isContribution_({autoPromptType: this.interventionDisplayed_.type});
+      this.isAutoPromptType_(this.interventionDisplayed_.type);
     if (shouldShowAutoPrompt && interventionDisplayedIsAutoPromptType) {
       this.deps_.win().setTimeout(() => {
         this.wasAutoPromptDisplayed_ = true;
@@ -317,6 +315,17 @@ export class AutoPromptManager {
     return (
       params.autoPromptType === AutoPromptType.CONTRIBUTION ||
       params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+    );
+  }
+
+  /**
+   * @param {!string} interventionType
+   * @return {!boolean}
+   */
+  isAutoPromptType_(interventionType) {
+    return (
+      this.isSubscription_({autoPromptType: interventionType}) ||
+      this.isContribution_({autoPromptType: interventionType})
     );
   }
 
@@ -478,9 +487,7 @@ export class AutoPromptManager {
    *
    * This has the side effect of setting this.interventionDisplayed_ to an audience action that should
    * be displayed. If this field is not set, there is no audience action to show, and the triggering
-   * flow should fall back to the AutoPrompt, if one is available. This is ignored for Subscription
-   * models as recording the displayed intervention is only used for recording prompt dismissals,
-   * which only applies to Contribution and Non-Monetary models.
+   * flow should fall back to the AutoPrompt snippet, if one is available.
    * @param {{
    *   article: (!./entitlements-manager.Article),
    *   autoPromptType: (AutoPromptType|undefined),
@@ -528,6 +535,14 @@ export class AutoPromptManager {
 
     // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
+      this.interventionDisplayed_ = actionToUse;
+      if (shouldShowAutoPrompt || actionToUse.type === TYPE_SUBSCRIPTION) {
+        // WARNING: Refers explicity to the Subscription AutoPromptType,
+        // which CANNOT be a potential audience action. This is not to be
+        // confused with the AudienceActionType TYPE_SUBSCRIPTION, which
+        // is part of the pre-monetization effort.
+        this.interventionDisplayed_ = {type: AutoPromptType.SUBSCRIPTION};
+      }
       return actionToUse;
     }
 
