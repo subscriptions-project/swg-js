@@ -109,7 +109,7 @@ export class ButtonApi {
     }
     button.setAttribute(
       'title',
-      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button) || ''
+      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button)!
     );
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
 
@@ -145,7 +145,7 @@ export class ButtonApi {
       theme!
     ).replace(
       '$textContent$',
-      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button) || ''
+      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button)!
     );
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_OFFERS_SWG_BUTTON);
 
@@ -181,7 +181,7 @@ export class ButtonApi {
       theme!
     ).replace(
       '$textContent$',
-      msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, button) || ''
+      msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, button)!
     );
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON);
 
