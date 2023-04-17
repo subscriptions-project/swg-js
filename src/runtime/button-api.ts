@@ -17,7 +17,7 @@
 import {ASSETS} from '../constants';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonOptions, SmartButtonOptions} from '../api/subscriptions';
-// @ts-ignore: (b/x) Migrate to TypeScript.
+// @ts-ignore: (b/276949133) Migrate to TypeScript.
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
