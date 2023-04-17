@@ -20,11 +20,11 @@ import {ButtonOptions, SmartButtonOptions} from '../api/subscriptions';
 // @ts-ignore: (b/276949133) Migrate to TypeScript.
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
+import {Doc} from '../model/doc';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
-import {Doc} from '../model/doc';
 
 /**
  * Properties:
