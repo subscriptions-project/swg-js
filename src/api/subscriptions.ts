@@ -538,7 +538,7 @@ export interface ButtonOptions {
   /** "Light" or "dark". Default is "light". */
   lang?: string;
   /** Whether to grey out the button. */
-  disable?: boolean;
+  enable?: boolean;
 }
 
 export interface SmartButtonOptions {
