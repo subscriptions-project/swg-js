@@ -569,6 +569,10 @@ export interface SubscriptionRequest {
    * to make it non-recurring.
    */
   oneTime?: boolean;
+  /**
+   * Optional. Extra data relating to the request.
+   */
+  metadata?: object;
 }
 
 export interface LinkSubscriptionRequest {

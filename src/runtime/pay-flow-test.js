@@ -657,7 +657,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
-    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
   });
 
   it(
@@ -884,7 +884,7 @@ describes.realWin('PayCompleteFlow', (env) => {
 
     await flow.start(response);
     await flow.readyPromise_;
-    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
   });
 
   it('should have valid flow constructed w/ useUpdatedConfirmUi set to true', async () => {
@@ -928,7 +928,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
-    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
   });
 
   it('should have valid flow with skipAccountCreationScreen true', async () => {
@@ -973,7 +973,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .resolves(port);
     await flow.start(response);
     await flow.readyPromise_;
-    expect(PayCompleteFlow.waitingForPayClient_).to.be.true;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
   });
 
   it('constructs valid flow w/ virtual gift url params', async () => {
@@ -1474,7 +1474,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       });
 
       it('should log confirm TX ID for non-redirect case', async () => {
-        PayCompleteFlow.waitingForPayClient_ = true;
+        PayCompleteFlow.waitingForPayClient = true;
         eventManagerMock
           .expects('logSwgEvent')
           .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
@@ -1495,7 +1495,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       });
 
       it('should log a change in TX ID for non-redirect case', async () => {
-        PayCompleteFlow.waitingForPayClient_ = true;
+        PayCompleteFlow.waitingForPayClient = true;
         const newTxId = 'NEW_TRANSACTION_ID';
         const eventParams = new EventParams();
         eventParams.setGpayTransactionId(newTxId);
@@ -1519,7 +1519,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       });
 
       it('log no TX ID from gPay and that logging has occured', async () => {
-        PayCompleteFlow.waitingForPayClient_ = true;
+        PayCompleteFlow.waitingForPayClient = true;
         const eventParams = new EventParams();
         eventParams.setHadLogged(true);
         eventManagerMock
@@ -1563,7 +1563,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     });
 
     it('should log ACTION_PAYMENT_COMPLETE with contribution param', async () => {
-      PayCompleteFlow.waitingForPayClient_ = true;
+      PayCompleteFlow.waitingForPayClient = true;
       eventManagerMock
         .expects('logSwgEvent')
         .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);

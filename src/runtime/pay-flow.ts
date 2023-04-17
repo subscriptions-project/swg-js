@@ -28,11 +28,20 @@ import {
 } from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {AnalyticsService} from './analytics-service';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
+import {PageConfig} from '../model/page-config';
+import {PayClient, PaymentCancelledError} from './pay-client';
 import {
   ProductType,
   SubscriptionFlows,
+  SubscriptionRequest,
   WindowOpenMode,
 } from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
@@ -42,25 +51,29 @@ import {getPropertyFromJsonString} from '../utils/json';
 import {getSwgMode} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseUrl} from '../utils/url';
+import {ActivityPorts} from '../components/activities';
+import {
+  PaymentData,
+  SwgCallbackData,
+} from '../../third_party/gpay/src/payjs_async';
 
 /**
  * Subscribe with Google request to pass to payments.
- *  @typedef {{
- *    skuId: string,
- *    oldSku: (string|undefined),
- *    replaceSkuProrationMode: (number|undefined),
- *    paymentRecurrence: (number|undefined),
- *    swgVersion: (string|undefined),
- *    metadata: (Object|undefined)
- * }}
  */
-export let SwgPaymentRequest;
+export interface SwgPaymentRequest {
+  skuId: string;
+  publicationId?: string;
+  oldSku?: string;
+  replaceSkuProrationMode?: number;
+  paymentRecurrence?: number;
+  swgVersion?: string;
+  metadata?: object;
+}
 
 /**
  * String values input by the publisher are mapped to the number values.
- * @type {!Object<string, number>}
  */
-export const ReplaceSkuProrationModeMapping = {
+export const ReplaceSkuProrationModeMapping: {[key: string]: number} = {
   // The replacement takes effect immediately, and the remaining time will
   // be prorated and credited to the user. This is the current default
   // behavior.
@@ -72,12 +85,10 @@ export const RecurrenceMapping = {
   'ONE_TIME': 2,
 };
 
-/**
- * @param {string} sku
- * @param {?string=} subscriptionFlow
- * @return {!EventParams}
- */
-function getEventParams(sku, subscriptionFlow = null) {
+function getEventParams(
+  sku: string,
+  subscriptionFlow: string | null = null
+): EventParams {
   return new EventParams([, , , , sku, , , subscriptionFlow]);
 }
 
@@ -85,49 +96,32 @@ function getEventParams(sku, subscriptionFlow = null) {
  * The flow to initiate payment process.
  */
 export class PayStartFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!../api/subscriptions.SubscriptionRequest} subscriptionRequest
-   * @param {!../api/subscriptions.ProductType} productType
-   */
+  private readonly analyticsService_: AnalyticsService;
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly eventManager_: ClientEventManager;
+  private readonly pageConfig_: PageConfig;
+  private readonly payClient_: PayClient;
+
   constructor(
-    deps,
-    subscriptionRequest,
-    productType = ProductType.SUBSCRIPTION
+    private readonly deps_: Deps,
+    private readonly subscriptionRequest_: SubscriptionRequest,
+    private readonly productType_: ProductType = ProductType.SUBSCRIPTION
   ) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+    this.payClient_ = deps_.payClient();
 
-    /** @private @const {!./pay-client.PayClient} */
-    this.payClient_ = deps.payClient();
+    this.pageConfig_ = deps_.pageConfig();
 
-    /** @private @const {!../model/page-config.PageConfig} */
-    this.pageConfig_ = deps.pageConfig();
+    this.analyticsService_ = deps_.analytics();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.eventManager_ = deps_.eventManager();
 
-    /** @private @const {!../api/subscriptions.SubscriptionRequest} */
-    this.subscriptionRequest_ = subscriptionRequest;
-
-    /**@private @const {!ProductType} */
-    this.productType_ = productType;
-
-    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
-    this.analyticsService_ = deps.analytics();
-
-    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
-
-    /** @private @const {!../runtime/client-config-manager.ClientConfigManager} */
-    this.clientConfigManager_ = deps.clientConfigManager();
+    this.clientConfigManager_ = deps_.clientConfigManager();
   }
 
   /**
    * Starts the payments flow.
-   * @return {!Promise}
    */
-  async start() {
+  async start(): Promise<void> {
     // Get the paySwgVersion for buyflow.
     const clientConfig = await this.clientConfigManager_.getClientConfig();
     this.start_(clientConfig.paySwgVersion);
@@ -135,14 +129,12 @@ export class PayStartFlow {
 
   /**
    * Starts the payments flow for the given version.
-   * @param {!string=} paySwgVersion
-   * @return {!Promise}
    */
-  start_(paySwgVersion) {
-    const /** @type {SwgPaymentRequest} */ swgPaymentRequest = {
-        'skuId': this.subscriptionRequest_['skuId'],
-        'publicationId': this.pageConfig_.getPublicationId(),
-      };
+  private start_(paySwgVersion?: string): void {
+    const swgPaymentRequest: SwgPaymentRequest = {
+      'skuId': this.subscriptionRequest_['skuId'],
+      'publicationId': this.pageConfig_.getPublicationId(),
+    };
 
     if (paySwgVersion) {
       swgPaymentRequest['swgVersion'] = paySwgVersion;
@@ -186,10 +178,9 @@ export class PayStartFlow {
       true,
       getEventParams(swgPaymentRequest['skuId'])
     );
-    PayCompleteFlow.waitingForPayClient_ = true;
+    PayCompleteFlow.waitingForPayClient = true;
     this.payClient_.start(
-      /** @type {!PaymentDataRequest} */
-      ({
+      {
         'apiVersion': 1,
         'allowedPaymentMethods': ['CARD'],
         'environment': getSwgMode().payEnv,
@@ -199,7 +190,7 @@ export class PayStartFlow {
           'startTimeMs': Date.now(),
           'productType': this.productType_,
         },
-      }),
+      },
       {
         forceRedirect:
           this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT,
@@ -207,7 +198,6 @@ export class PayStartFlow {
         forceDisableNative: paySwgVersion == '2' || paySwgVersion == '3',
       }
     );
-    return Promise.resolve();
   }
 }
 
@@ -215,11 +205,9 @@ export class PayStartFlow {
  * The flow for successful payments completion.
  */
 export class PayCompleteFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  static configurePending(deps) {
-    /** @const @type {./client-event-manager.ClientEventManager} */
+  static waitingForPayClient = false;
+
+  static configurePending(deps: Deps): void {
     const eventManager = deps.eventManager();
 
     deps.payClient().onResponse(async (payPromise) => {
@@ -247,9 +235,10 @@ export class PayCompleteFlow {
           )
         );
         flow.start(response);
-      } catch (reason) {
-        if (isCancelError(reason)) {
-          const productType = /** @type {!Object} */ (reason)['productType'];
+      } catch (err) {
+        const reason = err as PaymentCancelledError;
+        if (isCancelError(reason as Error)) {
+          const productType = reason['productType'];
           const flow =
             productType == ProductType.UI_CONTRIBUTION
               ? SubscriptionFlows.CONTRIBUTE
@@ -262,58 +251,39 @@ export class PayCompleteFlow {
           deps
             .eventManager()
             .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
-          deps.jserror().error('Pay failed', /** @type {!Error} */ (reason));
+          deps.jserror().error('Pay failed', reason as Error);
           throw reason;
         }
       }
     });
   }
 
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  constructor(deps) {
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+  private readonly win_: Window;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly eventManager_: ClientEventManager;
+  private readonly clientConfigManager_: ClientConfigManager;
 
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private activityIframeView_: ActivityIframeView | null = null;
+  private readyPromise_: Promise<void> | null = null;
+  private sku_: string | null = null;
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+  constructor(private readonly deps_: Deps) {
+    this.win_ = deps_.win();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.activityPorts_ = deps_.activities();
 
-    /** @private {?ActivityIframeView} */
-    this.activityIframeView_ = null;
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private {?Promise} */
-    this.readyPromise_ = null;
+    this.eventManager_ = deps_.eventManager();
 
-    /** @private @const {!../runtime/analytics-service.AnalyticsService} */
-    this.analyticsService_ = deps.analytics();
-
-    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
-
-    /** @private @const {!../runtime/client-config-manager.ClientConfigManager} */
-    this.clientConfigManager_ = deps.clientConfigManager();
-
-    /** @private {?string} */
-    this.sku_ = null;
+    this.clientConfigManager_ = deps_.clientConfigManager();
   }
 
   /**
    * Starts the payments completion flow.
-   * @param {{
-   *   productType: string,
-   *   oldSku: ?string,
-   *   paymentRecurrence: ?number,
-   * }} response
-   * @return {!Promise}
    */
-  async start(response) {
+  async start(response: SubscribeResponse): Promise<void> {
     this.sku_ = parseSkuFromPurchaseDataSafe(response.purchaseData);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
@@ -322,7 +292,7 @@ export class PayCompleteFlow {
     );
     this.deps_.entitlementsManager().reset(true);
     // TODO(dianajing): future-proof isOneTime flag
-    const args = {
+    const args: {[key: string]: string | boolean | undefined} = {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': response['productType'],
       'isSubscriptionUpdate': !!response['oldSku'],
@@ -342,10 +312,10 @@ export class PayCompleteFlow {
           .set(Constants.USER_TOKEN, response.swgUserToken, true);
       }
     } else {
-      args['loginHint'] = response.userData && response.userData.email;
+      args['loginHint'] = response.userData?.email;
     }
 
-    const /* {!Object<string, string>} */ urlParams = {};
+    const urlParams: {[key: string]: string} = {};
     if (args.productType === ProductType.VIRTUAL_GIFT) {
       Object.assign(urlParams, {
         productType: args.productType,
@@ -355,10 +325,13 @@ export class PayCompleteFlow {
         isPaid: true,
         checkOrderStatus: true,
       });
-      if (response.requestMetadata) {
-        urlParams.canonicalUrl = response.requestMetadata.contentId;
-        urlParams.isAnonymous = response.requestMetadata.anonymous;
-        args['contentTitle'] = response.requestMetadata.contentTitle;
+      const requestMetadata = response.requestMetadata as {
+        [key: string]: string;
+      };
+      if (requestMetadata) {
+        urlParams.canonicalUrl = requestMetadata.contentId;
+        urlParams.isAnonymous = requestMetadata.anonymous;
+        args['contentTitle'] = requestMetadata.contentTitle;
       }
 
       // Add feArgs to be passed via activities.
@@ -399,29 +372,18 @@ export class PayCompleteFlow {
     this.readyPromise_ = this.dialogManager_.openView(this.activityIframeView_);
 
     this.readyPromise_.then(() => {
-      this.deps_
-        .callbacks()
-        .triggerPayConfirmOpened(
-          /** @type {!ActivityIframeView} */ (this.activityIframeView_)
-        );
+      this.deps_.callbacks().triggerPayConfirmOpened(this.activityIframeView_!);
     });
   }
 
-  /**
-   * @param {!EntitlementsResponse} response
-   * @private
-   */
-  handleEntitlementsResponse_(response) {
+  private handleEntitlementsResponse_(response: EntitlementsResponse): void {
     const jwt = response.getJwt();
     if (jwt) {
       this.deps_.entitlementsManager().pushNextEntitlements(jwt);
     }
   }
 
-  /**
-   * @return {!Promise}
-   */
-  async complete() {
+  async complete(): Promise<void> {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_ACCOUNT_CREATED,
       true,
@@ -443,11 +405,11 @@ export class PayCompleteFlow {
     if (!clientConfig.skipAccountCreationScreen) {
       const accountCompletionRequest = new AccountCreationRequest();
       accountCompletionRequest.setComplete(true);
-      this.activityIframeView_.execute(accountCompletionRequest);
+      this.activityIframeView_!.execute(accountCompletionRequest);
     }
 
     try {
-      await this.activityIframeView_.acceptResult();
+      await this.activityIframeView_!.acceptResult();
     } catch (err) {
       // Ignore errors.
     }
@@ -464,18 +426,13 @@ export class PayCompleteFlow {
   }
 }
 
-/** @private {boolean} */
-PayCompleteFlow.waitingForPayClient_ = false;
-
-/**
- * @param {!./deps.Deps} deps
- * @param {!Promise<!Object>} payPromise
- * @param {function():!Promise} completeHandler
- * @return {!Promise<!SubscribeResponse>}
- */
-async function validatePayResponse(deps, payPromise, completeHandler) {
-  const wasRedirect = !PayCompleteFlow.waitingForPayClient_;
-  PayCompleteFlow.waitingForPayClient_ = false;
+async function validatePayResponse(
+  deps: Deps,
+  payPromise: Promise<PaymentData>,
+  completeHandler: () => Promise<void>
+): Promise<SubscribeResponse> {
+  const wasRedirect = !PayCompleteFlow.waitingForPayClient;
+  PayCompleteFlow.waitingForPayClient = false;
   const data = await payPromise;
   // 1) We log against a random TX ID which is how we track a specific user
   //    anonymously.
@@ -519,44 +476,42 @@ async function validatePayResponse(deps, payPromise, completeHandler) {
   return parseSubscriptionResponse(deps, data, completeHandler);
 }
 
-/**
- * @param {!./deps.Deps} deps
- * @param {*} data
- * @param {function():!Promise} completeHandler
- * @return {!SubscribeResponse}
- */
-export function parseSubscriptionResponse(deps, data, completeHandler) {
-  let swgData = null;
-  let raw = null;
+export function parseSubscriptionResponse(
+  deps: Deps,
+  data: PaymentData,
+  completeHandler: () => Promise<void>
+): SubscribeResponse {
+  let swgData: SwgCallbackData | null = null;
+  let raw: string | null = null;
   let productType = ProductType.SUBSCRIPTION;
   let oldSku = null;
   let paymentRecurrence = null;
   let requestMetadata = null;
 
   if (data) {
-    if (typeof data == 'string') {
-      raw = /** @type {string} */ (data);
+    if (typeof data === 'string') {
+      raw = data;
     } else {
       // Assume it's a json object in the format:
       // `{integratorClientCallbackData: "..."}` or `{swgCallbackData: "..."}`.
-      const json = /** @type {!Object} */ (data);
-      if ('swgCallbackData' in json) {
-        swgData = /** @type {!Object} */ (json['swgCallbackData']);
-      } else if ('integratorClientCallbackData' in json) {
+      const json = data;
+      if (json['swgCallbackData']) {
+        swgData = json['swgCallbackData'];
+      } else if (json['integratorClientCallbackData']) {
         raw = json['integratorClientCallbackData'];
       }
-      if ('paymentRequest' in data) {
+      if (data['paymentRequest']) {
         const swgObj = data['paymentRequest']['swg'] || {};
         oldSku = swgObj['oldSku'];
         paymentRecurrence = swgObj['paymentRecurrence'];
         requestMetadata = swgObj['metadata'];
         productType =
-          (data['paymentRequest']['i'] || {})['productType'] ||
+          data['paymentRequest']['i']?.['productType'] ||
           ProductType.SUBSCRIPTION;
       }
       // Set productType if paymentRequest is not present, which happens
       // if the pay flow was opened in redirect mode.
-      else if ('productType' in data) {
+      else if (data['productType']) {
         productType = data['productType'];
       }
     }
@@ -571,7 +526,7 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   if (!swgData) {
     throw new Error('unexpected payment response');
   }
-  raw = JSON.stringify(/** @type {!JsonObject} */ (swgData));
+  raw = JSON.stringify(swgData);
   return new SubscribeResponse(
     raw,
     parsePurchaseData(swgData),
@@ -586,59 +541,49 @@ export function parseSubscriptionResponse(deps, data, completeHandler) {
   );
 }
 
-/**
- * @param {!Object} swgData
- * @return {!PurchaseData}
- */
-function parsePurchaseData(swgData) {
+function parsePurchaseData(swgData: SwgCallbackData): PurchaseData {
   const raw = swgData['purchaseData'];
   const signature = swgData['purchaseDataSignature'];
   return new PurchaseData(raw, signature);
 }
 
 /**
- * @param {!Object} swgData
- * @return {?UserData}
- * @package Visible for testing.
+ * Visible for testing.
  */
-export function parseUserData(swgData) {
-  const idToken = swgData['idToken'];
+export function parseUserData(swgData: object): UserData | null {
+  const idToken = (swgData as {idToken?: string})['idToken'];
   if (!idToken) {
     return null;
   }
-  const jwt = /** @type {!Object} */ (new JwtHelper().decode(idToken));
-  return new UserData(idToken, jwt);
+  const jwt = new JwtHelper().decode(idToken);
+  return new UserData(idToken, jwt as {[key: string]: string});
 }
 
 /**
- * @param {!./deps.Deps} deps
- * @param {!Object} swgData
- * @return {?../api/entitlements.Entitlements}
- * @package Visible for testing.
+ * Visible for testing.
  */
-export function parseEntitlements(deps, swgData) {
-  if (swgData['signedEntitlements']) {
+export function parseEntitlements(
+  deps: Deps,
+  swgData: object
+): Entitlements | null {
+  if ((swgData as {signedEntitlements?: string})['signedEntitlements']) {
     return deps.entitlementsManager().parseEntitlements(swgData);
   }
   return null;
 }
 
-/**
- * @param {!PurchaseData} purchaseData
- * @return {?string}
- */
-function parseSkuFromPurchaseDataSafe(purchaseData) {
-  return /** @type {?string} */ (
-    getPropertyFromJsonString(purchaseData.raw, 'productId') || null
+function parseSkuFromPurchaseDataSafe(
+  purchaseData: PurchaseData
+): string | null {
+  return (
+    (getPropertyFromJsonString(purchaseData.raw, 'productId') as string) || null
   );
 }
 
-/**
- * @param {!PurchaseData} purchaseData
- * @return {?string}
- */
-function parseOrderIdFromPurchaseDataSafe(purchaseData) {
-  return /** @type {?string} */ (
-    getPropertyFromJsonString(purchaseData.raw, 'orderId') || null
+function parseOrderIdFromPurchaseDataSafe(
+  purchaseData: PurchaseData
+): string | null {
+  return (
+    (getPropertyFromJsonString(purchaseData.raw, 'orderId') as string) || null
   );
 }

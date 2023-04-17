@@ -15,6 +15,7 @@
  */
 
 import {ActivityPorts} from 'web-activities/activity-ports';
+import {ProductType} from '../../../src/api/subscriptions';
 
 /**
  * @fileoverview Type definitions for parts of `gpay` imported by Swgjs' TypeScript.
@@ -44,7 +45,7 @@ interface InternalParameters {
   /** The redirect verifier. Can only be used for the payment client initialization. */
   redirectKey?: string | null;
   /** The UI renders differently based on the ProductType. */
-  productType?: string | null;
+  productType?: ProductType | null;
 }
 
 /**
@@ -61,12 +62,28 @@ interface PaymentData {
    * TODO: Remove this once server-side input preservation is done and is part of the response.
    */
   paymentRequest?: PaymentDataRequest;
+  /**
+   * If gPay doesn't give us a TX ID it means that something may be wrong.
+   */
+  googleTransactionId?: string;
+  /**
+   * Describes SwG product type.
+   */
+  productType?: ProductType;
+  integratorClientCallbackData?: string;
+  swgCallbackData?: SwgCallbackData;
+}
+
+interface SwgCallbackData {
+  swgUserToken: string;
+  purchaseData: string;
+  purchaseDataSignature: string;
 }
 
 /**
  * Represents errors thrown from payment data requests.
  */
-export interface PaymentDataError {
+interface PaymentDataError {
   statusCode: string;
   statusMessage: string;
 }
@@ -91,6 +108,8 @@ interface PaymentDataRequest {
   swg?: SwgParameters;
   i?: InternalParameters;
   forceRedirect?: boolean;
+  environment?: string;
+  playEnvironment?: string;
 }
 
 /**
