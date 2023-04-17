@@ -75,9 +75,11 @@ interface PaymentData {
 }
 
 interface SwgCallbackData {
-  swgUserToken: string;
+  idToken?: string;
   purchaseData: string;
   purchaseDataSignature: string;
+  signedEntitlements?: string;
+  swgUserToken: string;
 }
 
 /**

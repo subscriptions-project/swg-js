@@ -550,8 +550,8 @@ function parsePurchaseData(swgData: SwgCallbackData): PurchaseData {
 /**
  * Visible for testing.
  */
-export function parseUserData(swgData: object): UserData | null {
-  const idToken = (swgData as {idToken?: string})['idToken'];
+export function parseUserData(swgData: SwgCallbackData): UserData | null {
+  const idToken = swgData['idToken'];
   if (!idToken) {
     return null;
   }
@@ -564,9 +564,9 @@ export function parseUserData(swgData: object): UserData | null {
  */
 export function parseEntitlements(
   deps: Deps,
-  swgData: object
+  swgData: SwgCallbackData
 ): Entitlements | null {
-  if ((swgData as {signedEntitlements?: string})['signedEntitlements']) {
+  if (swgData['signedEntitlements']) {
     return deps.entitlementsManager().parseEntitlements(swgData);
   }
   return null;
