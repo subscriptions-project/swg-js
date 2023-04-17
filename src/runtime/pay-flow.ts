@@ -27,6 +27,7 @@ import {
   EntitlementsResponse,
 } from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ClientConfigManager} from './client-config-manager';
@@ -38,6 +39,10 @@ import {Entitlements} from '../api/entitlements';
 import {JwtHelper} from '../utils/jwt';
 import {PageConfig} from '../model/page-config';
 import {PayClient, PaymentCancelledError} from './pay-client';
+import {
+  PaymentData,
+  SwgCallbackData,
+} from '../../third_party/gpay/src/payjs_async';
 import {
   ProductType,
   SubscriptionFlows,
@@ -51,11 +56,6 @@ import {getPropertyFromJsonString} from '../utils/json';
 import {getSwgMode} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseUrl} from '../utils/url';
-import {ActivityPorts} from '../components/activities';
-import {
-  PaymentData,
-  SwgCallbackData,
-} from '../../third_party/gpay/src/payjs_async';
 
 /**
  * Subscribe with Google request to pass to payments.
