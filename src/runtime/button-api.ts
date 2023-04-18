@@ -16,6 +16,11 @@
 
 import {ASSETS} from '../constants';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ButtonOptions, SmartButtonOptions} from '../api/subscriptions';
+// @ts-ignore: (b/276949133) Migrate to TypeScript.
+import {ConfiguredRuntime} from './runtime';
+import {Deps} from './deps';
+import {Doc} from '../model/doc';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 import {createElement} from '../utils/dom';
@@ -25,19 +30,16 @@ import {msg} from '../utils/i18n';
  * Properties:
  * - lang: Sets the button SVG and title. Default is "en".
  * - theme: "light" or "dark". Default is "light".
- *
- * @typedef {{
- *   options: (!../api/subscriptions.SmartButtonOptions|!../api/subscriptions.ButtonOptions),
- *   clickFun: !function(!Event=),
- * }} ButtonParams
  */
-export let ButtonParams;
+export interface ButtonParams {
+  options: SmartButtonOptions | ButtonOptions;
+  clickFun: (event?: Event) => void;
+}
 
-/** @enum {string} */
-export const ButtonAttributeValues = {
-  SUBSCRIPTION: 'subscription',
-  CONTRIBUTION: 'contribution',
-};
+export enum ButtonAttributeValues {
+  SUBSCRIPTION = 'subscription',
+  CONTRIBUTION = 'contribution',
+}
 
 const BUTTON_INNER_HTML = `<div class="swg-button-v2-icon-$theme$"></div>$textContent$`;
 
@@ -47,17 +49,10 @@ const BUTTON_INNER_HTML = `<div class="swg-button-v2-icon-$theme$"></div>$textCo
  * `https://news.google.com/swg/js/v1/swg-button.css`.
  */
 export class ButtonApi {
-  /**
-   * @param {!../model/doc.Doc} doc
-   * @param {!Promise<!./runtime.ConfiguredRuntime>} configuredRuntimePromise
-   */
-  constructor(doc, configuredRuntimePromise) {
-    /** @private @const {!../model/doc.Doc} */
-    this.doc_ = doc;
-
-    /** @private @const {!Promise<!./runtime.ConfiguredRuntime>} */
-    this.configuredRuntimePromise_ = configuredRuntimePromise;
-  }
+  constructor(
+    private readonly doc_: Doc,
+    private readonly configuredRuntimePromise_: Promise<ConfiguredRuntime>
+  ) {}
 
   /**
    */
@@ -83,24 +78,22 @@ export class ButtonApi {
     );
   }
 
-  /**
-   * @param {!../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {!Element}
-   */
-  create(optionsOrCallback, callback) {
+  create(
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): Element {
     const button = createElement(this.doc_.getWin().document, 'button', {});
     return this.attach(button, optionsOrCallback, callback);
   }
 
   /**
    * Attaches the Classic 'Subscribe With Google' button.
-   * @param {!Element} button
-   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {!Element}
    */
-  attach(button, optionsOrCallback, callback) {
+  attach(
+    button: HTMLElement,
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): Element {
     const options = this.setupButtonAndGetParams_(
       button,
       AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
@@ -116,7 +109,7 @@ export class ButtonApi {
     }
     button.setAttribute(
       'title',
-      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button) || ''
+      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button)!
     );
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
 
@@ -125,13 +118,13 @@ export class ButtonApi {
 
   /**
    * Attaches the new subscribe button, for subscription product types.
-   * @param {!Element} button
-   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {!Element}
    */
-  attachSubscribeButton(button, optionsOrCallback, callback) {
-    const options = this.setupButtonAndGetParams_(
+  attachSubscribeButton(
+    button: HTMLElement,
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): Element {
+    const options: ButtonOptions = this.setupButtonAndGetParams_(
       button,
       AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK,
       optionsOrCallback,
@@ -149,10 +142,10 @@ export class ButtonApi {
     }
     button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
       '$theme$',
-      theme
+      theme!
     ).replace(
       '$textContent$',
-      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button) || ''
+      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button)!
     );
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_OFFERS_SWG_BUTTON);
 
@@ -161,13 +154,13 @@ export class ButtonApi {
 
   /**
    * Attaches the new contribute button, for contribution product types.
-   * @param {!Element} button
-   * @param {../api/subscriptions.ButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {!Element}
    */
-  attachContributeButton(button, optionsOrCallback, callback) {
-    const options = this.setupButtonAndGetParams_(
+  attachContributeButton(
+    button: HTMLElement,
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): Element {
+    const options: ButtonOptions = this.setupButtonAndGetParams_(
       button,
       AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
       optionsOrCallback,
@@ -185,10 +178,10 @@ export class ButtonApi {
     }
     button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
       '$theme$',
-      theme
+      theme!
     ).replace(
       '$textContent$',
-      msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, button) || ''
+      msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, button)!
     );
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON);
 
@@ -198,31 +191,29 @@ export class ButtonApi {
   /**
    * Attaches all buttons with the specified attribute set to any of the
    * attribute values.
-   * @param {string} attribute
-   * @param {!Array<string>} attributeValues
-   * @param {../api/subscriptions.ButtonOptions} options
-   * @param {!Object<string, function()>} attributeValueToCallback
    */
   attachButtonsWithAttribute(
-    attribute,
-    attributeValues,
-    options,
-    attributeValueToCallback
+    attribute: string,
+    attributeValues: string[],
+    options: ButtonOptions,
+    attributeValueToCallback: {[key: string]: () => void}
   ) {
     for (const attributeValue of attributeValues) {
-      const elements = this.doc_
-        .getRootNode()
-        .querySelectorAll(`[${attribute}="${attributeValue}"]`);
-      for (let i = 0; i < elements.length; i++) {
+      const elements: HTMLElement[] = Array.from(
+        this.doc_
+          .getRootNode()
+          .querySelectorAll(`[${attribute}="${attributeValue}"]`)
+      );
+      for (const element of elements) {
         if (attributeValue === ButtonAttributeValues.SUBSCRIPTION) {
           this.attachSubscribeButton(
-            elements[i],
+            element,
             options,
             attributeValueToCallback[attributeValue]
           );
         } else if (attributeValue === ButtonAttributeValues.CONTRIBUTION) {
           this.attachContributeButton(
-            elements[i],
+            element,
             options,
             attributeValueToCallback[attributeValue]
           );
@@ -231,28 +222,18 @@ export class ButtonApi {
     }
   }
 
-  /**
-   * @param {!AnalyticsEvent} eventType
-   * @param {boolean=} isFromUserAction
-   */
-  async logSwgEvent_(eventType, isFromUserAction) {
+  async logSwgEvent_(eventType: AnalyticsEvent, isFromUserAction?: boolean) {
     const configuredRuntime = await this.configuredRuntimePromise_;
     configuredRuntime.eventManager().logSwgEvent(eventType, isFromUserAction);
   }
 
-  /**
-   *
-   * @param {../api/subscriptions.ButtonOptions|../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
-   * @return {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions}
-   * @private
-   */
-  getOptions_(optionsOrCallback) {
+  private getOptions_(
+    optionsOrCallback: ButtonOptions | SmartButtonOptions | (() => void)
+  ): ButtonOptions | SmartButtonOptions {
     const options =
-      /** @type {!../api/subscriptions.ButtonOptions|!../api/subscriptions.SmartButtonOptions} */ (
-        optionsOrCallback && typeof optionsOrCallback != 'function'
-          ? optionsOrCallback
-          : {'theme': Theme.LIGHT}
-      );
+      optionsOrCallback && typeof optionsOrCallback != 'function'
+        ? optionsOrCallback
+        : {'theme': Theme.LIGHT};
 
     const theme = options['theme'];
     if (theme !== Theme.LIGHT && theme !== Theme.DARK) {
@@ -261,31 +242,25 @@ export class ButtonApi {
     return options;
   }
 
-  /**
-   *
-   * @param {?../api/subscriptions.ButtonOptions|?../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {function()|function(Event):boolean}
-   * @private
-   */
-  getCallback_(optionsOrCallback, callback) {
-    return /** @type {function()|function(Event):boolean} */ (
-      (typeof optionsOrCallback == 'function' ? optionsOrCallback : null) ||
-        callback
+  private getCallback_(
+    optionsOrCallback: SmartButtonOptions | ButtonOptions | (() => void),
+    callback?: () => void
+  ): (() => void) | ((event?: Event) => boolean) {
+    return (
+      (typeof optionsOrCallback === 'function' ? optionsOrCallback : null) ||
+      callback!
     );
   }
 
-  /**
-   * @param {!Element} button
-   * @param {AnalyticsEvent} clickEvent
-   * @param {../api/subscriptions.SmartButtonOptions|function()|../api/subscriptions.ButtonOptions} optionsOrCallback
-   * @param {function()=} callbackFun
-   * @return {ButtonParams}
-   */
-  setupButtonAndGetParams_(button, clickEvent, optionsOrCallback, callbackFun) {
+  setupButtonAndGetParams_(
+    button: Element,
+    clickEvent: AnalyticsEvent,
+    optionsOrCallback: SmartButtonOptions | ButtonOptions | (() => void),
+    callbackFun?: () => void
+  ): ButtonParams {
     const options = this.getOptions_(optionsOrCallback);
     const callback = this.getCallback_(optionsOrCallback, callbackFun);
-    const clickFun = (event) => {
+    const clickFun = (event?: Event) => {
       this.logSwgEvent_(clickEvent, true);
       if (typeof callback === 'function') {
         callback(event);
@@ -295,14 +270,12 @@ export class ButtonApi {
     return {options, clickFun};
   }
 
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!Element} button
-   * @param {../api/subscriptions.SmartButtonOptions|function()} optionsOrCallback
-   * @param {function()=} callback
-   * @return {!Element}
-   */
-  attachSmartButton(deps, button, optionsOrCallback, callback) {
+  attachSmartButton(
+    deps: Deps,
+    button: Element,
+    optionsOrCallback: SmartButtonOptions | (() => void),
+    callback?: () => void
+  ): Element {
     const params = this.setupButtonAndGetParams_(
       button,
       AnalyticsEvent.ACTION_SWG_BUTTON_CLICK,
