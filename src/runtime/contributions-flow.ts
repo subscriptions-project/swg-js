@@ -21,8 +21,10 @@ import {
   EntitlementsResponse,
   SkuSelectedResponse,
 } from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
+import {DialogConfig} from '../components/dialog';
 import {DialogManager} from '../components/dialog-manager';
 import {
   OffersRequest,
@@ -30,11 +32,9 @@ import {
   SubscriptionFlows,
   SubscriptionRequest,
 } from '../api/subscriptions';
+import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {feArgs, feUrl} from './services';
-import {DialogConfig} from '../components/dialog';
-import {ClientConfig} from '../model/client-config';
-import {PageConfig} from '../model/page-config';
 
 /**
  * The class for Contributions flow.
