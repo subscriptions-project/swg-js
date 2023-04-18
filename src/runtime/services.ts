@@ -24,12 +24,14 @@ import {
 } from '../constants';
 import {addQueryParam, parseQueryString, parseUrl} from '../utils/url';
 
+type CacheKey = 'zero' | 'nocache' | 'hr1' | 'hr12';
+
 /**
  * Have to put these in the map to avoid compiler optimization. Due to
  * optimization issues, this map only allows property-style keys. E.g. "hr1",
  * as opposed to "1hr".
  */
-export const CACHE_KEYS: {[key: string]: string} = {
+export const CACHE_KEYS: {[key in CacheKey]: string} = {
   'zero': '0', //testing value
   'nocache': '1',
   'hr1': '3600000', // 1hr = 1000 * 60 * 60
@@ -40,7 +42,7 @@ interface OperatingMode {
   frontEnd: string;
   payEnv: string;
   playEnv: string;
-  feCache: string;
+  feCache: CacheKey;
 }
 
 /**
@@ -60,7 +62,7 @@ const PROD: OperatingMode = {
   frontEnd: 'https://news.google.com',
   payEnv: 'PRODUCTION',
   playEnv: 'PROD',
-  feCache: CACHE_KEYS.nocache,
+  feCache: 'nocache',
 };
 
 /**
@@ -70,7 +72,7 @@ const AUTOPUSH: OperatingMode = {
   frontEnd: 'https://subscribe-autopush.sandbox.google.com',
   payEnv: 'PRODUCTION',
   playEnv: 'AUTOPUSH',
-  feCache: CACHE_KEYS.nocache,
+  feCache: 'nocache',
 };
 
 /**
@@ -80,7 +82,7 @@ const QUAL: OperatingMode = {
   frontEnd: 'https://subscribe-qual.sandbox.google.com',
   payEnv: 'SANDBOX',
   playEnv: 'STAGING',
-  feCache: CACHE_KEYS.hr1,
+  feCache: 'hr1',
 };
 
 /**
@@ -185,7 +187,7 @@ export function feArgs(args: {}): {} {
   });
 }
 
-export function cacheParam(cacheKey: string): string {
+export function cacheParam(cacheKey: CacheKey): string {
   const period = Number(CACHE_KEYS[cacheKey] || 1);
   if (period === 0) {
     return '_';
