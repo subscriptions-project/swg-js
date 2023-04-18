@@ -15,8 +15,14 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
-import {DeferredAccountCreationResponse} from '../api/deferred-account-creation';
+import {
+  DeferredAccountCreationRequest,
+  DeferredAccountCreationResponse,
+} from '../api/deferred-account-creation';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
 import {JwtHelper} from '../utils/jwt';
 import {PayCompleteFlow} from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
@@ -25,48 +31,57 @@ import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 
+/** Response from server. */
+interface ConsentResponse {
+  entitlements: string;
+  idToken: string;
+  productType: string;
+  purchaseDataList: {
+    data: string;
+    signature: string;
+  }[];
+  purchaseData: {
+    data: string;
+    signature: string;
+  };
+}
+
 /**
  * The flow to initiate deferred account process.
  * See `Subscriptions.completeDeferredAccountCreation` API.
  */
 export class DeferredAccountFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {?../api/deferred-account-creation.DeferredAccountCreationRequest} options
-   */
-  constructor(deps, options) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private readonly win_: Window;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly options_: DeferredAccountCreationRequest;
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+  private activityIframeView_: ActivityIframeView | null = null;
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+  /** Visible for testing. */
+  openPromise: Promise<void> | null = null;
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+  constructor(
+    private readonly deps_: Deps,
+    options: DeferredAccountCreationRequest | null
+  ) {
+    this.win_ = deps_.win();
 
-    /** @private {?ActivityIframeView} */
-    this.activityIframeView_ = null;
+    this.activityPorts_ = deps_.activities();
 
-    /** @private {?Promise} */
-    this.openPromise_ = null;
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @type {!../api/deferred-account-creation.DeferredAccountCreationRequest} */
-    const defaultOptions = {
+    const defaultOptions: DeferredAccountCreationRequest = {
       entitlements: null,
       consent: true,
     };
-    /** @private @const {!../api/deferred-account-creation.DeferredAccountCreationRequest} */
     this.options_ = Object.assign(defaultOptions, options || {});
   }
 
   /**
    * Starts the deferred account flow.
-   * @return {!Promise<!DeferredAccountCreationResponse>}
    */
-  async start() {
+  async start(): Promise<DeferredAccountCreationResponse> {
     const entitlements = this.options_.entitlements;
 
     // For now, entitlements are required to be present and have the Google
@@ -88,20 +103,20 @@ export class DeferredAccountFlow {
       feArgs({
         'publicationId': this.deps_.pageConfig().getPublicationId(),
         'productId': this.deps_.pageConfig().getProductId(),
-        'entitlements': entitlements?.raw || null,
+        'entitlements': entitlements.raw || null,
         'consent': this.options_.consent,
       }),
       /* shouldFadeBody */ true
     );
 
-    this.openPromise_ = this.dialogManager_.openView(this.activityIframeView_);
+    this.openPromise = this.dialogManager_.openView(this.activityIframeView_);
 
     try {
       const result = await this.activityIframeView_.acceptResult();
       // The consent part is complete.
-      return this.handleConsentResponse_(/** @type {!Object} */ (result.data));
+      return this.handleConsentResponse_(result.data as ConsentResponse);
     } catch (reason) {
-      if (isCancelError(reason)) {
+      if (isCancelError(reason as Error)) {
         this.deps_
           .callbacks()
           .triggerFlowCanceled(
@@ -114,12 +129,9 @@ export class DeferredAccountFlow {
     }
   }
 
-  /**
-   * @param {!Object} data
-   * @return {!DeferredAccountCreationResponse}
-   * @private
-   */
-  handleConsentResponse_(data) {
+  private handleConsentResponse_(
+    data: ConsentResponse
+  ): DeferredAccountCreationResponse {
     this.deps_.entitlementsManager().blockNextNotification();
 
     // Parse the response.
@@ -131,7 +143,7 @@ export class DeferredAccountFlow {
       .parseEntitlements({'signedEntitlements': entitlementsJwt});
     const userData = new UserData(
       idToken,
-      /** @type {!Object} */ (new JwtHelper().decode(idToken))
+      new JwtHelper().decode(idToken) as {[key: string]: string}
     );
     const purchaseDataList = data['purchaseDataList']
       ? data['purchaseDataList'].map(
