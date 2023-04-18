@@ -327,7 +327,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
   [
     {
       description: 'should default index to 0',
-      activityResultData: {},
+      activityResultData: null,
       expectedPath:
         'https://news.google.com/swg/u/0/ui/v1/linkconfirmiframe?_=_',
     },
@@ -748,7 +748,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       )
       .resolves(port);
     linkSaveFlow.start();
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
   });
 
   it('should open dialog in hidden mode', async () => {
@@ -760,7 +760,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .withExactArgs(/* hidden */ true, {})
       .returns(dialog.open());
     linkSaveFlow.start();
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
   });
 
   it('should return false when linking not accepted', async () => {
@@ -848,7 +848,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
     const cb = messageMap[response.label()];
@@ -865,7 +865,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
     const cb = messageMap[response.label()];
@@ -888,7 +888,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
     const cb = messageMap[response.label()];
@@ -909,7 +909,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
     const cb = messageMap[response.label()];
@@ -924,7 +924,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
     const cb = messageMap[response.label()];
@@ -943,7 +943,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
     const response = new LinkingInfoResponse();
     response.setRequested(true);
     const cb = messageMap[response.label()];
@@ -964,7 +964,7 @@ describes.realWin('LinkSaveFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     linkSaveFlow.start();
 
-    await linkSaveFlow.openPromise_;
+    await linkSaveFlow.openPromise;
     const response = new LinkingInfoResponse();
     response.setRequested(false);
     const cb = messageMap[response.label()];
@@ -989,7 +989,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       )
       .resolves(port);
     const startPromise = linkSaveFlow.start();
-    linkSaveFlow.openPromise_.then(() => {
+    linkSaveFlow.openPromise.then(() => {
       const result = new ActivityResult(
         ActivityResultCode.OK,
         {
@@ -1030,7 +1030,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
     const startPromise = linkSaveFlow.start();
-    linkSaveFlow.openPromise_.then(() => {
+    linkSaveFlow.openPromise.then(() => {
       const result = new ActivityResult(
         ActivityResultCode.OK,
         {
@@ -1073,7 +1073,7 @@ describes.realWin('LinkSaveFlow', (env) => {
       .expects('logSwgEvent')
       .withExactArgs(AnalyticsEvent.ACTION_SAVE_SUBSCR_TO_GOOGLE_CANCEL, true);
     const startPromise = linkSaveFlow.start();
-    linkSaveFlow.openPromise_.then(() => {
+    linkSaveFlow.openPromise.then(() => {
       const result = new ActivityResult(
         ActivityResultCode.OK,
         {

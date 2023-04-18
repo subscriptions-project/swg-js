@@ -15,46 +15,59 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {
   AnalyticsEvent,
   LinkSaveTokenRequest,
   LinkingInfoResponse,
 } from '../proto/api_messages';
+import {Callbacks} from './callbacks';
 import {Constants} from '../utils/constants';
-import {SubscriptionFlows, WindowOpenMode} from '../api/subscriptions';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {EntitlementsManager} from './entitlements-manager';
+import {PageConfig} from '../model/page-config';
+import {
+  SaveSubscriptionRequest,
+  SaveSubscriptionRequestCallback,
+  SubscriptionFlows,
+  WindowOpenMode,
+} from '../api/subscriptions';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createCancelError, isCancelError} from '../utils/errors';
 import {feArgs, feOrigin, feUrl} from './services';
 
 const LINK_REQUEST_ID = 'swg-link';
 
+interface LinkCompleteResponse {
+  entitlements?: string;
+  index?: number;
+  linked?: boolean;
+  saveAndRefresh?: boolean;
+  success?: boolean;
+  swgUserToken?: string;
+}
+
 /**
  * The flow to link an existing publisher account to an existing google account.
  */
 export class LinkbackFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  constructor(deps) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly pageConfig_: PageConfig;
+  private readonly dialogManager_: DialogManager;
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+  constructor(private readonly deps_: Deps) {
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!../model/page-config.PageConfig} */
-    this.pageConfig_ = deps.pageConfig();
+    this.pageConfig_ = deps_.pageConfig();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.dialogManager_ = deps_.dialogManager();
   }
 
   /**
    * Starts the Link account flow.
-   * @param {{ampReaderId: (string|undefined)}=} params
-   * @return {!Promise}
    */
-  start(params = {}) {
+  start(params: {ampReaderId?: string} = {}): Promise<void> {
     this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.LINK_ACCOUNT);
     const forceRedirect =
       this.deps_.config().windowOpenMode == WindowOpenMode.REDIRECT;
@@ -83,27 +96,34 @@ export class LinkbackFlow {
  * The class for Link accounts flow.
  */
 export class LinkCompleteFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   */
-  static configurePending(deps) {
+  private readonly win_: Window;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly entitlementsManager_: EntitlementsManager;
+  private readonly callbacks_: Callbacks;
+  private readonly completePromise_: Promise<void>;
+
+  private response_: LinkCompleteResponse;
+  private activityIframeView_: ActivityIframeView | null = null;
+  private completeResolver_: (() => void) | null = null;
+
+  static configurePending(deps: Deps): void {
     /**
      * Handler function.
-     * @param {!../components/activities.ActivityPortDef} port
      */
-    async function handler(port) {
+    async function handler(port: ActivityPortDef): Promise<void> {
       deps.entitlementsManager().blockNextNotification();
       deps.callbacks().triggerLinkProgress();
       deps.dialogManager().popupClosed();
 
       try {
         // Wait for account linking to complete.
-        const response = await acceptPortResultData(
+        const response = (await acceptPortResultData(
           port,
           feOrigin(),
           /* requireOriginVerified */ false,
           /* requireSecureChannel */ false
-        );
+        )) as LinkCompleteResponse;
 
         // Send events.
         deps
@@ -118,7 +138,7 @@ export class LinkCompleteFlow {
         flow.start();
       } catch (reason) {
         deps.entitlementsManager().unblockNextNotification();
-        if (isCancelError(reason)) {
+        if (isCancelError(reason as Error)) {
           deps
             .eventManager()
             .logSwgEvent(AnalyticsEvent.ACTION_LINK_CANCEL, true);
@@ -135,51 +155,33 @@ export class LinkCompleteFlow {
     deps.activities().onResult(LINK_REQUEST_ID, handler);
   }
 
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {?Object} response
-   */
-  constructor(deps, response) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  constructor(
+    private readonly deps_: Deps,
+    response?: LinkCompleteResponse | null
+  ) {
+    this.win_ = deps_.win();
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.entitlementsManager_ = deps_.entitlementsManager();
 
-    /** @private @const {!./entitlements-manager.EntitlementsManager} */
-    this.entitlementsManager_ = deps.entitlementsManager();
+    this.callbacks_ = deps_.callbacks();
 
-    /** @private @const {!./callbacks.Callbacks} */
-    this.callbacks_ = deps.callbacks();
-
-    /** @private {?ActivityIframeView} */
-    this.activityIframeView_ = null;
-
-    /** @private {!Object} */
     this.response_ = response || {};
 
-    /** @private {?function()} */
-    this.completeResolver_ = null;
-
-    /** @private @const {!Promise} */
-    this.completePromise_ = new Promise((resolve) => {
+    this.completePromise_ = new Promise<void>((resolve) => {
       this.completeResolver_ = resolve;
     });
   }
 
   /**
    * Starts the Link account flow.
-   * @return {!Promise}
    */
-  async start() {
+  async start(): Promise<void> {
     if (this.response_['saveAndRefresh']) {
-      this.complete_(this.response_, this.response_['linked']);
+      this.complete_(this.response_, !!this.response_['linked']);
       return Promise.resolve();
     }
 
@@ -208,16 +210,13 @@ export class LinkCompleteFlow {
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 
-  /**
-   * @private
-   */
-  async completeAfterVerifyingResults_() {
+  private async completeAfterVerifyingResults_() {
     try {
-      const response = await this.activityIframeView_.acceptResultAndVerify(
+      const response = (await this.activityIframeView_!.acceptResultAndVerify(
         feOrigin(),
         /* requireOriginVerified */ true,
         /* requireSecureChannel */ true
-      );
+      )) as LinkCompleteResponse;
       this.complete_(response, !!response['success']);
     } catch (reason) {
       // Rethrow async.
@@ -230,12 +229,7 @@ export class LinkCompleteFlow {
     this.dialogManager_.completeView(this.activityIframeView_);
   }
 
-  /**
-   * @param {!Object} response
-   * @param {boolean} success
-   * @private
-   */
-  complete_(response, success) {
+  private complete_(response: LinkCompleteResponse, success: boolean): void {
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
@@ -248,14 +242,13 @@ export class LinkCompleteFlow {
     this.entitlementsManager_.setToastShown(true);
     this.entitlementsManager_.unblockNextNotification();
     this.entitlementsManager_.reset(success);
-    if (response && response['entitlements']) {
+    if (response['entitlements']) {
       this.entitlementsManager_.pushNextEntitlements(response['entitlements']);
     }
-    this.completeResolver_();
+    this.completeResolver_!();
   }
 
-  /** @return {!Promise} */
-  whenComplete() {
+  whenComplete(): Promise<void> {
     return this.completePromise_;
   }
 }
@@ -266,57 +259,42 @@ export class LinkCompleteFlow {
  * linked.
  */
 export class LinkSaveFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!../api/subscriptions.SaveSubscriptionRequestCallback} callback
-   */
-  constructor(deps, callback) {
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+  private readonly win_: Window;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
 
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private requestPromise_: Promise<SaveSubscriptionRequest | void> | null =
+    null;
+  private activityIframeView_: ActivityIframeView | null = null;
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+  /** Visible for testing. */
+  openPromise: Promise<void> | null = null;
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+  constructor(
+    private readonly deps_: Deps,
+    private readonly callback_: SaveSubscriptionRequestCallback
+  ) {
+    this.win_ = deps_.win();
 
-    /** @private {!../api/subscriptions.SaveSubscriptionRequestCallback} */
-    this.callback_ = callback;
+    this.activityPorts_ = deps_.activities();
 
-    /** @private {?Promise<!../api/subscriptions.SaveSubscriptionRequest>} */
-    this.requestPromise_ = null;
-
-    /** @private {?Promise} */
-    this.openPromise_ = null;
-
-    /** @private {?ActivityIframeView} */
-    this.activityIframeView_ = null;
+    this.dialogManager_ = deps_.dialogManager();
   }
 
   /**
-   * @return {?Promise<!../api/subscriptions.SaveSubscriptionRequest>}
-   * @package Visible for testing.
+   * Visible for testing.
    */
-  getRequestPromise() {
+  getRequestPromise(): Promise<SaveSubscriptionRequest | void> | null {
     return this.requestPromise_;
   }
 
-  /**
-   * @private
-   */
-  complete_() {
+  private complete_(): void {
     this.dialogManager_.completeView(this.activityIframeView_);
   }
 
-  /**
-   * @param {!Object} result
-   * @return {!Promise<boolean>}
-   * @private
-   */
-  async handleLinkSaveResponse_(result) {
+  private async handleLinkSaveResponse_(
+    result: LinkCompleteResponse
+  ): Promise<boolean> {
     // This flow is complete.
     this.complete_();
 
@@ -341,11 +319,9 @@ export class LinkSaveFlow {
     return true;
   }
 
-  /**
-   * @param {LinkingInfoResponse} response
-   * @private
-   */
-  async sendLinkSaveToken_(response) {
+  private async sendLinkSaveToken_(
+    response: LinkingInfoResponse
+  ): Promise<SaveSubscriptionRequest | void> {
     if (!response || !response.getRequested()) {
       return;
     }
@@ -357,14 +333,14 @@ export class LinkSaveFlow {
         if (request.authCode) {
           throw new Error('Both authCode and token are available');
         } else {
-          saveRequest.setToken(/** @type {string} */ (request.token));
+          saveRequest.setToken(request.token);
         }
       } else if (request?.authCode) {
-        saveRequest.setAuthCode(/** @type {string} */ (request.authCode));
+        saveRequest.setAuthCode(request.authCode);
       } else {
         throw new Error('Neither token or authCode is available');
       }
-      this.activityIframeView_.execute(saveRequest);
+      this.activityIframeView_!.execute(saveRequest);
       return request;
     } catch (reason) {
       // The flow is complete.
@@ -374,13 +350,9 @@ export class LinkSaveFlow {
   }
 
   /**
-   * @return {?Promise}
-   */
-  /**
    * Starts the save subscription.
-   * @return {!Promise}
    */
-  async start() {
+  async start(): Promise<boolean> {
     const iframeArgs = this.activityPorts_.addDefaultArguments({
       'isClosable': true,
     });
@@ -396,7 +368,7 @@ export class LinkSaveFlow {
       this.requestPromise_ = this.sendLinkSaveToken_(response);
     });
 
-    this.openPromise_ = this.dialogManager_.openView(
+    this.openPromise = this.dialogManager_.openView(
       this.activityIframeView_,
       /* hidden */ true
     );
@@ -406,11 +378,11 @@ export class LinkSaveFlow {
       .logSwgEvent(AnalyticsEvent.IMPRESSION_SAVE_SUBSCR_TO_GOOGLE);
 
     try {
-      const result = await this.activityIframeView_.acceptResultAndVerify(
+      const result = (await this.activityIframeView_.acceptResultAndVerify(
         feOrigin(),
         /* requireOriginVerified */ true,
         /* requireSecureChannel */ true
-      );
+      )) as LinkCompleteResponse;
 
       return await this.handleLinkSaveResponse_(result);
     } catch (reason) {
@@ -418,7 +390,7 @@ export class LinkSaveFlow {
       this.complete_();
 
       // Handle cancellation from user, link confirm start or completion here.
-      if (isCancelError(reason)) {
+      if (isCancelError(reason as Error)) {
         this.deps_
           .eventManager()
           .logSwgEvent(
