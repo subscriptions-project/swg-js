@@ -204,7 +204,6 @@ export class ButtonApi {
           .getRootNode()
           .querySelectorAll(`[${attribute}="${attributeValue}"]`)
       );
-      // for (let i = 0; i < elements.length; i++) {
       for (const element of elements) {
         if (attributeValue === ButtonAttributeValues.SUBSCRIPTION) {
           this.attachSubscribeButton(
