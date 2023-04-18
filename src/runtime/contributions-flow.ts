@@ -15,50 +15,53 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
 import {
   AlreadySubscribedResponse,
   EntitlementsResponse,
   SkuSelectedResponse,
 } from '../proto/api_messages';
+import {ClientConfigManager} from './client-config-manager';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {
+  OffersRequest,
+  ProductType,
+  SubscriptionFlows,
+  SubscriptionRequest,
+} from '../api/subscriptions';
 import {PayStartFlow} from './pay-flow';
-import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 import {feArgs, feUrl} from './services';
+import {DialogConfig} from '../components/dialog';
+import {ClientConfig} from '../model/client-config';
+import {PageConfig} from '../model/page-config';
 
 /**
  * The class for Contributions flow.
  */
 export class ContributionsFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!../api/subscriptions.OffersRequest|undefined} options
-   */
-  constructor(deps, options) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private readonly win_: Window;
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly activityIframeViewPromise_: Promise<ActivityIframeView | null>;
 
-    /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
-    this.options_ = options;
+  constructor(
+    private readonly deps_: Deps,
+    private readonly options_?: OffersRequest
+  ) {
+    this.win_ = deps_.win();
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+    this.clientConfigManager_ = deps_.clientConfigManager();
 
-    /** @private @const {!./client-config-manager.ClientConfigManager} */
-    this.clientConfigManager_ = deps.clientConfigManager();
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
-
-    /** @private @const {!Promise<?ActivityIframeView>} */
     this.activityIframeViewPromise_ = this.getActivityIframeView_();
   }
 
-  /**
-   * @return {!Promise<?ActivityIframeView>}
-   */
-  async getActivityIframeView_() {
+  private async getActivityIframeView_(): Promise<ActivityIframeView | null> {
     // Default to showing close button.
     const isClosable = this.options_?.isClosable ?? true;
 
@@ -84,10 +87,7 @@ export class ContributionsFlow {
     );
   }
 
-  /**
-   * @param {AlreadySubscribedResponse} response
-   */
-  handleLinkRequest_(response) {
+  private handleLinkRequest_(response: AlreadySubscribedResponse): void {
     if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({
         linkRequested: !!response.getLinkRequested(),
@@ -95,17 +95,13 @@ export class ContributionsFlow {
     }
   }
 
-  /**
-   * @param {SkuSelectedResponse} response
-   */
-  startPayFlow_(response) {
+  private startPayFlow_(response: SkuSelectedResponse): void {
     const sku = response.getSku();
     const isOneTime = response.getOneTime();
     if (sku) {
-      const /** @type {../api/subscriptions.SubscriptionRequest} */ contributionRequest =
-          {
-            'skuId': sku,
-          };
+      const contributionRequest: SubscriptionRequest = {
+        'skuId': sku,
+      };
       if (isOneTime) {
         contributionRequest['oneTime'] = isOneTime;
       }
@@ -119,9 +115,8 @@ export class ContributionsFlow {
 
   /**
    * Starts the contributions flow or alreadyMember flow.
-   * @return {!Promise}
    */
-  async start() {
+  async start(): Promise<void> {
     const activityIframeView = await this.activityIframeViewPromise_;
     if (!activityIframeView) {
       return Promise.resolve();
@@ -157,11 +152,11 @@ export class ContributionsFlow {
    * Gets display configuration options for the opened dialog. Uses the
    * responsive desktop design properties if the updated offer flows UI (for
    * SwG Basic) is enabled. Permits override to allow scrolling.
-   * @param {!../model/client-config.ClientConfig} clientConfig
-   * @param {boolean} shouldAllowScroll
-   * @return {!../components/dialog.DialogConfig}
    */
-  getDialogConfig_(clientConfig, shouldAllowScroll) {
+  private getDialogConfig_(
+    clientConfig: ClientConfig,
+    shouldAllowScroll: boolean
+  ): DialogConfig {
     return clientConfig.useUpdatedOfferFlows && !shouldAllowScroll
       ? {shouldDisableBodyScrolling: true}
       : {};
@@ -170,21 +165,15 @@ export class ContributionsFlow {
   /**
    * Returns whether this flow is configured as enabled, not showing
    * even on explicit start when flag is configured false.
-   *
-   * @param {!../model/client-config.ClientConfig} clientConfig
-   * @return {boolean}
    */
-  shouldShow_(clientConfig) {
+  private shouldShow_(clientConfig: ClientConfig): boolean {
     return clientConfig.uiPredicates?.canDisplayAutoPrompt !== false;
   }
 
   /**
    * Gets the complete URL that should be used for the activity iFrame view.
-   * @param {!../model/client-config.ClientConfig} clientConfig
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @return {string}
    */
-  getUrl_(clientConfig, pageConfig) {
+  private getUrl_(clientConfig: ClientConfig, pageConfig: PageConfig): string {
     if (!clientConfig.useUpdatedOfferFlows) {
       return feUrl('/contributionsiframe');
     }
@@ -204,8 +193,8 @@ export class ContributionsFlow {
   /**
    * Shows "no contribution found" on activity iFrame view.
    */
-  async showNoEntitlementFoundToast() {
+  async showNoEntitlementFoundToast(): Promise<void> {
     const activityIframeView = await this.activityIframeViewPromise_;
-    activityIframeView.execute(new EntitlementsResponse());
+    activityIframeView!.execute(new EntitlementsResponse());
   }
 }
