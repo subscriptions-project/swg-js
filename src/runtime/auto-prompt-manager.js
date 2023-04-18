@@ -458,7 +458,7 @@ export class AutoPromptManager {
     }
 
     // If there is an audience action with explicit higher priority than the contribution
-    // or subscription action, show the first audience action.
+    // or subscription action, do not show the autoprompt.
     const autopromptActionType = this.isSubscription_({autoPromptType})
       ? TYPE_SUBSCRIPTION
       : this.isContribution_({autoPromptType})
