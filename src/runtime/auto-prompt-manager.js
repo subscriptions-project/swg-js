@@ -23,6 +23,7 @@ import {MiniPromptApi} from './mini-prompt-api';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
+import {contains} from 'cheerio';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
@@ -219,7 +220,8 @@ export class AutoPromptManager {
     const shouldShowAutoPrompt = await this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
-      params.autoPromptType
+      params.autoPromptType,
+      article?.audienceActions?.actions
     );
 
     const potentialAction = article
@@ -335,9 +337,15 @@ export class AutoPromptManager {
    * @param {!../model/client-config.ClientConfig|undefined} clientConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {!AutoPromptType|undefined} autoPromptType
+   * @param {./entitlements-manager.Intervention[]|undefined} actions
    * @returns {!Promise<boolean>}
    */
-  async shouldShowAutoPrompt_(clientConfig, entitlements, autoPromptType) {
+  async shouldShowAutoPrompt_(
+    clientConfig,
+    entitlements,
+    autoPromptType,
+    actions = []
+  ) {
     // If false publication predicate was returned in the response, don't show
     // the prompt.
     if (
@@ -381,7 +389,6 @@ export class AutoPromptManager {
     } else {
       autoPromptConfig = clientConfig.autoPromptConfig;
     }
-
     // Fetched config returned no maximum cap.
     if (autoPromptConfig.impressionConfig.maxImpressions === undefined) {
       return Promise.resolve(true);
@@ -450,6 +457,22 @@ export class AutoPromptManager {
       return false;
     }
 
+    // If there is an audience action with explicit higher priority than the contribution
+    // or subscription action, show the first audience action.
+    const autopromptActionType = this.isSubscription_({autoPromptType})
+      ? TYPE_SUBSCRIPTION
+      : this.isContribution_({autoPromptType})
+      ? TYPE_CONTRIBUTION
+      : null;
+    if (autopromptActionType) {
+      const autopromptActionIndex = actions.findIndex(
+        (action) => action.type === autopromptActionType
+      );
+      if (autopromptActionIndex > 0) {
+        return false;
+      }
+    }
+
     return true;
   }
 
@@ -503,6 +526,11 @@ export class AutoPromptManager {
     shouldShowAutoPrompt,
   }) {
     const audienceActions = article.audienceActions?.actions || [];
+    // Filter out AutoPrompt actions as they were already processed.
+    let potentialActions = audienceActions.filter(
+      (action) =>
+        !(action.type == TYPE_CONTRIBUTION || action.type == TYPE_SUBSCRIPTION)
+    );
 
     // Count completed surveys.
     const [surveyCompletionTimestamps, surveyDataTransferFailureTimestamps] =
@@ -521,29 +549,31 @@ export class AutoPromptManager {
     const isSurveyEligible =
       !hasCompletedSurveys && !hasRecentSurveyDataTransferFailure;
 
-    let potentialActions = audienceActions.filter((action) =>
+    potentialActions = potentialActions.filter((action) =>
       this.checkActionEligibility_(action.type, isSurveyEligible)
     );
 
-    // No audience actions means use the default prompt.
+    // No audience actions means use the default prompt, if it should be shown.
     if (potentialActions.length === 0) {
+      if (shouldShowAutoPrompt) {
+        this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
+          ? {type: AutoPromptType.SUBSCRIPTION}
+          : this.isContribution_({autoPromptType})
+          ? {type: AutoPromptType.CONTRIBUTION}
+          : null;
+      }
       return undefined;
     }
 
-    // Default to the first recommended action.
-    let actionToUse = potentialActions[0];
-
     // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
-      this.interventionDisplayed_ = actionToUse;
-      if (shouldShowAutoPrompt || actionToUse.type === TYPE_SUBSCRIPTION) {
-        // WARNING: Refers explicity to the Subscription AutoPromptType,
-        // which CANNOT be a potential audience action. This is not to be
-        // confused with the AudienceActionType TYPE_SUBSCRIPTION, which
-        // is part of the pre-monetization effort.
+      if (shouldShowAutoPrompt) {
         this.interventionDisplayed_ = {type: AutoPromptType.SUBSCRIPTION};
+        return undefined;
       }
-      return actionToUse;
+      const firstAction = potentialActions[0];
+      this.interventionDisplayed_ = firstAction;
+      return firstAction;
     }
 
     // Suppress previously dismissed prompts.
@@ -575,56 +605,17 @@ export class AutoPromptManager {
       }
     }
 
-    if (this.isContribution_({autoPromptType})) {
-      const contributionIndex = potentialActions.findIndex(
-        (action) => action.type === TYPE_CONTRIBUTION
-      );
-
-      // If there is an audience action with explicit higher priority than the contribution
-      // action, show the first audience action.
-      if (contributionIndex > 0) {
-        actionToUse = potentialActions[0];
-        this.interventionDisplayed_ = actionToUse;
-        return actionToUse;
-      }
-
-      // If the first potential action is contribution, or the contribution
-      // action was not passed through audience actions, and it has never been
-      // dismissed before, we will show contribution prompt and record the
-      // contribution dismissal.
-      if (
-        !(
-          previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION) ||
-          previouslyShownPrompts.includes(AutoPromptType.CONTRIBUTION_LARGE)
-        )
-      ) {
-        // WARNING: Refers explicity to the Contribution AutoPromptType,
-        // which CANNOT be a potential audience action. This is not to be
-        // confused with the AudienceActionType TYPE_CONTRIBUTION, which
-        // is part of the pre-monetization effort.
-        this.interventionDisplayed_ = {type: AutoPromptType.CONTRIBUTION};
-        return undefined;
-      }
-
-      // If frequency indicates that we should show the Contribution prompt again
-      // regardless of previous dismissals, we don't want to record the Contribution dismissal
-      if (shouldShowAutoPrompt) {
-        return undefined;
-      }
-
-      potentialActions = potentialActions.filter(
-        (action) => action.type !== TYPE_CONTRIBUTION
-      );
-    }
-
-    // If all actions have been dismissed, we don't want to record the Contribution dismissal
-    if (potentialActions.length === 0) {
+    // If autoprompt should be shown, honor it and display the contribution prompt.
+    if (shouldShowAutoPrompt) {
+      this.interventionDisplayed_ = {type: AutoPromptType.CONTRIBUTION};
       return undefined;
     }
 
-    // Otherwise, set to the next recommended action. If the last dismissal was the
-    // Contribution prompt, this will resolve to the first recommended action.
-    actionToUse = potentialActions[0];
+    // Otherwise, set to the next recommended action, if one is available.
+    if (potentialActions.length === 0) {
+      return undefined;
+    }
+    const actionToUse = potentialActions[0];
     this.interventionDisplayed_ = actionToUse;
     return actionToUse;
   }
