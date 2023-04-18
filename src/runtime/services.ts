@@ -60,7 +60,7 @@ const PROD: OperatingMode = {
   frontEnd: 'https://news.google.com',
   payEnv: 'PRODUCTION',
   playEnv: 'PROD',
-  feCache: CACHE_KEYS.hr1,
+  feCache: CACHE_KEYS.nocache,
 };
 
 /**
