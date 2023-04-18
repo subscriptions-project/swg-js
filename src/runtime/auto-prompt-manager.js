@@ -388,6 +388,7 @@ export class AutoPromptManager {
     } else {
       autoPromptConfig = clientConfig.autoPromptConfig;
     }
+
     // Fetched config returned no maximum cap.
     if (autoPromptConfig.impressionConfig.maxImpressions === undefined) {
       return Promise.resolve(true);
@@ -508,8 +509,8 @@ export class AutoPromptManager {
    * prompt if the reader is currently inside of the frequency window, indicated by shouldShowAutoPrompt.
    *
    * This has the side effect of setting this.interventionDisplayed_ to an audience action that should
-   * be displayed. If this field is not set, there is no audience action to show, and the triggering
-   * flow should fall back to the AutoPrompt snippet, if one is available.
+   * be displayed. If a subscription or contribution prompt is to be shown over an audience action, the
+   * appropriate prompt type will be set.
    * @param {{
    *   article: (!./entitlements-manager.Article),
    *   autoPromptType: (AutoPromptType|undefined),
