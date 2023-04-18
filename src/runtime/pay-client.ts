@@ -49,7 +49,7 @@ function payUrl(): string {
   return feCached(PAY_ORIGIN[getSwgMode().payEnv] + '/gp/p/ui/pay');
 }
 
-interface PaymentCancelledError extends Error {
+export interface PaymentCancelledError extends Error {
   productType: string | null;
 }
 

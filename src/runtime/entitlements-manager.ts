@@ -541,8 +541,6 @@ export class EntitlementsManager {
   /**
    * The JSON must either contain a "signedEntitlements" with JWT, or
    * "entitlements" field with plain JSON object.
-   * @param {!Object} json
-   * @return {!Entitlements}
    */
   parseEntitlements(json: {
     isReadyToPay?: boolean;
