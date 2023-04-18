@@ -24,6 +24,7 @@ import {
 } from '../constants';
 import {addQueryParam, parseQueryString, parseUrl} from '../utils/url';
 
+/** Possible cache keys which can influence how Swgjs busts caches for iframes. */
 type CacheKey = 'zero' | 'nocache' | 'hr1' | 'hr12';
 
 /**
