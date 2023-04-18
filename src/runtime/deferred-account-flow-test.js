@@ -159,7 +159,7 @@ describes.realWin('DeferredAccountFlow', (env) => {
     return flow.openPromise;
   });
 
-  it('handles missing "raw" param in Entitlements', () => {
+  it('handles empty "raw" param in Entitlements', () => {
     ents = new Entitlements(
       'subscribe.google.com',
       '',
