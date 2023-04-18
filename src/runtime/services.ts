@@ -83,7 +83,7 @@ const QUAL: OperatingMode = {
   frontEnd: 'https://subscribe-qual.sandbox.google.com',
   payEnv: 'SANDBOX',
   playEnv: 'STAGING',
-  feCache: 'hr1',
+  feCache: 'nocache',
 };
 
 /**
