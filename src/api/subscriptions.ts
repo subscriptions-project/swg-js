@@ -537,7 +537,7 @@ export interface ButtonOptions {
   theme?: string;
   /** "Light" or "dark". Default is "light". */
   lang?: string;
-  /** Whether to grey out the button. */
+  /** Whether to enable the button. */
   enable?: boolean;
 }
 
