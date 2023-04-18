@@ -15,12 +15,14 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from '../api/deferred-account-creation';
 import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
 import {JwtHelper} from '../utils/jwt';
 import {PayCompleteFlow} from './pay-flow';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
@@ -28,8 +30,6 @@ import {SubscriptionFlows} from '../api/subscriptions';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {isCancelError} from '../utils/errors';
-import {ActivityPorts} from '../components/activities';
-import {DialogManager} from '../components/dialog-manager';
 
 /** Response from server. */
 interface ConsentResponse {
