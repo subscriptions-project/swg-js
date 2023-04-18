@@ -1266,6 +1266,7 @@ describes.realWin('AutoPromptManager', (env) => {
                 type: 'TYPE_SUBSCRIPTION',
                 configurationId: 'subscription_config_id',
               },
+              SURVEY_INTERVENTION,
             ],
             engineId: '123',
           },
