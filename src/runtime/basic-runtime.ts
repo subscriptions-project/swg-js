@@ -26,6 +26,8 @@ import {
 } from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
 // @ts-ignore: (b/276949133) Migrate to TypeScript.
 import {ConfiguredRuntime} from './runtime';
@@ -37,6 +39,7 @@ import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
@@ -49,9 +52,6 @@ import {assert} from '../utils/log';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isExperimentOn} from './experiments';
 import {msg} from '../utils/i18n';
-import {JsError} from './jserror';
-import {ClientEventManager} from './client-event-manager';
-import {ClientConfigManager} from './client-config-manager';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
