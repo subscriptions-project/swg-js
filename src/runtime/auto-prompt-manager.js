@@ -273,10 +273,11 @@ export class AutoPromptManager {
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
-    const interventionDisplayedIsAutoPromptType =
-      this.interventionDisplayed_ === null ||
-      this.isAutoPromptType_(this.interventionDisplayed_.type);
-    if (shouldShowAutoPrompt && interventionDisplayedIsAutoPromptType) {
+    const showAutoPrompt =
+      shouldShowAutoPrompt &&
+      (potentialAction === undefined ||
+        this.isAutoPromptType_(potentialAction));
+    if (showAutoPrompt) {
       this.deps_.win().setTimeout(() => {
         this.wasAutoPromptDisplayed_ = true;
         this.showPrompt_(
@@ -320,13 +321,13 @@ export class AutoPromptManager {
   }
 
   /**
-   * @param {!string} interventionType
+   * @param {!Intervention} intervention
    * @return {!boolean}
    */
-  isAutoPromptType_(interventionType) {
+  isAutoPromptType_(intervention) {
     return (
-      this.isSubscription_({autoPromptType: interventionType}) ||
-      this.isContribution_({autoPromptType: interventionType})
+      this.isSubscription_({autoPromptType: intervention.type}) ||
+      this.isContribution_({autoPromptType: intervention.type})
     );
   }
 
