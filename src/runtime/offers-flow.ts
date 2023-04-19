@@ -15,6 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
 import {
   AlreadySubscribedResponse,
   EntitlementsResponse,
@@ -23,24 +24,23 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
 import {Deps} from './deps';
-import {PayStartFlow} from './pay-flow';
+import {DialogConfig} from '../components/dialog';
+import {DialogManager} from '../components/dialog-manager';
 import {
   OffersRequest,
   ProductType,
   SubscriptionFlows,
 } from '../api/subscriptions';
+import {PageConfig} from '../model/page-config';
+import {PayStartFlow} from './pay-flow';
+import {SubscriptionRequest} from '../api/subscriptions';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
 import {parseQueryString} from '../utils/url';
-import {ActivityPorts} from '../components/activities';
-import {DialogManager} from '../components/dialog-manager';
-import {ClientEventManager} from './client-event-manager';
-import {ClientConfigManager} from './client-config-manager';
-import {ClientConfig} from '../model/client-config';
-import {SubscriptionRequest} from '../api/subscriptions';
-import {DialogConfig} from '../components/dialog';
-import {PageConfig} from '../model/page-config';
 
 function getEventParams(sku: string): EventParams {
   return new EventParams([, , , , sku]);
