@@ -219,8 +219,7 @@ export class AutoPromptManager {
     const shouldShowAutoPrompt = await this.shouldShowAutoPrompt_(
       clientConfig,
       entitlements,
-      params.autoPromptType,
-      article?.audienceActions?.actions
+      params.autoPromptType
     );
 
     const potentialAction = article
@@ -337,15 +336,9 @@ export class AutoPromptManager {
    * @param {!../model/client-config.ClientConfig|undefined} clientConfig
    * @param {!../api/entitlements.Entitlements} entitlements
    * @param {!AutoPromptType|undefined} autoPromptType
-   * @param {./entitlements-manager.Intervention[]|undefined} actions
    * @returns {!Promise<boolean>}
    */
-  async shouldShowAutoPrompt_(
-    clientConfig,
-    entitlements,
-    autoPromptType,
-    actions = []
-  ) {
+  async shouldShowAutoPrompt_(clientConfig, entitlements, autoPromptType) {
     // If false publication predicate was returned in the response, don't show
     // the prompt.
     if (
