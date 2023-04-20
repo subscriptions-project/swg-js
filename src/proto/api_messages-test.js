@@ -1279,76 +1279,59 @@ describe('SurveyAnswer', () => {
 
     // Verify includeLabel undefined
     // Verify serialized arrays.
-    surveyanswerDeserialized = deserialize(surveyanswer1.toArray(undefined));
+    surveyanswerDeserialized = deserialize(
+        surveyanswer1.toArray(undefined));
     expect(surveyanswerDeserialized.toArray(undefined)).to.deep.equal(
-      surveyanswer1.toArray(undefined)
-    );
+        surveyanswer1.toArray(undefined));
 
     // Verify fields.
     expect(surveyanswerDeserialized.getAnswerId()).to.deep.equal(
-      surveyanswer1.getAnswerId()
-    );
+        surveyanswer1.getAnswerId());
     expect(surveyanswerDeserialized.getAnswerText()).to.deep.equal(
-      surveyanswer1.getAnswerText()
-    );
+        surveyanswer1.getAnswerText());
     expect(surveyanswerDeserialized.getAnswerCategory()).to.deep.equal(
-      surveyanswer1.getAnswerCategory()
-    );
+        surveyanswer1.getAnswerCategory());
     expect(surveyanswerDeserialized.getPpsValue()).to.deep.equal(
-      surveyanswer1.getPpsValue()
-    );
+        surveyanswer1.getPpsValue());
 
     // Verify includeLabel true
     // Verify serialized arrays.
-    surveyanswerDeserialized = deserialize(surveyanswer1.toArray(true));
+    surveyanswerDeserialized = deserialize(
+        surveyanswer1.toArray(true));
     expect(surveyanswerDeserialized.toArray(true)).to.deep.equal(
-      surveyanswer1.toArray(true)
-    );
+        surveyanswer1.toArray(true));
 
     // Verify fields.
     expect(surveyanswerDeserialized.getAnswerId()).to.deep.equal(
-      surveyanswer1.getAnswerId()
-    );
+        surveyanswer1.getAnswerId());
     expect(surveyanswerDeserialized.getAnswerText()).to.deep.equal(
-      surveyanswer1.getAnswerText()
-    );
+        surveyanswer1.getAnswerText());
     expect(surveyanswerDeserialized.getAnswerCategory()).to.deep.equal(
-      surveyanswer1.getAnswerCategory()
-    );
+        surveyanswer1.getAnswerCategory());
     expect(surveyanswerDeserialized.getPpsValue()).to.deep.equal(
-      surveyanswer1.getPpsValue()
-    );
+        surveyanswer1.getPpsValue());
 
     // Verify includeLabel false
     // Verify serialized arrays.
-    surveyanswerDeserialized = new SurveyAnswer(
-      surveyanswer1.toArray(false),
-      false
-    );
+    surveyanswerDeserialized = new SurveyAnswer(surveyanswer1.toArray(false), false);
     expect(surveyanswerDeserialized.toArray(false)).to.deep.equal(
-      surveyanswer1.toArray(false)
-    );
+        surveyanswer1.toArray(false));
 
     // Verify fields.
     expect(surveyanswerDeserialized.getAnswerId()).to.deep.equal(
-      surveyanswer1.getAnswerId()
-    );
+        surveyanswer1.getAnswerId());
     expect(surveyanswerDeserialized.getAnswerText()).to.deep.equal(
-      surveyanswer1.getAnswerText()
-    );
+        surveyanswer1.getAnswerText());
     expect(surveyanswerDeserialized.getAnswerCategory()).to.deep.equal(
-      surveyanswer1.getAnswerCategory()
-    );
+        surveyanswer1.getAnswerCategory());
     expect(surveyanswerDeserialized.getPpsValue()).to.deep.equal(
-      surveyanswer1.getPpsValue()
-    );
+        surveyanswer1.getPpsValue());
   });
 });
 
 describe('SurveyDataTransferRequest', () => {
   it('should deserialize correctly', () => {
-    const /** !SurveyDataTransferRequest  */ surveydatatransferrequest1 =
-        new SurveyDataTransferRequest();
+    const /** !SurveyDataTransferRequest  */ surveydatatransferrequest1 = new SurveyDataTransferRequest();
     surveydatatransferrequest1.setSurveyQuestionsList([]);
     surveydatatransferrequest1.setStorePpsInLocalStorage(false);
 
@@ -1357,54 +1340,40 @@ describe('SurveyDataTransferRequest', () => {
     // Verify includeLabel undefined
     // Verify serialized arrays.
     surveydatatransferrequestDeserialized = deserialize(
-      surveydatatransferrequest1.toArray(undefined)
-    );
-    expect(
-      surveydatatransferrequestDeserialized.toArray(undefined)
-    ).to.deep.equal(surveydatatransferrequest1.toArray(undefined));
+        surveydatatransferrequest1.toArray(undefined));
+    expect(surveydatatransferrequestDeserialized.toArray(undefined)).to.deep.equal(
+        surveydatatransferrequest1.toArray(undefined));
 
     // Verify fields.
-    expect(
-      surveydatatransferrequestDeserialized.getSurveyQuestionsList()
-    ).to.deep.equal(surveydatatransferrequest1.getSurveyQuestionsList());
-    expect(
-      surveydatatransferrequestDeserialized.getStorePpsInLocalStorage()
-    ).to.deep.equal(surveydatatransferrequest1.getStorePpsInLocalStorage());
+    expect(surveydatatransferrequestDeserialized.getSurveyQuestionsList()).to.deep.equal(
+        surveydatatransferrequest1.getSurveyQuestionsList());
+    expect(surveydatatransferrequestDeserialized.getStorePpsInLocalStorage()).to.deep.equal(
+        surveydatatransferrequest1.getStorePpsInLocalStorage());
 
     // Verify includeLabel true
     // Verify serialized arrays.
     surveydatatransferrequestDeserialized = deserialize(
-      surveydatatransferrequest1.toArray(true)
-    );
+        surveydatatransferrequest1.toArray(true));
     expect(surveydatatransferrequestDeserialized.toArray(true)).to.deep.equal(
-      surveydatatransferrequest1.toArray(true)
-    );
+        surveydatatransferrequest1.toArray(true));
 
     // Verify fields.
-    expect(
-      surveydatatransferrequestDeserialized.getSurveyQuestionsList()
-    ).to.deep.equal(surveydatatransferrequest1.getSurveyQuestionsList());
-    expect(
-      surveydatatransferrequestDeserialized.getStorePpsInLocalStorage()
-    ).to.deep.equal(surveydatatransferrequest1.getStorePpsInLocalStorage());
+    expect(surveydatatransferrequestDeserialized.getSurveyQuestionsList()).to.deep.equal(
+        surveydatatransferrequest1.getSurveyQuestionsList());
+    expect(surveydatatransferrequestDeserialized.getStorePpsInLocalStorage()).to.deep.equal(
+        surveydatatransferrequest1.getStorePpsInLocalStorage());
 
     // Verify includeLabel false
     // Verify serialized arrays.
-    surveydatatransferrequestDeserialized = new SurveyDataTransferRequest(
-      surveydatatransferrequest1.toArray(false),
-      false
-    );
+    surveydatatransferrequestDeserialized = new SurveyDataTransferRequest(surveydatatransferrequest1.toArray(false), false);
     expect(surveydatatransferrequestDeserialized.toArray(false)).to.deep.equal(
-      surveydatatransferrequest1.toArray(false)
-    );
+        surveydatatransferrequest1.toArray(false));
 
     // Verify fields.
-    expect(
-      surveydatatransferrequestDeserialized.getSurveyQuestionsList()
-    ).to.deep.equal(surveydatatransferrequest1.getSurveyQuestionsList());
-    expect(
-      surveydatatransferrequestDeserialized.getStorePpsInLocalStorage()
-    ).to.deep.equal(surveydatatransferrequest1.getStorePpsInLocalStorage());
+    expect(surveydatatransferrequestDeserialized.getSurveyQuestionsList()).to.deep.equal(
+        surveydatatransferrequest1.getSurveyQuestionsList());
+    expect(surveydatatransferrequestDeserialized.getStorePpsInLocalStorage()).to.deep.equal(
+        surveydatatransferrequest1.getStorePpsInLocalStorage());
   });
 });
 
