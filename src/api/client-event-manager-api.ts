@@ -36,6 +36,8 @@ export interface ClientEvent {
   isFromUserAction?: boolean | null;
   /** Optional. A JSON object to store generic data. */
   additionalParameters?: {} | null;
+  /** Optional. When the event happened. Useful for queued events. */
+  timestamp?: number;
 }
 
 export interface ClientEventManagerApi {

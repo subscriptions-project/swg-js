@@ -272,9 +272,13 @@ export class AnalyticsService {
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(!!event.isFromUserAction);
-    // Update the of the analytics context to the current time.
-    // This needs to be current for log analysis.
-    this.context_.setClientTimestamp(this.getTimestamp_());
+    // Update the request's timestamp.
+    // - If the event includes a timestamp, use that.
+    // - Otherwise, use the current timestamp.
+    const timestamp = event.timestamp
+      ? toTimestamp(event.timestamp)
+      : this.getTimestamp_();
+    this.context_.setClientTimestamp(timestamp);
     const request = new AnalyticsRequest();
     request.setEvent(event.eventType!);
     request.setContext(this.context_);
@@ -316,6 +320,7 @@ export class AnalyticsService {
     if (!this.readyForLogging_) {
       // If we're not ready to log events yet,
       // store the event so we can log it later.
+      event.timestamp = Date.now();
       this.logs_.push(event);
       return;
     }
