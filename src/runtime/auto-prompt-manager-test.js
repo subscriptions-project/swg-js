@@ -1253,7 +1253,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(contributionPromptFnSpy).to.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -1285,7 +1285,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.SUBSCRIPTION
+        'TYPE_SUBSCRIPTION'
       );
     });
 
@@ -1397,7 +1397,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -1664,7 +1664,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -1867,7 +1867,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -2028,7 +2028,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -2122,7 +2122,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -2277,7 +2277,7 @@ describes.realWin('AutoPromptManager', (env) => {
             expect(actionFlowSpy).to.not.have.been.called;
             expect(contributionPromptFnSpy).to.not.have.been.called;
             expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-              AutoPromptType.CONTRIBUTION
+              'TYPE_CONTRIBUTION'
             );
           });
 
@@ -2516,7 +2516,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
   });

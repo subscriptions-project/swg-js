@@ -558,9 +558,9 @@ export class AutoPromptManager {
     if (potentialActions.length === 0) {
       if (shouldShowAutoPrompt) {
         this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
-          ? {type: AutoPromptType.SUBSCRIPTION}
+          ? {type: TYPE_SUBSCRIPTION}
           : this.isContribution_({autoPromptType})
-          ? {type: AutoPromptType.CONTRIBUTION}
+          ? {type: TYPE_CONTRIBUTION}
           : null;
       }
       return undefined;
@@ -569,7 +569,7 @@ export class AutoPromptManager {
     // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
       if (shouldShowAutoPrompt) {
-        this.interventionDisplayed_ = {type: AutoPromptType.SUBSCRIPTION};
+        this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
         return undefined;
       }
       const firstAction = potentialActions[0];
@@ -608,7 +608,7 @@ export class AutoPromptManager {
 
     // If autoprompt should be shown, honor it and display the contribution prompt.
     if (shouldShowAutoPrompt) {
-      this.interventionDisplayed_ = {type: AutoPromptType.CONTRIBUTION};
+      this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
       return undefined;
     }
 
