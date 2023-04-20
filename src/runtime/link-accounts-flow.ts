@@ -39,14 +39,20 @@ import {feArgs, feOrigin, feUrl} from './services';
 
 const LINK_REQUEST_ID = 'swg-link';
 
-interface LinkCompleteResponse {
-  entitlements?: string;
-  index?: number;
+interface LinkSaveResponse {
   linked?: boolean;
   saveAndRefresh?: boolean;
+  swgUserToken?: string;
+  index?: number;
+}
+
+interface LinkConfirmResponse {
+  linked?: boolean;
   success?: boolean;
   swgUserToken?: string;
 }
+
+type LinkCompleteResponse = LinkConfirmResponse & LinkSaveResponse;
 
 /**
  * The flow to link an existing publisher account to an existing google account.
@@ -103,7 +109,6 @@ export class LinkCompleteFlow {
   private readonly callbacks_: Callbacks;
   private readonly completePromise_: Promise<void>;
 
-  private response_: LinkCompleteResponse;
   private activityIframeView_: ActivityIframeView | null = null;
   private completeResolver_: (() => void) | null = null;
 
@@ -123,7 +128,7 @@ export class LinkCompleteFlow {
           feOrigin(),
           /* requireOriginVerified */ false,
           /* requireSecureChannel */ false
-        )) as LinkCompleteResponse;
+        )) as LinkConfirmResponse;
 
         // Send events.
         deps
@@ -157,7 +162,7 @@ export class LinkCompleteFlow {
 
   constructor(
     private readonly deps_: Deps,
-    response?: LinkCompleteResponse | null
+    private readonly response_: LinkCompleteResponse
   ) {
     this.win_ = deps_.win();
 
@@ -169,7 +174,7 @@ export class LinkCompleteFlow {
 
     this.callbacks_ = deps_.callbacks();
 
-    this.response_ = response || {};
+    this.response_ ||= {};
 
     this.completePromise_ = new Promise<void>((resolve) => {
       this.completeResolver_ = resolve;
@@ -242,9 +247,6 @@ export class LinkCompleteFlow {
     this.entitlementsManager_.setToastShown(true);
     this.entitlementsManager_.unblockNextNotification();
     this.entitlementsManager_.reset(success);
-    if (response['entitlements']) {
-      this.entitlementsManager_.pushNextEntitlements(response['entitlements']);
-    }
     this.completeResolver_!();
   }
 
@@ -293,7 +295,7 @@ export class LinkSaveFlow {
   }
 
   private async handleLinkSaveResponse_(
-    result: LinkCompleteResponse
+    result: LinkSaveResponse
   ): Promise<boolean> {
     // This flow is complete.
     this.complete_();
@@ -382,7 +384,7 @@ export class LinkSaveFlow {
         feOrigin(),
         /* requireOriginVerified */ true,
         /* requireSecureChannel */ true
-      )) as LinkCompleteResponse;
+      )) as LinkSaveResponse;
 
       return await this.handleLinkSaveResponse_(result);
     } catch (reason) {
