@@ -458,22 +458,6 @@ export class AutoPromptManager {
       return false;
     }
 
-    // If there is an audience action with explicit higher priority than the contribution
-    // or subscription action, do not show the autoprompt.
-    const autopromptActionType = this.isSubscription_({autoPromptType})
-      ? TYPE_SUBSCRIPTION
-      : this.isContribution_({autoPromptType})
-      ? TYPE_CONTRIBUTION
-      : null;
-    if (autopromptActionType) {
-      const autopromptActionIndex = actions.findIndex(
-        (action) => action.type === autopromptActionType
-      );
-      if (autopromptActionIndex > 0) {
-        return false;
-      }
-    }
-
     return true;
   }
 
@@ -527,11 +511,6 @@ export class AutoPromptManager {
     shouldShowAutoPrompt,
   }) {
     const audienceActions = article.audienceActions?.actions || [];
-    // Filter out AutoPrompt actions as they were already processed.
-    let potentialActions = audienceActions.filter(
-      (action) =>
-        !(action.type == TYPE_CONTRIBUTION || action.type == TYPE_SUBSCRIPTION)
-    );
 
     // Count completed surveys.
     const [surveyCompletionTimestamps, surveyDataTransferFailureTimestamps] =
@@ -550,7 +529,7 @@ export class AutoPromptManager {
     const isSurveyEligible =
       !hasCompletedSurveys && !hasRecentSurveyDataTransferFailure;
 
-    potentialActions = potentialActions.filter((action) =>
+    let potentialActions = audienceActions.filter((action) =>
       this.checkActionEligibility_(action.type, isSurveyEligible)
     );
 
@@ -606,13 +585,22 @@ export class AutoPromptManager {
       }
     }
 
-    // If autoprompt should be shown, honor it and display the contribution prompt.
-    if (shouldShowAutoPrompt) {
+    const contributionIndex = potentialActions.findIndex(
+      (action) => action.type === TYPE_CONTRIBUTION
+    );
+    // If autoprompt should be shown, and the contribution action is either the first action or
+    // not passed through audience actions, honor it and display the contribution prompt.
+    if (shouldShowAutoPrompt && contributionIndex < 1) {
       this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
       return undefined;
     }
 
-    // Otherwise, set to the next recommended action, if one is available.
+    // Filter out contribution actions as they were already processed.
+    potentialActions = potentialActions.filter(
+      (action) => action.type !== TYPE_CONTRIBUTION
+    );
+
+    // Otherwise, return the next recommended action, if one is available.
     if (potentialActions.length === 0) {
       return undefined;
     }
