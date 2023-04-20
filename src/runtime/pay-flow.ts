@@ -55,7 +55,6 @@ import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString} from '../utils/json';
 import {getSwgMode} from './services';
 import {isCancelError} from '../utils/errors';
-import {parseUrl} from '../utils/url';
 
 /**
  * Subscribe with Google request to pass to payments.
@@ -316,33 +315,6 @@ export class PayCompleteFlow {
     }
 
     const urlParams: {[key: string]: string} = {};
-    if (args.productType === ProductType.VIRTUAL_GIFT) {
-      Object.assign(urlParams, {
-        productType: args.productType,
-        publicationId: args.publicationId,
-        offerId: this.sku_,
-        origin: parseUrl(this.win_.location.href).origin,
-        isPaid: true,
-        checkOrderStatus: true,
-      });
-      const requestMetadata = response.requestMetadata as {
-        [key: string]: string;
-      };
-      if (requestMetadata) {
-        urlParams.canonicalUrl = requestMetadata.contentId;
-        urlParams.isAnonymous = requestMetadata.anonymous;
-        args['contentTitle'] = requestMetadata.contentTitle;
-      }
-
-      // Add feArgs to be passed via activities.
-      if (response.swgUserToken) {
-        args.swgUserToken = response.swgUserToken;
-      }
-      const orderId = parseOrderIdFromPurchaseDataSafe(response.purchaseData);
-      if (orderId) {
-        args.orderId = orderId;
-      }
-    }
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       urlParams.hl = this.clientConfigManager_.getLanguage();
     }
@@ -577,13 +549,5 @@ function parseSkuFromPurchaseDataSafe(
 ): string | null {
   return (
     (getPropertyFromJsonString(purchaseData.raw, 'productId') as string) || null
-  );
-}
-
-function parseOrderIdFromPurchaseDataSafe(
-  purchaseData: PurchaseData
-): string | null {
-  return (
-    (getPropertyFromJsonString(purchaseData.raw, 'orderId') as string) || null
   );
 }
