@@ -23,7 +23,6 @@ import {
   EventOriginator,
   EventParams,
   FinishedLoggingResponse,
-  Timestamp,
 } from '../proto/api_messages';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
@@ -116,11 +115,6 @@ export class AnalyticsService {
     this.eventManager_.registerEventListener(
       this.handleClientEvent_.bind(this)
     );
-  }
-
-  /** A callback for setting the client timestamp before sending requests. */
-  private getTimestamp_(): Timestamp {
-    return toTimestamp(Date.now());
   }
 
   /**
@@ -272,9 +266,8 @@ export class AnalyticsService {
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(!!event.isFromUserAction);
-    // Update the of the analytics context to the current time.
-    // This needs to be current for log analysis.
-    this.context_.setClientTimestamp(this.getTimestamp_());
+    // Update the request's timestamp.
+    this.context_.setClientTimestamp(toTimestamp(event.timestamp!));
     const request = new AnalyticsRequest();
     request.setEvent(event.eventType!);
     request.setContext(this.context_);
