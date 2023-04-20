@@ -1070,6 +1070,7 @@ describes.realWin('AutoPromptManager', (env) => {
         publicationid: pubId,
         promptType: AutoPromptType.CONTRIBUTION,
       },
+      timestamp: sandbox.match.number,
     };
 
     await autoPromptManager.showAutoPrompt({
