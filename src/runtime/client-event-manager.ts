@@ -114,6 +114,9 @@ export class ClientEventManager implements ClientEventManagerApi {
   }
 
   logEvent(event: ClientEvent, eventParams?: ClientEventParams) {
+    // Always use current timestamp.
+    event.timestamp = Date.now();
+
     validateEvent(event);
     this.lastAction = this.handleEvent_(event, eventParams);
   }
