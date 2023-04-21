@@ -976,158 +976,6 @@ describes.realWin('PayCompleteFlow', (env) => {
     expect(PayCompleteFlow.waitingForPayClient).to.be.true;
   });
 
-  it('constructs valid flow w/ virtual gift url params', async () => {
-    const purchaseData = new PurchaseData(
-      '{"orderId":"ORDER", "productId":"SKU"}',
-      'SIG'
-    );
-    const userData = createDefaultUserData();
-    const entitlements = new Entitlements(
-      SERVICE_NAME,
-      RAW_ENTITLEMENTS,
-      [],
-      null
-    );
-
-    const expectedCanonicalUrl = 'canonical-url';
-    const expectedContentTitle = 'content-title';
-    const response = new SubscribeResponse(
-      RAW_ENTITLEMENTS,
-      purchaseData,
-      userData,
-      entitlements,
-      ProductType.VIRTUAL_GIFT,
-      null,
-      null,
-      'swgUserToken',
-      null,
-      {
-        contentId: expectedCanonicalUrl,
-        contentTitle: expectedContentTitle,
-        anonymous: true,
-      }
-    );
-    entitlementsManagerMock
-      .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
-      .once();
-    port = new MockActivityPort();
-    port.onResizeRequest = () => {};
-    port.whenReady = () => Promise.resolve();
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
-        true,
-        getEventParams('SKU')
-      );
-
-    const expectedOrigin = encodeURIComponent(WINDOW_LOCATION_DOMAIN);
-
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_' +
-          '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
-          expectedOrigin +
-          '&isPaid=true&checkOrderStatus=true' +
-          '&canonicalUrl=' +
-          expectedCanonicalUrl +
-          '&isAnonymous=true',
-        {
-          _client: 'SwG 0.0.0',
-          publicationId: 'pub1',
-          idToken: USER_ID_TOKEN,
-          productType: ProductType.VIRTUAL_GIFT,
-          isSubscriptionUpdate: false,
-          isOneTime: false,
-          contentTitle: expectedContentTitle,
-          swgUserToken: 'swgUserToken',
-          orderId: 'ORDER',
-          useUpdatedConfirmUi: false,
-          skipAccountCreationScreen: false,
-        }
-      )
-      .resolves(port);
-    await flow.start(response);
-    await flow.readyPromise_;
-  });
-
-  it('constructs valid flow w/ virtual gift url params even without order id', async () => {
-    const purchaseData = new PurchaseData('{"productId":"SKU"}', 'SIG');
-    const userData = createDefaultUserData();
-    const entitlements = new Entitlements(
-      SERVICE_NAME,
-      RAW_ENTITLEMENTS,
-      [],
-      null
-    );
-
-    const expectedCanonicalUrl = 'canonical-url';
-    const expectedContentTitle = 'content-title';
-    const response = new SubscribeResponse(
-      RAW_ENTITLEMENTS,
-      purchaseData,
-      userData,
-      entitlements,
-      ProductType.VIRTUAL_GIFT,
-      null,
-      null,
-      'swgUserToken',
-      null,
-      {
-        contentId: expectedCanonicalUrl,
-        contentTitle: expectedContentTitle,
-        anonymous: true,
-      }
-    );
-    entitlementsManagerMock
-      .expects('pushNextEntitlements')
-      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
-      .once();
-    port = new MockActivityPort();
-    port.onResizeRequest = () => {};
-    port.whenReady = () => Promise.resolve();
-    eventManagerMock
-      .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
-        true,
-        getEventParams('SKU')
-      );
-
-    const expectedOrigin = encodeURIComponent(WINDOW_LOCATION_DOMAIN);
-
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_' +
-          '&productType=VIRTUAL_GIFT&publicationId=pub1&offerId=SKU&origin=' +
-          expectedOrigin +
-          '&isPaid=true&checkOrderStatus=true' +
-          '&canonicalUrl=' +
-          expectedCanonicalUrl +
-          '&isAnonymous=true',
-        {
-          _client: 'SwG 0.0.0',
-          publicationId: 'pub1',
-          idToken: USER_ID_TOKEN,
-          productType: ProductType.VIRTUAL_GIFT,
-          isSubscriptionUpdate: false,
-          isOneTime: false,
-          contentTitle: expectedContentTitle,
-          swgUserToken: 'swgUserToken',
-          useUpdatedConfirmUi: false,
-          skipAccountCreationScreen: false,
-        }
-      )
-      .resolves(port);
-    await flow.start(response);
-    await flow.readyPromise_;
-  });
-
   it('constructs valid flow with forced language params', async () => {
     clientConfigManagerMock
       .expects('shouldForceLangInIframes')
@@ -1900,11 +1748,11 @@ describes.realWin('parseSubscriptionResponse', (env) => {
 
   it('parses productType when paymentRequest is not present', () => {
     const data = Object.assign({}, INTEGR_DATA_OBJ);
-    data['productType'] = ProductType.VIRTUAL_GIFT;
+    data['productType'] = ProductType.UI_CONTRIBUTION;
 
     const response = parseSubscriptionResponse(runtime, data);
 
-    expect(response.productType).to.equal(ProductType.VIRTUAL_GIFT);
+    expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
   });
 
   it('should throw error', () => {
