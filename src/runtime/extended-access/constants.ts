@@ -55,3 +55,11 @@ export enum GrantReasonType {
 export enum PaywallReasonType {
   RESERVED_USER = 'RESERVED_USER',
 }
+
+/**
+ * Types of paywall that a publisher operates on their site
+ */
+export enum PaywallType {
+  SERVER_SIDE = 'SERVER_SIDE',
+  CLIENT_SIDE = 'CLIENT_SIDE',
+}
