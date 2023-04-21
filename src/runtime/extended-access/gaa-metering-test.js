@@ -1721,7 +1721,7 @@ describes.realWin('GaaMetering', () => {
     });
   });
 
-  describe('determinePaywall', () => {
+  describe('determinePaywallType', () => {
     it('returns CLIENT_SIDE by default when there is no showcaseEntitlement', () => {
       expect(GaaMetering.determinePaywallType({})).to.be.equal('CLIENT_SIDE');
     });
