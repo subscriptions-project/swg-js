@@ -22,12 +22,12 @@ import {
 } from './entitlements-manager';
 import {AudienceActionFlow, AudienceActionParams} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
-// @ts-ignore: (b/276949133) Migrate to TypeScript.
-import {ConfiguredRuntime} from './runtime';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
+// @ts-ignore: (b/276949133) Migrate to TypeScript.
+import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
