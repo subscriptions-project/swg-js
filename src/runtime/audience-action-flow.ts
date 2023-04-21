@@ -42,6 +42,7 @@ import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {ProductType} from '../api/subscriptions';
+import {Storage} from './storage';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
@@ -348,9 +349,9 @@ export class AudienceActionFlow {
     );
     let existingIabTaxonomyValues: string[] = [];
     try {
-      const parsedExistingIabTaxonomyValues =
-        JSON.parse(existingIabTaxonomy)?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]
-          ?.values;
+      const parsedExistingIabTaxonomyValues = JSON.parse(
+        existingIabTaxonomy!
+      )?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]?.values;
       existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
         ? parsedExistingIabTaxonomyValues
         : [];
