@@ -169,7 +169,7 @@ export class GaaMetering {
           );
         } else {
           debugLog(
-            'User is not granted in userState and no showcaseEntitlement provided. Publisher renders paywall.'
+            'User is not granted in userState and no showcaseEntitlement provided. Publisher renders a paywall.'
           );
         }
       } else {
