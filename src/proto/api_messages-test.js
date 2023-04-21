@@ -261,6 +261,14 @@ describe('AnalyticsContext', () => {
       ReaderSurfaceType.READER_SURFACE_TYPE_UNSPECIFIED
     );
     analyticscontext1.setIntegrationVersion('');
+    const /** !Timestamp  */ timestamp2 = new Timestamp();
+    timestamp2.setSeconds(0);
+    timestamp2.setNanos(0);
+    analyticscontext1.setPageLoadBeginTimestamp(timestamp2);
+    const /** !Timestamp  */ timestamp3 = new Timestamp();
+    timestamp3.setSeconds(0);
+    timestamp3.setNanos(0);
+    analyticscontext1.setRuntimeCreationTimestamp(timestamp3);
 
     let analyticscontextDeserialized;
 
@@ -316,6 +324,12 @@ describe('AnalyticsContext', () => {
     expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
       analyticscontext1.getIntegrationVersion()
     );
+    expect(
+      analyticscontextDeserialized.getPageLoadBeginTimestamp()
+    ).to.deep.equal(analyticscontext1.getPageLoadBeginTimestamp());
+    expect(
+      analyticscontextDeserialized.getRuntimeCreationTimestamp()
+    ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -367,6 +381,12 @@ describe('AnalyticsContext', () => {
     expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
       analyticscontext1.getIntegrationVersion()
     );
+    expect(
+      analyticscontextDeserialized.getPageLoadBeginTimestamp()
+    ).to.deep.equal(analyticscontext1.getPageLoadBeginTimestamp());
+    expect(
+      analyticscontextDeserialized.getRuntimeCreationTimestamp()
+    ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -421,6 +441,12 @@ describe('AnalyticsContext', () => {
     expect(analyticscontextDeserialized.getIntegrationVersion()).to.deep.equal(
       analyticscontext1.getIntegrationVersion()
     );
+    expect(
+      analyticscontextDeserialized.getPageLoadBeginTimestamp()
+    ).to.deep.equal(analyticscontext1.getPageLoadBeginTimestamp());
+    expect(
+      analyticscontextDeserialized.getRuntimeCreationTimestamp()
+    ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
   });
 });
 
@@ -510,6 +536,14 @@ describe('AnalyticsRequest', () => {
       ReaderSurfaceType.READER_SURFACE_TYPE_UNSPECIFIED
     );
     analyticscontext1.setIntegrationVersion('');
+    const /** !Timestamp  */ timestamp2 = new Timestamp();
+    timestamp2.setSeconds(0);
+    timestamp2.setNanos(0);
+    analyticscontext1.setPageLoadBeginTimestamp(timestamp2);
+    const /** !Timestamp  */ timestamp3 = new Timestamp();
+    timestamp3.setSeconds(0);
+    timestamp3.setNanos(0);
+    analyticscontext1.setRuntimeCreationTimestamp(timestamp3);
     analyticsrequest1.setContext(analyticscontext1);
     analyticsrequest1.setEvent(AnalyticsEvent.UNKNOWN);
     const /** !AnalyticsEventMeta  */ analyticseventmeta1 =
@@ -525,10 +559,10 @@ describe('AnalyticsRequest', () => {
     eventparams1.setOldTransactionId('');
     eventparams1.setIsUserRegistered(false);
     eventparams1.setSubscriptionFlow('');
-    const /** !Timestamp  */ timestamp2 = new Timestamp();
-    timestamp2.setSeconds(0);
-    timestamp2.setNanos(0);
-    eventparams1.setSubscriptionTimestamp(timestamp2);
+    const /** !Timestamp  */ timestamp4 = new Timestamp();
+    timestamp4.setSeconds(0);
+    timestamp4.setNanos(0);
+    eventparams1.setSubscriptionTimestamp(timestamp4);
     analyticsrequest1.setParams(eventparams1);
 
     let analyticsrequestDeserialized;
