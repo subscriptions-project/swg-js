@@ -1533,7 +1533,7 @@ describes.realWin('GaaMetering', () => {
       );
     });
 
-    it('should not check for entitlements on client-side for server-side paywall', () => {
+    it('should not check entitlements on client-side for server-side paywall', () => {
       removeJsonLdScripts();
 
       self.document.head.innerHTML = `
@@ -1580,7 +1580,7 @@ describes.realWin('GaaMetering', () => {
       expect(unlockArticle).to.not.be.called;
     });
 
-    it('should render Google RegWall for anonymous user for server-side paywall', () => {
+    it('should render Google RegWall to anonymous user for server-side paywall', () => {
       removeJsonLdScripts();
 
       self.document.head.innerHTML = `
