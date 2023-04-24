@@ -26,6 +26,7 @@ import {EntitlementsManager} from './entitlements-manager';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PayClient} from './pay-client';
+import {Storage} from './storage';
 
 export interface Deps {
   doc(): Doc;
