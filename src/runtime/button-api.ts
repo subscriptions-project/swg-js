@@ -17,7 +17,6 @@
 import {ASSETS} from '../constants';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ButtonOptions, SmartButtonOptions} from '../api/subscriptions';
-// @ts-ignore: (b/276949133) Migrate to TypeScript.
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';

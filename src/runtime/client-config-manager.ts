@@ -21,7 +21,8 @@ import {
   ClientConfigJson,
   UiPredicates,
 } from '../model/client-config';
-import {ClientOptions, ClientTheme} from '../api/basic-subscriptions';
+import {ClientOptions} from '../api/basic-subscriptions';
+import {ClientTheme} from '../api/subscriptions';
 import {Deps} from './deps';
 import {Fetcher} from './fetcher';
 import {serviceUrl} from './services';

@@ -17,7 +17,6 @@
 import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
 import {AudienceActivityEventListener} from './audience-activity-listener';
-// @ts-ignore: (b/276949133) Migrate to TypeScript.
 import {AutoPromptManager} from './auto-prompt-manager';
 import {
   AutoPromptType,
@@ -29,7 +28,6 @@ import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
-// @ts-ignore: (b/276949133) Migrate to TypeScript.
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
@@ -166,7 +164,7 @@ export class BasicRuntime implements BasicSubscriptions {
               this.doc_,
               pageConfig,
               /* integr */ {
-                configPromise: this.configuredPromise_,
+                configPromise: this.configuredPromise_.then(),
                 enableDefaultMeteringHandler:
                   this.enableDefaultMeteringHandler_,
               },
@@ -299,7 +297,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     pageConfig: PageConfig,
     integr: {
       fetcher?: Fetcher;
-      configPromise?: Promise<ConfiguredBasicRuntime | void>;
+      configPromise?: Promise<void>;
       enableDefaultMeteringHandler?: boolean;
       enableGoogleAnalytics?: boolean;
       useArticleEndpoint?: boolean;
@@ -311,7 +309,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
 
     this.win_ = this.doc_.getWin();
 
-    integr.configPromise = integr.configPromise || Promise.resolve();
+    integr.configPromise ||= Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
     integr.enableGoogleAnalytics = true;
     integr.useArticleEndpoint = true;
@@ -348,7 +346,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     // Fetch the client config.
     this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig(
       // Wait on the entitlements to resolve before accessing the clientConfig
-      this.configuredClassicRuntime_.getEntitlements()
+      this.configuredClassicRuntime_.getEntitlements().then()
     );
 
     // Start listening to Audience Activity events.

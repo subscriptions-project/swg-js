@@ -53,7 +53,7 @@ const forbiddenTerms = {
     message:
       'If you run against this, use console/*OK*/.log to ' +
       'allowlist a legit case.',
-    allowlist: ['src/main.js', 'src/components/activities.js'],
+    allowlist: ['src/main.ts', 'src/components/activities.js'],
     checkInTestFolder: true,
   },
   'cookie\\W': {

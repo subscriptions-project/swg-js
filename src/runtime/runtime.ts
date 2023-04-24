@@ -22,20 +22,42 @@ import {
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
-import {AnalyticsMode} from '../api/subscriptions';
+import {
+  AnalyticsMode,
+  ButtonOptions,
+  ClientTheme,
+  Config,
+  LinkSubscriptionRequest,
+  LinkSubscriptionResult,
+  LoginRequest,
+  OffersRequest,
+  PublisherEntitlement,
+  SaveSubscriptionRequestCallback,
+  SmartButtonOptions,
+  SubscriptionRequest,
+  Subscriptions,
+} from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
+import {ClientEventManagerApi} from '../api/client-event-manager-api';
 import {ContributionsFlow} from './contributions-flow';
+import {DIALOG_CSS} from '../ui/ui-css';
+import {
+  DeferredAccountCreationRequest,
+  DeferredAccountCreationResponse,
+} from '../api/deferred-account-creation';
 import {DeferredAccountFlow} from './deferred-account-flow';
-import {Deps as DepsDef} from './deps';
+import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc as DocInterface, resolveDoc} from '../model/doc';
+import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
+import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
@@ -44,8 +66,10 @@ import {
   LinkbackFlow,
 } from './link-accounts-flow';
 import {Logger} from './logger';
+import {LoggerApi} from '../api/logger-api';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
+import {Offer} from '../api/offer';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {
@@ -62,8 +86,9 @@ import {
   defaultConfig,
 } from '../api/subscriptions';
 import {Propensity} from './propensity';
-import {DIALOG_CSS as SWG_DIALOG} from '../ui/ui-css';
+import {PropensityApi} from '../api/propensity-api';
 import {Storage} from './storage';
+import {SubscribeResponse} from '../api/subscribe-response';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
@@ -86,26 +111,24 @@ const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 
 /**
  * Reference to the runtime, for testing.
- * @private {!Runtime}
  */
-let runtimeInstance_;
+let runtimeInstance: Runtime;
 
 /**
  * Returns runtime for testing if available. Throws if the runtime is not
  * initialized yet.
- * @visibleForTesting
- * @return {!Runtime}
+ *
+ * Visible for testing.
  */
-export function getRuntime() {
-  assert(runtimeInstance_, 'not initialized yet');
-  return runtimeInstance_;
+export function getRuntime(): Runtime {
+  assert(runtimeInstance, 'not initialized yet');
+  return runtimeInstance;
 }
 
 /**
  * Installs SwG runtime.
- * @param {!Window} win
  */
-export function installRuntime(win) {
+export function installRuntime(win: Window): void {
   // Only install the SwG runtime once.
   if (win[RUNTIME_PROP] && !Array.isArray(win[RUNTIME_PROP])) {
     return;
@@ -119,9 +142,10 @@ export function installRuntime(win) {
 
   /**
    * Executes a callback when SwG runtime is ready.
-   * @param {function(!SubscriptionsInterface)} callback
    */
-  async function callWhenRuntimeIsReady(callback) {
+  async function callWhenRuntimeIsReady(
+    callback: (api: SubscriptionsInterface) => void
+  ): Promise<void> {
     if (!callback) {
       return;
     }
@@ -132,7 +156,7 @@ export function installRuntime(win) {
   }
 
   // Queue up any callbacks the publication might have provided.
-  const waitingCallbacks = [].concat(
+  const waitingCallbacks = ([] as ((api: Subscriptions) => void)[]).concat(
     win[RUNTIME_PROP],
     win[RUNTIME_LEGACY_PROP]
   );
@@ -142,77 +166,58 @@ export function installRuntime(win) {
 
   // If any more callbacks are `push`ed to the global SwG variables,
   // they'll be queued up to receive the SwG runtime when it's ready.
-  win[RUNTIME_PROP] = win[RUNTIME_LEGACY_PROP] = {
+  (win[RUNTIME_PROP] as {}) = (win[RUNTIME_LEGACY_PROP] as {}) = {
     push: callWhenRuntimeIsReady,
   };
 
   // Set variable for testing.
-  runtimeInstance_ = runtime;
+  runtimeInstance = runtime;
 
   // Kick off subscriptions flow.
   runtime.startSubscriptionsFlowIfNeeded();
 }
 
-/**
- * @implements {SubscriptionsInterface}
- */
-export class Runtime {
-  /**
-   * @param {!Window} win
-   */
-  constructor(win) {
-    /** @private @const {!Window} */
-    this.win_ = win;
+export class Runtime implements SubscriptionsInterface {
+  private productOrPublicationId_: string | null = null;
+  private startedConfiguringRuntime_ = false;
+  private configuredRuntimeResolver_:
+    | ((runtime: ConfiguredRuntime | Promise<ConfiguredRuntime>) => void)
+    | null = null;
+  private pageConfigResolver_: PageConfigResolver | null = null;
 
-    /** @private @const {!DocInterface} */
-    this.doc_ = resolveDoc(win);
+  private readonly doc_: DocInterface;
+  private readonly ready_: Promise<void>;
+  private readonly config_: Config;
+  private readonly configuredRuntimePromise_: Promise<ConfiguredRuntime>;
+  private readonly buttonApi_: ButtonApi;
 
-    /** @private @const {!Promise} */
+  constructor(private readonly win_: Window) {
+    this.doc_ = resolveDoc(win_);
+
     this.ready_ = Promise.resolve();
 
-    /** @private {?string} */
-    this.productOrPublicationId_ = null;
-
-    /** @private @const {!../api/subscriptions.Config} */
     this.config_ = {
       useArticleEndpoint: isExperimentOn(
-        win,
+        win_,
         ExperimentFlags.USE_ARTICLE_ENDPOINT_CLASSIC
       ),
     };
 
-    /** @private {boolean} */
-    this.startedConfiguringRuntime_ = false;
-
-    /** @private {?function((!ConfiguredRuntime|!Promise))} */
-    this.configuredRuntimeResolver_ = null;
-
-    /** @private @const {!Promise<!ConfiguredRuntime>} */
     this.configuredRuntimePromise_ = new Promise((resolve) => {
       this.configuredRuntimeResolver_ = resolve;
     });
 
-    /** @private {?PageConfigResolver} */
-    this.pageConfigResolver_ = null;
-
-    /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_, this.configuredRuntimePromise_);
     this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
-  /**
-   * @return {!Promise}
-   */
-  whenReady() {
+  whenReady(): Promise<void> {
     return this.ready_;
   }
 
-  /**
-   * @param {boolean} startConfiguringRuntime
-   * @return {!Promise<!ConfiguredRuntime>}
-   * @private
-   */
-  async configured_(startConfiguringRuntime) {
+  private async configured_(
+    startConfiguringRuntime: boolean
+  ): Promise<ConfiguredRuntime> {
     if (!startConfiguringRuntime) {
       // Configuration isn't necessary yet, so lets wait.
       return this.configuredRuntimePromise_;
@@ -235,21 +240,20 @@ export class Runtime {
       this.doc_,
       pageConfig,
       /* integr */ {
-        configPromise: this.configuredRuntimePromise_,
+        configPromise: this.configuredRuntimePromise_.then(),
         useArticleEndpoint: this.config_.useArticleEndpoint || false,
       },
       this.config_
     );
-    this.configuredRuntimeResolver_(configuredRuntime);
+    this.configuredRuntimeResolver_!(configuredRuntime);
 
     return configuredRuntime;
   }
 
   /**
    * Creates or resolves the page config.
-   * @return {!Promise<!PageConfig>}
    */
-  async determinePageConfig_() {
+  private async determinePageConfig_(): Promise<PageConfig> {
     if (this.productOrPublicationId_) {
       // Create page config.
       return new PageConfig(this.productOrPublicationId_, /* locked */ false);
@@ -270,11 +274,8 @@ export class Runtime {
   /**
    * Starts the subscription flow if it hasn't been started and the page is
    * configured to start it automatically.
-   *
-   * @return {?Promise}
-   * @package
    */
-  startSubscriptionsFlowIfNeeded() {
+  startSubscriptionsFlowIfNeeded(): Promise<void> | null {
     const control = getControlFlag(this.win_.document);
     debugLog(control, 'mode');
     if (control == 'manual') {
@@ -284,8 +285,7 @@ export class Runtime {
     return this.start();
   }
 
-  /** @override */
-  init(productOrPublicationId) {
+  init(productOrPublicationId: string): void {
     assert(!this.startedConfiguringRuntime_, 'already configured');
     this.productOrPublicationId_ = productOrPublicationId;
 
@@ -297,230 +297,234 @@ export class Runtime {
     });
   }
 
-  /** @override */
-  async configure(config) {
+  async configure(config: Config): Promise<void> {
     // Accumulate config for startup.
     Object.assign(this.config_, config);
     const runtime = await this.configured_(false);
     return runtime.configure(config);
   }
 
-  /** @override */
-  async start() {
+  async start(): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.start();
   }
 
-  /** @override */
-  async reset() {
+  async reset(): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.reset();
   }
 
-  /** @override */
-  async clear() {
+  async clear(): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.clear();
   }
 
-  /** @override */
-  async getEntitlements(params) {
+  async getEntitlements(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<Entitlements> {
     const runtime = await this.configured_(true);
     return runtime.getEntitlements(params);
   }
 
-  /** @override */
-  async setOnEntitlementsResponse(callback) {
+  async setOnEntitlementsResponse(
+    callback: (entitlements: Promise<Entitlements>) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnEntitlementsResponse(callback);
   }
 
-  /** @override */
-  async getOffers(options) {
+  async getOffers(options?: {productId?: string}): Promise<Offer[]> {
     const runtime = await this.configured_(true);
     return runtime.getOffers(options);
   }
 
-  /** @override */
-  async showOffers(options) {
+  async showOffers(options?: OffersRequest): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.showOffers(options);
   }
 
-  /** @override */
-  async showUpdateOffers(options) {
+  async showUpdateOffers(options?: OffersRequest): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.showUpdateOffers(options);
   }
 
-  /** @override */
-  async showSubscribeOption(options) {
+  async showSubscribeOption(options?: OffersRequest): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.showSubscribeOption(options);
   }
 
-  /** @override */
-  async showAbbrvOffer(options) {
+  async showAbbrvOffer(options?: OffersRequest): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.showAbbrvOffer(options);
   }
 
-  /** @override */
-  async showContributionOptions(options) {
+  async showContributionOptions(options?: OffersRequest): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.showContributionOptions(options);
   }
 
-  /** @override */
-  async waitForSubscriptionLookup(accountPromise) {
+  async waitForSubscriptionLookup(
+    accountPromise: Promise<unknown>
+  ): Promise<unknown> {
     const runtime = await this.configured_(true);
     return runtime.waitForSubscriptionLookup(accountPromise);
   }
 
-  /** @override */
-  async setOnNativeSubscribeRequest(callback) {
+  async setOnNativeSubscribeRequest(callback: () => void): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnNativeSubscribeRequest(callback);
   }
 
-  /** @override */
-  async setOnSubscribeResponse(callback) {
+  async setOnSubscribeResponse(
+    callback: (subscribeResponse: Promise<SubscribeResponse>) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnSubscribeResponse(callback);
   }
 
-  /** @override */
-  async subscribe(sku) {
+  async subscribe(sku: string): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.subscribe(sku);
   }
 
-  /** @override */
-  async updateSubscription(subscriptionRequest) {
+  async updateSubscription(
+    subscriptionRequest: SubscriptionRequest
+  ): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.updateSubscription(subscriptionRequest);
   }
 
-  /** @override */
-  async setOnContributionResponse(callback) {
+  async setOnContributionResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnContributionResponse(callback);
   }
 
-  /** @override */
-  async setOnPaymentResponse(callback) {
+  async setOnPaymentResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnPaymentResponse(callback);
   }
 
-  /** @override */
-  async contribute(skuOrSubscriptionRequest) {
+  async contribute(
+    skuOrSubscriptionRequest: string | SubscriptionRequest
+  ): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.contribute(skuOrSubscriptionRequest);
   }
 
-  /** @override */
-  async completeDeferredAccountCreation(options) {
+  async completeDeferredAccountCreation(
+    options?: DeferredAccountCreationRequest | null
+  ): Promise<DeferredAccountCreationResponse> {
     const runtime = await this.configured_(true);
     return runtime.completeDeferredAccountCreation(options);
   }
 
-  /** @override */
-  async setOnLoginRequest(callback) {
+  async setOnLoginRequest(
+    callback: (loginRequest: LoginRequest) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnLoginRequest(callback);
   }
 
-  /** @override */
-  async triggerLoginRequest(request) {
+  async triggerLoginRequest(request: LoginRequest): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.triggerLoginRequest(request);
   }
 
-  /** @override */
-  async setOnLinkComplete(callback) {
+  async setOnLinkComplete(callback: () => void): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnLinkComplete(callback);
   }
 
-  /** @override */
-  async linkAccount(params = {}) {
+  async linkAccount(params?: {ampReaderId?: string}): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.linkAccount(params);
   }
 
-  /** @override */
-  async setOnFlowStarted(callback) {
+  async setOnFlowStarted(
+    callback: (params: {flow: string; data: object}) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnFlowStarted(callback);
   }
 
-  /** @override */
-  async setOnFlowCanceled(callback) {
+  async setOnFlowCanceled(
+    callback: (params: {flow: string; data: object}) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     return runtime.setOnFlowCanceled(callback);
   }
 
-  /** @override */
-  async saveSubscription(saveSubscriptionRequestCallback) {
+  async saveSubscription(
+    saveSubscriptionRequestCallback: SaveSubscriptionRequestCallback
+  ): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.saveSubscription(saveSubscriptionRequestCallback);
   }
 
-  /** @override */
-  async showLoginPrompt() {
+  async showLoginPrompt(): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.showLoginPrompt();
   }
 
-  /** @override */
-  async showLoginNotification() {
+  async showLoginNotification(): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.showLoginNotification();
   }
 
-  /** @override */
-  createButton(optionsOrCallback, callback) {
+  createButton(
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): Element {
     return this.buttonApi_.create(optionsOrCallback, callback);
   }
 
-  /** @override */
-  async attachSmartButton(button, optionsOrCallback, callback) {
+  async attachSmartButton(
+    button: HTMLElement,
+    optionsOrCallback: SmartButtonOptions | (() => void),
+    callback?: () => void
+  ): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.attachSmartButton(button, optionsOrCallback, callback);
   }
 
-  /** @override */
-  attachButton(button, optionsOrCallback, callback) {
-    return this.buttonApi_.attach(button, optionsOrCallback, callback);
+  attachButton(
+    button: HTMLElement,
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): void {
+    this.buttonApi_.attach(button, optionsOrCallback, callback);
   }
 
-  /** @override */
-  async getPropensityModule() {
+  async getPropensityModule(): Promise<PropensityApi> {
     const runtime = await this.configured_(true);
     return runtime.getPropensityModule();
   }
 
-  /** @override */
-  async getLogger() {
+  async getLogger(): Promise<LoggerApi> {
     const runtime = await this.configured_(true);
     return runtime.getLogger();
   }
 
-  /** @override */
-  async getEventManager() {
+  async getEventManager(): Promise<ClientEventManagerApi> {
     const runtime = await this.configured_(true);
     return runtime.getEventManager();
   }
 
-  /** @override */
-  async setShowcaseEntitlement(entitlement) {
+  async setShowcaseEntitlement(
+    entitlement: PublisherEntitlement
+  ): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.setShowcaseEntitlement(entitlement);
   }
 
-  /** @override */
-  async consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
+  async consumeShowcaseEntitlementJwt(
+    showcaseEntitlementJwt: string,
+    onCloseDialog?: () => void | null
+  ): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.consumeShowcaseEntitlementJwt(
       showcaseEntitlementJwt,
@@ -528,119 +532,115 @@ export class Runtime {
     );
   }
 
-  /** @override */
-  showBestAudienceAction() {
+  showBestAudienceAction(): void {
     warn('Not implemented yet');
   }
 
-  /** @override */
-  async setPublisherProvidedId(publisherProvidedId) {
+  async setPublisherProvidedId(publisherProvidedId: string): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.setPublisherProvidedId(publisherProvidedId);
   }
 
-  /** @override */
-  async linkSubscription(request) {
+  async linkSubscription(
+    request: LinkSubscriptionRequest
+  ): Promise<LinkSubscriptionResult> {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
   }
 }
 
-/**
- * @implements {DepsDef}
- * @implements {SubscriptionsInterface}
- */
-export class ConfiguredRuntime {
-  /**
-   * @param {!Window|!Document|!DocInterface} winOrDoc
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @param {{
-   *     fetcher: (!FetcherInterface|undefined),
-   *     configPromise: (!Promise|undefined),
-   *     enableGoogleAnalytics: (boolean|undefined),
-   *     enableDefaultMeteringHandler: (boolean|undefined),
-   *     useArticleEndpoint: (boolean|undefined)
-   *   }=} integr
-   * @param {!../api/subscriptions.Config=} config
-   * @param {!{
-   *   lang: (string|undefined),
-   *   theme: (!../api/basic-subscriptions.ClientTheme|undefined),
-   *   }=} clientOptions
-   */
-  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
-    integr = integr || {};
-    integr.configPromise = integr.configPromise || Promise.resolve();
+export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
+  private lastOffersFlow_: OffersFlow | null = null;
+  private lastContributionsFlow_: ContributionsFlow | null = null;
+  private publisherProvidedId_?: string;
 
-    /** @private @const {!ClientEventManager} */
+  private readonly eventManager_: ClientEventManager;
+  private readonly doc_: DocInterface;
+  private readonly win_: Window;
+  private readonly config_: Config;
+  private readonly pageConfig_: PageConfig;
+  private readonly documentParsed_: Promise<void>;
+  private readonly jserror_: JsError;
+  private readonly fetcher_: FetcherInterface;
+  private readonly storage_: Storage;
+  private readonly dialogManager_: DialogManager;
+  private readonly callbacks_: Callbacks;
+  private readonly googleAnalyticsEventListener_?: GoogleAnalyticsEventListener;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly analyticsService_: AnalyticsService;
+  private readonly payClient_: PayClient;
+  private readonly logger_: Logger;
+  private readonly entitlementsManager_: EntitlementsManager;
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly propensityModule_: Propensity;
+  private readonly offersApi_: OffersApi;
+  private readonly buttonApi_: ButtonApi;
+
+  constructor(
+    winOrDoc: Window | Document | DocInterface,
+    pageConfig: PageConfig,
+    integr:
+      | {
+          fetcher?: FetcherInterface;
+          configPromise?: Promise<void>;
+          enableGoogleAnalytics?: boolean;
+          enableDefaultMeteringHandler?: boolean;
+          useArticleEndpoint?: boolean;
+        }
+      | undefined,
+    config?: Config,
+    clientOptions?: {
+      lang?: string;
+      theme?: ClientTheme;
+    }
+  ) {
+    integr = integr || {};
+    integr.configPromise ||= Promise.resolve();
+
     this.eventManager_ = new ClientEventManager(integr.configPromise);
 
-    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(winOrDoc);
 
-    /** @private @const {!Window} */
     this.win_ = this.doc_.getWin();
 
-    /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
 
     if (config) {
       this.configure_(config);
     }
 
-    /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
 
-    /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
-    /** @private @const {!JsError} */
     this.jserror_ = new JsError(this.doc_);
 
-    /** @private @const {!FetcherInterface} */
     this.fetcher_ = integr.fetcher || new XhrFetcher(this.win_);
 
-    /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
 
-    /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(this.doc_);
 
-    /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
-
-    /** @private {?OffersFlow} */
-    this.lastOffersFlow_ = null;
-
-    /** @private {?ContributionsFlow} */
-    this.lastContributionsFlow_ = null;
-
-    /** @private {string|undefined} */
-    this.publisherProvidedId_ = undefined;
 
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
-      /** @private @const {!GoogleAnalyticsEventListener} */
       this.googleAnalyticsEventListener_ = new GoogleAnalyticsEventListener(
         this
       );
       this.googleAnalyticsEventListener_.start();
     }
 
-    // WARNING: DepsDef ('this') is being progressively defined below.
+    // WARNING: Deps ('this') is being progressively defined below.
     // Constructors will crash if they rely on something that doesn't exist yet.
-    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this);
 
-    /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
-    /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
 
-    /** @private @const {!Logger} */
     this.logger_ = new Logger(this);
 
-    /** @private @const {!EntitlementsManager} */
     this.entitlementsManager_ = new EntitlementsManager(
       this.win_,
       this.pageConfig_,
@@ -650,7 +650,6 @@ export class ConfiguredRuntime {
       integr.enableDefaultMeteringHandler || false
     );
 
-    /** @private @const {!ClientConfigManager} */
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above
       pageConfig.getPublicationId(),
@@ -658,20 +657,17 @@ export class ConfiguredRuntime {
       clientOptions
     );
 
-    /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(
       this.win_,
       this, // See note about 'this' above
       this.fetcher_
     );
 
-    // ALL CLEAR: DepsDef definition now complete.
+    // ALL CLEAR: Deps definition now complete.
     this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_PAGE_LOAD, false);
 
-    /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
-    /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
 
     const preconnect = new Preconnect(this.win_.document);
@@ -682,7 +678,7 @@ export class ConfiguredRuntime {
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
 
-    injectStyleSheet(this.doc_, SWG_DIALOG);
+    injectStyleSheet(this.doc_, DIALOG_CSS);
 
     // Report redirect errors if any.
     this.activityPorts_.onRedirectError((error) => {
@@ -695,86 +691,68 @@ export class ConfiguredRuntime {
     });
   }
 
-  /** @override */
-  doc() {
+  doc(): DocInterface {
     return this.doc_;
   }
 
-  /** @override */
-  win() {
+  win(): Window {
     return this.win_;
   }
 
-  /** @override */
-  pageConfig() {
+  pageConfig(): PageConfig {
     return this.pageConfig_;
   }
 
-  /** @override */
-  jserror() {
+  jserror(): JsError {
     return this.jserror_;
   }
 
-  /** @override */
-  activities() {
+  activities(): ActivityPorts {
     return this.activityPorts_;
   }
 
-  /** @override */
-  payClient() {
+  payClient(): PayClient {
     return this.payClient_;
   }
 
-  /** @override */
-  dialogManager() {
+  dialogManager(): DialogManager {
     return this.dialogManager_;
   }
 
-  /** @override */
-  entitlementsManager() {
+  entitlementsManager(): EntitlementsManager {
     return this.entitlementsManager_;
   }
 
-  /** @override */
-  callbacks() {
+  callbacks(): Callbacks {
     return this.callbacks_;
   }
 
-  /** @override */
-  storage() {
+  storage(): Storage {
     return this.storage_;
   }
 
-  /** @override */
-  clientConfigManager() {
+  clientConfigManager(): ClientConfigManager {
     return this.clientConfigManager_;
   }
 
-  /** @override */
-  analytics() {
+  analytics(): AnalyticsService {
     return this.analyticsService_;
   }
 
-  /** @override */
-  init() {
+  init(): void {
     // Implemented by the `Runtime` class.
   }
 
-  /** @override */
-  configure(config) {
+  configure(config: Config): void {
     // Indirected for constructor testing.
     this.configure_(config);
   }
 
-  /**
-   * @param {!../api/subscriptions.Config} config
-   * @private
-   */
-  configure_(config) {
+  private configure_(config: Config): void {
     // Validate first.
     let error = '';
     for (const key in config) {
-      const value = config[key];
+      const value = (config as {[key: string]: unknown})[key];
       switch (key) {
         case 'windowOpenMode':
           if (
@@ -785,13 +763,13 @@ export class ConfiguredRuntime {
           }
           break;
         case 'experiments':
-          for (const experiment of value) {
+          for (const experiment of value as string[]) {
             setExperiment(this.win_, experiment, true);
           }
           if (this.analytics()) {
             // If analytics service isn't set up yet, then it will get the
             // experiments later.
-            this.analytics().addLabels(value);
+            this.analytics().addLabels(value as string[]);
           }
           break;
         case 'analyticsMode':
@@ -844,30 +822,26 @@ export class ConfiguredRuntime {
     Object.assign(this.config_, config);
   }
 
-  /** @override */
-  config() {
+  config(): Config {
     return this.config_;
   }
 
-  /** @override */
-  reset() {
+  reset(): void {
     this.entitlementsManager_.reset();
     this.closeDialog();
   }
 
-  /** @override */
-  clear() {
+  clear(): void {
     this.entitlementsManager_.clear();
     this.closeDialog();
   }
 
   /** Close dialog. */
-  closeDialog() {
+  closeDialog(): void {
     this.dialogManager_.completeAll();
   }
 
-  /** @override */
-  start() {
+  start(): Promise<void> | void {
     // No need to run entitlements without a product or for an unlocked page.
     if (!this.pageConfig_.getProductId() || !this.pageConfig_.isLocked()) {
       return Promise.resolve();
@@ -875,8 +849,9 @@ export class ConfiguredRuntime {
     this.getEntitlements();
   }
 
-  /** @override */
-  async getEntitlements(params) {
+  async getEntitlements(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<Entitlements> {
     if (params?.publisherProvidedId) {
       params.publisherProvidedId = this.publisherProvidedId_;
     }
@@ -900,18 +875,17 @@ export class ConfiguredRuntime {
     return entitlements.clone();
   }
 
-  /** @override */
-  setOnEntitlementsResponse(callback) {
+  setOnEntitlementsResponse(
+    callback: (entitlements: Promise<Entitlements>) => void
+  ): void {
     this.callbacks_.setOnEntitlementsResponse(callback);
   }
 
-  /** @override */
-  getOffers(options) {
+  getOffers(options?: {productId?: string}): Promise<Offer[]> {
     return this.offersApi_.getOffers(options && options.productId);
   }
 
-  /** @override */
-  async showOffers(options) {
+  async showOffers(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     const errorMessage =
       'The showOffers() method cannot be used to update a subscription. ' +
@@ -921,8 +895,7 @@ export class ConfiguredRuntime {
     return this.lastOffersFlow_.start();
   }
 
-  /** @override */
-  async showUpdateOffers(options) {
+  async showUpdateOffers(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     const errorMessage =
       'The showUpdateOffers() method cannot be used for new subscribers. ' +
@@ -932,22 +905,19 @@ export class ConfiguredRuntime {
     return flow.start();
   }
 
-  /** @override */
-  async showSubscribeOption(options) {
+  async showSubscribeOption(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     const flow = new SubscribeOptionFlow(this, options);
     return flow.start();
   }
 
-  /** @override */
-  async showAbbrvOffer(options) {
+  async showAbbrvOffer(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     const flow = new AbbrvOfferFlow(this, options);
     return flow.start();
   }
 
-  /** @override */
-  async showContributionOptions(options) {
+  async showContributionOptions(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     this.lastContributionsFlow_ = new ContributionsFlow(this, options);
     return this.lastContributionsFlow_.start();
@@ -955,75 +925,70 @@ export class ConfiguredRuntime {
 
   /**
    * Get the last contribution offers flow.
-   * @return {?ContributionsFlow}
    */
-  getLastContributionsFlow() {
+  getLastContributionsFlow(): ContributionsFlow | null {
     return this.lastContributionsFlow_;
   }
 
-  /** @override */
-  async waitForSubscriptionLookup(accountPromise) {
+  async waitForSubscriptionLookup(
+    accountPromise: Promise<unknown>
+  ): Promise<unknown> {
     await this.documentParsed_;
     const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
     return wait.start();
   }
 
-  /** @override */
-  setOnLoginRequest(callback) {
+  setOnLoginRequest(callback: (loginRequest: LoginRequest) => void): void {
     this.callbacks_.setOnLoginRequest(callback);
   }
 
-  /** @override */
-  triggerLoginRequest(request) {
+  triggerLoginRequest(request: LoginRequest): void {
     this.callbacks_.triggerLoginRequest(request);
   }
 
-  /** @override */
-  setOnLinkComplete(callback) {
+  setOnLinkComplete(callback: () => void): void {
     this.callbacks_.setOnLinkComplete(callback);
   }
 
-  /** @override */
-  async linkAccount(params = {}) {
+  async linkAccount(params?: {ampReaderId?: string}): Promise<void> {
     await this.documentParsed_;
     return new LinkbackFlow(this).start(params);
   }
 
-  /** @override */
-  async saveSubscription(saveSubscriptionRequestCallback) {
+  async saveSubscription(
+    saveSubscriptionRequestCallback: SaveSubscriptionRequestCallback
+  ): Promise<void> {
     await this.documentParsed_;
-    return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
+    await new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
   }
 
-  /** @override */
-  async showLoginPrompt() {
+  async showLoginPrompt(): Promise<void> {
     await this.documentParsed_;
     return new LoginPromptApi(this).start();
   }
 
-  /** @override */
-  async showLoginNotification() {
+  async showLoginNotification(): Promise<void> {
     await this.documentParsed_;
     return new LoginNotificationApi(this).start();
   }
 
-  /** @override */
-  setOnNativeSubscribeRequest(callback) {
+  setOnNativeSubscribeRequest(callback: () => void): void {
     this.callbacks_.setOnSubscribeRequest(callback);
   }
 
-  /** @override */
-  setOnSubscribeResponse(callback) {
+  setOnSubscribeResponse(
+    callback: (subscribeResponse: Promise<SubscribeResponse>) => void
+  ): void {
     this.callbacks_.setOnSubscribeResponse(callback);
   }
 
-  /** @override */
-  setOnPaymentResponse(callback) {
+  setOnPaymentResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
+  ): void {
     this.callbacks_.setOnPaymentResponse(callback);
   }
 
-  /** @override */
-  async subscribe(sku) {
+  async subscribe(sku: string): Promise<void> {
     const errorMessage =
       'The subscribe() method can only take a sku as its parameter; ' +
       'for subscription updates please use the updateSubscription() method';
@@ -1032,27 +997,26 @@ export class ConfiguredRuntime {
     return new PayStartFlow(this, {'skuId': sku}).start();
   }
 
-  /** @override */
-  async updateSubscription(subscriptionRequest) {
+  async updateSubscription(
+    subscriptionRequest: SubscriptionRequest
+  ): Promise<void> {
     const errorMessage =
       'The updateSubscription() method should be used for subscription ' +
       'updates; for new subscriptions please use the subscribe() method';
-    assert(
-      subscriptionRequest ? subscriptionRequest['oldSku'] : false,
-      errorMessage
-    );
+    assert(subscriptionRequest?.oldSku, errorMessage);
     await this.documentParsed_;
     return new PayStartFlow(this, subscriptionRequest).start();
   }
 
-  /** @override */
-  setOnContributionResponse(callback) {
+  setOnContributionResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
+  ): void {
     this.callbacks_.setOnContributionResponse(callback);
   }
 
-  /** @override */
-  async contribute(skuOrSubscriptionRequest) {
-    /** @type {!../api/subscriptions.SubscriptionRequest} */
+  async contribute(
+    skuOrSubscriptionRequest: string | SubscriptionRequest
+  ): Promise<void> {
     const request =
       typeof skuOrSubscriptionRequest == 'string'
         ? {'skuId': skuOrSubscriptionRequest}
@@ -1061,36 +1025,47 @@ export class ConfiguredRuntime {
     return new PayStartFlow(this, request, ProductType.UI_CONTRIBUTION).start();
   }
 
-  /** @override */
-  async completeDeferredAccountCreation(options) {
+  async completeDeferredAccountCreation(
+    options: DeferredAccountCreationRequest | null = null
+  ): Promise<DeferredAccountCreationResponse> {
     await this.documentParsed_;
-    return new DeferredAccountFlow(this, options || null).start();
+    return new DeferredAccountFlow(this, options).start();
   }
 
-  /** @override */
-  setOnFlowStarted(callback) {
+  setOnFlowStarted(
+    callback: (params: {flow: string; data: object}) => void
+  ): void {
     this.callbacks_.setOnFlowStarted(callback);
   }
 
-  /** @override */
-  setOnFlowCanceled(callback) {
+  setOnFlowCanceled(
+    callback: (params: {flow: string; data: object}) => void
+  ): void {
     this.callbacks_.setOnFlowCanceled(callback);
   }
 
-  /** @override */
-  createButton(optionsOrCallback, callback) {
+  createButton(
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): Element {
     // This is a minor duplication to allow this code to be sync.
     return this.buttonApi_.create(optionsOrCallback, callback);
   }
 
-  /** @override */
-  attachButton(button, optionsOrCallback, callback) {
+  attachButton(
+    button: HTMLElement,
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): void {
     // This is a minor duplication to allow this code to be sync.
     this.buttonApi_.attach(button, optionsOrCallback, callback);
   }
 
-  /** @override */
-  attachSmartButton(button, optionsOrCallback, callback) {
+  attachSmartButton(
+    button: HTMLElement,
+    optionsOrCallback: SmartButtonOptions | (() => void),
+    callback?: () => void
+  ): void {
     this.buttonApi_.attachSmartButton(
       this,
       button,
@@ -1099,41 +1074,36 @@ export class ConfiguredRuntime {
     );
   }
 
-  /** @override */
-  getPropensityModule() {
+  getPropensityModule(): Promise<PropensityApi> {
     return Promise.resolve(this.propensityModule_);
   }
 
   /**
    * This one exists as an internal helper so SwG logging doesn't require a promise.
-   * @return {!ClientEventManager}
    */
-  eventManager() {
+  eventManager(): ClientEventManager {
     return this.eventManager_;
   }
 
   /**
    * Get the last subscription offers flow.
-   * @return {?OffersFlow}
    */
-  getLastOffersFlow() {
+  getLastOffersFlow(): OffersFlow | null {
     return this.lastOffersFlow_;
   }
 
   /**
    * This one exists as a public API so publishers can subscribe to SwG events.
-   * @override */
-  getEventManager() {
+   */
+  getEventManager(): Promise<ClientEventManager> {
     return Promise.resolve(this.eventManager_);
   }
 
-  /** @override */
-  getLogger() {
+  getLogger(): Promise<Logger> {
     return Promise.resolve(this.logger_);
   }
 
-  /** @override */
-  setShowcaseEntitlement(entitlement) {
+  setShowcaseEntitlement(entitlement: PublisherEntitlement): Promise<void> {
     if (
       !entitlement ||
       !isSecure(this.win().location) ||
@@ -1145,8 +1115,7 @@ export class ConfiguredRuntime {
       return Promise.resolve();
     }
 
-    const eventsToLog =
-      showcaseEventToAnalyticsEvents(entitlement.entitlement) || [];
+    const eventsToLog = showcaseEventToAnalyticsEvents(entitlement.entitlement);
     const params = new EventParams();
     params.setIsUserRegistered(entitlement.isUserRegistered);
     if (entitlement.subscriptionTimestamp) {
@@ -1171,37 +1140,34 @@ export class ConfiguredRuntime {
     return Promise.resolve();
   }
 
-  /** @override */
-  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
+  consumeShowcaseEntitlementJwt(
+    showcaseEntitlementJwt: string,
+    onCloseDialog?: () => void | null
+  ): void {
     const entitlements = this.entitlementsManager().parseEntitlements({
       signedEntitlements: showcaseEntitlementJwt,
     });
     entitlements.consume(onCloseDialog);
   }
 
-  /** @override */
-  showBestAudienceAction() {
+  showBestAudienceAction(): void {
     warn('Not implemented yet');
   }
 
-  /** @override */
-  setPublisherProvidedId(publisherProvidedId) {
+  setPublisherProvidedId(publisherProvidedId: string): void {
     this.publisherProvidedId_ = publisherProvidedId;
   }
 
-  /** @override */
-  async linkSubscription(request) {
+  async linkSubscription(
+    linkSubscriptionRequest: LinkSubscriptionRequest
+  ): Promise<LinkSubscriptionResult> {
     await this.documentParsed_;
-    return new SubscriptionLinkingFlow(this).start(request);
+    return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
   }
 }
 
-/**
- * @param {!Runtime} runtime
- * @return {!SubscriptionsInterface}
- */
-function createPublicRuntime(runtime) {
-  return /** @type {!SubscriptionsInterface} */ ({
+function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
+  return {
     init: runtime.init.bind(runtime),
     configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),
@@ -1247,5 +1213,5 @@ function createPublicRuntime(runtime) {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
-  });
+  };
 }

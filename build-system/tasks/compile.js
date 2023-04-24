@@ -45,7 +45,7 @@ exports.compile = async (options = {}) => {
   await Promise.all([
     compileScript(
       './src/',
-      'main.js',
+      'main.ts',
       './dist',
       Object.assign(
         {
