@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {GrantReasonType} from './constants';
+import {GrantReasonType, PaywallType} from './constants';
 
 /**
  * User object that Publisher JS receives after users sign in.
@@ -91,6 +91,7 @@ export interface GoogleUserDef {
  * https://developers.google.com/news/subscribe/extended-access/overview
  */
 export interface InitParamsDef {
+  paywallType: PaywallType;
   allowedReferrers: string[] | null;
   googleApiClientId?: string;
   authorizationUrl?: string;
