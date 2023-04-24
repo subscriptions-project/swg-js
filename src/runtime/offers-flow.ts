@@ -15,6 +15,7 @@
  */
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {ActivityPorts} from '../components/activities';
 import {
   AlreadySubscribedResponse,
   EntitlementsResponse,
@@ -23,17 +24,25 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
+import {Deps} from './deps';
+import {DialogConfig} from '../components/dialog';
+import {DialogManager} from '../components/dialog-manager';
+import {
+  OffersRequest,
+  ProductType,
+  SubscriptionFlows,
+} from '../api/subscriptions';
+import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
-import {ProductType, SubscriptionFlows} from '../api/subscriptions';
+import {SubscriptionRequest} from '../api/subscriptions';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
 import {parseQueryString} from '../utils/url';
 
-/**
- * @param {string} sku
- * @return {!EventParams}
- */
-function getEventParams(sku) {
+function getEventParams(sku: string): EventParams {
   return new EventParams([, , , , sku]);
 }
 
@@ -50,49 +59,46 @@ const ALL_SKUS = '*';
  * The class for Offers flow.
  */
 export class OffersFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!../api/subscriptions.OffersRequest|undefined} options
-   */
-  constructor(deps, options) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private activityIframeView_: ActivityIframeView | null = null;
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+  private readonly win_: Window;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly eventManager_: ClientEventManager;
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly skus_?: string[];
+  private readonly clientConfigPromise_?: Promise<ClientConfig>;
+  private readonly activityIframeViewPromise_?: Promise<ActivityIframeView | null>;
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+  constructor(private readonly deps_: Deps, options?: OffersRequest) {
+    this.win_ = deps_.win();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private @const {!./client-config-manager.ClientConfigManager} */
-    this.clientConfigManager_ = deps.clientConfigManager();
+    this.eventManager_ = deps_.eventManager();
 
-    this.activityIframeView_ = null;
+    this.clientConfigManager_ = deps_.clientConfigManager();
 
     // Default to hiding close button.
     const isClosable = options?.isClosable ?? false;
 
-    const feArgsObj = deps.activities().addDefaultArguments({
-      'showNative': deps.callbacks().hasSubscribeRequestCallback(),
+    const feArgsObj: OffersRequest = deps_.activities().addDefaultArguments({
+      'showNative': deps_.callbacks().hasSubscribeRequestCallback(),
       'productType': ProductType.SUBSCRIPTION,
-      'list': (options && options.list) || 'default',
-      'skus': (options && options.skus) || null,
+      'list': options?.list || 'default',
+      'skus': options?.skus || null,
       'isClosable': isClosable,
     });
 
-    if (options && options.oldSku) {
+    if (options?.oldSku) {
       feArgsObj['oldSku'] = options.oldSku;
       assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!');
 
       // Remove old sku from offers if in list.
-      let skuList = feArgsObj['skus'];
-      const /** @type {string} */ oldSku = feArgsObj['oldSku'];
+      let skuList = feArgsObj['skus']!;
+      const oldSku = feArgsObj['oldSku'];
       skuList = skuList.filter((sku) => sku !== oldSku);
 
       assert(
@@ -105,7 +111,7 @@ export class OffersFlow {
     // Redirect to payments if only one upgrade option is passed.
     if (feArgsObj['skus'] && feArgsObj['skus'].length === 1) {
       const sku = feArgsObj['skus'][0];
-      const /** @type {string|undefined} */ oldSku = feArgsObj['oldSku'];
+      const oldSku = feArgsObj['oldSku'];
       // Update subscription triggers experimental flag if oldSku is passed,
       // so we need to check for oldSku to decide if it needs to be sent.
       // Otherwise we might accidentally block a regular subscription request.
@@ -118,23 +124,17 @@ export class OffersFlow {
       }
     }
 
-    /** @private  @const {!Array<!string>} */
     this.skus_ = feArgsObj['skus'] || [ALL_SKUS];
 
-    /** @private @const {!Promise<!../model/client-config.ClientConfig>} */
     this.clientConfigPromise_ = this.clientConfigManager_.getClientConfig();
 
-    /** @private @const {!Promise<?ActivityIframeView>} */
     this.activityIframeViewPromise_ = this.createActivityIframeView_(feArgsObj);
   }
 
-  /**
-   * @param {!Object} args
-   * @return {!Promise<?ActivityIframeView>}
-   * @private
-   */
-  async createActivityIframeView_(args) {
-    const clientConfig = await this.clientConfigPromise_;
+  private async createActivityIframeView_(
+    args: OffersRequest
+  ): Promise<ActivityIframeView | null> {
+    const clientConfig = await this.clientConfigPromise_!;
 
     if (!this.shouldShow_(clientConfig)) {
       return null;
@@ -144,22 +144,17 @@ export class OffersFlow {
       this.win_,
       this.activityPorts_,
       this.getUrl_(clientConfig, this.deps_.pageConfig()),
-      args,
+      args as {[key: string]: string},
       /* shouldFadeBody */ true
     );
   }
 
-  /**
-   * @param {SkuSelectedResponse} response
-   * @private
-   */
-  startPayFlow_(response) {
+  private startPayFlow_(response: SkuSelectedResponse): void {
     const sku = response.getSku();
     if (sku) {
-      const /** @type {../api/subscriptions.SubscriptionRequest} */ subscriptionRequest =
-          {
-            'skuId': sku,
-          };
+      const subscriptionRequest: SubscriptionRequest = {
+        'skuId': sku,
+      };
       const oldSku = response.getOldSku();
       if (oldSku) {
         subscriptionRequest['oldSku'] = oldSku;
@@ -174,11 +169,7 @@ export class OffersFlow {
     }
   }
 
-  /**
-   * @param {AlreadySubscribedResponse} response
-   * @private
-   */
-  handleLinkRequest_(response) {
+  private handleLinkRequest_(response: AlreadySubscribedResponse): void {
     if (response.getSubscriberOrMember()) {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED,
@@ -190,11 +181,7 @@ export class OffersFlow {
     }
   }
 
-  /**
-   * @param {ViewSubscriptionsResponse} response
-   * @private
-   */
-  startNativeFlow_(response) {
+  private startNativeFlow_(response: ViewSubscriptionsResponse): void {
     if (response.getNative()) {
       this.deps_.callbacks().triggerSubscribeRequest();
     }
@@ -202,10 +189,9 @@ export class OffersFlow {
 
   /**
    * Starts the offers flow or alreadySubscribed flow.
-   * @return {!Promise}
    */
-  async start() {
-    this.activityIframeView_ = await this.activityIframeViewPromise_;
+  async start(): Promise<void> {
+    this.activityIframeView_ = await this.activityIframeViewPromise_!;
     if (!this.activityIframeView_) {
       return;
     }
@@ -233,7 +219,7 @@ export class OffersFlow {
       this.startNativeFlow_.bind(this)
     );
 
-    const clientConfig = await this.clientConfigPromise_;
+    const clientConfig = await this.clientConfigPromise_!;
     return this.dialogManager_.openView(
       this.activityIframeView_,
       /* hidden */ false,
@@ -247,11 +233,8 @@ export class OffersFlow {
   /**
    * Returns whether this flow is configured as enabled, not showing
    * even on explicit start when flag is configured false.
-   *
-   * @param {!../model/client-config.ClientConfig} clientConfig
-   * @return {boolean}
    */
-  shouldShow_(clientConfig) {
+  shouldShow_(clientConfig: ClientConfig): boolean {
     return clientConfig.uiPredicates?.canDisplayAutoPrompt !== false;
   }
 
@@ -259,11 +242,11 @@ export class OffersFlow {
    * Gets display configuration options for the opened dialog. Uses the
    * responsive desktop design properties if the updated offer flows UI (for
    * SwG Basic) is enabled. Permits override to allow scrolling.
-   * @param {!../model/client-config.ClientConfig} clientConfig
-   * @param {boolean} shouldAllowScroll
-   * @return {!../components/dialog.DialogConfig}
    */
-  getDialogConfig_(clientConfig, shouldAllowScroll) {
+  getDialogConfig_(
+    clientConfig: ClientConfig,
+    shouldAllowScroll: boolean
+  ): DialogConfig {
     return clientConfig.useUpdatedOfferFlows
       ? {
           desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
@@ -274,20 +257,21 @@ export class OffersFlow {
 
   /**
    * Returns the full URL that should be used for the activity iFrame view.
-   * @param {!../model/client-config.ClientConfig} clientConfig
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @return {string}
    */
-  getUrl_(clientConfig, pageConfig) {
+  private getUrl_(clientConfig: ClientConfig, pageConfig: PageConfig): string {
     if (!clientConfig.useUpdatedOfferFlows) {
       const offerCardParam = parseQueryString(this.win_.location.hash)[
         'swg.newoffercard'
       ];
-      const params = offerCardParam ? {'useNewOfferCard': offerCardParam} : {};
+      const params: {[key: string]: string} = offerCardParam
+        ? {'useNewOfferCard': offerCardParam}
+        : {};
       return feUrl('/offersiframe', params);
     }
 
-    const params = {'publicationId': pageConfig.getPublicationId()};
+    const params: {[key: string]: string} = {
+      'publicationId': pageConfig.getPublicationId(),
+    };
 
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       params['hl'] = this.clientConfigManager_.getLanguage();
@@ -314,36 +298,30 @@ export class OffersFlow {
  * The class for subscribe option flow.
  */
 export class SubscribeOptionFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!../api/subscriptions.OffersRequest|undefined} options
-   */
-  constructor(deps, options) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly eventManager_: ClientEventManager;
+  private readonly activityIframeView_: ActivityIframeView;
 
-    /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
-    this.options_ = options;
+  constructor(
+    private readonly deps_: Deps,
+    private readonly options_?: OffersRequest
+  ) {
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.eventManager_ = deps_.eventManager();
 
-    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
-
-    /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
-      deps.win(),
+      deps_.win(),
       this.activityPorts_,
       feUrl('/optionsiframe'),
       feArgs({
-        'publicationId': deps.pageConfig().getPublicationId(),
-        'productId': deps.pageConfig().getProductId(),
-        'list': (options && options.list) || 'default',
-        'skus': (options && options.skus) || null,
+        'publicationId': deps_.pageConfig().getPublicationId(),
+        'productId': deps_.pageConfig().getProductId(),
+        'list': options_?.list || 'default',
+        'skus': options_?.skus || null,
         'isClosable': true,
       }),
       /* shouldFadeBody */ false
@@ -352,9 +330,8 @@ export class SubscribeOptionFlow {
 
   /**
    * Starts the offers flow or alreadySubscribed flow.
-   * @return {!Promise}
    */
-  start() {
+  start(): Promise<void> {
     // Start/cancel events.
     this.deps_
       .callbacks()
@@ -371,7 +348,7 @@ export class SubscribeOptionFlow {
 
     this.activityIframeView_.acceptResult().then(
       (result) => {
-        const data = result.data;
+        const data = result.data as {subscribe?: boolean};
         const response = new SubscribeResponse();
         if (data['subscribe']) {
           response.setSubscribe(true);
@@ -389,11 +366,7 @@ export class SubscribeOptionFlow {
     return this.dialogManager_.openView(this.activityIframeView_);
   }
 
-  /**
-   * @param {SubscribeResponse} response
-   * @private
-   */
-  maybeOpenOffersFlow_(response) {
+  private maybeOpenOffersFlow_(response: SubscribeResponse): void {
     if (response.getSubscribe()) {
       const options = this.options_ || {};
       if (options.isClosable == undefined) {
@@ -407,54 +380,43 @@ export class SubscribeOptionFlow {
 
 /**
  * The class for Abbreviated Offer flow.
- *
  */
 export class AbbrvOfferFlow {
-  /**
-   * @param {!./deps.Deps} deps
-   * @param {!../api/subscriptions.OffersRequest=} options
-   */
-  constructor(deps, options = {}) {
-    /** @private @const {!./deps.Deps} */
-    this.deps_ = deps;
+  private readonly win_: Window;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly dialogManager_: DialogManager;
+  private readonly eventManager_: ClientEventManager;
+  private readonly activityIframeView_: ActivityIframeView;
 
-    /** @private @const {!../api/subscriptions.OffersRequest|undefined} */
-    this.options_ = options;
+  constructor(
+    private readonly deps_: Deps,
+    private readonly options_: OffersRequest = {}
+  ) {
+    this.win_ = deps_.win();
 
-    /** @private @const {!Window} */
-    this.win_ = deps.win();
+    this.activityPorts_ = deps_.activities();
 
-    /** @private @const {!../components/activities.ActivityPorts} */
-    this.activityPorts_ = deps.activities();
+    this.dialogManager_ = deps_.dialogManager();
 
-    /** @private @const {!../components/dialog-manager.DialogManager} */
-    this.dialogManager_ = deps.dialogManager();
+    this.eventManager_ = deps_.eventManager();
 
-    /** @private @const {!../runtime/client-event-manager.ClientEventManager} */
-    this.eventManager_ = deps.eventManager();
-
-    /** @private @const {!ActivityIframeView} */
     this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl('/abbrvofferiframe'),
       feArgs({
-        'publicationId': deps.pageConfig().getPublicationId(),
-        'productId': deps.pageConfig().getProductId(),
-        'showNative': deps.callbacks().hasSubscribeRequestCallback(),
-        'list': (options && options.list) || 'default',
-        'skus': (options && options.skus) || null,
+        'publicationId': deps_.pageConfig().getPublicationId(),
+        'productId': deps_.pageConfig().getProductId(),
+        'showNative': deps_.callbacks().hasSubscribeRequestCallback(),
+        'list': options_.list || 'default',
+        'skus': options_.skus || null,
         'isClosable': true,
       }),
       /* shouldFadeBody */ false
     );
   }
 
-  /**
-   * @param {AlreadySubscribedResponse} response
-   * @private
-   */
-  handleLinkRequest_(response) {
+  private handleLinkRequest_(response: AlreadySubscribedResponse): void {
     if (response.getSubscriberOrMember()) {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.ACTION_ALREADY_SUBSCRIBED,
@@ -468,9 +430,8 @@ export class AbbrvOfferFlow {
 
   /**
    * Starts the offers flow
-   * @return {!Promise}
    */
-  start() {
+  start(): Promise<void> {
     // Start/cancel events.
     this.deps_
       .callbacks()
@@ -489,16 +450,16 @@ export class AbbrvOfferFlow {
 
     // If result is due to requesting offers, redirect to offers flow
     this.activityIframeView_.acceptResult().then((result) => {
-      if (result.data['viewOffers']) {
-        const options = this.options_ || {};
-        if (options.isClosable == undefined) {
-          options.isClosable = OFFERS_VIEW_CLOSABLE;
+      const data = result.data as {native?: boolean; viewOffers?: boolean};
+      if (data['viewOffers']) {
+        if (this.options_.isClosable == undefined) {
+          this.options_.isClosable = OFFERS_VIEW_CLOSABLE;
         }
         this.eventManager_.logSwgEvent(AnalyticsEvent.ACTION_VIEW_OFFERS, true);
-        new OffersFlow(this.deps_, options).start();
+        new OffersFlow(this.deps_, this.options_).start();
         return;
       }
-      if (result.data['native']) {
+      if (data['native']) {
         this.deps_.callbacks().triggerSubscribeRequest();
         // The flow is complete.
         this.dialogManager_.completeView(this.activityIframeView_);

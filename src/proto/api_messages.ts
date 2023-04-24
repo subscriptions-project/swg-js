@@ -382,6 +382,8 @@ export class AnalyticsContext implements Message {
   private clientTimestamp_: Timestamp | null;
   private readerSurfaceType_: ReaderSurfaceType | null;
   private integrationVersion_: string | null;
+  private pageLoadBeginTimestamp_: Timestamp | null;
+  private runtimeCreationTimestamp_: Timestamp | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -425,6 +427,16 @@ export class AnalyticsContext implements Message {
 
     this.integrationVersion_ =
       data[13 + base] == null ? null : (data[13 + base] as string);
+
+    this.pageLoadBeginTimestamp_ =
+      data[14 + base] == null
+        ? null
+        : new Timestamp(data[14 + base] as unknown[], includesLabel);
+
+    this.runtimeCreationTimestamp_ =
+      data[15 + base] == null
+        ? null
+        : new Timestamp(data[15 + base] as unknown[], includesLabel);
   }
 
   getEmbedderOrigin(): string | null {
@@ -539,6 +551,22 @@ export class AnalyticsContext implements Message {
     this.integrationVersion_ = value;
   }
 
+  getPageLoadBeginTimestamp(): Timestamp | null {
+    return this.pageLoadBeginTimestamp_;
+  }
+
+  setPageLoadBeginTimestamp(value: Timestamp): void {
+    this.pageLoadBeginTimestamp_ = value;
+  }
+
+  getRuntimeCreationTimestamp(): Timestamp | null {
+    return this.runtimeCreationTimestamp_;
+  }
+
+  setRuntimeCreationTimestamp(value: Timestamp): void {
+    this.runtimeCreationTimestamp_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.embedderOrigin_, // field 1 - embedder_origin
@@ -555,6 +583,12 @@ export class AnalyticsContext implements Message {
       this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
       this.readerSurfaceType_, // field 13 - reader_surface_type
       this.integrationVersion_, // field 14 - integration_version
+      this.pageLoadBeginTimestamp_
+        ? this.pageLoadBeginTimestamp_.toArray(includeLabel)
+        : [], // field 15 - page_load_begin_timestamp
+      this.runtimeCreationTimestamp_
+        ? this.runtimeCreationTimestamp_.toArray(includeLabel)
+        : [], // field 16 - runtime_creation_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
