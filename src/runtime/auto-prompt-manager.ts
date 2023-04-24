@@ -109,7 +109,7 @@ export class AutoPromptManager {
       .eventManager()
       .registerEventListener(this.handleClientEvent_.bind(this));
 
-    this.miniPromptAPI_ = this.getMiniPromptApi(deps_);
+    this.miniPromptAPI_ = this.getMiniPromptApi_(deps_);
     this.miniPromptAPI_.init();
 
     this.eventManager_ = deps_.eventManager();
@@ -120,7 +120,7 @@ export class AutoPromptManager {
    * such as in order to instantiate a different implementation of
    * MiniPromptApi.
    */
-  getMiniPromptApi(deps: Deps): MiniPromptApi {
+  private getMiniPromptApi_(deps: Deps): MiniPromptApi {
     return new MiniPromptApi(deps);
   }
 
@@ -391,9 +391,9 @@ export class AutoPromptManager {
       autoPromptConfig.impressionConfig.maxImpressionsResultingHideSeconds || 0;
     const timeToWaitAfterMaxImpressions =
       timeToWaitAfterMaxImpressionsInSeconds * SECOND_IN_MILLIS;
-    const userWaitedLongEnough =
+    const waitingAfterMaxImpressions =
       timeSinceLastImpression < timeToWaitAfterMaxImpressions;
-    if (userReachedMaxImpressions && userWaitedLongEnough) {
+    if (userReachedMaxImpressions && waitingAfterMaxImpressions) {
       return false;
     }
 
@@ -746,12 +746,11 @@ export class AutoPromptManager {
       StorageKeys.DISMISSED_PROMPTS,
       /* useLocalStorage */ true
     );
-    const intervention =
-      /** @type {./entitlements-manager/Intervention} */ this
-        .interventionDisplayed_;
     this.storage_.set(
       StorageKeys.DISMISSED_PROMPTS,
-      value ? value + ',' + intervention.type : intervention.type,
+      value
+        ? value + ',' + this.interventionDisplayed_.type
+        : this.interventionDisplayed_.type,
       /* useLocalStorage */ true
     );
   }
