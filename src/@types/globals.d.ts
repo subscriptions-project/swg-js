@@ -18,6 +18,14 @@ declare global {
      */
     SWG: ((api: Subscriptions) => void)[];
 
+    /**
+     * The global `SWG` array contains client ready callbacks. Swgjs calls these when its Subscriptions API is ready.
+     * https://github.com/subscriptions-project/swg-js/blob/main/docs/embed-client.md#client-ready-callback
+     *
+     * This global variable is deprecated in favor of the `window.SWG` global variable.
+     */
+    SUBSCRIPTIONS: ((api: Subscriptions) => void)[];
+
     // Swgjs defines these Extended Access classes globally.
     GaaGoogleSignInButton: GaaGoogleSignInButton;
     GaaGoogle3pSignInButton: GaaGoogle3pSignInButton;
