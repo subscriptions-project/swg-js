@@ -23,6 +23,7 @@ import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {Fetcher} from './fetcher';
+import {Storage} from './storage';
 import {addQueryParam} from '../utils/url';
 import {serviceUrl} from './services';
 

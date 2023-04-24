@@ -25,6 +25,8 @@ import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
+import {PayClient} from './pay-client';
+import {Storage} from './storage';
 
 export interface Deps {
   doc(): Doc;
@@ -37,10 +39,7 @@ export interface Deps {
 
   activities(): ActivityPorts;
 
-  // TODO(b/274815354): Add typings in a followup TypeScript migration PR.
-  // {!./pay-client.PayClient}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payClient(): any;
+  payClient(): PayClient;
 
   dialogManager(): DialogManager;
 

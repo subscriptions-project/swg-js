@@ -151,11 +151,6 @@ describes.realWin('AutoPromptManager', (env) => {
     sandbox.stub(autoPromptManager.deps_, 'win').returns(winWithAnalytics);
   }
 
-  it('returns an instance of MiniPromptApi from getMiniPromptApi', () => {
-    const miniPromptApi = autoPromptManager.getMiniPromptApi(deps);
-    expect(miniPromptApi).to.be.instanceof(MiniPromptApi);
-  });
-
   it('should be listening for events from the events manager', () => {
     expect(eventManagerCallback).to.not.be.null;
   });
@@ -665,6 +660,47 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
+  [
+    {
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      interventionDisplayed: 'TYPE_SUBSCRIPTION',
+    },
+    {
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      interventionDisplayed: 'TYPE_CONTRIBUTION',
+    },
+    {autoPromptType: 'UNKNOWN', interventionDisplayed: undefined},
+  ].forEach(({autoPromptType, interventionDisplayed}) => {
+    it(`handles different default interventions (${autoPromptType})`, async () => {
+      const entitlements = new Entitlements();
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      entitlementsManagerMock.expects('getArticle').resolves({}).once();
+      const autoPromptConfig = new AutoPromptConfig({
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+      });
+      const clientConfig = new ClientConfig({autoPromptConfig});
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType,
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(7);
+
+      expect(autoPromptManager.interventionDisplayed_?.type).to.equal(
+        interventionDisplayed
+      );
+    });
+  });
+
   it('should not display the mini prompt if the auto prompt config caps impressions, and the user is under the cap, but sufficient time has not yet passed since the specified backoff duration', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
@@ -843,6 +879,48 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
+    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  it('handles null values for maxDismissalsResultingHideSeconds and maxImpressionsResultingHideSeconds', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      maxDismissalsResultingHideSeconds: null,
+      maxImpressionsResultingHideSeconds: null,
+      displayDelaySeconds: 0,
+      numImpressionsBetweenPrompts: 2,
+      dismissalBackOffSeconds: 0,
+      maxDismissalsPerWeek: 1,
+      maxImpressions: 2,
+    });
+    const clientConfig = new ClientConfig({autoPromptConfig});
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // One stored impression from 20s ago and one dismissal from 11s ago.
+    const storedImpressions = (CURRENT_TIME - 20000).toString();
+    const storedDismissals = (CURRENT_TIME - 11000).toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      storedDismissals,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+    miniPromptApiMock.expects('create').once();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+      displayLargePromptFn: alternatePromptSpy,
+    });
+    await tick(7);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1070,6 +1148,7 @@ describes.realWin('AutoPromptManager', (env) => {
         publicationid: pubId,
         promptType: AutoPromptType.CONTRIBUTION,
       },
+      timestamp: sandbox.match.number,
     };
 
     await autoPromptManager.showAutoPrompt({
@@ -1133,13 +1212,29 @@ describes.realWin('AutoPromptManager', (env) => {
     let getArticleExpectation;
 
     beforeEach(() => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
       entitlementsManagerMock
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      const clientConfig = new ClientConfig({});
+      const autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        numImpressionsBetweenPrompts: 2,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+      });
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
       clientConfigManagerMock
         .expects('getClientConfig')
         .resolves(clientConfig)
@@ -1160,7 +1255,8 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
     });
 
-    it('should display an AudienceActionFlow if there are any actions provided in the article response', async () => {
+    it('should display an AudienceActionFlow if the page is locked and there are any actions provided in the article response', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         alwaysShow: false,
@@ -1178,9 +1274,13 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
     });
 
-    it('should override isClosable if isAccessibleForFree is defined', async () => {
+    it('should override isClosable if page is locked and isAccessibleForFree is defined', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         alwaysShow: false,
@@ -1199,6 +1299,9 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REGISTRATION_WALL'
+      );
     });
 
     it('should show the Contribution prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
@@ -1227,8 +1330,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -1241,6 +1345,7 @@ describes.realWin('AutoPromptManager', (env) => {
                 type: 'TYPE_SUBSCRIPTION',
                 configurationId: 'subscription_config_id',
               },
+              SURVEY_INTERVENTION,
             ],
             engineId: '123',
           },
@@ -1253,17 +1358,14 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(10);
 
-      expect(startSpy).to.have.been.calledOnce;
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_SUBSCRIPTION',
-        configurationId: 'subscription_config_id',
-        onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-        isClosable: false,
-      });
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(subscriptionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+      expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_SUBSCRIPTION'
+      );
     });
 
     it('should call the original prompt for no article actions', async () => {
@@ -1278,7 +1380,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(7);
+      await tick(10);
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
@@ -1374,7 +1476,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -1640,7 +1742,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.interventionDisplayed_).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_CONTRIBUTION'
+      );
     });
 
     [
@@ -1789,10 +1893,10 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('With SurveyTriggeringPriorityExperiment enabled, should show the Survey prompt before any actions', async () => {
       setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
+        dismissedPromptGetCallCount: 2,
         getUserToken: true,
       });
-      miniPromptApiMock.expects('create').once();
+      miniPromptApiMock.expects('create').never();
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -1801,14 +1905,25 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(10);
 
-      expect(startSpy).to.not.have.been.called;
-      expect(actionFlowSpy).to.not.have.been.called;
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        isClosable: true,
+      });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
       expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
         'survey_config_id'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'TYPE_REWARDED_SURVEY'
       );
     });
 
@@ -1831,7 +1946,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -1992,7 +2107,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
 
@@ -2085,7 +2200,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(autoPromptManager.interventionDisplayed_).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_CONTRIBUTION'
+      );
     });
 
     it('With SurveyTriggeringPriorityExperiment enabled, should skip action and continue the Contribution Flow if TYPE_REWARDED_SURVEY is next but publisher is not eligible for ga nor gTag', async () => {
@@ -2239,7 +2356,7 @@ describes.realWin('AutoPromptManager', (env) => {
             expect(actionFlowSpy).to.not.have.been.called;
             expect(contributionPromptFnSpy).to.not.have.been.called;
             expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-              AutoPromptType.CONTRIBUTION
+              'TYPE_CONTRIBUTION'
             );
           });
 
@@ -2392,28 +2509,39 @@ describes.realWin('AutoPromptManager', (env) => {
     it('With SurveyTriggeringPriorityExperiment and SecondPromptDelayExperiment enabled, on first prompt, should set secondPromptDelayTimestamps and show first Survey', async () => {
       const secondPromptDelayTimestamps = '';
       setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
+        dismissedPromptGetCallCount: 2,
         getUserToken: true,
         secondPromptDelayTimestamps,
         setsNewShouldShowAutoPromptTimestamp: true,
       });
-      miniPromptApiMock.expects('create').once();
+      miniPromptApiMock.expects('create').never();
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
       });
-      await tick(10);
+      await tick(15);
 
-      expect(startSpy).to.not.have.been.called;
-      expect(actionFlowSpy).to.not.have.been.called;
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        isClosable: true,
+      });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
       expect(autoPromptManager.interventionDisplayed_.configurationId).to.equal(
         'survey_config_id'
+      );
+      await verifyOnCancelStores(
+        storageMock,
+        actionFlowSpy,
+        'TYPE_REWARDED_SURVEY'
       );
     });
 
@@ -2467,7 +2595,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        AutoPromptType.CONTRIBUTION
+        'TYPE_CONTRIBUTION'
       );
     });
   });

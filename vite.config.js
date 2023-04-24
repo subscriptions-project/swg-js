@@ -82,11 +82,11 @@ if (args.visualize) {
 const builds = {
   basic: {
     output: args.minifiedBasicName || 'basic-subscriptions.js',
-    input: './src/basic-main.js',
+    input: './src/basic-main.ts',
   },
   classic: {
     output: args.minifiedName || 'subscriptions.js',
-    input: './src/main.js',
+    input: './src/main.ts',
   },
   gaa: {
     output: args.minifiedGaaName || 'subscriptions-gaa.js',

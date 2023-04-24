@@ -235,7 +235,7 @@ export interface Subscriptions {
    * DOM element. The default theme is "light".
    */
   attachButton(
-    button: Element,
+    button: HTMLElement,
     optionsOrCallback: ButtonOptions | (() => void),
     callback?: () => void
   ): void;
@@ -245,7 +245,7 @@ export interface Subscriptions {
    * The default theme is "light".
    */
   attachSmartButton(
-    button: Element,
+    button: HTMLElement,
     optionsOrCallback: SmartButtonOptions | (() => void),
     callback?: () => void
   ): void;
@@ -273,7 +273,7 @@ export interface Subscriptions {
    */
   consumeShowcaseEntitlementJwt(
     showcaseEntitlementJwt: string,
-    onCloseDialog?: Function | null
+    onCloseDialog?: () => void | null
   ): Promise<void> | void;
 
   /**
@@ -474,7 +474,11 @@ export enum ReplaceSkuProrationMode {
 export enum ProductType {
   SUBSCRIPTION = 'SUBSCRIPTION',
   UI_CONTRIBUTION = 'UI_CONTRIBUTION',
-  VIRTUAL_GIFT = 'VIRTUAL_GIFT',
+}
+
+export enum ClientTheme {
+  LIGHT = 'light',
+  DARK = 'dark',
 }
 
 export function defaultConfig(): Config {
@@ -537,8 +541,8 @@ export interface ButtonOptions {
   theme?: string;
   /** "Light" or "dark". Default is "light". */
   lang?: string;
-  /** Whether to grey out the button. */
-  disable?: boolean;
+  /** Whether to enable the button. */
+  enable?: boolean;
 }
 
 export interface SmartButtonOptions {
@@ -569,6 +573,10 @@ export interface SubscriptionRequest {
    * to make it non-recurring.
    */
   oneTime?: boolean;
+  /**
+   * Optional. Extra data relating to the request.
+   */
+  metadata?: object;
 }
 
 export interface LinkSubscriptionRequest {

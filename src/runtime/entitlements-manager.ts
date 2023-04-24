@@ -46,6 +46,7 @@ import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
+import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
@@ -73,12 +74,12 @@ export interface ShowInterventionParams {
 
 export interface Intervention {
   readonly type: string;
-  readonly configurationId: string;
+  readonly configurationId?: string;
 }
 
 export class AvailableIntervention implements Intervention {
   readonly type: string;
-  readonly configurationId: string;
+  readonly configurationId?: string;
 
   constructor(original: Intervention, private readonly deps_: Deps) {
     this.type = original.type;
@@ -541,8 +542,6 @@ export class EntitlementsManager {
   /**
    * The JSON must either contain a "signedEntitlements" with JWT, or
    * "entitlements" field with plain JSON object.
-   * @param {!Object} json
-   * @return {!Entitlements}
    */
   parseEntitlements(json: {
     isReadyToPay?: boolean;
