@@ -1003,10 +1003,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     const errorMessage =
       'The updateSubscription() method should be used for subscription ' +
       'updates; for new subscriptions please use the subscribe() method';
-    assert(
-      subscriptionRequest ? subscriptionRequest['oldSku'] : false,
-      errorMessage
-    );
+    assert(subscriptionRequest?.oldSku, errorMessage);
     await this.documentParsed_;
     return new PayStartFlow(this, subscriptionRequest).start();
   }
@@ -1029,10 +1026,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   }
 
   async completeDeferredAccountCreation(
-    options?: DeferredAccountCreationRequest | null
+    options: DeferredAccountCreationRequest | null = null
   ): Promise<DeferredAccountCreationResponse> {
     await this.documentParsed_;
-    return new DeferredAccountFlow(this, options || null).start();
+    return new DeferredAccountFlow(this, options).start();
   }
 
   setOnFlowStarted(

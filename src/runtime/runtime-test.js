@@ -1608,6 +1608,24 @@ describes.realWin('ConfiguredRuntime', (env) => {
       expect(flow.options_.entitlements).to.equal(ents);
     });
 
+    it('should start "completeDeferredAccountCreation" with `null` options', async () => {
+      const ents = null;
+      const request = null;
+      const resp = {};
+      let flow;
+      const startStub = sandbox
+        .stub(DeferredAccountFlow.prototype, 'start')
+        .callsFake(function () {
+          flow = this;
+          return Promise.resolve(resp);
+        });
+
+      const result = await runtime.completeDeferredAccountCreation(request);
+      expect(startStub).to.be.calledOnce.calledWithExactly();
+      expect(result).to.equal(resp);
+      expect(flow.options_.entitlements).to.equal(ents);
+    });
+
     it('should call "showOffers"', async () => {
       let offersFlow;
       sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
@@ -1867,6 +1885,21 @@ subscribe() method'
         });
 
       await runtime.contribute('sku1');
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+      expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
+    });
+
+    it('should start PayStartFlow for contribution with object param', async () => {
+      let flowInstance;
+      const startStub = sandbox
+        .stub(PayStartFlow.prototype, 'start')
+        .callsFake(function () {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+
+      await runtime.contribute({skuId: 'sku1'});
       expect(startStub).to.be.calledOnce;
       expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
       expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
