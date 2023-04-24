@@ -444,10 +444,8 @@ describes.realWin('AnalyticsService', (env) => {
 
     it('should set client timestamp in context', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
-      const mockClientTimeSource = sandbox.spy(() => {
-        return toTimestamp(12345);
-      });
-      analyticsService.getTimestamp_ = mockClientTimeSource;
+
+      event.timestamp = 12345;
 
       eventManagerCallback(event);
 
@@ -457,9 +455,8 @@ describes.realWin('AnalyticsService', (env) => {
       const /* {?AnalyticsRequest} */ request =
           activityIframePort.execute.getCall(0).args[0];
       expect(request).to.not.be.null;
-      expect(mockClientTimeSource).to.be.calledOnce;
       expect(request.getContext().getClientTimestamp()).to.deep.equal(
-        mockClientTimeSource()
+        toTimestamp(12345)
       );
     });
 

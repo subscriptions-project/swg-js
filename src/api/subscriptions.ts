@@ -474,7 +474,6 @@ export enum ReplaceSkuProrationMode {
 export enum ProductType {
   SUBSCRIPTION = 'SUBSCRIPTION',
   UI_CONTRIBUTION = 'UI_CONTRIBUTION',
-  VIRTUAL_GIFT = 'VIRTUAL_GIFT',
 }
 
 export function defaultConfig(): Config {
