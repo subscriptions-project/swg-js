@@ -159,6 +159,8 @@ export class GaaMetering {
         // on the client-side.
         runServerSidePaywallFlow(showcaseEntitlement);
       } else {
+        // For client-side paywall, GAA checks publisher entitlement through publisherEntitlementPromise (which
+        // returns an updated userState) and Google entitlement through swg.js.
         runClientSidePaywallFlow();
       }
     });
