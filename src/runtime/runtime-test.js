@@ -1608,9 +1608,8 @@ describes.realWin('ConfiguredRuntime', (env) => {
       expect(flow.options_.entitlements).to.equal(ents);
     });
 
-    it('should start "completeDeferredAccountCreation" with `null` options', async () => {
+    it('should start "completeDeferredAccountCreation" with missing param', async () => {
       const ents = null;
-      const request = null;
       const resp = {};
       let flow;
       const startStub = sandbox
@@ -1620,7 +1619,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
           return Promise.resolve(resp);
         });
 
-      const result = await runtime.completeDeferredAccountCreation(request);
+      const result = await runtime.completeDeferredAccountCreation();
       expect(startStub).to.be.calledOnce.calledWithExactly();
       expect(result).to.equal(resp);
       expect(flow.options_.entitlements).to.equal(ents);
