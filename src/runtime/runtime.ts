@@ -42,14 +42,22 @@ import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
+import {ClientEventManagerApi} from '../api/client-event-manager-api';
 import {ContributionsFlow} from './contributions-flow';
+import {
+  DeferredAccountCreationRequest,
+  DeferredAccountCreationResponse,
+} from '../api/deferred-account-creation';
+import {DIALOG_CSS} from '../ui/ui-css';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc as DocInterface, resolveDoc} from '../model/doc';
+import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
 import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
+import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
@@ -58,8 +66,10 @@ import {
   LinkbackFlow,
 } from './link-accounts-flow';
 import {Logger} from './logger';
+import {LoggerApi} from '../api/logger-api';
 import {LoginNotificationApi} from './login-notification-api';
 import {LoginPromptApi} from './login-prompt-api';
+import {Offer} from '../api/offer';
 import {OffersApi} from './offers-api';
 import {PageConfig} from '../model/page-config';
 import {
@@ -76,7 +86,8 @@ import {
   defaultConfig,
 } from '../api/subscriptions';
 import {Propensity} from './propensity';
-import {DIALOG_CSS as SWG_DIALOG} from '../ui/ui-css';
+import {PropensityApi} from '../api/propensity-api';
+import {SubscribeResponse} from '../api/subscribe-response';
 import {Storage} from './storage';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
@@ -94,17 +105,6 @@ import {queryStringHasFreshGaaParams} from './extended-access';
 import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
-import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
-import {Entitlements} from '../api/entitlements';
-import {Offer} from '../api/offer';
-import {SubscribeResponse} from '../api/subscribe-response';
-import {
-  DeferredAccountCreationRequest,
-  DeferredAccountCreationResponse,
-} from '../api/deferred-account-creation';
-import {PropensityApi} from '../api/propensity-api';
-import {LoggerApi} from '../api/logger-api';
-import {ClientEventManagerApi} from '../api/client-event-manager-api';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -678,7 +678,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
 
-    injectStyleSheet(this.doc_, SWG_DIALOG);
+    injectStyleSheet(this.doc_, DIALOG_CSS);
 
     // Report redirect errors if any.
     this.activityPorts_.onRedirectError((error) => {
