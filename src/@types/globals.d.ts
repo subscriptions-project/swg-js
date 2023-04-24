@@ -1,3 +1,4 @@
+import {BasicSubscriptions} from '../api/basic-subscriptions';
 import {
   GaaGoogle3pSignInButton,
   GaaGoogleSignInButton,
@@ -25,6 +26,12 @@ declare global {
      * This global variable is deprecated in favor of the `window.SWG` global variable.
      */
     SUBSCRIPTIONS: ((api: Subscriptions) => void)[];
+
+    /**
+     * The global `SWG_BASIC` array contains client ready callbacks. Swgjs calls these when its BasicSubscriptions API is ready.
+     * https://github.com/subscriptions-project/swg-js/blob/main/docs/swg-basic-docs/enable_swg.md#enable-subscriptions-or-contributions
+     */
+    SWG_BASIC: ((api: BasicSubscriptions) => void)[];
 
     // Swgjs defines these Extended Access classes globally.
     GaaGoogleSignInButton: GaaGoogleSignInButton;
