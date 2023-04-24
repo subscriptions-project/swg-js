@@ -86,7 +86,7 @@ const builds = {
   },
   classic: {
     output: args.minifiedName || 'subscriptions.js',
-    input: './src/main.js',
+    input: './src/main.ts',
   },
   gaa: {
     output: args.minifiedGaaName || 'subscriptions-gaa.js',
