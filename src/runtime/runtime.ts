@@ -905,22 +905,19 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return flow.start();
   }
 
-  /** @override */
-  async showSubscribeOption(options) {
+  async showSubscribeOption(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     const flow = new SubscribeOptionFlow(this, options);
     return flow.start();
   }
 
-  /** @override */
-  async showAbbrvOffer(options) {
+  async showAbbrvOffer(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     const flow = new AbbrvOfferFlow(this, options);
     return flow.start();
   }
 
-  /** @override */
-  async showContributionOptions(options) {
+  async showContributionOptions(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     this.lastContributionsFlow_ = new ContributionsFlow(this, options);
     return this.lastContributionsFlow_.start();
@@ -928,14 +925,14 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
   /**
    * Get the last contribution offers flow.
-   * @return {?ContributionsFlow}
    */
-  getLastContributionsFlow() {
+  getLastContributionsFlow(): ContributionsFlow | null {
     return this.lastContributionsFlow_;
   }
 
-  /** @override */
-  async waitForSubscriptionLookup(accountPromise) {
+  async waitForSubscriptionLookup(
+    accountPromise: Promise<unknown>
+  ): Promise<unknown> {
     await this.documentParsed_;
     const wait = new WaitForSubscriptionLookupApi(this, accountPromise);
     return wait.start();
