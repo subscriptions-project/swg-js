@@ -550,7 +550,31 @@ export class Runtime implements SubscriptionsInterface {
 }
 
 export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
+  private lastOffersFlow_: OffersFlow | null = null;
+  private lastContributionsFlow_: ContributionsFlow | null = null;
+  private publisherProvidedId_?: string;
+
   private readonly eventManager_: ClientEventManager;
+  private readonly doc_: DocInterface;
+  private readonly win_: Window;
+  private readonly config_: Config;
+  private readonly pageConfig_: PageConfig;
+  private readonly documentParsed_: Promise<void>;
+  private readonly jserror_: JsError;
+  private readonly fetcher_: FetcherInterface;
+  private readonly storage_: Storage;
+  private readonly dialogManager_: DialogManager;
+  private readonly callbacks_: Callbacks;
+  private readonly googleAnalyticsEventListener_?: GoogleAnalyticsEventListener;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly analyticsService_: AnalyticsService;
+  private readonly payClient_: PayClient;
+  private readonly logger_: Logger;
+  private readonly entitlementsManager_: EntitlementsManager;
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly propensityModule_: Propensity;
+  private readonly offersApi_: OffersApi;
+  private readonly buttonApi_: ButtonApi;
 
   constructor(
     winOrDoc: Window | Document | DocInterface,
@@ -573,55 +597,34 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     integr = integr || {};
     integr.configPromise = integr.configPromise || Promise.resolve();
 
-    /** @private @const {!ClientEventManager} */
-    this.eventManager_ = new ClientEventManager(integr.configPromise);
+    this.eventManager_ = new ClientEventManager(integr.configPromise.then());
 
-    /** @private @const {!DocInterface} */
     this.doc_ = resolveDoc(winOrDoc);
 
-    /** @private @const {!Window} */
     this.win_ = this.doc_.getWin();
 
-    /** @private @const {!../api/subscriptions.Config} */
     this.config_ = defaultConfig();
 
     if (config) {
       this.configure_(config);
     }
 
-    /** @private @const {!../model/page-config.PageConfig} */
     this.pageConfig_ = pageConfig;
 
-    /** @private @const {!Promise} */
     this.documentParsed_ = this.doc_.whenReady();
 
-    /** @private @const {!JsError} */
     this.jserror_ = new JsError(this.doc_);
 
-    /** @private @const {!FetcherInterface} */
     this.fetcher_ = integr.fetcher || new XhrFetcher(this.win_);
 
-    /** @private @const {!Storage} */
     this.storage_ = new Storage(this.win_);
 
-    /** @private @const {!DialogManager} */
     this.dialogManager_ = new DialogManager(this.doc_);
 
-    /** @private @const {!Callbacks} */
     this.callbacks_ = new Callbacks();
-
-    /** @private {?OffersFlow} */
-    this.lastOffersFlow_ = null;
-
-    /** @private {?ContributionsFlow} */
-    this.lastContributionsFlow_ = null;
-
-    /** @private {string|undefined} */
-    this.publisherProvidedId_ = undefined;
 
     // Start listening to Google Analytics events, if applicable.
     if (integr.enableGoogleAnalytics) {
-      /** @private @const {!GoogleAnalyticsEventListener} */
       this.googleAnalyticsEventListener_ = new GoogleAnalyticsEventListener(
         this
       );
@@ -630,19 +633,14 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
     // WARNING: Deps ('this') is being progressively defined below.
     // Constructors will crash if they rely on something that doesn't exist yet.
-    /** @private @const {!../components/activities.ActivityPorts} */
     this.activityPorts_ = new ActivityPorts(this);
 
-    /** @private @const {!AnalyticsService} */
     this.analyticsService_ = new AnalyticsService(this);
 
-    /** @private @const {!PayClient} */
     this.payClient_ = new PayClient(this);
 
-    /** @private @const {!Logger} */
     this.logger_ = new Logger(this);
 
-    /** @private @const {!EntitlementsManager} */
     this.entitlementsManager_ = new EntitlementsManager(
       this.win_,
       this.pageConfig_,
@@ -652,7 +650,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       integr.enableDefaultMeteringHandler || false
     );
 
-    /** @private @const {!ClientConfigManager} */
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above
       pageConfig.getPublicationId(),
@@ -660,7 +657,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       clientOptions
     );
 
-    /** @private @const {!Propensity} */
     this.propensityModule_ = new Propensity(
       this.win_,
       this, // See note about 'this' above
@@ -670,10 +666,8 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     // ALL CLEAR: Deps definition now complete.
     this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_PAGE_LOAD, false);
 
-    /** @private @const {!OffersApi} */
     this.offersApi_ = new OffersApi(this.pageConfig_, this.fetcher_);
 
-    /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(this.doc_, Promise.resolve(this));
 
     const preconnect = new Preconnect(this.win_.document);
@@ -697,86 +691,68 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     });
   }
 
-  /** @override */
-  doc() {
+  doc(): DocInterface {
     return this.doc_;
   }
 
-  /** @override */
-  win() {
+  win(): Window {
     return this.win_;
   }
 
-  /** @override */
-  pageConfig() {
+  pageConfig(): PageConfig {
     return this.pageConfig_;
   }
 
-  /** @override */
-  jserror() {
+  jserror(): JsError {
     return this.jserror_;
   }
 
-  /** @override */
-  activities() {
+  activities(): ActivityPorts {
     return this.activityPorts_;
   }
 
-  /** @override */
-  payClient() {
+  payClient(): PayClient {
     return this.payClient_;
   }
 
-  /** @override */
-  dialogManager() {
+  dialogManager(): DialogManager {
     return this.dialogManager_;
   }
 
-  /** @override */
-  entitlementsManager() {
+  entitlementsManager(): EntitlementsManager {
     return this.entitlementsManager_;
   }
 
-  /** @override */
-  callbacks() {
+  callbacks(): Callbacks {
     return this.callbacks_;
   }
 
-  /** @override */
-  storage() {
+  storage(): Storage {
     return this.storage_;
   }
 
-  /** @override */
-  clientConfigManager() {
+  clientConfigManager(): ClientConfigManager {
     return this.clientConfigManager_;
   }
 
-  /** @override */
-  analytics() {
+  analytics(): AnalyticsService {
     return this.analyticsService_;
   }
 
-  /** @override */
-  init() {
+  init(): void {
     // Implemented by the `Runtime` class.
   }
 
-  /** @override */
-  configure(config) {
+  configure(config: Config): void {
     // Indirected for constructor testing.
     this.configure_(config);
   }
 
-  /**
-   * @param {!../api/subscriptions.Config} config
-   * @private
-   */
-  configure_(config) {
+  private configure_(config: Config): void {
     // Validate first.
     let error = '';
     for (const key in config) {
-      const value = config[key];
+      const value = (config as {[key: string]: unknown})[key];
       switch (key) {
         case 'windowOpenMode':
           if (
@@ -787,13 +763,13 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           }
           break;
         case 'experiments':
-          for (const experiment of value) {
+          for (const experiment of value as string[]) {
             setExperiment(this.win_, experiment, true);
           }
           if (this.analytics()) {
             // If analytics service isn't set up yet, then it will get the
             // experiments later.
-            this.analytics().addLabels(value);
+            this.analytics().addLabels(value as string[]);
           }
           break;
         case 'analyticsMode':
@@ -846,30 +822,26 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     Object.assign(this.config_, config);
   }
 
-  /** @override */
-  config() {
+  config(): Config {
     return this.config_;
   }
 
-  /** @override */
-  reset() {
+  reset(): void {
     this.entitlementsManager_.reset();
     this.closeDialog();
   }
 
-  /** @override */
-  clear() {
+  clear(): void {
     this.entitlementsManager_.clear();
     this.closeDialog();
   }
 
   /** Close dialog. */
-  closeDialog() {
+  closeDialog(): void {
     this.dialogManager_.completeAll();
   }
 
-  /** @override */
-  start() {
+  start(): Promise<void> | void {
     // No need to run entitlements without a product or for an unlocked page.
     if (!this.pageConfig_.getProductId() || !this.pageConfig_.isLocked()) {
       return Promise.resolve();
@@ -877,8 +849,9 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     this.getEntitlements();
   }
 
-  /** @override */
-  async getEntitlements(params) {
+  async getEntitlements(
+    params?: GetEntitlementsParamsExternalDef
+  ): Promise<Entitlements> {
     if (params?.publisherProvidedId) {
       params.publisherProvidedId = this.publisherProvidedId_;
     }
@@ -902,18 +875,17 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return entitlements.clone();
   }
 
-  /** @override */
-  setOnEntitlementsResponse(callback) {
+  setOnEntitlementsResponse(
+    callback: (entitlements: Promise<Entitlements>) => void
+  ): void {
     this.callbacks_.setOnEntitlementsResponse(callback);
   }
 
-  /** @override */
-  getOffers(options) {
+  getOffers(options?: {productId?: string}): Promise<Offer[]> {
     return this.offersApi_.getOffers(options && options.productId);
   }
 
-  /** @override */
-  async showOffers(options) {
+  async showOffers(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     const errorMessage =
       'The showOffers() method cannot be used to update a subscription. ' +
@@ -923,8 +895,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return this.lastOffersFlow_.start();
   }
 
-  /** @override */
-  async showUpdateOffers(options) {
+  async showUpdateOffers(options?: OffersRequest): Promise<void> {
     await this.documentParsed_;
     const errorMessage =
       'The showUpdateOffers() method cannot be used for new subscribers. ' +
