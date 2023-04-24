@@ -1581,6 +1581,48 @@ describes.realWin('GaaMetering', () => {
       expect(unlockArticle).to.not.be.called;
     });
 
+    it('should render Google RegWall for anonymous user for server-side paywall', () => {
+      removeJsonLdScripts();
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>
+      `;
+
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      const unlockArticle = sandbox.fake(() => {});
+
+      GaaMetering.init({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: { /* anonymous user*/ },
+        paywallType: 'SERVER_SIDE',
+        unlockArticle,
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+      });
+      
+      expect(subscriptionsMock.getEntitlements).to.not.be.called;
+
+      expect(self.console.log).to.be.calledWith(
+        '[Subscriptions]',
+        'show Google Regwall'
+      );
+    });
+
     it('has publisherEntitlements', async () => {
       location.hash = `#swg.debug=1`;
       self.document.referrer = 'https://www.google.com';
