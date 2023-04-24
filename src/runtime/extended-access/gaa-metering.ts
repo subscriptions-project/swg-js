@@ -29,7 +29,7 @@ import {
   ShowcaseEvent,
 } from '../../api/subscriptions';
 import {GoogleIdentityV1Def, InitParamsDef, UserState} from './interfaces';
-import {GrantReasonType, PaywallReasonType} from './constants';
+import {GrantReasonType, PaywallReasonType, PaywallType} from './constants';
 import {
   QueryStringUtils,
   callSwg,
@@ -123,6 +123,8 @@ export class GaaMetering {
     // Provide an option to bypass SwG init for 3P integrations.
     const shouldInitializeSwG = params.shouldInitializeSwG ?? true;
 
+    const paywallType = GaaMetering.determinePaywallType(params);
+
     callSwg(async (subscriptions) => {
       if (shouldInitializeSwG) {
         subscriptions.init(productId);
@@ -149,13 +151,27 @@ export class GaaMetering {
         GaaMetering.userState.granted = true;
         debugLog('Article free from markup.');
         unlockArticleIfGranted();
-      } else if (showcaseEntitlement) {
-        debugLog(showcaseEntitlement);
-        subscriptions.consumeShowcaseEntitlementJwt(showcaseEntitlement, () => {
-          // Consume the entitlement and trigger a dialog that lets the user
-          // know Google provided them with a free read.
-          unlockArticle();
-        });
+      } else if (paywallType == PaywallType.SERVER_SIDE) {
+        // For server-side paywall, publisher checks both their own and Google entitlements from their server.
+        // If a user has access from publisher, publisher sets userState.granted to true and provides grantReason.
+        // If a user has access from Google, publisher sets showcaseEntitlement.
+        // Otherwise, publisher ensures paywallType is set to SERVER_SIDE to avoid repeated entitlement checks
+        // on the client-side.
+        if (showcaseEntitlement) {
+          debugLog(showcaseEntitlement);
+          subscriptions.consumeShowcaseEntitlementJwt(
+            showcaseEntitlement,
+            () => {
+              // Consume the entitlement and trigger a dialog that lets the user
+              // know Google provided them with a free read.
+              unlockArticle();
+            }
+          );
+        } else {
+          debugLog(
+            'User is not granted in userState and no showcaseEntitlement provided. Publisher renders a paywall.'
+          );
+        }
       } else {
         debugLog('resolving publisherEntitlement');
         const fetchedPublisherEntitlements = await publisherEntitlementPromise;
@@ -464,6 +480,11 @@ export class GaaMetering {
       }
     }
 
+    if ('paywallType' in params && !(params.paywallType in PaywallType)) {
+      debugLog(`${params.paywallType} is not a valid paywallType`);
+      noIssues = false;
+    }
+
     if (
       'shouldInitializeSwG' in params &&
       typeof params.shouldInitializeSwG !== 'boolean'
@@ -475,6 +496,14 @@ export class GaaMetering {
     }
 
     return noIssues;
+  }
+
+  static determinePaywallType(params: InitParamsDef): PaywallType {
+    if (params.showcaseEntitlement) {
+      return PaywallType.SERVER_SIDE;
+    } else {
+      return params.paywallType ?? PaywallType.CLIENT_SIDE;
+    }
   }
 
   static isGaa(publisherReferrers: string[] | null = []): boolean {
