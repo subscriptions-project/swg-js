@@ -44,11 +44,11 @@ import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ClientEventManagerApi} from '../api/client-event-manager-api';
 import {ContributionsFlow} from './contributions-flow';
+import {DIALOG_CSS} from '../ui/ui-css';
 import {
   DeferredAccountCreationRequest,
   DeferredAccountCreationResponse,
 } from '../api/deferred-account-creation';
-import {DIALOG_CSS} from '../ui/ui-css';
 import {DeferredAccountFlow} from './deferred-account-flow';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
@@ -87,8 +87,8 @@ import {
 } from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {PropensityApi} from '../api/propensity-api';
-import {SubscribeResponse} from '../api/subscribe-response';
 import {Storage} from './storage';
+import {SubscribeResponse} from '../api/subscribe-response';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
