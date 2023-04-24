@@ -1568,7 +1568,6 @@ describes.realWin('GaaMetering', () => {
         handleSwGEntitlement: () => {},
         registerUserPromise: new Promise(() => {}),
         handleLoginPromise: new Promise(() => {}),
-        publisherEntitlementPromise: new Promise(() => {}),
       });
 
       expect(subscriptionsMock.getEntitlements).to.not.be.called;
@@ -1614,7 +1613,6 @@ describes.realWin('GaaMetering', () => {
         handleSwGEntitlement: () => {},
         registerUserPromise: new Promise(() => {}),
         handleLoginPromise: new Promise(() => {}),
-        publisherEntitlementPromise: new Promise(() => {}),
       });
 
       expect(subscriptionsMock.getEntitlements).to.not.be.called;
