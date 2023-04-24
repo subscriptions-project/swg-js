@@ -70,6 +70,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 import {parseUrl} from '../utils/url';
+import {tick} from '../../test/tick';
 
 describes.realWin('installRuntime', (env) => {
   let win;
@@ -1094,6 +1095,8 @@ describes.realWin('ConfiguredRuntime', (env) => {
       resolveConfig();
 
       await configPromise;
+      await tick(1);
+
       expect(eventCount).to.equal(2);
     });
 

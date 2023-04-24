@@ -523,7 +523,7 @@ export class Runtime implements SubscriptionsInterface {
 
   async consumeShowcaseEntitlementJwt(
     showcaseEntitlementJwt: string,
-    onCloseDialog?: Function | null
+    onCloseDialog?: () => void | null
   ): Promise<void> {
     const runtime = await this.configured_(true);
     return runtime.consumeShowcaseEntitlementJwt(
@@ -938,23 +938,19 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return wait.start();
   }
 
-  /** @override */
-  setOnLoginRequest(callback) {
+  setOnLoginRequest(callback: (loginRequest: LoginRequest) => void): void {
     this.callbacks_.setOnLoginRequest(callback);
   }
 
-  /** @override */
-  triggerLoginRequest(request) {
+  triggerLoginRequest(request: LoginRequest): void {
     this.callbacks_.triggerLoginRequest(request);
   }
 
-  /** @override */
-  setOnLinkComplete(callback) {
+  setOnLinkComplete(callback: () => void): void {
     this.callbacks_.setOnLinkComplete(callback);
   }
 
-  /** @override */
-  async linkAccount(params = {}) {
+  async linkAccount(params?: {ampReaderId?: string}): Promise<void> {
     await this.documentParsed_;
     return new LinkbackFlow(this).start(params);
   }
@@ -963,38 +959,36 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     saveSubscriptionRequestCallback: SaveSubscriptionRequestCallback
   ): Promise<void> {
     await this.documentParsed_;
-    return new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
+    await new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
   }
 
-  /** @override */
-  async showLoginPrompt() {
+  async showLoginPrompt(): Promise<void> {
     await this.documentParsed_;
     return new LoginPromptApi(this).start();
   }
 
-  /** @override */
-  async showLoginNotification() {
+  async showLoginNotification(): Promise<void> {
     await this.documentParsed_;
     return new LoginNotificationApi(this).start();
   }
 
-  /** @override */
-  setOnNativeSubscribeRequest(callback) {
+  setOnNativeSubscribeRequest(callback: () => void): void {
     this.callbacks_.setOnSubscribeRequest(callback);
   }
 
-  /** @override */
-  setOnSubscribeResponse(callback) {
+  setOnSubscribeResponse(
+    callback: (subscribeResponse: Promise<SubscribeResponse>) => void
+  ): void {
     this.callbacks_.setOnSubscribeResponse(callback);
   }
 
-  /** @override */
-  setOnPaymentResponse(callback) {
+  setOnPaymentResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
+  ): void {
     this.callbacks_.setOnPaymentResponse(callback);
   }
 
-  /** @override */
-  async subscribe(sku) {
+  async subscribe(sku: string): Promise<void> {
     const errorMessage =
       'The subscribe() method can only take a sku as its parameter; ' +
       'for subscription updates please use the updateSubscription() method';
@@ -1003,8 +997,9 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new PayStartFlow(this, {'skuId': sku}).start();
   }
 
-  /** @override */
-  async updateSubscription(subscriptionRequest) {
+  async updateSubscription(
+    subscriptionRequest: SubscriptionRequest
+  ): Promise<void> {
     const errorMessage =
       'The updateSubscription() method should be used for subscription ' +
       'updates; for new subscriptions please use the subscribe() method';
@@ -1016,14 +1011,15 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new PayStartFlow(this, subscriptionRequest).start();
   }
 
-  /** @override */
-  setOnContributionResponse(callback) {
+  setOnContributionResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
+  ): void {
     this.callbacks_.setOnContributionResponse(callback);
   }
 
-  /** @override */
-  async contribute(skuOrSubscriptionRequest) {
-    /** @type {!../api/subscriptions.SubscriptionRequest} */
+  async contribute(
+    skuOrSubscriptionRequest: string | SubscriptionRequest
+  ): Promise<void> {
     const request =
       typeof skuOrSubscriptionRequest == 'string'
         ? {'skuId': skuOrSubscriptionRequest}
@@ -1032,36 +1028,47 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new PayStartFlow(this, request, ProductType.UI_CONTRIBUTION).start();
   }
 
-  /** @override */
-  async completeDeferredAccountCreation(options) {
+  async completeDeferredAccountCreation(
+    options?: DeferredAccountCreationRequest | null
+  ): Promise<DeferredAccountCreationResponse> {
     await this.documentParsed_;
     return new DeferredAccountFlow(this, options || null).start();
   }
 
-  /** @override */
-  setOnFlowStarted(callback) {
+  setOnFlowStarted(
+    callback: (params: {flow: string; data: object}) => void
+  ): void {
     this.callbacks_.setOnFlowStarted(callback);
   }
 
-  /** @override */
-  setOnFlowCanceled(callback) {
+  setOnFlowCanceled(
+    callback: (params: {flow: string; data: object}) => void
+  ): void {
     this.callbacks_.setOnFlowCanceled(callback);
   }
 
-  /** @override */
-  createButton(optionsOrCallback, callback) {
+  createButton(
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): Element {
     // This is a minor duplication to allow this code to be sync.
     return this.buttonApi_.create(optionsOrCallback, callback);
   }
 
-  /** @override */
-  attachButton(button, optionsOrCallback, callback) {
+  attachButton(
+    button: HTMLElement,
+    optionsOrCallback: ButtonOptions | (() => void),
+    callback?: () => void
+  ): void {
     // This is a minor duplication to allow this code to be sync.
     this.buttonApi_.attach(button, optionsOrCallback, callback);
   }
 
-  /** @override */
-  attachSmartButton(button, optionsOrCallback, callback) {
+  attachSmartButton(
+    button: HTMLElement,
+    optionsOrCallback: SmartButtonOptions | (() => void),
+    callback?: () => void
+  ): void {
     this.buttonApi_.attachSmartButton(
       this,
       button,
@@ -1070,41 +1077,36 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     );
   }
 
-  /** @override */
-  getPropensityModule() {
+  getPropensityModule(): Promise<PropensityApi> {
     return Promise.resolve(this.propensityModule_);
   }
 
   /**
    * This one exists as an internal helper so SwG logging doesn't require a promise.
-   * @return {!ClientEventManager}
    */
-  eventManager() {
+  eventManager(): ClientEventManager {
     return this.eventManager_;
   }
 
   /**
    * Get the last subscription offers flow.
-   * @return {?OffersFlow}
    */
-  getLastOffersFlow() {
+  getLastOffersFlow(): OffersFlow | null {
     return this.lastOffersFlow_;
   }
 
   /**
    * This one exists as a public API so publishers can subscribe to SwG events.
-   * @override */
-  getEventManager() {
+   */
+  getEventManager(): Promise<ClientEventManager> {
     return Promise.resolve(this.eventManager_);
   }
 
-  /** @override */
-  getLogger() {
+  getLogger(): Promise<Logger> {
     return Promise.resolve(this.logger_);
   }
 
-  /** @override */
-  setShowcaseEntitlement(entitlement) {
+  setShowcaseEntitlement(entitlement: PublisherEntitlement): Promise<void> {
     if (
       !entitlement ||
       !isSecure(this.win().location) ||
@@ -1142,37 +1144,34 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return Promise.resolve();
   }
 
-  /** @override */
-  consumeShowcaseEntitlementJwt(showcaseEntitlementJwt, onCloseDialog) {
+  consumeShowcaseEntitlementJwt(
+    showcaseEntitlementJwt: string,
+    onCloseDialog?: () => void | null
+  ): void {
     const entitlements = this.entitlementsManager().parseEntitlements({
       signedEntitlements: showcaseEntitlementJwt,
     });
     entitlements.consume(onCloseDialog);
   }
 
-  /** @override */
-  showBestAudienceAction() {
+  showBestAudienceAction(): void {
     warn('Not implemented yet');
   }
 
-  /** @override */
-  setPublisherProvidedId(publisherProvidedId) {
+  setPublisherProvidedId(publisherProvidedId: string): void {
     this.publisherProvidedId_ = publisherProvidedId;
   }
 
-  /** @override */
-  async linkSubscription(request) {
+  async linkSubscription(
+    linkSubscriptionRequest: LinkSubscriptionRequest
+  ): Promise<LinkSubscriptionResult> {
     await this.documentParsed_;
-    return new SubscriptionLinkingFlow(this).start(request);
+    return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
   }
 }
 
-/**
- * @param {!Runtime} runtime
- * @return {!SubscriptionsInterface}
- */
-function createPublicRuntime(runtime) {
-  return /** @type {!SubscriptionsInterface} */ {
+function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
+  return {
     init: runtime.init.bind(runtime),
     configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),

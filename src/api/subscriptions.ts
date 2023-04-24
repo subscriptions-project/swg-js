@@ -273,7 +273,7 @@ export interface Subscriptions {
    */
   consumeShowcaseEntitlementJwt(
     showcaseEntitlementJwt: string,
-    onCloseDialog?: Function | null
+    onCloseDialog?: () => void | null
   ): Promise<void> | void;
 
   /**
