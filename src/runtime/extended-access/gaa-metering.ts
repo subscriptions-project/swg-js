@@ -157,8 +157,16 @@ export class GaaMetering {
         // If a user has access from Google, publisher sets showcaseEntitlement.
         // Otherwise, publisher ensures paywallType is set to SERVER_SIDE to avoid repeated entitlement checks
         // on the client-side.
-        if (showcaseEntitlement) {
-          debugLog(showcaseEntitlement);
+        runServerSidePaywallFlow(showcaseEntitlement);
+      } else {
+        runClientSidePaywallFlow();
+      }
+    });
+
+    function runServerSidePaywallFlow(showcaseEntitlement?: string): void {
+      if (showcaseEntitlement) {
+        debugLog(showcaseEntitlement);
+        callSwg((subscriptions) => {
           subscriptions.consumeShowcaseEntitlementJwt(
             showcaseEntitlement,
             () => {
@@ -167,23 +175,28 @@ export class GaaMetering {
               unlockArticle();
             }
           );
-        } else {
-          debugLog(
-            'User is not granted in userState and no showcaseEntitlement provided. Publisher renders a paywall.'
-          );
-        }
+        });
+      } else if (!GaaMetering.isCurrentUserRegistered()) {
+        showGoogleRegwall();
       } else {
-        debugLog('resolving publisherEntitlement');
-        const fetchedPublisherEntitlements = await publisherEntitlementPromise;
-        if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
-          GaaMetering.userState = fetchedPublisherEntitlements as UserState;
-
-          unlockArticleIfGranted();
-        } else {
-          debugLog("Publisher entitlement isn't valid");
-        }
+        GaaMetering.setEntitlementsForNoAccessUser_();
+        debugLog(
+          'User is not granted in userState and no showcaseEntitlement provided. Publisher renders a paywall.'
+        );
       }
-    });
+    }
+
+    async function runClientSidePaywallFlow() {
+      debugLog('resolving publisherEntitlement');
+      const fetchedPublisherEntitlements = await publisherEntitlementPromise;
+      if (GaaMetering.validateUserState(fetchedPublisherEntitlements)) {
+        GaaMetering.userState = fetchedPublisherEntitlements as UserState;
+
+        unlockArticleIfGranted();
+      } else {
+        debugLog("Publisher entitlement isn't valid");
+      }
+    }
 
     // Show the Google registration intervention.
     async function showGoogleRegwall() {
@@ -217,12 +230,13 @@ export class GaaMetering {
         });
       }
     }
-
+    
     function unlockArticleIfGranted(): void {
       if (!GaaMetering.validateUserState(GaaMetering.userState)) {
         debugLog('Invalid userState object');
         return;
-      } else if (GaaMetering.userState.granted === true) {
+      } 
+      if (GaaMetering.userState.granted === true) {
         const grantReasonToShowCaseEventMap = {
           [GrantReasonType.SUBSCRIBER]:
             ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,
@@ -299,6 +313,26 @@ export class GaaMetering {
     }
   }
 
+  private static async setEntitlementsForNoAccessUser_() {
+    callSwg((subscriptions) => {
+      switch (GaaMetering.userState.paywallReason) {
+        case PaywallReasonType.RESERVED_USER:
+          subscriptions.setShowcaseEntitlement({
+            entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
+            isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+            subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
+          });
+          break;
+        default:
+          subscriptions.setShowcaseEntitlement({
+            entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
+            isUserRegistered: GaaMetering.isCurrentUserRegistered(),
+            subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
+          });
+      }
+    });
+  }
+
   static async setEntitlements(
     googleEntitlementsPromise: Promise<Entitlements>,
     allowedReferrers: string[] | null,
@@ -330,23 +364,7 @@ export class GaaMetering {
       showGoogleRegwall();
     } else {
       // User does not any access from publisher or Google so show the standard paywall
-      callSwg((subscriptions) => {
-        switch (GaaMetering.userState.paywallReason) {
-          case PaywallReasonType.RESERVED_USER:
-            subscriptions.setShowcaseEntitlement({
-              entitlement: ShowcaseEvent.EVENT_SHOWCASE_INELIGIBLE_PAYWALL,
-              isUserRegistered: GaaMetering.isCurrentUserRegistered(),
-              subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
-            });
-            break;
-          default:
-            subscriptions.setShowcaseEntitlement({
-              entitlement: ShowcaseEvent.EVENT_SHOWCASE_NO_ENTITLEMENTS_PAYWALL,
-              isUserRegistered: GaaMetering.isCurrentUserRegistered(),
-              subscriptionTimestamp: GaaMetering.getSubscriptionTimestamp(),
-            });
-        }
-      });
+      GaaMetering.setEntitlementsForNoAccessUser_();
       // Show the paywall
       showPaywall();
     }
