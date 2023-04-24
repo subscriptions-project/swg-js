@@ -232,12 +232,12 @@ export class GaaMetering {
         });
       }
     }
-    
+
     function unlockArticleIfGranted(): void {
       if (!GaaMetering.validateUserState(GaaMetering.userState)) {
         debugLog('Invalid userState object');
         return;
-      } 
+      }
       if (GaaMetering.userState.granted === true) {
         const grantReasonToShowCaseEventMap = {
           [GrantReasonType.SUBSCRIBER]:

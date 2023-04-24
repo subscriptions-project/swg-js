@@ -1604,7 +1604,9 @@ describes.realWin('GaaMetering', () => {
           'localhost',
           'google.com',
         ],
-        userState: { /* anonymous user*/ },
+        userState: {
+          /* anonymous user*/
+        },
         paywallType: 'SERVER_SIDE',
         unlockArticle,
         showPaywall: () => {},
@@ -1614,7 +1616,7 @@ describes.realWin('GaaMetering', () => {
         handleLoginPromise: new Promise(() => {}),
         publisherEntitlementPromise: new Promise(() => {}),
       });
-      
+
       expect(subscriptionsMock.getEntitlements).to.not.be.called;
 
       expect(self.console.log).to.be.calledWith(
