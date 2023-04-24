@@ -44,6 +44,7 @@ import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {PayClient} from './pay-client';
+import {Storage} from './storage';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {SubscribeResponse} from '../api/subscribe-response';
 import {Toast} from '../ui/toast';
