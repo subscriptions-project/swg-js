@@ -474,15 +474,19 @@ export class GaaMetering {
       noIssues = false;
     }
 
-    // Check userState is an 'object'
-    if (
+    // For client-side paywall, either userState or publisherEntitlementPromise needs to provided
+    // - If granted is not provided in a userState, publisherEntitlementPromise needs to be provided.
+    // For server-side paywall, userState needs to be provided.
+    if (params.paywallType == PaywallType.SERVER_SIDE) {
+      if (!('userState' in params)) {
+        debugLog('userState needs to be provided');
+        noIssues = false;
+      }
+    } else if (
       !('userState' in params) &&
       !('publisherEntitlementPromise' in params)
     ) {
       debugLog(`userState or publisherEntitlementPromise needs to be provided`);
-      noIssues = false;
-    } else if ('userState' in params && typeof params.userState !== 'object') {
-      debugLog(`userState is not an object`);
       noIssues = false;
     } else {
       const userState = params.userState;
@@ -498,6 +502,11 @@ export class GaaMetering {
         );
         noIssues = false;
       }
+    }
+    // Check userState is an 'object'
+    if ('userState' in params && typeof params.userState !== 'object') {
+      debugLog(`userState is not an object`);
+      noIssues = false;
     }
 
     if ('paywallType' in params && !(params.paywallType in PaywallType)) {
