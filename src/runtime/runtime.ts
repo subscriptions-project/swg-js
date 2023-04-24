@@ -240,7 +240,7 @@ export class Runtime implements SubscriptionsInterface {
       this.doc_,
       pageConfig,
       /* integr */ {
-        configPromise: this.configuredRuntimePromise_,
+        configPromise: this.configuredRuntimePromise_.then(),
         useArticleEndpoint: this.config_.useArticleEndpoint || false,
       },
       this.config_
@@ -582,7 +582,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     integr:
       | {
           fetcher?: FetcherInterface;
-          configPromise?: Promise<ConfiguredRuntime | void>;
+          configPromise?: Promise<void>;
           enableGoogleAnalytics?: boolean;
           enableDefaultMeteringHandler?: boolean;
           useArticleEndpoint?: boolean;
@@ -595,9 +595,9 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     }
   ) {
     integr = integr || {};
-    integr.configPromise = integr.configPromise || Promise.resolve();
+    integr.configPromise ||= Promise.resolve();
 
-    this.eventManager_ = new ClientEventManager(integr.configPromise.then());
+    this.eventManager_ = new ClientEventManager(integr.configPromise);
 
     this.doc_ = resolveDoc(winOrDoc);
 
