@@ -102,27 +102,6 @@ describes.realWin('installBasicRuntime', (env) => {
     expect(getBasicRuntime()).to.equal(runtime1);
   });
 
-  // TODO(b/274686315): Delete this test after the TypeScript migration.
-  it('should implement BasicSubscriptions interface', async () => {
-    const promise = new Promise((resolve) => {
-      dep(resolve);
-    });
-    installBasicRuntime(win);
-
-    const basicSubscriptions = await promise;
-    const keys = [
-      'init',
-      'setOnEntitlementsResponse',
-      'setOnPaymentResponse',
-      'setOnLoginRequest',
-      'setupAndShowAutoPrompt',
-      'dismissSwgUI',
-    ];
-    for (const key of keys) {
-      expect(basicSubscriptions).to.have.property(key);
-    }
-  });
-
   it('handles recursive calls after installation', async () => {
     installBasicRuntime(win);
     let progress = '';

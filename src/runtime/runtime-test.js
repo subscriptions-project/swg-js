@@ -132,63 +132,6 @@ describes.realWin('installRuntime', (env) => {
     expect(getRuntime()).to.equal(runtime1);
   });
 
-  // TODO(b/274686315): Delete this test after the TypeScript migration.
-  it('implements Subscriptions interface', async () => {
-    const promise = new Promise((resolve) => {
-      dep(resolve);
-    });
-    installRuntime(win);
-
-    const subscriptions = await promise;
-    const keys = [
-      'init',
-      'configure',
-      'start',
-      'reset',
-      'clear',
-      'getEntitlements',
-      'setOnEntitlementsResponse',
-      'getOffers',
-      'showOffers',
-      'showUpdateOffers',
-      'showSubscribeOption',
-      'showAbbrvOffer',
-      'showContributionOptions',
-      'setOnNativeSubscribeRequest',
-      'setOnSubscribeResponse',
-      'subscribe',
-      'updateSubscription',
-      'setOnContributionResponse',
-      'setOnPaymentResponse',
-      'contribute',
-      'completeDeferredAccountCreation',
-      'setOnLoginRequest',
-      'triggerLoginRequest',
-      'showLoginPrompt',
-      'showLoginNotification',
-      'setOnLinkComplete',
-      'waitForSubscriptionLookup',
-      'linkAccount',
-      'setOnFlowStarted',
-      'setOnFlowCanceled',
-      'saveSubscription',
-      'linkSubscription',
-      'createButton',
-      'attachButton',
-      'attachSmartButton',
-      'getPropensityModule',
-      'getLogger',
-      'getEventManager',
-      'setShowcaseEntitlement',
-      'consumeShowcaseEntitlementJwt',
-      'showBestAudienceAction',
-      'setPublisherProvidedId',
-    ];
-    for (const key of keys) {
-      expect(subscriptions).to.have.property(key);
-    }
-  });
-
   it('handles recursive calls after installation', async () => {
     installRuntime(win);
 
