@@ -15,9 +15,10 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
-import {AutoPromptType, ClientTheme} from '../api/basic-subscriptions';
+import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
+import {ClientTheme} from '../api/subscriptions';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {MockDeps} from '../../test/mock-deps';
