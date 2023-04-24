@@ -1118,8 +1118,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       return Promise.resolve();
     }
 
-    const eventsToLog =
-      showcaseEventToAnalyticsEvents(entitlement.entitlement) || [];
+    const eventsToLog = showcaseEventToAnalyticsEvents(entitlement.entitlement);
     const params = new EventParams();
     params.setIsUserRegistered(entitlement.isUserRegistered);
     if (entitlement.subscriptionTimestamp) {
