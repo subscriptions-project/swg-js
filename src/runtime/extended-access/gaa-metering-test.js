@@ -292,7 +292,6 @@ describes.realWin('GaaMetering', () => {
           handleSwGEntitlement: () => {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
         })
       ).to.be.true;
     });
@@ -315,7 +314,6 @@ describes.realWin('GaaMetering', () => {
           handleSwGEntitlement: () => {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
         })
       ).to.be.true;
     });
@@ -617,6 +615,46 @@ describes.realWin('GaaMetering', () => {
       expect(self.console.log).to.have.been.calledWithExactly(
         '[Subscriptions]',
         'userState or publisherEntitlementPromise needs to be provided'
+      );
+    });
+
+    it('fails for missing userState in server-side paywall scenario when specified by paywallType', () => {
+      expect(
+        GaaMetering.validateParameters({
+          paywallType: 'SERVER_SIDE',
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          showPaywall: () => {},
+          handleLogin: () => {},
+          handleSwGEntitlement: () => {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState needs to be provided'
+      );
+    });
+
+    it('fails for missing userState in server-side paywall scenario when specified by showcaseEntitlement', () => {
+      expect(
+        GaaMetering.validateParameters({
+          showcaseEntitlement: 'test showcaseEntitlement',
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          showPaywall: () => {},
+          handleLogin: () => {},
+          handleSwGEntitlement: () => {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState needs to be provided'
       );
     });
 
@@ -1533,7 +1571,7 @@ describes.realWin('GaaMetering', () => {
       );
     });
 
-    it('should not check for entitlements on client-side for server-side paywall', () => {
+    it('should not check entitlements on client-side for server-side paywall', () => {
       removeJsonLdScripts();
 
       self.document.head.innerHTML = `
@@ -1568,7 +1606,6 @@ describes.realWin('GaaMetering', () => {
         handleSwGEntitlement: () => {},
         registerUserPromise: new Promise(() => {}),
         handleLoginPromise: new Promise(() => {}),
-        publisherEntitlementPromise: new Promise(() => {}),
       });
 
       expect(subscriptionsMock.getEntitlements).to.not.be.called;
@@ -1579,6 +1616,49 @@ describes.realWin('GaaMetering', () => {
       );
 
       expect(unlockArticle).to.not.be.called;
+    });
+
+    it('should render Google RegWall to anonymous user for server-side paywall', () => {
+      removeJsonLdScripts();
+
+      self.document.head.innerHTML = `
+      <script type="application/ld+json">
+        [${ARTICLE_LD_JSON_METADATA}]
+      </script>
+      `;
+
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      const unlockArticle = sandbox.fake(() => {});
+
+      GaaMetering.init({
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {
+          /* anonymous user*/
+        },
+        paywallType: 'SERVER_SIDE',
+        unlockArticle,
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+      });
+
+      expect(subscriptionsMock.getEntitlements).to.not.be.called;
+
+      expect(self.console.log).to.be.calledWith(
+        '[Subscriptions]',
+        'show Google Regwall'
+      );
     });
 
     it('has publisherEntitlements', async () => {
