@@ -25,15 +25,13 @@ async function e2e() {
     }
 
     const runner = nightwatch.CliRunner(argv);
-    await runner.setup().startWebDriver();
+    runner.setup();
 
     try {
       await runner.runTests();
     } catch (err) {
       console.error('An error occurred:', err);
     }
-
-    await runner.stopWebDriver();
   });
 }
 

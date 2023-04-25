@@ -15,7 +15,7 @@
  */
 
 /**
- * @fileoverview Switching to the newest window opened.
+ * @fileoverview Switching to the newest tab opened.
  */
 module.exports.command = function (windowName) {
   return this.windowHandles(function (result) {
