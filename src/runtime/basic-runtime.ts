@@ -197,7 +197,7 @@ export class BasicRuntime implements BasicSubscriptions {
     publisherProvidedId,
   }: {
     type: string | string[];
-    isAccessibleForFree: boolean;
+    isAccessibleForFree?: boolean;
     isPartOfType: string | string[];
     isPartOfProductId: string;
     autoPromptType?: AutoPromptType;
@@ -209,6 +209,7 @@ export class BasicRuntime implements BasicSubscriptions {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.publisherProvidedId_ = publisherProvidedId;
+    isAccessibleForFree ??= isOpenAccessProductId(isPartOfProductId);
     this.pageConfigWriter_
       .writeConfigWhenReady({
         type,
@@ -615,4 +616,11 @@ function createPublicBasicRuntime(
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
   };
+}
+
+/**
+ * Checks whether productId is 'openaccess'.
+ */
+function isOpenAccessProductId(productId: string): boolean {
+  return productId.endsWith(':openaccess');
 }
