@@ -292,7 +292,6 @@ describes.realWin('GaaMetering', () => {
           handleSwGEntitlement: () => {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
         })
       ).to.be.true;
     });
@@ -315,7 +314,6 @@ describes.realWin('GaaMetering', () => {
           handleSwGEntitlement: () => {},
           registerUserPromise: new Promise(() => {}),
           handleLoginPromise: new Promise(() => {}),
-          publisherEntitlementPromise: new Promise(() => {}),
         })
       ).to.be.true;
     });
@@ -617,6 +615,46 @@ describes.realWin('GaaMetering', () => {
       expect(self.console.log).to.have.been.calledWithExactly(
         '[Subscriptions]',
         'userState or publisherEntitlementPromise needs to be provided'
+      );
+    });
+
+    it('fails for missing userState in server-side paywall scenario when specified by paywallType', () => {
+      expect(
+        GaaMetering.validateParameters({
+          paywallType: 'SERVER_SIDE',
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          showPaywall: () => {},
+          handleLogin: () => {},
+          handleSwGEntitlement: () => {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState needs to be provided'
+      );
+    });
+
+    it('fails for missing userState in server-side paywall scenario when specified by showcaseEntitlement', () => {
+      expect(
+        GaaMetering.validateParameters({
+          showcaseEntitlement: 'test showcaseEntitlement',
+          googleApiClientId: GOOGLE_API_CLIENT_ID,
+          allowedReferrers: ['example.com', 'test.com', 'localhost'],
+          showPaywall: () => {},
+          handleLogin: () => {},
+          handleSwGEntitlement: () => {},
+          registerUserPromise: new Promise(() => {}),
+          handleLoginPromise: new Promise(() => {}),
+        })
+      ).to.be.false;
+
+      expect(self.console.log).to.have.been.calledWithExactly(
+        '[Subscriptions]',
+        'userState needs to be provided'
       );
     });
 
