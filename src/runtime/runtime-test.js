@@ -70,6 +70,7 @@ import {
   setExperimentsStringForTesting,
 } from './experiments';
 import {parseUrl} from '../utils/url';
+import {tick} from '../../test/tick';
 
 describes.realWin('installRuntime', (env) => {
   let win;
@@ -129,63 +130,6 @@ describes.realWin('installRuntime', (env) => {
     const runtime1 = getRuntime();
     installRuntime(win);
     expect(getRuntime()).to.equal(runtime1);
-  });
-
-  // TODO(b/274686315): Delete this test after the TypeScript migration.
-  it('implements Subscriptions interface', async () => {
-    const promise = new Promise((resolve) => {
-      dep(resolve);
-    });
-    installRuntime(win);
-
-    const subscriptions = await promise;
-    const keys = [
-      'init',
-      'configure',
-      'start',
-      'reset',
-      'clear',
-      'getEntitlements',
-      'setOnEntitlementsResponse',
-      'getOffers',
-      'showOffers',
-      'showUpdateOffers',
-      'showSubscribeOption',
-      'showAbbrvOffer',
-      'showContributionOptions',
-      'setOnNativeSubscribeRequest',
-      'setOnSubscribeResponse',
-      'subscribe',
-      'updateSubscription',
-      'setOnContributionResponse',
-      'setOnPaymentResponse',
-      'contribute',
-      'completeDeferredAccountCreation',
-      'setOnLoginRequest',
-      'triggerLoginRequest',
-      'showLoginPrompt',
-      'showLoginNotification',
-      'setOnLinkComplete',
-      'waitForSubscriptionLookup',
-      'linkAccount',
-      'setOnFlowStarted',
-      'setOnFlowCanceled',
-      'saveSubscription',
-      'linkSubscription',
-      'createButton',
-      'attachButton',
-      'attachSmartButton',
-      'getPropensityModule',
-      'getLogger',
-      'getEventManager',
-      'setShowcaseEntitlement',
-      'consumeShowcaseEntitlementJwt',
-      'showBestAudienceAction',
-      'setPublisherProvidedId',
-    ];
-    for (const key of keys) {
-      expect(subscriptions).to.have.property(key);
-    }
   });
 
   it('handles recursive calls after installation', async () => {
@@ -1094,6 +1038,8 @@ describes.realWin('ConfiguredRuntime', (env) => {
       resolveConfig();
 
       await configPromise;
+      await tick(1);
+
       expect(eventCount).to.equal(2);
     });
 
@@ -1605,6 +1551,23 @@ describes.realWin('ConfiguredRuntime', (env) => {
       expect(flow.options_.entitlements).to.equal(ents);
     });
 
+    it('should start "completeDeferredAccountCreation" with missing param', async () => {
+      const ents = null;
+      const resp = {};
+      let flow;
+      const startStub = sandbox
+        .stub(DeferredAccountFlow.prototype, 'start')
+        .callsFake(function () {
+          flow = this;
+          return Promise.resolve(resp);
+        });
+
+      const result = await runtime.completeDeferredAccountCreation();
+      expect(startStub).to.be.calledOnce.calledWithExactly();
+      expect(result).to.equal(resp);
+      expect(flow.options_.entitlements).to.equal(ents);
+    });
+
     it('should call "showOffers"', async () => {
       let offersFlow;
       sandbox.stub(OffersFlow.prototype, 'start').callsFake(function () {
@@ -1864,6 +1827,21 @@ subscribe() method'
         });
 
       await runtime.contribute('sku1');
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+      expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
+    });
+
+    it('should start PayStartFlow for contribution with object param', async () => {
+      let flowInstance;
+      const startStub = sandbox
+        .stub(PayStartFlow.prototype, 'start')
+        .callsFake(function () {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+
+      await runtime.contribute({skuId: 'sku1'});
       expect(startStub).to.be.calledOnce;
       expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
       expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);

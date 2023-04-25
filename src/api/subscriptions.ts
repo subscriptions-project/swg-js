@@ -235,7 +235,7 @@ export interface Subscriptions {
    * DOM element. The default theme is "light".
    */
   attachButton(
-    button: Element,
+    button: HTMLElement,
     optionsOrCallback: ButtonOptions | (() => void),
     callback?: () => void
   ): void;
@@ -245,7 +245,7 @@ export interface Subscriptions {
    * The default theme is "light".
    */
   attachSmartButton(
-    button: Element,
+    button: HTMLElement,
     optionsOrCallback: SmartButtonOptions | (() => void),
     callback?: () => void
   ): void;
@@ -273,7 +273,7 @@ export interface Subscriptions {
    */
   consumeShowcaseEntitlementJwt(
     showcaseEntitlementJwt: string,
-    onCloseDialog?: Function | null
+    onCloseDialog?: () => void | null
   ): Promise<void> | void;
 
   /**
@@ -474,6 +474,11 @@ export enum ReplaceSkuProrationMode {
 export enum ProductType {
   SUBSCRIPTION = 'SUBSCRIPTION',
   UI_CONTRIBUTION = 'UI_CONTRIBUTION',
+}
+
+export enum ClientTheme {
+  LIGHT = 'light',
+  DARK = 'dark',
 }
 
 export function defaultConfig(): Config {

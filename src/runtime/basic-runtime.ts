@@ -14,22 +14,43 @@
  * limitations under the License.
  */
 
+import {ActivityPortDef, ActivityPorts} from '../components/activities';
+import {AnalyticsService} from './analytics-service';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
+import {
+  AutoPromptType,
+  BasicSubscriptions,
+  ClientOptions,
+} from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
+import {Callbacks} from './callbacks';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
+import {Config} from '../api/subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {Constants} from '../utils/constants';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {Doc, resolveDoc} from '../model/doc';
+import {Entitlements} from '../api/entitlements';
+import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
+import {Fetcher, XhrFetcher} from './fetcher';
+import {JsError} from './jserror';
+import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
+import {PayClient} from './pay-client';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {Storage} from './storage';
+import {SubscribeResponse} from '../api/subscribe-response';
 import {Toast} from '../ui/toast';
-import {XhrFetcher} from './fetcher';
 import {acceptPortResultData} from '../utils/activity-utils';
+import {assert} from '../utils/log';
 import {feArgs, feOrigin, feUrl} from './services';
 import {isExperimentOn} from './experiments';
 import {msg} from '../utils/i18n';
-import {resolveDoc} from '../model/doc';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
@@ -37,26 +58,22 @@ const CHECK_ENTITLEMENTS_REQUEST_ID = 'CHECK_ENTITLEMENTS';
 
 /**
  * Reference to the runtime, for testing.
- * @private {!BasicRuntime}
  */
-let basicRuntimeInstance_;
+let basicRuntimeInstance: BasicRuntime;
 
 /**
  * Returns runtime for testing if available. Throws if the runtime is not
  * initialized yet.
- * @visibleForTesting
- * @return {!BasicRuntime}
  */
-export function getBasicRuntime() {
-  assert(basicRuntimeInstance_, 'not initialized yet');
-  return basicRuntimeInstance_;
+export function getBasicRuntime(): BasicRuntime {
+  assert(basicRuntimeInstance, 'not initialized yet');
+  return basicRuntimeInstance;
 }
 
 /**
  * Installs runtime for SwG Basic.
- * @param {!Window} win
  */
-export function installBasicRuntime(win) {
+export function installBasicRuntime(win: Window): void {
   // Only install the SwG Basic runtime once.
   if (win[BASIC_RUNTIME_PROP] && !Array.isArray(win[BASIC_RUNTIME_PROP])) {
     return;
@@ -66,14 +83,14 @@ export function installBasicRuntime(win) {
   const basicRuntime = new BasicRuntime(win);
 
   // Create the public version of the SwG Basic runtime.
-  /** @type {!../api/basic-subscriptions.BasicSubscriptions} */
   const publicBasicRuntime = createPublicBasicRuntime(basicRuntime);
 
   /**
    * Executes a callback when the runtime is ready.
-   * @param {function(!../api/basic-subscriptions.BasicSubscriptions)} callback
    */
-  async function callWhenRuntimeIsReady(callback) {
+  async function callWhenRuntimeIsReady(
+    callback: (runtime: BasicSubscriptions) => void
+  ): Promise<void> {
     if (!callback) {
       return;
     }
@@ -83,84 +100,57 @@ export function installBasicRuntime(win) {
   }
 
   // Queue up any callbacks the publication might have provided.
-  const waitingCallbacks = [].concat(win[BASIC_RUNTIME_PROP]);
+  const waitingCallbacks = ([] as ((api: BasicSubscriptions) => void)[]).concat(
+    win[BASIC_RUNTIME_PROP]
+  );
   for (const waitingCallback of waitingCallbacks) {
     callWhenRuntimeIsReady(waitingCallback);
   }
 
   // If any more callbacks are `push`ed to the global SwG Basic variables,
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
-  win[BASIC_RUNTIME_PROP] = {
+  (win[BASIC_RUNTIME_PROP] as {}) = {
     push: callWhenRuntimeIsReady,
   };
 
   // Set variable for testing.
-  basicRuntimeInstance_ = basicRuntime;
+  basicRuntimeInstance = basicRuntime;
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
 }
 
-/**
- * @implements {../api/basic-subscriptions.BasicSubscriptions}
- */
-export class BasicRuntime {
-  /**
-   * @param {!Window} win
-   */
-  constructor(win) {
-    /** @private @const {!Window} */
-    this.win_ = win;
+export class BasicRuntime implements BasicSubscriptions {
+  private clientOptions_?: ClientOptions;
+  private committed_ = false;
+  private configuredResolver_:
+    | ((
+        runtime: ConfiguredBasicRuntime | Promise<ConfiguredBasicRuntime>
+      ) => void)
+    | null = null;
+  private pageConfigWriter_: PageConfigWriter | null = null;
+  private pageConfigResolver_: PageConfigResolver | null = null;
+  private enableDefaultMeteringHandler_ = true;
+  private publisherProvidedId_?: string;
 
-    /** @private @const {!../model/doc.Doc} */
+  private readonly doc_: Doc;
+  private readonly ready_ = Promise.resolve();
+  private readonly config_: Config = {};
+  private readonly configuredPromise_: Promise<ConfiguredBasicRuntime>;
+
+  constructor(win: Window) {
     this.doc_ = resolveDoc(win);
 
-    /** @private @const {!Promise} */
-    this.ready_ = Promise.resolve();
-
-    /** @private @const {!../api/subscriptions.Config} */
-    this.config_ = {};
-
-    /** @private {../api/basic-subscriptions.ClientOptions|undefined} */
-    this.clientOptions_ = undefined;
-
-    /** @private {boolean} */
-    this.committed_ = false;
-
-    /** @private {?function((!ConfiguredBasicRuntime|!Promise))} */
-    this.configuredResolver_ = null;
-
-    /** @private @const {!Promise<!ConfiguredBasicRuntime>} */
     this.configuredPromise_ = new Promise((resolve) => {
       this.configuredResolver_ = resolve;
     });
-
-    /** @private {?PageConfigWriter} */
-    this.pageConfigWriter_ = null;
-
-    /** @private {?PageConfigResolver} */
-    this.pageConfigResolver_ = null;
-
-    /** @private {boolean} */
-    this.enableDefaultMeteringHandler_ = true;
-
-    /** @private {string|undefined} */
-    this.publisherProvidedId_ = undefined;
   }
 
-  /**
-   * @return {!Promise}
-   */
-  whenReady() {
+  whenReady(): Promise<void> {
     return this.ready_;
   }
 
-  /**
-   * @param {boolean} commit
-   * @return {!Promise<!ConfiguredBasicRuntime>}
-   * @private
-   */
-  configured_(commit) {
+  private configured_(commit: boolean): Promise<ConfiguredBasicRuntime> {
     this.config_.publisherProvidedId = this.publisherProvidedId_;
     if (!this.committed_ && commit && !this.pageConfigWriter_) {
       this.committed_ = true;
@@ -169,12 +159,12 @@ export class BasicRuntime {
       this.pageConfigResolver_.resolveConfig().then(
         (pageConfig) => {
           this.pageConfigResolver_ = null;
-          this.configuredResolver_(
+          this.configuredResolver_!(
             new ConfiguredBasicRuntime(
               this.doc_,
               pageConfig,
               /* integr */ {
-                configPromise: this.configuredPromise_,
+                configPromise: this.configuredPromise_.then(),
                 enableDefaultMeteringHandler:
                   this.enableDefaultMeteringHandler_,
               },
@@ -184,8 +174,8 @@ export class BasicRuntime {
           );
           this.configuredResolver_ = null;
         },
-        (reason) => {
-          this.configuredResolver_(Promise.reject(reason));
+        (reason: Error) => {
+          this.configuredResolver_!(Promise.reject(reason));
           this.configuredResolver_ = null;
         }
       );
@@ -195,7 +185,6 @@ export class BasicRuntime {
     return this.configuredPromise_;
   }
 
-  /** @override */
   init({
     type,
     isAccessibleForFree,
@@ -206,7 +195,17 @@ export class BasicRuntime {
     alwaysShow = false,
     disableDefaultMeteringHandler = false,
     publisherProvidedId,
-  }) {
+  }: {
+    type: string | string[];
+    isAccessibleForFree: boolean;
+    isPartOfType: string | string[];
+    isPartOfProductId: string;
+    autoPromptType?: AutoPromptType;
+    clientOptions?: ClientOptions;
+    alwaysShow?: boolean;
+    disableDefaultMeteringHandler?: boolean;
+    publisherProvidedId?: string;
+  }): void {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.publisherProvidedId_ = publisherProvidedId;
@@ -234,32 +233,35 @@ export class BasicRuntime {
     this.processEntitlements();
   }
 
-  /** @override */
-  async setOnEntitlementsResponse(callback) {
+  async setOnEntitlementsResponse(
+    callback: (entitlementsPromise: Promise<Entitlements>) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setOnEntitlementsResponse(callback);
   }
 
-  /** @override */
-  async setOnPaymentResponse(callback) {
+  async setOnPaymentResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setOnPaymentResponse(callback);
   }
 
-  /** @override */
-  async setOnLoginRequest() {
+  async setOnLoginRequest(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setOnLoginRequest();
   }
 
-  /** @override */
-  async setupAndShowAutoPrompt(options) {
+  async setupAndShowAutoPrompt(options: {
+    autoPromptType?: AutoPromptType;
+    alwaysShow?: boolean;
+    isAccessibleForFree?: boolean;
+  }): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setupAndShowAutoPrompt(options);
   }
 
-  /** @override */
-  async dismissSwgUI() {
+  async dismissSwgUI(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.dismissSwgUI();
   }
@@ -268,51 +270,52 @@ export class BasicRuntime {
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
-  async setupButtons() {
+  async setupButtons(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setupButtons();
   }
 
   /** Process result from checkentitlements view */
-  async processEntitlements() {
+  async processEntitlements(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.processEntitlements();
   }
 }
 
-/**
- * @implements  {../api/basic-subscriptions.BasicSubscriptions}
- * @implements {./deps.Deps}
- */
-export class ConfiguredBasicRuntime {
-  /**
-   * @param {!Window|!Document|!../model/doc.Doc} winOrDoc
-   * @param {!../model/page-config.PageConfig} pageConfig
-   * @param {{
-   *     fetcher: (!./fetcher.Fetcher|undefined),
-   *     configPromise: (!Promise|undefined),
-   *     enableDefaultMeteringHandler: (boolean|undefined),
-   *   }=} integr
-   * @param {!../api/subscriptions.Config=} config
-   * @param {!../api/basic-subscriptions.ClientOptions=} clientOptions
-   */
-  constructor(winOrDoc, pageConfig, integr, config, clientOptions) {
-    /** @private @const {!../model/doc.Doc} */
+export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
+  private audienceActivityEventListener_?: AudienceActivityEventListener;
+
+  private readonly doc_: Doc;
+  private readonly win_: Window;
+  private readonly fetcher_: Fetcher;
+  private readonly configuredClassicRuntime_: ConfiguredRuntime;
+  private readonly autoPromptManager_: AutoPromptManager;
+  private readonly buttonApi_: ButtonApi;
+
+  constructor(
+    winOrDoc: Window | Document | Doc,
+    pageConfig: PageConfig,
+    integr: {
+      fetcher?: Fetcher;
+      configPromise?: Promise<void>;
+      enableDefaultMeteringHandler?: boolean;
+      enableGoogleAnalytics?: boolean;
+      useArticleEndpoint?: boolean;
+    } = {},
+    config?: Config,
+    clientOptions?: ClientOptions
+  ) {
     this.doc_ = resolveDoc(winOrDoc);
 
-    /** @private @const {!Window} */
     this.win_ = this.doc_.getWin();
 
-    integr = integr || {};
-    integr.configPromise = integr.configPromise || Promise.resolve();
+    integr.configPromise ||= Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
     integr.enableGoogleAnalytics = true;
     integr.useArticleEndpoint = true;
 
-    /** @private @const {!./fetcher.Fetcher} */
     this.fetcher_ = integr.fetcher;
 
-    /** @private @const {!ConfiguredRuntime} */
     this.configuredClassicRuntime_ = new ConfiguredRuntime(
       winOrDoc,
       pageConfig,
@@ -342,10 +345,8 @@ export class ConfiguredBasicRuntime {
 
     // Fetch the client config.
     this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig(
-      integr.useArticleEndpoint
-        ? // Wait on the entitlements to resolve before accessing the clientConfig
-          this.configuredClassicRuntime_.getEntitlements()
-        : Promise.resolve()
+      // Wait on the entitlements to resolve before accessing the clientConfig
+      this.configuredClassicRuntime_.getEntitlements().then()
     );
 
     // Start listening to Audience Activity events.
@@ -355,7 +356,6 @@ export class ConfiguredBasicRuntime {
         ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY
       )
     ) {
-      /** @private @const {!AudienceActivityEventListener} */
       this.audienceActivityEventListener_ = new AudienceActivityEventListener(
         this,
         this.fetcher_
@@ -363,13 +363,11 @@ export class ConfiguredBasicRuntime {
       this.audienceActivityEventListener_.start();
     }
 
-    /** @private @const {!AutoPromptManager} */
     this.autoPromptManager_ = new AutoPromptManager(
       this,
       this.configuredClassicRuntime_
     );
 
-    /** @private @const {!ButtonApi} */
     this.buttonApi_ = new ButtonApi(
       this.doc_,
       Promise.resolve(this.configuredClassicRuntime_)
@@ -382,93 +380,79 @@ export class ConfiguredBasicRuntime {
     return this.configuredClassicRuntime_;
   }
 
-  /** @override */
-  doc() {
+  doc(): Doc {
     return this.doc_;
   }
 
-  /** @override */
-  win() {
+  win(): Window {
     return this.win_;
   }
 
-  /** @override */
-  config() {
+  config(): Config {
     return this.configuredClassicRuntime_.config();
   }
 
-  /** @override */
-  pageConfig() {
+  pageConfig(): PageConfig {
     return this.configuredClassicRuntime_.pageConfig();
   }
 
-  /** @override */
-  activities() {
+  activities(): ActivityPorts {
     return this.configuredClassicRuntime_.activities();
   }
 
-  /** @override */
-  payClient() {
+  payClient(): PayClient {
     return this.configuredClassicRuntime_.payClient();
   }
 
-  /** @override */
-  dialogManager() {
+  dialogManager(): DialogManager {
     return this.configuredClassicRuntime_.dialogManager();
   }
 
-  /** @override */
-  entitlementsManager() {
+  entitlementsManager(): EntitlementsManager {
     return this.configuredClassicRuntime_.entitlementsManager();
   }
 
-  /** @override */
-  callbacks() {
+  callbacks(): Callbacks {
     return this.configuredClassicRuntime_.callbacks();
   }
 
-  /** @override */
-  storage() {
+  storage(): Storage {
     return this.configuredClassicRuntime_.storage();
   }
 
-  /** @override */
-  analytics() {
+  analytics(): AnalyticsService {
     return this.configuredClassicRuntime_.analytics();
   }
 
-  /** @override */
-  jserror() {
+  jserror(): JsError {
     return this.configuredClassicRuntime_.jserror();
   }
 
-  /** @override */
-  eventManager() {
+  eventManager(): ClientEventManager {
     return this.configuredClassicRuntime_.eventManager();
   }
 
-  /** @override */
-  clientConfigManager() {
+  clientConfigManager(): ClientConfigManager {
     return this.configuredClassicRuntime_.clientConfigManager();
   }
 
-  /** @override */
-  init() {
+  init(): void {
     // Implemented by the 'BasicRuntime' class.
   }
 
-  /** @override */
-  setOnEntitlementsResponse(callback) {
+  setOnEntitlementsResponse(
+    callback: (entitlementsPromise: Promise<Entitlements>) => void
+  ): void {
     this.configuredClassicRuntime_.setOnEntitlementsResponse(callback);
   }
 
-  /** @override */
-  setOnPaymentResponse(callback) {
+  setOnPaymentResponse(
+    callback: (subscribeResponsePromise: Promise<SubscribeResponse>) => void
+  ): void {
     this.configuredClassicRuntime_.setOnPaymentResponse(callback);
   }
 
-  /** @override */
-  setOnLoginRequest() {
+  setOnLoginRequest(): void {
     this.configuredClassicRuntime_.setOnLoginRequest(() => {
       const publicationId = this.pageConfig().getPublicationId();
       const args = feArgs({
@@ -488,7 +472,7 @@ export class ConfiguredBasicRuntime {
   }
 
   /** Process result from checkentitlements view */
-  processEntitlements() {
+  processEntitlements(): void {
     this.activities().onResult(
       CHECK_ENTITLEMENTS_REQUEST_ID,
       this.entitlementsResponseHandler.bind(this)
@@ -497,15 +481,14 @@ export class ConfiguredBasicRuntime {
 
   /**
    * Handler function to process EntitlementsResponse.
-   * @param {!../components/activities.ActivityPortDef} port
    */
-  async entitlementsResponseHandler(port) {
-    const response = await acceptPortResultData(
+  async entitlementsResponseHandler(port: ActivityPortDef): Promise<void> {
+    const response = (await acceptPortResultData(
       port,
       feOrigin(),
       /* requireOriginVerified */ true,
       /* requireSecureChannel */ false
-    );
+    )) as {jwt?: string; usertoken?: string};
 
     const jwt = response['jwt'];
     if (jwt) {
@@ -555,7 +538,7 @@ export class ConfiguredBasicRuntime {
       const customText = msg(
         SWG_I18N_STRINGS['NO_MEMBERSHIP_FOUND_LANG_MAP'],
         language
-      );
+      )!;
       new Toast(
         this,
         feUrl('/toastiframe', {
@@ -566,14 +549,16 @@ export class ConfiguredBasicRuntime {
     }
   }
 
-  /** @override */
-  setupAndShowAutoPrompt(options) {
+  setupAndShowAutoPrompt(options: {
+    autoPromptType?: AutoPromptType;
+    alwaysShow?: boolean;
+    isAccessibleForFree?: boolean;
+  }): Promise<void> {
     return this.autoPromptManager_.showAutoPrompt(options);
   }
 
-  /** @override */
   /** Dismiss displayed SwG UI */
-  dismissSwgUI() {
+  dismissSwgUI(): void {
     this.dialogManager().completeAll();
   }
 
@@ -581,7 +566,7 @@ export class ConfiguredBasicRuntime {
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    */
-  async setupButtons() {
+  async setupButtons(): Promise<void> {
     const enable = await this.clientConfigManager().shouldEnableButton();
     this.buttonApi_.attachButtonsWithAttribute(
       BUTTON_ATTRIUBUTE,
@@ -589,7 +574,7 @@ export class ConfiguredBasicRuntime {
       {
         theme: this.clientConfigManager().getTheme(),
         lang: this.clientConfigManager().getLanguage(),
-        enable,
+        enable: !!enable,
       },
       {
         [ButtonAttributeValues.SUBSCRIPTION]: () => {
@@ -608,21 +593,19 @@ export class ConfiguredBasicRuntime {
 
   /**
    * Sets the callback when the offers flow is requested.
-   * @param {function()} callback
-   * @private
    */
-  setOnOffersFlowRequest_(callback) {
+  private setOnOffersFlowRequest_(callback: () => void): void {
     this.callbacks().setOnOffersFlowRequest(callback);
   }
 }
 
 /**
  * Creates and returns the public facing BasicSubscription object.
- * @param {!BasicRuntime} basicRuntime
- * @return {!../api/basic-subscriptions.BasicSubscriptions}
  */
-function createPublicBasicRuntime(basicRuntime) {
-  return /** @type {!../api/basic-subscriptions.BasicSubscriptions} */ ({
+function createPublicBasicRuntime(
+  basicRuntime: BasicRuntime
+): BasicSubscriptions {
+  return {
     init: basicRuntime.init.bind(basicRuntime),
     setOnEntitlementsResponse:
       basicRuntime.setOnEntitlementsResponse.bind(basicRuntime),
@@ -631,5 +614,5 @@ function createPublicBasicRuntime(basicRuntime) {
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
-  });
+  };
 }

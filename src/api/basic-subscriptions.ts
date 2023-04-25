@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ClientTheme} from './subscriptions';
 import {Entitlements} from './entitlements';
 import {SubscribeResponse} from './subscribe-response';
 
@@ -117,9 +118,4 @@ export interface ClientOptions {
 
 export interface LoginRequest {
   linkRequested: boolean;
-}
-
-export enum ClientTheme {
-  LIGHT = 'light',
-  DARK = 'dark',
 }
