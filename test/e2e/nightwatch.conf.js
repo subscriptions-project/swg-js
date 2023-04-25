@@ -39,10 +39,10 @@ module.exports = {
       },
 
       webdriver: {
-        start_process: true,
+        keep_alive: true,
         port: 9515,
         server_path: require('chromedriver').path,
-        keep_alive: true,
+        start_process: true,
         timeout_options: {
           timeout: 60000,
           retry_attempts: 3,
