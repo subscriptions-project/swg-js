@@ -252,6 +252,8 @@ describes.realWin('BasicRuntime', (env) => {
 
     it('should set publisherProvidedId after initialization', async () => {
       basicRuntime.init({
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
         publisherProvidedId: 'publisherProvidedId',
       });
 
