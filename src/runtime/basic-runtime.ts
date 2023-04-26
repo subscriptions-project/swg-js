@@ -346,7 +346,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     // Fetch the client config.
     this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig(
       // Wait on the entitlements to resolve before accessing the clientConfig
-      this.configuredClassicRuntime_.getEntitlements().then()
+      this.configuredClassicRuntime_.getEntitlements()
     );
 
     // Start listening to Audience Activity events.
