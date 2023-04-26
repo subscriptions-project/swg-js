@@ -846,7 +846,17 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     if (!this.pageConfig_.getProductId() || !this.pageConfig_.isLocked()) {
       return Promise.resolve();
     }
-    this.getEntitlements();
+    if (
+      isExperimentOn(this.win(), ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC)
+    ) {
+      // Populate the client config. Wait for getEntitlements() since the config is
+      // available in the /article response.
+      this.clientConfigManager().fetchClientConfig(
+        /* readyPromise= */ this.getEntitlements()
+      );
+    } else {
+      this.getEntitlements();
+    }
   }
 
   async getEntitlements(
