@@ -25,18 +25,16 @@ module.exports = {
       launch_url: 'http://localhost:8000/examples/sample-pub/1',
       custom_commands_path: 'test/e2e/commands',
       skip_testcases_on_fail: false,
-    },
-
-    chrome: {
-      globals: {
-        webdriverProcess: 'chromedriver',
-      },
 
       desiredCapabilities: {
         browserName: 'chrome',
         chromeOptions: {
-          args: ['--headless'],
-          w3c: false,
+          args: [
+            'disable-dev-shm-usage',
+            'disable-gpu',
+            'headless',
+            'no-sandbox',
+          ],
         },
       },
 

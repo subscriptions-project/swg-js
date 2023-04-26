@@ -20,20 +20,15 @@ async function e2e() {
   const nightwatch = require('nightwatch');
   nightwatch.cli(async (argv) => {
     argv.config = 'test/e2e/nightwatch.conf.js';
-    if (!argv.env || argv.env === 'default') {
-      argv.env = 'chrome';
-    }
 
     const runner = nightwatch.CliRunner(argv);
-    await runner.setup().startWebDriver();
+    runner.setup();
 
     try {
       await runner.runTests();
     } catch (err) {
       console.error('An error occurred:', err);
     }
-
-    await runner.stopWebDriver();
   });
 }
 

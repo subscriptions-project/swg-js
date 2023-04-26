@@ -23,6 +23,6 @@ const constants = require('../constants');
 
 module.exports.command = function () {
   return this.pause(2000)
-    .switchToWindow('gpay window')
+    .switchToTab('gpay window')
     .assert.urlContains(constants.google.domain);
 };
