@@ -185,6 +185,19 @@ export class BasicRuntime implements BasicSubscriptions {
     return this.configuredPromise_;
   }
 
+  private writePageConfig_(markupValues: {
+    type: string | Array<string>;
+    isAccessibleForFree: boolean;
+    isPartOfType: string | Array<string>;
+    isPartOfProductId: string;
+  }): void {
+    this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
+    this.pageConfigWriter_.writeConfigWhenReady(markupValues).then(() => {
+      this.pageConfigWriter_ = null;
+      this.configured_(true);
+    });
+  }
+
   init({
     type,
     isAccessibleForFree,
@@ -207,25 +220,20 @@ export class BasicRuntime implements BasicSubscriptions {
     publisherProvidedId?: string;
   }): void {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
-    this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.publisherProvidedId_ = publisherProvidedId;
+    const isOpenAccess = isOpenAccessProductId(isPartOfProductId);
     let isClosable = isAccessibleForFree;
-    // Only write isClosable if product is openaccess, else leave undefined.
-    if (isOpenAccessProductId(isPartOfProductId)) {
+    // Only overwrite isClosable if product is openaccess, else leave undefined.
+    if (isOpenAccess) {
       isClosable ??= true;
     }
-    isAccessibleForFree ??= isOpenAccessProductId(isPartOfProductId);
-    this.pageConfigWriter_
-      .writeConfigWhenReady({
-        type,
-        isAccessibleForFree,
-        isPartOfType,
-        isPartOfProductId,
-      })
-      .then(() => {
-        this.pageConfigWriter_ = null;
-        this.configured_(true);
-      });
+    isAccessibleForFree ??= isOpenAccess;
+    this.writePageConfig_({
+      type,
+      isAccessibleForFree,
+      isPartOfType,
+      isPartOfProductId,
+    });
 
     this.clientOptions_ = Object.assign({}, clientOptions, {
       forceLangInIframes: true,
