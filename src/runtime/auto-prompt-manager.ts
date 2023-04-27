@@ -65,7 +65,7 @@ export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
   displayLargePromptFn?: () => void;
-  isAccessibleForFree?: boolean;
+  isClosable?: boolean;
 }
 
 /**
@@ -181,11 +181,10 @@ export class AutoPromptManager {
       article?.audienceActions?.actions
     )!;
 
-    // Override isClosable if isAccessibleForFree is set in the page config.
+    // Override isClosable if isClosable is set in the page config.
     // Otherwise, for publications with a subscription revenue model the
     // prompt is blocking, while all others can be dismissed.
-    const isClosable =
-      params.isAccessibleForFree ?? !this.isSubscription_(params);
+    const isClosable = params.isClosable ?? !this.isSubscription_(params);
 
     if (this.isSubscription_(params)) {
       params.displayLargePromptFn = () => {

@@ -1279,13 +1279,13 @@ describes.realWin('AutoPromptManager', (env) => {
       );
     });
 
-    it('should override isClosable if page is locked and isAccessibleForFree is defined', async () => {
+    it('should override isClosable if page is locked and isClosable is defined', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         alwaysShow: false,
         displayLargePromptFn: alternatePromptSpy,
-        isAccessibleForFree: true,
+        isClosable: true,
       });
       await tick(7);
 

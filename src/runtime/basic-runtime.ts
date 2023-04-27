@@ -209,6 +209,11 @@ export class BasicRuntime implements BasicSubscriptions {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.publisherProvidedId_ = publisherProvidedId;
+    let isClosable = isAccessibleForFree;
+    // Only write isClosable if product is openaccess, else leave undefined.
+    if (isOpenAccessProductId(isPartOfProductId)) {
+      isClosable ??= true;
+    }
     isAccessibleForFree ??= isOpenAccessProductId(isPartOfProductId);
     this.pageConfigWriter_
       .writeConfigWhenReady({
@@ -228,7 +233,7 @@ export class BasicRuntime implements BasicSubscriptions {
     this.setupAndShowAutoPrompt({
       autoPromptType,
       alwaysShow,
-      isAccessibleForFree,
+      isClosable,
     });
     this.setOnLoginRequest();
     this.processEntitlements();
@@ -256,7 +261,7 @@ export class BasicRuntime implements BasicSubscriptions {
   async setupAndShowAutoPrompt(options: {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
-    isAccessibleForFree?: boolean;
+    isClosable?: boolean;
   }): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setupAndShowAutoPrompt(options);
@@ -553,7 +558,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   setupAndShowAutoPrompt(options: {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
-    isAccessibleForFree?: boolean;
+    isClosable?: boolean;
   }): Promise<void> {
     return this.autoPromptManager_.showAutoPrompt(options);
   }
