@@ -269,6 +269,7 @@ describe('serializeProtoMessageForUrl', () => {
       ReaderSurfaceType.READER_SURFACE_WORDPRESS,
       ['Timestamp', 11111, 0],
       ['Timestamp', 22222, 0],
+      ['Duration', 100, 0],
     ];
     const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
     const eventParamsArray = [
@@ -305,6 +306,7 @@ describe('serializeProtoMessageForUrl', () => {
     deserializedAnalyticsRequestArray[1][12].unshift('Timestamp');
     deserializedAnalyticsRequestArray[1][15].unshift('Timestamp');
     deserializedAnalyticsRequestArray[1][16].unshift('Timestamp');
+    deserializedAnalyticsRequestArray[1][17].unshift('Duration');
     deserializedAnalyticsRequestArray[3].unshift('AnalyticsEventMeta');
     deserializedAnalyticsRequestArray[4].unshift('EventParams');
     deserializedAnalyticsRequestArray[4][8].unshift('Timestamp');
