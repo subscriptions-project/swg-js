@@ -297,7 +297,7 @@ describes.realWin('BasicRuntime', (env) => {
       },
     ].forEach(
       ({isAccessibleForFree, isPartOfProductId, isAccessibleFromProductId}) => {
-        it(`When isAccessibleForFree=${isAccessibleForFree}, isPartOfProductId=${isPartOfProductId}, expect writePageConfig to be called with isAccessibleForFree=${isAccessibleFromProductId}`, async () => {
+        it(`writes page config with isAccessibleForFree=${isAccessibleFromProductId} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
           const writePageConfigStub = sandbox.stub(
             basicRuntime,
             'writePageConfig_'
@@ -352,7 +352,7 @@ describes.realWin('BasicRuntime', (env) => {
         isClosable: undefined,
       },
     ].forEach(({isAccessibleForFree, isPartOfProductId, isClosable}) => {
-      it(`When isAccessibleForFree=${isAccessibleForFree}, isPartOfProductId=${isPartOfProductId}, expect setupAndShowAutoPrompt to be called with isClosable=${isClosable}`, async () => {
+      it(`it shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}, expect setupAndShowAutoPrompt to be called `, async () => {
         const setupAndShowAutoPromptStub = sandbox.stub(
           basicRuntime,
           'setupAndShowAutoPrompt'
