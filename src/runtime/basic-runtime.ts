@@ -133,12 +133,15 @@ export class BasicRuntime implements BasicSubscriptions {
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
 
+  private readonly creationTimestamp_ : number;
   private readonly doc_: Doc;
   private readonly ready_ = Promise.resolve();
   private readonly config_: Config = {};
   private readonly configuredPromise_: Promise<ConfiguredBasicRuntime>;
 
   constructor(win: Window) {
+    this.creationTimestamp_ = Date.now();
+
     this.doc_ = resolveDoc(win);
 
     this.configuredPromise_ = new Promise((resolve) => {
@@ -160,7 +163,7 @@ export class BasicRuntime implements BasicSubscriptions {
         (pageConfig) => {
           this.pageConfigResolver_ = null;
           this.configuredResolver_!(
-            new ConfiguredBasicRuntime(
+              new ConfiguredBasicRuntime(
               this.doc_,
               pageConfig,
               /* integr */ {
@@ -169,7 +172,8 @@ export class BasicRuntime implements BasicSubscriptions {
                   this.enableDefaultMeteringHandler_,
               },
               this.config_,
-              this.clientOptions_
+              this.clientOptions_,
+              this.creationTimestamp_
             )
           );
           this.configuredResolver_ = null;
@@ -285,6 +289,7 @@ export class BasicRuntime implements BasicSubscriptions {
 export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private audienceActivityEventListener_?: AudienceActivityEventListener;
 
+  private readonly creationTimestamp_ : number;
   private readonly doc_: Doc;
   private readonly win_: Window;
   private readonly fetcher_: Fetcher;
@@ -303,8 +308,10 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       useArticleEndpoint?: boolean;
     } = {},
     config?: Config,
-    clientOptions?: ClientOptions
+    clientOptions?: ClientOptions,
+    creationTimestamp?: number
   ) {
+    this.creationTimestamp_ = creationTimestamp || 0;
     this.doc_ = resolveDoc(winOrDoc);
 
     this.win_ = this.doc_.getWin();
@@ -321,7 +328,8 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       pageConfig,
       integr,
       config,
-      clientOptions
+      clientOptions,
+      creationTimestamp
     );
 
     // Do not show toast in swgz.
@@ -378,6 +386,10 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   /** Getter for the ConfiguredRuntime, exposed for testing. */
   configuredClassicRuntime() {
     return this.configuredClassicRuntime_;
+  }
+
+  creationTimestamp() : number {
+    return this.creationTimestamp_;
   }
 
   doc(): Doc {

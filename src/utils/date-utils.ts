@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-import {Timestamp} from '../proto/api_messages';
+import {Timestamp, Duration} from '../proto/api_messages';
 
 export function toTimestamp(millis: number): Timestamp {
   return new Timestamp(
+    [Math.floor(millis / 1000), (millis % 1000) * 1000000],
+    false
+  );
+}
+
+export function toDuration(millis: number): Duration {
+  return new Duration(
     [Math.floor(millis / 1000), (millis % 1000) * 1000000],
     false
   );
