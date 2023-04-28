@@ -27,6 +27,11 @@ export enum ExperimentFlags {
   DISABLE_DESKTOP_MINIPROMPT = 'disable-desktop-miniprompt',
 
   /**
+   * Experiment flag to enable populating the client config in the Classic runtime.
+   */
+  POPULATE_CLIENT_CONFIG_CLASSIC = 'populate-client-config-classic',
+
+  /**
    * The triggering of a survey prompt takes priority over a contribution
    * prompt.
    */

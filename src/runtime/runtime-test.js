@@ -1104,6 +1104,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
     let offersApiMock;
     let redirectErrorHandler;
     let eventManagerMock;
+    let clientConfigManagerMock;
 
     beforeEach(() => {
       activityResultCallbacks = {};
@@ -1127,6 +1128,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
       jserrorMock = sandbox.mock(runtime.jserror());
       offersApiMock = sandbox.mock(runtime.offersApi_);
       eventManagerMock = sandbox.mock(runtime.eventManager());
+      clientConfigManagerMock = sandbox.mock(runtime.clientConfigManager());
     });
 
     afterEach(() => {
@@ -1136,6 +1138,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
       entitlementsManagerMock.verify();
       offersApiMock.verify();
       eventManagerMock.verify();
+      clientConfigManagerMock.verify();
       setExperimentsStringForTesting('');
     });
 
@@ -1410,39 +1413,95 @@ describes.realWin('ConfiguredRuntime', (env) => {
       runtime.closeDialog();
     });
 
-    it('should not start entitlements flow without product', async () => {
-      sandbox.stub(config, 'getProductId').callsFake(() => null);
-      entitlementsManagerMock.expects('getEntitlements').never();
-      const triggerStub = sandbox.stub(
-        runtime.callbacks(),
-        'triggerEntitlementsResponse'
-      );
+    describe('start', () => {
+      it('does not start entitlements flow without product', async () => {
+        sandbox.stub(config, 'getProductId').callsFake(() => null);
+        entitlementsManagerMock.expects('getEntitlements').never();
+        const triggerStub = sandbox.stub(
+          runtime.callbacks(),
+          'triggerEntitlementsResponse'
+        );
 
-      await runtime.start();
-      expect(triggerStub).to.not.be.called;
-    });
+        await runtime.start();
+        expect(triggerStub).to.not.be.called;
+      });
 
-    it('should not start entitlements flow for unlocked', async () => {
-      sandbox.stub(config, 'isLocked').callsFake(() => false);
-      entitlementsManagerMock.expects('getEntitlements').never();
-      const triggerStub = sandbox.stub(
-        runtime.callbacks(),
-        'triggerEntitlementsResponse'
-      );
+      it('does not start entitlements flow for unlocked', async () => {
+        sandbox.stub(config, 'isLocked').callsFake(() => false);
+        entitlementsManagerMock.expects('getEntitlements').never();
+        const triggerStub = sandbox.stub(
+          runtime.callbacks(),
+          'triggerEntitlementsResponse'
+        );
 
-      await runtime.start();
-      expect(triggerStub).to.not.be.called;
-    });
+        await runtime.start();
+        expect(triggerStub).to.not.be.called;
+      });
 
-    it('(optionally) sends publisher provided ID', async () => {
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .withExactArgs({publisherProvidedId: 'publisherProvidedId'})
-        .resolves({clone: () => null})
-        .once();
+      it('(optionally) sends publisher provided ID', async () => {
+        entitlementsManagerMock
+          .expects('getEntitlements')
+          .withExactArgs({publisherProvidedId: 'publisherProvidedId'})
+          .resolves({clone: () => null})
+          .once();
 
-      await runtime.setPublisherProvidedId('publisherProvidedId');
-      await runtime.getEntitlements({publisherProvidedId: true});
+        await runtime.setPublisherProvidedId('publisherProvidedId');
+        await runtime.getEntitlements({publisherProvidedId: true});
+      });
+
+      it('does not populate client config', async () => {
+        const entitlements = new Entitlements(
+          'service',
+          'raw',
+          [],
+          'product1',
+          () => {}
+        );
+
+        entitlementsManagerMock
+          .expects('getEntitlements')
+          .withExactArgs(undefined)
+          .resolves(entitlements)
+          .once();
+
+        clientConfigManagerMock.expects('fetchClientConfig').never();
+
+        await runtime.start();
+      });
+
+      describe('with POPULATE_CLIENT_CONFIG_CLASSIC flag enabled', () => {
+        it('starts entitlements flow and fetches client config', async () => {
+          setExperiment(
+            win,
+            ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC,
+            true
+          );
+
+          const entitlements = new Entitlements(
+            'service',
+            'raw',
+            [],
+            'product1',
+            () => {}
+          );
+
+          entitlementsManagerMock
+            .expects('getEntitlements')
+            .withExactArgs(undefined)
+            .resolves(entitlements)
+            .once();
+
+          clientConfigManagerMock
+            .expects('fetchClientConfig')
+            .callsFake(async (readyPromise) => {
+              const promiseValue = await readyPromise;
+              expect(promiseValue).to.equal(entitlements);
+            })
+            .once();
+
+          await runtime.start();
+        });
+      });
     });
 
     describe('Entitlements Success', () => {
@@ -1465,14 +1524,14 @@ describes.realWin('ConfiguredRuntime', (env) => {
         await runtime.start();
       });
 
-      it('work for 1 entitlement', async () => {
+      it('works for 1 entitlement', async () => {
         entitlements = [
           new Entitlement('google', ['product1'], '{"productId":"token1"}'),
         ];
         analyticsMock.expects('setSku').withExactArgs('token1').once();
       });
 
-      it('work for multiple entitlement', async () => {
+      it('works for multiple entitlement', async () => {
         entitlements = [
           new Entitlement('google', ['product1'], '{"productId":"token1"}'),
           new Entitlement('google', ['product2'], '{"productId":"token2"}'),
@@ -1484,12 +1543,12 @@ describes.realWin('ConfiguredRuntime', (env) => {
           .once();
       });
 
-      it('work for no entitlements', async () => {
+      it('works for no entitlements', async () => {
         entitlements = [];
         analyticsMock.expects('setSku').never();
       });
 
-      it('kind of work for non-JSON entitlement', async () => {
+      it('kind of works for non-JSON entitlement', async () => {
         entitlements = [new Entitlement('', ['product1'], 'token1')];
         analyticsMock
           .expects('setSku')
