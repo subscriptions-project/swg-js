@@ -352,7 +352,7 @@ describes.realWin('BasicRuntime', (env) => {
         isClosable: undefined,
       },
     ].forEach(({isAccessibleForFree, isPartOfProductId, isClosable}) => {
-      it(`it shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}, expect setupAndShowAutoPrompt to be called `, async () => {
+      it(`it shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
         const setupAndShowAutoPromptStub = sandbox.stub(
           basicRuntime,
           'setupAndShowAutoPrompt'
