@@ -29,7 +29,7 @@ import {PageConfig} from '../model/page-config';
 import {feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
-import {toTimestamp} from '../utils/date-utils';
+import {toDuration, toTimestamp} from '../utils/date-utils';
 
 const URL = 'www.news.com';
 
@@ -86,6 +86,10 @@ describes.realWin('AnalyticsService', (env) => {
     src = '/serviceiframe';
     pageConfig = new PageConfig(productId);
     runtime = new ConfiguredRuntime(env.win, pageConfig);
+    const mockGetCreationTimestamp = sandbox.spy(() => {
+      return 22222;
+    });
+    runtime.creationTimestamp = mockGetCreationTimestamp;
     activityPorts = runtime.activities();
     sandbox.stub(runtime.doc(), 'getRootNode').callsFake(() => {
       return {
@@ -459,6 +463,44 @@ describes.realWin('AnalyticsService', (env) => {
         toTimestamp(12345)
       );
     });
+
+    it('should set runtime creation timestamp in context', async () => {
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+
+      eventManagerCallback(event);
+
+      await analyticsService.lastAction;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request =
+          activityIframePort.execute.getCall(0).args[0];
+      expect(request).to.not.be.null;
+      expect(request.getContext().getRuntimeCreationTimestamp()).to.deep.equal(
+        toTimestamp(22222)
+      );
+    });
+
+    it('should set load event start delay in context', async () => {
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+
+      const mockGetLoadEventStartDelay = sandbox.spy(() => {
+        return 33333;
+      });
+      analyticsService.getLoadEventStartDelay_ = mockGetLoadEventStartDelay;
+
+      eventManagerCallback(event);
+
+      await analyticsService.lastAction;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request =
+          activityIframePort.execute.getCall(0).args[0];
+      expect(request).to.not.be.null;
+      expect(request.getContext().getLoadEventStartDelay()).to.deep.equal(
+        toDuration(33333)
+      );
+    });
+
 
     it('should set context for empty experiments', async () => {
       setExperimentsStringForTesting('');

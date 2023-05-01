@@ -38,7 +38,7 @@ import {getSwgTransactionId} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
-import {toTimestamp, toDuration} from '../utils/date-utils';
+import {toDuration, toTimestamp} from '../utils/date-utils';
 
 const iframeStyles = {
   opacity: '0',
@@ -185,6 +185,19 @@ export class AnalyticsService {
     return this.doc_.getWin().document.referrer;
   }
 
+  private getLoadEventStartDelay_(): number {
+    const performanceEntryList = performance.getEntriesByType('navigation');
+    if (!!performanceEntryList && !!performanceEntryList.length) {
+      const timing = performanceEntryList[0] as PerformanceNavigationTiming;
+      const eventStartDelay = timing.loadEventStart - timing.unloadEventEnd;
+      if (eventStartDelay > 0) {
+          return eventStartDelay;
+      }
+    }
+    return 0;
+  }
+
+
   private setStaticContext_(): void {
     const context = this.context_;
     // These values should all be available during page load.
@@ -271,13 +284,9 @@ export class AnalyticsService {
     meta.setIsFromUserAction(!!event.isFromUserAction);
     // Update the request's timestamp.
     this.context_.setClientTimestamp(toTimestamp(event.timestamp!));
-    const performanceEntryList = performance.getEntriesByType('navigation');
-    if (!!performanceEntryList && !!performanceEntryList.length) {
-        const timing = performanceEntryList[0] as PerformanceNavigationTiming;
-        const eventStartDelay = timing.loadEventStart - timing.unloadEventEnd;
-        if (eventStartDelay > 0) {
-            this.context_.setLoadEventStartDelay(toDuration(eventStartDelay));
-        }
+    const loadEventStartDelay = this.getLoadEventStartDelay_();
+    if (loadEventStartDelay > 0) {
+        this.context_.setLoadEventStartDelay(toDuration(loadEventStartDelay));
     }
     this.context_.setRuntimeCreationTimestamp(this.runtimeCreationTimestamp_);
     const request = new AnalyticsRequest();
