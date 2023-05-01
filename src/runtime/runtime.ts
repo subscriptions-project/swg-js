@@ -185,7 +185,7 @@ export class Runtime implements SubscriptionsInterface {
     | null = null;
   private pageConfigResolver_: PageConfigResolver | null = null;
 
-  private readonly creationTimestamp_ : number;
+  private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
   private readonly ready_: Promise<void>;
   private readonly config_: Config;
@@ -700,7 +700,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     });
   }
 
-  creationTimestamp() : number {
+  creationTimestamp(): number {
     return this.creationTimestamp_;
   }
 

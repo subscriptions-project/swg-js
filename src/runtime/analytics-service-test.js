@@ -501,7 +501,6 @@ describes.realWin('AnalyticsService', (env) => {
       );
     });
 
-
     it('should set context for empty experiments', async () => {
       setExperimentsStringForTesting('');
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});

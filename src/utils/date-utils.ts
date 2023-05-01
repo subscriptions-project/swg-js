@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Timestamp, Duration} from '../proto/api_messages';
+import {Duration, Timestamp} from '../proto/api_messages';
 
 export function toTimestamp(millis: number): Timestamp {
   return new Timestamp(

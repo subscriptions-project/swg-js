@@ -74,7 +74,7 @@ function createErrorResponse(error: string): FinishedLoggingResponse {
 export class AnalyticsService {
   private readonly activityPorts_: ActivityPorts;
   private readonly context_ = new AnalyticsContext();
-  private readonly runtimeCreationTimestamp_ : Timestamp;
+  private readonly runtimeCreationTimestamp_: Timestamp;
   private readonly doc_: Doc;
   private readonly eventManager_: ClientEventManager;
   private readonly iframe_: HTMLIFrameElement;
@@ -191,12 +191,11 @@ export class AnalyticsService {
       const timing = performanceEntryList[0] as PerformanceNavigationTiming;
       const eventStartDelay = timing.loadEventStart - timing.unloadEventEnd;
       if (eventStartDelay > 0) {
-          return eventStartDelay;
+        return eventStartDelay;
       }
     }
     return 0;
   }
-
 
   private setStaticContext_(): void {
     const context = this.context_;
@@ -286,7 +285,7 @@ export class AnalyticsService {
     this.context_.setClientTimestamp(toTimestamp(event.timestamp!));
     const loadEventStartDelay = this.getLoadEventStartDelay_();
     if (loadEventStartDelay > 0) {
-        this.context_.setLoadEventStartDelay(toDuration(loadEventStartDelay));
+      this.context_.setLoadEventStartDelay(toDuration(loadEventStartDelay));
     }
     this.context_.setRuntimeCreationTimestamp(this.runtimeCreationTimestamp_);
     const request = new AnalyticsRequest();

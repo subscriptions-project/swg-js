@@ -133,7 +133,7 @@ export class BasicRuntime implements BasicSubscriptions {
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
 
-  private readonly creationTimestamp_ : number;
+  private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
   private readonly ready_ = Promise.resolve();
   private readonly config_: Config = {};
@@ -163,7 +163,7 @@ export class BasicRuntime implements BasicSubscriptions {
         (pageConfig) => {
           this.pageConfigResolver_ = null;
           this.configuredResolver_!(
-              new ConfiguredBasicRuntime(
+            new ConfiguredBasicRuntime(
               this.doc_,
               pageConfig,
               /* integr */ {
@@ -289,7 +289,7 @@ export class BasicRuntime implements BasicSubscriptions {
 export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private audienceActivityEventListener_?: AudienceActivityEventListener;
 
-  private readonly creationTimestamp_ : number;
+  private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
   private readonly win_: Window;
   private readonly fetcher_: Fetcher;
@@ -388,7 +388,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     return this.configuredClassicRuntime_;
   }
 
-  creationTimestamp() : number {
+  creationTimestamp(): number {
     return this.creationTimestamp_;
   }
 
