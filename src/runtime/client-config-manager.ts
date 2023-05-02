@@ -50,7 +50,7 @@ export class ClientConfigManager {
    * Fetches the client config from the server.
    * @param readyPromise Optional promise to wait on before attempting to fetch the clientConfiguration.
    */
-  fetchClientConfig(readyPromise?: Promise<void>): Promise<ClientConfig> {
+  fetchClientConfig(readyPromise?: Promise<unknown>): Promise<ClientConfig> {
     if (!this.publicationId_) {
       throw new Error('fetchClientConfig requires publicationId');
     }
