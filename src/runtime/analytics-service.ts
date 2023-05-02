@@ -186,7 +186,7 @@ export class AnalyticsService {
   }
 
   private getLoadEventStartDelay_(): number {
-    const performanceEntryList = performance.getEntriesByType('navigation');
+    const performanceEntryList = this.getPerformanceEntryList_();
     if (!!performanceEntryList && !!performanceEntryList.length) {
       const timing = performanceEntryList[0] as PerformanceNavigationTiming;
       const eventStartDelay = timing.loadEventStart - timing.unloadEventEnd;
@@ -195,6 +195,10 @@ export class AnalyticsService {
       }
     }
     return 0;
+  }
+
+  private getPerformanceEntryList_(): PerformanceEntryList {
+    return performance.getEntriesByType('navigation');
   }
 
   private setStaticContext_(): void {

@@ -486,6 +486,7 @@ describes.realWin('AnalyticsService', (env) => {
       const mockGetLoadEventStartDelay = sandbox.spy(() => {
         return 33333;
       });
+      const temp = analyticsService.getLoadEventStartDelay_;
       analyticsService.getLoadEventStartDelay_ = mockGetLoadEventStartDelay;
 
       eventManagerCallback(event);
@@ -499,6 +500,26 @@ describes.realWin('AnalyticsService', (env) => {
       expect(request.getContext().getLoadEventStartDelay()).to.deep.equal(
         toDuration(33333)
       );
+      analyticsService.getLoadEventStartDelay_ = temp;
+    });
+
+    it('should not set load event start delay in context when missing', async () => {
+      sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
+
+      const mockGetPerformanceEntryList = sandbox.spy(() => {
+        return [];
+      });
+      analyticsService.getPerformanceEntryList_ = mockGetPerformanceEntryList;
+
+      eventManagerCallback(event);
+
+      await analyticsService.lastAction;
+      await activityIframePort.whenReady();
+      expect(activityIframePort.execute).to.be.calledOnce;
+      const /* {?AnalyticsRequest} */ request =
+          activityIframePort.execute.getCall(0).args[0];
+      expect(request).to.not.be.null;
+      expect(!request.getContext().getLoadEventStartDelay());
     });
 
     it('should set context for empty experiments', async () => {
