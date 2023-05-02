@@ -289,7 +289,6 @@ export class BasicRuntime implements BasicSubscriptions {
 export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private audienceActivityEventListener_?: AudienceActivityEventListener;
 
-  private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
   private readonly win_: Window;
   private readonly fetcher_: Fetcher;
@@ -309,9 +308,8 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     } = {},
     config?: Config,
     clientOptions?: ClientOptions,
-    creationTimestamp?: number
+    private readonly creationTimestamp_ = 0
   ) {
-    this.creationTimestamp_ = creationTimestamp || 0;
     this.doc_ = resolveDoc(winOrDoc);
 
     this.win_ = this.doc_.getWin();
@@ -329,7 +327,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       integr,
       config,
       clientOptions,
-      creationTimestamp
+      this.creationTimestamp_
     );
 
     // Do not show toast in swgz.

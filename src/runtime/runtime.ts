@@ -560,7 +560,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   private publisherProvidedId_?: string;
 
   private readonly eventManager_: ClientEventManager;
-  private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
   private readonly win_: Window;
   private readonly config_: Config;
@@ -599,14 +598,12 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       lang?: string;
       theme?: ClientTheme;
     },
-    creationTimestamp?: number
+    private readonly creationTimestamp_ = 0
   ) {
     integr = integr || {};
     integr.configPromise ||= Promise.resolve();
 
     this.eventManager_ = new ClientEventManager(integr.configPromise);
-
-    this.creationTimestamp_ = creationTimestamp || 0;
 
     this.doc_ = resolveDoc(winOrDoc);
 
