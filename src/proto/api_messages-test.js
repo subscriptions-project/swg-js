@@ -30,6 +30,7 @@ import {
   AnalyticsRequest,
   AudienceActivityClientLogsRequest,
   CompleteAudienceActionResponse,
+  Duration,
   EntitlementJwt,
   EntitlementResult,
   EntitlementSource,
@@ -265,6 +266,10 @@ describe('AnalyticsContext', () => {
     timestamp2.setSeconds(0);
     timestamp2.setNanos(0);
     analyticscontext1.setPageLoadBeginTimestamp(timestamp2);
+    const /** !Duration  */ duration1 = new Duration();
+    duration1.setSeconds(0);
+    duration1.setNanos(0);
+    analyticscontext1.setLoadEventStartDelay(duration1);
     const /** !Timestamp  */ timestamp3 = new Timestamp();
     timestamp3.setSeconds(0);
     timestamp3.setNanos(0);
@@ -327,6 +332,9 @@ describe('AnalyticsContext', () => {
     expect(
       analyticscontextDeserialized.getPageLoadBeginTimestamp()
     ).to.deep.equal(analyticscontext1.getPageLoadBeginTimestamp());
+    expect(analyticscontextDeserialized.getLoadEventStartDelay()).to.deep.equal(
+      analyticscontext1.getLoadEventStartDelay()
+    );
     expect(
       analyticscontextDeserialized.getRuntimeCreationTimestamp()
     ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
@@ -384,6 +392,9 @@ describe('AnalyticsContext', () => {
     expect(
       analyticscontextDeserialized.getPageLoadBeginTimestamp()
     ).to.deep.equal(analyticscontext1.getPageLoadBeginTimestamp());
+    expect(analyticscontextDeserialized.getLoadEventStartDelay()).to.deep.equal(
+      analyticscontext1.getLoadEventStartDelay()
+    );
     expect(
       analyticscontextDeserialized.getRuntimeCreationTimestamp()
     ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
@@ -444,6 +455,9 @@ describe('AnalyticsContext', () => {
     expect(
       analyticscontextDeserialized.getPageLoadBeginTimestamp()
     ).to.deep.equal(analyticscontext1.getPageLoadBeginTimestamp());
+    expect(analyticscontextDeserialized.getLoadEventStartDelay()).to.deep.equal(
+      analyticscontext1.getLoadEventStartDelay()
+    );
     expect(
       analyticscontextDeserialized.getRuntimeCreationTimestamp()
     ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
@@ -540,6 +554,10 @@ describe('AnalyticsRequest', () => {
     timestamp2.setSeconds(0);
     timestamp2.setNanos(0);
     analyticscontext1.setPageLoadBeginTimestamp(timestamp2);
+    const /** !Duration  */ duration1 = new Duration();
+    duration1.setSeconds(0);
+    duration1.setNanos(0);
+    analyticscontext1.setLoadEventStartDelay(duration1);
     const /** !Timestamp  */ timestamp3 = new Timestamp();
     timestamp3.setSeconds(0);
     timestamp3.setNanos(0);
@@ -772,6 +790,55 @@ describe('CompleteAudienceActionResponse', () => {
     expect(
       completeaudienceactionresponseDeserialized.getAlreadyCompleted()
     ).to.deep.equal(completeaudienceactionresponse1.getAlreadyCompleted());
+  });
+});
+
+describe('Duration', () => {
+  it('should deserialize correctly', () => {
+    const /** !Duration  */ duration1 = new Duration();
+    duration1.setSeconds(0);
+    duration1.setNanos(0);
+
+    let durationDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    durationDeserialized = deserialize(duration1.toArray(undefined));
+    expect(durationDeserialized.toArray(undefined)).to.deep.equal(
+      duration1.toArray(undefined)
+    );
+
+    // Verify fields.
+    expect(durationDeserialized.getSeconds()).to.deep.equal(
+      duration1.getSeconds()
+    );
+    expect(durationDeserialized.getNanos()).to.deep.equal(duration1.getNanos());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    durationDeserialized = deserialize(duration1.toArray(true));
+    expect(durationDeserialized.toArray(true)).to.deep.equal(
+      duration1.toArray(true)
+    );
+
+    // Verify fields.
+    expect(durationDeserialized.getSeconds()).to.deep.equal(
+      duration1.getSeconds()
+    );
+    expect(durationDeserialized.getNanos()).to.deep.equal(duration1.getNanos());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    durationDeserialized = new Duration(duration1.toArray(false), false);
+    expect(durationDeserialized.toArray(false)).to.deep.equal(
+      duration1.toArray(false)
+    );
+
+    // Verify fields.
+    expect(durationDeserialized.getSeconds()).to.deep.equal(
+      duration1.getSeconds()
+    );
+    expect(durationDeserialized.getNanos()).to.deep.equal(duration1.getNanos());
   });
 });
 
