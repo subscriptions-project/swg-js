@@ -115,7 +115,7 @@
     "@storybook/html": "7.0.7",
     "@storybook/manager-webpack5": "6.5.16",
     "cheerio": "1.0.0-rc.12",
-    "chromedriver": "112.0.0",
+    "chromedriver": "112.0.1",
     "cookie-parser": "1.4.6",
     "hogan-express": "0.5.2",
     "is-running": "2.1.0",
