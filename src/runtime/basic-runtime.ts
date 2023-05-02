@@ -130,6 +130,13 @@ export class BasicRuntime implements BasicSubscriptions {
     | null = null;
   private pageConfigWriter_: PageConfigWriter | null = null;
   private pageConfigResolver_: PageConfigResolver | null = null;
+  private pageConfigMarkup_: {
+    type: string | Array<string>;
+    isAccessibleForFree?: boolean;
+    isPartOfType: string | Array<string>;
+    isPartOfProductId: string;
+  } | null = null;
+  private shouldUpdatePageConfigFromRevenueModel_ = false;
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
 
@@ -198,6 +205,19 @@ export class BasicRuntime implements BasicSubscriptions {
     });
   }
 
+  updatePageConfigFromRevenueModel(isSubscription: boolean): void {
+    if (this.shouldUpdatePageConfigFromRevenueModel_) {
+      this.pageConfigMarkup_!.isAccessibleForFree ??= !isSubscription;
+      this.writePageConfig_({
+        type: this.pageConfigMarkup_!.type,
+        isAccessibleForFree: this.pageConfigMarkup_!.isAccessibleForFree!,
+        isPartOfType: this.pageConfigMarkup_!.isPartOfType,
+        isPartOfProductId: this.pageConfigMarkup_!.isPartOfProductId,
+      });
+      this.shouldUpdatePageConfigFromRevenueModel_ = false;
+    }
+  }
+
   init({
     type,
     isAccessibleForFree,
@@ -219,6 +239,12 @@ export class BasicRuntime implements BasicSubscriptions {
     disableDefaultMeteringHandler?: boolean;
     publisherProvidedId?: string;
   }): void {
+    this.pageConfigMarkup_ = {
+      type,
+      isAccessibleForFree,
+      isPartOfType,
+      isPartOfProductId,
+    };
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.publisherProvidedId_ = publisherProvidedId;
     const isOpenAccess = isOpenAccessProductId(isPartOfProductId);
@@ -227,10 +253,15 @@ export class BasicRuntime implements BasicSubscriptions {
     if (isOpenAccess) {
       isClosable ??= true;
     }
-    isAccessibleForFree ??= isOpenAccess;
+    // pageConfig markup should be updated if isAccessibleForFree is undefined
+    // and product is not openacess
+    if (isAccessibleForFree === undefined && !isOpenAccess) {
+      this.shouldUpdatePageConfigFromRevenueModel_ = true;
+    }
+
     this.writePageConfig_({
       type,
-      isAccessibleForFree,
+      isAccessibleForFree: isAccessibleForFree ?? isOpenAccess,
       isPartOfType,
       isPartOfProductId,
     });
