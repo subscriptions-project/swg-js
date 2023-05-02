@@ -327,7 +327,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       integr,
       config,
       clientOptions,
-      this.creationTimestamp_
+      creationTimestamp_
     );
 
     // Do not show toast in swgz.
