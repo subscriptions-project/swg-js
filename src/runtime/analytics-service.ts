@@ -23,6 +23,7 @@ import {
   EventOriginator,
   EventParams,
   FinishedLoggingResponse,
+  Timestamp,
 } from '../proto/api_messages';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
@@ -37,7 +38,7 @@ import {getSwgTransactionId} from '../utils/string';
 import {log} from '../utils/log';
 import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
-import {toTimestamp} from '../utils/date-utils';
+import {toDuration, toTimestamp} from '../utils/date-utils';
 
 const iframeStyles = {
   opacity: '0',
@@ -73,6 +74,7 @@ function createErrorResponse(error: string): FinishedLoggingResponse {
 export class AnalyticsService {
   private readonly activityPorts_: ActivityPorts;
   private readonly context_ = new AnalyticsContext();
+  private readonly runtimeCreationTimestamp_: Timestamp;
   private readonly doc_: Doc;
   private readonly eventManager_: ClientEventManager;
   private readonly iframe_: HTMLIFrameElement;
@@ -101,6 +103,7 @@ export class AnalyticsService {
   lastAction: Promise<void> | null = null;
 
   constructor(private readonly deps_: Deps) {
+    this.runtimeCreationTimestamp_ = toTimestamp(deps_.creationTimestamp());
     this.doc_ = deps_.doc();
 
     this.activityPorts_ = deps_.activities();
@@ -180,6 +183,22 @@ export class AnalyticsService {
 
   private getReferrer_(): string {
     return this.doc_.getWin().document.referrer;
+  }
+
+  private getLoadEventStartDelay_(): number {
+    const performanceEntryList = this.getPerformanceEntryList_();
+    if (!!performanceEntryList && !!performanceEntryList.length) {
+      const timing = performanceEntryList[0] as PerformanceNavigationTiming;
+      const eventStartDelay = timing.loadEventStart - timing.unloadEventEnd;
+      if (eventStartDelay > 0) {
+        return eventStartDelay;
+      }
+    }
+    return 0;
+  }
+
+  private getPerformanceEntryList_(): PerformanceEntryList {
+    return performance.getEntriesByType('navigation');
   }
 
   private setStaticContext_(): void {
@@ -268,6 +287,11 @@ export class AnalyticsService {
     meta.setIsFromUserAction(!!event.isFromUserAction);
     // Update the request's timestamp.
     this.context_.setClientTimestamp(toTimestamp(event.timestamp!));
+    const loadEventStartDelay = this.getLoadEventStartDelay_();
+    if (loadEventStartDelay > 0) {
+      this.context_.setLoadEventStartDelay(toDuration(loadEventStartDelay));
+    }
+    this.context_.setRuntimeCreationTimestamp(this.runtimeCreationTimestamp_);
     const request = new AnalyticsRequest();
     request.setEvent(event.eventType!);
     request.setContext(this.context_);

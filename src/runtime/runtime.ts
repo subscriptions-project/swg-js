@@ -185,6 +185,7 @@ export class Runtime implements SubscriptionsInterface {
     | null = null;
   private pageConfigResolver_: PageConfigResolver | null = null;
 
+  private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
   private readonly ready_: Promise<void>;
   private readonly config_: Config;
@@ -192,6 +193,8 @@ export class Runtime implements SubscriptionsInterface {
   private readonly buttonApi_: ButtonApi;
 
   constructor(private readonly win_: Window) {
+    this.creationTimestamp_ = Date.now();
+
     this.doc_ = resolveDoc(win_);
 
     this.ready_ = Promise.resolve();
@@ -243,7 +246,9 @@ export class Runtime implements SubscriptionsInterface {
         configPromise: this.configuredRuntimePromise_.then(),
         useArticleEndpoint: this.config_.useArticleEndpoint || false,
       },
-      this.config_
+      this.config_,
+      undefined,
+      this.creationTimestamp_
     );
     this.configuredRuntimeResolver_!(configuredRuntime);
 
@@ -592,7 +597,8 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     clientOptions?: {
       lang?: string;
       theme?: ClientTheme;
-    }
+    },
+    private readonly creationTimestamp_ = 0
   ) {
     integr = integr || {};
     integr.configPromise ||= Promise.resolve();
@@ -689,6 +695,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       );
       this.jserror_.error('Redirect error', error);
     });
+  }
+
+  creationTimestamp(): number {
+    return this.creationTimestamp_;
   }
 
   doc(): DocInterface {

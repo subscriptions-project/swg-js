@@ -52,6 +52,7 @@ describes.realWin('Activity Components', (env) => {
       doc: () => doc,
       eventManager: () => eventManager,
       storage: () => ({get: () => Promise.resolve(TOKEN)}),
+      creationTimestamp: () => 0,
     };
     activityPorts = new ActivityPorts(deps);
     deps['activities'] = () => activityPorts;
