@@ -205,19 +205,6 @@ export class BasicRuntime implements BasicSubscriptions {
     });
   }
 
-  updatePageConfigFromRevenueModel(isSubscription: boolean): void {
-    if (this.shouldUpdatePageConfigFromRevenueModel_) {
-      this.pageConfigMarkup_!.isAccessibleForFree ??= !isSubscription;
-      this.writePageConfig_({
-        type: this.pageConfigMarkup_!.type,
-        isAccessibleForFree: this.pageConfigMarkup_!.isAccessibleForFree!,
-        isPartOfType: this.pageConfigMarkup_!.isPartOfType,
-        isPartOfProductId: this.pageConfigMarkup_!.isPartOfProductId,
-      });
-      this.shouldUpdatePageConfigFromRevenueModel_ = false;
-    }
-  }
-
   init({
     type,
     isAccessibleForFree,
@@ -247,16 +234,11 @@ export class BasicRuntime implements BasicSubscriptions {
     };
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.publisherProvidedId_ = publisherProvidedId;
-    const isOpenAccess = isOpenAccessProductId(isPartOfProductId);
+    const isOpenAccess = this.isOpenAccessProductId_(isPartOfProductId);
     let isClosable = isAccessibleForFree;
     // Only overwrite isClosable if product is openaccess, else leave undefined.
     if (isOpenAccess) {
       isClosable ??= true;
-    }
-    // pageConfig markup should be updated if isAccessibleForFree is undefined
-    // and product is not openacess
-    if (isAccessibleForFree === undefined && !isOpenAccess) {
-      this.shouldUpdatePageConfigFromRevenueModel_ = true;
     }
 
     this.writePageConfig_({
@@ -324,6 +306,13 @@ export class BasicRuntime implements BasicSubscriptions {
   async processEntitlements(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.processEntitlements();
+  }
+
+  /**
+   * Checks whether productId is 'openaccess'.
+   */
+  isOpenAccessProductId_(productId: string): boolean {
+    return productId.endsWith(':openaccess');
   }
 }
 
@@ -660,11 +649,4 @@ function createPublicBasicRuntime(
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
   };
-}
-
-/**
- * Checks whether productId is 'openaccess'.
- */
-function isOpenAccessProductId(productId: string): boolean {
-  return productId.endsWith(':openaccess');
 }
