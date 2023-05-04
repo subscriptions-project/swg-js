@@ -156,10 +156,6 @@ export class AutoPromptManager {
         ),
       ]);
 
-    // Override autoPromptType if it is undefined.
-    params.autoPromptType ??= this.getAutoPromptType_(
-      article?.audienceActions?.actions
-    )!;
     this.showAutoPrompt_(
       clientConfig,
       entitlements,
@@ -180,6 +176,11 @@ export class AutoPromptManager {
     dismissedPrompts: string | undefined | null,
     params: ShowAutoPromptParams
   ): Promise<void> {
+    // Override autoPromptType if it is undefined.
+    params.autoPromptType ??= this.getAutoPromptType_(
+      article?.audienceActions?.actions
+    )!;
+
     // Override isClosable if isClosable is set in the page config.
     // Otherwise, for publications with a subscription revenue model the
     // prompt is blocking, while all others can be dismissed.
