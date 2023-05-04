@@ -383,6 +383,7 @@ export class AnalyticsContext implements Message {
   private readerSurfaceType_: ReaderSurfaceType | null;
   private integrationVersion_: string | null;
   private pageLoadBeginTimestamp_: Timestamp | null;
+  private loadEventStartDelay_: Duration | null;
   private runtimeCreationTimestamp_: Timestamp | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
@@ -433,10 +434,15 @@ export class AnalyticsContext implements Message {
         ? null
         : new Timestamp(data[14 + base] as unknown[], includesLabel);
 
-    this.runtimeCreationTimestamp_ =
+    this.loadEventStartDelay_ =
       data[15 + base] == null
         ? null
-        : new Timestamp(data[15 + base] as unknown[], includesLabel);
+        : new Duration(data[15 + base] as unknown[], includesLabel);
+
+    this.runtimeCreationTimestamp_ =
+      data[16 + base] == null
+        ? null
+        : new Timestamp(data[16 + base] as unknown[], includesLabel);
   }
 
   getEmbedderOrigin(): string | null {
@@ -559,6 +565,14 @@ export class AnalyticsContext implements Message {
     this.pageLoadBeginTimestamp_ = value;
   }
 
+  getLoadEventStartDelay(): Duration | null {
+    return this.loadEventStartDelay_;
+  }
+
+  setLoadEventStartDelay(value: Duration): void {
+    this.loadEventStartDelay_ = value;
+  }
+
   getRuntimeCreationTimestamp(): Timestamp | null {
     return this.runtimeCreationTimestamp_;
   }
@@ -586,9 +600,12 @@ export class AnalyticsContext implements Message {
       this.pageLoadBeginTimestamp_
         ? this.pageLoadBeginTimestamp_.toArray(includeLabel)
         : [], // field 15 - page_load_begin_timestamp
+      this.loadEventStartDelay_
+        ? this.loadEventStartDelay_.toArray(includeLabel)
+        : [], // field 16 - load_event_start_delay
       this.runtimeCreationTimestamp_
         ? this.runtimeCreationTimestamp_.toArray(includeLabel)
-        : [], // field 16 - runtime_creation_timestamp
+        : [], // field 17 - runtime_creation_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -829,6 +846,51 @@ export class CompleteAudienceActionResponse implements Message {
 
   label(): string {
     return 'CompleteAudienceActionResponse';
+  }
+}
+
+/** */
+export class Duration implements Message {
+  private seconds_: number | null;
+  private nanos_: number | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.seconds_ = data[base] == null ? null : (data[base] as number);
+
+    this.nanos_ = data[1 + base] == null ? null : (data[1 + base] as number);
+  }
+
+  getSeconds(): number | null {
+    return this.seconds_;
+  }
+
+  setSeconds(value: number): void {
+    this.seconds_ = value;
+  }
+
+  getNanos(): number | null {
+    return this.nanos_;
+  }
+
+  setNanos(value: number): void {
+    this.nanos_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.seconds_, // field 1 - seconds
+      this.nanos_, // field 2 - nanos
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'Duration';
   }
 }
 
@@ -1942,6 +2004,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'AnalyticsRequest': AnalyticsRequest,
   'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
   'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
+  'Duration': Duration,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,

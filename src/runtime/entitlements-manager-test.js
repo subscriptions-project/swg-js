@@ -129,6 +129,7 @@ describes.realWin('EntitlementsManager', (env) => {
     sandbox.stub(deps, 'config').returns(config);
     sandbox.stub(deps, 'eventManager').returns(eventManager);
     sandbox.stub(deps, 'dialogManager').returns(dialogManager);
+    sandbox.stub(deps, 'creationTimestamp').returns(0);
     const activityPorts = new ActivityPorts(deps);
     activitiesMock = sandbox.mock(activityPorts);
     sandbox.stub(deps, 'activities').returns(activityPorts);

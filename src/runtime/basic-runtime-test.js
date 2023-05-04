@@ -708,6 +708,10 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       winMock.verify();
     });
 
+    it('should store creationTimestamp', () => {
+      expect(configuredBasicRuntime.creationTimestamp()).to.equal(0);
+    });
+
     it('should store and doc and win', () => {
       expect(configuredBasicRuntime.win()).to.equal(win);
       expect(configuredBasicRuntime.doc().getWin()).to.equal(win);

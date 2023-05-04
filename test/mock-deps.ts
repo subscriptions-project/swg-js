@@ -32,4 +32,5 @@ export class MockDeps {
   jserror() {}
   eventManager() {}
   clientConfigManager() {}
+  creationTimestamp() {}
 }

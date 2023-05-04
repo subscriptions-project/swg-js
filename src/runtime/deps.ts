@@ -56,4 +56,6 @@ export interface Deps {
   eventManager(): ClientEventManager;
 
   clientConfigManager(): ClientConfigManager;
+
+  creationTimestamp(): number;
 }
