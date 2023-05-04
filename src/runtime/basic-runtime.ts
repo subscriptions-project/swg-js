@@ -130,13 +130,6 @@ export class BasicRuntime implements BasicSubscriptions {
     | null = null;
   private pageConfigWriter_: PageConfigWriter | null = null;
   private pageConfigResolver_: PageConfigResolver | null = null;
-  private pageConfigMarkup_: {
-    type: string | Array<string>;
-    isAccessibleForFree?: boolean;
-    isPartOfType: string | Array<string>;
-    isPartOfProductId: string;
-  } | null = null;
-  private shouldUpdatePageConfigFromRevenueModel_ = false;
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
 
@@ -230,12 +223,6 @@ export class BasicRuntime implements BasicSubscriptions {
     disableDefaultMeteringHandler?: boolean;
     publisherProvidedId?: string;
   }): void {
-    this.pageConfigMarkup_ = {
-      type,
-      isAccessibleForFree,
-      isPartOfType,
-      isPartOfProductId,
-    };
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.publisherProvidedId_ = publisherProvidedId;
     const isOpenAccess = this.isOpenAccessProductId_(isPartOfProductId);
