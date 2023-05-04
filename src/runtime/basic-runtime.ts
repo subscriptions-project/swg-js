@@ -226,11 +226,6 @@ export class BasicRuntime implements BasicSubscriptions {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.publisherProvidedId_ = publisherProvidedId;
     const isOpenAccess = this.isOpenAccessProductId_(isPartOfProductId);
-    let isClosable = isAccessibleForFree;
-    // Only overwrite isClosable if product is openaccess, else leave undefined.
-    if (isOpenAccess) {
-      isClosable ??= true;
-    }
 
     this.writePageConfig_({
       type,
@@ -242,6 +237,12 @@ export class BasicRuntime implements BasicSubscriptions {
     this.clientOptions_ = Object.assign({}, clientOptions, {
       forceLangInIframes: true,
     });
+
+    let isClosable = isAccessibleForFree;
+    // Only overwrite isClosable if product is openaccess, else leave undefined.
+    if (isOpenAccess) {
+      isClosable ??= true;
+    }
     this.setupAndShowAutoPrompt({
       autoPromptType,
       alwaysShow,
