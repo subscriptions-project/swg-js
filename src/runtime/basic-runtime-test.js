@@ -252,6 +252,8 @@ describes.realWin('BasicRuntime', (env) => {
 
     it('should set publisherProvidedId after initialization', async () => {
       basicRuntime.init({
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
         publisherProvidedId: 'publisherProvidedId',
       });
 
@@ -260,6 +262,116 @@ describes.realWin('BasicRuntime', (env) => {
       expect(basicRuntime.config_.publisherProvidedId).to.equal(
         'publisherProvidedId'
       );
+    });
+
+    [
+      {
+        isAccessibleForFree: true,
+        isPartOfProductId: 'publication:openaccess',
+        isAccessibleFromProductId: true,
+      },
+      {
+        isAccessibleForFree: true,
+        isPartOfProductId: 'publication:notopen',
+        isAccessibleFromProductId: true,
+      },
+      {
+        isAccessibleForFree: false,
+        isPartOfProductId: 'publication:openaccess',
+        isAccessibleFromProductId: false,
+      },
+      {
+        isAccessibleForFree: false,
+        isPartOfProductId: 'publication:notopen',
+        isAccessibleFromProductId: false,
+      },
+      {
+        isAccessibleForFree: undefined,
+        isPartOfProductId: 'publication:openaccess',
+        isAccessibleFromProductId: true,
+      },
+      {
+        isAccessibleForFree: undefined,
+        isPartOfProductId: 'publication:notopen',
+        isAccessibleFromProductId: false,
+      },
+    ].forEach(
+      ({isAccessibleForFree, isPartOfProductId, isAccessibleFromProductId}) => {
+        it(`writes page config with isAccessibleForFree=${isAccessibleFromProductId} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
+          const writePageConfigStub = sandbox.stub(
+            basicRuntime,
+            'writePageConfig_'
+          );
+
+          basicRuntime.init({
+            type: 'NewsArticle',
+            isAccessibleForFree,
+            isPartOfType: ['Product'],
+            isPartOfProductId,
+          });
+
+          expect(writePageConfigStub).to.have.been.calledWith({
+            type: 'NewsArticle',
+            isAccessibleForFree: isAccessibleFromProductId,
+            isPartOfType: ['Product'],
+            isPartOfProductId,
+          });
+        });
+      }
+    );
+
+    [
+      {
+        isAccessibleForFree: true,
+        isPartOfProductId: 'publication:openaccess',
+        isClosable: true,
+      },
+      {
+        isAccessibleForFree: true,
+        isPartOfProductId: 'publication:notopen',
+        isClosable: true,
+      },
+      {
+        isAccessibleForFree: false,
+        isPartOfProductId: 'publication:openaccess',
+        isClosable: false,
+      },
+      {
+        isAccessibleForFree: false,
+        isPartOfProductId: 'publication:notopen',
+        isClosable: false,
+      },
+      {
+        isAccessibleForFree: undefined,
+        isPartOfProductId: 'publication:openaccess',
+        isClosable: true,
+      },
+      {
+        isAccessibleForFree: undefined,
+        isPartOfProductId: 'publication:notopen',
+        isClosable: undefined,
+      },
+    ].forEach(({isAccessibleForFree, isPartOfProductId, isClosable}) => {
+      it(`shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
+        const setupAndShowAutoPromptStub = sandbox.stub(
+          basicRuntime,
+          'setupAndShowAutoPrompt'
+        );
+
+        basicRuntime.init({
+          type: 'NewsArticle',
+          isAccessibleForFree,
+          isPartOfType: ['Product'],
+          isPartOfProductId,
+          autoPromptType: 'none',
+        });
+
+        expect(setupAndShowAutoPromptStub).to.have.been.calledWith({
+          autoPromptType: 'none',
+          alwaysShow: false,
+          isClosable,
+        });
+      });
     });
   });
 

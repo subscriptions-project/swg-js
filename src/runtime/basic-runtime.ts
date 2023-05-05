@@ -189,6 +189,18 @@ export class BasicRuntime implements BasicSubscriptions {
     return this.configuredPromise_;
   }
 
+  private async writePageConfig_(markupValues: {
+    type: string | Array<string>;
+    isAccessibleForFree: boolean;
+    isPartOfType: string | Array<string>;
+    isPartOfProductId: string;
+  }): Promise<void> {
+    this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
+    await this.pageConfigWriter_.writeConfigWhenReady(markupValues);
+    this.pageConfigWriter_ = null;
+    this.configured_(true);
+  }
+
   init({
     type,
     isAccessibleForFree,
@@ -201,7 +213,7 @@ export class BasicRuntime implements BasicSubscriptions {
     publisherProvidedId,
   }: {
     type: string | string[];
-    isAccessibleForFree: boolean;
+    isAccessibleForFree?: boolean;
     isPartOfType: string | string[];
     isPartOfProductId: string;
     autoPromptType?: AutoPromptType;
@@ -211,27 +223,29 @@ export class BasicRuntime implements BasicSubscriptions {
     publisherProvidedId?: string;
   }): void {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
-    this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
     this.publisherProvidedId_ = publisherProvidedId;
-    this.pageConfigWriter_
-      .writeConfigWhenReady({
-        type,
-        isAccessibleForFree,
-        isPartOfType,
-        isPartOfProductId,
-      })
-      .then(() => {
-        this.pageConfigWriter_ = null;
-        this.configured_(true);
-      });
+    const isOpenAccess = this.isOpenAccessProductId_(isPartOfProductId);
+
+    this.writePageConfig_({
+      type,
+      isAccessibleForFree: isAccessibleForFree ?? isOpenAccess,
+      isPartOfType,
+      isPartOfProductId,
+    });
 
     this.clientOptions_ = Object.assign({}, clientOptions, {
       forceLangInIframes: true,
     });
+
+    let isClosable = isAccessibleForFree;
+    // Only default isClosable to true if product is openaccess, else leave undefined.
+    if (isOpenAccess) {
+      isClosable ??= true;
+    }
     this.setupAndShowAutoPrompt({
       autoPromptType,
       alwaysShow,
-      isAccessibleForFree,
+      isClosable,
     });
     this.setOnLoginRequest();
     this.processEntitlements();
@@ -259,7 +273,7 @@ export class BasicRuntime implements BasicSubscriptions {
   async setupAndShowAutoPrompt(options: {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
-    isAccessibleForFree?: boolean;
+    isClosable?: boolean;
   }): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setupAndShowAutoPrompt(options);
@@ -283,6 +297,13 @@ export class BasicRuntime implements BasicSubscriptions {
   async processEntitlements(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.processEntitlements();
+  }
+
+  /**
+   * Checks whether productId is 'openaccess'.
+   */
+  isOpenAccessProductId_(productId: string): boolean {
+    return productId.endsWith(':openaccess');
   }
 }
 
@@ -562,7 +583,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   setupAndShowAutoPrompt(options: {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
-    isAccessibleForFree?: boolean;
+    isClosable?: boolean;
   }): Promise<void> {
     return this.autoPromptManager_.showAutoPrompt(options);
   }
