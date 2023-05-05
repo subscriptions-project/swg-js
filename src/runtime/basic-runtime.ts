@@ -189,17 +189,16 @@ export class BasicRuntime implements BasicSubscriptions {
     return this.configuredPromise_;
   }
 
-  private writePageConfig_(markupValues: {
+  private async writePageConfig_(markupValues: {
     type: string | Array<string>;
     isAccessibleForFree: boolean;
     isPartOfType: string | Array<string>;
     isPartOfProductId: string;
-  }): void {
+  }): Promise<void> {
     this.pageConfigWriter_ = new PageConfigWriter(this.doc_);
-    this.pageConfigWriter_.writeConfigWhenReady(markupValues).then(() => {
-      this.pageConfigWriter_ = null;
-      this.configured_(true);
-    });
+    await this.pageConfigWriter_.writeConfigWhenReady(markupValues);
+    this.pageConfigWriter_ = null;
+    this.configured_(true);
   }
 
   init({
