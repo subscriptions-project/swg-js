@@ -181,7 +181,7 @@ export class AutoPromptManager {
       article?.audienceActions?.actions
     )!;
 
-    // Default isClosable to what is set in page config.
+    // Default isClosable to what is set in the page config.
     // Otherwise, the prompt is blocking for publications with a
     // subscription revenue model, while all others can be dismissed.
     const isClosable = params.isClosable ?? !this.isSubscription_(params);
