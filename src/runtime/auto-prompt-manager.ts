@@ -181,9 +181,9 @@ export class AutoPromptManager {
       article?.audienceActions?.actions
     )!;
 
-    // Override isClosable if isClosable is set in the page config.
-    // Otherwise, for publications with a subscription revenue model the
-    // prompt is blocking, while all others can be dismissed.
+    // Default isClosable to what is set in page config.
+    // Otherwise, the prompt is blocking for publications with a
+    // subscription revenue model, while all others can be dismissed.
     const isClosable = params.isClosable ?? !this.isSubscription_(params);
 
     if (this.isSubscription_(params)) {
