@@ -239,7 +239,7 @@ export class BasicRuntime implements BasicSubscriptions {
     });
 
     let isClosable = isAccessibleForFree;
-    // Only overwrite isClosable if product is openaccess, else leave undefined.
+    // Only default isClosable to true if product is openaccess, else leave undefined.
     if (isOpenAccess) {
       isClosable ??= true;
     }
