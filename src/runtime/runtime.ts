@@ -200,10 +200,7 @@ export class Runtime implements SubscriptionsInterface {
     this.ready_ = Promise.resolve();
 
     this.config_ = {
-      useArticleEndpoint: isExperimentOn(
-        win_,
-        ExperimentFlags.USE_ARTICLE_ENDPOINT_CLASSIC
-      ),
+      useArticleEndpoint: true,
     };
 
     this.configuredRuntimePromise_ = new Promise((resolve) => {

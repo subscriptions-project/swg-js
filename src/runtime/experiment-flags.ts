@@ -42,9 +42,4 @@ export enum ExperimentFlags {
    * the first.
    */
   SECOND_PROMPT_DELAY = 'second_prompt_delay_experiment',
-
-  /**
-   * Experiment flag for calling the /article endpoint from the Classic runtime.
-   */
-  USE_ARTICLE_ENDPOINT_CLASSIC = 'use_article_endpoint_classic',
 }

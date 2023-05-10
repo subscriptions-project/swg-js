@@ -342,27 +342,19 @@ describes.realWin('Runtime', (env) => {
       expect(analytics.readyForLogging_).to.be.true;
     });
 
-    it('sets article endpoint off by default', async () => {
-      runtime.init('pub2');
-      const configuredRuntime = await runtime.configured_(true);
-      const entitlementsManager = configuredRuntime.entitlementsManager();
-      expect(entitlementsManager.useArticleEndpoint_).to.be.false;
-    });
-
-    it('sets article endpoint on when experiment is enabled', async () => {
-      setExperiment(win, ExperimentFlags.USE_ARTICLE_ENDPOINT_CLASSIC, true);
+    it('sets article endpoint on by default', async () => {
       runtime = new Runtime(win);
       const configuredRuntime = await runtime.configured_(true);
       const entitlementsManager = configuredRuntime.entitlementsManager();
       expect(entitlementsManager.useArticleEndpoint_).to.be.true;
     });
 
-    it('sets article endpoint on', async () => {
-      runtime.configure({useArticleEndpoint: true});
+    it('sets useArticleEndpoint from config', async () => {
+      runtime.configure({useArticleEndpoint: false});
       runtime.init('pub2');
       const configuredRuntime = await runtime.configured_(true);
       const entitlementsManager = configuredRuntime.entitlementsManager();
-      expect(entitlementsManager.useArticleEndpoint_).to.be.true;
+      expect(entitlementsManager.useArticleEndpoint_).to.be.false;
     });
   });
 
