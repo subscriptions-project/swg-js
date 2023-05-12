@@ -397,7 +397,7 @@ export class AudienceActionFlow {
         isFromUserAction: true,
         additionalParameters: null,
       };
-      // TODO(yeongjinoh): Remove default dimensions once beta publishers complete 
+      // TODO(yeongjinoh): Remove default dimensions once beta publishers complete
       // migration to GA4.
       const eventParams = {
         googleAnalyticsParameters: {
