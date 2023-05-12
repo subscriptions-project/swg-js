@@ -106,7 +106,7 @@
     "watchify": "4.0.0"
   },
   "optionalDependencies": {
-    "@rollup/plugin-commonjs": "24.1.0",
+    "@rollup/plugin-commonjs": "25.0.0",
     "@rollup/plugin-replace": "5.0.2",
     "@storybook/addon-actions": "7.0.11",
     "@storybook/addon-essentials": "7.0.11",
