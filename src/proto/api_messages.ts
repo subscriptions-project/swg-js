@@ -21,6 +21,7 @@
 
 /* tslint:disable:enforce-name-casing */
 /* tslint:disable:strip-private-property-underscore */
+// clang-format off
 
 /** Carries information relating to RRM. */
 export interface Message {
@@ -211,6 +212,10 @@ export enum AnalyticsEvent {
   EVENT_LINK_ACCOUNT_SUCCESS = 3029,
   EVENT_SAVE_SUBSCRIPTION_SUCCESS = 3030,
   EVENT_SURVEY_DATA_TRANSFER_COMPLETE = 3031,
+  EVENT_RUNTIME_IS_READY = 3032,
+  EVENT_START_API = 3033,
+  EVENT_SHOW_OFFERS_API = 3034,
+  EVENT_SHOW_CONTRIBUTION_OPTIONS_API = 3035,
   EVENT_SUBSCRIPTION_STATE = 4000,
 }
 
