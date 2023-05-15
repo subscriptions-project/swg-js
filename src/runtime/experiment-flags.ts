@@ -30,13 +30,4 @@ export enum ExperimentFlags {
    * Experiment flag to enable populating the client config in the Classic runtime.
    */
   POPULATE_CLIENT_CONFIG_CLASSIC = 'populate-client-config-classic',
-<<<<<<< HEAD
-=======
-
-  /**
-   * The triggering of a survey prompt takes priority over a contribution
-   * prompt.
-   */
-  SURVEY_TRIGGERING_PRIORITY = 'survey_triggering_priority_experiment',
->>>>>>> 7fb4a898b1bdad60b4d7c2f66c681032a0b56100
 }
