@@ -27,7 +27,7 @@ const commands = {
   },
   contribute: function () {
     return this.log('Clicking contribute button')
-      .assert.containsText('@contributeBtn', 'Contribute $1 / month')
+      .assert.textContains('@contributeBtn', 'Contribute $1 / month')
       .click('@contributeBtn');
   },
 };

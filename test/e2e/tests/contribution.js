@@ -24,8 +24,8 @@ module.exports = {
       .waitForElementPresent('@swgDialog', 'Found SwG dialog')
       .waitForElementVisible('@swgDialog')
       .viewContributionOptions()
-      .assert.containsText('.K2Fgzb', 'Contribute with your Google Account')
-      .assert.containsText('.Borcjc', '$0.99')
+      .assert.textContains('.K2Fgzb', 'Contribute with your Google Account')
+      .assert.textContains('.Borcjc', '$0.99')
       .contribute()
       .checkPayment()
       .end();
