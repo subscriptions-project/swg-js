@@ -25,8 +25,8 @@ module.exports = {
       .waitForElementVisible('@swgBasicButton')
       .click('@swgBasicButton')
       .viewContributionOffers()
-      .assert.containsText('.XWoc8b', 'Swgjs Contribution Demos')
-      .assert.containsText('.h57Fgb', '$1')
+      .assert.textContains('.XWoc8b', 'Swgjs Contribution Demos')
+      .assert.textContains('.h57Fgb', '$1')
       .contribute()
       .checkPayment()
       .end();
