@@ -749,16 +749,4 @@ export class AutoPromptManager {
     }
     return true;
   }
-
-  /**
-   * Checks if provided ExperimentFlag is returned in article endpoint.
-   */
-  private isExperimentEnabled_(
-    article: Article,
-    experimentFlag: string
-  ): boolean {
-    const articleExpFlags =
-      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    return articleExpFlags.includes(experimentFlag);
-  }
 }
