@@ -25,10 +25,10 @@ module.exports = {
       .waitForElementPresent('@swgIFrame', 'Found SwG iFrame')
       .viewOffers()
       .waitForElementPresent('.K2Fgzb', 'Found offer carousel')
-      .assert.containsText('.K2Fgzb', 'Subscribe with your Google Account')
-      .assert.containsText('.wlhaj.I3RyHc', 'Already subscribed?')
-      .assert.containsText('.amekj', 'Weekly')
-      .assert.containsText('.e02Wob', '$9.99/week')
+      .assert.textContains('.K2Fgzb', 'Subscribe with your Google Account')
+      .assert.textContains('.wlhaj.I3RyHc', 'Already subscribed?')
+      .assert.textContains('.amekj', 'Weekly')
+      .assert.textContains('.e02Wob', '$9.99/week')
       .end();
   },
 

@@ -30,7 +30,7 @@ const commands = {
   },
   contribute: function () {
     return this.log('Clicking contribution button')
-      .assert.containsText('@contributionBtn', 'Contribute $0.99/week')
+      .assert.textContains('@contributionBtn', 'Contribute $0.99/week')
       .click('@contributionBtn');
   },
 };

@@ -21,7 +21,7 @@
 const commands = {
   viewFirstArticle: function () {
     this.api.pause(1000);
-    return this.log('Visiting the first article').assert.title(
+    return this.log('Visiting the first article').assert.titleEquals(
       '16 Top Spots for Hiking - The Scenic'
     );
   },
