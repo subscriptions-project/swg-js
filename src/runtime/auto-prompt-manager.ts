@@ -496,26 +496,6 @@ export class AutoPromptManager {
       );
     }
 
-    // Survey take highest priority if this flag is enabled.
-    const prioritizeSurvey = this.isExperimentEnabled_(
-      article,
-      ExperimentFlags.SURVEY_TRIGGERING_PRIORITY
-    );
-    if (
-      prioritizeSurvey &&
-      potentialActions
-        .map((action) => action.type)
-        .includes(TYPE_REWARDED_SURVEY)
-    ) {
-      const surveyAction = potentialActions.find(
-        ({type}) => type === TYPE_REWARDED_SURVEY
-      );
-      if (surveyAction) {
-        this.interventionDisplayed_ = surveyAction;
-        return surveyAction;
-      }
-    }
-
     const contributionIndex = potentialActions.findIndex(
       (action) => action.type === TYPE_CONTRIBUTION
     );
@@ -768,17 +748,5 @@ export class AutoPromptManager {
       return isSurveyEligible && isAnalyticsEligible;
     }
     return true;
-  }
-
-  /**
-   * Checks if provided ExperimentFlag is returned in article endpoint.
-   */
-  private isExperimentEnabled_(
-    article: Article,
-    experimentFlag: string
-  ): boolean {
-    const articleExpFlags =
-      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    return articleExpFlags.includes(experimentFlag);
   }
 }
