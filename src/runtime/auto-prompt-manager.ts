@@ -233,22 +233,6 @@ export class AutoPromptManager {
       return;
     }
 
-    // Second Prompt Delay experiment
-    const delaySecondPrompt = article
-      ? this.isExperimentEnabled_(article, ExperimentFlags.SECOND_PROMPT_DELAY)
-      : false;
-    if (this.isContribution_(params) && delaySecondPrompt) {
-      const shouldSuppressAutoprompt =
-        await this.secondPromptDelayExperimentSuppressesPrompt_(
-          clientConfig?.autoPromptConfig?.clientDisplayTrigger
-            ?.numImpressionsBetweenPrompts
-        );
-      if (shouldSuppressAutoprompt) {
-        this.interventionDisplayed_ = null;
-        return;
-      }
-    }
-
     const displayDelayMs =
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
@@ -784,37 +768,6 @@ export class AutoPromptManager {
       return isSurveyEligible && isAnalyticsEligible;
     }
     return true;
-  }
-
-  /**
-   * Checks if the triggering of the second prompt should be suppressed due the
-   * configured number of impressions to allow after the first prompt within
-   * autoPromptConfig. Tracks impressions by storing timestamps for the first
-   * prompt triggered and for each impression after. Returns whether to
-   * suppress the next prompt. For example, for default number of impressions
-   * X = 2 (b/267650049), then:
-   * Timestamps   Show Autoprompt     Store Timestamp
-   * []           YES (1st prompt)    YES
-   * [t1]         NO  (Impression 1)  YES
-   * [t1, t2]     NO  (Impression 2)  YES
-   * [t1, t2, t3] YES (2nd prompt)    NO
-   */
-  private async secondPromptDelayExperimentSuppressesPrompt_(
-    numImpressionsBetweenPrompts = 2 // (b/267650049) default 2 impressions
-  ): Promise<boolean> {
-    const secondPromptDelayCounter = await this.storage_.getEvent(
-      StorageKeys.SECOND_PROMPT_DELAY_COUNTER
-    );
-    const shouldSuppressPrompt =
-      secondPromptDelayCounter.length > 0 &&
-      secondPromptDelayCounter.length <= numImpressionsBetweenPrompts;
-    const shouldStoreTimestamp =
-      secondPromptDelayCounter.length <= numImpressionsBetweenPrompts;
-
-    if (shouldStoreTimestamp) {
-      this.storage_.storeEvent(StorageKeys.SECOND_PROMPT_DELAY_COUNTER);
-    }
-    return Promise.resolve(shouldSuppressPrompt);
   }
 
   /**
