@@ -151,7 +151,7 @@ export function installRuntime(win: Window): void {
     }
 
     await runtime.whenReady();
-    runtime.getEventManagerPromise().then((manager) => {
+    runtime.getSwgEventManager().then((manager) => {
       manager.logSwgEvent(
         AnalyticsEvent.EVENT_RUNTIME_IS_READY,
         false,
@@ -520,14 +520,12 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async getEventManager(): Promise<ClientEventManagerApi> {
-    const runtime = await this.configured_(true);
-    return runtime.getEventManager();
+    return this.getSwgEventManager();
   }
 
-  getEventManagerPromise(): Promise<ClientEventManager> {
-    return this.configured_(true).then((runtime) => {
-      return runtime.getEventManager();
-    });
+  async getSwgEventManager(): Promise<ClientEventManager> {
+    const runtime = await this.configured_(true);
+    return runtime.getEventManager();
   }
 
   async setShowcaseEntitlement(
