@@ -151,7 +151,7 @@ export function installRuntime(win: Window): void {
     }
 
     await runtime.whenReady();
-    runtime.logRuntimeReadyEvent(Date.now());
+    runtime.logRuntimeReadyEvent();
 
     callback(publicRuntime);
   }
@@ -517,14 +517,15 @@ export class Runtime implements SubscriptionsInterface {
     return runtime.getEventManager();
   }
 
-  async logRuntimeReadyEvent(eventTime: number): Promise<void> {
+  async logRuntimeReadyEvent(): Promise<void> {
+    const now = Date.now();
     const runtime = await this.configured_(true);
     const manager = await runtime.getEventManager();
     manager.logSwgEvent(
       AnalyticsEvent.EVENT_RUNTIME_IS_READY,
       false,
       null,
-      eventTime
+      now
     );
   }
 

@@ -120,8 +120,8 @@ export class ClientEventManager implements ClientEventManagerApi {
   ) {
     validateEvent(event);
 
-    // Always use current timestamp.
-    event.timestamp = eventTime == null ? Date.now() : eventTime;
+    // Use provided timestamp or current if not provided.
+    event.timestamp = eventTime ?? Date.now();
 
     this.lastAction = this.handleEvent_(event, eventParams);
   }
