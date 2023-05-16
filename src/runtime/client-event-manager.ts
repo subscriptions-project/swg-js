@@ -163,7 +163,7 @@ export class ClientEventManager implements ClientEventManagerApi {
     eventType: AnalyticsEvent,
     isFromUserAction: boolean | null = false,
     eventParams: EventParams | null = null,
-    eventTime: number | undefined = undefined
+    eventTime?: number
   ) {
     this.logEvent(
       {
