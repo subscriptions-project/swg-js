@@ -113,11 +113,15 @@ export class ClientEventManager implements ClientEventManagerApi {
     this.filterers_.push(filterer);
   }
 
-  logEvent(event: ClientEvent, eventParams?: ClientEventParams) {
+  logEvent(
+    event: ClientEvent,
+    eventParams?: ClientEventParams,
+    eventTime?: number
+  ) {
     validateEvent(event);
 
     // Always use current timestamp.
-    event.timestamp = Date.now();
+    event.timestamp = eventTime == null ? Date.now() : eventTime;
 
     this.lastAction = this.handleEvent_(event, eventParams);
   }
@@ -158,14 +162,19 @@ export class ClientEventManager implements ClientEventManagerApi {
   logSwgEvent(
     eventType: AnalyticsEvent,
     isFromUserAction: boolean | null = false,
-    eventParams: EventParams | null = null
+    eventParams: EventParams | null = null,
+    eventTime: number | undefined = undefined
   ) {
-    this.logEvent({
-      eventType,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction,
-      additionalParameters: eventParams,
-    });
+    this.logEvent(
+      {
+        eventType,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction,
+        additionalParameters: eventParams,
+      },
+      undefined,
+      eventTime
+    );
   }
 
   getReadyPromise(): Promise<void> {
