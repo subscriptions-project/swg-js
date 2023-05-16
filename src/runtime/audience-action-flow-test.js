@@ -740,7 +740,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: true,
       additionalParameters: null,
-    });
+    }, undefined, undefined);
 
     await audienceActionFlow.start();
 
@@ -778,7 +778,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
         additionalParameters: null,
-      })
+      }, undefined, undefined)
       .once();
     await audienceActionFlow.start();
 
@@ -822,7 +822,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: true,
       additionalParameters: null,
-    });
+    }, undefined, undefined);
 
     await audienceActionFlow.start();
 
@@ -868,7 +868,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
         additionalParameters: null,
-      })
+      }, undefined, undefined)
       .once();
 
     await audienceActionFlow.start();
@@ -915,7 +915,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
         additionalParameters: null,
-      })
+      }, undefined, undefined)
       .once();
 
     await audienceActionFlow.start();
@@ -965,7 +965,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
         additionalParameters: null,
-      })
+      }, undefined, undefined)
       .once();
 
     await audienceActionFlow.start();
@@ -1028,7 +1028,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: true,
       additionalParameters: null,
-    });
+    }, undefined, undefined);
 
     await audienceActionFlow.start();
 
