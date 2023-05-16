@@ -735,12 +735,16 @@ describes.realWin('AudienceActionFlow', (env) => {
         }
       )
       .once();
-    eventManagerMock.expects('logEvent').withExactArgs({
-      eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: true,
-      additionalParameters: null,
-    }, undefined, undefined);
+    eventManagerMock.expects('logEvent').withExactArgs(
+      {
+        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      },
+      undefined,
+      undefined
+    );
 
     await audienceActionFlow.start();
 
@@ -773,12 +777,16 @@ describes.realWin('AudienceActionFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
       .expects('logEvent')
-      .withExactArgs({
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: null,
-      }, undefined, undefined)
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+        },
+        undefined,
+        undefined
+      )
       .once();
     await audienceActionFlow.start();
 
@@ -817,12 +825,16 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     activitiesMock.expects('openIframe').resolves(port);
 
-    eventManagerMock.expects('logEvent').withExactArgs({
-      eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: true,
-      additionalParameters: null,
-    }, undefined, undefined);
+    eventManagerMock.expects('logEvent').withExactArgs(
+      {
+        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      },
+      undefined,
+      undefined
+    );
 
     await audienceActionFlow.start();
 
@@ -863,12 +875,16 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     eventManagerMock
       .expects('logEvent')
-      .withExactArgs({
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: null,
-      }, undefined, undefined)
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+        },
+        undefined,
+        undefined
+      )
       .once();
 
     await audienceActionFlow.start();
@@ -910,12 +926,16 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     eventManagerMock
       .expects('logEvent')
-      .withExactArgs({
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: null,
-      }, undefined, undefined)
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+        },
+        undefined,
+        undefined
+      )
       .once();
 
     await audienceActionFlow.start();
@@ -960,12 +980,16 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     eventManagerMock
       .expects('logEvent')
-      .withExactArgs({
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: null,
-      }, undefined, undefined)
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+        },
+        undefined,
+        undefined
+      )
       .once();
 
     await audienceActionFlow.start();
@@ -1023,12 +1047,16 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     activitiesMock.expects('openIframe').resolves(port);
 
-    eventManagerMock.expects('logEvent').withExactArgs({
-      eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: true,
-      additionalParameters: null,
-    }, undefined, undefined);
+    eventManagerMock.expects('logEvent').withExactArgs(
+      {
+        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      },
+      undefined,
+      undefined
+    );
 
     await audienceActionFlow.start();
 
