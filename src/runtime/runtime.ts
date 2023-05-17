@@ -146,12 +146,12 @@ export function installRuntime(win: Window): void {
   async function callWhenRuntimeIsReady(
     callback: (api: SubscriptionsInterface) => void
   ): Promise<void> {
+    await runtime.whenReady();
+    runtime.logRuntimeReadyEvent();
+
     if (!callback) {
       return;
     }
-
-    await runtime.whenReady();
-    runtime.logRuntimeReadyEvent();
 
     callback(publicRuntime);
   }

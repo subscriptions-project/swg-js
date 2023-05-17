@@ -171,6 +171,25 @@ describes.realWin('installRuntime', (env) => {
     await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
+
+  it('RuntimeReadyEvent logged from callWhenRuntimeIsReady', async () => {
+    // Sending RuntimeReadyEvent is blocked until runtime has been configured.
+    const config = new PageConfig('pub1', true);
+    const configPromise = Promise.resolve(config);
+    const resolveStub = sandbox
+      .stub(PageConfigResolver.prototype, 'resolveConfig')
+      .callsFake(() => configPromise);
+    let progress = '';
+    dep(() => {
+      progress += '1';
+    });
+
+    installRuntime(win);
+
+    await getRuntime().whenReady();
+    expect(resolveStub).to.be.calledOnce;
+    expect(progress).to.equal('1');
+  });
 });
 
 describes.realWin('Runtime', (env) => {
