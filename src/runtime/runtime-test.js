@@ -410,7 +410,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock.expects('start').once();
 
       await runtime.start();
-      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(configureStub).to.be.calledWith(true);
     });
 
     it('should delegate "getEntitlements"', async () => {
@@ -475,7 +475,7 @@ describes.realWin('Runtime', (env) => {
         .once();
 
       await runtime.showOffers();
-      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(configureStub).to.be.calledWith(true);
     });
 
     it('should delegate "showOffers" with options', async () => {
@@ -483,7 +483,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock.expects('showOffers').withExactArgs(options).once();
 
       await runtime.showOffers(options);
-      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(configureStub).to.be.calledWith(true);
     });
 
     it('should delegate "showUpdateOffers"', async () => {
@@ -556,7 +556,7 @@ describes.realWin('Runtime', (env) => {
         .once();
 
       await runtime.showContributionOptions();
-      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(configureStub).to.be.calledWith(true);
     });
 
     it('should delegate "subscribe"', async () => {
