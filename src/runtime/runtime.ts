@@ -522,41 +522,26 @@ export class Runtime implements SubscriptionsInterface {
 
   async logRuntimeReadyEvent(): Promise<void> {
     await this.whenReady();
+    return this.logSwgEvent(AnalyticsEvent.EVENT_RUNTIME_IS_READY);
+  }
+
+  async logSwgEvent(event: AnalyticsEvent): Promise<void> {
     const now = Date.now();
     const configuredRuntime = await this.configured_(true);
     const manager = await configuredRuntime.getEventManager();
-    manager.logSwgEvent(
-      AnalyticsEvent.EVENT_RUNTIME_IS_READY,
-      false,
-      null,
-      now
-    );
+    manager.logSwgEvent(event, false, null, now);
   }
 
   async logStartApiEvent(): Promise<void> {
-    const now = Date.now();
-    const configuredRuntime = await this.configured_(true);
-    const manager = await configuredRuntime.getEventManager();
-    manager.logSwgEvent(AnalyticsEvent.EVENT_START_API, false, null, now);
+    return this.logSwgEvent(AnalyticsEvent.EVENT_START_API);
   }
 
   async logShowOffersApiEvent(): Promise<void> {
-    const now = Date.now();
-    const configuredRuntime = await this.configured_(true);
-    const manager = await configuredRuntime.getEventManager();
-    manager.logSwgEvent(AnalyticsEvent.EVENT_SHOW_OFFERS_API, false, null, now);
+    return this.logSwgEvent(AnalyticsEvent.EVENT_SHOW_OFFERS_API);
   }
 
   async logShowContributionOptionsApiEvent(): Promise<void> {
-    const now = Date.now();
-    const configuredRuntime = await this.configured_(true);
-    const manager = await configuredRuntime.getEventManager();
-    manager.logSwgEvent(
-      AnalyticsEvent.EVENT_SHOW_CONTRIBUTION_OPTIONS_API,
-      false,
-      null,
-      now
-    );
+    return this.logSwgEvent(AnalyticsEvent.EVENT_SHOW_CONTRIBUTION_OPTIONS_API);
   }
 
   async setShowcaseEntitlement(
