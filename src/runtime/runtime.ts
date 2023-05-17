@@ -151,6 +151,7 @@ export function installRuntime(win: Window): void {
     }
 
     await runtime.whenReady();
+
     callback(publicRuntime);
   }
 
