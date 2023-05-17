@@ -308,6 +308,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async start(): Promise<void> {
+    this.logStartApiEvent();
     const runtime = await this.configured_(true);
     return runtime.start();
   }
@@ -342,6 +343,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async showOffers(options?: OffersRequest): Promise<void> {
+    this.logShowOffersApiEvent();
     const runtime = await this.configured_(true);
     return runtime.showOffers(options);
   }
@@ -362,6 +364,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async showContributionOptions(options?: OffersRequest): Promise<void> {
+    this.logShowContributionOptionsApiEvent();
     const runtime = await this.configured_(true);
     return runtime.showContributionOptions(options);
   }
@@ -524,6 +527,32 @@ export class Runtime implements SubscriptionsInterface {
     const manager = await configuredRuntime.getEventManager();
     manager.logSwgEvent(
       AnalyticsEvent.EVENT_RUNTIME_IS_READY,
+      false,
+      null,
+      now
+    );
+  }
+
+  async logStartApiEvent(): Promise<void> {
+    const now = Date.now();
+    const configuredRuntime = await this.configured_(true);
+    const manager = await configuredRuntime.getEventManager();
+    manager.logSwgEvent(AnalyticsEvent.EVENT_START_API, false, null, now);
+  }
+
+  async logShowOffersApiEvent(): Promise<void> {
+    const now = Date.now();
+    const configuredRuntime = await this.configured_(true);
+    const manager = await configuredRuntime.getEventManager();
+    manager.logSwgEvent(AnalyticsEvent.EVENT_SHOW_OFFERS_API, false, null, now);
+  }
+
+  async logShowContributionOptionsApiEvent(): Promise<void> {
+    const now = Date.now();
+    const configuredRuntime = await this.configured_(true);
+    const manager = await configuredRuntime.getEventManager();
+    manager.logSwgEvent(
+      AnalyticsEvent.EVENT_SHOW_CONTRIBUTION_OPTIONS_API,
       false,
       null,
       now
