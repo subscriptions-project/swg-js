@@ -308,7 +308,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async start(): Promise<void> {
-    this.logStartApiEvent();
+    this.logStartApiEvent_();
     const runtime = await this.configured_(true);
     return runtime.start();
   }
@@ -343,7 +343,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async showOffers(options?: OffersRequest): Promise<void> {
-    this.logShowOffersApiEvent();
+    this.logShowOffersApiEvent_();
     const runtime = await this.configured_(true);
     return runtime.showOffers(options);
   }
@@ -364,7 +364,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async showContributionOptions(options?: OffersRequest): Promise<void> {
-    this.logShowContributionOptionsApiEvent();
+    this.logShowContributionOptionsApiEvent_();
     const runtime = await this.configured_(true);
     return runtime.showContributionOptions(options);
   }
@@ -520,28 +520,30 @@ export class Runtime implements SubscriptionsInterface {
     return runtime.getEventManager();
   }
 
-  async logRuntimeReadyEvent(): Promise<void> {
-    await this.whenReady();
-    return this.logSwgEvent(AnalyticsEvent.EVENT_RUNTIME_IS_READY);
-  }
-
-  async logSwgEvent(event: AnalyticsEvent): Promise<void> {
+  private async logSwgEvent_(event: AnalyticsEvent): Promise<void> {
     const now = Date.now();
     const configuredRuntime = await this.configured_(true);
     const manager = await configuredRuntime.getEventManager();
     manager.logSwgEvent(event, false, null, now);
   }
 
-  async logStartApiEvent(): Promise<void> {
-    return this.logSwgEvent(AnalyticsEvent.EVENT_START_API);
+  async logRuntimeReadyEvent(): Promise<void> {
+    await this.whenReady();
+    return this.logSwgEvent_(AnalyticsEvent.EVENT_RUNTIME_IS_READY);
   }
 
-  async logShowOffersApiEvent(): Promise<void> {
-    return this.logSwgEvent(AnalyticsEvent.EVENT_SHOW_OFFERS_API);
+  private logStartApiEvent_(): Promise<void> {
+    return this.logSwgEvent_(AnalyticsEvent.EVENT_START_API);
   }
 
-  async logShowContributionOptionsApiEvent(): Promise<void> {
-    return this.logSwgEvent(AnalyticsEvent.EVENT_SHOW_CONTRIBUTION_OPTIONS_API);
+  private logShowOffersApiEvent_(): Promise<void> {
+    return this.logSwgEvent_(AnalyticsEvent.EVENT_SHOW_OFFERS_API);
+  }
+
+  private logShowContributionOptionsApiEvent_(): Promise<void> {
+    return this.logSwgEvent_(
+      AnalyticsEvent.EVENT_SHOW_CONTRIBUTION_OPTIONS_API
+    );
   }
 
   async setShowcaseEntitlement(
