@@ -41,17 +41,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile Swgjs Classic with Vite
-        run: npx vite build -- --target=classic
-
-      - name: Compile Swgjs Extended Access with Vite
-        run: npx vite build -- --target=gaa
-
-      - name: Compile Swgjs Basic with Vite
-        run: npx vite build -- --target=basic
-
       - name: E2E Tests
-        run: gulp e2e
+        run: npm run e2e
 
   unit:
     runs-on: ubuntu-latest

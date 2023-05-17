@@ -136,6 +136,7 @@ export function installRuntime(win: Window): void {
 
   // Create a SwG runtime.
   const runtime = new Runtime(win);
+  runtime.logRuntimeReadyEvent();
 
   // Create a public version of the SwG runtime.
   const publicRuntime = createPublicRuntime(runtime);
@@ -307,6 +308,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async start(): Promise<void> {
+    this.logStartApiEvent_();
     const runtime = await this.configured_(true);
     return runtime.start();
   }
@@ -341,6 +343,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async showOffers(options?: OffersRequest): Promise<void> {
+    this.logShowOffersApiEvent_();
     const runtime = await this.configured_(true);
     return runtime.showOffers(options);
   }
@@ -361,6 +364,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async showContributionOptions(options?: OffersRequest): Promise<void> {
+    this.logShowContributionOptionsApiEvent_();
     const runtime = await this.configured_(true);
     return runtime.showContributionOptions(options);
   }
@@ -514,6 +518,32 @@ export class Runtime implements SubscriptionsInterface {
   async getEventManager(): Promise<ClientEventManagerApi> {
     const runtime = await this.configured_(true);
     return runtime.getEventManager();
+  }
+
+  private async logSwgEvent_(event: AnalyticsEvent): Promise<void> {
+    const now = Date.now();
+    const configuredRuntime = await this.configured_(true);
+    const manager = await configuredRuntime.getEventManager();
+    manager.logSwgEvent(event, false, null, now);
+  }
+
+  async logRuntimeReadyEvent(): Promise<void> {
+    await this.whenReady();
+    return this.logSwgEvent_(AnalyticsEvent.EVENT_RUNTIME_IS_READY);
+  }
+
+  private logStartApiEvent_(): Promise<void> {
+    return this.logSwgEvent_(AnalyticsEvent.EVENT_START_API);
+  }
+
+  private logShowOffersApiEvent_(): Promise<void> {
+    return this.logSwgEvent_(AnalyticsEvent.EVENT_SHOW_OFFERS_API);
+  }
+
+  private logShowContributionOptionsApiEvent_(): Promise<void> {
+    return this.logSwgEvent_(
+      AnalyticsEvent.EVENT_SHOW_CONTRIBUTION_OPTIONS_API
+    );
   }
 
   async setShowcaseEntitlement(

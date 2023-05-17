@@ -171,6 +171,25 @@ describes.realWin('installRuntime', (env) => {
     await getRuntime().whenReady();
     expect(progress).to.equal('123');
   });
+
+  it('RuntimeReadyEvent logged from callWhenRuntimeIsReady', async () => {
+    // Sending RuntimeReadyEvent is blocked until runtime has been configured.
+    const config = new PageConfig('pub1', true);
+    const configPromise = Promise.resolve(config);
+    const resolveStub = sandbox
+      .stub(PageConfigResolver.prototype, 'resolveConfig')
+      .callsFake(() => configPromise);
+    let progress = '';
+    dep(() => {
+      progress += '1';
+    });
+
+    installRuntime(win);
+
+    await getRuntime().whenReady();
+    expect(resolveStub).to.be.calledOnce;
+    expect(progress).to.equal('1');
+  });
 });
 
 describes.realWin('Runtime', (env) => {
@@ -391,7 +410,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock.expects('start').once();
 
       await runtime.start();
-      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(configureStub).to.be.calledWith(true);
     });
 
     it('should delegate "getEntitlements"', async () => {
@@ -456,7 +475,7 @@ describes.realWin('Runtime', (env) => {
         .once();
 
       await runtime.showOffers();
-      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(configureStub).to.be.calledWith(true);
     });
 
     it('should delegate "showOffers" with options', async () => {
@@ -464,7 +483,7 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock.expects('showOffers').withExactArgs(options).once();
 
       await runtime.showOffers(options);
-      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(configureStub).to.be.calledWith(true);
     });
 
     it('should delegate "showUpdateOffers"', async () => {
@@ -537,7 +556,7 @@ describes.realWin('Runtime', (env) => {
         .once();
 
       await runtime.showContributionOptions();
-      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(configureStub).to.be.calledWith(true);
     });
 
     it('should delegate "subscribe"', async () => {
