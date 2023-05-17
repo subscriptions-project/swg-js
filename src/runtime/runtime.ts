@@ -146,13 +146,11 @@ export function installRuntime(win: Window): void {
   async function callWhenRuntimeIsReady(
     callback: (api: SubscriptionsInterface) => void
   ): Promise<void> {
-    await runtime.whenReady();
-    runtime.logRuntimeReadyEvent();
-
     if (!callback) {
       return;
     }
 
+    await runtime.whenReady();
     callback(publicRuntime);
   }
 
@@ -161,6 +159,7 @@ export function installRuntime(win: Window): void {
     win[RUNTIME_PROP],
     win[RUNTIME_LEGACY_PROP]
   );
+  runtime.logRuntimeReadyEvent();
   for (const waitingCallback of waitingCallbacks) {
     callWhenRuntimeIsReady(waitingCallback);
   }
@@ -518,9 +517,10 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async logRuntimeReadyEvent(): Promise<void> {
+    await this.whenReady();
     const now = Date.now();
-    const runtime = await this.configured_(true);
-    const manager = await runtime.getEventManager();
+    const configuredRuntime = await this.configured_(true);
+    const manager = await configuredRuntime.getEventManager();
     manager.logSwgEvent(
       AnalyticsEvent.EVENT_RUNTIME_IS_READY,
       false,
