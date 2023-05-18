@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+const urlParams = new URLSearchParams(location.search);
+
 function log() {
   if (!console || !console.log) {
     return;
@@ -126,7 +128,6 @@ function startFlowAuto() {
   let flow = (location.search || '').split('?')[1] || 'demo';
 
   // Provide a shortcut to metering params.
-  const urlParams = new URLSearchParams(location.search);
   if (urlParams.has('metering')) {
     let newSearch = 'gaa_at=g&gaa_ts=99999999&gaa_n=n0nc3&gaa_sig=51g';
     // Include 3p sign in param if specified.
@@ -145,6 +146,13 @@ function startFlowAuto() {
       'Google Article Access (GAA) params triggered the "metering" flow.'
     );
     flow = 'metering';
+  }
+
+  if (flow === 'manualInitialization') {
+    whenReady((subscriptions) => {
+      subscriptions.init('scenic-2017.appspot.com:news');
+    });
+    flow = 'showOffers';
   }
 
   if (flow == 'none') {

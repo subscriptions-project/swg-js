@@ -94,6 +94,7 @@ app.get('/((\\d+))', (req, res) => {
   const nextId = id + 1 < ARTICLES.length ? String(id + 1) : false;
   const setup = getSetup(req);
   res.render('../examples/sample-pub/views/article', {
+    includeLdJson: req.query.manualInitialization === undefined,
     swgJsUrl: SWG_JS_URLS[setup.script],
     swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
     setup,
