@@ -136,7 +136,6 @@ export function installRuntime(win: Window): void {
 
   // Create a SwG runtime.
   const runtime = new Runtime(win);
-  runtime.logRuntimeReadyEvent();
 
   // Create a public version of the SwG runtime.
   const publicRuntime = createPublicRuntime(runtime);
@@ -525,11 +524,6 @@ export class Runtime implements SubscriptionsInterface {
     const configuredRuntime = await this.configured_(true);
     const manager = await configuredRuntime.getEventManager();
     manager.logSwgEvent(event, false, null, now);
-  }
-
-  async logRuntimeReadyEvent(): Promise<void> {
-    await this.whenReady();
-    return this.logSwgEvent_(AnalyticsEvent.EVENT_RUNTIME_IS_READY);
   }
 
   private logStartApiEvent_(): Promise<void> {
