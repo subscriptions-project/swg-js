@@ -209,6 +209,9 @@ export class Runtime implements SubscriptionsInterface {
 
     this.buttonApi_ = new ButtonApi(this.doc_, this.configuredRuntimePromise_);
     this.buttonApi_.init(); // Injects swg-button stylesheet.
+
+    // TODO: Remove this! It's just here to verify an E2E test.
+    this.configured_(true);
   }
 
   whenReady(): Promise<void> {
