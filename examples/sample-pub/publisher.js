@@ -147,6 +147,13 @@ function startFlowAuto() {
     flow = 'metering';
   }
 
+  if (flow === 'manualInitialization') {
+    whenReady((subscriptions) => {
+      subscriptions.init('scenic-2017.appspot.com:news');
+    });
+    flow = 'showOffers';
+  }
+
   if (flow == 'none') {
     return;
   }

@@ -51,6 +51,7 @@
       }
     </style>
 
+    <%#includeLdJson%>
     <script type="application/ld+json">
     {
       "@context": "http://schema.org",
@@ -81,6 +82,8 @@
       }
     }
     </script>
+    <%/includeLdJson%>
+
     <script src="<% swgGaaJsUrl %>"></script>
     <script async subscriptions-control="manual" src="<% swgJsUrl %>"></script>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
