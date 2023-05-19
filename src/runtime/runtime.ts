@@ -185,7 +185,7 @@ export class Runtime implements SubscriptionsInterface {
     | ((runtime: ConfiguredRuntime | Promise<ConfiguredRuntime>) => void)
     | null = null;
   private pageConfigResolver_: PageConfigResolver | null = null;
-  private readyTime = Date.now();
+  private readyTime_ = Date.now();
 
   private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
@@ -524,23 +524,22 @@ export class Runtime implements SubscriptionsInterface {
 
   private async logSwgEvent_(
     event: AnalyticsEvent,
-    eventTime?: number
+    eventTime = Date.now()
   ): Promise<void> {
-    const now = eventTime ?? Date.now();
     const configuredRuntime = await this.configured_(true);
     const manager = await configuredRuntime.getEventManager();
-    manager.logSwgEvent(event, false, null, now);
+    manager.logSwgEvent(event, false, null, eventTime);
   }
 
-  async setTimeWhenReady() {
+  async setTimeWhenReady(): Promise<void> {
     await this.whenReady();
-    this.readyTime = Date.now();
+    this.readyTime_ = Date.now();
   }
 
   private async logRuntimeReadyEvent_(): Promise<void> {
     return this.logSwgEvent_(
       AnalyticsEvent.EVENT_RUNTIME_IS_READY,
-      this.readyTime
+      this.readyTime_
     );
   }
 
