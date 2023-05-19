@@ -478,10 +478,10 @@ export class AutoPromptManager {
 
     // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
-      const subscriptionIsOnlyAction =
-        potentialActions[0].type === TYPE_SUBSCRIPTION &&
-        potentialActions.length === 1;
-      if (shouldShowAutoPrompt || subscriptionIsOnlyAction) {
+      if (
+        shouldShowAutoPrompt ||
+        potentialActions[0].type === TYPE_SUBSCRIPTION
+      ) {
         this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
         return undefined;
       }
