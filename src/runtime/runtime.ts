@@ -136,7 +136,6 @@ export function installRuntime(win: Window): void {
 
   // Create a SwG runtime.
   const runtime = new Runtime(win);
-  runtime.setTimeWhenReady();
 
   // Create a public version of the SwG runtime.
   const publicRuntime = createPublicRuntime(runtime);
@@ -153,6 +152,7 @@ export function installRuntime(win: Window): void {
 
     await runtime.whenReady();
 
+    runtime.setTimeWhenReady();
     callback(publicRuntime);
   }
 
