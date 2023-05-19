@@ -136,6 +136,7 @@ export function installRuntime(win: Window): void {
 
   // Create a SwG runtime.
   const runtime = new Runtime(win);
+  runtime.setTimeWhenReady();
 
   // Create a public version of the SwG runtime.
   const publicRuntime = createPublicRuntime(runtime);
@@ -184,6 +185,7 @@ export class Runtime implements SubscriptionsInterface {
     | ((runtime: ConfiguredRuntime | Promise<ConfiguredRuntime>) => void)
     | null = null;
   private pageConfigResolver_: PageConfigResolver | null = null;
+  private readyTime = Date.now();
 
   private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
@@ -307,6 +309,7 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   async start(): Promise<void> {
+    this.logRuntimeReadyEvent_();
     this.logStartApiEvent_();
     const runtime = await this.configured_(true);
     return runtime.start();
@@ -519,11 +522,26 @@ export class Runtime implements SubscriptionsInterface {
     return runtime.getEventManager();
   }
 
-  private async logSwgEvent_(event: AnalyticsEvent): Promise<void> {
-    const now = Date.now();
+  private async logSwgEvent_(
+    event: AnalyticsEvent,
+    eventTime?: number
+  ): Promise<void> {
+    const now = eventTime ?? Date.now();
     const configuredRuntime = await this.configured_(true);
     const manager = await configuredRuntime.getEventManager();
     manager.logSwgEvent(event, false, null, now);
+  }
+
+  async setTimeWhenReady() {
+    await this.whenReady();
+    this.readyTime = Date.now();
+  }
+
+  private async logRuntimeReadyEvent_(): Promise<void> {
+    return this.logSwgEvent_(
+      AnalyticsEvent.EVENT_RUNTIME_IS_READY,
+      this.readyTime
+    );
   }
 
   private logStartApiEvent_(): Promise<void> {
