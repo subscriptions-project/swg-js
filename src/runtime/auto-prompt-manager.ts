@@ -73,7 +73,7 @@ export interface ShowAutoPromptParams {
  * displayed to the user.
  */
 export class AutoPromptManager {
-  private wasAutoPromptDisplayed_ = false;
+  private wasAutoPromptDisplayedUncappedByFrequency_ = false;
   private hasStoredImpression_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
@@ -240,7 +240,7 @@ export class AutoPromptManager {
 
     if (shouldShowAutoPrompt && potentialAction === undefined) {
       this.deps_.win().setTimeout(() => {
-        this.wasAutoPromptDisplayed_ = true;
+        this.wasAutoPromptDisplayedUncappedByFrequency_ = true;
         this.showPrompt_(
           this.getPromptTypeToDisplay_(params.autoPromptType),
           promptFn
@@ -272,7 +272,7 @@ export class AutoPromptManager {
 
   /**
    * Determines whether a mini prompt for contributions or subscriptions should
-   * be shown.
+   * be shown based on the frequency cap.
    */
   async shouldShowMonetizationPromptFromFrequencyCap(
     clientConfig: ClientConfig,
@@ -664,7 +664,7 @@ export class AutoPromptManager {
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
     if (
-      !this.wasAutoPromptDisplayed_ ||
+      !this.wasAutoPromptDisplayedUncappedByFrequency_ ||
       this.pageConfig_.isLocked() ||
       !event.eventType
     ) {
