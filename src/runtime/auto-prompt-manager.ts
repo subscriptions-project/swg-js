@@ -200,11 +200,12 @@ export class AutoPromptManager {
       };
     }
 
-    const shouldShowAutoPrompt = await this.shouldShowAutoPrompt_(
-      clientConfig,
-      entitlements,
-      params.autoPromptType
-    );
+    const shouldShowAutoPrompt =
+      await this.shouldShowMonetizationPromptFromFrequencyCap(
+        clientConfig,
+        entitlements,
+        params.autoPromptType
+      );
 
     const potentialAction = article
       ? await this.getAudienceActionPromptType_({
@@ -273,7 +274,7 @@ export class AutoPromptManager {
    * Determines whether a mini prompt for contributions or subscriptions should
    * be shown.
    */
-  async shouldShowAutoPrompt_(
+  async shouldShowMonetizationPromptFromFrequencyCap(
     clientConfig: ClientConfig,
     entitlements: Entitlements,
     autoPromptType?: AutoPromptType
