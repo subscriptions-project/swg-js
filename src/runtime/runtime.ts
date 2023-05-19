@@ -151,7 +151,7 @@ export function installRuntime(win: Window): void {
     }
 
     // Wait for next event loop.
-    // This helps ensure the ideal callback execution order.
+    // This helps ensure an ideal execution order for callbacks.
     await 0;
 
     callback(publicRuntime);
