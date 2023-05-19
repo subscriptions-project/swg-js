@@ -1384,7 +1384,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
     });
 
-    it('for paywalled content, should show uncapped prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
+    it('for paywalled content, should show an uncapped prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       getArticleExpectation
         .resolves({
