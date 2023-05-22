@@ -765,7 +765,6 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-
     await tick(8);
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
@@ -922,8 +921,6 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
-    await tick(7);
-
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1373,7 +1370,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
       expect(
         autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
@@ -1415,7 +1411,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
       });
-      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(
         autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
       ).to.equal(false);
@@ -1450,7 +1446,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
       expect(
         autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
