@@ -150,7 +150,9 @@ export function installRuntime(win: Window): void {
       return;
     }
 
-    await runtime.whenReady();
+    // Wait for next event loop.
+    // This helps ensure an ideal execution order for callbacks.
+    await 0;
 
     callback(publicRuntime);
   }
@@ -187,7 +189,6 @@ export class Runtime implements SubscriptionsInterface {
 
   private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
-  private readonly ready_: Promise<void>;
   private readonly config_: Config;
   private readonly configuredRuntimePromise_: Promise<ConfiguredRuntime>;
   private readonly buttonApi_: ButtonApi;
@@ -196,8 +197,6 @@ export class Runtime implements SubscriptionsInterface {
     this.creationTimestamp_ = Date.now();
 
     this.doc_ = resolveDoc(win_);
-
-    this.ready_ = Promise.resolve();
 
     this.config_ = {
       useArticleEndpoint: true,
@@ -209,10 +208,6 @@ export class Runtime implements SubscriptionsInterface {
 
     this.buttonApi_ = new ButtonApi(this.doc_, this.configuredRuntimePromise_);
     this.buttonApi_.init(); // Injects swg-button stylesheet.
-  }
-
-  whenReady(): Promise<void> {
-    return this.ready_;
   }
 
   private async configured_(

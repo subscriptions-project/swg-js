@@ -109,9 +109,7 @@ describes.realWin('installRuntime', (env) => {
     dep(() => {
       progress += '4';
     });
-
-    // Wait for ready signal.
-    await getRuntime().whenReady();
+    await tick();
     expect(progress).to.equal('1234');
 
     // Few more.
@@ -121,7 +119,7 @@ describes.realWin('installRuntime', (env) => {
     dep(() => {
       progress += '6';
     });
-    await getRuntime().whenReady();
+    await tick();
     expect(progress).to.equal('123456');
   });
 
@@ -146,9 +144,7 @@ describes.realWin('installRuntime', (env) => {
       });
     });
 
-    await getRuntime().whenReady();
-    await getRuntime().whenReady();
-    await getRuntime().whenReady();
+    await tick(2);
     expect(progress).to.equal('123');
   });
 
@@ -166,9 +162,7 @@ describes.realWin('installRuntime', (env) => {
 
     installRuntime(win);
 
-    await getRuntime().whenReady();
-    await getRuntime().whenReady();
-    await getRuntime().whenReady();
+    await tick(2);
     expect(progress).to.equal('123');
   });
 
@@ -186,7 +180,7 @@ describes.realWin('installRuntime', (env) => {
 
     installRuntime(win);
 
-    await getRuntime().whenReady();
+    await tick();
     expect(resolveStub).to.be.calledOnce;
     expect(progress).to.equal('1');
   });
