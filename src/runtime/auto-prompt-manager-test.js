@@ -370,9 +370,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should record survey completed on survey submit action', async () => {
-    autoPromptManager.interventionDisplayed_ = {
-      type: AutoPromptType.CONTRIBUTION,
-    };
+    autoPromptManager.wasAutoPromptDisplayedUncappedByFrequency_ = false;
     storageMock
       .expects('set')
       .withExactArgs(

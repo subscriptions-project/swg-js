@@ -657,13 +657,19 @@ export class AutoPromptManager {
    * to display the prompt in the future.
    */
   private async handleClientEvent_(event: ClientEvent): Promise<void> {
+    if (!event.eventType) {
+      return;
+    }
+
+    if (COMPLETED_ACTION_TO_STORAGE_KEY_MAP.has(event.eventType)) {
+      return this.storage_.storeEvent(
+        COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(event.eventType)!
+      );
+    }
+
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
-    if (
-      !this.wasAutoPromptDisplayed_ ||
-      this.pageConfig_.isLocked() ||
-      !event.eventType
-    ) {
+    if (!this.wasAutoPromptDisplayed_ || this.pageConfig_.isLocked()) {
       return;
     }
 
@@ -687,12 +693,6 @@ export class AutoPromptManager {
         this.storeLastDismissal_(),
       ]);
       return;
-    }
-
-    if (COMPLETED_ACTION_TO_STORAGE_KEY_MAP.has(event.eventType)) {
-      return this.storage_.storeEvent(
-        COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(event.eventType)!
-      );
     }
   }
 
