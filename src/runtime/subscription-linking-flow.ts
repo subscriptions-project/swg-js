@@ -36,20 +36,17 @@ export class SubscriptionLinkingFlow {
   private readonly win_: Window;
   private readonly pageConfig_: PageConfig;
   private readonly dialogManager_: DialogManager;
-  private readonly deps_: Deps;
   private completionResolver_: (result: LinkSubscriptionResult) => void =
     () => {};
 
-  constructor(deps: Deps) {
-    this.activityPorts_ = deps.activities();
+  constructor(private readonly deps_: Deps) {
+    this.activityPorts_ = deps_.activities();
 
-    this.win_ = deps.win();
+    this.win_ = deps_.win();
 
-    this.pageConfig_ = deps.pageConfig();
+    this.pageConfig_ = deps_.pageConfig();
 
-    this.dialogManager_ = deps.dialogManager();
-
-    this.deps_ = deps;
+    this.dialogManager_ = deps_.dialogManager();
   }
 
   /**
