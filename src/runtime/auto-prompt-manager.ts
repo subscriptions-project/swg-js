@@ -37,6 +37,7 @@ import {MiniPromptApi} from './mini-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
+import {UiPredicates} from '../model/client-config';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
@@ -74,7 +75,7 @@ export interface ShowAutoPromptParams {
  * displayed to the user.
  */
 export class AutoPromptManager {
-  private wasAutoPromptDisplayedUncappedByFrequency_ = false;
+  private wasMonetizationPromptDisplayedUncappedByFrequency_ = false;
   private hasStoredImpression_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
@@ -177,6 +178,11 @@ export class AutoPromptManager {
     dismissedPrompts: string | undefined | null,
     params: ShowAutoPromptParams
   ): Promise<void> {
+    const hasValidEntitlements = entitlements.enablesThis();
+    if (hasValidEntitlements) {
+      return;
+    }
+
     // Override autoPromptType if it is undefined.
     params.autoPromptType ??= this.getAutoPromptType_(
       article?.audienceActions?.actions
@@ -201,15 +207,13 @@ export class AutoPromptManager {
       };
     }
 
-    const shouldShowMonetizationPrompt =
-      this.shouldShowMonetizationPromptFromClientConfig(
-        clientConfig,
-        params.autoPromptType
+    const canDisplayMonetizationPrompt =
+      this.shouldShowMonetizationPromptFromUiPredicates(
+        clientConfig.uiPredicates
       ) &&
-      !entitlements.enablesThis() &&
       (await this.shouldShowMonetizationPromptFromFrequencyCap(
-        clientConfig.autoPromptConfig!,
-        params.autoPromptType
+        params.autoPromptType,
+        clientConfig.autoPromptConfig
       ));
 
     const potentialAction = article
@@ -217,7 +221,7 @@ export class AutoPromptManager {
           article,
           autoPromptType: params.autoPromptType,
           dismissedPrompts,
-          shouldShowMonetizationPrompt,
+          canDisplayMonetizationPrompt,
         })
       : undefined;
 
@@ -232,10 +236,9 @@ export class AutoPromptManager {
 
     const shouldShowBlockingPrompt =
       this.shouldShowBlockingPrompt_(
-        entitlements,
         /* hasPotentialAudienceAction */ !!potentialAction?.type
       ) && promptFn;
-    if (!shouldShowMonetizationPrompt && !shouldShowBlockingPrompt) {
+    if (!canDisplayMonetizationPrompt && !shouldShowBlockingPrompt) {
       return;
     }
 
@@ -243,9 +246,9 @@ export class AutoPromptManager {
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
-    if (shouldShowMonetizationPrompt && potentialAction === undefined) {
+    if (canDisplayMonetizationPrompt && potentialAction === undefined) {
       this.deps_.win().setTimeout(() => {
-        this.wasAutoPromptDisplayedUncappedByFrequency_ = true;
+        this.wasMonetizationPromptDisplayedUncappedByFrequency_ = true;
         this.showPrompt_(
           this.getPromptTypeToDisplay_(params.autoPromptType),
           promptFn
@@ -277,28 +280,14 @@ export class AutoPromptManager {
 
   /**
    * Determines whether a mini prompt for contributions or subscriptions should
-   * be shown based on the client config.
+   * be shown based on the UI Predicates.
    */
-  shouldShowMonetizationPromptFromClientConfig(
-    clientConfig: ClientConfig,
-    autoPromptType?: AutoPromptType
+  shouldShowMonetizationPromptFromUiPredicates(
+    uiPredicates?: UiPredicates
   ): boolean {
     // If false publication predicate was returned in the response, don't show
     // the prompt.
-    if (
-      clientConfig.uiPredicates &&
-      !clientConfig.uiPredicates.canDisplayAutoPrompt
-    ) {
-      return false;
-    }
-
-    // If no auto prompt config was returned in the response, don't show
-    // the prompt if revenue model is not subscriptions.
-    if (
-      !this.isSubscription_({autoPromptType}) &&
-      (clientConfig === undefined ||
-        clientConfig.autoPromptConfig === undefined)
-    ) {
+    if (uiPredicates && !uiPredicates.canDisplayAutoPrompt) {
       return false;
     }
 
@@ -310,8 +299,8 @@ export class AutoPromptManager {
    * be shown based on the frequency cap.
    */
   async shouldShowMonetizationPromptFromFrequencyCap(
-    autoPromptConfig: AutoPromptConfig,
-    autoPromptType?: AutoPromptType
+    autoPromptType?: AutoPromptType,
+    autoPromptConfig?: AutoPromptConfig
   ): Promise<boolean> {
     // If the auto prompt type is not supported, don't show the prompt.
     if (
@@ -329,6 +318,12 @@ export class AutoPromptManager {
     // Don't cap subscription prompts.
     if (this.isSubscription_({autoPromptType})) {
       return Promise.resolve(true);
+    }
+
+    // If no auto prompt config was returned in the response, don't show
+    // the prompt.
+    if (autoPromptConfig === undefined) {
+      return Promise.resolve(false);
     }
 
     // Fetched config returned no maximum cap.
@@ -434,7 +429,7 @@ export class AutoPromptManager {
    * In the case of Contribution models, we only show non-previously dismissed actions
    * after the initial Contribution prompt. We also always default to showing the Contribution
    * prompt if the reader is currently inside of the frequency window, indicated by
-   * shouldShowMonetizationPrompt.
+   * canDisplayMonetizationPrompt.
    *
    * This has the side effect of setting this.interventionDisplayed_ to an audience action that should
    * be displayed. If a subscription or contribution prompt is to be shown over an audience action, the
@@ -444,12 +439,12 @@ export class AutoPromptManager {
     article,
     autoPromptType,
     dismissedPrompts,
-    shouldShowMonetizationPrompt,
+    canDisplayMonetizationPrompt,
   }: {
     article: Article;
     autoPromptType?: AutoPromptType;
     dismissedPrompts?: string | null;
-    shouldShowMonetizationPrompt?: boolean;
+    canDisplayMonetizationPrompt?: boolean;
   }): Promise<Intervention | void> {
     const audienceActions = article.audienceActions?.actions || [];
 
@@ -476,7 +471,7 @@ export class AutoPromptManager {
 
     // No audience actions means use the default prompt, if it should be shown.
     if (potentialActions.length === 0) {
-      if (shouldShowMonetizationPrompt) {
+      if (canDisplayMonetizationPrompt) {
         this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
           ? {type: TYPE_SUBSCRIPTION}
           : this.isContribution_({autoPromptType})
@@ -489,7 +484,7 @@ export class AutoPromptManager {
     // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
       if (
-        shouldShowMonetizationPrompt ||
+        canDisplayMonetizationPrompt ||
         potentialActions[0].type === TYPE_SUBSCRIPTION
       ) {
         this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
@@ -514,7 +509,7 @@ export class AutoPromptManager {
     );
     // If autoprompt should be shown, and the contribution action is either the first action or
     // not passed through audience actions, honor it and display the contribution prompt.
-    if (shouldShowMonetizationPrompt && contributionIndex < 1) {
+    if (canDisplayMonetizationPrompt && contributionIndex < 1) {
       this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
       return undefined;
     }
@@ -643,13 +638,9 @@ export class AutoPromptManager {
    * Determines whether a larger, blocking prompt should be shown.
    */
   private shouldShowBlockingPrompt_(
-    entitlements: Entitlements,
     hasPotentialAudienceAction: boolean
   ): boolean {
-    return (
-      (this.pageConfig_.isLocked() || hasPotentialAudienceAction) &&
-      !entitlements.enablesThis()
-    );
+    return this.pageConfig_.isLocked() || hasPotentialAudienceAction;
   }
 
   /**
@@ -673,7 +664,7 @@ export class AutoPromptManager {
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
     if (
-      !this.wasAutoPromptDisplayedUncappedByFrequency_ ||
+      !this.wasMonetizationPromptDisplayedUncappedByFrequency_ ||
       this.pageConfig_.isLocked() ||
       !event.eventType
     ) {
