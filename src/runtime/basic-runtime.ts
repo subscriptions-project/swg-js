@@ -95,7 +95,10 @@ export function installBasicRuntime(win: Window): void {
       return;
     }
 
-    await basicRuntime.whenReady();
+    // Wait for next event loop.
+    // This helps ensure an ideal execution order for callbacks.
+    await 0;
+
     callback(publicBasicRuntime);
   }
 
@@ -135,7 +138,6 @@ export class BasicRuntime implements BasicSubscriptions {
 
   private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
-  private readonly ready_ = Promise.resolve();
   private readonly config_: Config = {};
   private readonly configuredPromise_: Promise<ConfiguredBasicRuntime>;
 
@@ -147,10 +149,6 @@ export class BasicRuntime implements BasicSubscriptions {
     this.configuredPromise_ = new Promise((resolve) => {
       this.configuredResolver_ = resolve;
     });
-  }
-
-  whenReady(): Promise<void> {
-    return this.ready_;
   }
 
   private configured_(commit: boolean): Promise<ConfiguredBasicRuntime> {
