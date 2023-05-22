@@ -1076,7 +1076,7 @@ describes.realWin('AutoPromptManager', (env) => {
   it('should not display any prompt if UI predicate is false', async () => {
     sandbox.stub(pageConfig, 'isLocked').returns(false);
     const entitlements = new Entitlements();
-    sandbox.stub(entitlements, 'enablesThis').returns(true);
+    sandbox.stub(entitlements, 'enablesThis').returns(false);
     entitlementsManagerMock
       .expects('getEntitlements')
       .resolves(entitlements)
