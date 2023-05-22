@@ -21,6 +21,7 @@ import {
   Intervention,
 } from './entitlements-manager';
 import {AudienceActionFlow, AudienceActionParams} from './audience-action-flow';
+import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
@@ -200,19 +201,23 @@ export class AutoPromptManager {
       };
     }
 
-    const shouldShowMonetizationPromptFromFrequencyCap =
-      await this.shouldShowMonetizationPromptFromFrequencyCap(
+    const shouldShowMonetizationPrompt =
+      this.shouldShowMonetizationPromptFromClientConfig(
         clientConfig,
-        entitlements,
         params.autoPromptType
-      );
+      ) &&
+      !entitlements.enablesThis() &&
+      (await this.shouldShowMonetizationPromptFromFrequencyCap(
+        clientConfig.autoPromptConfig!,
+        params.autoPromptType
+      ));
 
     const potentialAction = article
       ? await this.getAudienceActionPromptType_({
           article,
           autoPromptType: params.autoPromptType,
           dismissedPrompts,
-          shouldShowMonetizationPromptFromFrequencyCap,
+          shouldShowMonetizationPrompt,
         })
       : undefined;
 
@@ -230,10 +235,7 @@ export class AutoPromptManager {
         entitlements,
         /* hasPotentialAudienceAction */ !!potentialAction?.type
       ) && promptFn;
-    if (
-      !shouldShowMonetizationPromptFromFrequencyCap &&
-      !shouldShowBlockingPrompt
-    ) {
+    if (!shouldShowMonetizationPrompt && !shouldShowBlockingPrompt) {
       return;
     }
 
@@ -241,10 +243,7 @@ export class AutoPromptManager {
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
-    if (
-      shouldShowMonetizationPromptFromFrequencyCap &&
-      potentialAction === undefined
-    ) {
+    if (shouldShowMonetizationPrompt && potentialAction === undefined) {
       this.deps_.win().setTimeout(() => {
         this.wasAutoPromptDisplayedUncappedByFrequency_ = true;
         this.showPrompt_(
@@ -278,32 +277,47 @@ export class AutoPromptManager {
 
   /**
    * Determines whether a mini prompt for contributions or subscriptions should
-   * be shown based on the frequency cap.
+   * be shown based on the client config.
    */
-  async shouldShowMonetizationPromptFromFrequencyCap(
+  shouldShowMonetizationPromptFromClientConfig(
     clientConfig: ClientConfig,
-    entitlements: Entitlements,
     autoPromptType?: AutoPromptType
-  ): Promise<boolean> {
+  ): boolean {
     // If false publication predicate was returned in the response, don't show
     // the prompt.
     if (
       clientConfig.uiPredicates &&
       !clientConfig.uiPredicates.canDisplayAutoPrompt
     ) {
-      return Promise.resolve(false);
+      return false;
     }
 
+    // If no auto prompt config was returned in the response, don't show
+    // the prompt if revenue model is not subscriptions.
+    if (
+      !this.isSubscription_({autoPromptType}) &&
+      (clientConfig === undefined ||
+        clientConfig.autoPromptConfig === undefined)
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Determines whether a mini prompt for contributions or subscriptions should
+   * be shown based on the frequency cap.
+   */
+  async shouldShowMonetizationPromptFromFrequencyCap(
+    autoPromptConfig: AutoPromptConfig,
+    autoPromptType?: AutoPromptType
+  ): Promise<boolean> {
     // If the auto prompt type is not supported, don't show the prompt.
     if (
       autoPromptType === undefined ||
       autoPromptType === AutoPromptType.NONE
     ) {
-      return Promise.resolve(false);
-    }
-
-    // If we found a valid entitlement, don't show the prompt.
-    if (entitlements.enablesThis()) {
       return Promise.resolve(false);
     }
 
@@ -315,18 +329,6 @@ export class AutoPromptManager {
     // Don't cap subscription prompts.
     if (this.isSubscription_({autoPromptType})) {
       return Promise.resolve(true);
-    }
-
-    // If no auto prompt config was returned in the response, don't show
-    // the prompt.
-    let autoPromptConfig = undefined;
-    if (
-      clientConfig === undefined ||
-      clientConfig.autoPromptConfig === undefined
-    ) {
-      return Promise.resolve(false);
-    } else {
-      autoPromptConfig = clientConfig.autoPromptConfig;
     }
 
     // Fetched config returned no maximum cap.
@@ -432,7 +434,7 @@ export class AutoPromptManager {
    * In the case of Contribution models, we only show non-previously dismissed actions
    * after the initial Contribution prompt. We also always default to showing the Contribution
    * prompt if the reader is currently inside of the frequency window, indicated by
-   * shouldShowMonetizationPromptFromFrequencyCap.
+   * shouldShowMonetizationPrompt.
    *
    * This has the side effect of setting this.interventionDisplayed_ to an audience action that should
    * be displayed. If a subscription or contribution prompt is to be shown over an audience action, the
@@ -442,12 +444,12 @@ export class AutoPromptManager {
     article,
     autoPromptType,
     dismissedPrompts,
-    shouldShowMonetizationPromptFromFrequencyCap,
+    shouldShowMonetizationPrompt,
   }: {
     article: Article;
     autoPromptType?: AutoPromptType;
     dismissedPrompts?: string | null;
-    shouldShowMonetizationPromptFromFrequencyCap?: boolean;
+    shouldShowMonetizationPrompt?: boolean;
   }): Promise<Intervention | void> {
     const audienceActions = article.audienceActions?.actions || [];
 
@@ -474,7 +476,7 @@ export class AutoPromptManager {
 
     // No audience actions means use the default prompt, if it should be shown.
     if (potentialActions.length === 0) {
-      if (shouldShowMonetizationPromptFromFrequencyCap) {
+      if (shouldShowMonetizationPrompt) {
         this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
           ? {type: TYPE_SUBSCRIPTION}
           : this.isContribution_({autoPromptType})
@@ -487,7 +489,7 @@ export class AutoPromptManager {
     // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
       if (
-        shouldShowMonetizationPromptFromFrequencyCap ||
+        shouldShowMonetizationPrompt ||
         potentialActions[0].type === TYPE_SUBSCRIPTION
       ) {
         this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
@@ -512,7 +514,7 @@ export class AutoPromptManager {
     );
     // If autoprompt should be shown, and the contribution action is either the first action or
     // not passed through audience actions, honor it and display the contribution prompt.
-    if (shouldShowMonetizationPromptFromFrequencyCap && contributionIndex < 1) {
+    if (shouldShowMonetizationPrompt && contributionIndex < 1) {
       this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
       return undefined;
     }
