@@ -117,7 +117,10 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
     });
 
     it('throws an error when rejected', async () => {
-      dialogManagerMock.expects('openView').once().rejects(new Error("Dialog error"));
+      dialogManagerMock
+        .expects('openView')
+        .once()
+        .rejects(new Error('Dialog error'));
 
       await expect(
         subscriptionLinkingFlow.start(REQUEST)
