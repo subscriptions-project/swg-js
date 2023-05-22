@@ -1320,7 +1320,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 type: 'TYPE_CONTRIBUTION',
                 configurationId: 'contribution_config_id',
               },
-              REGWALL_INTERVENTION,
               NEWSLETTER_INTERVENTION,
             ],
             engineId: '123',
@@ -1381,6 +1380,14 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('for paywalled content, should show an uncapped prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       getArticleExpectation
         .resolves({
@@ -1419,6 +1426,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
+      storageMock.verify();
     });
 
     it('for paywalled content, should show an uncapped prompt if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
