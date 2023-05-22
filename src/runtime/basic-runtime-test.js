@@ -48,6 +48,7 @@ import {
   setExperiment,
   setExperimentsStringForTesting,
 } from './experiments';
+import {tick} from '../../test/tick';
 
 describes.realWin('installBasicRuntime', (env) => {
   let win;
@@ -81,7 +82,7 @@ describes.realWin('installBasicRuntime', (env) => {
     });
 
     // Wait for ready signal.
-    await getBasicRuntime().whenReady();
+    await tick();
     expect(progress).to.equal('1234');
 
     // Few more.
@@ -91,7 +92,7 @@ describes.realWin('installBasicRuntime', (env) => {
     dep(() => {
       progress += '6';
     });
-    await getBasicRuntime().whenReady();
+    await tick();
     expect(progress).to.equal('123456');
   });
 
@@ -115,9 +116,7 @@ describes.realWin('installBasicRuntime', (env) => {
       });
     });
 
-    await getBasicRuntime().whenReady();
-    await getBasicRuntime().whenReady();
-    await getBasicRuntime().whenReady();
+    await tick(2);
     expect(progress).to.equal('123');
   });
 
@@ -134,9 +133,7 @@ describes.realWin('installBasicRuntime', (env) => {
     });
     installBasicRuntime(win);
 
-    await getBasicRuntime().whenReady();
-    await getBasicRuntime().whenReady();
-    await getBasicRuntime().whenReady();
+    await tick(2);
     expect(progress).to.equal('123');
   });
 });
