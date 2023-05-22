@@ -47,7 +47,7 @@
     "chai-as-promised": "7.1.1",
     "cssnano": "6.0.1",
     "del": "7.0.0",
-    "eslint": "8.40.0",
+    "eslint": "8.41.0",
     "eslint-plugin-google-camelcase": "0.0.2",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
@@ -55,7 +55,7 @@
     "express": "4.18.2",
     "fancy-log": "2.0.0",
     "fs-extra": "11.1.1",
-    "glob": "10.2.5",
+    "glob": "10.2.6",
     "gulp": "4.0.2",
     "gulp-eslint-if-fixed": "1.0.0",
     "gulp-help": "chmontgomery/gulp-help#gulp4",
@@ -124,7 +124,7 @@
     "jsonwebtoken": "9.0.0",
     "nightwatch": "2.6.21",
     "rollup-plugin-visualizer": "5.9.0",
-    "vite": "4.3.7"
+    "vite": "4.3.8"
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,
