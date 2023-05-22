@@ -695,6 +695,9 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(7);
 
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(true);
       expect(autoPromptManager.interventionDisplayed_?.type).to.equal(
         interventionDisplayed
       );
@@ -919,6 +922,8 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
       displayLargePromptFn: alternatePromptSpy,
     });
+    await tick(7);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1210,6 +1215,7 @@ describes.realWin('AutoPromptManager', (env) => {
     let getArticleExpectation;
 
     beforeEach(() => {
+      autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_ = false;
       const entitlements = new Entitlements();
       entitlementsManagerMock
         .expects('getEntitlements')
@@ -1271,6 +1277,9 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: false,
       });
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
@@ -1296,6 +1305,9 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
       });
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
@@ -1328,13 +1340,16 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(true);
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_CONTRIBUTION'
       );
     });
 
-    it('should show an AudienceActionFlow if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
+    it('should show the Subscription prompt if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -1360,6 +1375,86 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(true);
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_SUBSCRIPTION'
+      );
+    });
+
+    it('for paywalled content, should show an uncapped prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
+              SURVEY_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+      });
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REWARDED_SURVEY'
+      );
+    });
+
+    it('for paywalled content, should show an uncapped prompt if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: 'TYPE_SUBSCRIPTION',
+                configurationId: 'subscription_config_id',
+              },
+              SURVEY_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        displayLargePromptFn: alternatePromptSpy,
+      });
+      await tick(10);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_SUBSCRIPTION'
@@ -1383,7 +1478,13 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(true);
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_CONTRIBUTION'
+      );
     });
 
     it('should return the last AudienceActionFlow', async () => {
@@ -1412,6 +1513,7 @@ describes.realWin('AutoPromptManager', (env) => {
     let getArticleExpectation;
 
     beforeEach(() => {
+      autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_ = false;
       const autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
         numImpressionsBetweenPrompts: 2,
@@ -1473,6 +1575,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(true);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_CONTRIBUTION'
       );
@@ -1506,6 +1611,9 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
@@ -1547,6 +1655,9 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1601,6 +1712,9 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1641,6 +1755,9 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1681,6 +1798,9 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1714,6 +1834,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_).to.equal(null);
     });
 
@@ -1740,6 +1863,9 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(true);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_CONTRIBUTION'
       );
@@ -1784,6 +1910,9 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
+        expect(
+          autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+        ).to.equal(false);
         expect(autoPromptManager.interventionDisplayed_.type).to.equal(
           'TYPE_REWARDED_SURVEY'
         );
@@ -1827,6 +1956,9 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1842,6 +1974,7 @@ describes.realWin('AutoPromptManager', (env) => {
     let getArticleExpectation;
 
     beforeEach(() => {
+      autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_ = false;
       const autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
         numImpressionsBetweenPrompts: 2,
@@ -1912,6 +2045,9 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: undefined,
         isClosable: true,
       });
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
@@ -1952,6 +2088,9 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: undefined,
         isClosable: true,
       });
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -1989,6 +2128,9 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: undefined,
         isClosable: true,
       });
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_NEWSLETTER_SIGNUP'
       );
@@ -2027,6 +2169,9 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: undefined,
         isClosable: true,
       });
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -2065,6 +2210,9 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: undefined,
         isClosable: true,
       });
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
@@ -2097,6 +2245,9 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_).to.equal(null);
     });
 
@@ -2137,6 +2288,9 @@ describes.realWin('AutoPromptManager', (env) => {
           autoPromptType: undefined,
           isClosable: true,
         });
+        expect(
+          autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+        ).to.equal(false);
         expect(autoPromptManager.interventionDisplayed_.type).to.equal(
           'TYPE_REWARDED_SURVEY'
         );
@@ -2178,6 +2332,9 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: undefined,
         isClosable: true,
       });
+      expect(
+        autoPromptManager.wasMonetizationPromptDisplayedUncappedByFrequency_
+      ).to.equal(false);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REGISTRATION_WALL'
       );
