@@ -93,22 +93,23 @@ export class SubscriptionLinkingFlow {
         .eventManager()
         .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_LOADING);
 
-      await this.dialogManager_
-        .openView(activityIframeView, /* hidden= */ false, {
+      await this.dialogManager_.openView(
+        activityIframeView,
+        /* hidden= */ false,
+        {
           desktopConfig: {isCenterPositioned: false},
-        })
-        .then(() => {
-          this.deps_
-            .eventManager()
-            .logSwgEvent(
-              AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE
-            );
-        });
+        }
+      );
+
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE);
+      return completionPromise;
     } catch (e) {
       this.deps_
         .eventManager()
         .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_ERROR);
+      throw e;
     }
-    return completionPromise;
   }
 }

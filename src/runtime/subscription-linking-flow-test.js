@@ -115,5 +115,13 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         success: false,
       });
     });
+
+    it('throws an error when rejected', async () => {
+      dialogManagerMock.expects('openView').once().rejects(new Error("Dialog error"));
+
+      await expect(
+        subscriptionLinkingFlow.start(REQUEST)
+      ).to.eventually.be.rejectedWith('Dialog error');
+    });
   });
 });
