@@ -408,6 +408,18 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it('should ignore undefined events', async () => {
+    storageMock.expects('get').never();
+    storageMock.expects('set').never();
+
+    await eventManagerCallback({
+      eventType: undefined,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   it('should ignore irrelevant events', async () => {
     storageMock.expects('get').never();
     storageMock.expects('set').never();
