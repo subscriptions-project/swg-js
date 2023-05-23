@@ -23,9 +23,8 @@
  */
 module.exports = {
   url: function () {
-    return this.api.launchUrl + '?smartbutton#swg.experiments=smartbox';
+    return this.api.launchUrl + '?smartbutton';
   },
-  // commands: [commands],
   elements: {
     smartButton: {
       selector: '#smartButton',
