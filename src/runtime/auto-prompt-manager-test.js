@@ -370,9 +370,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should record survey completed on survey submit action', async () => {
-    autoPromptManager.interventionDisplayed_ = {
-      type: AutoPromptType.CONTRIBUTION,
-    };
+    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = false;
     storageMock
       .expects('set')
       .withExactArgs(
@@ -404,6 +402,18 @@ describes.realWin('AutoPromptManager', (env) => {
 
     await eventManagerCallback({
       eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it('should ignore undefined events', async () => {
+    storageMock.expects('get').never();
+    storageMock.expects('set').never();
+
+    await eventManagerCallback({
+      eventType: undefined,
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
