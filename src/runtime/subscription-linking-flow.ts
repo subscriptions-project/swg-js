@@ -16,6 +16,7 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {
@@ -34,14 +35,14 @@ export class SubscriptionLinkingFlow {
   private completionResolver_: (result: LinkSubscriptionResult) => void =
     () => {};
 
-  constructor(deps: Deps) {
-    this.activityPorts_ = deps.activities();
+  constructor(private readonly deps_: Deps) {
+    this.activityPorts_ = deps_.activities();
 
-    this.win_ = deps.win();
+    this.win_ = deps_.win();
 
-    this.pageConfig_ = deps.pageConfig();
+    this.pageConfig_ = deps_.pageConfig();
 
-    this.dialogManager_ = deps.dialogManager();
+    this.dialogManager_ = deps_.dialogManager();
   }
 
   /**
@@ -71,6 +72,12 @@ export class SubscriptionLinkingFlow {
     activityIframeView.on(
       SubscriptionLinkingCompleteResponse,
       (response: SubscriptionLinkingCompleteResponse) => {
+        const CompletionStatus = response.getSuccess()
+          ? AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_SUCCESS
+          : AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_FAILED;
+
+        this.deps_.eventManager().logSwgEvent(CompletionStatus);
+
         this.completionResolver_({
           publisherProvidedId: response.getPublisherProvidedId(),
           success: response.getSuccess() ?? false,
@@ -81,15 +88,28 @@ export class SubscriptionLinkingFlow {
     const completionPromise = new Promise<LinkSubscriptionResult>((resolve) => {
       this.completionResolver_ = resolve;
     });
+    try {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_LOADING);
 
-    await this.dialogManager_.openView(
-      activityIframeView,
-      /* hidden= */ false,
-      {
-        desktopConfig: {isCenterPositioned: false},
-      }
-    );
+      await this.dialogManager_.openView(
+        activityIframeView,
+        /* hidden= */ false,
+        {
+          desktopConfig: {isCenterPositioned: false},
+        }
+      );
 
-    return completionPromise;
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE);
+      return completionPromise;
+    } catch (e) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_ERROR);
+      throw e;
+    }
   }
 }
