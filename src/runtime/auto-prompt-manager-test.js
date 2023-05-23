@@ -370,7 +370,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should record survey completed on survey submit action', async () => {
-    autoPromptManager.wasAutoPromptDisplayedUncappedByFrequency_ = false;
+    autoPromptManager.wasMonetizationPromptDisplayedAsSoftPaywall_ = false;
     storageMock
       .expects('set')
       .withExactArgs(
@@ -694,7 +694,7 @@ describes.realWin('AutoPromptManager', (env) => {
       await tick(7);
 
       expect(
-        autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
+        autoPromptManager.wasMonetizationPromptDisplayedAsSoftPaywall_
       ).to.equal(true);
       expect(autoPromptManager.interventionDisplayed_?.type).to.equal(
         interventionDisplayed
