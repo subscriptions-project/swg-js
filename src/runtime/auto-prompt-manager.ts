@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-import { AnalyticsEvent, EventOriginator } from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   Article,
   EntitlementsManager,
   Intervention,
 } from './entitlements-manager';
-import { AudienceActionFlow, AudienceActionParams } from './audience-action-flow';
-import { AutoPromptConfig } from '../model/auto-prompt-config';
-import { AutoPromptType } from '../api/basic-subscriptions';
-import { ClientConfig } from '../model/client-config';
-import { ClientConfigManager } from './client-config-manager';
-import { ClientEvent } from '../api/client-event-manager-api';
-import { ClientEventManager } from './client-event-manager';
-import { ConfiguredRuntime } from './runtime';
-import { Deps } from './deps';
-import { Doc } from '../model/doc';
-import { Entitlements } from '../api/entitlements';
-import { ExperimentFlags } from './experiment-flags';
-import { GoogleAnalyticsEventListener } from './google-analytics-event-listener';
-import { MiniPromptApi } from './mini-prompt-api';
-import { PageConfig } from '../model/page-config';
-import { Storage } from './storage';
-import { StorageKeys } from '../utils/constants';
-import { UiPredicates } from '../model/client-config';
-import { assert } from '../utils/log';
-import { isExperimentOn } from './experiments';
+import {AudienceActionFlow, AudienceActionParams} from './audience-action-flow';
+import {AutoPromptConfig} from '../model/auto-prompt-config';
+import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientConfig} from '../model/client-config';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEvent} from '../api/client-event-manager-api';
+import {ClientEventManager} from './client-event-manager';
+import {ConfiguredRuntime} from './runtime';
+import {Deps} from './deps';
+import {Doc} from '../model/doc';
+import {Entitlements} from '../api/entitlements';
+import {ExperimentFlags} from './experiment-flags';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {MiniPromptApi} from './mini-prompt-api';
+import {PageConfig} from '../model/page-config';
+import {Storage} from './storage';
+import {StorageKeys} from '../utils/constants';
+import {UiPredicates} from '../model/client-config';
+import {assert} from '../utils/log';
+import {isExperimentOn} from './experiments';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
@@ -218,20 +218,20 @@ export class AutoPromptManager {
 
     const potentialAction = article
       ? await this.getAudienceActionPromptType_({
-        article,
-        autoPromptType: params.autoPromptType,
-        dismissedPrompts,
-        shouldShowMonetizationPromptAsSoftPaywall,
-      })
+          article,
+          autoPromptType: params.autoPromptType,
+          dismissedPrompts,
+          shouldShowMonetizationPromptAsSoftPaywall,
+        })
       : undefined;
 
     const promptFn = potentialAction
       ? this.audienceActionPrompt_({
-        action: potentialAction.type,
-        configurationId: potentialAction.configurationId,
-        autoPromptType: params.autoPromptType,
-        isClosable,
-      })
+          action: potentialAction.type,
+          configurationId: potentialAction.configurationId,
+          autoPromptType: params.autoPromptType,
+          isClosable,
+        })
       : params.displayLargePromptFn;
 
     const shouldShowBlockingPrompt =
@@ -325,7 +325,7 @@ export class AutoPromptManager {
     }
 
     // Do not frequency cap subscription prompts as soft paywallw.
-    if (this.isSubscription_({ autoPromptType })) {
+    if (this.isSubscription_({autoPromptType})) {
       return Promise.resolve(true);
     }
 
@@ -352,11 +352,11 @@ export class AutoPromptManager {
     // soft paywall.
     if (
       dismissals.length >=
-      autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek! &&
+        autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek! &&
       Date.now() - lastDismissal <
-      (autoPromptConfig.explicitDismissalConfig
-        .maxDismissalsResultingHideSeconds || 0) *
-      SECOND_IN_MILLIS
+        (autoPromptConfig.explicitDismissalConfig
+          .maxDismissalsResultingHideSeconds || 0) *
+          SECOND_IN_MILLIS
     ) {
       return false;
     }
@@ -367,8 +367,8 @@ export class AutoPromptManager {
       autoPromptConfig.explicitDismissalConfig.backOffSeconds &&
       dismissals.length > 0 &&
       Date.now() - lastDismissal <
-      autoPromptConfig.explicitDismissalConfig.backOffSeconds *
-      SECOND_IN_MILLIS
+        autoPromptConfig.explicitDismissalConfig.backOffSeconds *
+          SECOND_IN_MILLIS
     ) {
       return false;
     }
@@ -396,7 +396,7 @@ export class AutoPromptManager {
       autoPromptConfig.impressionConfig.backOffSeconds &&
       impressions.length > 0 &&
       Date.now() - lastImpression <
-      autoPromptConfig.impressionConfig.backOffSeconds * SECOND_IN_MILLIS
+        autoPromptConfig.impressionConfig.backOffSeconds * SECOND_IN_MILLIS
     ) {
       return false;
     }
@@ -478,22 +478,22 @@ export class AutoPromptManager {
     // No audience actions means use the default prompt, if it should be shown.
     if (potentialActions.length === 0) {
       if (shouldShowMonetizationPromptAsSoftPaywall) {
-        this.interventionDisplayed_ = this.isSubscription_({ autoPromptType })
-          ? { type: TYPE_SUBSCRIPTION }
-          : this.isContribution_({ autoPromptType })
-            ? { type: TYPE_CONTRIBUTION }
-            : null;
+        this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
+          ? {type: TYPE_SUBSCRIPTION}
+          : this.isContribution_({autoPromptType})
+          ? {type: TYPE_CONTRIBUTION}
+          : null;
       }
       return undefined;
     }
 
     // For subscriptions, skip triggering checks and use the first potential action
-    if (this.isSubscription_({ autoPromptType })) {
+    if (this.isSubscription_({autoPromptType})) {
       if (
         shouldShowMonetizationPromptAsSoftPaywall ||
         potentialActions[0].type === TYPE_SUBSCRIPTION
       ) {
-        this.interventionDisplayed_ = { type: TYPE_SUBSCRIPTION };
+        this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
         return undefined;
       }
       const firstAction = potentialActions[0];
@@ -516,7 +516,7 @@ export class AutoPromptManager {
     // If autoprompt should be shown, and the contribution action is either the first action or
     // not passed through audience actions, honor it and display the contribution prompt.
     if (shouldShowMonetizationPromptAsSoftPaywall && contributionIndex < 1) {
-      this.interventionDisplayed_ = { type: TYPE_CONTRIBUTION };
+      this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
       return undefined;
     }
 
