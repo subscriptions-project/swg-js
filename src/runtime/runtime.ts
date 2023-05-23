@@ -210,11 +210,24 @@ export class Runtime implements SubscriptionsInterface {
     this.buttonApi_.init(); // Injects swg-button stylesheet.
   }
 
+  /**
+   * Returns a promise for the configured runtime. If requested, also begins
+   * configuring the runtime.
+   *
+   * NOTE: Begininning runtime configuration prematurely can interfere with
+   * publisher integrations (b/283281215). This method should only be called
+   * with `startConfiguringRuntime=true` when immediate configuration is
+   * required, after integrators have had an opportunity to begin configuration
+   * using the `init` method.
+   *
+   * @param startConfiguringRuntime Whether to begin configuring the runtime.
+   * @return A promise resolving to the configured runtime.
+   */
   private async configured_(
     startConfiguringRuntime: boolean
   ): Promise<ConfiguredRuntime> {
     if (!startConfiguringRuntime) {
-      // Configuration isn't necessary yet, so lets wait.
+      // Configuration isn't necessary yet, so let's wait.
       return this.configuredRuntimePromise_;
     }
 
