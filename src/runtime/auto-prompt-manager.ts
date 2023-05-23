@@ -207,11 +207,11 @@ export class AutoPromptManager {
       };
     }
 
-    const canDisplayMonetizationPrompt =
+    const shouldShowPaywall =
       this.canDisplayMonetizationPromptFromUiPredicates_(
         clientConfig.uiPredicates
       ) &&
-      (await this.canDisplayMonetizationPromptAfterFrequencyCap_(
+      (await this.shouldShowPaywall(
         params.autoPromptType,
         clientConfig.autoPromptConfig
       ));
@@ -221,7 +221,7 @@ export class AutoPromptManager {
           article,
           autoPromptType: params.autoPromptType,
           dismissedPrompts,
-          canDisplayMonetizationPrompt,
+          shouldShowPaywall,
         })
       : undefined;
 
@@ -238,7 +238,7 @@ export class AutoPromptManager {
       this.shouldShowBlockingPrompt_(
         /* hasPotentialAudienceAction */ !!potentialAction?.type
       ) && promptFn;
-    if (!canDisplayMonetizationPrompt && !shouldShowBlockingPrompt) {
+    if (!shouldShowPaywall && !shouldShowBlockingPrompt) {
       return;
     }
 
@@ -246,7 +246,7 @@ export class AutoPromptManager {
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
-    if (canDisplayMonetizationPrompt && potentialAction === undefined) {
+    if (shouldShowPaywall && potentialAction === undefined) {
       this.deps_.win().setTimeout(() => {
         this.wasMonetizationPromptDisplayedUncappedByFrequency_ = true;
         this.showPrompt_(
@@ -294,16 +294,19 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines whether a mini prompt for contributions or subscriptions can
-   * be shown after accounting for any frequency cap.
+   * Determines whether a paywall should be shown, either as a contribution or
+   * subscription, meaning a monetization prompt should be shown with the
+   * explicit intent to hard- or soft-restrict access to the page. Does not
+   * prevent a monetization prompt from displaying as an eligible audience
+   * action.
    */
-  async canDisplayMonetizationPromptAfterFrequencyCap_(
+  async shouldShowPaywall(
     autoPromptType?: AutoPromptType,
     autoPromptConfig?: AutoPromptConfig
   ): Promise<boolean> {
     // If the auto prompt type is not supported, don't show the prompt.
     // AutoPromptType can be set undefined for premonetization publications;
-    // in this case, do not frequency cap any monetization prompts.
+    // in this case, do not show a paywall.
     if (
       autoPromptType === undefined ||
       autoPromptType === AutoPromptType.NONE
@@ -311,18 +314,18 @@ export class AutoPromptManager {
       return Promise.resolve(false);
     }
 
-    // The auto prompt is only for non-paygated content.
+    // For non-paygated content, paywall should not restrict access.
     if (this.pageConfig_.isLocked()) {
       return Promise.resolve(false);
     }
 
-    // Don't cap subscription prompts.
+    // Do not frequency cap subscription prompts.
     if (this.isSubscription_({autoPromptType})) {
       return Promise.resolve(true);
     }
 
-    // If no auto prompt config was returned in the response, don't show
-    // the prompt.
+    // For other contributions, if no auto prompt config was returned, do not
+    // show the paywall.
     if (autoPromptConfig === undefined) {
       return Promise.resolve(false);
     }
@@ -425,27 +428,27 @@ export class AutoPromptManager {
   /**
    * Determines what Audience Action prompt should be shown.
    *
-   * In the case of Subscription models, we always show the first available prompt.
+   * In the case of Subscription models, always show the first eligible prompt.
    *
-   * In the case of Contribution models, we only show non-previously dismissed actions
-   * after the initial Contribution prompt. We also always default to showing the Contribution
-   * prompt if the reader is currently inside of the frequency window, indicated by
-   * canDisplayMonetizationPrompt.
+   * In the case of Contribution models, only show non-previously dismissed
+   * actions after the initial Contribution prompt. Always default to showing
+   * the Contribution prompt if permitted by the frequency cap, indicated by
+   * shouldShowPaywall.
    *
-   * This has the side effect of setting this.interventionDisplayed_ to an audience action that should
-   * be displayed. If a subscription or contribution prompt is to be shown over an audience action, the
-   * appropriate prompt type will be set.
+   * Has the side effect of setting this.interventionDisplayed_ to an
+   * audience action that should be displayed. If a monetization prompt is to
+   * be shown over an audience action, the appropriate prompt type will be set.
    */
   private async getAudienceActionPromptType_({
     article,
     autoPromptType,
     dismissedPrompts,
-    canDisplayMonetizationPrompt,
+    shouldShowPaywall,
   }: {
     article: Article;
     autoPromptType?: AutoPromptType;
     dismissedPrompts?: string | null;
-    canDisplayMonetizationPrompt?: boolean;
+    shouldShowPaywall?: boolean;
   }): Promise<Intervention | void> {
     const audienceActions = article.audienceActions?.actions || [];
 
@@ -472,7 +475,7 @@ export class AutoPromptManager {
 
     // No audience actions means use the default prompt, if it should be shown.
     if (potentialActions.length === 0) {
-      if (canDisplayMonetizationPrompt) {
+      if (shouldShowPaywall) {
         this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
           ? {type: TYPE_SUBSCRIPTION}
           : this.isContribution_({autoPromptType})
@@ -484,10 +487,7 @@ export class AutoPromptManager {
 
     // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
-      if (
-        canDisplayMonetizationPrompt ||
-        potentialActions[0].type === TYPE_SUBSCRIPTION
-      ) {
+      if (shouldShowPaywall || potentialActions[0].type === TYPE_SUBSCRIPTION) {
         this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
         return undefined;
       }
@@ -510,7 +510,7 @@ export class AutoPromptManager {
     );
     // If autoprompt should be shown, and the contribution action is either the first action or
     // not passed through audience actions, honor it and display the contribution prompt.
-    if (canDisplayMonetizationPrompt && contributionIndex < 1) {
+    if (shouldShowPaywall && contributionIndex < 1) {
       this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
       return undefined;
     }
