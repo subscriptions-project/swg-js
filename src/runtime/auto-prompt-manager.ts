@@ -208,10 +208,10 @@ export class AutoPromptManager {
     }
 
     const canDisplayMonetizationPrompt =
-      this.shouldShowMonetizationPromptFromUiPredicates(
+      this.canDisplayMonetizationPromptFromUiPredicates_(
         clientConfig.uiPredicates
       ) &&
-      (await this.shouldShowMonetizationPromptFromFrequencyCap(
+      (await this.canDisplayMonetizationPromptAfterFrequencyCap_(
         params.autoPromptType,
         clientConfig.autoPromptConfig
       ));
@@ -279,10 +279,10 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines whether a mini prompt for contributions or subscriptions should
+   * Determines whether a mini prompt for contributions or subscriptions can
    * be shown based on the UI Predicates.
    */
-  shouldShowMonetizationPromptFromUiPredicates(
+  canDisplayMonetizationPromptFromUiPredicates_(
     uiPredicates?: UiPredicates
   ): boolean {
     // If false publication predicate was returned in the response, don't show
@@ -290,15 +290,14 @@ export class AutoPromptManager {
     if (uiPredicates && !uiPredicates.canDisplayAutoPrompt) {
       return false;
     }
-
     return true;
   }
 
   /**
-   * Determines whether a mini prompt for contributions or subscriptions should
-   * be shown based on the frequency cap.
+   * Determines whether a mini prompt for contributions or subscriptions can
+   * be shown after accounting for any frequency cap.
    */
-  async shouldShowMonetizationPromptFromFrequencyCap(
+  async canDisplayMonetizationPromptAfterFrequencyCap_(
     autoPromptType?: AutoPromptType,
     autoPromptConfig?: AutoPromptConfig
   ): Promise<boolean> {
