@@ -75,7 +75,7 @@ export interface ShowAutoPromptParams {
  * displayed to the user.
  */
 export class AutoPromptManager {
-  private wasMonetizationPromptDisplayedUncappedByFrequency_ = false;
+  private monetizationPromptWasDisplayedAsPaywall_ = false;
   private hasStoredImpression_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
@@ -251,7 +251,7 @@ export class AutoPromptManager {
       potentialAction === undefined
     ) {
       this.deps_.win().setTimeout(() => {
-        this.wasMonetizationPromptDisplayedUncappedByFrequency_ = true;
+        this.monetizationPromptWasDisplayedAsPaywall_ = true;
         this.showPrompt_(
           this.getPromptTypeToDisplay_(params.autoPromptType),
           promptFn
@@ -667,7 +667,7 @@ export class AutoPromptManager {
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
     if (
-      !this.wasMonetizationPromptDisplayedUncappedByFrequency_ ||
+      !this.monetizationPromptWasDisplayedAsPaywall_ ||
       this.pageConfig_.isLocked() ||
       !event.eventType
     ) {
