@@ -303,6 +303,8 @@ export class AutoPromptManager {
     autoPromptConfig?: AutoPromptConfig
   ): Promise<boolean> {
     // If the auto prompt type is not supported, don't show the prompt.
+    // AutoPromptType can be set undefined for premonetization publications;
+    // in this case, do not frequency cap any monetization prompts.
     if (
       autoPromptType === undefined ||
       autoPromptType === AutoPromptType.NONE
