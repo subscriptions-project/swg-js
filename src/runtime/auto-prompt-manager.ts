@@ -21,6 +21,7 @@ import {
   Intervention,
 } from './entitlements-manager';
 import {AudienceActionFlow, AudienceActionParams} from './audience-action-flow';
+import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
@@ -36,6 +37,7 @@ import {MiniPromptApi} from './mini-prompt-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
+import {UiPredicates} from '../model/client-config';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
@@ -73,7 +75,7 @@ export interface ShowAutoPromptParams {
  * displayed to the user.
  */
 export class AutoPromptManager {
-  private wasAutoPromptDisplayed_ = false;
+  private monetizationPromptWasDisplayedAsSoftPaywall_ = false;
   private hasStoredImpression_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
@@ -176,6 +178,11 @@ export class AutoPromptManager {
     dismissedPrompts: string | undefined | null,
     params: ShowAutoPromptParams
   ): Promise<void> {
+    const hasValidEntitlements = entitlements.enablesThis();
+    if (hasValidEntitlements) {
+      return;
+    }
+
     // Override autoPromptType if it is undefined.
     params.autoPromptType ??= this.getAutoPromptType_(
       article?.audienceActions?.actions
@@ -200,18 +207,21 @@ export class AutoPromptManager {
       };
     }
 
-    const shouldShowAutoPrompt = await this.shouldShowAutoPrompt_(
-      clientConfig,
-      entitlements,
-      params.autoPromptType
-    );
+    const shouldShowMonetizationPromptAsSoftPaywall =
+      this.canDisplayMonetizationPromptFromUiPredicates_(
+        clientConfig.uiPredicates
+      ) &&
+      (await this.shouldShowMonetizationPromptAsSoftPaywall(
+        params.autoPromptType,
+        clientConfig.autoPromptConfig
+      ));
 
     const potentialAction = article
       ? await this.getAudienceActionPromptType_({
           article,
           autoPromptType: params.autoPromptType,
           dismissedPrompts,
-          shouldShowAutoPrompt,
+          shouldShowMonetizationPromptAsSoftPaywall,
         })
       : undefined;
 
@@ -226,10 +236,12 @@ export class AutoPromptManager {
 
     const shouldShowBlockingPrompt =
       this.shouldShowBlockingPrompt_(
-        entitlements,
         /* hasPotentialAudienceAction */ !!potentialAction?.type
       ) && promptFn;
-    if (!shouldShowAutoPrompt && !shouldShowBlockingPrompt) {
+    if (
+      !shouldShowMonetizationPromptAsSoftPaywall &&
+      !shouldShowBlockingPrompt
+    ) {
       return;
     }
 
@@ -237,9 +249,12 @@ export class AutoPromptManager {
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
-    if (shouldShowAutoPrompt && potentialAction === undefined) {
+    if (
+      shouldShowMonetizationPromptAsSoftPaywall &&
+      potentialAction === undefined
+    ) {
       this.deps_.win().setTimeout(() => {
-        this.wasAutoPromptDisplayed_ = true;
+        this.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
         this.showPrompt_(
           this.getPromptTypeToDisplay_(params.autoPromptType),
           promptFn
@@ -270,24 +285,33 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines whether a mini prompt for contributions or subscriptions should
-   * be shown.
+   * Determines whether a mini prompt for contributions or subscriptions can
+   * be shown based on the UI Predicates.
    */
-  async shouldShowAutoPrompt_(
-    clientConfig: ClientConfig,
-    entitlements: Entitlements,
-    autoPromptType?: AutoPromptType
-  ): Promise<boolean> {
+  canDisplayMonetizationPromptFromUiPredicates_(
+    uiPredicates?: UiPredicates
+  ): boolean {
     // If false publication predicate was returned in the response, don't show
     // the prompt.
-    if (
-      clientConfig.uiPredicates &&
-      !clientConfig.uiPredicates.canDisplayAutoPrompt
-    ) {
-      return Promise.resolve(false);
+    if (uiPredicates && !uiPredicates.canDisplayAutoPrompt) {
+      return false;
     }
+    return true;
+  }
 
+  /**
+   * Determines whether a monetization prompt should be shown as a soft
+   * paywall, meaning with the explicit intent to soft-restrict access to the
+   * page. Does not prevent a monetization prompt from displaying as an
+   * eligible audience action.
+   */
+  async shouldShowMonetizationPromptAsSoftPaywall(
+    autoPromptType?: AutoPromptType,
+    autoPromptConfig?: AutoPromptConfig
+  ): Promise<boolean> {
     // If the auto prompt type is not supported, don't show the prompt.
+    // AutoPromptType can be set undefined for premonetization publications;
+    // in this case, do not show a soft paywall.
     if (
       autoPromptType === undefined ||
       autoPromptType === AutoPromptType.NONE
@@ -295,31 +319,20 @@ export class AutoPromptManager {
       return Promise.resolve(false);
     }
 
-    // If we found a valid entitlement, don't show the prompt.
-    if (entitlements.enablesThis()) {
-      return Promise.resolve(false);
-    }
-
-    // The auto prompt is only for non-paygated content.
+    // For paygated content, a soft paywall should not restrict access.
     if (this.pageConfig_.isLocked()) {
       return Promise.resolve(false);
     }
 
-    // Don't cap subscription prompts.
+    // Do not frequency cap subscription prompts as soft paywallw.
     if (this.isSubscription_({autoPromptType})) {
       return Promise.resolve(true);
     }
 
-    // If no auto prompt config was returned in the response, don't show
-    // the prompt.
-    let autoPromptConfig = undefined;
-    if (
-      clientConfig === undefined ||
-      clientConfig.autoPromptConfig === undefined
-    ) {
+    // For other contributions, if no auto prompt config was returned, do not
+    // show a soft paywall.
+    if (autoPromptConfig === undefined) {
       return Promise.resolve(false);
-    } else {
-      autoPromptConfig = clientConfig.autoPromptConfig;
     }
 
     // Fetched config returned no maximum cap.
@@ -327,19 +340,16 @@ export class AutoPromptManager {
       return Promise.resolve(true);
     }
 
-    // See if we should display the auto prompt based on the config and logged
-    // events.
     const [impressions, dismissals] = await Promise.all([
       this.getImpressions_(),
       this.getDismissals_(),
     ]);
-
     const lastImpression = impressions[impressions.length - 1];
     const lastDismissal = dismissals[dismissals.length - 1];
 
     // If the user has reached the maxDismissalsPerWeek, and
-    // maxDismissalsResultingHideSeconds has not yet passed, don't show the
-    // prompt.
+    // maxDismissalsResultingHideSeconds has not yet passed, do not show a
+    // soft paywall.
     if (
       dismissals.length >=
         autoPromptConfig.explicitDismissalConfig.maxDismissalsPerWeek! &&
@@ -352,7 +362,7 @@ export class AutoPromptManager {
     }
 
     // If the user has previously dismissed the prompt, and backOffSeconds has
-    // not yet passed, don't show the prompt.
+    // not yet passed, do not show a soft paywall.
     if (
       autoPromptConfig.explicitDismissalConfig.backOffSeconds &&
       dismissals.length > 0 &&
@@ -364,8 +374,8 @@ export class AutoPromptManager {
     }
 
     // If the user has reached the maxImpressions, and
-    // maxImpressionsResultingHideSeconds has not yet passed, don't show the
-    // prompt.
+    // maxImpressionsResultingHideSeconds has not yet passed, do not show a
+    // soft paywall.
     const userReachedMaxImpressions =
       impressions.length >= autoPromptConfig.impressionConfig.maxImpressions;
     const timeSinceLastImpression = Date.now() - lastImpression;
@@ -379,9 +389,9 @@ export class AutoPromptManager {
       return false;
     }
 
-    // If the user has seen the prompt, and backOffSeconds has
-    // not yet passed, don't show the prompt. This is to prevent the prompt
-    // from showing in consecutive visits.
+    // If the user has seen the prompt, and backOffSeconds has not yet passed,
+    // do not show a soft paywall. This is to prevent the prompt from showing
+    // in consecutive visits.
     if (
       autoPromptConfig.impressionConfig.backOffSeconds &&
       impressions.length > 0 &&
@@ -420,26 +430,27 @@ export class AutoPromptManager {
   /**
    * Determines what Audience Action prompt should be shown.
    *
-   * In the case of Subscription models, we always show the first available prompt.
+   * In the case of Subscription models, always show the first eligible prompt.
    *
-   * In the case of Contribution models, we only show non-previously dismissed actions
-   * after the initial Contribution prompt. We also always default to showing the Contribution
-   * prompt if the reader is currently inside of the frequency window, indicated by shouldShowAutoPrompt.
+   * In the case of Contribution models, only show non-previously dismissed
+   * actions after the initial Contribution prompt. Always default to showing
+   * the Contribution prompt if permitted by the frequency cap, indicated by
+   * shouldShowMonetizationPromptAsSoftPaywall.
    *
-   * This has the side effect of setting this.interventionDisplayed_ to an audience action that should
-   * be displayed. If a subscription or contribution prompt is to be shown over an audience action, the
-   * appropriate prompt type will be set.
+   * Has the side effect of setting this.interventionDisplayed_ to an
+   * audience action that should be displayed. If a monetization prompt is to
+   * be shown over an audience action, the appropriate prompt type will be set.
    */
   private async getAudienceActionPromptType_({
     article,
     autoPromptType,
     dismissedPrompts,
-    shouldShowAutoPrompt,
+    shouldShowMonetizationPromptAsSoftPaywall,
   }: {
     article: Article;
     autoPromptType?: AutoPromptType;
     dismissedPrompts?: string | null;
-    shouldShowAutoPrompt?: boolean;
+    shouldShowMonetizationPromptAsSoftPaywall?: boolean;
   }): Promise<Intervention | void> {
     const audienceActions = article.audienceActions?.actions || [];
 
@@ -466,7 +477,7 @@ export class AutoPromptManager {
 
     // No audience actions means use the default prompt, if it should be shown.
     if (potentialActions.length === 0) {
-      if (shouldShowAutoPrompt) {
+      if (shouldShowMonetizationPromptAsSoftPaywall) {
         this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
           ? {type: TYPE_SUBSCRIPTION}
           : this.isContribution_({autoPromptType})
@@ -478,7 +489,10 @@ export class AutoPromptManager {
 
     // For subscriptions, skip triggering checks and use the first potential action
     if (this.isSubscription_({autoPromptType})) {
-      if (shouldShowAutoPrompt) {
+      if (
+        shouldShowMonetizationPromptAsSoftPaywall ||
+        potentialActions[0].type === TYPE_SUBSCRIPTION
+      ) {
         this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
         return undefined;
       }
@@ -501,7 +515,7 @@ export class AutoPromptManager {
     );
     // If autoprompt should be shown, and the contribution action is either the first action or
     // not passed through audience actions, honor it and display the contribution prompt.
-    if (shouldShowAutoPrompt && contributionIndex < 1) {
+    if (shouldShowMonetizationPromptAsSoftPaywall && contributionIndex < 1) {
       this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
       return undefined;
     }
@@ -630,13 +644,9 @@ export class AutoPromptManager {
    * Determines whether a larger, blocking prompt should be shown.
    */
   private shouldShowBlockingPrompt_(
-    entitlements: Entitlements,
     hasPotentialAudienceAction: boolean
   ): boolean {
-    return (
-      (this.pageConfig_.isLocked() || hasPotentialAudienceAction) &&
-      !entitlements.enablesThis()
-    );
+    return this.pageConfig_.isLocked() || hasPotentialAudienceAction;
   }
 
   /**
@@ -660,7 +670,7 @@ export class AutoPromptManager {
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
     if (
-      !this.wasAutoPromptDisplayed_ ||
+      !this.monetizationPromptWasDisplayedAsSoftPaywall_ ||
       this.pageConfig_.isLocked() ||
       !event.eventType
     ) {
