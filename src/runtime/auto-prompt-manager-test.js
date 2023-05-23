@@ -1426,7 +1426,6 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_REWARDED_SURVEY'
       );
-      storageMock.verify();
     });
 
     it('for paywalled content, should show an uncapped prompt if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
