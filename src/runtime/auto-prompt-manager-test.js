@@ -1360,11 +1360,11 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
+              SURVEY_INTERVENTION,
               {
                 type: 'TYPE_SUBSCRIPTION',
                 configurationId: 'subscription_config_id',
               },
-              SURVEY_INTERVENTION,
             ],
             engineId: '123',
           },
