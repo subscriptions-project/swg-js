@@ -15,6 +15,8 @@
  */
 'use strict';
 
+const {swgPageUrl} = require('../util');
+
 /**
  * @fileoverview Page object for the basic button.
  */
@@ -33,7 +35,13 @@ const commands = {
 };
 
 module.exports = {
-  url: () => 'http://localhost:8000/demos/public/button-dark.html',
+  url: function () {
+    return swgPageUrl(
+      this.api.launchUrl,
+      '/demos/public/button-dark.html',
+      this.api.globals.swg_experiments
+    );
+  },
   commands: [commands],
   elements: {
     swgBasicButton: {

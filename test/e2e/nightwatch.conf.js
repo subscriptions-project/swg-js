@@ -22,7 +22,7 @@ module.exports = {
 
   test_settings: {
     default: {
-      launch_url: 'http://localhost:8000/examples/sample-pub/1',
+      launch_url: 'http://localhost:8000',
       custom_commands_path: 'test/e2e/commands',
       skip_testcases_on_fail: false,
 
@@ -47,6 +47,15 @@ module.exports = {
           timeout: 60000,
           retry_attempts: 3,
         },
+      },
+    },
+    all_experiments_enabled: {
+      globals: {
+        swg_experiments: [
+          'logging-audience-activity',
+          'disable-desktop-miniprompt',
+          'populate-client-config-classic',
+        ],
       },
     },
   },
