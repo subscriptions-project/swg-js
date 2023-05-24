@@ -16,9 +16,14 @@
 'use strict';
 
 const publicationExports = require('./publication');
+const {swgPageUrl} = require('../util');
 
 module.exports = Object.assign({}, publicationExports, {
   url: function () {
-    return this.api.launchUrl + '?manualInitialization';
+    return swgPageUrl(
+      this.api.launchUrl,
+      '/examples/sample-pub/1?manualInitialization',
+      this.api.globals.swg_experiments
+    );
   },
 });

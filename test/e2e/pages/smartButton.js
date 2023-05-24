@@ -18,12 +18,18 @@
  */
 'use strict';
 
+const {swgPageUrl} = require('../util');
+
 /**
  * @fileoverview Page object for the first article with smart button.
  */
 module.exports = {
   url: function () {
-    return this.api.launchUrl + '?smartbutton';
+    return swgPageUrl(
+      this.api.launchUrl,
+      '/examples/sample-pub/1?smartbutton',
+      this.api.globals.swg_experiments
+    );
   },
   elements: {
     smartButton: {

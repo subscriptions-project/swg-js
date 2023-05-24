@@ -15,6 +15,8 @@
  */
 'use strict';
 
+const {swgPageUrl} = require('../util');
+
 /**
  * @fileoverview Page object for the publication on scenic.
  */
@@ -36,7 +38,11 @@ const commands = {
 
 module.exports = {
   url: function () {
-    return this.api.launchUrl;
+    return swgPageUrl(
+      this.api.launch_url,
+      '/examples/sample-pub/1',
+      this.api.globals.swg_experiments
+    );
   },
   commands: [commands],
   elements: {

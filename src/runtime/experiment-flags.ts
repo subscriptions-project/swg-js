@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+/**
+ * Experiment flags.
+ *
+ * IMPORTANT: All flags should also be added to the e2e test configuration in
+ * nightwatch.conf.js.
+ */
 export enum ExperimentFlags {
   /**
    * Experiment flag for logging audience activity.
