@@ -65,7 +65,6 @@ describes.realWin('AutoPromptManager', (env) => {
   let clientConfigManager;
   let clientConfigManagerMock;
   let storageMock;
-  let alternatePromptSpy;
   let miniPromptApiMock;
   let actionFlowSpy;
   let startSpy;
@@ -123,7 +122,6 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
-    alternatePromptSpy = sandbox.spy();
 
     actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionFlow');
     startSpy = sandbox.spy(
@@ -449,7 +447,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -462,9 +459,7 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: true,
-      displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.not.be.called;
   });
 
   it('should display the large prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
@@ -475,9 +470,7 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
       alwaysShow: true,
-      displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.be.calledOnce;
   });
 
   it('should not display any prompt if the type is undefined', async () => {
@@ -496,7 +489,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: undefined,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
     expect(subscriptionPromptFnSpy).to.not.be.called;
@@ -518,7 +510,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.NONE,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
     expect(subscriptionPromptFnSpy).to.not.be.called;
@@ -540,7 +531,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -562,7 +552,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -596,7 +585,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -632,7 +620,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -665,7 +652,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -701,7 +687,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(7);
 
@@ -743,7 +728,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -773,7 +757,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     await tick(8);
     expect(contributionPromptFnSpy).to.be.calledOnce;
@@ -809,7 +792,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -849,7 +831,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -889,7 +870,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -929,7 +909,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -969,7 +948,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -1009,7 +987,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     await tick(8);
     expect(contributionPromptFnSpy).to.not.be.called;
@@ -1031,7 +1008,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     await tick(8);
     expect(subscriptionPromptFnSpy).to.not.be.called;
@@ -1054,7 +1030,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -1076,7 +1051,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
 
     await tick(5);
@@ -1111,7 +1085,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -1142,7 +1115,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -1164,10 +1136,8 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: true,
-      displayLargePromptFn: alternatePromptSpy,
     });
     expect(logEventSpy).to.be.calledOnceWith(expectedEvent);
-    expect(alternatePromptSpy).to.be.calledOnce;
   });
 
   it('should replace the contribution miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
@@ -1178,9 +1148,8 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: true,
-      displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.be.calledOnce;
+    expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
   it('should replace the subscription miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
@@ -1191,9 +1160,8 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       alwaysShow: true,
-      displayLargePromptFn: alternatePromptSpy,
     });
-    expect(alternatePromptSpy).to.be.calledOnce;
+    expect(subscriptionPromptFnSpy).to.be.calledOnce;
   });
 
   it('should not replace the miniprompt with a large prompt when DISABLE_DESKTOP_MINIPROMPT is enabled but the viewport is narrower than 480px', async () => {
@@ -1212,7 +1180,6 @@ describes.realWin('AutoPromptManager', (env) => {
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: true,
-      displayLargePromptFn: alternatePromptSpy,
     });
     logEventSpy.should.not.have.been.calledWith(expectedEvent);
     expect(contributionPromptFnSpy).to.not.be.called;
@@ -1271,7 +1238,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(7);
 
@@ -1298,7 +1264,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
         isClosable: true,
       });
       await tick(7);
@@ -1339,7 +1304,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1373,7 +1337,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1416,7 +1379,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1457,7 +1419,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1483,7 +1444,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1511,7 +1471,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       autoPromptManager.setLastAudienceActionFlow(lastAudienceActionFlow);
 
@@ -1580,7 +1539,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1610,7 +1568,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1654,7 +1611,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1711,7 +1667,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1754,7 +1709,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1797,7 +1751,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1839,7 +1792,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1868,7 +1820,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -1909,7 +1860,6 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({
           autoPromptType: AutoPromptType.CONTRIBUTION,
           alwaysShow: false,
-          displayLargePromptFn: alternatePromptSpy,
         });
         await tick(10);
 
@@ -1955,7 +1905,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -2045,7 +1994,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         // autoPromptType value not provided
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -2088,7 +2036,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         // autoPromptType value not provided
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -2128,7 +2075,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         // autoPromptType value not provided
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -2169,7 +2115,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         // autoPromptType value not provided
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -2210,7 +2155,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         // autoPromptType value not provided
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -2251,7 +2195,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         // autoPromptType value not provided
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 
@@ -2288,7 +2231,6 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({
           // autoPromptType value not provided
           alwaysShow: false,
-          displayLargePromptFn: alternatePromptSpy,
         });
         await tick(10);
 
@@ -2332,7 +2274,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         // autoPromptType value not provided
         alwaysShow: false,
-        displayLargePromptFn: alternatePromptSpy,
       });
       await tick(10);
 

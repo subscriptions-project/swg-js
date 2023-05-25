@@ -34,6 +34,7 @@ import {Entitlements} from '../api/entitlements';
 import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
+import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
@@ -66,7 +67,6 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
 export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
-  displayLargePromptFn?: () => void;
   isClosable?: boolean;
 }
 
@@ -139,7 +139,10 @@ export class AutoPromptManager {
     if (params.alwaysShow) {
       this.showPrompt_(
         this.getPromptTypeToDisplay_(params.autoPromptType),
-        params.displayLargePromptFn
+        this.getMonetizationPromptFn_(
+          params,
+          params.isClosable ?? !this.isSubscription_(params)
+        )
       );
       return;
     }
@@ -193,20 +196,6 @@ export class AutoPromptManager {
     // subscription revenue model, while all others can be dismissed.
     const isClosable = params.isClosable ?? !this.isSubscription_(params);
 
-    if (this.isSubscription_(params)) {
-      params.displayLargePromptFn = () => {
-        this.configuredRuntime_.showOffers({
-          isClosable,
-        });
-      };
-    } else if (this.isContribution_(params)) {
-      params.displayLargePromptFn = () => {
-        this.configuredRuntime_.showContributionOptions({
-          isClosable,
-        });
-      };
-    }
-
     const shouldShowMonetizationPromptAsSoftPaywall =
       this.canDisplayMonetizationPromptFromUiPredicates_(
         clientConfig.uiPredicates
@@ -232,7 +221,7 @@ export class AutoPromptManager {
           autoPromptType: params.autoPromptType,
           isClosable,
         })
-      : params.displayLargePromptFn;
+      : this.getMonetizationPromptFn_(params, isClosable);
 
     const shouldShowBlockingPrompt =
       this.shouldShowBlockingPrompt_(
@@ -285,10 +274,31 @@ export class AutoPromptManager {
   }
 
   /**
+   * Returns a function to show the appropriate monetization prompt,
+   * or undefined if the type of prompt cannot be determined.
+   */
+  private getMonetizationPromptFn_(
+    params: ShowAutoPromptParams,
+    isClosable: boolean
+  ): (() => void) | undefined {
+    const options: OffersRequest = {isClosable};
+    if (this.isSubscription_(params)) {
+      return () => {
+        this.configuredRuntime_.showOffers(options);
+      };
+    } else if (this.isContribution_(params)) {
+      return () => {
+        this.configuredRuntime_.showContributionOptions(options);
+      };
+    }
+    return undefined;
+  }
+
+  /**
    * Determines whether a mini prompt for contributions or subscriptions can
    * be shown based on the UI Predicates.
    */
-  canDisplayMonetizationPromptFromUiPredicates_(
+  private canDisplayMonetizationPromptFromUiPredicates_(
     uiPredicates?: UiPredicates
   ): boolean {
     // If false publication predicate was returned in the response, don't show
