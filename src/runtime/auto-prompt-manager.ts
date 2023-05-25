@@ -110,19 +110,10 @@ export class AutoPromptManager {
       .eventManager()
       .registerEventListener(this.handleClientEvent_.bind(this));
 
-    this.miniPromptAPI_ = this.getMiniPromptApi_(deps_);
+    this.miniPromptAPI_ = new MiniPromptApi(deps_);
     this.miniPromptAPI_.init();
 
     this.eventManager_ = deps_.eventManager();
-  }
-
-  /**
-   * Returns an instance of MiniPromptApi. Can be overwridden by subclasses,
-   * such as in order to instantiate a different implementation of
-   * MiniPromptApi.
-   */
-  private getMiniPromptApi_(deps: Deps): MiniPromptApi {
-    return new MiniPromptApi(deps);
   }
 
   /**
