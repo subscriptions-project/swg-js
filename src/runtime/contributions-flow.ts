@@ -66,9 +66,6 @@ export class ContributionsFlow {
     const isClosable = this.options_?.isClosable ?? true;
 
     const clientConfig = await this.clientConfigManager_.getClientConfig();
-    if (!this.shouldShow_(clientConfig)) {
-      return null;
-    }
 
     return new ActivityIframeView(
       this.win_,
@@ -160,14 +157,6 @@ export class ContributionsFlow {
     return clientConfig.useUpdatedOfferFlows && !shouldAllowScroll
       ? {shouldDisableBodyScrolling: true}
       : {};
-  }
-
-  /**
-   * Returns whether this flow is configured as enabled, not showing
-   * even on explicit start when flag is configured false.
-   */
-  private shouldShow_(clientConfig: ClientConfig): boolean {
-    return clientConfig.uiPredicates?.canDisplayAutoPrompt !== false;
   }
 
   /**

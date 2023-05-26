@@ -187,10 +187,13 @@ export class AutoPromptManager {
     // subscription revenue model, while all others can be dismissed.
     const isClosable = params.isClosable ?? !this.isSubscription_(params);
 
-    const shouldShowMonetizationPromptAsSoftPaywall =
+    const canDisplayMonetizationPromptFromUiPredicates =
       this.canDisplayMonetizationPromptFromUiPredicates_(
         clientConfig.uiPredicates
-      ) &&
+      );
+
+    const shouldShowMonetizationPromptAsSoftPaywall =
+      canDisplayMonetizationPromptFromUiPredicates &&
       (await this.shouldShowMonetizationPromptAsSoftPaywall(
         params.autoPromptType,
         clientConfig.autoPromptConfig
@@ -212,12 +215,14 @@ export class AutoPromptManager {
           autoPromptType: params.autoPromptType,
           isClosable,
         })
-      : this.getMonetizationPromptFn_(params, isClosable);
+      : canDisplayMonetizationPromptFromUiPredicates
+      ? this.getMonetizationPromptFn_(params, isClosable)
+      : undefined;
 
     const shouldShowBlockingPrompt =
       this.shouldShowBlockingPrompt_(
         /* hasPotentialAudienceAction */ !!potentialAction?.type
-      ) && promptFn;
+      ) && !!promptFn;
     if (
       !shouldShowMonetizationPromptAsSoftPaywall &&
       !shouldShowBlockingPrompt
