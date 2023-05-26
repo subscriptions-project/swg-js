@@ -136,10 +136,6 @@ export class OffersFlow {
   ): Promise<ActivityIframeView | null> {
     const clientConfig = await this.clientConfigPromise_!;
 
-    if (!this.shouldShow_(clientConfig)) {
-      return null;
-    }
-
     return new ActivityIframeView(
       this.win_,
       this.activityPorts_,
@@ -228,14 +224,6 @@ export class OffersFlow {
         this.clientConfigManager_.shouldAllowScroll()
       )
     );
-  }
-
-  /**
-   * Returns whether this flow is configured as enabled, not showing
-   * even on explicit start when flag is configured false.
-   */
-  shouldShow_(clientConfig: ClientConfig): boolean {
-    return clientConfig.uiPredicates?.canDisplayAutoPrompt !== false;
   }
 
   /**
