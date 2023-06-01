@@ -51,7 +51,7 @@ export class JsError {
     // Send error.
     const img = this.doc_.getWin().document.createElement('img');
     img.src =
-      `${FRONTEND}/_/SubscribewithgoogleClientUi/jserror` +
+      `${FRONTEND}/swg/_/SubscribewithgoogleClientUi/jserror` +
       '?error=' +
       encodeURIComponent(String(error)) +
       '&script=' +

@@ -43,7 +43,7 @@ describes.realWin('JsError', (env) => {
     const src = parseUrl(elements[0].src);
     const params = parseQueryString(src.search);
     expect(src.origin).to.equal('https://news.google.com');
-    expect(src.pathname).to.equal('/_/SubscribewithgoogleClientUi/jserror');
+    expect(src.pathname).to.equal('/swg/_/SubscribewithgoogleClientUi/jserror');
     expect(params['script']).to.equal(
       'https://news.google.com/swg/js/v1/swg.js'
     );
@@ -69,7 +69,7 @@ describes.realWin('JsError', (env) => {
     const src = parseUrl(elements[0].src);
     const params = parseQueryString(src.search);
     expect(src.origin).to.equal('https://news.google.com');
-    expect(src.pathname).to.equal('/_/SubscribewithgoogleClientUi/jserror');
+    expect(src.pathname).to.equal('/swg/_/SubscribewithgoogleClientUi/jserror');
     expect(params['script']).to.equal(
       'https://news.google.com/swg/js/v1/swg.js'
     );
@@ -84,7 +84,7 @@ describes.realWin('JsError', (env) => {
     const src = parseUrl(elements[0].src);
     const params = parseQueryString(src.search);
     expect(src.origin).to.equal('https://news.google.com');
-    expect(src.pathname).to.equal('/_/SubscribewithgoogleClientUi/jserror');
+    expect(src.pathname).to.equal('/swg/_/SubscribewithgoogleClientUi/jserror');
     expect(params['script']).to.equal(
       'https://news.google.com/swg/js/v1/swg.js'
     );
@@ -101,7 +101,7 @@ describes.realWin('JsError', (env) => {
     const src = parseUrl(elements[0].src);
     const params = parseQueryString(src.search);
     expect(src.origin).to.equal('https://news.google.com');
-    expect(src.pathname).to.equal('/_/SubscribewithgoogleClientUi/jserror');
+    expect(src.pathname).to.equal('/swg/_/SubscribewithgoogleClientUi/jserror');
     expect(params['script']).to.equal(
       'https://news.google.com/swg/js/v1/swg.js'
     );
