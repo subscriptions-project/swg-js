@@ -290,6 +290,17 @@ describes.realWin('Runtime', (env) => {
       }).to.throw(/already configured/);
     });
 
+    it('should log init error to server', async () => {
+      const configuredRuntime = await runtime.configured_(true);
+      const jserror = sandbox.mock(configuredRuntime.jserror());
+      jserror.expects('error').once();
+      expect(() => {
+        runtime.init('pub2');
+      }).to.throw(/already configured/);
+      await runtime.configured_(false);
+      jserror.verify();
+    });
+
     it('should fail when config lookup fails', async () => {
       configPromise = Promise.reject('config broken');
 

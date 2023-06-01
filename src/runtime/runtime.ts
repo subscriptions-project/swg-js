@@ -296,7 +296,15 @@ export class Runtime implements SubscriptionsInterface {
   }
 
   init(productOrPublicationId: string): void {
-    assert(!this.startedConfiguringRuntime_, 'already configured');
+    if (this.startedConfiguringRuntime_) {
+      // Throw and log an error if the runtime has already been configured.
+      const error = new Error('already configured');
+      this.configured_(false).then((configuredRuntime) => {
+        configuredRuntime.jserror().error(error);
+      });
+      throw error;
+    }
+
     this.productOrPublicationId_ = productOrPublicationId;
 
     // Process the page's config. Then start logging events in the
