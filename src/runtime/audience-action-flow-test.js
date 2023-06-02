@@ -710,6 +710,9 @@ describes.realWin('AudienceActionFlow', (env) => {
             'survey_question_category': TEST_QUESTION_CATEGORY_1,
             'survey_answer': TEST_ANSWER_TEXT_1,
             'survey_answer_category': TEST_ANSWER_CATEGORY_1,
+            'content_id': TEST_QUESTION_CATEGORY_1,
+            'content_group': TEST_QUESTION_TEXT_1,
+            'content_type': TEST_ANSWER_TEXT_1,
           },
         }
       )
@@ -731,6 +734,9 @@ describes.realWin('AudienceActionFlow', (env) => {
             'survey_question_category': TEST_QUESTION_CATEGORY_2,
             'survey_answer': TEST_ANSWER_TEXT_2,
             'survey_answer_category': TEST_ANSWER_CATEGORY_2,
+            'content_id': TEST_QUESTION_CATEGORY_1,
+            'content_group': TEST_QUESTION_TEXT_1,
+            'content_type': TEST_ANSWER_TEXT_1,
           },
         }
       )
@@ -1033,6 +1039,9 @@ describes.realWin('AudienceActionFlow', (env) => {
             'survey_question_category': '',
             'survey_answer': '',
             'survey_answer_category': '',
+            'content_id': '',
+            'content_group': '',
+            'content_type': '',
           },
         }
       )
