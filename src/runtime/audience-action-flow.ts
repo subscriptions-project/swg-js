@@ -397,7 +397,7 @@ export class AudienceActionFlow {
         isFromUserAction: true,
         additionalParameters: null,
       };
-      
+
       const eventParams = {
         googleAnalyticsParameters: {
           // Custom dimensions.
