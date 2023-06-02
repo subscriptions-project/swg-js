@@ -135,6 +135,7 @@ export class EntitlementsManager {
   private encodedParams_: string | null = null;
   private positiveRetries_ = 0;
   private responsePromise_: Promise<Entitlements> | null = null;
+  private currentParams_: GetEntitlementsParamsExternalDef | null = null;
 
   /**
    * Tests can use this promise to wait for POST requests to finish.
@@ -173,6 +174,7 @@ export class EntitlementsManager {
 
   reset(expectPositive = false): void {
     this.responsePromise_ = null;
+    this.currentParams_ = null;
     this.positiveRetries_ = Math.max(
       this.positiveRetries_,
       expectPositive ? 3 : 0
