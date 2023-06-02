@@ -397,15 +397,22 @@ export class AudienceActionFlow {
         isFromUserAction: true,
         additionalParameters: null,
       };
-      // TODO(yeongjinoh): Remove default dimensions once beta publishers complete
-      // migration to GA4.
+
       const eventParams = {
         googleAnalyticsParameters: {
-          'event_category': question.getQuestionCategory() || '',
+          // Custom dimensions.
           'survey_question': question.getQuestionText() || '',
           'survey_question_category': question.getQuestionCategory() || '',
           'survey_answer': answer.getAnswerText() || '',
           'survey_answer_category': answer.getAnswerCategory() || '',
+          // GA4 Default dimensions.
+          'content_id': question.getQuestionCategory() || '',
+          'content_group': question.getQuestionText() || '',
+          'content_type': answer.getAnswerText() || '',
+          // UA Default dimensions.
+          // TODO(yeongjinoh): Remove default dimensions once beta publishers
+          // complete migration to GA4.
+          'event_category': question.getQuestionCategory() || '',
           'event_label': answer.getAnswerText() || '',
         },
       };
