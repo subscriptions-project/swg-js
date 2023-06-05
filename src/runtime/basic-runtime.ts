@@ -608,12 +608,12 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       {
         [ButtonAttributeValues.SUBSCRIPTION]: () => {
           this.configuredClassicRuntime_.showOffers({
-            isClosable: !this.pageConfig().isLocked(),
+            isClosable: true,
           });
         },
         [ButtonAttributeValues.CONTRIBUTION]: () => {
           this.configuredClassicRuntime_.showContributionOptions({
-            isClosable: !this.pageConfig().isLocked(),
+            isClosable: true,
           });
         },
       }
