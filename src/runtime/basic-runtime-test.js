@@ -776,7 +776,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredClassicRuntimeMock
         .expects('showOffers')
         .withExactArgs({
-          isClosable: true,
+          isClosable: false,
         })
         .once();
 
