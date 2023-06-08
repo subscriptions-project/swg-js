@@ -245,7 +245,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=configId&hl=pt-BR&isClosable=false`,
+        )}&configurationId=configId&isClosable=false&hl=pt-BR`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
