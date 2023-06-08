@@ -105,15 +105,24 @@ export class AudienceActionFlow {
 
     this.storage_ = deps_.storage();
 
+    const iframeParams = {
+      'origin': parseUrl(deps_.win().location.href).origin,
+      'configurationId': this.params_.configurationId || '',
+      'isClosable': (!!params_.isClosable).toString(),
+    };
+    const iframeParamsWithLanguage = {
+      ...iframeParams,
+      'hl': this.clientConfigManager_.getLanguage(),
+    };
     this.activityIframeView_ = new ActivityIframeView(
       deps_.win(),
       deps_.activities(),
-      feUrl(actionToIframeMapping[params_.action], {
-        'origin': parseUrl(deps_.win().location.href).origin,
-        'configurationId': this.params_.configurationId || '',
-        'hl': this.clientConfigManager_.getLanguage(),
-        'isClosable': (!!params_.isClosable).toString(),
-      }),
+      feUrl(
+        actionToIframeMapping[params_.action],
+        this.clientConfigManager_.shouldForceLangInIframes()
+          ? iframeParamsWithLanguage
+          : iframeParams
+      ),
       feArgs({
         'supportsEventManager': true,
         'productType': this.productType_,
