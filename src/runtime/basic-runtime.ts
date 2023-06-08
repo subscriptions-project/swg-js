@@ -595,6 +595,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
    * Prompts are dismissible as they are triggered by user clicks (b/281122183).
+   *
    */
   async setupButtons(): Promise<void> {
     const enable = await this.clientConfigManager().shouldEnableButton();
