@@ -212,7 +212,7 @@ describes.realWin('AudienceActionFlow', (env) => {
             WINDOW_LOCATION_DOMAIN
           )}&configurationId=${
             configurationId === undefined ? '' : configurationId
-          }&hl=en&isClosable=false`,
+          }&isClosable=false`,
           {
             _client: 'SwG 0.0.0',
             productType: ProductType.SUBSCRIPTION,
@@ -231,6 +231,7 @@ describes.realWin('AudienceActionFlow', (env) => {
 
   it('opens an AudienceActionFlow with query param locale set to client configuration language', async () => {
     clientOptions.lang = 'pt-BR';
+    clientOptions.forceLangInIframes = true;
     sandbox.stub(runtime.storage(), 'get').resolves(null);
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
@@ -1257,7 +1258,7 @@ describes.realWin('AudienceActionFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/surveyiframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=&hl=en&isClosable=true`,
+        )}&configurationId=&isClosable=true`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
