@@ -594,6 +594,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
+   * Prompts are dismissible as they are triggered by user clicks (b/281122183).
    */
   async setupButtons(): Promise<void> {
     const enable = await this.clientConfigManager().shouldEnableButton();
@@ -608,12 +609,12 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       {
         [ButtonAttributeValues.SUBSCRIPTION]: () => {
           this.configuredClassicRuntime_.showOffers({
-            isClosable: !this.pageConfig().isLocked(),
+            isClosable: true,
           });
         },
         [ButtonAttributeValues.CONTRIBUTION]: () => {
           this.configuredClassicRuntime_.showContributionOptions({
-            isClosable: !this.pageConfig().isLocked(),
+            isClosable: true,
           });
         },
       }

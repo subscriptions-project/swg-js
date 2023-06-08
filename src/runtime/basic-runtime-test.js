@@ -628,7 +628,7 @@ describes.realWin('BasicRuntime', (env) => {
       configuredClassicRuntimeMock
         .expects('showOffers')
         .withExactArgs({
-          isClosable: false,
+          isClosable: true,
         })
         .once();
       await subscriptionButton.click();
@@ -636,7 +636,7 @@ describes.realWin('BasicRuntime', (env) => {
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
         .withExactArgs({
-          isClosable: false,
+          isClosable: true,
         })
         .once();
       await contributionButton.click();
