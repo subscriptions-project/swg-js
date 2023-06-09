@@ -105,13 +105,13 @@ export class AudienceActionFlow {
 
     this.storage_ = deps_.storage();
 
-    let iframeParams: {[key: string]: string} = {
+    const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(deps_.win().location.href).origin,
       'configurationId': this.params_.configurationId || '',
       'isClosable': (!!params_.isClosable).toString(),
     };
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
-      iframeParams['h1'] = this.clientConfigManager_.getLanguage();
+      iframeParams['hl'] = this.clientConfigManager_.getLanguage();
     }
     this.activityIframeView_ = new ActivityIframeView(
       deps_.win(),
