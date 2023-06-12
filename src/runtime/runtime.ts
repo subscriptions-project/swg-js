@@ -893,17 +893,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     if (!this.pageConfig_.getProductId() || !this.pageConfig_.isLocked()) {
       return Promise.resolve();
     }
-    if (
-      isExperimentOn(this.win(), ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC)
-    ) {
-      // Populate the client config. Wait for getEntitlements() since the config is
-      // available in the /article response.
-      this.clientConfigManager().fetchClientConfig(
-        /* readyPromise= */ this.getEntitlements()
-      );
-    } else {
-      this.getEntitlements();
-    }
+    this.getEntitlements();
   }
 
   async getEntitlements(
@@ -912,12 +902,25 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     if (params?.publisherProvidedId) {
       params.publisherProvidedId = this.publisherProvidedId_;
     }
-    const entitlements = await this.entitlementsManager_.getEntitlements(
-      params
-    );
+    const entitlementsPromise =
+      this.entitlementsManager_.getEntitlements(params);
+
+    if (
+      isExperimentOn(this.win(), ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC)
+    ) {
+      // Populate the client config. Wait for the entitlements since the
+      // config is available in the /article response.
+      this.clientConfigManager().fetchClientConfig(
+        /* readyPromise= */ entitlementsPromise
+      );
+    }
+
+    const entitlements = await entitlementsPromise;
+
     // The swg user token is stored in the entitlements flow, so the analytics service is ready for logging.
     this.analyticsService_.setReadyForLogging();
     this.analyticsService_.start();
+
     // Auto update internal things tracking the user's current SKU.
     if (entitlements) {
       try {
