@@ -1465,34 +1465,8 @@ describes.realWin('ConfiguredRuntime', (env) => {
         await runtime.getEntitlements({publisherProvidedId: true});
       });
 
-      it('does not populate client config', async () => {
-        const entitlements = new Entitlements(
-          'service',
-          'raw',
-          [],
-          'product1',
-          () => {}
-        );
-
-        entitlementsManagerMock
-          .expects('getEntitlements')
-          .withExactArgs(undefined)
-          .resolves(entitlements)
-          .once();
-
-        clientConfigManagerMock.expects('fetchClientConfig').never();
-
-        await runtime.start();
-      });
-
-      describe('with POPULATE_CLIENT_CONFIG_CLASSIC flag enabled', () => {
-        it('starts entitlements flow and fetches client config', async () => {
-          setExperiment(
-            win,
-            ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC,
-            true
-          );
-
+      describe('getEntitlements', () => {
+        it('does not populate client config by default', async () => {
           const entitlements = new Entitlements(
             'service',
             'raw',
@@ -1507,15 +1481,43 @@ describes.realWin('ConfiguredRuntime', (env) => {
             .resolves(entitlements)
             .once();
 
-          clientConfigManagerMock
-            .expects('fetchClientConfig')
-            .callsFake(async (readyPromise) => {
-              const promiseValue = await readyPromise;
-              expect(promiseValue).to.equal(entitlements);
-            })
-            .once();
+          clientConfigManagerMock.expects('fetchClientConfig').never();
 
-          await runtime.start();
+          await runtime.getEntitlements();
+        });
+
+        describe('with POPULATE_CLIENT_CONFIG_CLASSIC flag enabled', () => {
+          it('starts entitlements flow and fetches client config', async () => {
+            setExperiment(
+              win,
+              ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC,
+              true
+            );
+
+            const entitlements = new Entitlements(
+              'service',
+              'raw',
+              [],
+              'product1',
+              () => {}
+            );
+
+            entitlementsManagerMock
+              .expects('getEntitlements')
+              .withExactArgs(undefined)
+              .resolves(entitlements)
+              .once();
+
+            clientConfigManagerMock
+              .expects('fetchClientConfig')
+              .callsFake(async (readyPromise) => {
+                const promiseValue = await readyPromise;
+                expect(promiseValue).to.equal(entitlements);
+              })
+              .once();
+
+            await runtime.getEntitlements();
+          });
         });
       });
     });
