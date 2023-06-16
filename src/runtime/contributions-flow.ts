@@ -44,7 +44,7 @@ export class ContributionsFlow {
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly activityPorts_: ActivityPorts;
   private readonly dialogManager_: DialogManager;
-  private readonly activityIframeViewPromise_: Promise<ActivityIframeView | null>;
+  private readonly activityIframeViewPromise_: Promise<ActivityIframeView>;
 
   constructor(
     private readonly deps_: Deps,
@@ -61,7 +61,7 @@ export class ContributionsFlow {
     this.activityIframeViewPromise_ = this.getActivityIframeView_();
   }
 
-  private async getActivityIframeView_(): Promise<ActivityIframeView | null> {
+  private async getActivityIframeView_(): Promise<ActivityIframeView> {
     // Default to showing close button.
     const isClosable = this.options_?.isClosable ?? true;
 
@@ -115,9 +115,6 @@ export class ContributionsFlow {
    */
   async start(): Promise<void> {
     const activityIframeView = await this.activityIframeViewPromise_;
-    if (!activityIframeView) {
-      return Promise.resolve();
-    }
 
     // Start/cancel events.
     this.deps_
