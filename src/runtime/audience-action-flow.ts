@@ -388,7 +388,8 @@ export class AudienceActionFlow {
   ): boolean {
     if (
       !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
-      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_)
+      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_) &&
+      !GoogleAnalyticsEventListener.isGtmEligible(this.deps_)
     ) {
       return false;
     }
