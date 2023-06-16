@@ -814,7 +814,60 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     activityIframeViewMock.verify();
   });
+    
+  it(`handles a SurveyDataTransferRequest with successful gtm logging`, async () => {
+    setWinWithoutGtag();
 
+    const dataLayerMock = sandbox
+      .mock()
+      .once();
+
+    const winWithDataLayer = Object.assign({}, win);
+    winWithDataLayer.dataLayer = {
+      push: dataLayerMock
+    };
+    runtime.win.restore();
+    sandbox.stub(runtime, 'win').returns(winWithDataLayer);
+
+    const audienceActionFlow = new AudienceActionFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: 'configId',
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    });
+
+    activitiesMock.expects('openIframe').resolves(port);
+
+    eventManagerMock.expects('logEvent').withExactArgs(
+      {
+        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: true,
+        additionalParameters: null,
+      },
+      undefined,
+      undefined
+    );
+
+    await audienceActionFlow.start();
+
+    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
+    successSurveyDataTransferResponse.setSuccess(true);
+
+    const activityIframeViewMock = sandbox
+      .mock(audienceActionFlow.activityIframeView_)
+      .expects('execute')
+      .withExactArgs(successSurveyDataTransferResponse)
+      .once();
+
+    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
+    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
+
+    await tick(10);
+
+    activityIframeViewMock.verify();
+    dataLayerMock.verify();
+  });
+  
   it(`handles a SurveyDataTransferRequest with successful onResult logging`, async () => {
     const onResultMock = sandbox
       .mock()
