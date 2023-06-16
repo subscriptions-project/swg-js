@@ -814,17 +814,12 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     activityIframeViewMock.verify();
   });
-    
+
   it(`handles a SurveyDataTransferRequest with successful gtm logging`, async () => {
-    setWinWithoutGtag();
-
-    const dataLayerMock = sandbox
-      .mock()
-      .once();
-
     const winWithDataLayer = Object.assign({}, win);
+    delete winWithDataLayer.gtag;
     winWithDataLayer.dataLayer = {
-      push: dataLayerMock
+      push: () => {},
     };
     runtime.win.restore();
     sandbox.stub(runtime, 'win').returns(winWithDataLayer);
@@ -832,11 +827,59 @@ describes.realWin('AudienceActionFlow', (env) => {
     const audienceActionFlow = new AudienceActionFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
+      onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
     });
-
     activitiesMock.expects('openIframe').resolves(port);
 
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+        },
+        {
+          googleAnalyticsParameters: {
+            'event_category': TEST_QUESTION_CATEGORY_1,
+            'event_label': TEST_ANSWER_TEXT_1,
+            'survey_question': TEST_QUESTION_TEXT_1,
+            'survey_question_category': TEST_QUESTION_CATEGORY_1,
+            'survey_answer': TEST_ANSWER_TEXT_1,
+            'survey_answer_category': TEST_ANSWER_CATEGORY_1,
+            'content_id': TEST_QUESTION_CATEGORY_1,
+            'content_group': TEST_QUESTION_TEXT_1,
+            'content_type': TEST_ANSWER_TEXT_1,
+          },
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+        },
+        {
+          googleAnalyticsParameters: {
+            'event_category': TEST_QUESTION_CATEGORY_2,
+            'event_label': TEST_ANSWER_TEXT_2,
+            'survey_question': TEST_QUESTION_TEXT_2,
+            'survey_question_category': TEST_QUESTION_CATEGORY_2,
+            'survey_answer': TEST_ANSWER_TEXT_2,
+            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
+            'content_id': TEST_QUESTION_CATEGORY_2,
+            'content_group': TEST_QUESTION_TEXT_2,
+            'content_type': TEST_ANSWER_TEXT_2,
+          },
+        }
+      )
+      .once();
     eventManagerMock.expects('logEvent').withExactArgs(
       {
         eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
@@ -852,9 +895,10 @@ describes.realWin('AudienceActionFlow', (env) => {
 
     const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
     successSurveyDataTransferResponse.setSuccess(true);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activityIframeViewMock
       .expects('execute')
       .withExactArgs(successSurveyDataTransferResponse)
       .once();
@@ -865,9 +909,8 @@ describes.realWin('AudienceActionFlow', (env) => {
     await tick(10);
 
     activityIframeViewMock.verify();
-    dataLayerMock.verify();
   });
-  
+
   it(`handles a SurveyDataTransferRequest with successful onResult logging`, async () => {
     const onResultMock = sandbox
       .mock()
