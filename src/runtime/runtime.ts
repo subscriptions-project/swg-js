@@ -481,7 +481,7 @@ export class Runtime implements SubscriptionsInterface {
 
   async saveSubscription(
     saveSubscriptionRequestCallback: SaveSubscriptionRequestCallback
-  ): Promise<void> {
+  ): Promise<boolean> {
     const runtime = await this.configured_(true);
     return runtime.saveSubscription(saveSubscriptionRequestCallback);
   }
@@ -1017,9 +1017,12 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
   async saveSubscription(
     saveSubscriptionRequestCallback: SaveSubscriptionRequestCallback
-  ): Promise<void> {
+  ): Promise<boolean> {
     await this.documentParsed_;
-    await new LinkSaveFlow(this, saveSubscriptionRequestCallback).start();
+    return await new LinkSaveFlow(
+      this,
+      saveSubscriptionRequestCallback
+    ).start();
   }
 
   async showLoginPrompt(): Promise<void> {

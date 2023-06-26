@@ -1924,36 +1924,47 @@ subscribe() method'
       expect(flowInstance.productType_).to.equal(ProductType.UI_CONTRIBUTION);
     });
 
-    it('should start saveSubscriptionFlow with callback for token', async () => {
-      let linkSaveFlow;
-      const newPromise = new Promise(() => {});
-      sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function () {
-        linkSaveFlow = this;
-        return newPromise;
+    describe('saveSubscription', () => {
+      it('starts LinkSaveFlow with callback for token', async () => {
+        let linkSaveFlow;
+        const newPromise = new Promise(() => {});
+        sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function () {
+          linkSaveFlow = this;
+          return newPromise;
+        });
+        const requestPromise = new Promise((resolve) => {
+          resolve({token: 'test'});
+        });
+        runtime.saveSubscription(() => requestPromise);
+
+        await runtime.documentParsed_;
+        expect(linkSaveFlow.callback_()).to.equal(requestPromise);
+
+        const request = await linkSaveFlow.callback_();
+        expect(request).to.deep.equal({token: 'test'});
       });
-      const requestPromise = new Promise((resolve) => {
-        resolve({token: 'test'});
+
+      it('starts LinkSaveFlow with callback for authcode', async () => {
+        let linkSaveFlow;
+        const newPromise = new Promise(() => {});
+        sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function () {
+          linkSaveFlow = this;
+          return newPromise;
+        });
+        runtime.saveSubscription(() => ({authCode: 'testCode'}));
+
+        await runtime.documentParsed_;
+        expect(linkSaveFlow.callback_()).to.deep.equal({authCode: 'testCode'});
       });
-      runtime.saveSubscription(() => requestPromise);
 
-      await runtime.documentParsed_;
-      expect(linkSaveFlow.callback_()).to.equal(requestPromise);
-
-      const request = await linkSaveFlow.callback_();
-      expect(request).to.deep.equal({token: 'test'});
-    });
-
-    it('should start saveSubscriptionFlow with callback for authcode', async () => {
-      let linkSaveFlow;
-      const newPromise = new Promise(() => {});
-      sandbox.stub(LinkSaveFlow.prototype, 'start').callsFake(function () {
-        linkSaveFlow = this;
-        return newPromise;
+      it('returns promise with result of LinkSaveFlow start()', async () => {
+        sandbox.stub(LinkSaveFlow.prototype, 'start').resolves(true);
+        const requestPromise = new Promise((resolve) => {
+          resolve({token: 'test'});
+        });
+        const result = await runtime.saveSubscription(() => requestPromise);
+        expect(result).to.equal(true);
       });
-      runtime.saveSubscription(() => ({authCode: 'testCode'}));
-
-      await runtime.documentParsed_;
-      expect(linkSaveFlow.callback_()).to.deep.equal({authCode: 'testCode'});
     });
 
     it('should start LoginPromptApi', async () => {

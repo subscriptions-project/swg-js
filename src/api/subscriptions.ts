@@ -207,11 +207,11 @@ export interface Subscriptions {
 
   /**
    * Starts the save subscriptions flow.
-   * @return a promise indicating flow is started
+   * @return a promise indicating whether the flow completed successfully.
    */
   saveSubscription(
     requestCallback: SaveSubscriptionRequestCallback
-  ): Promise<void>;
+  ): Promise<boolean>;
 
   /**
    * Starts the subscription linking flow.
