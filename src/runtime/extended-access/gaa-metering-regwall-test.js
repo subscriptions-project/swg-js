@@ -1036,7 +1036,7 @@ describes.realWin('GaaMeteringRegwall', () => {
     });
   });
 
-  describe('logButtonClickEvents_', () => {
+  describe('click event logging', () => {
     it('sends GSI button click event', async () => {
       // Show Regwall.
       GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
@@ -1111,6 +1111,40 @@ describes.realWin('GaaMeteringRegwall', () => {
         {
           analyticsEvent:
             AnalyticsEvent.ACTION_SHOWCASE_REGWALL_3P_BUTTON_CLICK,
+          isFromUserAction: true,
+        },
+      ]);
+    });
+
+    it('only logs click once if show is called multiple times', async () => {
+      logEvent = sandbox.fake();
+
+      // Show Regwall.
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
+      await tick();
+
+      // Call show again.
+      GaaMeteringRegwall.show({iframeUrl: GSI_IFRAME_URL});
+      await tick();
+
+      logEvent.resetHistory();
+
+      const messageListener = new Promise((resolve) => {
+        addEventListener('message', resolve);
+      });
+
+      // Send button click post message.
+      postMessage({
+        stamp: POST_MESSAGE_STAMP,
+        command: POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
+      });
+
+      await messageListener;
+
+      // Verify that only one event is sent.
+      expectAnalyticsEvents([
+        {
+          analyticsEvent: AnalyticsEvent.ACTION_SHOWCASE_REGWALL_GSI_CLICK,
           isFromUserAction: true,
         },
       ]);
