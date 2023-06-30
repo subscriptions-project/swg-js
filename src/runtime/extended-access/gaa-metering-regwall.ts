@@ -60,6 +60,8 @@ import {getLanguageCodeFromElement, msg} from '../../utils/i18n';
 import {resolveDoc} from '../../model/doc';
 import {setImportantStyles} from '../../utils/style';
 
+let loggingEventHandlersAdded = false;
+
 export class GaaMeteringRegwall {
   /**
    * Returns a promise for a Google user object.
@@ -435,6 +437,10 @@ export class GaaMeteringRegwall {
    * Logs button click events.
    */
   private static logButtonClickEvents_(): void {
+    if (loggingEventHandlersAdded) {
+      return;
+    }
+    loggingEventHandlersAdded = true;
     // Listen for button event messages.
     self.addEventListener('message', (e) => {
       if (
