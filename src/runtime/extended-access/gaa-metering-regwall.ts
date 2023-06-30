@@ -437,6 +437,7 @@ export class GaaMeteringRegwall {
    * Logs button click events.
    */
   private static logButtonClickEvents_(): void {
+    // Only add event handlers once.
     if (loggingEventHandlersAdded) {
       return;
     }
