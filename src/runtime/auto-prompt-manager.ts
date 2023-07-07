@@ -768,17 +768,14 @@ export class AutoPromptManager {
     canDisplayMonetizationPrompt: boolean,
     isSurveyEligible: boolean
   ): boolean {
-    if (actionType === TYPE_REWARDED_SURVEY) {
+    if (actionType === TYPE_SUBSCRIPTION || actionType === TYPE_CONTRIBUTION) {
+      return canDisplayMonetizationPrompt;
+    } else if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
       return isSurveyEligible && isAnalyticsEligible;
-    } else if (
-      actionType === TYPE_SUBSCRIPTION ||
-      actionType === TYPE_CONTRIBUTION
-    ) {
-      return canDisplayMonetizationPrompt;
     }
     return true;
   }
