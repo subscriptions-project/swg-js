@@ -1057,36 +1057,120 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
-  it('should not display any prompt if UI predicate is false', async () => {
-    sandbox.stub(pageConfig, 'isLocked').returns(true);
-    const entitlements = new Entitlements();
-    sandbox.stub(entitlements, 'enablesThis').returns(false);
-    entitlementsManagerMock
-      .expects('getEntitlements')
-      .resolves(entitlements)
-      .once();
-
-    const autoPromptConfig = new AutoPromptConfig({});
-    const uiPredicates = new UiPredicates(
-      /* canDisplayAutoPrompt */ false,
-      /* canDisplayButton */ true
-    );
-    const clientConfig = new ClientConfig({
-      autoPromptConfig,
-      useUpdatedOfferFlows: true,
-      uiPredicates,
-    });
-    clientConfigManagerMock
-      .expects('getClientConfig')
-      .resolves(clientConfig)
-      .once();
-    miniPromptApiMock.expects('create').never();
-
-    await autoPromptManager.showAutoPrompt({
+  [
+    {
       autoPromptType: AutoPromptType.CONTRIBUTION,
-      alwaysShow: false,
+    },
+    {
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    },
+  ].forEach(({autoPromptType}) => {
+    it(`should not display any prompt if UI predicate is false and page is locked for autoPromptType: ${autoPromptType}`, async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(false);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+
+      const autoPromptConfig = new AutoPromptConfig({});
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ false,
+        /* canDisplayButton */ false
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType,
+        alwaysShow: false,
+      });
+      await tick(7);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.be.called;
+      expect(subscriptionPromptFnSpy).to.not.be.called;
     });
-    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  [
+    {
+      actionType: 'TYPE_CONTRIBUTION',
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    },
+    {
+      actionType: 'TYPE_SUBSCRIPTION',
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    },
+    {
+      actionType: 'TYPE_CONTRIBUTION',
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    },
+    {
+      actionType: 'TYPE_SUBSCRIPTION',
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+    },
+  ].forEach(({actionType, autoPromptType}) => {
+    it(`should not display any prompt if UI predicate is false and article actions list contains ${actionType} for autoPromptType: ${autoPromptType}`, async () => {
+      const entitlements = new Entitlements();
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+
+      const autoPromptConfig = new AutoPromptConfig({});
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ false,
+        /* canDisplayButton */ false,
+        /* purchaseUnavailableRegion */ false
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      const getArticleExpectation =
+        entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: actionType,
+                configurationId: 'config_id',
+              },
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+      miniPromptApiMock.expects('create').never();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType,
+        alwaysShow: false,
+      });
+      await tick(7);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.be.called;
+      expect(subscriptionPromptFnSpy).to.not.be.called;
+    });
   });
 
   it('should display the contribution mini prompt if the user has no entitlements and UI predicate is true', async () => {
