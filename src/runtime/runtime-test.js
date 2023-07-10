@@ -42,7 +42,6 @@ import {DeferredAccountFlow} from './deferred-account-flow';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
-import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
@@ -64,11 +63,7 @@ import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {XhrFetcher} from './fetcher';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
-import {
-  isExperimentOn,
-  setExperiment,
-  setExperimentsStringForTesting,
-} from './experiments';
+import {isExperimentOn, setExperimentsStringForTesting} from './experiments';
 import {parseUrl} from '../utils/url';
 import {tick} from '../../test/tick';
 
@@ -840,7 +835,7 @@ describes.realWin('Runtime', (env) => {
         .callsFake(() => Promise.resolve(ents));
 
       await runtime.getEntitlements();
-      expect(xhrFetchStub).to.be.calledOnce;
+      expect(xhrFetchStub).to.be.called;
     });
 
     it('should override fetcher', async () => {
@@ -858,7 +853,7 @@ describes.realWin('Runtime', (env) => {
       });
 
       await runtime.getEntitlements();
-      expect(fetchStub).to.be.calledOnce;
+      expect(fetchStub).to.be.called;
       expect(xhrFetchStub).to.not.be.called;
     });
 
@@ -1466,7 +1461,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
       });
 
       describe('getEntitlements', () => {
-        it('does not populate client config by default', async () => {
+        it('starts entitlements flow and fetches client config', async () => {
           const entitlements = new Entitlements(
             'service',
             'raw',
@@ -1481,43 +1476,15 @@ describes.realWin('ConfiguredRuntime', (env) => {
             .resolves(entitlements)
             .once();
 
-          clientConfigManagerMock.expects('fetchClientConfig').never();
+          clientConfigManagerMock
+            .expects('fetchClientConfig')
+            .callsFake(async (readyPromise) => {
+              const promiseValue = await readyPromise;
+              expect(promiseValue).to.equal(entitlements);
+            })
+            .once();
 
           await runtime.getEntitlements();
-        });
-
-        describe('with POPULATE_CLIENT_CONFIG_CLASSIC flag enabled', () => {
-          it('starts entitlements flow and fetches client config', async () => {
-            setExperiment(
-              win,
-              ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC,
-              true
-            );
-
-            const entitlements = new Entitlements(
-              'service',
-              'raw',
-              [],
-              'product1',
-              () => {}
-            );
-
-            entitlementsManagerMock
-              .expects('getEntitlements')
-              .withExactArgs(undefined)
-              .resolves(entitlements)
-              .once();
-
-            clientConfigManagerMock
-              .expects('fetchClientConfig')
-              .callsFake(async (readyPromise) => {
-                const promiseValue = await readyPromise;
-                expect(promiseValue).to.equal(entitlements);
-              })
-              .once();
-
-            await runtime.getEntitlements();
-          });
         });
       });
     });
