@@ -204,6 +204,8 @@ export class AutoPromptManager {
           article,
           autoPromptType: params.autoPromptType,
           dismissedPrompts,
+          canDisplayMonetizationPrompt:
+            canDisplayMonetizationPromptFromUiPredicates,
           shouldShowMonetizationPromptAsSoftPaywall,
         })
       : undefined;
@@ -451,11 +453,13 @@ export class AutoPromptManager {
     article,
     autoPromptType,
     dismissedPrompts,
+    canDisplayMonetizationPrompt,
     shouldShowMonetizationPromptAsSoftPaywall,
   }: {
     article: Article;
     autoPromptType?: AutoPromptType;
     dismissedPrompts?: string | null;
+    canDisplayMonetizationPrompt: boolean;
     shouldShowMonetizationPromptAsSoftPaywall?: boolean;
   }): Promise<Intervention | void> {
     const audienceActions = article.audienceActions?.actions || [];
@@ -478,7 +482,11 @@ export class AutoPromptManager {
       !hasCompletedSurveys && !hasRecentSurveyDataTransferFailure;
 
     let potentialActions = audienceActions.filter((action) =>
-      this.checkActionEligibility_(action.type, isSurveyEligible)
+      this.checkActionEligibility_(
+        action.type,
+        canDisplayMonetizationPrompt,
+        isSurveyEligible
+      )
     );
 
     // No audience actions means use the default prompt, if it should be shown.
@@ -757,9 +765,12 @@ export class AutoPromptManager {
    */
   private checkActionEligibility_(
     actionType: string,
+    canDisplayMonetizationPrompt: boolean,
     isSurveyEligible: boolean
   ): boolean {
-    if (actionType === TYPE_REWARDED_SURVEY) {
+    if (actionType === TYPE_SUBSCRIPTION || actionType === TYPE_CONTRIBUTION) {
+      return canDisplayMonetizationPrompt;
+    } else if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
