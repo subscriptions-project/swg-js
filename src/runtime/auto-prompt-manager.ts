@@ -494,103 +494,42 @@ export class AutoPromptManager {
       )
     );
 
-    const experimentFlag = false;
-    if (experimentFlag) {
-      if (shouldShowMonetizationPromptAsSoftPaywall) {
-        this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
-          ? {type: TYPE_SUBSCRIPTION}
-          : this.isContribution_({autoPromptType})
-          ? {type: TYPE_CONTRIBUTION}
-          : null;
-        return undefined;
-      }
-
-      // Filter out monetization prompts
-      potentialActions = potentialActions.filter(
-        (action) =>
-          action.type !== TYPE_CONTRIBUTION && action.type !== TYPE_SUBSCRIPTION
-      );
-
-      if (!this.isSubscription_({autoPromptType})) {
-        // Suppress previously dismissed prompts.
-        let previouslyShownPrompts: string[] = [];
-        if (dismissedPrompts) {
-          previouslyShownPrompts = dismissedPrompts.split(',');
-          potentialActions = potentialActions.filter(
-            (action) => !previouslyShownPrompts.includes(action.type)
-          );
-        }
-      }
-
-      if (potentialActions.length === 0) {
-        return undefined;
-      }
-
-      const actionToUse = potentialActions[0];
-      this.interventionDisplayed_ = actionToUse;
-      return actionToUse.type === TYPE_CONTRIBUTION ||
-        actionToUse.type === TYPE_SUBSCRIPTION
-        ? undefined
-        : actionToUse;
-    }
-
-    // No audience actions means use the default prompt, if it should be shown.
-    if (potentialActions.length === 0) {
-      if (shouldShowMonetizationPromptAsSoftPaywall) {
-        this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
-          ? {type: TYPE_SUBSCRIPTION}
-          : this.isContribution_({autoPromptType})
-          ? {type: TYPE_CONTRIBUTION}
-          : null;
-      }
+    if (shouldShowMonetizationPromptAsSoftPaywall) {
+      this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
+        ? {type: TYPE_SUBSCRIPTION}
+        : this.isContribution_({autoPromptType})
+        ? {type: TYPE_CONTRIBUTION}
+        : null;
       return undefined;
     }
 
-    // For subscriptions, skip triggering checks and use the first potential action
-    if (this.isSubscription_({autoPromptType})) {
-      if (
-        shouldShowMonetizationPromptAsSoftPaywall ||
-        potentialActions[0].type === TYPE_SUBSCRIPTION
-      ) {
-        this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
-        return undefined;
-      }
-      const firstAction = potentialActions[0];
-      this.interventionDisplayed_ = firstAction;
-      return firstAction;
-    }
-
-    // Suppress previously dismissed prompts.
-    let previouslyShownPrompts: string[] = [];
-    if (dismissedPrompts) {
-      previouslyShownPrompts = dismissedPrompts.split(',');
-      potentialActions = potentialActions.filter(
-        (action) => !previouslyShownPrompts.includes(action.type)
-      );
-    }
-
-    const contributionIndex = potentialActions.findIndex(
-      (action) => action.type === TYPE_CONTRIBUTION
-    );
-    // If autoprompt should be shown, and the contribution action is either the first action or
-    // not passed through audience actions, honor it and display the contribution prompt.
-    if (shouldShowMonetizationPromptAsSoftPaywall && contributionIndex < 1) {
-      this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
-      return undefined;
-    }
-
-    // Filter out contribution actions as they were already processed.
+    // Filter out monetization prompts
     potentialActions = potentialActions.filter(
-      (action) => action.type !== TYPE_CONTRIBUTION
+      (action) =>
+        action.type !== TYPE_CONTRIBUTION && action.type !== TYPE_SUBSCRIPTION
     );
 
-    // Otherwise, return the next recommended action, if one is available.
+    if (!this.isSubscription_({autoPromptType})) {
+      // Suppress previously dismissed prompts.
+      let previouslyShownPrompts: string[] = [];
+      if (dismissedPrompts) {
+        previouslyShownPrompts = dismissedPrompts.split(',');
+        potentialActions = potentialActions.filter(
+          (action) => !previouslyShownPrompts.includes(action.type)
+        );
+      }
+    }
+
     if (potentialActions.length === 0) {
       return undefined;
     }
+
     const actionToUse = potentialActions[0];
     this.interventionDisplayed_ = actionToUse;
-    return actionToUse;
+    return actionToUse.type === TYPE_CONTRIBUTION ||
+      actionToUse.type === TYPE_SUBSCRIPTION
+      ? undefined
+      : actionToUse;
   }
 
   private audienceActionPrompt_({
