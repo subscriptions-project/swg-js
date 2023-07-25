@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {
   Article,
   EntitlementsManager,
@@ -26,21 +26,16 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEvent} from '../api/client-event-manager-api';
-import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
-import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
-import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {UiPredicates} from '../model/client-config';
 import {assert} from '../utils/log';
-import {isExperimentOn} from './experiments';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
@@ -48,14 +43,10 @@ const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const SECOND_IN_MILLIS = 1000;
 
 const impressionEvents = [
-  AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
-  AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
   AnalyticsEvent.IMPRESSION_OFFERS,
   AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
 ];
 const dismissEvents = [
-  AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
-  AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
   AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
 ];
@@ -80,20 +71,15 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
 
-  private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
   private readonly entitlementsManager_: EntitlementsManager;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly storage_: Storage;
-  private readonly miniPromptAPI_: MiniPromptApi;
-  private readonly eventManager_: ClientEventManager;
 
   constructor(
     private readonly deps_: Deps,
     private readonly configuredRuntime_: ConfiguredRuntime
   ) {
-    this.doc_ = deps_.doc();
-
     this.pageConfig_ = deps_.pageConfig();
 
     this.entitlementsManager_ = deps_.entitlementsManager();
@@ -109,11 +95,6 @@ export class AutoPromptManager {
     deps_
       .eventManager()
       .registerEventListener(this.handleClientEvent_.bind(this));
-
-    this.miniPromptAPI_ = new MiniPromptApi(deps_);
-    this.miniPromptAPI_.init();
-
-    this.eventManager_ = deps_.eventManager();
   }
 
   /**
@@ -134,7 +115,7 @@ export class AutoPromptManager {
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
       this.showPrompt_(
-        this.getPromptTypeToDisplay_(params.autoPromptType),
+        params.autoPromptType,
         this.getMonetizationPromptFn_(
           params,
           params.isClosable ?? !this.isSubscription_(params)
@@ -247,10 +228,7 @@ export class AutoPromptManager {
     ) {
       this.deps_.win().setTimeout(() => {
         this.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
-        this.showPrompt_(
-          this.getPromptTypeToDisplay_(params.autoPromptType),
-          promptFn
-        );
+        this.showPrompt_(params.autoPromptType, promptFn);
       }, displayDelayMs);
     } else if (promptFn) {
       const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
@@ -298,8 +276,8 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines whether a mini prompt for contributions or subscriptions can
-   * be shown based on the UI Predicates.
+   * Determines whether a contribution or subscription prompt can can be shown
+   * based on the UI Predicates.
    */
   private canDisplayMonetizationPromptFromUiPredicates_(
     uiPredicates?: UiPredicates
@@ -591,72 +569,17 @@ export class AutoPromptManager {
    */
   private showPrompt_(
     autoPromptType?: AutoPromptType,
-    displayLargePromptFn?: () => void
+    promptFn?: () => void
   ): void {
     if (
-      autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      autoPromptType === AutoPromptType.CONTRIBUTION
-    ) {
-      this.miniPromptAPI_.create({
-        autoPromptType,
-        clickCallback: displayLargePromptFn,
-      });
-    } else if (
-      (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+      (autoPromptType === AutoPromptType.SUBSCRIPTION ||
+        autoPromptType === AutoPromptType.CONTRIBUTION ||
+        autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
         autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
-      displayLargePromptFn
+      promptFn
     ) {
-      displayLargePromptFn();
+      promptFn();
     }
-  }
-
-  /**
-   * Returns which type of prompt to display based on the type specified,
-   * the viewport width, and whether the disableDesktopMiniprompt experiment
-   * is enabled.
-   *
-   * If the disableDesktopMiniprompt experiment is enabled and the desktop is
-   * wider than 480px then the large prompt type will be substituted for the mini
-   * prompt. The original promptType will be returned as-is in all other cases.
-   */
-  private getPromptTypeToDisplay_(
-    promptType?: AutoPromptType
-  ): AutoPromptType | undefined {
-    const disableDesktopMiniprompt = isExperimentOn(
-      this.doc_.getWin(),
-      ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
-    );
-    const isWideDesktop = this.doc_.getWin()./* OK */ innerWidth > 480;
-
-    if (disableDesktopMiniprompt && isWideDesktop) {
-      if (promptType === AutoPromptType.SUBSCRIPTION) {
-        this.logDisableMinipromptEvent_(promptType);
-        return AutoPromptType.SUBSCRIPTION_LARGE;
-      }
-      if (promptType === AutoPromptType.CONTRIBUTION) {
-        this.logDisableMinipromptEvent_(promptType);
-        return AutoPromptType.CONTRIBUTION_LARGE;
-      }
-    }
-
-    return promptType;
-  }
-
-  /**
-   * Logs the disable miniprompt event.
-   */
-  private logDisableMinipromptEvent_(
-    overriddenPromptType?: AutoPromptType
-  ): void {
-    this.eventManager_.logEvent({
-      eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: false,
-      additionalParameters: {
-        publicationid: this.pageConfig_.getPublicationId(),
-        promptType: overriddenPromptType,
-      },
-    });
   }
 
   /**
