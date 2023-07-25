@@ -126,6 +126,11 @@
     "rollup-plugin-visualizer": "5.9.2",
     "vite": "4.4.7"
   },
+  "overrides": {
+    "vite": {
+      "esbuild": "0.18.12"
+    }
+  },
   "cloud-repo-tools": {
     "requiresKeyFile": true,
     "requiresProjectId": true
