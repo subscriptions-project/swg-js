@@ -886,6 +886,137 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(contributionPromptFnSpy).to.have.be.calledOnce;
   });
 
+  it('should not display the prompt if the auto prompt config caps dismissals, and the user is under the cap, but sufficient time has not yet passed since the backoff duration', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      displayDelaySeconds: 0,
+      numImpressionsBetweenPrompts: 2,
+      dismissalBackOffSeconds: 10,
+      maxDismissalsPerWeek: 2,
+      maxDismissalsResultingHideSeconds: 5,
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // One stored impression from 20s ago and one dismissal from 6s ago.
+    const storedImpressions = (CURRENT_TIME - 20000).toString();
+    const storedDismissals = (CURRENT_TIME - 6000).toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      storedDismissals,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  it('should display the prompt if the auto prompt config caps dismissals, and the user is under the cap, and sufficient time has passed since the specified backoff duration', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      displayDelaySeconds: 0,
+      numImpressionsBetweenPrompts: 2,
+      dismissalBackOffSeconds: 5,
+      maxDismissalsPerWeek: 2,
+      maxDismissalsResultingHideSeconds: 10,
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // One stored impression from 20s ago and one dismissal from 6s ago.
+    const storedImpressions = (CURRENT_TIME - 20000).toString();
+    const storedDismissals = (CURRENT_TIME - 6000).toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      storedDismissals,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.have.been.called;
+  });
+
+  it('should display the subscription mini prompt if the user has no entitlements', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    const autoPromptConfig = new AutoPromptConfig({
+      displayDelaySeconds: 0,
+      numImpressionsBetweenPrompts: 2,
+      dismissalBackOffSeconds: 5,
+      maxDismissalsPerWeek: 2,
+      maxDismissalsResultingHideSeconds: 10,
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(subscriptionPromptFnSpy).to.have.been.called;
+  });
+
   it('should not display any prompt if the user has a valid entitlement', async () => {
     const entitlements = new Entitlements();
     sandbox.stub(entitlements, 'enablesThis').returns(true);
