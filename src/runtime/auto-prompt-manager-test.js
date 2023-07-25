@@ -356,6 +356,56 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it('should display the contribution mini prompt if the user has no entitlements', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    const autoPromptConfig = new AutoPromptConfig({
+      displayDelaySeconds: 0,
+      numImpressionsBetweenPrompts: 2,
+      dismissalBackOffSeconds: 5,
+      maxDismissalsPerWeek: 2,
+      maxDismissalsResultingHideSeconds: 10,
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(10);
+
+    expect(contributionPromptFnSpy).to.have.been.called;
+  });
+
+  it('should display the prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
+    entitlementsManagerMock.expects('getEntitlements').never();
+    clientConfigManagerMock.expects('getAutoPromptConfig').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: true,
+    });
+    await tick(10);
+
+    expect(contributionPromptFnSpy).to.have.been.called;
+  });
+
   it('should not display any prompt if the type is undefined', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
@@ -419,6 +469,163 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
+  it('should display the prompt if the auto prompt config does not cap impressions', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    const autoPromptConfig = new AutoPromptConfig({
+      displayDelaySeconds: 0,
+      numImpressionsBetweenPrompts: 2,
+      dismissalBackOffSeconds: 5,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.have.been.called;
+  });
+
+  it('should not display the prompt if the auto prompt config caps impressions, and the user is over the cap, and sufficient time has not yet passed since the specified hide duration', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // Two stored impressions.
+    const storedImpressions =
+      (CURRENT_TIME - 1).toString() + ',' + CURRENT_TIME.toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  it('should display the mini prompt if the auto prompt config caps impressions, and the user is over the cap, but sufficient time has passed since the specified hide duration', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // Two stored impressions.
+    const storedImpressions =
+      (CURRENT_TIME - 20000).toString() +
+      ',' +
+      (CURRENT_TIME - 11000).toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.have.been.called;
+  });
+
+  it('should display the prompt if the auto prompt config caps impressions, and the user is under the cap', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // One stored impression.
+    const storedImpressions = CURRENT_TIME.toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.have.been.called;
+  });
+
   [
     {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
@@ -462,6 +669,183 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it('should not display the prompt if the auto prompt config caps impressions, and the user is under the cap, but sufficient time has not yet passed since the specified backoff duration', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      impressionBackOffSeconds: 10,
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 5,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // One stored impression.
+    const storedImpressions = (CURRENT_TIME - 6000).toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  it('should display the prompt if the auto prompt config caps impressions, and the user is under the cap after discounting old impressions', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // Two stored impressions, the first from 2 weeks ago.
+    const twoWeeksInMs = 1209600000;
+    const storedImpressions =
+      (CURRENT_TIME - twoWeeksInMs).toString() + ',' + CURRENT_TIME.toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.have.been.called;
+  });
+
+  it('should not display the prompt if the auto prompt config caps dismissals, and the user is over the cap', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      displayDelaySeconds: 0,
+      numImpressionsBetweenPrompts: 2,
+      dismissalBackOffSeconds: 0,
+      maxDismissalsPerWeek: 1,
+      maxDismissalsResultingHideSeconds: 10,
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // One stored impression from 10ms ago and one dismissal from 5ms ago.
+    const storedImpressions = (CURRENT_TIME - 10).toString();
+    const storedDismissals = (CURRENT_TIME - 5).toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      storedDismissals,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  it('should display the prompt if the auto prompt config caps dismissals, and the user is over the cap, but sufficient time has passed since the specified hide duration', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      displayDelaySeconds: 0,
+      numImpressionsBetweenPrompts: 2,
+      dismissalBackOffSeconds: 0,
+      maxDismissalsPerWeek: 1,
+      maxDismissalsResultingHideSeconds: 10,
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    // One stored impression from 20s ago and one dismissal from 11s ago.
+    const storedImpressions = (CURRENT_TIME - 20000).toString();
+    const storedDismissals = (CURRENT_TIME - 11000).toString();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      storedDismissals,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.have.been.called;
+  });
+
   it('handles null values for maxDismissalsResultingHideSeconds and maxImpressionsResultingHideSeconds', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
@@ -497,6 +881,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.have.be.calledOnce;
   });
 
