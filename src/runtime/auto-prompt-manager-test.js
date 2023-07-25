@@ -574,11 +574,16 @@ describes.realWin('AutoPromptManager', (env) => {
     // Two stored impressions.
     const storedImpressions =
       (CURRENT_TIME - 1).toString() + ',' + CURRENT_TIME.toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ false,
+      /* setSurveyExpectations */ true
+    );
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -594,7 +599,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -609,11 +627,16 @@ describes.realWin('AutoPromptManager', (env) => {
       (CURRENT_TIME - 20000).toString() +
       ',' +
       (CURRENT_TIME - 11000).toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -641,11 +664,16 @@ describes.realWin('AutoPromptManager', (env) => {
       .once();
     // One stored impression.
     const storedImpressions = CURRENT_TIME.toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ false,
+      /* setSurveyExpectations */ true
+    );
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -1493,7 +1521,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 type: 'TYPE_SUBSCRIPTION',
                 configurationId: 'subscription_config_id',
               },
-              SURVEY_INTERVENTION,
             ],
             engineId: '123',
           },
@@ -2400,7 +2427,8 @@ describes.realWin('AutoPromptManager', (env) => {
   function setupPreviousImpressionAndDismissals(
     storageMock,
     setupArgs,
-    setAutopromptExpectations = true
+    setAutopromptExpectations = true,
+    setSurveyExpectations = true
   ) {
     const {
       storedImpressions,
@@ -2436,19 +2464,21 @@ describes.realWin('AutoPromptManager', (env) => {
       .withExactArgs(StorageKeys.DISMISSED_PROMPTS, /* useLocalStorage */ true)
       .resolves(dismissedPrompts)
       .exactly(dismissedPromptGetCallCount);
-    storageMock
-      .expects('get')
-      .withExactArgs(StorageKeys.SURVEY_COMPLETED, /* useLocalStorage */ true)
-      .resolves(storedSurveyCompleted)
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(
-        StorageKeys.SURVEY_DATA_TRANSFER_FAILED,
-        /* useLocalStorage */ true
-      )
-      .resolves(storedSurveyFailed)
-      .once();
+    if (setSurveyExpectations) {
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.SURVEY_COMPLETED, /* useLocalStorage */ true)
+        .resolves(storedSurveyCompleted)
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          StorageKeys.SURVEY_DATA_TRANSFER_FAILED,
+          /* useLocalStorage */ true
+        )
+        .resolves(storedSurveyFailed)
+        .once();
+    }
     if (getUserToken) {
       storageMock
         .expects('get')

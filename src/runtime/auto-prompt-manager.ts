@@ -136,8 +136,8 @@ export class AutoPromptManager {
       this.showPrompt_(
         this.getPromptTypeToDisplay_(params.autoPromptType),
         this.getMonetizationPromptFn_(
-          params,
-          params.isClosable ?? !this.isSubscription_(params)
+          params.autoPromptType,
+          params.isClosable ?? !this.isSubscription_(params.autoPromptType)
         )
       );
       return;
@@ -162,7 +162,7 @@ export class AutoPromptManager {
       entitlements,
       article,
       dismissedPrompts,
-      params
+      params.isClosable
     );
   }
 
@@ -175,22 +175,21 @@ export class AutoPromptManager {
     entitlements: Entitlements,
     article: Article | null,
     dismissedPrompts: string | undefined | null,
-    params: ShowAutoPromptParams
+    isClosable: boolean | undefined
   ): Promise<void> {
     const hasValidEntitlements = entitlements.enablesThis();
     if (hasValidEntitlements) {
       return;
     }
 
-    // Override autoPromptType if it is undefined.
-    params.autoPromptType ??= this.getAutoPromptType_(
+    const autoPromptType = this.getAutoPromptType_(
       article?.audienceActions?.actions
     )!;
 
     // Default isClosable to what is set in the page config.
     // Otherwise, the prompt is blocking for publications with a
     // subscription revenue model, while all others can be dismissed.
-    const isClosable = params.isClosable ?? !this.isSubscription_(params);
+    isClosable = isClosable ?? !this.isSubscription_(autoPromptType);
 
     const canDisplayMonetizationPromptFromUiPredicates =
       this.canDisplayMonetizationPromptFromUiPredicates_(
@@ -200,14 +199,14 @@ export class AutoPromptManager {
     const shouldShowMonetizationPromptAsSoftPaywall =
       canDisplayMonetizationPromptFromUiPredicates &&
       (await this.shouldShowMonetizationPromptAsSoftPaywall(
-        params.autoPromptType,
+        autoPromptType,
         clientConfig.autoPromptConfig
       ));
 
     const potentialAction = article
-      ? await this.getAudienceActionPromptType_({
+      ? await this.getAction_({
           article,
-          autoPromptType: params.autoPromptType,
+          autoPromptType,
           dismissedPrompts,
           canDisplayMonetizationPrompt:
             canDisplayMonetizationPromptFromUiPredicates,
@@ -215,20 +214,20 @@ export class AutoPromptManager {
         })
       : undefined;
 
-    const promptFn = potentialAction
+    const promptFn = this.isMonetizationType_(potentialAction?.type)
+      ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
+      : potentialAction
       ? this.audienceActionPrompt_({
           action: potentialAction.type,
           configurationId: potentialAction.configurationId,
-          autoPromptType: params.autoPromptType,
+          autoPromptType,
           isClosable,
         })
-      : canDisplayMonetizationPromptFromUiPredicates
-      ? this.getMonetizationPromptFn_(params, isClosable)
       : undefined;
 
     const shouldShowBlockingPrompt =
       this.shouldShowBlockingPrompt_(
-        /* hasPotentialAudienceAction */ !!potentialAction?.type
+        /* hasPotentialAudienceAction */ potentialAction
       ) && !!promptFn;
     if (
       !shouldShowMonetizationPromptAsSoftPaywall &&
@@ -243,12 +242,12 @@ export class AutoPromptManager {
 
     if (
       shouldShowMonetizationPromptAsSoftPaywall &&
-      potentialAction === undefined
+      this.isMonetizationType_(potentialAction?.type)
     ) {
       this.deps_.win().setTimeout(() => {
         this.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
         this.showPrompt_(
-          this.getPromptTypeToDisplay_(params.autoPromptType),
+          this.getPromptTypeToDisplay_(autoPromptType),
           promptFn
         );
       }, displayDelayMs);
@@ -262,18 +261,22 @@ export class AutoPromptManager {
     }
   }
 
-  private isSubscription_(params: ShowAutoPromptParams): boolean {
+  private isSubscription_(autoPromptType: AutoPromptType | undefined): boolean {
     return (
-      params.autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      params.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+      autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
     );
   }
 
-  private isContribution_(params: ShowAutoPromptParams): boolean {
+  private isContribution_(autoPromptType: AutoPromptType | undefined): boolean {
     return (
-      params.autoPromptType === AutoPromptType.CONTRIBUTION ||
-      params.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+      autoPromptType === AutoPromptType.CONTRIBUTION ||
+      autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
     );
+  }
+
+  private isMonetizationType_(actionType: string | undefined): boolean {
+    return actionType === TYPE_SUBSCRIPTION || actionType === TYPE_CONTRIBUTION;
   }
 
   /**
@@ -281,15 +284,15 @@ export class AutoPromptManager {
    * or undefined if the type of prompt cannot be determined.
    */
   private getMonetizationPromptFn_(
-    params: ShowAutoPromptParams,
+    autoPromptType: AutoPromptType | undefined,
     isClosable: boolean
   ): (() => void) | undefined {
     const options: OffersRequest = {isClosable};
-    if (this.isSubscription_(params)) {
+    if (this.isSubscription_(autoPromptType)) {
       return () => {
         this.configuredRuntime_.showOffers(options);
       };
-    } else if (this.isContribution_(params)) {
+    } else if (this.isContribution_(autoPromptType)) {
       return () => {
         this.configuredRuntime_.showContributionOptions(options);
       };
@@ -316,7 +319,7 @@ export class AutoPromptManager {
    * Determines whether a monetization prompt should be shown as a soft
    * paywall, meaning with the explicit intent to soft-restrict access to the
    * page. Does not prevent a monetization prompt from displaying as an
-   * eligible audience action.
+   * eligible audience action (subscriptions as the last potential action).
    */
   async shouldShowMonetizationPromptAsSoftPaywall(
     autoPromptType?: AutoPromptType,
@@ -338,7 +341,7 @@ export class AutoPromptManager {
     }
 
     // Do not frequency cap subscription prompts as soft paywallw.
-    if (this.isSubscription_({autoPromptType})) {
+    if (this.isSubscription_(autoPromptType)) {
       return Promise.resolve(true);
     }
 
@@ -418,19 +421,18 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines what Audience Action prompt type should be shown.
-   *
-   * Show the first AutoPromptType passed in from Audience Actions.
+   * Determines what Monetization prompt type should be shown.
+   * Shows the first AutoPromptType passed in from Article Actions.
    */
   private getAutoPromptType_(
     actions: Intervention[] = []
-  ): AutoPromptType | void {
+  ): AutoPromptType | undefined {
     const potentialAction = actions.find(
       (action) =>
         action.type === TYPE_CONTRIBUTION || action.type === TYPE_SUBSCRIPTION
     );
 
-    // No audience actions matching contribution or subscription.
+    // No article actions match contribution or subscription.
     if (!potentialAction) {
       return undefined;
     }
@@ -441,7 +443,7 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines what Audience Action prompt should be shown.
+   * Determines what action should be used to determine what prompt to show.
    *
    * In the case of Subscription models, always show the first eligible prompt.
    *
@@ -450,11 +452,10 @@ export class AutoPromptManager {
    * the Contribution prompt if permitted by the frequency cap, indicated by
    * shouldShowMonetizationPromptAsSoftPaywall.
    *
-   * Has the side effect of setting this.interventionDisplayed_ to an
-   * audience action that should be displayed. If a monetization prompt is to
-   * be shown over an audience action, the appropriate prompt type will be set.
+   * Has the side effect of setting this.interventionDisplayed_ to an action
+   * that should be displayed.
    */
-  private async getAudienceActionPromptType_({
+  private async getAction_({
     article,
     autoPromptType,
     dismissedPrompts,
@@ -468,6 +469,13 @@ export class AutoPromptManager {
     shouldShowMonetizationPromptAsSoftPaywall?: boolean;
   }): Promise<Intervention | void> {
     const audienceActions = article.audienceActions?.actions || [];
+    if (shouldShowMonetizationPromptAsSoftPaywall) {
+      const action = (this.interventionDisplayed_ = audienceActions.filter(
+        (action) => this.isMonetizationType_(action.type)
+      )[0]);
+      this.interventionDisplayed_ = action;
+      return action;
+    }
 
     // Count completed surveys.
     const [surveyCompletionTimestamps, surveyDataTransferFailureTimestamps] =
@@ -494,22 +502,12 @@ export class AutoPromptManager {
       )
     );
 
-    if (shouldShowMonetizationPromptAsSoftPaywall) {
-      this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
-        ? {type: TYPE_SUBSCRIPTION}
-        : this.isContribution_({autoPromptType})
-        ? {type: TYPE_CONTRIBUTION}
-        : null;
-      return undefined;
-    }
+    if (!this.isSubscription_(autoPromptType)) {
+      // Filter out contribution prompt
+      potentialActions = potentialActions.filter(
+        (action) => action.type !== TYPE_CONTRIBUTION
+      );
 
-    // Filter out monetization prompts
-    potentialActions = potentialActions.filter(
-      (action) =>
-        action.type !== TYPE_CONTRIBUTION && action.type !== TYPE_SUBSCRIPTION
-    );
-
-    if (!this.isSubscription_({autoPromptType})) {
       // Suppress previously dismissed prompts.
       let previouslyShownPrompts: string[] = [];
       if (dismissedPrompts) {
@@ -526,10 +524,65 @@ export class AutoPromptManager {
 
     const actionToUse = potentialActions[0];
     this.interventionDisplayed_ = actionToUse;
-    return actionToUse.type === TYPE_CONTRIBUTION ||
-      actionToUse.type === TYPE_SUBSCRIPTION
-      ? undefined
-      : actionToUse;
+    return actionToUse;
+
+    // No audience actions means use the default prompt, if it should be shown.
+    // if (potentialActions.length === 0) {
+    //   if (shouldShowMonetizationPromptAsSoftPaywall) {
+    //     this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
+    //       ? {type: TYPE_SUBSCRIPTION}
+    //       : this.isContribution_({autoPromptType})
+    //       ? {type: TYPE_CONTRIBUTION}
+    //       : null;
+    //   }
+    //   return undefined;
+    // }
+
+    // // For subscriptions, skip triggering checks and use the first potential action
+    // if (this.isSubscription_({autoPromptType})) {
+    //   if (
+    //     shouldShowMonetizationPromptAsSoftPaywall ||
+    //     potentialActions[0].type === TYPE_SUBSCRIPTION
+    //   ) {
+    //     this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
+    //     return undefined;
+    //   }
+    //   const firstAction = potentialActions[0];
+    //   this.interventionDisplayed_ = firstAction;
+    //   return firstAction;
+    // }
+
+    // // Suppress previously dismissed prompts.
+    // let previouslyShownPrompts: string[] = [];
+    // if (dismissedPrompts) {
+    //   previouslyShownPrompts = dismissedPrompts.split(',');
+    //   potentialActions = potentialActions.filter(
+    //     (action) => !previouslyShownPrompts.includes(action.type)
+    //   );
+    // }
+
+    // const contributionIndex = potentialActions.findIndex(
+    //   (action) => action.type === TYPE_CONTRIBUTION
+    // );
+    // // If autoprompt should be shown, and the contribution action is either the first action or
+    // // not passed through audience actions, honor it and display the contribution prompt.
+    // if (shouldShowMonetizationPromptAsSoftPaywall && contributionIndex < 1) {
+    //   this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
+    //   return undefined;
+    // }
+
+    // // Filter out contribution actions as they were already processed.
+    // potentialActions = potentialActions.filter(
+    //   (action) => action.type !== TYPE_CONTRIBUTION
+    // );
+
+    // // Otherwise, return the next recommended action, if one is available.
+    // if (potentialActions.length === 0) {
+    //   return undefined;
+    // }
+    // const actionToUse = potentialActions[0];
+    // this.interventionDisplayed_ = actionToUse;
+    // return actionToUse;
   }
 
   private audienceActionPrompt_({
@@ -642,9 +695,12 @@ export class AutoPromptManager {
    * Determines whether a larger, blocking prompt should be shown.
    */
   private shouldShowBlockingPrompt_(
-    hasPotentialAudienceAction: boolean
+    // hasPotentialAudienceAction: boolean
+    action: Intervention | void
   ): boolean {
-    return this.pageConfig_.isLocked() || hasPotentialAudienceAction;
+    const isAudienceAction =
+      !!action && !this.isMonetizationType_(action?.type);
+    return this.pageConfig_.isLocked() || isAudienceAction;
   }
 
   /**
