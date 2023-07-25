@@ -126,7 +126,12 @@ export class AutoPromptManager {
    * A prompt may not be displayed if the appropriate criteria are not met.
    */
   async showAutoPrompt(params: ShowAutoPromptParams): Promise<void> {
-    // Manual override of display rules, mainly for demo purposes.
+    if (params.autoPromptType === AutoPromptType.NONE) {
+      return;
+    }
+
+    // Manual override of display rules, mainly for demo purposes. Requires
+    // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
       this.showPrompt_(
         this.getPromptTypeToDisplay_(params.autoPromptType),
