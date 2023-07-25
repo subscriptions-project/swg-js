@@ -495,22 +495,21 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should not display any prompt if the type is NONE', async () => {
-    const entitlements = new Entitlements();
-    entitlementsManagerMock
-      .expects('getEntitlements')
-      .resolves(entitlements)
-      .once();
-    const clientConfig = new ClientConfig({});
-    clientConfigManagerMock
-      .expects('getClientConfig')
-      .resolves(clientConfig)
-      .once();
+    entitlementsManagerMock.expects('getEntitlements').never();
+    entitlementsManagerMock.expects('getArticle').never();
+    clientConfigManagerMock.expects('getClientConfig').never();
+    storageMock.expects('get').never();
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.NONE,
       alwaysShow: false,
     });
+    await tick(10);
+
+    expect(startSpy).to.not.have.been.called;
+    expect(actionFlowSpy).to.not.have.been.called;
+    expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
     expect(contributionPromptFnSpy).to.not.be.called;
     expect(subscriptionPromptFnSpy).to.not.be.called;
   });
