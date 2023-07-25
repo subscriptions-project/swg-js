@@ -494,7 +494,6 @@ export class AutoPromptManager {
       )
     );
 
-    // When flag is ramped up, cleanup other instances of shouldShowMonetizationPromptAsSoftPaywall
     const experimentFlag = false;
     if (experimentFlag) {
       if (shouldShowMonetizationPromptAsSoftPaywall) {
