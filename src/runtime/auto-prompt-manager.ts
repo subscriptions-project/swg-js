@@ -114,13 +114,14 @@ export class AutoPromptManager {
     // Manual override of display rules, mainly for demo purposes. Requires
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
-      this.showPrompt_(
-        params.autoPromptType,
+      const promptFn = 
         this.getMonetizationPromptFn_(
           params,
           params.isClosable ?? !this.isSubscription_(params)
         )
-      );
+      if (!!promptFn) {
+        promptFn();
+      }
       return;
     }
 
@@ -224,11 +225,11 @@ export class AutoPromptManager {
 
     if (
       shouldShowMonetizationPromptAsSoftPaywall &&
-      potentialAction === undefined
+      potentialAction === undefined && !!promptFn
     ) {
       this.deps_.win().setTimeout(() => {
         this.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
-        this.showPrompt_(params.autoPromptType, promptFn);
+        promptFn();
       }, displayDelayMs);
     } else if (promptFn) {
       const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
@@ -562,24 +563,6 @@ export class AutoPromptManager {
 
   getLastAudienceActionFlow(): AudienceActionFlow | null {
     return this.lastAudienceActionFlow_;
-  }
-
-  /**
-   * Shows the prompt based on the type specified.
-   */
-  private showPrompt_(
-    autoPromptType?: AutoPromptType,
-    promptFn?: () => void
-  ): void {
-    if (
-      (autoPromptType === AutoPromptType.SUBSCRIPTION ||
-        autoPromptType === AutoPromptType.CONTRIBUTION ||
-        autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
-      promptFn
-    ) {
-      promptFn();
-    }
   }
 
   /**
