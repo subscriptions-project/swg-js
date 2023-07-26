@@ -706,6 +706,84 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
+  it('should display the contribution prompt if the autoprompttype is contribution large', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    setupPreviousImpressionAndDismissals(storageMock, {
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(contributionPromptFnSpy).to.be.calledOnce;
+  });
+
+  it('should display the subscription prompt if the autoprompttype is subscription large', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({
+      maxImpressions: 2,
+      maxImpressionsResultingHideSeconds: 10,
+    });
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ false
+    );
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+      alwaysShow: false,
+    });
+    await tick(8);
+
+    expect(subscriptionPromptFnSpy).to.be.calledOnce;
+  });
+
   it('should display the prompt if the auto prompt config caps impressions, and the user is under the cap after discounting old impressions', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock

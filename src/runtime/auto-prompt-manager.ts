@@ -114,11 +114,10 @@ export class AutoPromptManager {
     // Manual override of display rules, mainly for demo purposes. Requires
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
-      const promptFn = 
-        this.getMonetizationPromptFn_(
-          params,
-          params.isClosable ?? !this.isSubscription_(params)
-        )
+      const promptFn = this.getMonetizationPromptFn_(
+        params,
+        params.isClosable ?? !this.isSubscription_(params)
+      );
       if (!!promptFn) {
         promptFn();
       }
@@ -225,7 +224,8 @@ export class AutoPromptManager {
 
     if (
       shouldShowMonetizationPromptAsSoftPaywall &&
-      potentialAction === undefined && !!promptFn
+      potentialAction === undefined &&
+      !!promptFn
     ) {
       this.deps_.win().setTimeout(() => {
         this.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
