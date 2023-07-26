@@ -1353,7 +1353,7 @@ describes.realWin('AutoPromptManager', (env) => {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
         onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
         isClosable: true,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -1402,7 +1402,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
       });
       await tick(10);

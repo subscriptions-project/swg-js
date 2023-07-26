@@ -414,8 +414,8 @@ export class AutoPromptManager {
     }
 
     return potentialAction.type === TYPE_CONTRIBUTION
-      ? AutoPromptType.CONTRIBUTION_LARGE
-      : AutoPromptType.SUBSCRIPTION_LARGE;
+      ? AutoPromptType.CONTRIBUTION
+      : AutoPromptType.SUBSCRIPTION;
   }
 
   /**
