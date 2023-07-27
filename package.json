@@ -128,7 +128,7 @@
   },
   "overrides": {
     "vite": {
-      "esbuild": "0.18.12"
+      "esbuild": "0.18.17"
     }
   },
   "cloud-repo-tools": {
