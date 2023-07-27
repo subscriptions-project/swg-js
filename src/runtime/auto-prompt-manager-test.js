@@ -41,7 +41,6 @@ const CONTRIBUTION_INTERVENTION = {
   type: 'TYPE_CONTRIBUTION',
   configurationId: 'contribution_config_id',
 };
-
 const SURVEY_INTERVENTION = {
   type: 'TYPE_REWARDED_SURVEY',
   configurationId: 'survey_config_id',
