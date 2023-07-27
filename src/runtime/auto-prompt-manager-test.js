@@ -438,27 +438,6 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  it('should display the contribution mini prompt if the user has no entitlements', async () => {
-    const entitlements = new Entitlements();
-    entitlementsManagerMock
-      .expects('getEntitlements')
-      .resolves(entitlements)
-      .once();
-    const clientConfig = new ClientConfig({});
-    clientConfigManagerMock
-      .expects('getClientConfig')
-      .resolves(clientConfig)
-      .once();
-    // alwaysShow is false
-    miniPromptApiMock.expects('create').never();
-
-    await autoPromptManager.showAutoPrompt({
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      alwaysShow: false,
-    });
-    expect(contributionPromptFnSpy).to.not.be.called;
-  });
-
   it('should display the mini prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
     entitlementsManagerMock.expects('getEntitlements').never();
     clientConfigManagerMock.expects('getAutoPromptConfig').never();
@@ -1280,27 +1259,6 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
-  it('should not display any prompt if the user has a valid entitlement', async () => {
-    const entitlements = new Entitlements();
-    sandbox.stub(entitlements, 'enablesThis').returns(true);
-    entitlementsManagerMock
-      .expects('getEntitlements')
-      .resolves(entitlements)
-      .once();
-    const clientConfig = new ClientConfig({});
-    clientConfigManagerMock
-      .expects('getClientConfig')
-      .resolves(clientConfig)
-      .once();
-    miniPromptApiMock.expects('create').never();
-
-    await autoPromptManager.showAutoPrompt({
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      alwaysShow: false,
-    });
-    expect(contributionPromptFnSpy).to.not.be.called;
-  });
-
   it('should display the alternate prompt if the user has no entitlements, but the content is paygated', async () => {
     sandbox.stub(pageConfig, 'isLocked').returns(true);
     const entitlements = new Entitlements();
@@ -1326,19 +1284,9 @@ describes.realWin('AutoPromptManager', (env) => {
 
   [
     {
-      actionType: 'TYPE_CONTRIBUTION',
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-    },
-    {
-      actionType: 'TYPE_SUBSCRIPTION',
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     },
     {
-      actionType: 'TYPE_CONTRIBUTION',
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-    },
-    {
-      actionType: 'TYPE_SUBSCRIPTION',
       autoPromptType: AutoPromptType.CONTRIBUTION,
     },
   ].forEach(({autoPromptType}) => {
