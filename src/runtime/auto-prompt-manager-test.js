@@ -430,27 +430,6 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  it('should display the contribution mini prompt if the user has no entitlements', async () => {
-    const entitlements = new Entitlements();
-    entitlementsManagerMock
-      .expects('getEntitlements')
-      .resolves(entitlements)
-      .once();
-    const clientConfig = new ClientConfig({});
-    clientConfigManagerMock
-      .expects('getClientConfig')
-      .resolves(clientConfig)
-      .once();
-    // alwaysShow is false
-    miniPromptApiMock.expects('create').never();
-
-    await autoPromptManager.showAutoPrompt({
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      alwaysShow: false,
-    });
-    expect(contributionPromptFnSpy).to.not.be.called;
-  });
-
   it('should display the mini prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
     entitlementsManagerMock.expects('getEntitlements').never();
     clientConfigManagerMock.expects('getAutoPromptConfig').never();
@@ -478,6 +457,20 @@ describes.realWin('AutoPromptManager', (env) => {
     entitlementsManagerMock
       .expects('getEntitlements')
       .resolves(entitlements)
+      .once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
       .once();
     const clientConfig = new ClientConfig({});
     clientConfigManagerMock
@@ -561,7 +554,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -574,16 +580,11 @@ describes.realWin('AutoPromptManager', (env) => {
     // Two stored impressions.
     const storedImpressions =
       (CURRENT_TIME - 1).toString() + ',' + CURRENT_TIME.toString();
-    setupPreviousImpressionAndDismissals(
-      storageMock,
-      {
-        storedImpressions,
-        dismissedPromptGetCallCount: 1,
-        getUserToken: false,
-      },
-      /* setAutopromptExpectations */ false,
-      /* setSurveyExpectations */ true
-    );
+    setupPreviousImpressionAndDismissals(storageMock, {
+      storedImpressions,
+      dismissedPromptGetCallCount: 1,
+      getUserToken: false,
+    });
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -652,7 +653,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -671,8 +685,8 @@ describes.realWin('AutoPromptManager', (env) => {
         dismissedPromptGetCallCount: 1,
         getUserToken: false,
       },
-      /* setAutopromptExpectations */ false,
-      /* setSurveyExpectations */ true
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
     );
     miniPromptApiMock.expects('create').once();
 
@@ -700,7 +714,20 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      entitlementsManagerMock.expects('getArticle').resolves({}).once();
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: interventionDisplayed,
+                configurationId: 'config_id',
+              },
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
       const autoPromptConfig = new AutoPromptConfig({
         maxImpressions: 2,
         maxImpressionsResultingHideSeconds: 10,
@@ -732,7 +759,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       impressionBackOffSeconds: 10,
       maxImpressions: 2,
@@ -765,7 +805,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -775,10 +828,15 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getClientConfig')
       .resolves(clientConfig)
       .once();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -795,7 +853,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
@@ -809,11 +880,16 @@ describes.realWin('AutoPromptManager', (env) => {
     const twoWeeksInMs = 1209600000;
     const storedImpressions =
       (CURRENT_TIME - twoWeeksInMs).toString() + ',' + CURRENT_TIME.toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -829,7 +905,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
       numImpressionsBetweenPrompts: 2,
@@ -868,7 +957,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
       numImpressionsBetweenPrompts: 2,
@@ -886,12 +988,17 @@ describes.realWin('AutoPromptManager', (env) => {
     // One stored impression from 20s ago and one dismissal from 11s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
     const storedDismissals = (CURRENT_TIME - 11000).toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      storedDismissals,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        storedDismissals,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -907,7 +1014,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       maxDismissalsResultingHideSeconds: null,
       maxImpressionsResultingHideSeconds: null,
@@ -925,12 +1045,17 @@ describes.realWin('AutoPromptManager', (env) => {
     // One stored impression from 20s ago and one dismissal from 11s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
     const storedDismissals = (CURRENT_TIME - 11000).toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      storedDismissals,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        storedDismissals,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -946,7 +1071,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
       numImpressionsBetweenPrompts: 2,
@@ -985,7 +1123,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({
       displayDelaySeconds: 0,
       numImpressionsBetweenPrompts: 2,
@@ -1003,12 +1154,17 @@ describes.realWin('AutoPromptManager', (env) => {
     // One stored impression from 20s ago and one dismissal from 6s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
     const storedDismissals = (CURRENT_TIME - 6000).toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      storedDismissals,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        storedDismissals,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').once();
 
     await autoPromptManager.showAutoPrompt({
@@ -1024,6 +1180,20 @@ describes.realWin('AutoPromptManager', (env) => {
     entitlementsManagerMock
       .expects('getEntitlements')
       .resolves(entitlements)
+      .once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_SUBSCRIPTION',
+              configurationId: 'subscription_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
       .once();
     const clientConfig = new ClientConfig({});
     clientConfigManagerMock
@@ -1068,7 +1238,29 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
-    const clientConfig = new ClientConfig({});
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
+    const autoPromptConfig = new AutoPromptConfig({});
+    const uiPredicates = new UiPredicates(
+      /* canDisplayAutoPrompt */ true,
+      /* canDisplayButton */ true
+    );
+    const clientConfig = new ClientConfig({
+      autoPromptConfig,
+      uiPredicates,
+    });
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1080,7 +1272,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
     });
 
-    await tick(5);
+    await tick(8);
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
@@ -1205,6 +1397,20 @@ describes.realWin('AutoPromptManager', (env) => {
     entitlementsManagerMock
       .expects('getEntitlements')
       .resolves(entitlements)
+      .once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
       .once();
 
     const autoPromptConfig = new AutoPromptConfig({});
@@ -1336,6 +1542,10 @@ describes.realWin('AutoPromptManager', (env) => {
               {
                 type: 'TYPE_REGISTRATION_WALL',
                 configurationId: 'reg_config_id',
+              },
+              {
+                type: 'TYPE_SUBSCRIPTION',
+                configurationId: 'subscription_config_id',
               },
             ],
             engineId: '123',
@@ -1629,6 +1839,10 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
+              {
+                type: 'TYPE_CONTRIBUTION',
+                configurationId: 'contribution_config_id',
+              },
               SURVEY_INTERVENTION,
               REGWALL_INTERVENTION,
               NEWSLETTER_INTERVENTION,
