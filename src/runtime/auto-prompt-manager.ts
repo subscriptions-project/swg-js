@@ -344,7 +344,7 @@ export class AutoPromptManager {
       return Promise.resolve(false);
     }
 
-    // Do not frequency cap subscription prompts as soft paywallw.
+    // Do not frequency cap subscription prompts as soft paywall.
     if (this.isSubscription_(autoPromptType)) {
       return Promise.resolve(true);
     }
@@ -511,15 +511,13 @@ export class AutoPromptManager {
         isSurveyEligible
       )
     );
+    console.log(potentialActions);
 
-    if (!this.isSubscription_(autoPromptType)) {
-      // Filter out contribution prompt if page is not paywalled
-      // For paywalled content, show a blocking prompt.
-      if (!this.pageConfig_.isLocked()) {
-        potentialActions = potentialActions.filter(
-          (action) => action.type !== TYPE_CONTRIBUTION
-        );
-      }
+    if (!this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked()) {
+      // Filter out contribution prompt if page is not paywalled.
+      potentialActions = potentialActions.filter(
+        (action) => action.type !== TYPE_CONTRIBUTION
+      );
 
       // Suppress previously dismissed prompts.
       let previouslyShownPrompts: string[] = [];

@@ -541,6 +541,20 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_CONTRIBUTION',
+              configurationId: 'contribution_config_id',
+            },
+          ],
+          engineId: '123',
+        },
+      })
+      .once();
     const autoPromptConfig = new AutoPromptConfig({});
     const clientConfig = new ClientConfig({autoPromptConfig});
     clientConfigManagerMock
@@ -548,6 +562,28 @@ describes.realWin('AutoPromptManager', (env) => {
       .resolves(clientConfig)
       .once();
     miniPromptApiMock.expects('create').once();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  it('should not display the mini contribution prompt if the article returns no actions', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const autoPromptConfig = new AutoPromptConfig({});
+    const clientConfig = new ClientConfig({autoPromptConfig});
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
       autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -1162,6 +1198,28 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(subscriptionPromptFnSpy).to.not.be.called;
   });
 
+  it('should not display the mini subscription prompt if the article returns no actions', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves({}).once();
+    const clientConfig = new ClientConfig({});
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      alwaysShow: false,
+    });
+    await tick(8);
+    expect(subscriptionPromptFnSpy).to.not.be.called;
+  });
+
   [
     {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
@@ -1179,16 +1237,20 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
-      entitlementsManagerMock.expects('getArticle').resolves(
-        audienceActions: {
-          actions: [
-            {
-              type: interventionDisplayed,
-              configurationId: 'config_id',
-            },
-          ],
-          engineId: '123',
-        },).once();
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: interventionDisplayed,
+                configurationId: 'config_id',
+              },
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
       const autoPromptConfig = new AutoPromptConfig({
         maxImpressions: 2,
         maxImpressionsResultingHideSeconds: 10,
@@ -1221,16 +1283,32 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    const clientConfig = new ClientConfig({});
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  it('should display a blocking prompt for locked content in the contribution flow if the user has no entitlements', async () => {
+    sandbox.stub(pageConfig, 'isLocked').returns(true);
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
     entitlementsManagerMock
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -1259,37 +1337,16 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
-  it('should display the alternate prompt if the user has no entitlements, but the content is paygated', async () => {
-    sandbox.stub(pageConfig, 'isLocked').returns(true);
-    const entitlements = new Entitlements();
-    entitlementsManagerMock
-      .expects('getEntitlements')
-      .resolves(entitlements)
-      .once();
-    const clientConfig = new ClientConfig({});
-    clientConfigManagerMock
-      .expects('getClientConfig')
-      .resolves(clientConfig)
-      .once();
-    miniPromptApiMock.expects('create').never();
-
-    await autoPromptManager.showAutoPrompt({
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      alwaysShow: false,
-    });
-
-    await tick(5);
-    expect(contributionPromptFnSpy).to.be.calledOnce;
-  });
-
   [
     {
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-    },
-    {
+      actionType: 'TYPE_CONTRIBUTION',
       autoPromptType: AutoPromptType.CONTRIBUTION,
     },
-  ].forEach(({autoPromptType}) => {
+    {
+      actionType: 'TYPE_SUBSCRIPTION',
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    },
+  ].forEach(({actionType, autoPromptType}) => {
     it(`should not display any prompt if UI predicate is false and page is locked for autoPromptType: ${autoPromptType}`, async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
@@ -1629,7 +1686,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
     });
 
-    it('should show the Contribution prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
+    it('should show the first Contribution prompt for the contribution flow', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -1656,16 +1713,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
     });
 
-    it('should show the Subscription prompt if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [SURVEY_INTERVENTION, SUBSCRIPTION_INTERVENTION],
-            engineId: '123',
-          },
-        })
-        .once();
-
+    it('should show a soft paywall for unlocked content in the subscription flow', async () => {
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
       });
@@ -1683,7 +1731,9 @@ describes.realWin('AutoPromptManager', (env) => {
       );
     });
 
-    it('for paywalled content, should show an uncapped prompt if autoPromptType is undefined and contribution was passed in through audienceActions', async () => {
+    // Note: Locked content on contribution is not an officially supported flow
+    it('should show an uncapped contribution prompt for locked content in the contribution flow', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
       setupPreviousImpressionAndDismissals(
         storageMock,
         {
@@ -1692,7 +1742,6 @@ describes.realWin('AutoPromptManager', (env) => {
         },
         /* setAutopromptExpectations */ false
       );
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -1707,75 +1756,77 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(10);
 
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+      expect(
+        autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
+      ).to.equal(false);
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_CONTRIBUTION'
+      );
+    });
+
+    it('should show an uncapped prompt for paywalled content in the subscription flow', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+      });
+      await tick(10);
+
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REWARDED_SURVEY',
-        configurationId: 'survey_config_id',
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'reg_config_id',
         onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-        isClosable: true,
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        isClosable: false,
       });
-      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(
         autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
       ).to.equal(false);
       expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        'TYPE_REWARDED_SURVEY'
+        'TYPE_REGISTRATION_WALL'
       );
     });
 
-    it('for paywalled content, should show an uncapped prompt if autoPromptType is undefined and subscription was passed in through audienceActions', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [SUBSCRIPTION_INTERVENTION, SURVEY_INTERVENTION],
-            engineId: '123',
-          },
-        })
-        .once();
-
-      await autoPromptManager.showAutoPrompt({
-        alwaysShow: false,
-      });
-      await tick(10);
-
-      expect(startSpy).to.not.have.been.called;
-      expect(actionFlowSpy).to.not.have.been.called;
-      expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
-      expect(
-        autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
-      ).to.equal(false);
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
-      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        'TYPE_SUBSCRIPTION'
-      );
-    });
-
-    it('should call the original prompt for no article actions', async () => {
-      getArticleExpectation
-        .resolves({
-          audienceActions: {},
-        })
-        .once();
-
-      await autoPromptManager.showAutoPrompt({
+    [
+      {
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      },
+      {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-        alwaysShow: false,
-      });
-      await tick(10);
+      },
+      {
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+      },
+      {
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+      },
+    ].forEach(({autoPromptType}) => {
+      it(`should not show any prompt if the article returns no actions for autoPromptType: ${autoPromptType}`, async () => {
+        getArticleExpectation
+          .resolves({
+            audienceActions: {},
+          })
+          .once();
+        miniPromptApiMock.expects('create').never();
 
-      expect(startSpy).to.not.have.been.called;
-      expect(actionFlowSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.have.been.called;
-      expect(
-        autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
-      ).to.equal(true);
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
-      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        'TYPE_CONTRIBUTION'
-      );
+        await autoPromptManager.showAutoPrompt({
+          autoPromptType,
+          alwaysShow: false,
+        });
+        await tick(8);
+
+        expect(startSpy).to.not.have.been.called;
+        expect(actionFlowSpy).to.not.have.been.called;
+        expect(contributionPromptFnSpy).to.not.have.been.called;
+        expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      });
     });
 
     it('should return the last AudienceActionFlow', async () => {
@@ -1853,10 +1904,15 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the Contribution prompt before any actions', async () => {
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutoPromptExpectations */ true,
+        /* setSurveyExpectations */ false
+      );
       miniPromptApiMock.expects('create').once();
 
       await autoPromptManager.showAutoPrompt({
@@ -2128,13 +2184,18 @@ describes.realWin('AutoPromptManager', (env) => {
       // One stored impression from 20s ago and one dismissal from 6s ago.
       const storedImpressions = (CURRENT_TIME - 20000).toString();
       const storedDismissals = (CURRENT_TIME - 6000).toString();
-      setupPreviousImpressionAndDismissals(storageMock, {
-        storedImpressions,
-        storedDismissals,
-        dismissedPrompts: 'contribution,TYPE_REWARDED_SURVEY',
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          storedImpressions,
+          storedDismissals,
+          dismissedPrompts: 'contribution,TYPE_REWARDED_SURVEY',
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutoPromptExpectations */ true,
+        /* setSurveyExpectations */ false
+      );
       miniPromptApiMock.expects('create').once();
 
       await autoPromptManager.showAutoPrompt({
