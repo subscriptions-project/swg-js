@@ -215,7 +215,6 @@ export class AutoPromptManager {
           shouldShowMonetizationPromptAsSoftPaywall,
         })
       : undefined;
-    console.log(potentialAction);
 
     const promptFn = this.isMonetizationType_(potentialAction?.type)
       ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
@@ -232,7 +231,6 @@ export class AutoPromptManager {
       this.shouldShowBlockingPrompt_(
         /* hasPotentialAudienceAction */ potentialAction
       ) && !!promptFn;
-    console.log(shouldShowBlockingPrompt);
     if (
       !shouldShowMonetizationPromptAsSoftPaywall &&
       !shouldShowBlockingPrompt
@@ -511,7 +509,6 @@ export class AutoPromptManager {
         isSurveyEligible
       )
     );
-    console.log(potentialActions);
 
     if (!this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked()) {
       // Filter out contribution prompt if page is not paywalled.
@@ -536,64 +533,6 @@ export class AutoPromptManager {
     const actionToUse = potentialActions[0];
     this.interventionDisplayed_ = actionToUse;
     return actionToUse;
-
-    // No audience actions means use the default prompt, if it should be shown.
-    // if (potentialActions.length === 0) {
-    //   if (shouldShowMonetizationPromptAsSoftPaywall) {
-    //     this.interventionDisplayed_ = this.isSubscription_({autoPromptType})
-    //       ? {type: TYPE_SUBSCRIPTION}
-    //       : this.isContribution_({autoPromptType})
-    //       ? {type: TYPE_CONTRIBUTION}
-    //       : null;
-    //   }
-    //   return undefined;
-    // }
-
-    // // For subscriptions, skip triggering checks and use the first potential action
-    // if (this.isSubscription_({autoPromptType})) {
-    //   if (
-    //     shouldShowMonetizationPromptAsSoftPaywall ||
-    //     potentialActions[0].type === TYPE_SUBSCRIPTION
-    //   ) {
-    //     this.interventionDisplayed_ = {type: TYPE_SUBSCRIPTION};
-    //     return undefined;
-    //   }
-    //   const firstAction = potentialActions[0];
-    //   this.interventionDisplayed_ = firstAction;
-    //   return firstAction;
-    // }
-
-    // // Suppress previously dismissed prompts.
-    // let previouslyShownPrompts: string[] = [];
-    // if (dismissedPrompts) {
-    //   previouslyShownPrompts = dismissedPrompts.split(',');
-    //   potentialActions = potentialActions.filter(
-    //     (action) => !previouslyShownPrompts.includes(action.type)
-    //   );
-    // }
-
-    // const contributionIndex = potentialActions.findIndex(
-    //   (action) => action.type === TYPE_CONTRIBUTION
-    // );
-    // // If autoprompt should be shown, and the contribution action is either the first action or
-    // // not passed through audience actions, honor it and display the contribution prompt.
-    // if (shouldShowMonetizationPromptAsSoftPaywall && contributionIndex < 1) {
-    //   this.interventionDisplayed_ = {type: TYPE_CONTRIBUTION};
-    //   return undefined;
-    // }
-
-    // // Filter out contribution actions as they were already processed.
-    // potentialActions = potentialActions.filter(
-    //   (action) => action.type !== TYPE_CONTRIBUTION
-    // );
-
-    // // Otherwise, return the next recommended action, if one is available.
-    // if (potentialActions.length === 0) {
-    //   return undefined;
-    // }
-    // const actionToUse = potentialActions[0];
-    // this.interventionDisplayed_ = actionToUse;
-    // return actionToUse;
   }
 
   private audienceActionPrompt_({

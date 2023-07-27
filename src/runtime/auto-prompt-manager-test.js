@@ -470,12 +470,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -521,6 +516,15 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [CONTRIBUTION_INTERVENTION],
+          engineId: '123',
+        },
+      })
+      .once();
     const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
@@ -545,12 +549,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -602,12 +601,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -648,12 +642,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -701,12 +690,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -751,12 +735,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -797,12 +776,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -845,12 +819,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -897,12 +866,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -949,12 +913,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -1006,12 +965,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -1063,12 +1017,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -1115,12 +1064,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -1173,12 +1117,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_SUBSCRIPTION',
-              configurationId: 'subscription_config_id',
-            },
-          ],
+          actions: [SUBSCRIPTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -1283,6 +1222,15 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getEntitlements')
       .resolves(entitlements)
       .once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [CONTRIBUTION_INTERVENTION],
+          engineId: '123',
+        },
+      })
+      .once();
     const clientConfig = new ClientConfig({});
     clientConfigManagerMock
       .expects('getClientConfig')
@@ -1355,6 +1303,20 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getEntitlements')
         .resolves(entitlements)
         .once();
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: actionType,
+                configurationId: 'config_id',
+              },
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
 
       const autoPromptConfig = new AutoPromptConfig({});
       const uiPredicates = new UiPredicates(
@@ -1370,21 +1332,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getClientConfig')
         .resolves(clientConfig)
         .once();
-      const getArticleExpectation =
-        entitlementsManagerMock.expects('getArticle');
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [
-              {
-                type: actionType,
-                configurationId: 'config_id',
-              },
-            ],
-            engineId: '123',
-          },
-        })
-        .once();
+
       miniPromptApiMock.expects('create').never();
 
       await autoPromptManager.showAutoPrompt({
@@ -1410,12 +1358,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('getArticle')
       .resolves({
         audienceActions: {
-          actions: [
-            {
-              type: 'TYPE_CONTRIBUTION',
-              configurationId: 'contribution_config_id',
-            },
-          ],
+          actions: [CONTRIBUTION_INTERVENTION],
           engineId: '123',
         },
       })
@@ -1617,16 +1560,7 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [
-              {
-                type: 'TYPE_REGISTRATION_WALL',
-                configurationId: 'reg_config_id',
-              },
-              {
-                type: 'TYPE_SUBSCRIPTION',
-                configurationId: 'subscription_config_id',
-              },
-            ],
+            actions: [REGWALL_INTERVENTION, SUBSCRIPTION_INTERVENTION],
             engineId: '123',
           },
         })
@@ -1644,7 +1578,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
-        configurationId: 'reg_config_id',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: false,
@@ -1671,7 +1605,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
-        configurationId: 'reg_config_id',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: true,
@@ -1779,7 +1713,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
-        configurationId: 'reg_config_id',
+        configurationId: 'regwall_config_id',
         onCancel: sandbox.match.any,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: false,
