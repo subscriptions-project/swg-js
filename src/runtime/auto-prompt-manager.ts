@@ -644,10 +644,7 @@ export class AutoPromptManager {
   /**
    * Determines whether a larger, blocking prompt should be shown.
    */
-  private shouldShowBlockingPrompt_(
-    // hasPotentialAudienceAction: boolean
-    action: Intervention | void
-  ): boolean {
+  private shouldShowBlockingPrompt_(action: Intervention | void): boolean {
     const isAudienceAction =
       !!action && !this.isMonetizationType_(action?.type);
     return this.pageConfig_.isLocked() || isAudienceAction;
