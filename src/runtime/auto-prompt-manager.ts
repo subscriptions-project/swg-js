@@ -205,7 +205,7 @@ export class AutoPromptManager {
         clientConfig.autoPromptConfig
       ));
 
-    const potentialAction = article
+    const potentialAction = !!article
       ? await this.getAction_({
           article,
           autoPromptType,

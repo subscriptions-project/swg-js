@@ -471,7 +471,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  it('should not display any prompt if the type is undefined', async () => {
+  it('should not display a prompt if the type is undefined', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
       .expects('getEntitlements')
@@ -501,7 +501,7 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(subscriptionPromptFnSpy).to.not.be.called;
   });
 
-  it('should not display any prompt if the type is NONE', async () => {
+  it('should not display a prompt if the type is NONE', async () => {
     entitlementsManagerMock.expects('getEntitlements').never();
     entitlementsManagerMock.expects('getArticle').never();
     clientConfigManagerMock.expects('getClientConfig').never();
