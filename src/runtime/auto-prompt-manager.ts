@@ -188,7 +188,7 @@ export class AutoPromptManager {
     }
 
     const autoPromptType = this.getAutoPromptType_(
-      article .audienceActions?.actions,
+      article.audienceActions?.actions,
       params.autoPromptType
     )!;
 
