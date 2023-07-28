@@ -216,7 +216,7 @@ export class AutoPromptManager {
         })
       : undefined;
 
-    const promptFn = this.isMonetizationType_(potentialAction?.type)
+    const promptFn = this.isMonetizationAction_(potentialAction?.type)
       ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
       : potentialAction
       ? this.audienceActionPrompt_({
@@ -244,7 +244,7 @@ export class AutoPromptManager {
 
     if (
       shouldShowMonetizationPromptAsSoftPaywall &&
-      this.isMonetizationType_(potentialAction?.type)
+      this.isMonetizationAction_(potentialAction?.type)
     ) {
       this.deps_.win().setTimeout(() => {
         this.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
@@ -277,7 +277,7 @@ export class AutoPromptManager {
     );
   }
 
-  private isMonetizationType_(actionType: string | undefined): boolean {
+  private isMonetizationAction_(actionType: string | undefined): boolean {
     return actionType === TYPE_SUBSCRIPTION || actionType === TYPE_CONTRIBUTION;
   }
 
@@ -479,7 +479,7 @@ export class AutoPromptManager {
     const audienceActions = article.audienceActions?.actions || [];
     if (shouldShowMonetizationPromptAsSoftPaywall) {
       const action = (this.interventionDisplayed_ = audienceActions.filter(
-        (action) => this.isMonetizationType_(action.type)
+        (action) => this.isMonetizationAction_(action.type)
       )[0]);
       this.interventionDisplayed_ = action;
       return action;
@@ -646,7 +646,7 @@ export class AutoPromptManager {
    */
   private shouldShowBlockingPrompt_(action: Intervention | void): boolean {
     const isAudienceAction =
-      !!action && !this.isMonetizationType_(action?.type);
+      !!action && !this.isMonetizationAction_(action?.type);
     return this.pageConfig_.isLocked() || isAudienceAction;
   }
 
