@@ -178,7 +178,6 @@ export class AutoPromptManager {
     params: ShowAutoPromptParams
   ): Promise<void> {
     if (!article) {
-      // TODO: handle empty article response.
       return;
     }
 
