@@ -463,7 +463,6 @@ describes.realWin('AutoPromptManager', (env) => {
   it('should not display a prompt if the autoprompttype is unknown and alwaysShow is enabled', async () => {
     entitlementsManagerMock.expects('getEntitlements').never();
     clientConfigManagerMock.expects('getAutoPromptConfig').never();
-
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
