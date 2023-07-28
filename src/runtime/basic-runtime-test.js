@@ -21,6 +21,7 @@ import {
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
+import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   BasicRuntime,
@@ -28,6 +29,7 @@ import {
   getBasicRuntime,
   installBasicRuntime,
 } from './basic-runtime';
+import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientTheme} from '../api/subscriptions';
 import {ContributionsFlow} from './contributions-flow';
@@ -772,6 +774,17 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     it('should configure subscription auto prompts to show offers for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
 
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
       clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showOffers')
@@ -787,6 +800,18 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
     it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
+
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
       clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
