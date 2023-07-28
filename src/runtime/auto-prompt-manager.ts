@@ -177,6 +177,11 @@ export class AutoPromptManager {
     dismissedPrompts: string | undefined | null,
     params: ShowAutoPromptParams
   ): Promise<void> {
+    if (!article) {
+      // TODO: handle empty article response.
+      return;
+    }
+
     const hasValidEntitlements = entitlements.enablesThis();
     if (hasValidEntitlements) {
       return;
@@ -205,16 +210,14 @@ export class AutoPromptManager {
         clientConfig.autoPromptConfig
       ));
 
-    const potentialAction = !!article
-      ? await this.getAction_({
-          article,
-          autoPromptType,
-          dismissedPrompts,
-          canDisplayMonetizationPrompt:
-            canDisplayMonetizationPromptFromUiPredicates,
-          shouldShowMonetizationPromptAsSoftPaywall,
-        })
-      : undefined;
+    const potentialAction = await this.getAction_({
+      article,
+      autoPromptType,
+      dismissedPrompts,
+      canDisplayMonetizationPrompt:
+        canDisplayMonetizationPromptFromUiPredicates,
+      shouldShowMonetizationPromptAsSoftPaywall,
+    });
 
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
       ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
