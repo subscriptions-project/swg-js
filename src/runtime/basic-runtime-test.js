@@ -21,7 +21,6 @@ import {
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
-import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   BasicRuntime,
@@ -29,7 +28,6 @@ import {
   getBasicRuntime,
   installBasicRuntime,
 } from './basic-runtime';
-import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientTheme} from '../api/subscriptions';
 import {ContributionsFlow} from './contributions-flow';
