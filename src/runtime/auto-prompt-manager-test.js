@@ -580,6 +580,28 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
+  it('should not display the mini contribution prompt if the article is null', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock.expects('getArticle').resolves(null).once();
+    const autoPromptConfig = new AutoPromptConfig({});
+    const clientConfig = new ClientConfig({autoPromptConfig});
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .resolves(clientConfig)
+      .once();
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      alwaysShow: false,
+    });
+    expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
   it('should not display the mini contribution prompt if the article returns no actions', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
