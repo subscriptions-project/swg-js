@@ -516,7 +516,8 @@ export class AutoPromptManager {
     );
 
     if (!this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked()) {
-      // Filter out contribution prompt if page is not paywalled.
+      // If page is not paywalled, filter out contribution prompt as it meets
+      // its frequency cap.
       potentialActions = potentialActions.filter(
         (action) => action.type !== TYPE_CONTRIBUTION
       );
