@@ -480,9 +480,9 @@ export class AutoPromptManager {
   }): Promise<Intervention | void> {
     const audienceActions = article.audienceActions?.actions || [];
     if (shouldShowMonetizationPromptAsSoftPaywall) {
-      const action = (this.interventionDisplayed_ = audienceActions.filter(
-        (action) => this.isMonetizationAction_(action.type)
-      )[0]);
+      const action = audienceActions.filter((action) =>
+        this.isMonetizationAction_(action.type)
+      )[0];
       this.interventionDisplayed_ = action;
       return action;
     }
