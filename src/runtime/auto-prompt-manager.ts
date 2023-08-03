@@ -252,10 +252,7 @@ export class AutoPromptManager {
     ) {
       this.deps_.win().setTimeout(() => {
         this.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
-        this.showPrompt_(
-          this.getPromptTypeToDisplay_(autoPromptType),
-          promptFn
-        );
+        this.showPrompt_(autoPromptType, promptFn);
       }, displayDelayMs);
     } else if (promptFn) {
       const isBlockingPromptWithDelay = this.isActionPromptWithDelay_(
@@ -445,14 +442,17 @@ export class AutoPromptManager {
       return undefined;
     }
 
-    return potentialAction.type === TYPE_CONTRIBUTION
-      ? // Allow autoPromptType to enable miniprompt.
-        autoPromptType === AutoPromptType.CONTRIBUTION
-        ? AutoPromptType.CONTRIBUTION
-        : AutoPromptType.CONTRIBUTION_LARGE
-      : autoPromptType === AutoPromptType.SUBSCRIPTION
-      ? AutoPromptType.SUBSCRIPTION
-      : AutoPromptType.SUBSCRIPTION_LARGE;
+    const snippetAction =
+      potentialAction.type === TYPE_CONTRIBUTION
+        ? // Allow autoPromptType to enable miniprompt.
+          autoPromptType === AutoPromptType.CONTRIBUTION
+          ? AutoPromptType.CONTRIBUTION
+          : AutoPromptType.CONTRIBUTION_LARGE
+        : autoPromptType === AutoPromptType.SUBSCRIPTION
+        ? AutoPromptType.SUBSCRIPTION
+        : AutoPromptType.SUBSCRIPTION_LARGE;
+
+    return this.getPromptTypeToDisplay_(snippetAction);
   }
 
   /**
