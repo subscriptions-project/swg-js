@@ -39,6 +39,20 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
+  // Wrap generated code in outer function to avoid leaking into global scope.
+  // b/293444391.
+  {
+    name: 'add-outer-iife',
+    apply: 'build',
+    generateBundle(options, bundle) {
+      const chunks = Object.values(bundle).filter(
+        (entry) => entry.type === 'chunk' && entry.code
+      );
+      for (const chunk of chunks) {
+        chunk.code = `(() => { ${chunk.code} })();`;
+      }
+    },
+  },
   // Point sourcemaps to a Swgjs release on GitHub.
   {
     name: 'fix-sourcemaps',
