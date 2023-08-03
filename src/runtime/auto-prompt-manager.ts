@@ -186,6 +186,8 @@ export class AutoPromptManager {
       return;
     }
 
+    // Article response is honored over code snippet in case of conflict, such
+    // as when publisher changes revenue model but does not update snippet.
     const autoPromptType = this.getAutoPromptType_(
       article.audienceActions?.actions,
       params.autoPromptType
@@ -425,8 +427,9 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines what Monetization prompt type should be shown.
-   * Shows the first AutoPromptType passed in from Article Actions.
+   * Determines what Monetization prompt type should be shown. Determined by
+   * the first AutoPromptType passed in from Article Actions. Only enables the
+   * mini prompt if the autoPromptType mini prompt snippet is present.
    */
   private getAutoPromptType_(
     actions: Intervention[] = [],
