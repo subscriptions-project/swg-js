@@ -523,9 +523,8 @@ export class AutoPromptManager {
       );
 
       // Suppress previously dismissed prompts.
-      let previouslyShownPrompts: string[] = [];
       if (dismissedPrompts) {
-        previouslyShownPrompts = dismissedPrompts.split(',');
+        const previouslyShownPrompts = dismissedPrompts.split(',');
         potentialActions = potentialActions.filter(
           (action) => !previouslyShownPrompts.includes(action.type)
         );
