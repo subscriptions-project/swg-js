@@ -19,6 +19,12 @@ module.exports = {
   src_folders: ['test/e2e/tests'],
   globals_path: 'globals.js',
   page_objects_path: 'test/e2e/pages',
+  plugins: ['@nightwatch/vrt'],
+  '@nightwatch/vrt': {
+    baseline_screenshots_path: 'test/e2e/vrt/baseline',
+    latest_screenshots_path: '.vrt/latest',
+    diff_screenshots_path: '.vrt/diff',
+  },
 
   test_settings: {
     default: {

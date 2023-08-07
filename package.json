@@ -34,6 +34,7 @@
     "@babel/core": "7.22.9",
     "@babel/eslint-parser": "7.22.9",
     "@babel/preset-env": "7.22.9",
+    "@nightwatch/vrt": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
     "ansi-colors": "4.1.3",

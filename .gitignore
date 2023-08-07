@@ -12,10 +12,12 @@ node_modules
 .idea
 .tm_properties
 .settings
+.vrt
 .vscode
 tests_output
 typings
 typings.json
 build-system/runner/TESTS-TestSuites.xml
 test/coverage
+vrt-report
 yarn.lock
