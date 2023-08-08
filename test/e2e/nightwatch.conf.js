@@ -63,6 +63,11 @@ module.exports = {
           'populate-client-config-classic',
         ],
       },
+      '@nightwatch/vrt': {
+        baseline_suffix: '_all_experiments_on',
+        diff_suffix: '_all_experiments_on',
+        latest_suffix: '_all_experiments_on',
+      },
     },
   },
 };
