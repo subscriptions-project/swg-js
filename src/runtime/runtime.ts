@@ -721,7 +721,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     LinkCompleteFlow.configurePending(this);
     PayCompleteFlow.configurePending(this);
 
-    injectStyleSheet(this.doc_, DIALOG_CSS);
+    // injectStyleSheet(this.doc_, DIALOG_CSS);
 
     // Report redirect errors if any.
     this.activityPorts_.onRedirectError((error) => {
