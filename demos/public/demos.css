@@ -18,6 +18,10 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+}
+
 body {
   background-color: #f0f0f0;
   color: #595a5a;
@@ -25,6 +29,7 @@ body {
   margin: 0;
   opacity: 0;
   transition: opacity var(--transition-duration) ease-in-out;
+  min-height: 100%;
 
   --background-transparency: 0.95;
   --transition-duration: 0.5s;

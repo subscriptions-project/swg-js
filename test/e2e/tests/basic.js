@@ -24,9 +24,11 @@ module.exports = {
       .waitForElementPresent('@swgBasicButton', 'Found button')
       .waitForElementVisible('@swgBasicButton')
       .click('@swgBasicButton')
+      .pause(3000)
+      .assert.screenshotIdenticalToBaseline('html', 'basic-contribution')
       .viewContributionOffers()
-      .assert.textContains('.XWoc8b', 'Swgjs Contribution Demos')
-      .assert.textContains('.h57Fgb', '$1')
+      .assert.textContains('@header', 'Swgjs Contribution Demos')
+      .assert.textContains('@priceChip', '$1')
       .contribute()
       .checkPayment()
       .end();
