@@ -32,6 +32,7 @@ import {setImportantStyles} from '../utils/style';
 const html = String.raw;
 const css = String.raw;
 
+// Default css and html for testing. Should never be displayed.
 const INVALID_CSS = css`
   .prompt {
     width: 600px;
@@ -48,7 +49,6 @@ const INVALID_HTML = html`
   </style>
   <div class="prompt">
     Invalid prompt.
-    <div></div>
   </div>
 `;
 
