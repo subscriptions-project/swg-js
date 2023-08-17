@@ -339,6 +339,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     googletag.destroySlots([this.rewardedSlot_]);
     if (this.params_.isClosable) {
       removeElement(wrapper);
+      if (this.params_.onCancel) {
+        this.params_.onCancel();
+      }
     } else {
       setImportantStyles(wrapper, {'display': 'block'});
     }
