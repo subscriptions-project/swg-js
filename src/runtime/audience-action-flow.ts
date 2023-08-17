@@ -50,7 +50,12 @@ import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {warn} from '../utils/log';
 
-export interface AudienceActionParams {
+export interface AudienceActionFlow {
+  start: () => void;
+  showNoEntitlementFoundToast: () => void;
+}
+
+export interface AudienceActionIframeParams {
   action: string;
   configurationId?: string;
   onCancel?: () => void;
@@ -81,7 +86,7 @@ const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
 /**
  * The flow to initiate and manage handling an audience action.
  */
-export class AudienceActionFlow {
+export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly productType_: ProductType;
   private readonly dialogManager_: DialogManager;
   private readonly entitlementsManager_: EntitlementsManager;
@@ -91,7 +96,7 @@ export class AudienceActionFlow {
 
   constructor(
     private readonly deps_: Deps,
-    private readonly params_: AudienceActionParams
+    private readonly params_: AudienceActionIframeParams
   ) {
     this.productType_ = params_.autoPromptType
       ? autopromptTypeToProductTypeMapping[params_.autoPromptType]!

@@ -25,7 +25,7 @@ import {
   SurveyDataTransferResponse,
   SurveyQuestion,
 } from '../proto/api_messages';
-import {AudienceActionFlow} from './audience-action-flow';
+import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
@@ -106,7 +106,7 @@ const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES =
   new SurveyDataTransferRequest();
 TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
 
-describes.realWin('AudienceActionFlow', (env) => {
+describes.realWin('AudienceActionIframeFlow', (env) => {
   let win;
   let runtime;
   let activitiesMock;
@@ -196,9 +196,9 @@ describes.realWin('AudienceActionFlow', (env) => {
       path: 'surveyiframe',
     },
   ].forEach(({action, configurationId, path}) => {
-    it(`opens an AudienceActionFlow constructed with params for ${action}`, async () => {
+    it(`opens an AudienceActionIframeFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').resolves(null);
-      const audienceActionFlow = new AudienceActionFlow(runtime, {
+      const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
         action,
         configurationId,
         onCancel: onCancelSpy,
@@ -229,11 +229,11 @@ describes.realWin('AudienceActionFlow', (env) => {
     });
   });
 
-  it('opens an AudienceActionFlow with query param locale set to client configuration language', async () => {
+  it('opens an AudienceActionIframeFlow with query param locale set to client configuration language', async () => {
     clientOptions.lang = 'pt-BR';
     clientOptions.forceLangInIframes = true;
     sandbox.stub(runtime.storage(), 'get').resolves(null);
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -261,8 +261,8 @@ describes.realWin('AudienceActionFlow', (env) => {
     expect(onCancelSpy).to.not.be.called;
   });
 
-  it('calls the onCancel when an AudienceActionFlow is cancelled and one it provided', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+  it('calls the onCancel when an AudienceActionIframeFlow is cancelled and one it provided', async () => {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -281,7 +281,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it('handles a CompleteAudienceActionResponse with regwall completed and opens a custom toast', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -325,7 +325,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it('handles a CompleteAudienceActionResponse with newsletter completed and opens a custom toast', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -369,7 +369,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it('handles a CompleteAudienceActionResponse with regwall completed before and opens a basic toast', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -411,7 +411,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it('handles a CompleteAudienceActionResponse with regwall failure and opens a failure toast', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -456,7 +456,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a CompleteAudienceActionResponse with newsletter not completed and opens a custom toast indicating that the user has completed the newsletter before`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -499,7 +499,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a CompleteAudienceActionResponse with newsletter failure and opens a custom toast indicating that the sign up has failed`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -544,7 +544,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it('handles a CompleteAudienceActionResponse with survey completed and does not open a custom toast', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -576,7 +576,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a CompleteAudienceActionResponse with survey already completed and does not open a custom toast.`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -609,7 +609,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a CompleteAudienceActionResponse with survey failure and does not open a custom toast.`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -643,7 +643,7 @@ describes.realWin('AudienceActionFlow', (env) => {
 
   it('should trigger login flow for a registered user', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -662,7 +662,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -686,7 +686,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a SurveyDataTransferRequest with successful Google Analytics logging`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -775,7 +775,7 @@ describes.realWin('AudienceActionFlow', (env) => {
 
   it(`handles a SurveyDataTransferRequest with failed Google Analytics logging`, async () => {
     setWinWithoutGtag();
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -824,7 +824,7 @@ describes.realWin('AudienceActionFlow', (env) => {
     runtime.win.restore();
     sandbox.stub(runtime, 'win').returns(winWithDataLayer);
 
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -918,7 +918,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .resolves(true)
       .once();
 
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -966,7 +966,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .resolves(false)
       .once();
 
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1017,7 +1017,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .throws(new Error('Test Callback Exception'))
       .once();
 
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1071,7 +1071,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       .rejects(new Error('Test Callback Exception'))
       .once();
 
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1144,7 +1144,7 @@ describes.realWin('AudienceActionFlow', (env) => {
       )
       .once();
 
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1177,7 +1177,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a SurveyDataTransferRequest with successful PPS storage in empty localStorage`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1210,7 +1210,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1255,7 +1255,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS ppstaxonomies but flag enabled`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1278,7 +1278,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it(`handles a SurveyDataTransferRequest with improper existing PPS`, async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1321,7 +1321,7 @@ describes.realWin('AudienceActionFlow', (env) => {
   });
 
   it('opens dialog with scrolling disabled', async () => {
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
@@ -1339,9 +1339,9 @@ describes.realWin('AudienceActionFlow', (env) => {
     dialogManagerMock.verify();
   });
 
-  it(`opens an AudienceActionFlow and passes isClosable in query param`, async () => {
+  it(`opens an AudienceActionIframeFlow and passes isClosable in query param`, async () => {
     sandbox.stub(runtime.storage(), 'get').resolves(null);
-    const audienceActionFlow = new AudienceActionFlow(runtime, {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: undefined,
       onCancel: onCancelSpy,

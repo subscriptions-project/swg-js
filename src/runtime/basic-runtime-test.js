@@ -19,7 +19,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {AudienceActionFlow} from './audience-action-flow';
+import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
@@ -994,7 +994,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         return Promise.resolve(result);
       };
 
-      const audienceActionFlow = new AudienceActionFlow(
+      const audienceActionFlow = new AudienceActionIframeFlow(
         configuredBasicRuntime,
         {
           action: 'TYPE_REGISTRATION_WALL',
