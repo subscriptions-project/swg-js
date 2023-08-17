@@ -33,5 +33,11 @@ module.exports = {
     swgRegwallDialog: {
       selector: '#swg-regwall-dialog',
     },
+    title: {
+      selector: '.gaa-metering-regwall--title',
+    },
+    description: {
+      selector: '.gaa-metering-regwall--description',
+    },
   },
 };
