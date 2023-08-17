@@ -25,30 +25,37 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   beforeEach(() => {
     const runtime = new ConfiguredRuntime(
       env.win,
-      new PageConfig('pub1:label1', /**locked=*/ true),
-      /* integr */ undefined,
-      /* config */ undefined,
-      /* clientOptions */ {}
+      new PageConfig(
+        /* productOrPublicationId= */ 'pub1:label1',
+        /* locked= */ true
+      ),
+      /* integr= */ undefined,
+      /* config= */ undefined,
+      /* clientOptions= */ {}
     );
     flow = new AudienceActionLocalFlow(runtime);
   });
 
-  it('start', async () => {
-    await flow.start();
+  describe('start', () => {
+    it('renders with default prompt', async () => {
+      await flow.start();
 
-    const wrapper = env.win.document.querySelector(
-      '.audience-action-local-wrapper'
-    );
-    expect(wrapper).to.not.be.null;
-    const prompt = wrapper.shadowRoot.querySelector('.prompt');
-    expect(prompt.innerHTML).contains('Invalid prompt.');
+      const wrapper = env.win.document.querySelector(
+        '.audience-action-local-wrapper'
+      );
+      expect(wrapper).to.not.be.null;
+      const prompt = wrapper.shadowRoot.querySelector('.prompt');
+      expect(prompt.innerHTML).contains('Invalid prompt.');
+    });
   });
 
-  it('showNoEntitlementFoundToast', async () => {
-    const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
+  describe('showNoEntitlementFoundToast', () => {
+    it('opens toast', async () => {
+      const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
-    await flow.showNoEntitlementFoundToast();
+      await flow.showNoEntitlementFoundToast();
 
-    expect(toastOpenStub).to.be.called.calledWithExactly();
+      expect(toastOpenStub).to.be.called.calledWithExactly();
+    });
   });
 });

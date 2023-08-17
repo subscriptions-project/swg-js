@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2023 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,9 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * An audience action local flow will show a dialog prompt to a reader, asking them
- * to complete an action for potentially free, additional metered entitlements.
  */
 
 import {AudienceActionFlow} from './audience-action-flow';
@@ -61,7 +58,8 @@ export interface AudienceActionLocalParams {
 }
 
 /**
- * The flow to initiate and manage handling an audience action.
+ * An audience action local flow will show a dialog prompt to a reader, asking them
+ * to complete an action for potentially free, additional metered entitlements.
  */
 export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly prompt_: Promise<HTMLElement>;
@@ -81,8 +79,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.wrapper_ = this.prompt_.then(this.createWrapper_.bind(this));
   }
 
-  async createPrompt_(): Promise<HTMLElement> {
-    const prompt = await this.renderDefault();
+  private async createPrompt_(): Promise<HTMLElement> {
+    const prompt = await this.renderDefault_();
     setImportantStyles(prompt, {
       'position': 'fixed',
       'left': '50%',
@@ -93,7 +91,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return prompt;
   }
 
-  async createWrapper_(prompt: HTMLElement): Promise<HTMLElement> {
+  private async createWrapper_(prompt: HTMLElement): Promise<HTMLElement> {
     const wrapper = createElement(this.doc_, 'div', {
       'class': 'audience-action-local-wrapper',
     });
@@ -122,7 +120,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return wrapper;
   }
 
-  async renderDefault() {
+  private async renderDefault_(): Promise<HTMLElement> {
     const prompt = createElement(this.doc_, 'div', {});
     prompt./*OK*/ innerHTML = INVALID_HTML;
     return prompt;
