@@ -131,9 +131,9 @@ describes.realWin('AutoPromptManager', (env) => {
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
 
-    actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionFlow');
+    actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionIframeFlow');
     startSpy = sandbox.spy(
-      audienceActionFlow.AudienceActionFlow.prototype,
+      audienceActionFlow.AudienceActionIframeFlow.prototype,
       'start'
     );
   });
@@ -1797,14 +1797,12 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should return the last AudienceActionFlow', async () => {
-      const lastAudienceActionFlow = new audienceActionFlow.AudienceActionFlow(
-        deps,
-        {
+      const lastAudienceActionFlow =
+        new audienceActionFlow.AudienceActionIframeFlow(deps, {
           action: 'TYPE_REGISTRATION_WALL',
           onCancel: undefined,
           autoPromptType: AutoPromptType.CONTRIBUTION,
-        }
-      );
+        });
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,

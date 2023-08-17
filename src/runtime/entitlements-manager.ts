@@ -25,7 +25,7 @@ import {
   Timestamp,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
-import {AudienceActionFlow} from './audience-action-flow';
+import {AudienceActionIframeFlow} from './audience-action-flow';
 import {ClientConfig} from '../model/client-config';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {
@@ -90,7 +90,7 @@ export class AvailableIntervention implements Intervention {
    * Starts the intervention flow.
    */
   show(params: ShowInterventionParams): Promise<void> {
-    const flow = new AudienceActionFlow(this.deps_, {
+    const flow = new AudienceActionIframeFlow(this.deps_, {
       isClosable: params.isClosable,
       action: this.type,
       configurationId: this.configurationId,

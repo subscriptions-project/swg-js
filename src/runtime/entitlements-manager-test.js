@@ -2931,10 +2931,10 @@ describes.realWin('EntitlementsManager', (env) => {
 
       const actionFlowSpy = sandbox.spy(
         audienceActionFlow,
-        'AudienceActionFlow'
+        'AudienceActionIframeFlow'
       );
       const startSpy = sandbox.spy(
-        audienceActionFlow.AudienceActionFlow.prototype,
+        audienceActionFlow.AudienceActionIframeFlow.prototype,
         'start'
       );
 

@@ -20,7 +20,11 @@ import {
   EntitlementsManager,
   Intervention,
 } from './entitlements-manager';
-import {AudienceActionFlow, AudienceActionParams} from './audience-action-flow';
+import {
+  AudienceActionFlow,
+  AudienceActionIframeFlow,
+  AudienceActionIframeParams,
+} from './audience-action-flow';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
@@ -552,14 +556,17 @@ export class AutoPromptManager {
     isClosable?: boolean;
   }): () => void {
     return () => {
-      const params: AudienceActionParams = {
+      const params: AudienceActionIframeParams = {
         action,
         configurationId,
         autoPromptType,
         onCancel: () => this.storeLastDismissal_(),
         isClosable,
       };
-      const lastAudienceActionFlow = new AudienceActionFlow(this.deps_, params);
+      const lastAudienceActionFlow = new AudienceActionIframeFlow(
+        this.deps_,
+        params
+      );
       this.setLastAudienceActionFlow(lastAudienceActionFlow);
       lastAudienceActionFlow.start();
     };
