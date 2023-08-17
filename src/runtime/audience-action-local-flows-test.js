@@ -20,10 +20,10 @@ import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
 
 describes.realWin('AudienceActionLocalFlow', (env) => {
-  let flow;
+  let runtime;
 
   beforeEach(() => {
-    const runtime = new ConfiguredRuntime(
+    runtime = new ConfiguredRuntime(
       env.win,
       new PageConfig(
         /* productOrPublicationId= */ 'pub1:label1',
@@ -33,11 +33,15 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       /* config= */ undefined,
       /* clientOptions= */ {}
     );
-    flow = new AudienceActionLocalFlow(runtime);
   });
 
   describe('start', () => {
-    it('renders with default prompt', async () => {
+    it('renders with default error view prompt', async () => {
+      const params = {
+        action: 'action',
+      }
+      const flow = new AudienceActionLocalFlow(runtime, params);
+
       await flow.start();
 
       const wrapper = env.win.document.querySelector(
@@ -45,12 +49,33 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       );
       expect(wrapper).to.not.be.null;
       const prompt = wrapper.shadowRoot.querySelector('.prompt');
-      expect(prompt.innerHTML).contains('Invalid prompt.');
+      expect(prompt.innerHTML).contains('Something went wrong.');
+    });
+
+    it('renders with rewarded ad view', async () => {
+      const params = {
+        action: 'TYPE_REWARDED_AD',
+      }
+      const flow = new AudienceActionLocalFlow(runtime, params);
+
+      await flow.start();
+
+      const wrapper = env.win.document.querySelector(
+        '.audience-action-local-wrapper'
+      );
+      expect(wrapper).to.not.be.null;
+      const prompt = wrapper.shadowRoot.querySelector('.prompt');
+      expect(prompt.innerHTML).contains('Loading...');
     });
   });
 
   describe('showNoEntitlementFoundToast', () => {
     it('opens toast', async () => {
+      const params = {
+        action: 'action',
+      }
+      const flow = new AudienceActionLocalFlow(runtime, params);
+
       const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
       await flow.showNoEntitlementFoundToast();

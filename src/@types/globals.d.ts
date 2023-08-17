@@ -95,5 +95,19 @@ declare global {
         };
       };
     };
+
+    /**
+     * Google tag API.
+     * https://developers.google.com/publisher-tag/reference
+     */
+    googletag: {
+      cmd: Array<() => void>;
+      defineOutOfPageSlot: (adUnitPath: string, div?: string) => any;
+      pubads: () => any;
+      enums: any;
+      destroySlots: (rewardedSlot: any) => void;
+      enableServices: () => void;
+      display: (divOrSlot: any) => void;
+    };
   }
 }
