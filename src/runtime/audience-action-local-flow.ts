@@ -47,9 +47,7 @@ const INVALID_HTML = html`
   <style>
     ${INVALID_CSS}
   </style>
-  <div class="prompt">
-    Invalid prompt.
-  </div>
+  <div class="prompt">Invalid prompt.</div>
 `;
 
 export interface AudienceActionLocalParams {
