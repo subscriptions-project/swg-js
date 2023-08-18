@@ -49,7 +49,7 @@ const ERROR_HTML = html`
   <div class="prompt">Something went wrong.</div>
 `;
 
-// Rewarded ad wall prompt css and html.
+// Rewarded ad wall loading prompt css and html.
 // TODO: mhkawano - replace with circle animation loading.
 const LOADING_CSS = css`
   .prompt {
@@ -118,6 +118,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // Used to render the rewarded ad, returned from the ready callback
   // @ts-ignore
   private makeRewardedVisible_?: () => void;
+  private gptTimeout_ = 3000;
 
   constructor(
     private readonly deps_: Deps,
@@ -253,7 +254,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
           googletag.destroySlots([this.rewardedSlot_]);
           resolve(false);
         }
-      }, 3000);
+      }, this.gptTimeout_);
     } else {
       resolve(false);
     }

@@ -137,6 +137,32 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
       });
 
+      it('fails to render with gpt.js timeout', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+        };
+        const flow = new AudienceActionLocalFlow(runtime, params);
+        flow.gptTimeout_ = 1000;
+
+        await flow.start();
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
+        const loadingPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(loadingPrompt.innerHTML).contains('Loading...');
+
+        // Manually invoke the command for gpt.js.
+        expect(env.win.googletag.cmd[0]).to.not.be.null;
+        const initPromise = env.win.googletag.cmd[0]();
+
+        await initPromise;
+
+        const errorPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(errorPrompt.innerHTML).contains('Something went wrong.');
+      });
+
       it('renders with rewardedSlotGranted', async () => {
         const params = {
           action: 'TYPE_REWARDED_AD',
