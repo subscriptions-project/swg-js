@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import {AudienceActionFlow} from './audience-action-flow';
-import {AutoPromptType} from '../api/basic-subscriptions'; // @ts-ignore
-import {ClientConfigManager} from './client-config-manager';
-import {Deps} from './deps';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
-import {Toast} from '../ui/toast';
-import {createElement, removeElement} from '../utils/dom';
-import {feUrl} from './services';
-import {msg} from '../utils/i18n';
-import {setImportantStyles} from '../utils/style';
+import { AudienceActionFlow } from './audience-action-flow';
+import { AutoPromptType } from '../api/basic-subscriptions'; // @ts-ignore
+import { ClientConfigManager } from './client-config-manager';
+import { Deps } from './deps';
+import { SWG_I18N_STRINGS } from '../i18n/swg-strings';
+import { Toast } from '../ui/toast';
+import { createElement, removeElement } from '../utils/dom';
+import { feUrl } from './services';
+import { msg } from '../utils/i18n';
+import { setImportantStyles } from '../utils/style';
 
 // Helper for syntax highlighting.
 const html = String.raw;
@@ -45,8 +45,10 @@ const ERROR_HTML = html`
   <style>
     ${ERROR_CSS}
   </style>
-  <div class="closePromptArea"></div>
-  <div class="prompt">Something went wrong.</div>
+  <div class="prompt"> 
+    <div class="closePromptArea"></div>
+    <div>Something went wrong.</div>
+  </div>
 `;
 
 // Rewarded ad wall prompt css and html.
@@ -88,7 +90,7 @@ const REWARDED_AD_HTML = html`
     <div class="closePromptArea"></div>
     <p>Support us by watching this ad</p>
     <input type="button" class="watchAdButton" value="Watch ad" />
-    <input type="button" class="supportButton" value="Donate/Subscribe" />
+    <span class="supportArea"></span>
     <input type="button" class="signinButton" value="Sign-in" />
   </div>
 `;
@@ -118,6 +120,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private rewardedResolve_: any;
   // Ad slot used to host the rewarded ad.
   private rewardedSlot_: any;
+  // Used to render the rewarded ad, returned from the ready callback
+  private rewardedAd_?: {makeRewardedVisible: () => void};
 
   constructor(
     private readonly deps_: Deps,
@@ -171,7 +175,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'z-index': '2147483646',
     });
 
-    const shadow = wrapper.attachShadow({mode: 'open'});
+    const shadow = wrapper.attachShadow({ mode: 'open' });
 
     shadow.appendChild(prompt);
 
@@ -186,9 +190,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private makeErrorView(prompt: HTMLElement): HTMLElement {
     prompt./*OK*/ innerHTML = ERROR_HTML;
     if (this.params_.isClosable) {
+
+      this.makeButton_('Close prompt', 'closePromptButton', 'closeArea', () => {
+        
+      })
       const closePromptButton = createElement(this.doc_, 'input', {
         'type': 'button',
-        'class': 'watchAdButton',
+        'class': 'closePromptButton',
         'value': 'Close prompt',
       });
       closePromptButton.addEventListener('click', async () => {
@@ -208,7 +216,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async renderAndInitRewardedAdWall_(): Promise<HTMLElement> {
     // Setup callback for googletag init.
-    const googletag = this.deps_.win().googletag || {cmd: []};
+    const googletag = this.deps_.win().googletag || { cmd: [] };
     googletag.cmd.push(this.initRewardedAdWall_.bind(this));
 
     // Initially return loading view.
@@ -236,7 +244,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // Save resolve so that it can be called in rewardedSlotReady_.
     this.rewardedResolve_ = resolve;
 
-    const googletag = this.deps_.win().googletag || {cmd: []};
+    const googletag = this.deps_.win().googletag || { cmd: [] };
     this.rewardedSlot_ = googletag.defineOutOfPageSlot(
       '/22639388115/rewarded_web_example',
       googletag.enums.OutOfPageFormat.REWARDED
@@ -280,61 +288,40 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   /**
    * When gpt.js is ready to show an ad, we replace the loading view and wire up the buttons.
    */
-  private async rewardedSlotReady_(event: any) {
+  private async rewardedSlotReady_(rewardedAd: any) {
     this.rewardedReadyCalled_ = true;
+    this.rewardedAd_ = rewardedAd;
 
-    const googletag = this.deps_.win().googletag || {cmd: []};
     const prompt = await this.prompt_;
-    const wrapper = await this.wrapper_;
-
     prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
 
     const watchAdButton = prompt.getElementsByClassName('watchAdButton');
-    watchAdButton.item(0)?.addEventListener('click', async () => {
-      setImportantStyles(wrapper, {'display': 'none'});
-      watchAdButton.item(0)?.remove();
-      event.makeRewardedVisible();
-    });
+    watchAdButton.item(0)?.addEventListener('click', this.watchAdButton_.bind(this));
 
     if (this.params_.isClosable) {
-      const closePromptButton = createElement(this.doc_, 'input', {
-        'type': 'button',
-        'class': 'watchAdButton',
-        'value': 'Close prompt',
-      });
-      closePromptButton.addEventListener('click', async () => {
-        removeElement(wrapper);
-        googletag.destroySlots([this.rewardedSlot_]);
-        if (this.params_.onCancel) {
-          this.params_.onCancel();
-        }
-      });
-      prompt
-        .getElementsByClassName('closeArea')
-        .item(0)
-        ?.appendChild(closePromptButton);
+      this.makeButton_(
+        'Close prompt',
+        'closePromptButton',
+        'closeArea',
+        this.closePromptButton_.bind(this));
     }
 
-    const supportButton = prompt.getElementsByClassName('supportButton');
     if (this.params_.monetizationFunction) {
-      supportButton.item(0)?.addEventListener('click', async () => {
-        removeElement(wrapper);
-        googletag.destroySlots([this.rewardedSlot_]);
-        // TODO: mhkawano - suppress the monetizatoin function graypane fade-in animation.
-        this.params_.monetizationFunction!();
-      });
+      this.makeButton_(
+        'Contribute / Subscribe',
+        'supportButton',
+        'supportArea',
+        this.supportButton_.bind(this));
     }
 
     const signinButton = prompt.getElementsByClassName('signinButton');
-    signinButton.item(0)?.addEventListener('click', async () => {
-      this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
-      // close the prompt and destory the ad slot if entitlements are found
-    });
+    signinButton.item(0)?.addEventListener('click', this.signinButton_.bind(this));
+
     this.rewardedResolve_(true);
   }
 
   private async rewardedSlotClosed_() {
-    const googletag = this.deps_.win().googletag || {cmd: []};
+    const googletag = this.deps_.win().googletag || { cmd: [] };
     const wrapper = await this.wrapper_;
     googletag.destroySlots([this.rewardedSlot_]);
     if (this.params_.isClosable) {
@@ -343,22 +330,76 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         this.params_.onCancel();
       }
     } else {
-      setImportantStyles(wrapper, {'display': 'block'});
+      setImportantStyles(wrapper, { 'display': 'block' });
     }
   }
 
   private async rewardedSlotGranted_() {
-    const googletag = this.deps_.win().googletag || {cmd: []};
+    const googletag = this.deps_.win().googletag || { cmd: [] };
     const wrapper = await this.wrapper_;
     removeElement(wrapper);
     googletag.destroySlots([this.rewardedSlot_]);
+  }
+
+  private async makeButton_(
+    label: string,
+    buttonClass: string,
+    buttonArea: string,
+    callback: () => void) {
+    const prompt = await this.prompt_;
+
+    const button = createElement(this.doc_, 'input', {
+      'type': 'button',
+      'class': buttonClass,
+      'value': label,
+    });
+
+    button.addEventListener('click', callback);
+
+    prompt
+      .getElementsByClassName(buttonArea)
+      .item(0)
+      ?.appendChild(button);
+
+  }
+
+  private async watchAdButton_() {
+    const prompt = await this.prompt_;
+    const wrapper = await this.wrapper_;
+    prompt.getElementsByClassName('watchAdButton').item(0)?.remove();
+    setImportantStyles(wrapper, { 'display': 'none' });
+    this.rewardedAd_!.makeRewardedVisible();
+  }
+
+  private async closePromptButton_() {
+    const googletag = this.deps_.win().googletag || { cmd: [] };
+    const wrapper = await this.wrapper_;
+    removeElement(wrapper);
+    googletag.destroySlots([this.rewardedSlot_]);
+    if (this.params_.onCancel) {
+      this.params_.onCancel();
+    }
+  }
+
+  private async supportButton_() {
+    const googletag = this.deps_.win().googletag || { cmd: [] };
+    const wrapper = await this.wrapper_;
+    removeElement(wrapper);
+    googletag.destroySlots([this.rewardedSlot_]);
+    // TODO: mhkawano - suppress the monetizatoin function graypane fade-in animation.
+    this.params_.monetizationFunction!();
+  }
+
+  private async signinButton_() {
+    this.deps_.callbacks().triggerLoginRequest({ linkRequested: false });
+    // close the prompt and destory the ad slot if entitlements are found
   }
 
   async start() {
     const wrapper = await this.wrapper_;
     this.doc_.body.appendChild(wrapper);
     wrapper.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
-    setImportantStyles(wrapper, {'opacity': '1.0'});
+    setImportantStyles(wrapper, { 'opacity': '1.0' });
   }
 
   showNoEntitlementFoundToast() {

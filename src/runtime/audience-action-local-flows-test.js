@@ -36,9 +36,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   });
 
   describe('start', () => {
-    it('renders with default error view prompt', async () => {
+    it('renders with error view prompt', async () => {
       const params = {
-        action: 'action',
+        action: 'invlid action',
       }
       const flow = new AudienceActionLocalFlow(runtime, params);
 
@@ -50,6 +50,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       expect(wrapper).to.not.be.null;
       const prompt = wrapper.shadowRoot.querySelector('.prompt');
       expect(prompt.innerHTML).contains('Something went wrong.');
+      const closePromptButton = prompt.querySelector('.closePromptButton');
+      expect(closePromptButton).to.be.null;
     });
 
     it('renders with rewarded ad view', async () => {
