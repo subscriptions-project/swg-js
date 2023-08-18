@@ -191,7 +191,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async renderAndInitRewardedAdWall_(): Promise<HTMLElement> {
     // Setup callback for googletag init.
-    const googletag = this.deps_.win().googletag || {cmd: []};
+    const googletag = this.deps_.win().googletag;
     googletag.cmd.push(this.initRewardedAdWall_.bind(this));
 
     // Initially return loading view.
