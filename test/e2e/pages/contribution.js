@@ -53,5 +53,8 @@ module.exports = {
     contributionBtn: {
       selector: '.ContributionButtonText',
     },
+    header: {
+      selector: '.K2Fgzb',
+    },
   },
 };

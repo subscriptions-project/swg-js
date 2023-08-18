@@ -44,6 +44,15 @@ jobs:
       - name: E2E Tests
         run: npm run e2e
 
+      - name: Upload VRT report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: vrt-report
+          path: |
+            .vrt
+            vrt-report
+
   unit:
     runs-on: ubuntu-latest
 

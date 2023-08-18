@@ -16,7 +16,7 @@
   },
   "scripts": {
     "preinstall": "node build-system/check-package-manager.js",
-    "e2e": "npx vite build -- --target=classic && npx vite build -- --target=gaa && npx vite build -- --target=basic && npx gulp e2e ; npx gulp e2e --env=all_experiments_enabled",
+    "e2e": "./build_and_run_e2e.sh",
     "start": "gulp",
     "start-local": "gulp",
     "test": "gulp unit --headless",
