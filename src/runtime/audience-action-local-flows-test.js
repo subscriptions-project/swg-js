@@ -39,7 +39,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
     it('renders with error view prompt', async () => {
       const params = {
         action: 'invlid action',
-      }
+      };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
       await flow.start();
@@ -54,20 +54,200 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       expect(closePromptButton).to.be.null;
     });
 
-    it('renders with rewarded ad view', async () => {
-      const params = {
-        action: 'TYPE_REWARDED_AD',
-      }
-      const flow = new AudienceActionLocalFlow(runtime, params);
+    describe('rewarded ad', () => {
+      let rewardedSlot;
+      let pubadsobj;
+      let eventListeners;
 
-      await flow.start();
+      beforeEach(() => {
+        rewardedSlot = {
+          addService: () => {},
+        };
+        eventListeners = {};
+        pubadsobj = {
+          addEventListener: (event, handler) => {
+            eventListeners[event] = handler;
+          },
+        };
+        env.win.googletag = {
+          cmd: [],
+          defineOutOfPageSlot: () => rewardedSlot,
+          enums: {OutOfPageFormat: {REWARDED: 'REWARDED'}},
+          pubads: () => pubadsobj,
+          enableServices: () => {},
+          display: (rewardedSlot) => {},
+          destroySlots: sandbox.spy(),
+        };
+      });
 
-      const wrapper = env.win.document.querySelector(
-        '.audience-action-local-wrapper'
-      );
-      expect(wrapper).to.not.be.null;
-      const prompt = wrapper.shadowRoot.querySelector('.prompt');
-      expect(prompt.innerHTML).contains('Loading...');
+      it('renders', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+        };
+        const flow = new AudienceActionLocalFlow(runtime, params);
+
+        await flow.start();
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
+        const loadingPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(loadingPrompt.innerHTML).contains('Loading...');
+
+        // Manually invoke the command for gpt.js.
+        expect(env.win.googletag.cmd[0]).to.not.be.null;
+        const initPromise = env.win.googletag.cmd[0]();
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady']();
+
+        await initPromise;
+
+        const prompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(prompt.innerHTML).contains('Support us by watching this ad');
+      });
+
+      it('fails to render with bad ad slot', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+        };
+        const flow = new AudienceActionLocalFlow(runtime, params);
+        env.win.googletag.defineOutOfPageSlot = () => null;
+
+        await flow.start();
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
+        const loadingPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(loadingPrompt.innerHTML).contains('Loading...');
+
+        // Manually invoke the command for gpt.js.
+        expect(env.win.googletag.cmd[0]).to.not.be.null;
+        await env.win.googletag.cmd[0]();
+
+        const errorPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(errorPrompt.innerHTML).contains('Something went wrong.');
+      });
+
+      it('renders with rewardedSlotGranted', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+        };
+        const flow = new AudienceActionLocalFlow(runtime, params);
+
+        await flow.start();
+
+        let wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
+        const loadingPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(loadingPrompt.innerHTML).contains('Loading...');
+
+        // Manually invoke the command for gpt.js.
+        expect(env.win.googletag.cmd[0]).to.not.be.null;
+        const initPromise = env.win.googletag.cmd[0]();
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady']();
+        expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
+        await eventListeners['rewardedSlotGranted']();
+
+        await initPromise;
+
+        wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.be.null;
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+      });
+
+      it('renders with rewardedSlotClosed for free content', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          isClosable: true,
+          onCancel: sandbox.spy(),
+        };
+        const flow = new AudienceActionLocalFlow(runtime, params);
+
+        await flow.start();
+
+        let wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
+        const loadingPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(loadingPrompt.innerHTML).contains('Loading...');
+
+        // Manually invoke the command for gpt.js.
+        expect(env.win.googletag.cmd[0]).to.not.be.null;
+        const initPromise = env.win.googletag.cmd[0]();
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady']();
+        expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
+        await eventListeners['rewardedSlotClosed']();
+
+        await initPromise;
+
+        wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.be.null;
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(params.onCancel).to.be.calledOnce.calledWithExactly();
+      });
+
+      it('renders with rewardedSlotClosed for locked content', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          isClosable: false,
+          onCancel: sandbox.spy(),
+        };
+        const flow = new AudienceActionLocalFlow(runtime, params);
+
+        await flow.start();
+
+        let wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
+        const loadingPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(loadingPrompt.innerHTML).contains('Loading...');
+
+        wrapper.style.display = 'none';
+
+        // Manually invoke the command for gpt.js.
+        expect(env.win.googletag.cmd[0]).to.not.be.null;
+        const initPromise = env.win.googletag.cmd[0]();
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady']();
+        expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
+        await eventListeners['rewardedSlotClosed']();
+
+        await initPromise;
+
+        wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper.style.display).equal('block');
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(params.onCancel).to.not.be.called;
+      });
     });
   });
 
@@ -75,7 +255,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
     it('opens toast', async () => {
       const params = {
         action: 'action',
-      }
+      };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
       const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
