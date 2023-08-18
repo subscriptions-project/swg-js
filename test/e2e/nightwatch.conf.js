@@ -24,6 +24,7 @@ module.exports = {
     baseline_screenshots_path: 'test/e2e/vrt/baseline',
     latest_screenshots_path: '.vrt/latest',
     diff_screenshots_path: '.vrt/diff',
+    threshold: 0.005,
   },
 
   test_settings: {
@@ -40,6 +41,7 @@ module.exports = {
             'disable-gpu',
             'headless',
             'no-sandbox',
+            'window-size=1280,800',
           ],
         },
       },
