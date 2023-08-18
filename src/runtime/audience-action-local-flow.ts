@@ -112,12 +112,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Resolve function to signal that the ready callback has finished executing.
-  private rewardedResolve_: any;
+  private rewardedResolve_?: (value: boolean) => void;
   // Ad slot used to host the rewarded ad.
-  private rewardedSlot_: any;
+  private rewardedSlot_?: googletag.Slot;
   // Used to render the rewarded ad, returned from the ready callback
   // @ts-ignore
-  private rewardedAd_?: {makeRewardedVisible: () => void};
+  private makeRewardedVisible_?: () => void;
 
   constructor(
     private readonly deps_: Deps,
@@ -218,7 +218,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // Save resolve so that it can be called in rewardedSlotReady_.
     this.rewardedResolve_ = resolve;
 
-    const googletag = this.deps_.win().googletag || {cmd: []};
+    const googletag = this.deps_.win().googletag;
     this.rewardedSlot_ = googletag.defineOutOfPageSlot(
       '/22639388115/rewarded_web_example',
       googletag.enums.OutOfPageFormat.REWARDED
@@ -262,9 +262,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   /**
    * When gpt.js is ready to show an ad, we replace the loading view and wire up the buttons.
    */
-  private async rewardedSlotReady_(rewardedAd: any) {
+  private async rewardedSlotReady_(
+    rewardedAd: googletag.events.RewardedSlotReadyEvent
+  ) {
     this.rewardedReadyCalled_ = true;
-    this.rewardedAd_ = rewardedAd;
+    this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
 
     const prompt = await this.prompt_;
     prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
@@ -272,11 +274,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // TODO: mhkawano - build UI.
     // TODO: mhkawano - update when UX is done.
 
-    this.rewardedResolve_(true);
+    this.rewardedResolve_!(true);
   }
 
   private async rewardedSlotClosed_() {
-    const googletag = this.deps_.win().googletag || {cmd: []};
+    const googletag = this.deps_.win().googletag;
     const wrapper = await this.wrapper_;
     googletag.destroySlots([this.rewardedSlot_]);
     if (this.params_.isClosable) {
@@ -290,7 +292,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async rewardedSlotGranted_() {
-    const googletag = this.deps_.win().googletag || {cmd: []};
+    const googletag = this.deps_.win().googletag;
     const wrapper = await this.wrapper_;
     removeElement(wrapper);
     googletag.destroySlots([this.rewardedSlot_]);

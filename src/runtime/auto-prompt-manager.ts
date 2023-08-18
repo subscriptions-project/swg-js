@@ -22,13 +22,9 @@ import {
 } from './entitlements-manager';
 import {
   AudienceActionFlow,
-  // AudienceActionIframeFlow,
-  // AudienceActionIframeParams,
+  AudienceActionIframeFlow,
+  AudienceActionIframeParams,
 } from './audience-action-flow';
-import {
-  AudienceActionLocalFlow,
-  AudienceActionLocalParams,
-} from './audience-action-local-flow';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
@@ -560,26 +556,19 @@ export class AutoPromptManager {
     isClosable?: boolean;
   }): () => void {
     return () => {
-      const monetizationFunction = this.getMonetizationPromptFn_(
+      const params: AudienceActionIframeParams = {
+        action,
+        configurationId,
         autoPromptType,
-        !!isClosable
+        onCancel: () => this.storeLastDismissal_(),
+        isClosable,
+      };
+      const lastAudienceActionFlow = new AudienceActionIframeFlow(
+        this.deps_,
+        params
       );
-      if (action == action) {
-        const params: AudienceActionLocalParams = {
-          action: 'TYPE_REWARDED_AD',
-          configurationId,
-          autoPromptType,
-          onCancel: () => this.storeLastDismissal_(),
-          isClosable,
-          monetizationFunction,
-        };
-        const lastAudienceActionFlow = new AudienceActionLocalFlow(
-          this.deps_,
-          params
-        );
-        this.setLastAudienceActionFlow(lastAudienceActionFlow);
-        lastAudienceActionFlow.start();
-      }
+      this.setLastAudienceActionFlow(lastAudienceActionFlow);
+      lastAudienceActionFlow.start();
     };
   }
 

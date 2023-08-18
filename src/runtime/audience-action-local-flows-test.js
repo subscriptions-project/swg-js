@@ -58,6 +58,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       let rewardedSlot;
       let pubadsobj;
       let eventListeners;
+      let readyEventArg;
 
       beforeEach(() => {
         rewardedSlot = {
@@ -69,13 +70,16 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
             eventListeners[event] = handler;
           },
         };
+        readyEventArg = {
+          makeRewardedVisible: () => {},
+        };
         env.win.googletag = {
           cmd: [],
           defineOutOfPageSlot: () => rewardedSlot,
           enums: {OutOfPageFormat: {REWARDED: 'REWARDED'}},
           pubads: () => pubadsobj,
           enableServices: () => {},
-          display: (rewardedSlot) => {},
+          display: () => {},
           destroySlots: sandbox.spy(),
         };
       });
@@ -101,7 +105,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady']();
+        await eventListeners['rewardedSlotReady'](readyEventArg);
 
         await initPromise;
 
@@ -154,7 +158,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady']();
+        await eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
         await eventListeners['rewardedSlotGranted']();
 
@@ -192,7 +196,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady']();
+        await eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
         await eventListeners['rewardedSlotClosed']();
 
@@ -233,7 +237,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady']();
+        await eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
         await eventListeners['rewardedSlotClosed']();
 
