@@ -95,5 +95,11 @@ declare global {
         };
       };
     };
+
+    /**
+     * Google tag API.
+     * https://developers.google.com/publisher-tag/reference
+     */
+    googletag: googletag;
   }
 }

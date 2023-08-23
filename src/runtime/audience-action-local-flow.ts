@@ -20,7 +20,7 @@ import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
-import {createElement} from '../utils/dom';
+import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
@@ -29,8 +29,9 @@ import {setImportantStyles} from '../utils/style';
 const html = String.raw;
 const css = String.raw;
 
-// Default css and html for testing. Should never be displayed.
-const INVALID_CSS = css`
+// Error view for prompts that fail to init.
+// TODO: mhkawano - Update once UX finished.
+const ERROR_CSS = css`
   .prompt {
     width: 600px;
     height: 200px;
@@ -40,11 +41,53 @@ const INVALID_CSS = css`
   }
 `;
 
-const INVALID_HTML = html`
+// TODO: mhkawano - allow error view to be closed.
+const ERROR_HTML = html`
   <style>
-    ${INVALID_CSS}
+    ${ERROR_CSS}
   </style>
-  <div class="prompt">Invalid prompt.</div>
+  <div class="prompt">Something went wrong.</div>
+`;
+
+// Rewarded ad wall loading prompt css and html.
+// TODO: mhkawano - replace with circle animation loading.
+const LOADING_CSS = css`
+  .prompt {
+    width: 600px;
+    background: white;
+    pointer-events: auto !important;
+    font-size: 200%;
+    padding: 1rem;
+  }
+`;
+
+const LOADING_HTML = html`
+  <style>
+    ${LOADING_CSS}
+  </style>
+  <div class="prompt">Loading...</div>
+`;
+
+// Rewarded ad wall prompt css and html.
+// TODO: mhkawano - update when UX is done.
+// TODO: mhkawano - allow error view to be closed.
+const REWARDED_AD_CSS = css`
+  .prompt {
+    width: 600px;
+    background: white;
+    pointer-events: auto !important;
+    font-size: 200%;
+    padding: 1rem;
+  }
+`;
+
+const REWARDED_AD_HTML = html`
+  <style>
+    ${REWARDED_AD_CSS}
+  </style>
+  <div class="prompt">
+    <div>Support us by watching this ad</div>
+  </div>
 `;
 
 export interface AudienceActionLocalParams {
@@ -66,9 +109,20 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly wrapper_: Promise<HTMLElement>;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
+  // Used by rewarded ads to check if the ready callback has been called.
+  private rewardedReadyCalled_ = false;
+  // Resolve function to signal that the ready callback has finished executing.
+  private rewardedResolve_?: (value: boolean) => void;
+  // Ad slot used to host the rewarded ad.
+  private rewardedSlot_?: googletag.Slot;
+  // Used to render the rewarded ad, returned from the ready callback
+  // @ts-ignore
+  private makeRewardedVisible_?: () => void;
+  private gptTimeout_ = 3000;
 
   constructor(
-    private readonly deps_: Deps // private readonly params_: AudienceActionLocalParams
+    private readonly deps_: Deps,
+    private readonly params_: AudienceActionLocalParams
   ) {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
@@ -80,7 +134,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async createPrompt_(): Promise<HTMLElement> {
-    const prompt = await this.renderDefault_();
+    let prompt;
+    if (this.params_.action === 'TYPE_REWARDED_AD') {
+      prompt = await this.renderAndInitRewardedAdWall_();
+    } else {
+      prompt = await this.renderErrorView_();
+    }
     setImportantStyles(prompt, {
       'position': 'fixed',
       'left': '50%',
@@ -120,10 +179,124 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return wrapper;
   }
 
-  private async renderDefault_(): Promise<HTMLElement> {
+  private async renderErrorView_(): Promise<HTMLElement> {
     const prompt = createElement(this.doc_, 'div', {});
-    prompt./*OK*/ innerHTML = INVALID_HTML;
+    return this.makeErrorView(prompt);
+  }
+
+  private makeErrorView(prompt: HTMLElement): HTMLElement {
+    prompt./*OK*/ innerHTML = ERROR_HTML;
     return prompt;
+  }
+
+  private async renderAndInitRewardedAdWall_(): Promise<HTMLElement> {
+    // Setup callback for googletag init.
+    const googletag = this.deps_.win().googletag;
+    googletag.cmd.push(this.initRewardedAdWall_.bind(this));
+
+    // Initially return loading view.
+    const prompt = createElement(this.doc_, 'div', {});
+    prompt./*OK*/ innerHTML = LOADING_HTML;
+    return prompt;
+  }
+
+  private async initRewardedAdWall_() {
+    // TODO: mhkawano - Get action config.
+
+    // Init gpt.js
+    const initGptPromise = new Promise<boolean>(this.initGpt_.bind(this));
+    const initSuccess = await initGptPromise;
+
+    // Replace with error view if init fails.
+    // TODO: mhkawano - Make closeable.
+    if (!initSuccess) {
+      const prompt = await this.prompt_;
+      this.makeErrorView(prompt);
+    }
+  }
+
+  private initGpt_(resolve: (result: boolean) => void) {
+    // Save resolve so that it can be called in rewardedSlotReady_.
+    this.rewardedResolve_ = resolve;
+
+    const googletag = this.deps_.win().googletag;
+    this.rewardedSlot_ = googletag.defineOutOfPageSlot(
+      '/22639388115/rewarded_web_example',
+      googletag.enums.OutOfPageFormat.REWARDED
+    );
+
+    if (this.rewardedSlot_) {
+      this.rewardedSlot_.addService(googletag.pubads());
+      googletag
+        .pubads()
+        .addEventListener(
+          'rewardedSlotReady',
+          this.rewardedSlotReady_.bind(this)
+        );
+      googletag
+        .pubads()
+        .addEventListener(
+          'rewardedSlotClosed',
+          this.rewardedSlotClosed_.bind(this)
+        );
+      googletag
+        .pubads()
+        .addEventListener(
+          'rewardedSlotGranted',
+          this.rewardedSlotGranted_.bind(this)
+        );
+      googletag.enableServices();
+      googletag.display(this.rewardedSlot_);
+
+      // gpt.js has no way of knowing that an ad unit is invalid besides checking that rewardedSlotReady is called. Error out after 3 seconds of waiting.
+      setTimeout(() => {
+        if (!this.rewardedReadyCalled_) {
+          googletag.destroySlots([this.rewardedSlot_]);
+          resolve(false);
+        }
+      }, this.gptTimeout_);
+    } else {
+      resolve(false);
+    }
+  }
+
+  /**
+   * When gpt.js is ready to show an ad, we replace the loading view and wire up the buttons.
+   */
+  private async rewardedSlotReady_(
+    rewardedAd: googletag.events.RewardedSlotReadyEvent
+  ) {
+    this.rewardedReadyCalled_ = true;
+    this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
+
+    const prompt = await this.prompt_;
+    prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
+
+    // TODO: mhkawano - build UI.
+    // TODO: mhkawano - update when UX is done.
+
+    this.rewardedResolve_!(true);
+  }
+
+  private async rewardedSlotClosed_() {
+    const googletag = this.deps_.win().googletag;
+    const wrapper = await this.wrapper_;
+    googletag.destroySlots([this.rewardedSlot_]);
+    if (this.params_.isClosable) {
+      removeElement(wrapper);
+      if (this.params_.onCancel) {
+        this.params_.onCancel();
+      }
+    } else {
+      setImportantStyles(wrapper, {'display': 'block'});
+    }
+  }
+
+  private async rewardedSlotGranted_() {
+    const googletag = this.deps_.win().googletag;
+    const wrapper = await this.wrapper_;
+    removeElement(wrapper);
+    googletag.destroySlots([this.rewardedSlot_]);
   }
 
   async start() {
