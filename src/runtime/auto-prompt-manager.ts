@@ -42,7 +42,6 @@ import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
-import {UiPredicates} from '../model/client-config';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
