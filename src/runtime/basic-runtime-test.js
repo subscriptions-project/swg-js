@@ -19,7 +19,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {AudienceActionFlow} from './audience-action-flow';
+import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
@@ -772,6 +772,17 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     it('should configure subscription auto prompts to show offers for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
 
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
       clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showOffers')
@@ -787,6 +798,18 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
     it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
+
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
       clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
@@ -971,7 +994,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         return Promise.resolve(result);
       };
 
-      const audienceActionFlow = new AudienceActionFlow(
+      const audienceActionFlow = new AudienceActionIframeFlow(
         configuredBasicRuntime,
         {
           action: 'TYPE_REGISTRATION_WALL',

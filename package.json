@@ -16,7 +16,7 @@
   },
   "scripts": {
     "preinstall": "node build-system/check-package-manager.js",
-    "e2e": "npx vite build -- --target=classic && npx vite build -- --target=gaa && npx vite build -- --target=basic && npx gulp e2e ; npx gulp e2e --env=all_experiments_enabled",
+    "e2e": "./build_and_run_e2e.sh",
     "start": "gulp",
     "start-local": "gulp",
     "test": "gulp unit --headless",
@@ -117,12 +117,13 @@
     "@storybook/html": "7.1.1",
     "@storybook/manager-webpack5": "6.5.16",
     "cheerio": "1.0.0-rc.12",
-    "chromedriver": "113.0.0",
+    "chromedriver": "115.0.0",
     "cookie-parser": "1.4.6",
     "hogan-express": "0.5.2",
     "is-running": "2.1.0",
     "jsonwebtoken": "9.0.1",
     "nightwatch": "2.6.21",
+    "@nightwatch/vrt": "^3.0.0",
     "rollup-plugin-visualizer": "5.9.2",
     "vite": "4.4.7"
   },

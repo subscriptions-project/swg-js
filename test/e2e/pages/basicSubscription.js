@@ -18,19 +18,19 @@
 const {swgPageUrl} = require('../util');
 
 /**
- * @fileoverview Page object for the basic contribution page.
+ * @fileoverview Page object for the basic subscription page.
  */
 const commands = {
-  viewContributionOffers: function () {
+  viewSubscriptionOffers: function () {
     return this.pause(1000)
-      .log('Viewing contribution offers')
+      .log('Viewing subscription offers')
       .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
-      .switchToFrame('[src*="contributionoffersiframe"]', 'SwG inner iFrame');
+      .switchToFrame('[src*="subscriptionoffersiframe"]', 'SwG inner iFrame');
   },
-  contribute: function () {
-    return this.log('Clicking contribute button')
-      .assert.textContains('@contributeBtn', 'Contribute $1 / month')
-      .click('@contributeBtn');
+  subscribe: function () {
+    return this.log('Clicking buy button')
+      .assert.textContains('@buyButton', 'Buy now')
+      .click('@buyButton');
   },
 };
 
@@ -38,7 +38,7 @@ module.exports = {
   url: function () {
     return swgPageUrl(
       this.api.launchUrl,
-      '/demos/public/button-dark.html',
+      '/demos/public/prod/subscriptions/button-dark.html',
       this.api.globals.swg_experiments
     );
   },
@@ -47,14 +47,11 @@ module.exports = {
     swgBasicButton: {
       selector: '.swg-button-v2-dark',
     },
-    contributeBtn: {
-      selector: '.PNojLb button',
+    buyButton: {
+      selector: '.skWZYc button',
     },
-    contributionHeader: {
-      selector: '.XWoc8b',
-    },
-    priceChip: {
-      selector: '.h57Fgb',
+    subscriptionHeader: {
+      selector: '.bNGhnc',
     },
   },
 };

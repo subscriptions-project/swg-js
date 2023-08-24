@@ -23,6 +23,7 @@ module.exports = {
       .navigate()
       .viewFirstArticle()
       .waitForElementPresent('@swgIFrame', 'Found SwG iFrame')
+      .assert.screenshotIdenticalToBaseline('body', 'classic-susbcription')
       .viewOffers()
       .waitForElementPresent('.K2Fgzb', 'Found offer carousel')
       .assert.textContains('.K2Fgzb', 'Subscribe with your Google Account')
