@@ -1320,14 +1320,12 @@ describes.realWin('AutoPromptManager', (env) => {
 
   [
     {
-      actionType: 'TYPE_CONTRIBUTION',
       autoPromptType: AutoPromptType.CONTRIBUTION,
     },
     {
-      actionType: 'TYPE_SUBSCRIPTION',
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     },
-  ].forEach(({actionType, autoPromptType}) => {
+  ].forEach(({autoPromptType}) => {
     it(`should not display any monetization prompt if the article returns no actions for autoPromptType: ${autoPromptType}`, async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
