@@ -20,75 +20,13 @@ import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
-import {createElement, removeElement} from '../utils/dom';
+import {createElement, removeElement, injectStyleSheet} from '../utils/dom';
 import {feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
-
-// Helper for syntax highlighting.
-const html = String.raw;
-const css = String.raw;
-
-// Error view for prompts that fail to init.
-// TODO: mhkawano - Update once UX finished.
-const ERROR_CSS = css`
-  .prompt {
-    width: 600px;
-    height: 200px;
-    background: white;
-    pointer-events: auto !important;
-    text-align: center;
-  }
-`;
-
-// TODO: mhkawano - allow error view to be closed.
-const ERROR_HTML = html`
-  <style>
-    ${ERROR_CSS}
-  </style>
-  <div class="prompt">Something went wrong.</div>
-`;
-
-// Rewarded ad wall loading prompt css and html.
-// TODO: mhkawano - replace with circle animation loading.
-const LOADING_CSS = css`
-  .prompt {
-    width: 600px;
-    background: white;
-    pointer-events: auto !important;
-    font-size: 200%;
-    padding: 1rem;
-  }
-`;
-
-const LOADING_HTML = html`
-  <style>
-    ${LOADING_CSS}
-  </style>
-  <div class="prompt">Loading...</div>
-`;
-
-// Rewarded ad wall prompt css and html.
-// TODO: mhkawano - update when UX is done.
-// TODO: mhkawano - allow error view to be closed.
-const REWARDED_AD_CSS = css`
-  .prompt {
-    width: 600px;
-    background: white;
-    pointer-events: auto !important;
-    font-size: 200%;
-    padding: 1rem;
-  }
-`;
-
-const REWARDED_AD_HTML = html`
-  <style>
-    ${REWARDED_AD_CSS}
-  </style>
-  <div class="prompt">
-    <div>Support us by watching this ad</div>
-  </div>
-`;
+import {LoadingView} from '../ui/loading-view';
+import {UI_CSS} from '../ui/ui-css';
+import { REWARDED_AD_HTML, ERROR_HTML } from './audience-action-local-ui';
 
 export interface AudienceActionLocalParams {
   action: string;
@@ -109,6 +47,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly wrapper_: Promise<HTMLElement>;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
+  private readonly loadingView_: LoadingView;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Resolve function to signal that the ready callback has finished executing.
@@ -128,6 +67,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     this.doc_ = this.deps_.doc().getRootNode();
 
+    this.loadingView_ = new LoadingView(this.doc_);
+
     this.prompt_ = this.createPrompt_();
 
     this.wrapper_ = this.prompt_.then(this.createWrapper_.bind(this));
@@ -143,7 +84,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     setImportantStyles(prompt, {
       'position': 'fixed',
       'left': '50%',
-      'bottom': '20px',
+      'bottom': '0px',
       'transform': 'translateX(-50%)',
       'margin': '0 auto',
     });
@@ -172,9 +113,28 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'z-index': '2147483646',
     });
 
-    const shadow = wrapper.attachShadow({mode: 'open'});
+    const shadowWrapper = createElement(this.doc_, 'div', {});
+
+    const shadow = shadowWrapper.attachShadow({mode: 'open'});
 
     shadow.appendChild(prompt);
+
+    wrapper.appendChild(shadowWrapper);
+
+    const loadingWrapper = createElement(this.doc_, 'div', {});
+
+    setImportantStyles(loadingWrapper, {
+      'position': 'fixed',
+      'left': '50%',
+      'bottom': '0px',
+      'transform': 'translateX(-50%)',
+    });
+
+    loadingWrapper.appendChild(this.loadingView_.getElement());
+
+    injectStyleSheet(this.deps_.doc(), UI_CSS);
+
+    wrapper.appendChild(loadingWrapper);
 
     return wrapper;
   }
@@ -194,9 +154,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const googletag = this.deps_.win().googletag;
     googletag.cmd.push(this.initRewardedAdWall_.bind(this));
 
-    // Initially return loading view.
-    const prompt = createElement(this.doc_, 'div', {});
-    prompt./*OK*/ innerHTML = LOADING_HTML;
+    const prompt = createElement(this.doc_, 'div', {'hidden': 'true'});
+    prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
     return prompt;
   }
 
@@ -268,13 +227,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   ) {
     this.rewardedReadyCalled_ = true;
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
-
     const prompt = await this.prompt_;
-    prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
-
-    // TODO: mhkawano - build UI.
-    // TODO: mhkawano - update when UX is done.
-
+    prompt.hidden = false;
+    this.loadingView_.hide();
     this.rewardedResolve_!(true);
   }
 
@@ -304,6 +259,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.doc_.body.appendChild(wrapper);
     wrapper.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(wrapper, {'opacity': '1.0'});
+    this.loadingView_.show();
   }
 
   showNoEntitlementFoundToast() {
