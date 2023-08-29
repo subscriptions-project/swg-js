@@ -20,13 +20,11 @@ import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
-import {createElement, removeElement, injectStyleSheet} from '../utils/dom';
+import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
-import {LoadingView} from '../ui/loading-view';
-import {UI_CSS} from '../ui/ui-css';
-import { REWARDED_AD_HTML, ERROR_HTML } from './audience-action-local-ui';
+import {LOADING_HTML, REWARDED_AD_HTML, ERROR_HTML, REWARDED_AD_THANKS_HTML} from './audience-action-local-ui';
 
 export interface AudienceActionLocalParams {
   action: string;
@@ -38,6 +36,9 @@ export interface AudienceActionLocalParams {
   monetizationFunction?: () => void;
 }
 
+// Default timeout for waiting on ready callback.
+const GPT_TIMEOUT = 3000;
+
 /**
  * An audience action local flow will show a dialog prompt to a reader, asking them
  * to complete an action for potentially free, additional metered entitlements.
@@ -47,7 +48,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly wrapper_: Promise<HTMLElement>;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
-  private readonly loadingView_: LoadingView;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Resolve function to signal that the ready callback has finished executing.
@@ -55,19 +55,17 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // Ad slot used to host the rewarded ad.
   private rewardedSlot_?: googletag.Slot;
   // Used to render the rewarded ad, returned from the ready callback
-  // @ts-ignore
   private makeRewardedVisible_?: () => void;
-  private gptTimeout_ = 3000;
+  // Used to determine
 
   constructor(
     private readonly deps_: Deps,
-    private readonly params_: AudienceActionLocalParams
+    private readonly params_: AudienceActionLocalParams,
+    private readonly gptTimeout_ = GPT_TIMEOUT
   ) {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
     this.doc_ = this.deps_.doc().getRootNode();
-
-    this.loadingView_ = new LoadingView(this.doc_);
 
     this.prompt_ = this.createPrompt_();
 
@@ -75,20 +73,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async createPrompt_(): Promise<HTMLElement> {
-    let prompt;
     if (this.params_.action === 'TYPE_REWARDED_AD') {
-      prompt = await this.renderAndInitRewardedAdWall_();
+      return this.renderAndInitRewardedAdWall_();
     } else {
-      prompt = await this.renderErrorView_();
+      return this.renderErrorView_();
     }
-    setImportantStyles(prompt, {
-      'position': 'fixed',
-      'left': '50%',
-      'bottom': '0px',
-      'transform': 'translateX(-50%)',
-      'margin': '0 auto',
-    });
-    return prompt;
   }
 
   private async createWrapper_(prompt: HTMLElement): Promise<HTMLElement> {
@@ -113,28 +102,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'z-index': '2147483646',
     });
 
-    const shadowWrapper = createElement(this.doc_, 'div', {});
-
-    const shadow = shadowWrapper.attachShadow({mode: 'open'});
+    const shadow = wrapper.attachShadow({mode: 'open'});
 
     shadow.appendChild(prompt);
-
-    wrapper.appendChild(shadowWrapper);
-
-    const loadingWrapper = createElement(this.doc_, 'div', {});
-
-    setImportantStyles(loadingWrapper, {
-      'position': 'fixed',
-      'left': '50%',
-      'bottom': '0px',
-      'transform': 'translateX(-50%)',
-    });
-
-    loadingWrapper.appendChild(this.loadingView_.getElement());
-
-    injectStyleSheet(this.deps_.doc(), UI_CSS);
-
-    wrapper.appendChild(loadingWrapper);
 
     return wrapper;
   }
@@ -154,8 +124,15 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const googletag = this.deps_.win().googletag;
     googletag.cmd.push(this.initRewardedAdWall_.bind(this));
 
-    const prompt = createElement(this.doc_, 'div', {'hidden': 'true'});
-    prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
+    const prompt = createElement(this.doc_, 'div', {});
+    setImportantStyles(prompt, {
+      'height': '100%',
+      'display': 'flex',
+      'display-flex-direction': 'column',
+    });
+
+    prompt./*OK*/ innerHTML = LOADING_HTML;
+
     return prompt;
   }
 
@@ -228,8 +205,39 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.rewardedReadyCalled_ = true;
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
     const prompt = await this.prompt_;
-    prompt.hidden = false;
-    this.loadingView_.hide();
+    
+    prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
+
+    const isContribution = this.params_.autoPromptType == AutoPromptType.CONTRIBUTION || this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
+
+    const closeButton = prompt.getElementsByClassName('rewarded-ad-close-button');
+    if (this.params_.isClosable) {
+      closeButton.item(0)?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
+    } else {
+      closeButton.item(0)?.remove();
+    }
+
+    const contributeButton = prompt.getElementsByClassName('rewarded-ad-contribute-button');
+    if (isContribution) {
+      contributeButton.item(0)?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
+    } else {
+      contributeButton.item(0)?.remove();
+    }
+
+    const viewButton = prompt.getElementsByClassName('rewarded-ad-view-ad-button');
+    viewButton.item(0)?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
+
+    const subscribeButton = prompt.getElementsByClassName('rewarded-ad-subscribe-button');
+    if (!isContribution) {
+      subscribeButton.item(0)?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
+    } else {
+      subscribeButton.item(0)?.remove();
+    }
+
+    const signinButton = prompt.getElementsByClassName('rewarded-ad-sign-in-button');
+    signinButton.item(0)?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
+
+
     this.rewardedResolve_!(true);
   }
 
@@ -242,16 +250,45 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       if (this.params_.onCancel) {
         this.params_.onCancel();
       }
-    } else {
-      setImportantStyles(wrapper, {'display': 'block'});
     }
   }
 
   private async rewardedSlotGranted_() {
-    const googletag = this.deps_.win().googletag;
-    const wrapper = await this.wrapper_;
-    removeElement(wrapper);
-    googletag.destroySlots([this.rewardedSlot_]);
+    const prompt = await this.prompt_;
+    prompt./*OK*/ innerHTML = REWARDED_AD_THANKS_HTML;
+
+    const closeButton = prompt.getElementsByClassName('rewarded-ad-thanks-close-button');
+    closeButton.item(0)?.addEventListener('click', async () => {
+      removeElement(await this.wrapper_);
+    });
+    googletag.destroySlots([await this.rewardedSlot_!]);
+  }
+
+  private async closeRewardedAdWall_() {
+    removeElement(await this.wrapper_);
+    googletag.destroySlots([await this.rewardedSlot_!]);
+    if (this.params_.onCancel) {
+      this.params_.onCancel();
+    }
+  }
+
+  private async supportRewardedAdWall_() {
+    removeElement(await this.wrapper_);
+    googletag.destroySlots([await this.rewardedSlot_!]);
+    this.params_.monetizationFunction!();
+  }
+
+  private async viewRewardedAdWall_() {
+    const prompt = await this.prompt_;
+    const viewButton = prompt.getElementsByClassName('rewarded-ad-view-ad-button');
+    viewButton.item(0)?.remove();
+
+    this.makeRewardedVisible_!();
+  }
+
+  private async signinRewardedAdWall_() {
+    this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
+    // close the prompt and destory the ad slot if entitlements are found
   }
 
   async start() {
@@ -259,7 +296,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.doc_.body.appendChild(wrapper);
     wrapper.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(wrapper, {'opacity': '1.0'});
-    this.loadingView_.show();
   }
 
   showNoEntitlementFoundToast() {
