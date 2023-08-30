@@ -139,7 +139,7 @@ export const LOADING_HTML = html`
 `
 
 // Rewarded ad wall prompt css and html.
-// TODO: mhkawano - update when UX is done.
+// TODO: mhkawano - Add aria attributes.
 // TODO: mhkawano - allow error view to be closed.
 const REWARDED_AD_CSS = css`
   .rewarded-ad-prompt {
@@ -217,6 +217,7 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-message {
     margin-top: 8px;
+    padding: 0px 11px 0px 11px;
     font-size: 16px;
     font-weight: 500;
     line-height: 24px;
@@ -303,10 +304,10 @@ export const REWARDED_AD_HTML = html`
         <button class="rewarded-ad-close-button"></button>
       </div>
       <div class="rewarded-ad-icon"></div>
-      <div class="rewarded-ad-message">message</div>
+      <div class="rewarded-ad-message"></div>
       <div class="rewarded-ad-cta">
-        <button class="rewarded-ad-contribute-button">Contribute</a>
         <button class="rewarded-ad-view-ad-button">View an ad</button>
+        <button class="rewarded-ad-contribute-button">Contribute</a>
         <button class="rewarded-ad-subscribe-button">Subscribe</button>
       </div>
       <div class="rewarded-ad-footer">
