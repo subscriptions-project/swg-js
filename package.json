@@ -123,7 +123,7 @@
     "cookie-parser": "1.4.6",
     "hogan-express": "0.5.2",
     "is-running": "2.1.0",
-    "jsonwebtoken": "9.0.1",
+    "jsonwebtoken": "9.0.2",
     "nightwatch": "2.6.21",
     "rollup-plugin-visualizer": "5.9.2",
     "vite": "4.4.9"
