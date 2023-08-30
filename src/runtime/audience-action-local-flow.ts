@@ -18,13 +18,18 @@ import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions'; // @ts-ignore
 import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
+import {
+  ERROR_HTML,
+  LOADING_HTML,
+  REWARDED_AD_HTML,
+  REWARDED_AD_THANKS_HTML,
+} from './audience-action-local-ui';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
-import {LOADING_HTML, REWARDED_AD_HTML, ERROR_HTML, REWARDED_AD_THANKS_HTML} from './audience-action-local-ui';
 
 export interface AudienceActionLocalParams {
   action: string;
@@ -186,14 +191,17 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       googletag.display(this.rewardedSlot_);
 
       // gpt.js has no way of knowing that an ad unit is invalid besides checking that rewardedSlotReady is called. Error out after 3 seconds of waiting.
-      setTimeout(() => {
-        if (!this.rewardedReadyCalled_) {
-          googletag.destroySlots([this.rewardedSlot_]);
-          resolve(false);
-        }
-      }, this.gptTimeout_);
+      setTimeout(this.rewardedAdTimeout_.bind(this), this.gptTimeout_);
     } else {
       resolve(false);
+    }
+  }
+
+  private async rewardedAdTimeout_() {
+    if (!this.rewardedReadyCalled_) {
+      googletag.destroySlots([this.rewardedSlot_!]);
+      this.rewardedResolve_!(false);
+      // TODO: mhkawano - Launch payflow if monetized, cancel if not.
     }
   }
 
@@ -207,15 +215,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
     const prompt = await this.prompt_;
 
-
-    
     prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
 
-    const isContribution = this.params_.autoPromptType == AutoPromptType.CONTRIBUTION || this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
+    const isContribution =
+      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
+      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
 
-    const closeButton = prompt.getElementsByClassName('rewarded-ad-close-button');
+    const closeButton = prompt.getElementsByClassName(
+      'rewarded-ad-close-button'
+    );
     if (this.params_.isClosable) {
-      closeButton.item(0)?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
+      closeButton
+        .item(0)
+        ?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
     } else {
       closeButton.item(0)?.remove();
     }
@@ -223,42 +235,63 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // TODO: mhkawano - Provide internationalization.
     // TODO: mhkawano - Fetch message and publication name from backend.
     const publication = 'The Daily News';
-    const titleArea = prompt.getElementsByClassName('rewarded-ad-title').item(0);
+    const titleArea = prompt
+      .getElementsByClassName('rewarded-ad-title')
+      .item(0);
     if (titleArea) {
       titleArea.textContent = publication;
     }
     const messageText = null;
-    const messageArea = prompt.getElementsByClassName('rewarded-ad-message').item(0);
+    const messageArea = prompt
+      .getElementsByClassName('rewarded-ad-message')
+      .item(0);
     if (messageArea) {
       if (messageText) {
         messageArea.textContent = messageText;
       } else if (isContribution) {
         messageArea.textContent = `To support ${publication}, view an ad or contribute`;
       } else {
-        messageArea.textContent = 'To access this article, subscribe or view an ad';
+        messageArea.textContent =
+          'To access this article, subscribe or view an ad';
       }
     }
 
-    const contributeButton = prompt.getElementsByClassName('rewarded-ad-contribute-button');
+    // TODO: mhkawnao - Support priority actions?
+    const contributeButton = prompt.getElementsByClassName(
+      'rewarded-ad-contribute-button'
+    );
     if (isContribution) {
-      contributeButton.item(0)?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
+      contributeButton
+        .item(0)
+        ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
     } else {
       contributeButton.item(0)?.remove();
     }
 
-    const viewButton = prompt.getElementsByClassName('rewarded-ad-view-ad-button');
-    viewButton.item(0)?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
+    const viewButton = prompt.getElementsByClassName(
+      'rewarded-ad-view-ad-button'
+    );
+    viewButton
+      .item(0)
+      ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
 
-    const subscribeButton = prompt.getElementsByClassName('rewarded-ad-subscribe-button');
+    const subscribeButton = prompt.getElementsByClassName(
+      'rewarded-ad-subscribe-button'
+    );
     if (!isContribution) {
-      subscribeButton.item(0)?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
+      subscribeButton
+        .item(0)
+        ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
     } else {
       subscribeButton.item(0)?.remove();
     }
 
-    const signinButton = prompt.getElementsByClassName('rewarded-ad-sign-in-button');
-    signinButton.item(0)?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
-
+    const signinButton = prompt.getElementsByClassName(
+      'rewarded-ad-sign-in-button'
+    );
+    signinButton
+      .item(0)
+      ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
 
     this.rewardedResolve_!(true);
   }
@@ -279,7 +312,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const prompt = await this.prompt_;
     prompt./*OK*/ innerHTML = REWARDED_AD_THANKS_HTML;
 
-    const closeButton = prompt.getElementsByClassName('rewarded-ad-thanks-close-button');
+    const closeButton = prompt.getElementsByClassName(
+      'rewarded-ad-close-button'
+    );
     closeButton.item(0)?.addEventListener('click', async () => {
       removeElement(await this.wrapper_);
     });
@@ -302,7 +337,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async viewRewardedAdWall_() {
     const prompt = await this.prompt_;
-    const viewButton = prompt.getElementsByClassName('rewarded-ad-view-ad-button');
+    const viewButton = prompt.getElementsByClassName(
+      'rewarded-ad-view-ad-button'
+    );
     viewButton.item(0)?.setAttribute('disabled', 'true');
 
     this.makeRewardedVisible_!();

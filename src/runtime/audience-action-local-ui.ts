@@ -20,6 +20,47 @@ import {ASSETS} from '../constants';
 const html = String.raw;
 const css = String.raw;
 
+const REWARDED_AD_PROMPT = css`
+  .rewarded-ad-prompt {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: auto !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
+    width: 375px !important;
+    pointer-events: auto !important;
+    background: white !important;
+  }
+`;
+
+const DEFAULT_BUTTON = css`
+  button {
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+  }
+`;
+
+const CLOSE_BUTTON = css`
+  .rewarded-ad-close-button {
+    height: 24px;
+    width: 24px;
+    padding: 8px;
+    border-radius: 20px;
+
+    background: #5f6368;
+    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg)
+      center/contain no-repeat;
+
+    grid-column: 3;
+    grid-row: 1;
+  }
+`;
+
 // Error view for prompts that fail to init.
 // TODO: mhkawano - Update once UX finished.
 const ERROR_CSS = css`
@@ -58,11 +99,11 @@ const LOADING_CSS = css`
 
     height: 148px !important;
     width: 375px !important;
-    
+
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    
+
     bottom: 0 !important;
     z-index: 2147483647 !important;
 
@@ -136,37 +177,15 @@ export const LOADING_HTML = html`
       </swg-loading-animate>
     </swg-loading>
   </swg-loading-container>
-`
+`;
 
 // Rewarded ad wall prompt css and html.
 // TODO: mhkawano - Add aria attributes.
 // TODO: mhkawano - allow error view to be closed.
 const REWARDED_AD_CSS = css`
-  .rewarded-ad-prompt {
-    margin-left: auto !important;
-    margin-right: auto !important;
-    margin-top: auto !important;
-
-    border-top-left-radius: 20px !important;
-    border-top-right-radius: 20px !important;
-
-
-    width: 375px !important;
-
-    pointer-events: auto !important;
-    
-    background: white !important;
-  }
-
-  button {
-    background: none;
-    color: inherit;
-    border: none;
-    padding: 0;
-    font: inherit;
-    cursor: pointer;
-    outline: inherit;
-  }
+  ${DEFAULT_BUTTON}
+  ${CLOSE_BUTTON}
+  ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-container {
     margin: 20px;
@@ -190,29 +209,13 @@ const REWARDED_AD_CSS = css`
     grid-row: 1;
   }
 
-  .rewarded-ad-close-button {
-    height: 24px;
-    width: 24px;
-    padding: 8px;
-    border-radius: 20px;
-
-    background: #5F6368;
-    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg) center/contain no-repeat;
-
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .close:hover {
-    background-color: #F8F9FA;
-  }
-
   .rewarded-ad-icon {
     margin: 8px auto 0px auto;
     height: 40px;
     width: 40px;
-    background: #1A73E8;
-    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg) center/contain no-repeat;
+    background: #1a73e8;
+    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg)
+      center/contain no-repeat;
   }
 
   .rewarded-ad-message {
@@ -232,7 +235,7 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-view-ad-button {
     width: 100%;
     height: 36px;
-    background-color: #1A73E8;
+    background-color: #1a73e8;
     color: white;
     border-radius: 4px;
     font-size: 14px;
@@ -249,10 +252,10 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-contribute-button {
     width: 100%;
     height: 36px;
-    border: 1px solid #DADCE0;
+    border: 1px solid #dadce0;
     margin-top: 8px;
     border-radius: 4px;
-    color: #1A73E8;
+    color: #1a73e8;
     font-size: 14px;
     font-weight: 500;
     line-height: 20px;
@@ -262,10 +265,10 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-subscribe-button {
     width: 100%;
     height: 36px;
-    border: 1px solid #DADCE0;
+    border: 1px solid #dadce0;
     margin-top: 8px;
     border-radius: 4px;
-    color: #1A73E8;
+    color: #1a73e8;
     font-size: 14px;
     font-weight: 500;
     line-height: 20px;
@@ -289,7 +292,7 @@ const REWARDED_AD_CSS = css`
     line-height: 20px;
     letter-spacing: 0.25px;
     text-align: right;
-    color: #1A73E8;
+    color: #1a73e8;
   }
 `;
 
@@ -323,32 +326,12 @@ export const REWARDED_AD_HTML = html`
 `;
 
 const REWARDED_AD_THANKS_CSS = css`
-  button {
-    background: none;
-    color: inherit;
-    border: none;
-    padding: 0;
-    font: inherit;
-    cursor: pointer;
-    outline: inherit;
-  }
+  ${DEFAULT_BUTTON}
+  ${CLOSE_BUTTON}
+  ${REWARDED_AD_PROMPT}
 
-  .rewarded-ad-thanks-prompt {
-    margin-left: auto !important;
-    margin-right: auto !important;
-    margin-top: auto !important;
-
-    border-top-left-radius: 20px !important;
-    border-top-right-radius: 20px !important;
-
-
-    width: 375px !important;
+  .rewarded-ad-prompt {
     height: 125px !important;
-
-    pointer-events: auto !important;
-
-    background: white !important;
-
     padding: 20px;
   }
 
@@ -363,8 +346,9 @@ const REWARDED_AD_THANKS_CSS = css`
     margin: auto;
     height: 64px;
     width: 64px;
-    background: #1A73E8;
-    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/rewarded_ads/default/48px.svg) center/contain no-repeat;
+    background: #1a73e8;
+    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/rewarded_ads/default/48px.svg)
+      center/contain no-repeat;
     grid-column: 2;
     grid-row: 1 / 2;
   }
@@ -380,30 +364,18 @@ const REWARDED_AD_THANKS_CSS = css`
     grid-column: 2;
     grid-row: 4;
   }
-
-  .rewarded-ad-thanks-close-button {
-    height: 24px;
-    width: 24px;
-    padding: 8px;
-    border-radius: 20px;
-    background: #5F6368;
-    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg) center/contain no-repeat;
-    
-
-    grid-column: 3;
-    grid-row: 1;
-  }
 `;
 
 export const REWARDED_AD_THANKS_HTML = html`
   <style>
     ${REWARDED_AD_THANKS_CSS}
   </style>
-  <div class="rewarded-ad-thanks-prompt">
+  <div class="rewarded-ad-prompt">
     <div class="rewarded-ad-thanks-container">
       <div class="rewarded-ad-thanks-icon"></div>
       <div class="rewarded-ad-thanks-message">Thanks for viewing this ad</div>
-      <button class="rewarded-ad-thanks-close-button"></button>
-    <div>
+      <button class="rewarded-ad-close-button"></button>
+      <div></div>
+    </div>
   </div>
 `;
