@@ -138,6 +138,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async initRewardedAdWall_() {
     // TODO: mhkawano - Get action config.
+    // TODO: mhkawano - support premon.
 
     // Init gpt.js
     const initGptPromise = new Promise<boolean>(this.initGpt_.bind(this));
@@ -205,6 +206,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.rewardedReadyCalled_ = true;
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
     const prompt = await this.prompt_;
+
+
     
     prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
 
@@ -215,6 +218,25 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       closeButton.item(0)?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
     } else {
       closeButton.item(0)?.remove();
+    }
+
+    // TODO: mhkawano - Provide internationalization.
+    // TODO: mhkawano - Fetch message and publication name from backend.
+    const publication = 'The Daily News';
+    const titleArea = prompt.getElementsByClassName('rewarded-ad-title').item(0);
+    if (titleArea) {
+      titleArea.textContent = publication;
+    }
+    const messageText = null;
+    const messageArea = prompt.getElementsByClassName('rewarded-ad-message').item(0);
+    if (messageArea) {
+      if (messageText) {
+        messageArea.textContent = messageText;
+      } else if (isContribution) {
+        messageArea.textContent = `To support ${publication}, view an ad or contribute`;
+      } else {
+        messageArea.textContent = 'To access this article, subscribe or view an ad';
+      }
     }
 
     const contributeButton = prompt.getElementsByClassName('rewarded-ad-contribute-button');
