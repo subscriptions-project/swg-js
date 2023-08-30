@@ -288,7 +288,6 @@ describes.realWin('PayClient', (env) => {
     expect(response).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
-
   // Native support temp disabled due to b/298029927
   //   describe('native support', () => {
   //     let top;
