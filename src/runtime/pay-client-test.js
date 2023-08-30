@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {ConfiguredRuntime} from './runtime';
-import {PageConfig} from '../model/page-config';
-import {PayClient, RedirectVerifierHelper} from './pay-client';
-import {PaymentsAsyncClient} from '../../third_party/gpay/src/payjs_async';
+import { ConfiguredRuntime } from './runtime';
+import { PageConfig } from '../model/page-config';
+import { PayClient, RedirectVerifierHelper } from './pay-client';
+import { PaymentsAsyncClient } from '../../third_party/gpay/src/payjs_async';
 
 const INTEGR_DATA_STRING =
   'eyJzd2dDYWxsYmFja0RhdGEiOnsicHVyY2hhc2VEYXRhIjoie1wib3JkZXJJZFwiOlwiT1' +
@@ -175,7 +175,7 @@ describes.realWin('PayClient', (env) => {
 
   it('should have valid flow constructed', () => {
     payClient.start({
-      'paymentArgs': {'a': 1},
+      'paymentArgs': { 'a': 1 },
     });
     expect(payClientStubs.create).to.be.calledOnce.calledWith({
       'environment': 'TEST',
@@ -186,7 +186,7 @@ describes.realWin('PayClient', (env) => {
     expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
     expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
     expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-      'paymentArgs': {'a': 1},
+      'paymentArgs': { 'a': 1 },
       'i': {
         'redirectVerifier': redirectVerifierHelperResults.verifier,
         'disableNative': true,
@@ -197,7 +197,7 @@ describes.realWin('PayClient', (env) => {
   it('should force redirect mode', async () => {
     await payClient.start(
       {
-        'paymentArgs': {'a': 1},
+        'paymentArgs': { 'a': 1 },
       },
       {
         forceRedirect: true,
@@ -205,7 +205,7 @@ describes.realWin('PayClient', (env) => {
     );
     expect(redirectVerifierHelperStubs.useVerifier).to.be.calledOnce;
     expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-      'paymentArgs': {'a': 1},
+      'paymentArgs': { 'a': 1 },
       'forceRedirect': true,
       'i': {
         'redirectVerifier': redirectVerifierHelperResults.verifier,
@@ -238,7 +238,7 @@ describes.realWin('PayClient', (env) => {
   });
 
   it('should preserve the paymentRequest in correct response', async () => {
-    const paymentArgs = {'swg': {'sku': 'basic'}, 'i': {'a': 1}};
+    const paymentArgs = { 'swg': { 'sku': 'basic' }, 'i': { 'a': 1 } };
     payClient.start(paymentArgs);
     const data = await withResult(Promise.resolve(INTEGR_DATA_OBJ));
     const expectedData = Object.assign({}, INTEGR_DATA_OBJ);
@@ -255,7 +255,7 @@ describes.realWin('PayClient', (env) => {
     payClient.onResponse((res) => {
       responsePromise = res;
     });
-    responseHandler(Promise.reject({'statusCode': 'CANCELED'}));
+    responseHandler(Promise.reject({ 'statusCode': 'CANCELED' }));
 
     await expect(responsePromise)
       .to.be.rejectedWith(/AbortError/)
@@ -263,8 +263,8 @@ describes.realWin('PayClient', (env) => {
   });
 
   it('handles cancellation with request present', async () => {
-    payClient.start({i: {productType: 'DUMMY_PRODUCT_TYPE'}});
-    await expect(withResult(Promise.reject({'statusCode': 'CANCELED'})))
+    payClient.start({ i: { productType: 'DUMMY_PRODUCT_TYPE' } });
+    await expect(withResult(Promise.reject({ 'statusCode': 'CANCELED' })))
       .to.be.rejectedWith(/AbortError/)
       .and.eventually.have.property('productType')
       .equal('DUMMY_PRODUCT_TYPE');
@@ -289,57 +289,57 @@ describes.realWin('PayClient', (env) => {
   });
 
 
-// Native support temp disabled due to b/298029927
-//   describe('native support', () => {
-//     let top;
+  // Native support temp disabled due to b/298029927
+  //   describe('native support', () => {
+  //     let top;
 
-//     beforeEach(() => {
-//       top = win;
-//       sandbox.stub(payClient, 'top_').callsFake(() => top);
-//     });
+  //     beforeEach(() => {
+  //       top = win;
+  //       sandbox.stub(payClient, 'top_').callsFake(() => top);
+  //     });
 
-//     native removed see b/298029927
-//     it('should enable native mode', () => {
-//       payClient.start({});
-//       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-//         'i': {
-//           'redirectVerifier': redirectVerifierHelperResults.verifier,
-//           'disableNative': false,
-//         },
-//       });
-//     });
+  //     native removed see b/298029927
+  //     it('should enable native mode', () => {
+  //       payClient.start({});
+  //       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+  //         'i': {
+  //           'redirectVerifier': redirectVerifierHelperResults.verifier,
+  //           'disableNative': false,
+  //         },
+  //       });
+  //     });
 
-//     it('should disable native mode for iframes', () => {
-//       top = {};
-//       payClient.start({});
-//       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-//         'i': {
-//           'redirectVerifier': redirectVerifierHelperResults.verifier,
-//           'disableNative': true,
-//         },
-//       });
-//     });
+  //     it('should disable native mode for iframes', () => {
+  //       top = {};
+  //       payClient.start({});
+  //       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+  //         'i': {
+  //           'redirectVerifier': redirectVerifierHelperResults.verifier,
+  //           'disableNative': true,
+  //         },
+  //       });
+  //     });
 
-//     it('should force disable native mode', () => {
-//       payClient.start({}, {forceDisableNative: true});
-//       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-//         'i': {
-//           'redirectVerifier': redirectVerifierHelperResults.verifier,
-//           'disableNative': true,
-//         },
-//       });
-//     });
+  //     it('should force disable native mode', () => {
+  //       payClient.start({}, {forceDisableNative: true});
+  //       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+  //         'i': {
+  //           'redirectVerifier': redirectVerifierHelperResults.verifier,
+  //           'disableNative': true,
+  //         },
+  //       });
+  //     });
 
-//     it('sets Google transaction ID on PaymentsAsyncClient', () => {
-//       payClientStubs.create.restore();
-//       PaymentsAsyncClient.googleTransactionId_ = '';
+  //     it('sets Google transaction ID on PaymentsAsyncClient', () => {
+  //       payClientStubs.create.restore();
+  //       PaymentsAsyncClient.googleTransactionId_ = '';
 
-//       payClient.start({});
-//       expect(PaymentsAsyncClient.googleTransactionId_).to.equal(
-//         GOOGLE_TRANSACTION_ID
-//       );
-//     });
-//   });
+  //       payClient.start({});
+  //       expect(PaymentsAsyncClient.googleTransactionId_).to.equal(
+  //         GOOGLE_TRANSACTION_ID
+  //       );
+  //     });
+  //   });
 });
 
 describes.sandboxed('RedirectVerifierHelper', () => {
