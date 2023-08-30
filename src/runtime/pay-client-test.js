@@ -340,7 +340,7 @@ describes.realWin('PayClient', (env) => {
 //       );
 //     });
 //   });
-// });
+});
 
 describes.sandboxed('RedirectVerifierHelper', () => {
   const TEST_KEY = 'AQIDBAUGBwgJCgsMDQ4PEA==';
