@@ -296,15 +296,16 @@ describes.realWin('PayClient', (env) => {
       sandbox.stub(payClient, 'top_').callsFake(() => top);
     });
 
-    it('should enable native mode', () => {
-      payClient.start({});
-      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-        'i': {
-          'redirectVerifier': redirectVerifierHelperResults.verifier,
-          'disableNative': false,
-        },
-      });
-    });
+    // native removed see b/298029927
+    // it('should enable native mode', () => {
+    //   payClient.start({});
+    //   expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+    //     'i': {
+    //       'redirectVerifier': redirectVerifierHelperResults.verifier,
+    //       'disableNative': false,
+    //     },
+    //   });
+    // });
 
     it('should disable native mode for iframes', () => {
       top = {};

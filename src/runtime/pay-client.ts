@@ -251,9 +251,10 @@ export class PayClient {
   }
 
   /** Only exists for testing since it's not possible to override `window.top`. */
-  private top_(): Window {
-    return this.win_.top!;
-  }
+  // b/298029927
+  // private top_(): Window {
+  //   return this.win_.top!;
+  // }
 }
 
 interface RedirectVerifierPairDef {
