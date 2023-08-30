@@ -281,7 +281,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private async viewRewardedAdWall_() {
     const prompt = await this.prompt_;
     const viewButton = prompt.getElementsByClassName('rewarded-ad-view-ad-button');
-    viewButton.item(0)?.remove();
+    viewButton.item(0)?.setAttribute('disabled', 'true');
 
     this.makeRewardedVisible_!();
   }

@@ -147,31 +147,15 @@ const REWARDED_AD_CSS = css`
     margin-right: auto !important;
     margin-top: auto !important;
 
-    border-top-left-radius: 8px !important;
-    border-top-right-radius: 8px !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
 
 
     width: 375px !important;
-    height: 347px !important;
 
     pointer-events: auto !important;
     
     background: white !important;
-  }
-
-  .rewarded-ad-container {
-    margin: 20px;
-    text-align: center;
-  }
-
-  .rewarded-ad-header {
-    display: grid !important;
-    grid-template-columns: 40px 1fr 40px;
-    grid-template-rows: 40px;
-  }
-
-  .rewarded-ad-title {
-    font-size: 28px;
   }
 
   button {
@@ -184,22 +168,36 @@ const REWARDED_AD_CSS = css`
     outline: inherit;
   }
 
+  .rewarded-ad-container {
+    margin: 20px;
+    text-align: center;
+    font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
+  }
+
+  .rewarded-ad-header {
+    display: grid !important;
+    grid-template-columns: 40px 1fr 40px;
+    grid-template-rows: 40px;
+  }
+
   .rewarded-ad-title {
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 36px;
+    letter-spacing: 0em;
+    color: #202124;
     grid-column: 2;
     grid-row: 1;
   }
 
-  .close {
+  .rewarded-ad-close-button {
     height: 24px;
     width: 24px;
-    background-origin: content-box;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
     padding: 8px;
-    box-sizing: content-box;
     border-radius: 20px;
-    background-image: url("https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg");
+
+    background: #5F6368;
+    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg) center/contain no-repeat;
 
     grid-column: 3;
     grid-row: 1;
@@ -210,15 +208,87 @@ const REWARDED_AD_CSS = css`
   }
 
   .rewarded-ad-icon {
-    margin: auto;
+    margin: 8px auto 0px auto;
+    height: 40px;
+    width: 40px;
+    background: #1A73E8;
+    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg) center/contain no-repeat;
+  }
+
+  .rewarded-ad-message {
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.25px;
+    color: #202124;
+  }
+
+  .rewarded-ad-cta {
+    margin-top: 20px;
+  }
+
+  .rewarded-ad-view-ad-button {
+    width: 100%;
+    height: 36px;
+    background-color: #1A73E8;
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: 0.25px;
+  }
+
+  .rewarded-ad-view-ad-button:disabled {
+    background-color: darkgrey;
+    color: lightgrey;
+  }
+
+  .rewarded-ad-contribute-button {
+    width: 100%;
+    height: 36px;
+    border: 1px solid #DADCE0;
+    margin-top: 8px;
+    border-radius: 4px;
+    color: #1A73E8;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: 0.25px;
+  }
+
+  .rewarded-ad-subscribe-button {
+    width: 100%;
+    height: 36px;
+    border: 1px solid #DADCE0;
+    margin-top: 8px;
+    border-radius: 4px;
+    color: #1A73E8;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: 0.25px;
+  }
+
+  .rewarded-ad-footer {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .rewarded-ad-google-logo {
+    float: left;
     height: 24px;
-    width: 24px;
-    background-origin: content-box;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    box-sizing: content-box;
-    background-image: url("https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg");
+  }
+
+  .rewarded-ad-sign-in-button {
+    float: right;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: 0.25px;
+    text-align: right;
+    color: #1A73E8;
   }
 `;
 
@@ -230,50 +300,98 @@ export const REWARDED_AD_HTML = html`
     <div class="rewarded-ad-container">
       <div class="rewarded-ad-header">
         <div class="rewarded-ad-title">title</div>
-        <button class="close"></button>
+        <button class="rewarded-ad-close-button"></button>
       </div>
       <div class="rewarded-ad-icon"></div>
       <div class="rewarded-ad-message">message</div>
       <div class="rewarded-ad-cta">
-        <button class="rewarded-ad-contribute-button">contribute</a>
-        <button class="rewarded-ad-view-ad-button">view ad</button>
-        <button class="rewarded-ad-subscribe-button">subscribe</button>
+        <button class="rewarded-ad-contribute-button">Contribute</a>
+        <button class="rewarded-ad-view-ad-button">View an ad</button>
+        <button class="rewarded-ad-subscribe-button">Subscribe</button>
       </div>
       <div class="rewarded-ad-footer">
-        <button class="rewarded-ad-sign-in-button">sign-in</button>
+        <img
+          alt="Google"
+          class="rewarded-ad-google-logo"
+          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDc0IDI0Ij48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNOS4yNCA4LjE5djIuNDZoNS44OGMtLjE4IDEuMzgtLjY0IDIuMzktMS4zNCAzLjEtLjg2Ljg2LTIuMiAxLjgtNC41NCAxLjgtMy42MiAwLTYuNDUtMi45Mi02LjQ1LTYuNTRzMi44My02LjU0IDYuNDUtNi41NGMxLjk1IDAgMy4zOC43NyA0LjQzIDEuNzZMMTUuNCAyLjVDMTMuOTQgMS4wOCAxMS45OCAwIDkuMjQgMCA0LjI4IDAgLjExIDQuMDQuMTEgOXM0LjE3IDkgOS4xMyA5YzIuNjggMCA0LjctLjg4IDYuMjgtMi41MiAxLjYyLTEuNjIgMi4xMy0zLjkxIDIuMTMtNS43NSAwLS41Ny0uMDQtMS4xLS4xMy0xLjU0SDkuMjR6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTI1IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNNTMuNTggNy40OWgtLjA5Yy0uNTctLjY4LTEuNjctMS4zLTMuMDYtMS4zQzQ3LjUzIDYuMTkgNDUgOC43MiA0NSAxMmMwIDMuMjYgMi41MyA1LjgxIDUuNDMgNS44MSAxLjM5IDAgMi40OS0uNjIgMy4wNi0xLjMyaC4wOXYuODFjMCAyLjIyLTEuMTkgMy40MS0zLjEgMy40MS0xLjU2IDAtMi41My0xLjEyLTIuOTMtMi4wN2wtMi4yMi45MmMuNjQgMS41NCAyLjMzIDMuNDMgNS4xNSAzLjQzIDIuOTkgMCA1LjUyLTEuNzYgNS41Mi02LjA1VjYuNDloLTIuNDJ2MXptLTIuOTMgOC4wM2MtMS43NiAwLTMuMS0xLjUtMy4xLTMuNTIgMC0yLjA1IDEuMzQtMy41MiAzLjEtMy41MiAxLjc0IDAgMy4xIDEuNSAzLjEgMy41NC4wMSAyLjAzLTEuMzYgMy41LTMuMSAzLjV6Ii8+PHBhdGggZmlsbD0iI0ZCQkMwNSIgZD0iTTM4IDYuMTljLTMuMjEgMC01LjgzIDIuNDQtNS44MyA1LjgxIDAgMy4zNCAyLjYyIDUuODEgNS44MyA1LjgxczUuODMtMi40NiA1LjgzLTUuODFjMC0zLjM3LTIuNjItNS44MS01LjgzLTUuODF6bTAgOS4zM2MtMS43NiAwLTMuMjgtMS40NS0zLjI4LTMuNTIgMC0yLjA5IDEuNTItMy41MiAzLjI4LTMuNTJzMy4yOCAxLjQzIDMuMjggMy41MmMwIDIuMDctMS41MiAzLjUyLTMuMjggMy41MnoiLz48cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNNTggLjI0aDIuNTF2MTcuNTdINTh6Ii8+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTY4LjI2IDE1LjUyYy0xLjMgMC0yLjIyLS41OS0yLjgyLTEuNzZsNy43Ny0zLjIxLS4yNi0uNjZjLS40OC0xLjMtMS45Ni0zLjctNC45Ny0zLjctMi45OSAwLTUuNDggMi4zNS01LjQ4IDUuODEgMCAzLjI2IDIuNDYgNS44MSA1Ljc2IDUuODEgMi42NiAwIDQuMi0xLjYzIDQuODQtMi41N2wtMS45OC0xLjMyYy0uNjYuOTYtMS41NiAxLjYtMi44NiAxLjZ6bS0uMTgtNy4xNWMxLjAzIDAgMS45MS41MyAyLjIgMS4yOGwtNS4yNSAyLjE3YzAtMi40NCAxLjczLTMuNDUgMy4wNS0zLjQ1eiIvPjwvc3ZnPg=="
+        />
+        <button class="rewarded-ad-sign-in-button">Already a subscriber?</button>
       </div>
-    <div>
+    </div>
   </div>
 `;
 
 const REWARDED_AD_THANKS_CSS = css`
+  button {
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+  }
+
   .rewarded-ad-thanks-prompt {
     margin-left: auto !important;
     margin-right: auto !important;
     margin-top: auto !important;
 
-    border-top-left-radius: 8px !important;
-    border-top-right-radius: 8px !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
 
 
     width: 375px !important;
-    height: 347px !important;
+    height: 125px !important;
 
     pointer-events: auto !important;
 
     background: white !important;
+
+    padding: 20px;
   }
 
   .rewarded-ad-thanks-container {
-    margin: 32px;
-    text-align: center;
+    height: 100%;
+    display: grid !important;
+    grid-template-columns: 40px 1fr 40px;
+    grid-template-rows: 40px 24px 8px 28px;
   }
 
-  .rewarded-ad-thanks-close-button {}
+  .rewarded-ad-thanks-icon {
+    margin: auto;
+    height: 64px;
+    width: 64px;
+    background: #1A73E8;
+    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/rewarded_ads/default/48px.svg) center/contain no-repeat;
+    grid-column: 2;
+    grid-row: 1 / 2;
+  }
 
-  .rewarded-ad-thanks-icon {}
+  .rewarded-ad-thanks-message {
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 28px;
+    letter-spacing: 0px;
+    text-align: center;
+    color: #202124;
 
-  .rewarded-ad-thanks-message {}
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  .rewarded-ad-thanks-close-button {
+    height: 24px;
+    width: 24px;
+    padding: 8px;
+    border-radius: 20px;
+    background: #5F6368;
+    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg) center/contain no-repeat;
+    
+
+    grid-column: 3;
+    grid-row: 1;
+  }
 `;
 
 export const REWARDED_AD_THANKS_HTML = html`
@@ -282,12 +400,9 @@ export const REWARDED_AD_THANKS_HTML = html`
   </style>
   <div class="rewarded-ad-thanks-prompt">
     <div class="rewarded-ad-thanks-container">
-      <a
-        class="rewarded-ad-thanks-close-button"
-        href="#"
-      >close</a>
-      <div class="rewarded-ad-thanks-icon">icon</div>
-      <div class="rewarded-ad-thanks-message">message</div>
+      <div class="rewarded-ad-thanks-icon"></div>
+      <div class="rewarded-ad-thanks-message">Thanks for viewing this ad</div>
+      <button class="rewarded-ad-thanks-close-button"></button>
     <div>
   </div>
 `;
