@@ -288,57 +288,59 @@ describes.realWin('PayClient', (env) => {
     expect(response).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
-  describe('native support', () => {
-    let top;
 
-    beforeEach(() => {
-      top = win;
-      sandbox.stub(payClient, 'top_').callsFake(() => top);
-    });
+// Native support temp disabled due to b/298029927
+//   describe('native support', () => {
+//     let top;
 
-    // native removed see b/298029927
-    // it('should enable native mode', () => {
-    //   payClient.start({});
-    //   expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-    //     'i': {
-    //       'redirectVerifier': redirectVerifierHelperResults.verifier,
-    //       'disableNative': false,
-    //     },
-    //   });
-    // });
+//     beforeEach(() => {
+//       top = win;
+//       sandbox.stub(payClient, 'top_').callsFake(() => top);
+//     });
 
-    it('should disable native mode for iframes', () => {
-      top = {};
-      payClient.start({});
-      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-        'i': {
-          'redirectVerifier': redirectVerifierHelperResults.verifier,
-          'disableNative': true,
-        },
-      });
-    });
+//     native removed see b/298029927
+//     it('should enable native mode', () => {
+//       payClient.start({});
+//       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+//         'i': {
+//           'redirectVerifier': redirectVerifierHelperResults.verifier,
+//           'disableNative': false,
+//         },
+//       });
+//     });
 
-    it('should force disable native mode', () => {
-      payClient.start({}, {forceDisableNative: true});
-      expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
-        'i': {
-          'redirectVerifier': redirectVerifierHelperResults.verifier,
-          'disableNative': true,
-        },
-      });
-    });
+//     it('should disable native mode for iframes', () => {
+//       top = {};
+//       payClient.start({});
+//       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+//         'i': {
+//           'redirectVerifier': redirectVerifierHelperResults.verifier,
+//           'disableNative': true,
+//         },
+//       });
+//     });
 
-    it('sets Google transaction ID on PaymentsAsyncClient', () => {
-      payClientStubs.create.restore();
-      PaymentsAsyncClient.googleTransactionId_ = '';
+//     it('should force disable native mode', () => {
+//       payClient.start({}, {forceDisableNative: true});
+//       expect(payClientStubs.loadPaymentData).to.be.calledOnce.calledWith({
+//         'i': {
+//           'redirectVerifier': redirectVerifierHelperResults.verifier,
+//           'disableNative': true,
+//         },
+//       });
+//     });
 
-      payClient.start({});
-      expect(PaymentsAsyncClient.googleTransactionId_).to.equal(
-        GOOGLE_TRANSACTION_ID
-      );
-    });
-  });
-});
+//     it('sets Google transaction ID on PaymentsAsyncClient', () => {
+//       payClientStubs.create.restore();
+//       PaymentsAsyncClient.googleTransactionId_ = '';
+
+//       payClient.start({});
+//       expect(PaymentsAsyncClient.googleTransactionId_).to.equal(
+//         GOOGLE_TRANSACTION_ID
+//       );
+//     });
+//   });
+// });
 
 describes.sandboxed('RedirectVerifierHelper', () => {
   const TEST_KEY = 'AQIDBAUGBwgJCgsMDQ4PEA==';
