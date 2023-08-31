@@ -285,13 +285,21 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       subscribeButton.item(0)?.remove();
     }
 
-    const signinButton = prompt.getElementsByClassName(
-      'rewarded-ad-sign-in-button'
+    const signinButton = prompt
+      .getElementsByClassName('rewarded-ad-sign-in-button')
+      .item(0);
+    signinButton?.addEventListener(
+      'click',
+      this.signinRewardedAdWall_.bind(this)
     );
-    signinButton
-      .item(0)
-      ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
-
+    // TODO: mhkawano - translate static strings.
+    if (signinButton) {
+      if (isContribution) {
+        signinButton!.textContent = 'Already a contributor?';
+      } else {
+        signinButton!.textContent = 'Already a subscriber?';
+      }
+    }
     this.rewardedResolve_!(true);
   }
 

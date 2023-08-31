@@ -197,6 +197,7 @@ export const LOADING_HTML = html`
 // Rewarded ad wall prompt css and html.
 // TODO: mhkawano - Add aria attributes.
 // TODO: mhkawano - allow error view to be closed.
+// TODO: mhkawano - translate static strings.
 const REWARDED_AD_CSS = css`
   ${DEFAULT_BUTTON}
   ${CLOSE_BUTTON}
@@ -334,7 +335,7 @@ export const REWARDED_AD_HTML = html`
           class="rewarded-ad-google-logo"
           src="${CONST_GOOGLE_LOGO}"
         />
-        <button class="rewarded-ad-sign-in-button">Already a subscriber?</button>
+        <button class="rewarded-ad-sign-in-button"></button>
       </div>
     </div>
   </div>
