@@ -21,8 +21,21 @@ import {CONST_GOOGLE_LOGO} from '../utils/assets';
 const html = String.raw;
 const css = String.raw;
 
+const SLIDE_UP_ANIMATION = css`
+  @keyframes slideUp {
+    from {
+      transform: translate(0, 200px);
+    }
+    to {
+      transform: translate(0, 0);
+    }
+  }`;
+
 const REWARDED_AD_PROMPT = css`
+  ${SLIDE_UP_ANIMATION}
+
   .rewarded-ad-prompt {
+    animation: 0.5s slideUp;
     margin-left: auto !important;
     margin-right: auto !important;
     margin-top: auto !important;
@@ -31,8 +44,7 @@ const REWARDED_AD_PROMPT = css`
     width: 375px !important;
     pointer-events: auto !important;
     background: white !important;
-  }
-`;
+  }`;
 
 const DEFAULT_BUTTON = css`
   button {
@@ -43,8 +55,7 @@ const DEFAULT_BUTTON = css`
     font: inherit;
     cursor: pointer;
     outline: inherit;
-  }
-`;
+  }`;
 
 const CLOSE_BUTTON = css`
   .rewarded-ad-close-button {
@@ -59,8 +70,7 @@ const CLOSE_BUTTON = css`
 
     grid-column: 3;
     grid-row: 1;
-  }
-`;
+  }`;
 
 // Error view for prompts that fail to init.
 // TODO: mhkawano - Update once UX finished.
@@ -196,7 +206,7 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-header {
     display: grid !important;
-    grid-template-columns: 40px 1fr 40px;
+    grid-template-columns: 24px 1fr 24px;
     grid-template-rows: 40px;
   }
 
@@ -339,7 +349,7 @@ const REWARDED_AD_THANKS_CSS = css`
   .rewarded-ad-thanks-container {
     height: 100%;
     display: grid !important;
-    grid-template-columns: 40px 1fr 40px;
+    grid-template-columns: 24px 1fr 24px;
     grid-template-rows: 40px 24px 8px 28px;
   }
 
