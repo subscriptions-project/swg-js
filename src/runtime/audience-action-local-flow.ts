@@ -15,7 +15,7 @@
  */
 
 import {AudienceActionFlow} from './audience-action-flow';
-import {AutoPromptType} from '../api/basic-subscriptions'; // @ts-ignore
+import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {
@@ -199,6 +199,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async rewardedAdTimeout_() {
     if (!this.rewardedReadyCalled_) {
+      const googletag = this.deps_.win().googletag;
       googletag.destroySlots([this.rewardedSlot_!]);
       this.rewardedResolve_!(false);
       // TODO: mhkawano - Launch payflow if monetized, cancel if not.
@@ -241,14 +242,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     if (titleArea) {
       titleArea.textContent = publication;
     }
-    const messageText = null;
+
+    // TODO: mhkawano - render publisher provided message.
     const messageArea = prompt
       .getElementsByClassName('rewarded-ad-message')
       .item(0);
     if (messageArea) {
-      if (messageText) {
-        messageArea.textContent = messageText;
-      } else if (isContribution) {
+      if (isContribution) {
         messageArea.textContent = `To support ${publication}, view an ad or contribute`;
       } else {
         messageArea.textContent =
@@ -318,11 +318,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     closeButton.item(0)?.addEventListener('click', async () => {
       removeElement(await this.wrapper_);
     });
+    const googletag = this.deps_.win().googletag;
     googletag.destroySlots([await this.rewardedSlot_!]);
   }
 
   private async closeRewardedAdWall_() {
     removeElement(await this.wrapper_);
+    const googletag = this.deps_.win().googletag;
     googletag.destroySlots([await this.rewardedSlot_!]);
     if (this.params_.onCancel) {
       this.params_.onCancel();
@@ -331,6 +333,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async supportRewardedAdWall_() {
     removeElement(await this.wrapper_);
+    const googletag = this.deps_.win().googletag;
     googletag.destroySlots([await this.rewardedSlot_!]);
     this.params_.monetizationFunction!();
   }
