@@ -190,7 +190,7 @@ describes.realWin('PayClient', (env) => {
       'i': {
         'redirectVerifier': redirectVerifierHelperResults.verifier,
         'disableNative': true,
-        'disableNgbf': true
+        'disableNgbf': true,
       },
     });
   });
@@ -211,7 +211,7 @@ describes.realWin('PayClient', (env) => {
       'i': {
         'redirectVerifier': redirectVerifierHelperResults.verifier,
         'disableNative': true,
-        'disableNgbf': true
+        'disableNgbf': true,
       },
     });
   });
