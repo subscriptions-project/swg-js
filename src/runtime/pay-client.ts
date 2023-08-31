@@ -174,7 +174,7 @@ export class PayClient {
       true // options.forceDisableNative || this.win_ != this.top_()
     );
 
-    // Disable O2 buyflow un til it's suppoerted by SwG integration
+    // Disable Next-gen buyflow until it's supported by SwG integration
     setInternalParam(paymentRequest, 'disableNgbf', true);
 
     let resolver: (result: boolean) => void;
