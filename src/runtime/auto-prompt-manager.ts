@@ -305,7 +305,7 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines whether moentization prompt can be shown based audience actions
+   * Determines whether moentization prompt can be shown based on audience actions
    * that passed eligibility check.
    */
   private canDisplayMonetizationPrompt(actions: Intervention[] = []): boolean {
