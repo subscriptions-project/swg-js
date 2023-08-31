@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {CONST_GOOGLE_LOGO} from '../../utils/assets'
+import {CONST_GOOGLE_LOGO} from '../../utils/assets';
 
 /** ID for the Google Sign-In button element. */
 export const GOOGLE_SIGN_IN_BUTTON_ID = 'swg-google-sign-in-button';

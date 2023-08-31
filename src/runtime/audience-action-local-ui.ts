@@ -15,7 +15,7 @@
  */
 
 import {ASSETS} from '../constants';
-import {CONST_GOOGLE_LOGO} from '../utils/assets'
+import {CONST_GOOGLE_LOGO} from '../utils/assets';
 
 // Helper for syntax highlighting.
 const html = String.raw;
