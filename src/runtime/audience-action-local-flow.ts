@@ -61,7 +61,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private rewardedSlot_?: googletag.Slot;
   // Used to render the rewarded ad, returned from the ready callback
   private makeRewardedVisible_?: () => void;
-  // Used to determine
 
   constructor(
     private readonly deps_: Deps,
