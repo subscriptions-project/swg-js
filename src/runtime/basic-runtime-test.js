@@ -782,7 +782,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
             engineId: '123',
           },
         })
-        .once();
+        .atLeast(1);
       clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showOffers')
@@ -809,7 +809,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
             engineId: '123',
           },
         })
-        .once();
+        .atLeast(1);
       clientConfigManagerMock.expects('getClientConfig').resolves({});
       configuredClassicRuntimeMock
         .expects('showContributionOptions')

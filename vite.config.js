@@ -49,7 +49,7 @@ const plugins = [
         (entry) => entry.type === 'chunk' && entry.code
       );
       for (const chunk of chunks) {
-        chunk.code = `(() => { ${chunk.code} })();`;
+        chunk.code = `(() => { ${chunk.code} })();\n`;
       }
     },
   },

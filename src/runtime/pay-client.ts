@@ -169,7 +169,9 @@ export class PayClient {
       'disableNative',
       // The page cannot be iframed at this time. May be relaxed later
       // for AMP and similar contexts.
-      options.forceDisableNative || this.win_ != this.top_()
+      // Always disable native see b/298029927 jpettit 2023-08-30
+      // restore when b/298029927 fixed
+      true // options.forceDisableNative || this.win_ != this.top_()
     );
 
     let resolver: (result: boolean) => void;
@@ -249,9 +251,10 @@ export class PayClient {
   }
 
   /** Only exists for testing since it's not possible to override `window.top`. */
-  private top_(): Window {
-    return this.win_.top!;
-  }
+  // b/298029927
+  // private top_(): Window {
+  //   return this.win_.top!;
+  // }
 }
 
 interface RedirectVerifierPairDef {
