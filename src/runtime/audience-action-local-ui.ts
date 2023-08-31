@@ -29,7 +29,8 @@ const SLIDE_UP_ANIMATION = css`
     to {
       transform: translate(0, 0);
     }
-  }`;
+  }
+`;
 
 const REWARDED_AD_PROMPT = css`
   ${SLIDE_UP_ANIMATION}
@@ -44,7 +45,8 @@ const REWARDED_AD_PROMPT = css`
     width: 375px !important;
     pointer-events: auto !important;
     background: white !important;
-  }`;
+  }
+`;
 
 const DEFAULT_BUTTON = css`
   button {
@@ -55,7 +57,8 @@ const DEFAULT_BUTTON = css`
     font: inherit;
     cursor: pointer;
     outline: inherit;
-  }`;
+  }
+`;
 
 const CLOSE_BUTTON = css`
   .rewarded-ad-close-button {
@@ -70,7 +73,8 @@ const CLOSE_BUTTON = css`
 
     grid-column: 3;
     grid-row: 1;
-  }`;
+  }
+`;
 
 // Error view for prompts that fail to init.
 // TODO: mhkawano - Update once UX finished.
