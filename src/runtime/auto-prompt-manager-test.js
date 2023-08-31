@@ -1348,8 +1348,8 @@ describes.realWin('AutoPromptManager', (env) => {
 
       const autoPromptConfig = new AutoPromptConfig({});
       const uiPredicates = new UiPredicates(
-        /* canDisplayAutoPrompt */ false,
-        /* canDisplayButton */ false
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
       );
       const clientConfig = new ClientConfig({
         autoPromptConfig,
