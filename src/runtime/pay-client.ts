@@ -175,7 +175,7 @@ export class PayClient {
     );
 
     // Disable O2 buyflow un til it's suppoerted by SwG integration
-    setInternalParam(paymentRequest, 'disableNgbf', true)
+    setInternalParam(paymentRequest, 'disableNgbf', true);
 
     let resolver: (result: boolean) => void;
     const promise = new Promise<boolean>((resolve) => {
