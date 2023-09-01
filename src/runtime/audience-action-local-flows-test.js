@@ -126,14 +126,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         await initPromise;
 
-        const contributeButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-contribute-button'
-        );
-        expect(contributeButton).to.be.null;
         const subscribeButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-subscribe-button'
+          '.rewarded-ad-support-button'
         );
-        expect(subscribeButton).not.to.be.null;
+        expect(subscribeButton.innerHTML).contains('Subscribe');
 
         await subscribeButton.click();
         await tick();
@@ -161,13 +157,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await initPromise;
 
         const contributeButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-contribute-button'
+          '.rewarded-ad-support-button'
         );
-        expect(contributeButton).not.to.be.null;
-        const subscribeButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-subscribe-button'
-        );
-        expect(subscribeButton).to.be.null;
+        expect(contributeButton.innerHTML).contains('Contribute');
 
         await contributeButton.click();
         await tick();

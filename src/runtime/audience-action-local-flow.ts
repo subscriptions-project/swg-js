@@ -16,14 +16,17 @@
 
 import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
-import {ClientConfigManager} from './client-config-manager';
-import {Deps} from './deps';
 import {
+  CLOSE_BUTTON_HTML,
+  CON_ICON,
   ERROR_HTML,
   LOADING_HTML,
   REWARDED_AD_HTML,
   REWARDED_AD_THANKS_HTML,
+  SUB_ICON,
 } from './audience-action-local-ui';
+import {ClientConfigManager} from './client-config-manager';
+import {Deps} from './deps';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {createElement, removeElement} from '../utils/dom';
@@ -215,91 +218,47 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
     const prompt = await this.prompt_;
 
-    prompt./*OK*/ innerHTML = REWARDED_AD_HTML;
-
     const isContribution =
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
 
-    const closeButton = prompt.getElementsByClassName(
-      'rewarded-ad-close-button'
-    );
-    if (this.params_.isClosable) {
-      closeButton
-        .item(0)
-        ?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
-    } else {
-      closeButton.item(0)?.remove();
-    }
-
     // TODO: mhkawano - Provide internationalization.
     // TODO: mhkawano - Fetch message and publication name from backend.
+    // TODO: mhkawnao - Support priority actions
+    // TODO: mhkawnao - Support premonetization
     const publication = 'The Daily News';
-    const titleArea = prompt
-      .getElementsByClassName('rewarded-ad-title')
-      .item(0);
-    if (titleArea) {
-      titleArea.textContent = publication;
-    }
+    const closeHtml = this.params_.isClosable ? CLOSE_BUTTON_HTML : '';
+    const icon = isContribution ? CON_ICON : SUB_ICON;
+    const message = isContribution
+      ? `To support ${publication}, view an ad or contribute`
+      : 'To access this article, subscribe or view an ad';
+    const viewad = 'View an ad';
+    const support = isContribution ? 'Contribute' : 'Subscribe';
+    const signin = isContribution
+      ? 'Already a contributor?'
+      : 'Already a subscriber?';
 
-    // TODO: mhkawano - render publisher provided message.
-    const messageArea = prompt
-      .getElementsByClassName('rewarded-ad-message')
-      .item(0);
-    if (messageArea) {
-      if (isContribution) {
-        messageArea.textContent = `To support ${publication}, view an ad or contribute`;
-      } else {
-        messageArea.textContent =
-          'To access this article, subscribe or view an ad';
-      }
-    }
+    prompt./*OK*/ innerHTML = REWARDED_AD_HTML.replace('$TITLE$', publication)
+      .replace('$CLOSE_BUTTON_HTML$', closeHtml)
+      .replace('$ICON$', icon)
+      .replace('$MESSAGE$', message)
+      .replace('$VIEW_AN_AD$', viewad)
+      .replace('$SUPPORT_BUTTON$', support)
+      .replace('$SIGN_IN_BUTTON$', signin);
 
-    // TODO: mhkawnao - Support priority actions?
-    const contributeButton = prompt.getElementsByClassName(
-      'rewarded-ad-contribute-button'
-    );
-    if (isContribution) {
-      contributeButton
-        .item(0)
-        ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
-    } else {
-      contributeButton.item(0)?.remove();
-    }
-
-    const viewButton = prompt.getElementsByClassName(
-      'rewarded-ad-view-ad-button'
-    );
-    viewButton
-      .item(0)
+    prompt
+      .querySelector('.rewarded-ad-close-button')
+      ?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
+    prompt
+      .querySelector('.rewarded-ad-support-button')
+      ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
+    prompt
+      .querySelector('.rewarded-ad-view-ad-button')
       ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
+    prompt
+      .querySelector('.rewarded-ad-sign-in-button')
+      ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
 
-    const subscribeButton = prompt.getElementsByClassName(
-      'rewarded-ad-subscribe-button'
-    );
-    if (!isContribution) {
-      subscribeButton
-        .item(0)
-        ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
-    } else {
-      subscribeButton.item(0)?.remove();
-    }
-
-    const signinButton = prompt
-      .getElementsByClassName('rewarded-ad-sign-in-button')
-      .item(0);
-    signinButton?.addEventListener(
-      'click',
-      this.signinRewardedAdWall_.bind(this)
-    );
-    // TODO: mhkawano - translate static strings.
-    if (signinButton) {
-      if (isContribution) {
-        signinButton!.textContent = 'Already a contributor?';
-      } else {
-        signinButton!.textContent = 'Already a subscriber?';
-      }
-    }
     this.rewardedResolve_!(true);
   }
 

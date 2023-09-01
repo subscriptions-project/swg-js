@@ -21,6 +21,12 @@ import {CONST_GOOGLE_LOGO} from '../utils/assets';
 const html = String.raw;
 const css = String.raw;
 
+export const SUB_ICON =
+  'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg';
+
+export const CON_ICON =
+  'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/volunteer_activism/default/40px.svg';
+
 const SLIDE_UP_ANIMATION = css`
   @keyframes slideUp {
     from {
@@ -60,7 +66,7 @@ const DEFAULT_BUTTON = css`
   }
 `;
 
-const CLOSE_BUTTON = css`
+const CLOSE_BUTTON_CSS = css`
   .rewarded-ad-close-button {
     height: 24px;
     width: 24px;
@@ -76,10 +82,18 @@ const CLOSE_BUTTON = css`
   }
 `;
 
+export const CLOSE_BUTTON_HTML = html`<button
+  class="rewarded-ad-close-button"
+></button>`;
+
 // Error view for prompts that fail to init.
 // TODO: mhkawano - Update once UX finished.
+// TODO: mhkawano - allow error view to be closed.
 const ERROR_CSS = css`
   .prompt {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: auto !important;
     width: 600px;
     height: 200px;
     background: white;
@@ -195,12 +209,11 @@ export const LOADING_HTML = html`
 `;
 
 // Rewarded ad wall prompt css and html.
-// TODO: mhkawano - Add aria attributes.
-// TODO: mhkawano - allow error view to be closed.
+// TODO: mhkawano - accessibility.
 // TODO: mhkawano - translate static strings.
 const REWARDED_AD_CSS = css`
   ${DEFAULT_BUTTON}
-  ${CLOSE_BUTTON}
+  ${CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-container {
@@ -230,8 +243,7 @@ const REWARDED_AD_CSS = css`
     height: 40px;
     width: 40px;
     background: #1a73e8;
-    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg)
-      center/contain no-repeat;
+    -webkit-mask: url($ICON$) center/contain no-repeat;
   }
 
   .rewarded-ad-message {
@@ -265,20 +277,7 @@ const REWARDED_AD_CSS = css`
     color: lightgrey;
   }
 
-  .rewarded-ad-contribute-button {
-    width: 100%;
-    height: 36px;
-    border: 1px solid #dadce0;
-    margin-top: 8px;
-    border-radius: 4px;
-    color: #1a73e8;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 20px;
-    letter-spacing: 0.25px;
-  }
-
-  .rewarded-ad-subscribe-button {
+  .rewarded-ad-support-button {
     width: 100%;
     height: 36px;
     border: 1px solid #dadce0;
@@ -319,15 +318,14 @@ export const REWARDED_AD_HTML = html`
   <div class="rewarded-ad-prompt">
     <div class="rewarded-ad-container">
       <div class="rewarded-ad-header">
-        <div class="rewarded-ad-title">title</div>
-        <button class="rewarded-ad-close-button"></button>
+        <div class="rewarded-ad-title">$TITLE$</div>
+        $CLOSE_BUTTON_HTML$
       </div>
       <div class="rewarded-ad-icon"></div>
-      <div class="rewarded-ad-message"></div>
+      <div class="rewarded-ad-message">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
-        <button class="rewarded-ad-view-ad-button">View an ad</button>
-        <button class="rewarded-ad-contribute-button">Contribute</a>
-        <button class="rewarded-ad-subscribe-button">Subscribe</button>
+        <button class="rewarded-ad-view-ad-button">$VIEW_AN_AD$</button>
+        <button class="rewarded-ad-support-button">$SUPPORT_BUTTON$</button>
       </div>
       <div class="rewarded-ad-footer">
         <img
@@ -335,7 +333,7 @@ export const REWARDED_AD_HTML = html`
           class="rewarded-ad-google-logo"
           src="${CONST_GOOGLE_LOGO}"
         />
-        <button class="rewarded-ad-sign-in-button"></button>
+        <button class="rewarded-ad-sign-in-button">$SIGN_IN_BUTTON$</button>
       </div>
     </div>
   </div>
@@ -343,7 +341,7 @@ export const REWARDED_AD_HTML = html`
 
 const REWARDED_AD_THANKS_CSS = css`
   ${DEFAULT_BUTTON}
-  ${CLOSE_BUTTON}
+  ${CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-prompt {
@@ -390,7 +388,7 @@ export const REWARDED_AD_THANKS_HTML = html`
     <div class="rewarded-ad-thanks-container">
       <div class="rewarded-ad-thanks-icon"></div>
       <div class="rewarded-ad-thanks-message">Thanks for viewing this ad</div>
-      <button class="rewarded-ad-close-button"></button>
+      ${CLOSE_BUTTON_HTML}
       <div></div>
     </div>
   </div>
