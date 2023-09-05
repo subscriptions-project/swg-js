@@ -365,8 +365,14 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       this.configuredClassicRuntime_.showOffers({isClosable: true});
     });
 
-    // Fetches entitlements and client config.
+    // Fetches entitlements.
     this.configuredClassicRuntime_.start();
+
+    // Fetch the client config.
+    this.configuredClassicRuntime_.clientConfigManager().fetchClientConfig(
+      // Wait on the entitlements to resolve before accessing the clientConfig
+      this.configuredClassicRuntime_.getEntitlements()
+    );
 
     // Start listening to Audience Activity events.
     if (

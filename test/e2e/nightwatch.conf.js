@@ -62,6 +62,7 @@ module.exports = {
         swg_experiments: [
           'logging-audience-activity',
           'disable-desktop-miniprompt',
+          'populate-client-config-classic',
         ],
       },
       '@nightwatch/vrt': {
