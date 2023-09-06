@@ -1320,15 +1320,13 @@ describes.realWin('AutoPromptManager', (env) => {
 
   [
     {
-      actionType: 'TYPE_CONTRIBUTION',
       autoPromptType: AutoPromptType.CONTRIBUTION,
     },
     {
-      actionType: 'TYPE_SUBSCRIPTION',
       autoPromptType: AutoPromptType.SUBSCRIPTION,
     },
-  ].forEach(({actionType, autoPromptType}) => {
-    it(`should not display any prompt if UI predicate is false and page is locked for autoPromptType: ${autoPromptType}`, async () => {
+  ].forEach(({autoPromptType}) => {
+    it(`should not display any monetization prompt if the article returns no actions for autoPromptType: ${autoPromptType}`, async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const entitlements = new Entitlements();
       sandbox.stub(entitlements, 'enablesThis').returns(false);
@@ -1341,10 +1339,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves({
           audienceActions: {
             actions: [
-              {
-                type: actionType,
-                configurationId: 'config_id',
-              },
+              // No action is eligible
             ],
             engineId: '123',
           },
@@ -1353,8 +1348,8 @@ describes.realWin('AutoPromptManager', (env) => {
 
       const autoPromptConfig = new AutoPromptConfig({});
       const uiPredicates = new UiPredicates(
-        /* canDisplayAutoPrompt */ false,
-        /* canDisplayButton */ false
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
       );
       const clientConfig = new ClientConfig({
         autoPromptConfig,
@@ -1485,76 +1480,6 @@ describes.realWin('AutoPromptManager', (env) => {
     });
     logEventSpy.should.not.have.been.calledWith(expectedEvent);
     expect(contributionPromptFnSpy).to.not.be.called;
-  });
-
-  [
-    {
-      actionType: 'TYPE_CONTRIBUTION',
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-    },
-    {
-      actionType: 'TYPE_SUBSCRIPTION',
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-    },
-    {
-      actionType: 'TYPE_CONTRIBUTION',
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-    },
-    {
-      actionType: 'TYPE_SUBSCRIPTION',
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-    },
-  ].forEach(({actionType, autoPromptType}) => {
-    it(`should not display any prompt if UI predicate is false and article actions list contains ${actionType} for autoPromptType: ${autoPromptType}`, async () => {
-      const entitlements = new Entitlements();
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .resolves(entitlements)
-        .once();
-
-      const autoPromptConfig = new AutoPromptConfig({});
-      const uiPredicates = new UiPredicates(
-        /* canDisplayAutoPrompt */ false,
-        /* canDisplayButton */ false,
-        /* purchaseUnavailableRegion */ false
-      );
-      const clientConfig = new ClientConfig({
-        autoPromptConfig,
-        useUpdatedOfferFlows: true,
-        uiPredicates,
-      });
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .resolves(clientConfig)
-        .once();
-      const getArticleExpectation =
-        entitlementsManagerMock.expects('getArticle');
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [
-              {
-                type: actionType,
-                configurationId: 'config_id',
-              },
-            ],
-            engineId: '123',
-          },
-        })
-        .once();
-      miniPromptApiMock.expects('create').never();
-
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType,
-        alwaysShow: false,
-      });
-      await tick(7);
-
-      expect(startSpy).to.not.have.been.called;
-      expect(actionFlowSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.not.be.called;
-      expect(subscriptionPromptFnSpy).to.not.be.called;
-    });
   });
 
   describe('AudienceActionFlow', () => {

@@ -55,6 +55,7 @@ import {DialogManager} from '../components/dialog-manager';
 import {Doc as DocInterface, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
+import {ExperimentFlags} from './experiment-flags';
 import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
 import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
@@ -98,6 +99,7 @@ import {
 import {debugLog} from '../utils/log';
 import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
+import {isExperimentOn} from './experiments';
 import {isSecure} from '../utils/url';
 import {queryStringHasFreshGaaParams} from './extended-access';
 import {setExperiment} from './experiments';
@@ -903,11 +905,15 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     const entitlementsPromise =
       this.entitlementsManager_.getEntitlements(params);
 
-    // Populate the client config. Wait for the entitlements since the
-    // config is available in the /article response.
-    this.clientConfigManager().fetchClientConfig(
-      /* readyPromise= */ entitlementsPromise
-    );
+    if (
+      isExperimentOn(this.win(), ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC)
+    ) {
+      // Populate the client config. Wait for the entitlements since the
+      // config is available in the /article response.
+      this.clientConfigManager().fetchClientConfig(
+        /* readyPromise= */ entitlementsPromise
+      );
+    }
 
     const entitlements = await entitlementsPromise;
 

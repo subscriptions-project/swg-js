@@ -174,6 +174,9 @@ export class PayClient {
       true // options.forceDisableNative || this.win_ != this.top_()
     );
 
+    // Disable Next-gen buyflow until it's supported by SwG integration
+    setInternalParam(paymentRequest, 'disableNgbf', true);
+
     let resolver: (result: boolean) => void;
     const promise = new Promise<boolean>((resolve) => {
       resolver = resolve;
