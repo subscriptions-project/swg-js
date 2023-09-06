@@ -42,7 +42,6 @@ import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
-import {UiPredicates} from '../model/client-config';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
@@ -203,13 +202,12 @@ export class AutoPromptManager {
     const isClosable =
       params.isClosable ?? !this.isSubscription_(autoPromptType);
 
-    const canDisplayMonetizationPromptFromUiPredicates =
-      this.canDisplayMonetizationPromptFromUiPredicates_(
-        clientConfig.uiPredicates
-      );
+    const canDisplayMonetizationPrompt = this.canDisplayMonetizationPrompt(
+      article?.audienceActions?.actions
+    );
 
     const shouldShowMonetizationPromptAsSoftPaywall =
-      canDisplayMonetizationPromptFromUiPredicates &&
+      canDisplayMonetizationPrompt &&
       (await this.shouldShowMonetizationPromptAsSoftPaywall(
         autoPromptType,
         clientConfig.autoPromptConfig
@@ -219,8 +217,7 @@ export class AutoPromptManager {
       article,
       autoPromptType,
       dismissedPrompts,
-      canDisplayMonetizationPrompt:
-        canDisplayMonetizationPromptFromUiPredicates,
+      canDisplayMonetizationPrompt,
       shouldShowMonetizationPromptAsSoftPaywall,
     });
 
@@ -308,18 +305,16 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines whether a mini prompt for contributions or subscriptions can
-   * be shown based on the UI Predicates.
+   * Determines whether moentization prompt can be shown based on audience actions
+   * that passed eligibility check.
    */
-  private canDisplayMonetizationPromptFromUiPredicates_(
-    uiPredicates?: UiPredicates
-  ): boolean {
-    // If false publication predicate was returned in the response, don't show
-    // the prompt.
-    if (uiPredicates && !uiPredicates.canDisplayAutoPrompt) {
-      return false;
-    }
-    return true;
+  private canDisplayMonetizationPrompt(actions: Intervention[] = []): boolean {
+    return (
+      actions.filter(
+        (action) =>
+          action.type === TYPE_CONTRIBUTION || action.type === TYPE_SUBSCRIPTION
+      ).length > 0
+    );
   }
 
   /**
