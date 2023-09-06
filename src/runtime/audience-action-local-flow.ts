@@ -18,12 +18,12 @@ import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   CLOSE_BUTTON_HTML,
-  CON_ICON,
+  CONTRIBUTION_ICON,
   ERROR_HTML,
   LOADING_HTML,
   REWARDED_AD_HTML,
   REWARDED_AD_THANKS_HTML,
-  SUB_ICON,
+  SUBSCRIPTION_ICON,
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
@@ -45,7 +45,8 @@ export interface AudienceActionLocalParams {
 }
 
 // Default timeout for waiting on ready callback.
-const GPT_TIMEOUT = 3000;
+const GPT_TIMEOUT_MS = 3000;
+const CHECK_ENTITLEMENTS_REQUEST_ID = 'CHECK_ENTITLEMENTS';
 
 /**
  * An audience action local flow will show a dialog prompt to a reader, asking them
@@ -68,7 +69,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   constructor(
     private readonly deps_: Deps,
     private readonly params_: AudienceActionLocalParams,
-    private readonly gptTimeout_ = GPT_TIMEOUT
+    private readonly gptTimeoutMs_: number = GPT_TIMEOUT_MS
   ) {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
@@ -193,7 +194,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       googletag.display(this.rewardedSlot_);
 
       // gpt.js has no way of knowing that an ad unit is invalid besides checking that rewardedSlotReady is called. Error out after 3 seconds of waiting.
-      setTimeout(this.rewardedAdTimeout_.bind(this), this.gptTimeout_);
+      setTimeout(this.rewardedAdTimeout_.bind(this), this.gptTimeoutMs_);
     } else {
       resolve(false);
     }
@@ -223,12 +224,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
 
     // TODO: mhkawano - Provide internationalization.
+    // TODO: mhkawnao - Escape user provided strings.
     // TODO: mhkawano - Fetch message and publication name from backend.
     // TODO: mhkawnao - Support priority actions
     // TODO: mhkawnao - Support premonetization
     const publication = 'The Daily News';
     const closeHtml = this.params_.isClosable ? CLOSE_BUTTON_HTML : '';
-    const icon = isContribution ? CON_ICON : SUB_ICON;
+    const icon = isContribution ? CONTRIBUTION_ICON : SUBSCRIPTION_ICON;
     const message = isContribution
       ? `To support ${publication}, view an ad or contribute`
       : 'To access this article, subscribe or view an ad';
@@ -315,8 +317,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async signinRewardedAdWall_() {
+    this.deps_
+      .activities()
+      .onResult(
+        CHECK_ENTITLEMENTS_REQUEST_ID,
+        this.closeRewardedAdWall_.bind(this)
+      );
     this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
-    // close the prompt and destory the ad slot if entitlements are found
   }
 
   async start() {

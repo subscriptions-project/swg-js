@@ -90,7 +90,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const flow = new AudienceActionLocalFlow(
           runtime,
           params,
-          /* gptTimeout_= */ 1000
+          /* gptTimeoutMs_= */ 1000
         );
 
         await flow.start();
@@ -164,7 +164,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await contributeButton.click();
         await tick();
 
-        // expect(params.monetizationFunction).to.be.calledOnce.calledWithExactly();
+        expect(
+          params.monetizationFunction
+        ).to.be.calledOnce.calledWithExactly();
         expect(
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);

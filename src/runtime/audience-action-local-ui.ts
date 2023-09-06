@@ -15,16 +15,16 @@
  */
 
 import {ASSETS} from '../constants';
-import {CONST_GOOGLE_LOGO} from '../utils/assets';
+import {GOOGLE_LOGO_IMAGE_DATA} from '../utils/assets';
 
 // Helper for syntax highlighting.
 const html = String.raw;
 const css = String.raw;
 
-export const SUB_ICON =
+export const SUBSCRIPTION_ICON =
   'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg';
 
-export const CON_ICON =
+export const CONTRIBUTION_ICON =
   'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/volunteer_activism/default/40px.svg';
 
 const SLIDE_UP_ANIMATION = css`
@@ -331,7 +331,7 @@ export const REWARDED_AD_HTML = html`
         <img
           alt="Google"
           class="rewarded-ad-google-logo"
-          src="${CONST_GOOGLE_LOGO}"
+          src="${GOOGLE_LOGO_IMAGE_DATA}"
         />
         <button class="rewarded-ad-sign-in-button">$SIGN_IN_BUTTON$</button>
       </div>
