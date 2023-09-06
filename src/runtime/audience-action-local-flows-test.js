@@ -44,7 +44,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
-      await flow.start();
+      flow.start();
 
       const wrapper = env.win.document.querySelector(
         '.audience-action-local-wrapper'
@@ -86,14 +86,14 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         };
       });
 
-      async function renderAndAssertRewardedAd(params) {
+      function renderAndAssertRewardedAd(params) {
         const flow = new AudienceActionLocalFlow(
           runtime,
           params,
           /* gptTimeoutMs_= */ 1000
         );
 
-        await flow.start();
+        flow.start();
 
         const wrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
@@ -118,11 +118,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
           monetizationFunction: sandbox.spy(),
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
 
         await initPromise;
 
@@ -148,11 +148,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
           monetizationFunction: sandbox.spy(),
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
 
         await initPromise;
 
@@ -179,11 +179,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           isClosable: true,
           onCancel: sandbox.spy(),
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
 
         await initPromise;
 
@@ -211,11 +211,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
           isClosable: false,
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
 
         await initPromise;
 
@@ -232,11 +232,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           action: 'TYPE_REWARDED_AD',
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
 
         await initPromise;
 
@@ -258,7 +258,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const params = {
           action: 'TYPE_REWARDED_AD',
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         await initPromise;
 
@@ -270,7 +270,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const params = {
           action: 'TYPE_REWARDED_AD',
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         await initPromise;
 
@@ -282,13 +282,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const params = {
           action: 'TYPE_REWARDED_AD',
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        eventListeners['rewardedSlotGranted']();
 
         await initPromise;
 
@@ -305,13 +305,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const params = {
           action: 'TYPE_REWARDED_AD',
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        eventListeners['rewardedSlotGranted']();
 
         await initPromise;
 
@@ -333,13 +333,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           isClosable: true,
           onCancel: sandbox.spy(),
         };
-        const render = await renderAndAssertRewardedAd(params);
+        const render = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
-        await eventListeners['rewardedSlotClosed']();
+        eventListeners['rewardedSlotClosed']();
 
         await render.initPromise;
 
@@ -358,13 +358,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           action: 'TYPE_REWARDED_AD',
           isClosable: false,
         };
-        const render = await renderAndAssertRewardedAd(params);
+        const render = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
-        await eventListeners['rewardedSlotClosed']();
+        eventListeners['rewardedSlotClosed']();
 
         await render.initPromise;
 
@@ -382,11 +382,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           action: 'TYPE_REWARDED_AD',
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         };
-        const {wrapper, initPromise} = await renderAndAssertRewardedAd(params);
+        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        eventListeners['rewardedSlotReady'](readyEventArg);
 
         await initPromise;
 
@@ -408,7 +408,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   });
 
   describe('showNoEntitlementFoundToast', () => {
-    it('opens toast', async () => {
+    it('opens toast', () => {
       const params = {
         action: 'action',
       };
@@ -416,7 +416,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
       const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
-      await flow.showNoEntitlementFoundToast();
+      flow.showNoEntitlementFoundToast();
 
       expect(toastOpenStub).to.be.called.calledWithExactly();
     });

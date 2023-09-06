@@ -53,8 +53,8 @@ const CHECK_ENTITLEMENTS_REQUEST_ID = 'CHECK_ENTITLEMENTS';
  * to complete an action for potentially free, additional metered entitlements.
  */
 export class AudienceActionLocalFlow implements AudienceActionFlow {
-  private readonly prompt_: Promise<HTMLElement>;
-  private readonly wrapper_: Promise<HTMLElement>;
+  private readonly prompt_: HTMLElement;
+  private readonly wrapper_: HTMLElement;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
   // Used by rewarded ads to check if the ready callback has been called.
@@ -77,10 +77,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     this.prompt_ = this.createPrompt_();
 
-    this.wrapper_ = this.prompt_.then(this.createWrapper_.bind(this));
+    this.wrapper_ = this.createWrapper_(this.prompt_);
   }
 
-  private async createPrompt_(): Promise<HTMLElement> {
+  private createPrompt_(): HTMLElement {
     if (this.params_.action === 'TYPE_REWARDED_AD') {
       return this.renderAndInitRewardedAdWall_();
     } else {
@@ -88,7 +88,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private async createWrapper_(prompt: HTMLElement): Promise<HTMLElement> {
+  private createWrapper_(prompt: HTMLElement): HTMLElement {
     const wrapper = createElement(this.doc_, 'div', {
       'class': 'audience-action-local-wrapper',
     });
@@ -117,7 +117,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return wrapper;
   }
 
-  private async renderErrorView_(): Promise<HTMLElement> {
+  private renderErrorView_(): HTMLElement {
     const prompt = createElement(this.doc_, 'div', {});
     return this.makeErrorView(prompt);
   }
@@ -127,7 +127,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return prompt;
   }
 
-  private async renderAndInitRewardedAdWall_(): Promise<HTMLElement> {
+  private renderAndInitRewardedAdWall_(): HTMLElement {
     // Setup callback for googletag init.
     const googletag = this.deps_.win().googletag;
     googletag.cmd.push(this.initRewardedAdWall_.bind(this));
@@ -155,8 +155,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // Replace with error view if init fails.
     // TODO: mhkawano - Make closeable.
     if (!initSuccess) {
-      const prompt = await this.prompt_;
-      this.makeErrorView(prompt);
+      this.makeErrorView(this.prompt_);
     }
   }
 
@@ -200,7 +199,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private async rewardedAdTimeout_() {
+  private rewardedAdTimeout_() {
     if (!this.rewardedReadyCalled_) {
       const googletag = this.deps_.win().googletag;
       googletag.destroySlots([this.rewardedSlot_!]);
@@ -212,12 +211,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   /**
    * When gpt.js is ready to show an ad, we replace the loading view and wire up the buttons.
    */
-  private async rewardedSlotReady_(
+  private rewardedSlotReady_(
     rewardedAd: googletag.events.RewardedSlotReadyEvent
   ) {
     this.rewardedReadyCalled_ = true;
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
-    const prompt = await this.prompt_;
 
     const isContribution =
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
@@ -240,7 +238,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       ? 'Already a contributor?'
       : 'Already a subscriber?';
 
-    prompt./*OK*/ innerHTML = REWARDED_AD_HTML.replace('$TITLE$', publication)
+    this.prompt_./*OK*/ innerHTML = REWARDED_AD_HTML.replace(
+      '$TITLE$',
+      publication
+    )
       .replace('$CLOSE_BUTTON_HTML$', closeHtml)
       .replace('$ICON$', icon)
       .replace('$MESSAGE$', message)
@@ -248,67 +249,64 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .replace('$SUPPORT_BUTTON$', support)
       .replace('$SIGN_IN_BUTTON$', signin);
 
-    prompt
+    this.prompt_
       .querySelector('.rewarded-ad-close-button')
       ?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
-    prompt
+    this.prompt_
       .querySelector('.rewarded-ad-support-button')
       ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
-    prompt
+    this.prompt_
       .querySelector('.rewarded-ad-view-ad-button')
       ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
-    prompt
+    this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
 
     this.rewardedResolve_!(true);
   }
 
-  private async rewardedSlotClosed_() {
+  private rewardedSlotClosed_() {
     const googletag = this.deps_.win().googletag;
-    const wrapper = await this.wrapper_;
     googletag.destroySlots([this.rewardedSlot_]);
     if (this.params_.isClosable) {
-      removeElement(wrapper);
+      removeElement(this.wrapper_);
       if (this.params_.onCancel) {
         this.params_.onCancel();
       }
     }
   }
 
-  private async rewardedSlotGranted_() {
-    const prompt = await this.prompt_;
-    prompt./*OK*/ innerHTML = REWARDED_AD_THANKS_HTML;
+  private rewardedSlotGranted_() {
+    this.prompt_./*OK*/ innerHTML = REWARDED_AD_THANKS_HTML;
 
-    const closeButton = prompt.getElementsByClassName(
+    const closeButton = this.prompt_.getElementsByClassName(
       'rewarded-ad-close-button'
     );
-    closeButton.item(0)?.addEventListener('click', async () => {
-      removeElement(await this.wrapper_);
+    closeButton.item(0)?.addEventListener('click', () => {
+      removeElement(this.wrapper_);
     });
     const googletag = this.deps_.win().googletag;
-    googletag.destroySlots([await this.rewardedSlot_!]);
+    googletag.destroySlots([this.rewardedSlot_!]);
   }
 
-  private async closeRewardedAdWall_() {
-    removeElement(await this.wrapper_);
+  private closeRewardedAdWall_() {
+    removeElement(this.wrapper_);
     const googletag = this.deps_.win().googletag;
-    googletag.destroySlots([await this.rewardedSlot_!]);
+    googletag.destroySlots([this.rewardedSlot_!]);
     if (this.params_.onCancel) {
       this.params_.onCancel();
     }
   }
 
-  private async supportRewardedAdWall_() {
-    removeElement(await this.wrapper_);
+  private supportRewardedAdWall_() {
+    removeElement(this.wrapper_);
     const googletag = this.deps_.win().googletag;
-    googletag.destroySlots([await this.rewardedSlot_!]);
+    googletag.destroySlots([this.rewardedSlot_!]);
     this.params_.monetizationFunction!();
   }
 
   private async viewRewardedAdWall_() {
-    const prompt = await this.prompt_;
-    const viewButton = prompt.getElementsByClassName(
+    const viewButton = this.prompt_.getElementsByClassName(
       'rewarded-ad-view-ad-button'
     );
     viewButton.item(0)?.setAttribute('disabled', 'true');
@@ -316,7 +314,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.makeRewardedVisible_!();
   }
 
-  private async signinRewardedAdWall_() {
+  private signinRewardedAdWall_() {
     this.deps_
       .activities()
       .onResult(
@@ -327,10 +325,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   async start() {
-    const wrapper = await this.wrapper_;
-    this.doc_.body.appendChild(wrapper);
-    wrapper.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
-    setImportantStyles(wrapper, {'opacity': '1.0'});
+    this.doc_.body.appendChild(this.wrapper_);
+    this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
+    setImportantStyles(this.wrapper_, {'opacity': '1.0'});
   }
 
   showNoEntitlementFoundToast() {
