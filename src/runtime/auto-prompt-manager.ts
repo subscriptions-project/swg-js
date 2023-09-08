@@ -558,7 +558,7 @@ export class AutoPromptManager {
           action,
           configurationId,
           autoPromptType,
-          onCancel: () => this.storeLastDismissal_(),
+          onCancel: this.storeLastDismissal_.bind(this),
           isClosable,
           monetizationFunction: this.getMonetizationPromptFn_(
             autoPromptType,
