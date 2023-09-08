@@ -25,6 +25,7 @@ import {
   AudienceActionIframeFlow,
   AudienceActionIframeParams,
 } from './audience-action-flow';
+import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
@@ -48,6 +49,7 @@ import {isExperimentOn} from './experiments';
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
+const TYPE_REWARDED_ADS = 'TYPE_REWARDED_AD';
 const SECOND_IN_MILLIS = 1000;
 
 const impressionEvents = [
@@ -550,21 +552,39 @@ export class AutoPromptManager {
     autoPromptType?: AutoPromptType;
     isClosable?: boolean;
   }): () => void {
-    return () => {
-      const params: AudienceActionIframeParams = {
-        action,
-        configurationId,
-        autoPromptType,
-        onCancel: () => this.storeLastDismissal_(),
-        isClosable,
+    if (action == TYPE_REWARDED_ADS) {
+      return () => {
+        const lastAudienceActionFlow = new AudienceActionLocalFlow(this.deps_, {
+          action,
+          configurationId,
+          autoPromptType,
+          onCancel: () => this.storeLastDismissal_(),
+          isClosable,
+          monetizationFunction: this.getMonetizationPromptFn_(
+            autoPromptType,
+            !!isClosable
+          ),
+        });
+        this.setLastAudienceActionFlow(lastAudienceActionFlow);
+        lastAudienceActionFlow.start();
       };
-      const lastAudienceActionFlow = new AudienceActionIframeFlow(
-        this.deps_,
-        params
-      );
-      this.setLastAudienceActionFlow(lastAudienceActionFlow);
-      lastAudienceActionFlow.start();
-    };
+    } else {
+      return () => {
+        const params: AudienceActionIframeParams = {
+          action,
+          configurationId,
+          autoPromptType,
+          onCancel: () => this.storeLastDismissal_(),
+          isClosable,
+        };
+        const lastAudienceActionFlow = new AudienceActionIframeFlow(
+          this.deps_,
+          params
+        );
+        this.setLastAudienceActionFlow(lastAudienceActionFlow);
+        lastAudienceActionFlow.start();
+      };
+    }
   }
 
   setLastAudienceActionFlow(flow: AudienceActionFlow): void {
@@ -770,6 +790,14 @@ export class AutoPromptManager {
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
       return isSurveyEligible && isAnalyticsEligible;
+    } else if (actionType == TYPE_REWARDED_ADS) {
+      const rewardedAdsEnabled = isExperimentOn(
+        this.doc_.getWin(),
+        ExperimentFlags.REWARDED_ADS_ENABLED
+      );
+      // Because we have fetched the article endpoint googletag.cmd should already exist.
+      const googletagExists = !!this.deps_.win().googletag?.cmd;
+      return rewardedAdsEnabled && googletagExists;
     }
     return true;
   }
