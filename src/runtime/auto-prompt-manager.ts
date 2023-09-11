@@ -23,7 +23,6 @@ import {
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
-  AudienceActionIframeParams,
 } from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
@@ -227,7 +226,7 @@ export class AutoPromptManager {
       ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
       : potentialAction
       ? this.audienceActionPrompt_({
-          action: potentialAction.type,
+          actionType: potentialAction.type,
           configurationId: potentialAction.configurationId,
           autoPromptType,
           isClosable,
@@ -542,49 +541,40 @@ export class AutoPromptManager {
   }
 
   private audienceActionPrompt_({
-    action,
+    actionType,
     configurationId,
     autoPromptType,
     isClosable,
   }: {
-    action: string;
+    actionType: string;
     configurationId?: string;
     autoPromptType?: AutoPromptType;
     isClosable?: boolean;
   }): () => void {
-    if (action == TYPE_REWARDED_ADS) {
-      return () => {
-        const lastAudienceActionFlow = new AudienceActionLocalFlow(this.deps_, {
-          action,
-          configurationId,
-          autoPromptType,
-          onCancel: this.storeLastDismissal_.bind(this),
-          isClosable,
-          monetizationFunction: this.getMonetizationPromptFn_(
-            autoPromptType,
-            !!isClosable
-          ),
-        });
-        this.setLastAudienceActionFlow(lastAudienceActionFlow);
-        lastAudienceActionFlow.start();
-      };
-    } else {
-      return () => {
-        const params: AudienceActionIframeParams = {
-          action,
-          configurationId,
-          autoPromptType,
-          onCancel: () => this.storeLastDismissal_(),
-          isClosable,
-        };
-        const lastAudienceActionFlow = new AudienceActionIframeFlow(
-          this.deps_,
-          params
-        );
-        this.setLastAudienceActionFlow(lastAudienceActionFlow);
-        lastAudienceActionFlow.start();
-      };
-    }
+    return () => {
+      const audienceAction: AudienceActionFlow =
+        actionType === TYPE_REWARDED_ADS
+          ? new AudienceActionLocalFlow(this.deps_, {
+              action: actionType,
+              configurationId,
+              autoPromptType,
+              onCancel: this.storeLastDismissal_.bind(this),
+              isClosable,
+              monetizationFunction: this.getMonetizationPromptFn_(
+                autoPromptType,
+                !!isClosable
+              ),
+            })
+          : new AudienceActionIframeFlow(this.deps_, {
+              action: actionType,
+              configurationId,
+              autoPromptType,
+              onCancel: () => this.storeLastDismissal_(),
+              isClosable,
+            });
+      this.setLastAudienceActionFlow(audienceAction);
+      audienceAction.start();
+    };
   }
 
   setLastAudienceActionFlow(flow: AudienceActionFlow): void {
@@ -791,13 +781,9 @@ export class AutoPromptManager {
         GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
       return isSurveyEligible && isAnalyticsEligible;
     } else if (actionType == TYPE_REWARDED_ADS) {
-      const rewardedAdsEnabled = isExperimentOn(
-        this.doc_.getWin(),
-        ExperimentFlags.REWARDED_ADS_ENABLED
-      );
       // Because we have fetched the article endpoint googletag.cmd should already exist.
       const googletagExists = !!this.deps_.win().googletag?.cmd;
-      return rewardedAdsEnabled && googletagExists;
+      return googletagExists;
     }
     return true;
   }

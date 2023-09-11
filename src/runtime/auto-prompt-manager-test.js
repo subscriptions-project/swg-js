@@ -2631,9 +2631,8 @@ describes.realWin('AutoPromptManager', (env) => {
         });
     });
 
-    it('is rendered for TYPE_REWARDED_ADS when experiment is enabled', async () => {
+    it('is rendered for TYPE_REWARDED_ADS', async () => {
       win.googletag = {cmd: []};
-      setExperiment(win, ExperimentFlags.REWARDED_ADS_ENABLED, true);
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
@@ -2657,25 +2656,8 @@ describes.realWin('AutoPromptManager', (env) => {
       );
     });
 
-    it('is filtered for TYPE_REWARDED_ADS when experiment is disabled', async () => {
-      win.googletag = {cmd: []};
-      setExperiment(win, ExperimentFlags.REWARDED_ADS_ENABLED, false);
-
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-      });
-
-      await tick(7);
-
-      expect(startLocalSpy).to.not.have.been.called;
-      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        'TYPE_SUBSCRIPTION'
-      );
-    });
-
     it('is filtered for TYPE_REWARDED_ADS when googletag does not exist', async () => {
       win.googletag = undefined;
-      setExperiment(win, ExperimentFlags.REWARDED_ADS_ENABLED, true);
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,

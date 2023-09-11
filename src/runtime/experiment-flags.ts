@@ -36,9 +36,4 @@ export enum ExperimentFlags {
    * Experiment flag to enable populating the client config in the Classic runtime.
    */
   POPULATE_CLIENT_CONFIG_CLASSIC = 'populate-client-config-classic',
-
-  /**
-   * Experiment for allowing rewarded ads to be rendered.
-   */
-  REWARDED_ADS_ENABLED = 'rewarded_ads_enabled',
 }
