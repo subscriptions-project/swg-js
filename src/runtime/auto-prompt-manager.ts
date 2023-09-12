@@ -552,7 +552,7 @@ export class AutoPromptManager {
     isClosable?: boolean;
   }): () => void {
     return () => {
-      const audienceAction: AudienceActionFlow =
+      const audienceActionFlow: AudienceActionFlow =
         actionType === TYPE_REWARDED_ADS
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType,
@@ -572,8 +572,8 @@ export class AutoPromptManager {
               onCancel: () => this.storeLastDismissal_(),
               isClosable,
             });
-      this.setLastAudienceActionFlow(audienceAction);
-      audienceAction.start();
+      this.setLastAudienceActionFlow(audienceActionFlow);
+      audienceActionFlow.start();
     };
   }
 
