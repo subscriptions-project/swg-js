@@ -780,7 +780,7 @@ export class AutoPromptManager {
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
       return isSurveyEligible && isAnalyticsEligible;
-    } else if (actionType == TYPE_REWARDED_ADS) {
+    } else if (actionType === TYPE_REWARDED_ADS) {
       // Because we have fetched the article endpoint googletag.cmd should already exist.
       const googletagExists = !!this.deps_.win().googletag?.cmd;
       return googletagExists;
