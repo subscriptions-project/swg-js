@@ -31,7 +31,7 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@babel/core": "7.22.15",
+    "@babel/core": "7.22.17",
     "@babel/eslint-parser": "7.22.15",
     "@babel/preset-env": "7.22.15",
     "@types/google-publisher-tag": "1.20230724.0",
@@ -48,7 +48,7 @@
     "chai-as-promised": "7.1.1",
     "cssnano": "6.0.1",
     "del": "7.1.0",
-    "eslint": "8.48.0",
+    "eslint": "8.49.0",
     "eslint-plugin-google-camelcase": "0.0.2",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
