@@ -712,7 +712,10 @@ export class AutoPromptManager {
     }
 
     // ** Frequency Capping Impressions **
-    this.handleFrequencyCappingLocalStorage_(event.eventType);
+    const enableFrequencyCappingLocalStorage = false;
+    if (enableFrequencyCappingLocalStorage) {
+      this.handleFrequencyCappingLocalStorage_(event.eventType);
+    }
 
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
