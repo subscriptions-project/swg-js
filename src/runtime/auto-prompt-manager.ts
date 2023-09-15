@@ -37,11 +37,11 @@ import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {ImpressionStorageKeys, StorageKeys} from '../utils/constants';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
-import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
@@ -50,7 +50,7 @@ const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const SECOND_IN_MILLIS = 1000;
 
-const impressionEvents = [
+const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
   AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
   AnalyticsEvent.IMPRESSION_OFFERS,
@@ -65,6 +65,25 @@ const dismissEvents = [
 
 const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
   [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, StorageKeys.SURVEY_COMPLETED],
+]);
+
+const frequencyCapEvents = [
+  // AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+  AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+  AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+  AnalyticsEvent.IMPRESSION_SURVEY,
+];
+
+const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
+  [
+    AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+    ImpressionStorageKeys.CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+    ImpressionStorageKeys.NEWSLETTER,
+  ],
+  [AnalyticsEvent.IMPRESSION_SURVEY, ImpressionStorageKeys.SURVEY],
 ]);
 
 export interface ShowAutoPromptParams {
@@ -685,6 +704,20 @@ export class AutoPromptManager {
       );
     }
 
+    // ** Frequency Capping Impressions **
+    const promptTriggeredManually =
+      (monetizationImpressionEvents.includes(event.eventType) &&
+        !this.monetizationPromptWasDisplayedAsSoftPaywall_) ||
+      this.pageConfig_.isLocked();
+    if (!promptTriggeredManually) {
+      if (INTERVENTION_TO_STORAGE_KEY_MAP.has(event.eventType)) {
+        const storageKey = INTERVENTION_TO_STORAGE_KEY_MAP.get(
+          event.eventType
+        )!;
+        this.storage_.storeEvent(storageKey);
+      }
+    }
+
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
     if (
@@ -700,7 +733,7 @@ export class AutoPromptManager {
     // cap.
     if (
       !this.hasStoredImpression_ &&
-      impressionEvents.includes(event.eventType)
+      monetizationImpressionEvents.includes(event.eventType)
     ) {
       this.hasStoredImpression_ = true;
       return this.storage_.storeEvent(StorageKeys.IMPRESSIONS);
