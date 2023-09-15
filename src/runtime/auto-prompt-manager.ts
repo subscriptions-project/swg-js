@@ -712,9 +712,12 @@ export class AutoPromptManager {
     }
 
     // ** Frequency Capping Impressions **
-    const enableFrequencyCappingLocalStorage = false;
+    const enableFrequencyCappingLocalStorage = isExperimentOn(
+      this.doc_.getWin(),
+      ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
+    );
     if (enableFrequencyCappingLocalStorage) {
-      this.handleFrequencyCappingLocalStorage_(event.eventType);
+      await this.handleFrequencyCappingLocalStorage_(event.eventType);
     }
 
     // Impressions and dimissals of forced (for paygated) or manually triggered
@@ -751,7 +754,7 @@ export class AutoPromptManager {
 
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
-  ) {
+  ): Promise<void> {
     const promptTriggeredManually =
       (monetizationImpressionEvents.includes(analyticsEvent) &&
         !this.monetizationPromptWasDisplayedAsSoftPaywall_) ||
@@ -770,7 +773,7 @@ export class AutoPromptManager {
       }
       this.hasStoredImpression_ = true;
     }
-    this.storage_.storeEvent(storageKey);
+    return this.storage_.storeEvent(storageKey);
   }
 
   /**
