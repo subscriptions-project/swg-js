@@ -755,6 +755,9 @@ export class AutoPromptManager {
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
+    // Impressions and dimissals of forced (for paygated) or manually triggered
+    // prompts do not count toward the frequency caps. Only monetization events
+    // can be triggered manually.
     const promptTriggeredManually =
       (monetizationImpressionEvents.includes(analyticsEvent) &&
         !this.monetizationPromptWasDisplayedAsSoftPaywall_) ||
@@ -768,6 +771,10 @@ export class AutoPromptManager {
 
     const storageKey = INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!;
     if (monetizationImpressionEvents.includes(analyticsEvent)) {
+      // Prompt impression should be stored if no previous one has been stored.
+      // This is to prevent the case that user clicks the mini prompt, and both
+      // impressions of the mini and large prompts would be counted towards the
+      // cap.
       if (this.hasStoredImpression_) {
         return;
       }
