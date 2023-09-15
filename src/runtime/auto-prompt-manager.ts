@@ -68,14 +68,11 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
   [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, StorageKeys.SURVEY_COMPLETED],
 ]);
 
-const frequencyCapEvents = [
-  // AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
-  AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
-  AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
-  AnalyticsEvent.IMPRESSION_SURVEY,
-];
-
 const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
+  // [
+  //   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+  //   ImpressionStorageKeys.CONTRIBUTION,
+  // ],
   [
     AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
     ImpressionStorageKeys.CONTRIBUTION,
