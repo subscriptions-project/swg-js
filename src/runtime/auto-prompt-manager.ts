@@ -69,10 +69,10 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
 ]);
 
 const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
-  // [
-  //   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
-  //   ImpressionStorageKeys.CONTRIBUTION,
-  // ],
+  [
+    AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+    ImpressionStorageKeys.CONTRIBUTION,
+  ],
   [
     AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
     ImpressionStorageKeys.CONTRIBUTION,
@@ -712,18 +712,7 @@ export class AutoPromptManager {
     }
 
     // ** Frequency Capping Impressions **
-    const promptTriggeredManually =
-      (monetizationImpressionEvents.includes(event.eventType) &&
-        !this.monetizationPromptWasDisplayedAsSoftPaywall_) ||
-      this.pageConfig_.isLocked();
-    if (!promptTriggeredManually) {
-      if (INTERVENTION_TO_STORAGE_KEY_MAP.has(event.eventType)) {
-        const storageKey = INTERVENTION_TO_STORAGE_KEY_MAP.get(
-          event.eventType
-        )!;
-        this.storage_.storeEvent(storageKey);
-      }
-    }
+    this.handleFrequencyCappingLocalStorage_(event.eventType);
 
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
@@ -755,6 +744,30 @@ export class AutoPromptManager {
       ]);
       return;
     }
+  }
+
+  private async handleFrequencyCappingLocalStorage_(
+    analyticsEvent: AnalyticsEvent
+  ) {
+    const promptTriggeredManually =
+      (monetizationImpressionEvents.includes(analyticsEvent) &&
+        !this.monetizationPromptWasDisplayedAsSoftPaywall_) ||
+      this.pageConfig_.isLocked();
+    if (
+      promptTriggeredManually ||
+      !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent)
+    ) {
+      return;
+    }
+
+    const storageKey = INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!;
+    if (monetizationImpressionEvents.includes(analyticsEvent)) {
+      if (this.hasStoredImpression_) {
+        return;
+      }
+      this.hasStoredImpression_ = true;
+    }
+    this.storage_.storeEvent(storageKey);
   }
 
   /**
