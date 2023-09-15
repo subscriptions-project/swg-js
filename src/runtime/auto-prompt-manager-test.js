@@ -15,6 +15,7 @@
  */
 
 import * as audienceActionFlow from './audience-action-flow';
+import * as audienceActionLocalFlow from './audience-action-local-flow';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
@@ -56,6 +57,10 @@ const REGWALL_INTERVENTION = {
 const SUBSCRIPTION_INTERVENTION = {
   type: 'TYPE_SUBSCRIPTION',
   configurationId: 'subscription_config_id',
+};
+const REWARDED_AD_INTERVENTION = {
+  type: 'TYPE_REWARDED_AD',
+  configurationId: 'rewarded_ad_config_id',
 };
 
 describes.realWin('AutoPromptManager', (env) => {
@@ -2566,6 +2571,103 @@ describes.realWin('AutoPromptManager', (env) => {
         storageMock,
         actionFlowSpy,
         'TYPE_REGISTRATION_WALL'
+      );
+    });
+  });
+
+  describe('AudienceActionLocalFlow', () => {
+    let getArticleExpectation;
+    let actionLocalFlowStub;
+    let startLocalSpy;
+
+    beforeEach(() => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = false;
+      const entitlements = new Entitlements();
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      const autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        numImpressionsBetweenPrompts: 2,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+      });
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [REWARDED_AD_INTERVENTION, SUBSCRIPTION_INTERVENTION],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      startLocalSpy = sandbox.spy(
+        audienceActionLocalFlow.AudienceActionLocalFlow.prototype,
+        'start'
+      );
+      actionLocalFlowStub = sandbox
+        .stub(audienceActionLocalFlow, 'AudienceActionLocalFlow')
+        .returns({
+          start: startLocalSpy,
+        });
+    });
+
+    it('is rendered for TYPE_REWARDED_ADS', async () => {
+      win.googletag = {cmd: []};
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+      });
+
+      await tick(7);
+
+      expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
+        action: 'TYPE_REWARDED_AD',
+        configurationId: 'rewarded_ad_config_id',
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        onCancel: sandbox.match.any,
+        isClosable: false,
+        monetizationFunction: sandbox.match.any,
+      });
+      expect(startLocalSpy).to.have.been.calledOnce;
+      expect(startSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_REWARDED_AD'
+      );
+    });
+
+    it('is filtered for TYPE_REWARDED_ADS when googletag does not exist', async () => {
+      win.googletag = undefined;
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+      });
+
+      await tick(7);
+
+      expect(startLocalSpy).to.not.have.been.called;
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_SUBSCRIPTION'
       );
     });
   });
