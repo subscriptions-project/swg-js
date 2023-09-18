@@ -757,7 +757,8 @@ export class AutoPromptManager {
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
     // Impressions of prompts (for paygated content) do not count toward the
-    // frequency caps.
+    // frequency caps. TODO(b/300963305): manually triggered prompts should
+    // also be excluded.
     if (
       !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
       this.pageConfig_.isLocked()
