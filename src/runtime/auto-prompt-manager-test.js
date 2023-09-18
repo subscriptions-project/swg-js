@@ -577,6 +577,10 @@ describes.realWin('AutoPromptManager', (env) => {
       eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
     },
     {
+      storageKey: ImpressionStorageKeys.REGWALL,
+      eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+    },
+    {
       storageKey: ImpressionStorageKeys.SURVEY,
       eventType: AnalyticsEvent.IMPRESSION_SURVEY,
     },
