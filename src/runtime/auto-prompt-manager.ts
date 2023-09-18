@@ -759,8 +759,8 @@ export class AutoPromptManager {
     // Impressions of prompts (for paygated content) do not count toward the
     // frequency caps.
     if (
-      this.pageConfig_.isLocked() ||
-      !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent)
+      !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
+      this.pageConfig_.isLocked()
     ) {
       return;
     }
