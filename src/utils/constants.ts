@@ -93,6 +93,8 @@ const ImpressionStorageKeys = {
 
   NEWSLETTER: 'impressions_newsletter',
 
+  REGWALL: 'impressions_regwall',
+
   SURVEY: 'impressions_survey',
 };
 
