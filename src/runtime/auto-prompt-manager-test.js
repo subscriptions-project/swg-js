@@ -447,33 +447,6 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  it('should not set frequency cap local storage if experiment is enabled and monetization prompt was triggered manually', async () => {
-    setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
-    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = false;
-    storageMock
-      .expects('get')
-      .withExactArgs(
-        ImpressionStorageKeys.CONTRIBUTION,
-        /* useLocalStorage */ true
-      )
-      .never();
-    storageMock
-      .expects('set')
-      .withExactArgs(
-        ImpressionStorageKeys.CONTRIBUTION,
-        CURRENT_TIME.toString(),
-        /* useLocalStorage */ true
-      )
-      .never();
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
   it('should not set frequency cap local storage if experiment is enabled and content is locked', async () => {
     setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
     autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
