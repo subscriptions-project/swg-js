@@ -769,7 +769,6 @@ export class AutoPromptManager {
       return;
     }
 
-    const storageKey = INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!;
     if (monetizationImpressionEvents.includes(analyticsEvent)) {
       // Prompt impression should be stored if no previous one has been stored.
       // This is to prevent the case that user clicks the mini prompt, and both
@@ -780,7 +779,9 @@ export class AutoPromptManager {
       }
       this.hasStoredImpression_ = true;
     }
-    return this.storage_.storeEvent(storageKey);
+    return this.storage_.storeEvent(
+      INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
+    );
   }
 
   /**
