@@ -447,6 +447,48 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it('should not set frequency cap local storage if experiment is disabled', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = false;
+    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .never();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .never();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.IMPRESSIONS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   it('should not set frequency cap local storage if experiment is enabled and content is locked', async () => {
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
@@ -1788,10 +1830,14 @@ describes.realWin('AutoPromptManager', (env) => {
     it('should set article experiment flag from experiment config', async () => {
       getArticleExpectation.resolves({
         experimentConfig: {
+<<<<<<< HEAD
           experimentFlags: [
             'frequency_capping_local_storage_experiment',
             'prompt_frequency_capping_experiment',
           ],
+=======
+          experimentFlags: ['frequency_capping_local_storage_experiment'],
+>>>>>>> 920c1e94764be284663da1b639a6bb16da3d49a1
         },
       });
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -1799,7 +1845,10 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.frequencyCappingLocalStorageEnabled_).to.equal(
         true
       );
+<<<<<<< HEAD
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+=======
+>>>>>>> 920c1e94764be284663da1b639a6bb16da3d49a1
     });
 
     it('should display an AudienceActionFlow if the page is locked and there are any actions provided in the article response', async () => {
