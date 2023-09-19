@@ -89,13 +89,13 @@ const StorageKeys = {
  * Local storage keys for intervention impressions.
  */
 const ImpressionStorageKeys = {
-  CONTRIBUTION: 'impressions_contribution',
+  CONTRIBUTION: 'imp_contribution',
 
-  NEWSLETTER: 'impressions_newsletter',
+  NEWSLETTER_SIGNUP: 'imp_newsletter',
 
-  REGWALL: 'impressions_regwall',
+  REGISTRATION_WALL: 'imp_regwall',
 
-  SURVEY: 'impressions_survey',
+  REWARDED_SURVEY: 'imp_survey',
 };
 
 export {Constants, ImpressionStorageKeys, StorageKeys};
