@@ -183,7 +183,7 @@ export class AutoPromptManager {
         ),
       ]);
 
-    this.setArticleExperiments_(article);
+    this.setArticleExperimentFlags_(article);
 
     this.showAutoPrompt_(
       clientConfig,
@@ -197,7 +197,7 @@ export class AutoPromptManager {
   /**
    * Sets experiment flags from article experiment config.
    */
-  private setArticleExperiments_(article: Article | null): void {
+  private setArticleExperimentFlags_(article: Article | null): void {
     if (!article) {
       return;
     }
