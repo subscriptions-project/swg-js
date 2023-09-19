@@ -105,10 +105,7 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
   private frequencyCappingLocalStorageEnabled_: boolean = false;
-<<<<<<< HEAD
   private promptFrequencyCappingEnabled_: boolean = false;
-=======
->>>>>>> 920c1e94764be284663da1b639a6bb16da3d49a1
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -211,14 +208,11 @@ export class AutoPromptManager {
         article,
         ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
       );
-<<<<<<< HEAD
 
     this.promptFrequencyCappingEnabled_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.PROMPT_FREQUENCY_CAPPING_EXPERIMENT
     );
-=======
->>>>>>> 920c1e94764be284663da1b639a6bb16da3d49a1
   }
 
   /**
