@@ -95,6 +95,8 @@ const ImpressionStorageKeys = {
 
   REGISTRATION_WALL: 'imp_regwall',
 
+  REWARDED_AD: 'imp_ad',
+
   REWARDED_SURVEY: 'imp_survey',
 };
 
