@@ -43,7 +43,7 @@ import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {assert} from '../utils/log';
-import {isArticleExperimentEnabled, isExperimentOn} from './experiments';
+import {isExperimentOn} from './experiments';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
@@ -202,11 +202,11 @@ export class AutoPromptManager {
       return;
     }
 
-    this.frequencyCappingLocalStorageEnabled_ = isArticleExperimentEnabled(
-      this.entitlementsManager_,
-      article,
-      ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
-    );
+    this.frequencyCappingLocalStorageEnabled_ =
+      this.isArticleExperimentEnabled_(
+        article,
+        ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
+      );
   }
 
   /**
@@ -858,5 +858,18 @@ export class AutoPromptManager {
       return googletagExists;
     }
     return true;
+  }
+
+  /**
+   * Checks if provided ExperimentFlag is enabled within article experiment
+   * config.
+   */
+  private isArticleExperimentEnabled_(
+    article: Article,
+    experimentFlag: string
+  ): boolean {
+    const articleExpFlags =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
+    return articleExpFlags.includes(experimentFlag);
   }
 }
