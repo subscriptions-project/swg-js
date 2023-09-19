@@ -447,6 +447,48 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it('should not set frequency cap local storage if experiment is disabled', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = false;
+    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .never();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .never();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.IMPRESSIONS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   it('should not set frequency cap local storage if experiment is enabled and content is locked', async () => {
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
