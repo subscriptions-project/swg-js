@@ -1788,7 +1788,10 @@ describes.realWin('AutoPromptManager', (env) => {
     it('should set article experiment flag from experiment config', async () => {
       getArticleExpectation.resolves({
         experimentConfig: {
-          experimentFlags: ['frequency_capping_local_storage_experiment'],
+          experimentFlags: [
+            'frequency_capping_local_storage_experiment',
+            'prompt_frequency_capping_experiment',
+          ],
         },
       });
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -1796,6 +1799,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.frequencyCappingLocalStorageEnabled_).to.equal(
         true
       );
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
     });
 
     it('should display an AudienceActionFlow if the page is locked and there are any actions provided in the article response', async () => {

@@ -105,6 +105,7 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
   private frequencyCappingLocalStorageEnabled_: boolean = false;
+  private promptFrequencyCappingEnabled_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -207,6 +208,11 @@ export class AutoPromptManager {
         article,
         ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
       );
+
+    this.promptFrequencyCappingEnabled_ = this.isArticleExperimentEnabled_(
+      article,
+      ArticleExperimentFlags.PROMPT_FREQUENCY_CAPPING_EXPERIMENT
+    );
   }
 
   /**
@@ -241,6 +247,15 @@ export class AutoPromptManager {
     // subscription revenue model, while all others can be dismissed.
     const isClosable =
       params.isClosable ?? !this.isSubscription_(autoPromptType);
+
+    // Frequency Capping Flow
+    if (
+      this.promptFrequencyCappingEnabled_ &&
+      !!clientConfig.autoPromptConfig?.frequencyCapConfig
+    ) {
+      console.log('new flow');
+      return;
+    }
 
     const canDisplayMonetizationPrompt = this.canDisplayMonetizationPrompt(
       article?.audienceActions?.actions
