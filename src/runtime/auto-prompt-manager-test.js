@@ -520,6 +520,51 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(autoPromptManager.hasStoredMiniPromptImpression_).to.equal(true);
   });
 
+  it('should set frequency cap local storage if experiment is enabled and a mini monetization prompt was triggered', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.IMPRESSIONS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    expect(autoPromptManager.hasStoredMiniPromptImpression_).to.equal(true);
+  });
+
   it('should set frequency cap local storage only once if experiment is enabled and both mini and normal monetization prompts were triggered', async () => {
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     storageMock
