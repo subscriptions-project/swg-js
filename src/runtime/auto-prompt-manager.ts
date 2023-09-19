@@ -79,10 +79,13 @@ const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
   ],
   [
     AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
-    ImpressionStorageKeys.NEWSLETTER,
+    ImpressionStorageKeys.NEWSLETTER_SIGNUP,
   ],
-  [AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN, ImpressionStorageKeys.REGWALL],
-  [AnalyticsEvent.IMPRESSION_SURVEY, ImpressionStorageKeys.SURVEY],
+  [
+    AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+    ImpressionStorageKeys.REGISTRATION_WALL,
+  ],
+  [AnalyticsEvent.IMPRESSION_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
 ]);
 
 export interface ShowAutoPromptParams {

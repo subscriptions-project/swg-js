@@ -573,15 +573,15 @@ describes.realWin('AutoPromptManager', (env) => {
 
   [
     {
-      storageKey: ImpressionStorageKeys.NEWSLETTER,
+      storageKey: ImpressionStorageKeys.NEWSLETTER_SIGNUP,
       eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
     },
     {
-      storageKey: ImpressionStorageKeys.REGWALL,
+      storageKey: ImpressionStorageKeys.REGISTRATION_WALL,
       eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
     },
     {
-      storageKey: ImpressionStorageKeys.SURVEY,
+      storageKey: ImpressionStorageKeys.REWARDED_SURVEY,
       eventType: AnalyticsEvent.IMPRESSION_SURVEY,
     },
   ].forEach(({storageKey, eventType}) => {
