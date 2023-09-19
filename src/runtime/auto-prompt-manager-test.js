@@ -475,9 +475,8 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  it('should set frequency cap local storage if experiment is enabled and monetization prompts was triggered as a soft paywall', async () => {
+  it('should set frequency cap local storage if experiment is enabled and monetization prompts was triggered ', async () => {
     setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
-    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
     storageMock
       .expects('get')
       .withExactArgs(
@@ -506,9 +505,8 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(autoPromptManager.hasStoredImpression_).to.equal(true);
   });
 
-  it('should set frequency cap local storage only once if experiment is enabled and both mini and normal monetization prompts were triggered as soft paywalls', async () => {
+  it('should set frequency cap local storage only once if experiment is enabled and both mini and normal monetization prompts were triggered', async () => {
     setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
-    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
     storageMock
       .expects('get')
       .withExactArgs(
@@ -543,9 +541,8 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(autoPromptManager.hasStoredImpression_).to.equal(true);
   });
 
-  it('should not set frequency cap local storage if experiment is enabled and hasStoredImpression is true and monetization prompt was triggered as soft paywall', async () => {
+  it('should not set frequency cap local storage if experiment is enabled and hasStoredImpression is true and monetization prompt was triggered ', async () => {
     setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
-    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
     autoPromptManager.hasStoredImpression_ = true;
     storageMock
       .expects('get')
