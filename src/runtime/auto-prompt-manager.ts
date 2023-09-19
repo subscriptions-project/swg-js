@@ -101,6 +101,7 @@ export interface ShowAutoPromptParams {
 export class AutoPromptManager {
   private monetizationPromptWasDisplayedAsSoftPaywall_ = false;
   private hasStoredImpression_ = false;
+  private hasStoredMiniPromptImpression_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
 
@@ -774,10 +775,10 @@ export class AutoPromptManager {
       // This is to prevent the case that user clicks the mini prompt, and both
       // impressions of the mini and large prompts would be counted towards the
       // cap.
-      if (this.hasStoredImpression_) {
+      if (this.hasStoredMiniPromptImpression_) {
         return;
       }
-      this.hasStoredImpression_ = true;
+      this.hasStoredMiniPromptImpression_ = true;
     }
     return this.storage_.storeEvent(
       INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
