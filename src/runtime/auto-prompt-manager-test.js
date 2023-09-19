@@ -448,7 +448,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should not set frequency cap local storage if experiment is enabled and content is locked', async () => {
-    setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
     sandbox.stub(pageConfig, 'isLocked').returns(true);
     storageMock
@@ -476,7 +476,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should set frequency cap local storage if experiment is enabled and a monetization prompt was triggered', async () => {
-    setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     storageMock
       .expects('get')
       .withExactArgs(
@@ -521,7 +521,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should set frequency cap local storage only once if experiment is enabled and both mini and normal monetization prompts were triggered', async () => {
-    setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     storageMock
       .expects('get')
       .withExactArgs(
@@ -572,7 +572,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   it('should not set frequency cap local storage if experiment is enabled and hasStoredImpression is true and a monetization prompt was triggered', async () => {
-    setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.hasStoredMiniPromptImpression_ = true;
     storageMock
       .expects('get')
@@ -628,7 +628,7 @@ describes.realWin('AutoPromptManager', (env) => {
     },
   ].forEach(({storageKey, eventType}) => {
     it(`for storageKey=${storageKey} and eventType=${eventType}, should set frequency cap local storage if experiment is enabled`, async () => {
-      setExperiment(win, ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE, true);
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       storageMock
         .expects('get')
         .withExactArgs(storageKey, /* useLocalStorage */ true)

@@ -20,6 +20,7 @@ import {
   EntitlementsManager,
   Intervention,
 } from './entitlements-manager';
+import {ArticleExperimentFlags, ExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
@@ -35,7 +36,6 @@ import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
-import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {ImpressionStorageKeys, StorageKeys} from '../utils/constants';
 import {MiniPromptApi} from './mini-prompt-api';
@@ -43,7 +43,7 @@ import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {assert} from '../utils/log';
-import {isExperimentOn} from './experiments';
+import {isArticleExperimentEnabled, isExperimentOn} from './experiments';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
@@ -104,6 +104,7 @@ export class AutoPromptManager {
   private hasStoredMiniPromptImpression_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
+  private frequencyCappingLocalStorageEnabled_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -182,12 +183,29 @@ export class AutoPromptManager {
         ),
       ]);
 
+    this.setArticleExperiments_(article);
+
     this.showAutoPrompt_(
       clientConfig,
       entitlements,
       article,
       dismissedPrompts,
       params
+    );
+  }
+
+  /**
+   * Sets experiment flags from article experiment config.
+   */
+  private setArticleExperiments_(article: Article | null): void {
+    if (!article) {
+      return;
+    }
+
+    this.frequencyCappingLocalStorageEnabled_ = isArticleExperimentEnabled(
+      this.entitlementsManager_,
+      article,
+      ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
     );
   }
 
@@ -717,11 +735,7 @@ export class AutoPromptManager {
     }
 
     // ** Frequency Capping Impressions **
-    const enableFrequencyCappingLocalStorage = isExperimentOn(
-      this.doc_.getWin(),
-      ExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
-    );
-    if (enableFrequencyCappingLocalStorage) {
+    if (this.frequencyCappingLocalStorageEnabled_) {
       await this.handleFrequencyCappingLocalStorage_(event.eventType);
     }
 

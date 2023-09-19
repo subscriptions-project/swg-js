@@ -36,7 +36,12 @@ export enum ExperimentFlags {
    * Experiment flag to enable populating the client config in the Classic runtime.
    */
   POPULATE_CLIENT_CONFIG_CLASSIC = 'populate-client-config-classic',
+}
 
+/**
+ * Experiment flags within article experiment config.
+ */
+export enum ArticleExperimentFlags {
   /**
    * Experiment flag for enabling Frequency Capping local storage of impressions.
    */
