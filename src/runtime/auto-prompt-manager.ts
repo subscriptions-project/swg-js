@@ -650,6 +650,11 @@ export class AutoPromptManager {
     return;
   }
 
+  /**
+   * Fetches timestamp impressions from local storage for all frequency capping
+   * related prompts and aggregates them into one array. Timestamps are not
+   * sorted.
+   */
   private async getAllImpressions_(): Promise<number[]> {
     const impressions = [];
 
@@ -663,6 +668,9 @@ export class AutoPromptManager {
     return impressions;
   }
 
+  /**
+   * Fetches timestamp impressions from local storage for a given action type.
+   */
   private async getActionImpressions_(actionType: string): Promise<number[]> {
     if (ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.has(actionType)) {
       // error
@@ -674,6 +682,10 @@ export class AutoPromptManager {
     );
   }
 
+  /**
+   * Computes if the frequency cap is met from the timestamps of previous
+   * impressions by using the maximum/most recent timestsamp.
+   */
   private isFrequencyCapped_(
     frequencyCapDuration: number,
     impressions: number[]
@@ -879,12 +891,16 @@ export class AutoPromptManager {
     }
   }
 
+  /**
+   * Executes required local storage gets and sets for Frequency Capping flow.
+   * Impressions of prompts for paygated content do not count toward frequency
+   * cap. Maintains hasStoredMiniPromptImpression_ so as not to store multiple
+   * impressions for mini/normal contribution prompt.
+   */
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
-    // Impressions of prompts (for paygated content) do not count toward the
-    // frequency caps. TODO(b/300963305): manually triggered prompts should
-    // also be excluded.
+    // TODO(b/300963305): manually triggered prompts should also be excluded.
     if (
       !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
       this.pageConfig_.isLocked()
@@ -893,10 +909,6 @@ export class AutoPromptManager {
     }
 
     if (monetizationImpressionEvents.includes(analyticsEvent)) {
-      // Prompt impression should be stored if no previous one has been stored.
-      // This is to prevent the case that user clicks the mini prompt, and both
-      // impressions of the mini and large prompts would be counted towards the
-      // cap.
       if (this.hasStoredMiniPromptImpression_) {
         return;
       }
@@ -944,6 +956,11 @@ export class AutoPromptManager {
     return this.storage_.getEvent(StorageKeys.DISMISSALS);
   }
 
+  /**
+   * Checks for survey eligibility, including if survey is present in article
+   * actions, analytics is setup, and there are no survey completion or survey
+   * error timestamps.
+   */
   private async isSurveyEligible_(actions: Intervention[]): Promise<boolean> {
     if (!actions.filter((action) => action.type === TYPE_REWARDED_SURVEY)) {
       return false;
