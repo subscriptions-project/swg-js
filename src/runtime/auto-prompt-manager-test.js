@@ -1616,7 +1616,7 @@ describes.realWin('AutoPromptManager', (env) => {
       alwaysShow: false,
     });
 
-    await tick(5);
+    await tick(8);
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 

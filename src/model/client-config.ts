@@ -97,10 +97,10 @@ export interface ClientConfigJson {
       };
       promptFrequencyCap?: {
         audienceActionType?: string;
-        frequencyCapDuration: number;
+        frequencyCapDuration?: number;
       };
       anyPromptFrequencyCap?: {
-        frequencyCapDuration: number;
+        frequencyCapDuration?: number;
       };
     };
   };

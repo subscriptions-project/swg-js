@@ -26,7 +26,10 @@ import {
   AudienceActionIframeFlow,
 } from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
-import {AutoPromptConfig} from '../model/auto-prompt-config';
+import {
+  AutoPromptConfig,
+  FrequencyCapConfig,
+} from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
@@ -47,6 +50,8 @@ import {isExperimentOn} from './experiments';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
+const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
+const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_ADS = 'TYPE_REWARDED_AD';
 const SECOND_IN_MILLIS = 1000;
@@ -86,6 +91,14 @@ const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
     ImpressionStorageKeys.REGISTRATION_WALL,
   ],
   [AnalyticsEvent.IMPRESSION_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
+]);
+
+const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
+  [TYPE_CONTRIBUTION, ImpressionStorageKeys.CONTRIBUTION],
+  [TYPE_NEWSLETTER_SIGNUP, ImpressionStorageKeys.NEWSLETTER_SIGNUP],
+  [TYPE_REGISTRATION_WALL, ImpressionStorageKeys.REGISTRATION_WALL],
+  [TYPE_REWARDED_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
+  [TYPE_REWARDED_ADS, ImpressionStorageKeys.REWARDED_AD],
 ]);
 
 export interface ShowAutoPromptParams {
@@ -248,15 +261,6 @@ export class AutoPromptManager {
     const isClosable =
       params.isClosable ?? !this.isSubscription_(autoPromptType);
 
-    // Frequency Capping Flow
-    if (
-      this.promptFrequencyCappingEnabled_ &&
-      !!clientConfig.autoPromptConfig?.frequencyCapConfig
-    ) {
-      console.log('new flow');
-      return;
-    }
-
     const canDisplayMonetizationPrompt = this.canDisplayMonetizationPrompt(
       article?.audienceActions?.actions
     );
@@ -268,13 +272,28 @@ export class AutoPromptManager {
         clientConfig.autoPromptConfig
       ));
 
-    const potentialAction = await this.getAction_({
-      article,
-      autoPromptType,
-      dismissedPrompts,
-      canDisplayMonetizationPrompt,
-      shouldShowMonetizationPromptAsSoftPaywall,
-    });
+    let potentialAction: Intervention | void;
+
+    // Frequency Capping Flow
+    const isSubscriptionOpenaccess =
+      this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked();
+    const isFrequencyFlow =
+      !!clientConfig.autoPromptConfig?.frequencyCapConfig ||
+      isSubscriptionOpenaccess;
+    if (this.promptFrequencyCappingEnabled_ && isFrequencyFlow) {
+      potentialAction = await this.getPotentialAction_({
+        article,
+        frequencyCapConfig: clientConfig.autoPromptConfig?.frequencyCapConfig,
+      });
+    } else {
+      potentialAction = await this.getAction_({
+        article,
+        autoPromptType,
+        dismissedPrompts,
+        canDisplayMonetizationPrompt,
+        shouldShowMonetizationPromptAsSoftPaywall,
+      });
+    }
 
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
       ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
@@ -544,23 +563,7 @@ export class AutoPromptManager {
       return action;
     }
 
-    // Count completed surveys.
-    const [surveyCompletionTimestamps, surveyDataTransferFailureTimestamps] =
-      await Promise.all([
-        this.storage_.getEvent(
-          COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(
-            AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
-          )!
-        ),
-        this.storage_.getEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED),
-      ]);
-
-    const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
-    const hasRecentSurveyDataTransferFailure =
-      surveyDataTransferFailureTimestamps.length >= 1;
-    const isSurveyEligible =
-      !hasCompletedSurveys && !hasRecentSurveyDataTransferFailure;
-
+    const isSurveyEligible = await this.isSurveyEligible_(audienceActions);
     let potentialActions = audienceActions.filter((action) =>
       this.checkActionEligibility_(
         action.type,
@@ -592,6 +595,96 @@ export class AutoPromptManager {
     const actionToUse = potentialActions[0];
     this.interventionDisplayed_ = actionToUse;
     return actionToUse;
+  }
+
+  private async getPotentialAction_({
+    article,
+    frequencyCapConfig,
+  }: {
+    article: Article;
+    frequencyCapConfig: FrequencyCapConfig | undefined;
+  }): Promise<Intervention | void> {
+    let actions = article.audienceActions?.actions;
+    if (!actions) {
+      return;
+    }
+
+    const isSurveyEligible = await this.isSurveyEligible_(actions);
+    actions = actions.filter((action) =>
+      this.checkActionEligibility_(
+        action.type,
+        // Monetization check does not apply for new frequency capping flow
+        /** canDisplayMonetizationPrompt */ true,
+        isSurveyEligible
+      )
+    );
+
+    // FrequencyCapConfig may be undefined ONLY for subscription openacess
+    // content. If so, display first valid action.
+    if (!frequencyCapConfig) {
+      return actions[0];
+    }
+
+    const globalFrequencyCapDuration =
+      frequencyCapConfig.globalFrequencyCap?.frequencyCapDuration;
+    if (globalFrequencyCapDuration) {
+      const globalImpressions = await this.getAllImpressions_();
+      if (
+        this.isFrequencyCapped_(globalFrequencyCapDuration, globalImpressions)
+      ) {
+        return;
+      }
+    }
+
+    for (const action of actions) {
+      const frequencyCapDuration =
+        frequencyCapConfig.anyPromptFrequencyCap?.frequencyCapDuration;
+      if (frequencyCapDuration) {
+        const impressions = await this.getActionImpressions_(action.type);
+        if (this.isFrequencyCapped_(frequencyCapDuration, impressions)) {
+          continue;
+        }
+      }
+      return action;
+    }
+    return;
+  }
+
+  private async getAllImpressions_(): Promise<number[]> {
+    const impressions = [];
+
+    for (const storageKey of new Set(
+      INTERVENTION_TO_STORAGE_KEY_MAP.values()
+    )) {
+      const promptImpressions = await this.storage_.getEvent(storageKey);
+      impressions.push(...promptImpressions);
+    }
+
+    return impressions;
+  }
+
+  private async getActionImpressions_(actionType: string): Promise<number[]> {
+    if (ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.has(actionType)) {
+      // error
+      return [];
+    }
+
+    return this.storage_.getEvent(
+      ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.get(actionType)!
+    );
+  }
+
+  private isFrequencyCapped_(
+    frequencyCapDuration: number,
+    impressions: number[]
+  ): boolean {
+    if (!impressions) {
+      return false;
+    }
+
+    const lastImpression = Math.max(...impressions);
+    const timeSinceLastImpression = Date.now() - lastImpression;
+    return timeSinceLastImpression < frequencyCapDuration;
   }
 
   private audienceActionPrompt_({
@@ -851,6 +944,35 @@ export class AutoPromptManager {
     return this.storage_.getEvent(StorageKeys.DISMISSALS);
   }
 
+  private async isSurveyEligible_(actions: Intervention[]): Promise<boolean> {
+    if (!actions.filter((action) => action.type === TYPE_REWARDED_SURVEY)) {
+      return false;
+    }
+
+    const isAnalyticsEligible =
+      GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
+      GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
+      GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
+    if (!isAnalyticsEligible) {
+      return false;
+    }
+
+    const [surveyCompletionTimestamps, surveyDataTransferFailureTimestamps] =
+      await Promise.all([
+        this.storage_.getEvent(
+          COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(
+            AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER
+          )!
+        ),
+        this.storage_.getEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED),
+      ]);
+
+    const hasCompletedSurveys = surveyCompletionTimestamps.length >= 1;
+    const hasRecentSurveyDataTransferFailure =
+      surveyDataTransferFailureTimestamps.length >= 1;
+    return !hasCompletedSurveys && !hasRecentSurveyDataTransferFailure;
+  }
+
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
    */
@@ -862,11 +984,7 @@ export class AutoPromptManager {
     if (actionType === TYPE_SUBSCRIPTION || actionType === TYPE_CONTRIBUTION) {
       return canDisplayMonetizationPrompt;
     } else if (actionType === TYPE_REWARDED_SURVEY) {
-      const isAnalyticsEligible =
-        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
-        GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
-        GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
-      return isSurveyEligible && isAnalyticsEligible;
+      return isSurveyEligible;
     } else if (actionType === TYPE_REWARDED_ADS) {
       // Because we have fetched the article endpoint googletag.cmd should already exist.
       const googletagExists = !!this.deps_.win().googletag?.cmd;
