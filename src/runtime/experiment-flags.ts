@@ -37,3 +37,13 @@ export enum ExperimentFlags {
    */
   POPULATE_CLIENT_CONFIG_CLASSIC = 'populate-client-config-classic',
 }
+
+/**
+ * Experiment flags within article experiment config.
+ */
+export enum ArticleExperimentFlags {
+  /**
+   * Experiment flag for enabling Frequency Capping local storage of impressions.
+   */
+  FREQUENCY_CAPPING_LOCAL_STORAGE = 'frequency_capping_local_storage_experiment',
+}

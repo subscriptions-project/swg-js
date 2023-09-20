@@ -24,7 +24,11 @@ import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {Constants, StorageKeys} from '../utils/constants';
+import {
+  Constants,
+  ImpressionStorageKeys,
+  StorageKeys,
+} from '../utils/constants';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
@@ -440,6 +444,299 @@ describes.realWin('AutoPromptManager', (env) => {
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
+    });
+  });
+
+  it('should not set frequency cap local storage if experiment is disabled', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = false;
+    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .never();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .never();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.IMPRESSIONS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it('should not set frequency cap local storage if experiment is enabled and content is locked', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
+    sandbox.stub(pageConfig, 'isLocked').returns(true);
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .never();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .never();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it('should set frequency cap local storage if experiment is enabled and a monetization prompt was triggered', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.IMPRESSIONS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    expect(autoPromptManager.hasStoredMiniPromptImpression_).to.equal(true);
+  });
+
+  it('should set frequency cap local storage if experiment is enabled and a mini monetization prompt was triggered', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.IMPRESSIONS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    expect(autoPromptManager.hasStoredMiniPromptImpression_).to.equal(true);
+  });
+
+  it('should set frequency cap local storage only once if experiment is enabled and both mini and normal monetization prompts were triggered', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.IMPRESSIONS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    expect(autoPromptManager.hasStoredMiniPromptImpression_).to.equal(true);
+  });
+
+  it('should not set frequency cap local storage if experiment is enabled and hasStoredImpression is true and a monetization prompt was triggered', async () => {
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.hasStoredMiniPromptImpression_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .never();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .never();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.IMPRESSIONS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  [
+    {
+      storageKey: ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+      eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+    },
+    {
+      storageKey: ImpressionStorageKeys.REGISTRATION_WALL,
+      eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+    },
+    {
+      storageKey: ImpressionStorageKeys.REWARDED_SURVEY,
+      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+    },
+  ].forEach(({storageKey, eventType}) => {
+    it(`for storageKey=${storageKey} and eventType=${eventType}, should set frequency cap local storage if experiment is enabled`, async () => {
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      storageMock
+        .expects('get')
+        .withExactArgs(storageKey, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          storageKey,
+          CURRENT_TIME.toString(),
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .once();
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
     });
   });
 
@@ -1528,6 +1825,19 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+    });
+
+    it('should set article experiment flag from experiment config', async () => {
+      getArticleExpectation.resolves({
+        experimentConfig: {
+          experimentFlags: ['frequency_capping_local_storage_experiment'],
+        },
+      });
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+
+      expect(autoPromptManager.frequencyCappingLocalStorageEnabled_).to.equal(
+        true
+      );
     });
 
     it('should display an AudienceActionFlow if the page is locked and there are any actions provided in the article response', async () => {

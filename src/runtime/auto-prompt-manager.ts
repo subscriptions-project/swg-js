@@ -20,6 +20,7 @@ import {
   EntitlementsManager,
   Intervention,
 } from './entitlements-manager';
+import {ArticleExperimentFlags, ExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
@@ -35,13 +36,12 @@ import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
-import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {ImpressionStorageKeys, StorageKeys} from '../utils/constants';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
-import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
@@ -51,7 +51,7 @@ const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_ADS = 'TYPE_REWARDED_AD';
 const SECOND_IN_MILLIS = 1000;
 
-const impressionEvents = [
+const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
   AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
   AnalyticsEvent.IMPRESSION_OFFERS,
@@ -68,6 +68,26 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
   [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, StorageKeys.SURVEY_COMPLETED],
 ]);
 
+const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
+  [
+    AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+    ImpressionStorageKeys.CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+    ImpressionStorageKeys.CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+    ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+  ],
+  [
+    AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+    ImpressionStorageKeys.REGISTRATION_WALL,
+  ],
+  [AnalyticsEvent.IMPRESSION_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
+]);
+
 export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
@@ -81,8 +101,10 @@ export interface ShowAutoPromptParams {
 export class AutoPromptManager {
   private monetizationPromptWasDisplayedAsSoftPaywall_ = false;
   private hasStoredImpression_ = false;
+  private hasStoredMiniPromptImpression_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
+  private frequencyCappingLocalStorageEnabled_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -161,6 +183,8 @@ export class AutoPromptManager {
         ),
       ]);
 
+    this.setArticleExperimentFlags_(article);
+
     this.showAutoPrompt_(
       clientConfig,
       entitlements,
@@ -168,6 +192,21 @@ export class AutoPromptManager {
       dismissedPrompts,
       params
     );
+  }
+
+  /**
+   * Sets experiment flags from article experiment config.
+   */
+  private setArticleExperimentFlags_(article: Article | null): void {
+    if (!article) {
+      return;
+    }
+
+    this.frequencyCappingLocalStorageEnabled_ =
+      this.isArticleExperimentEnabled_(
+        article,
+        ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
+      );
   }
 
   /**
@@ -695,6 +734,11 @@ export class AutoPromptManager {
       );
     }
 
+    // ** Frequency Capping Impressions **
+    if (this.frequencyCappingLocalStorageEnabled_) {
+      await this.handleFrequencyCappingLocalStorage_(event.eventType);
+    }
+
     // Impressions and dimissals of forced (for paygated) or manually triggered
     // prompts do not count toward the frequency caps.
     if (
@@ -710,7 +754,7 @@ export class AutoPromptManager {
     // cap.
     if (
       !this.hasStoredImpression_ &&
-      impressionEvents.includes(event.eventType)
+      monetizationImpressionEvents.includes(event.eventType)
     ) {
       this.hasStoredImpression_ = true;
       return this.storage_.storeEvent(StorageKeys.IMPRESSIONS);
@@ -725,6 +769,34 @@ export class AutoPromptManager {
       ]);
       return;
     }
+  }
+
+  private async handleFrequencyCappingLocalStorage_(
+    analyticsEvent: AnalyticsEvent
+  ): Promise<void> {
+    // Impressions of prompts (for paygated content) do not count toward the
+    // frequency caps. TODO(b/300963305): manually triggered prompts should
+    // also be excluded.
+    if (
+      !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
+      this.pageConfig_.isLocked()
+    ) {
+      return;
+    }
+
+    if (monetizationImpressionEvents.includes(analyticsEvent)) {
+      // Prompt impression should be stored if no previous one has been stored.
+      // This is to prevent the case that user clicks the mini prompt, and both
+      // impressions of the mini and large prompts would be counted towards the
+      // cap.
+      if (this.hasStoredMiniPromptImpression_) {
+        return;
+      }
+      this.hasStoredMiniPromptImpression_ = true;
+    }
+    return this.storage_.storeEvent(
+      INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
+    );
   }
 
   /**
@@ -786,5 +858,18 @@ export class AutoPromptManager {
       return googletagExists;
     }
     return true;
+  }
+
+  /**
+   * Checks if provided ExperimentFlag is enabled within article experiment
+   * config.
+   */
+  private isArticleExperimentEnabled_(
+    article: Article,
+    experimentFlag: string
+  ): boolean {
+    const articleExpFlags =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
+    return articleExpFlags.includes(experimentFlag);
   }
 }
