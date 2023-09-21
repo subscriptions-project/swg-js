@@ -2483,13 +2483,18 @@ describes.realWin('AutoPromptManager', (env) => {
       setWinWithAnalytics(/* gtag */ false, /* ga */ false);
       const storedImpressions = (CURRENT_TIME - 5).toString();
       const storedDismissals = (CURRENT_TIME - 10).toString();
-      setupPreviousImpressionAndDismissals(storageMock, {
-        storedImpressions,
-        storedDismissals,
-        dismissedPrompts: AutoPromptType.CONTRIBUTION,
-        dismissedPromptGetCallCount: 2,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          storedImpressions,
+          storedDismissals,
+          dismissedPrompts: AutoPromptType.CONTRIBUTION,
+          dismissedPromptGetCallCount: 2,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ true,
+        /* setSurveyExpectations */ false
+      );
       miniPromptApiMock.expects('create').never();
 
       await autoPromptManager.showAutoPrompt({
@@ -2857,7 +2862,8 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 2,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
       miniPromptApiMock.expects('create').never();
 
