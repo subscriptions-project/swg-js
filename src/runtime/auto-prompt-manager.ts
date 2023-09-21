@@ -28,6 +28,7 @@ import {
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {
   AutoPromptConfig,
+  Duration,
   FrequencyCapConfig,
 } from '../model/auto-prompt-config';
 import {AutoPromptType} from '../api/basic-subscriptions';
@@ -699,7 +700,7 @@ export class AutoPromptManager {
    * impressions by using the maximum/most recent timestsamp.
    */
   private isFrequencyCapped_(
-    frequencyCapDuration: number,
+    frequencyCapDuration: Duration,
     impressions: number[]
   ): boolean {
     if (!impressions) {
@@ -707,8 +708,10 @@ export class AutoPromptManager {
     }
 
     const lastImpression = Math.max(...impressions);
-    const timeSinceLastImpression = Date.now() - lastImpression;
-    return timeSinceLastImpression < frequencyCapDuration;
+    const durationInMs =
+      (frequencyCapDuration.seconds || 0) * 1000 +
+      Math.floor((frequencyCapDuration.nano || 0) / 1000000);
+    return durationInMs < Date.now() - lastImpression;
   }
 
   private audienceActionPrompt_({

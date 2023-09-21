@@ -93,14 +93,23 @@ export interface ClientConfigJson {
     };
     frequencyCapConfig?: {
       globalFrequencyCap?: {
-        frequencyCapDuration?: number;
+        frequencyCapDuration?: {
+          seconds?: number;
+          nano?: number;
+        };
       };
       promptFrequencyCap?: {
         audienceActionType?: string;
-        frequencyCapDuration?: number;
+        frequencyCapDuration?: {
+          seconds?: number;
+          nano?: number;
+        };
       };
       anyPromptFrequencyCap?: {
-        frequencyCapDuration?: number;
+        frequencyCapDuration?: {
+          seconds?: number;
+          nano?: number;
+        };
       };
     };
   };
