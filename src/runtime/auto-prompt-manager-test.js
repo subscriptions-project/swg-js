@@ -2895,6 +2895,86 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  describe('Prompt Frequency Capping', () => {
+    let autoPromptConfig;
+    let getArticleExpectation;
+
+    beforeEach(() => {
+      autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        numImpressionsBetweenPrompts: 2,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+        globalFrequencyCapDurationSeconds: 100,
+        anyPromptFrequencyCapDurationSeconds: 600,
+      });
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(false);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              CONTRIBUTION_INTERVENTION,
+              SURVEY_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: [
+              'frequency_capping_local_storage_experiment',
+              'prompt_frequency_capping_experiment',
+            ],
+          },
+        })
+        .once();
+    });
+
+    it('should show the first prompt if there are no stored impressions', async () => {
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(1500);
+
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    /**
+     * Experiment On:
+     * - no frequency cap config
+     * - contribution flow with frequencycappingconfig, cap not met (DONE)
+     * - contribution flow with global frequency cap met
+     * - contribution flow with 1/3 anypromptcap met (contribution)
+     * - contribution flow with 1/3 anypromptcap met (contribution) and survey inellgibile
+     * - contribution flow with 2/3 anypromptcap met
+     * - contribution flow with 3/3 anypromptcap met
+     * - subscription flow (islocked)
+     * - subscription openaccess (unlocked)
+     *
+     * Experiment Off:
+     * - contribution prompt old frequency capping logic
+     * - subscription prompt
+     *
+     * Helper functions
+     * - isFrequencyCapMet
+     */
+  });
+
   describe('AudienceActionLocalFlow', () => {
     let getArticleExpectation;
     let actionLocalFlowStub;
