@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import {FriendlyIframe} from './friendly-iframe';
-import {Graypane} from './graypane';
-import {LoadingView} from '../ui/loading-view';
-import {UI_CSS} from '../ui/ui-css';
+import { FriendlyIframe } from './friendly-iframe';
+import { Graypane } from './graypane';
+import { LoadingView } from '../ui/loading-view';
+import { UI_CSS } from '../ui/ui-css';
 import {
   createElement,
   injectStyleSheet,
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {resolveDoc} from '../model/doc';
-import {setImportantStyles, setStyles} from '../utils/style';
-import {transition} from '../utils/animation';
+import { resolveDoc } from '../model/doc';
+import { setImportantStyles, setStyles } from '../utils/style';
+import { transition } from '../utils/animation';
 
 const Z_INDEX = 2147483647;
 
@@ -67,7 +67,7 @@ const resetViewStyles = {
 };
 
 /**
- * Display configration options for dialogs.
+ * Display configuration options for dialogs.
  *
  * Properties:
  * - desktopConfig: Options for dialogs on desktop screens.
@@ -77,12 +77,15 @@ const resetViewStyles = {
  *       default classes such as swg-dialog.
  * - shouldDisableBodyScrolling: Whether to disable scrolling on the content page
  *       when the dialog is visible.
+ * - isClosable: Whether the user can dismiss the dialog by clicking the
+ *       darkened background.  Defaults to false.
  *
  * @typedef {{
  *   desktopConfig: (DesktopDialogConfig|undefined),
  *   maxAllowedHeightRatio: (number|undefined),
  *   iframeCssClassOverride: (string|undefined),
  *   shouldDisableBodyScrolling: (boolean|undefined),
+ *   isClosable: (boolean|undefined),
  * }}
  */
 export let DialogConfig;
@@ -124,7 +127,7 @@ export class Dialog {
 
     const defaultIframeCssClass = `swg-dialog ${
       supportsWideScreen ? 'swg-wide-dialog' : ''
-    }`;
+      }`;
     const iframeCssClass =
       dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
 
@@ -133,8 +136,19 @@ export class Dialog {
       'class': iframeCssClass,
     });
 
+    /** @private @const {!boolean} */
+    this.isClosable_ = !!dialogConfig.isClosable;
+
     /** @private @const {!Graypane} */
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
+
+    // Avoid modifying the behavior of existing callers by only registering
+    // the click event if isClosable is set.
+    if (dialogConfig.isClosable !== undefined) {
+      this.graypane_
+        .getElement()
+        .addEventListener('click', this.onGrayPaneClick_.bind(this));
+    }
 
     const modifiedImportantStyles = Object.assign(
       {},
@@ -463,6 +477,14 @@ export class Dialog {
     this.hidden_ = false;
   }
 
+  /** Supresses click events, unless the window is closable. */
+  onGrayPaneClick_() {
+    if (this.isClosable_) {
+      this.close();
+    }
+    return false;
+  }
+
   /**
    * Resizes the dialog container.
    * @param {!./view.View} view
@@ -499,7 +521,7 @@ export class Dialog {
           if (!this.shouldPositionCenter_()) {
             immediateStyles['transform'] = `translateY(${
               newHeight - oldHeight
-            }px)`;
+              }px)`;
           }
           setImportantStyles(this.getElement(), immediateStyles);
 
@@ -521,15 +543,15 @@ export class Dialog {
           const transitionPromise = isStale()
             ? Promise.resolve()
             : transition(
-                this.getElement(),
-                {
-                  'transform': this.shouldPositionCenter_()
-                    ? this.getDefaultTranslateY_()
-                    : `translateY(${oldHeight - newHeight}px)`,
-                },
-                300,
-                'ease-out'
-              );
+              this.getElement(),
+              {
+                'transform': this.shouldPositionCenter_()
+                  ? this.getDefaultTranslateY_()
+                  : `translateY(${oldHeight - newHeight}px)`,
+              },
+              300,
+              'ease-out'
+            );
 
           await transitionPromise;
 

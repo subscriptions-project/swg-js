@@ -30,6 +30,8 @@ describes.realWin('Dialog', (env) => {
   let graypaneStubs;
   let view;
   let element;
+  let grayPaneElement;
+
   const documentHeight = 100;
 
   beforeEach(() => {
@@ -58,6 +60,7 @@ describes.realWin('Dialog', (env) => {
   describe('dialog', () => {
     beforeEach(() => {
       dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
+      grayPaneElement = doc.getElementsByTagName('swg-popup-background')[0];
       graypaneStubs = sandbox.stub(dialog.graypane_);
     });
 
@@ -83,6 +86,38 @@ describes.realWin('Dialog', (env) => {
       expect(dialog.graypane_.fadeBackground_.style.zIndex).to.equal(
         '2147483646'
       );
+    });
+
+    it('should have created fade background without click event', async () => {
+      const openedDialog = await dialog.open(NO_ANIMATE);
+      await openedDialog.openView(view);
+      grayPaneElement.click();
+
+      expect(graypaneStubs.onGrayPaneClick_).to.not.be.called;
+    });
+
+    it('should have created fade background that suppresses clicks', async () => {
+      dialog = new Dialog(globalDoc, { height: `${documentHeight}px` }, { isClosable: false });
+      graypaneStubs = sandbox.stub(dialog.graypane_);
+
+      const openedDialog = await dialog.open(NO_ANIMATE);
+      await openedDialog.openView(view);
+      grayPaneElement.click();
+
+      expect(graypaneStubs.onGrayPaneClick_).to.be.calledOnce;
+      expect(graypaneStubs.onGrayPaneClick_.click()).to.be.false;
+      expect(dialog.close).to.not.be.called;
+    });
+
+    it('should have created fade background that closes dialog onclick', async () => {
+      dialog = new Dialog(globalDoc, { height: `${documentHeight}px` }, { isClosable: true });
+      graypaneStubs = sandbox.stub(dialog.graypane_);
+
+      const openedDialog = await dialog.open(NO_ANIMATE);
+      await openedDialog.openView(view);
+      grayPaneElement.click();
+
+      expect(dialog.close).to.be.calledOnce;
     });
 
     it('should open dialog with animation', async () => {
