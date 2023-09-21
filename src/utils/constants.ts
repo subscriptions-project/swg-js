@@ -85,4 +85,19 @@ const StorageKeys = {
   TOAST: 'toast',
 };
 
-export {Constants, StorageKeys};
+/**
+ * Local storage keys for intervention impressions.
+ */
+const ImpressionStorageKeys = {
+  CONTRIBUTION: 'imp_contribution',
+
+  NEWSLETTER_SIGNUP: 'imp_newsletter',
+
+  REGISTRATION_WALL: 'imp_regwall',
+
+  REWARDED_AD: 'imp_ad',
+
+  REWARDED_SURVEY: 'imp_survey',
+};
+
+export {Constants, ImpressionStorageKeys, StorageKeys};
