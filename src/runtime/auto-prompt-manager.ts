@@ -275,13 +275,19 @@ export class AutoPromptManager {
     let potentialAction: Intervention | void;
 
     // Frequency Capping Flow
-    const isSubscriptionOpenaccess =
-      this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked();
-    const isFrequencyFlow =
-      !!clientConfig.autoPromptConfig?.frequencyCapConfig ||
-      isSubscriptionOpenaccess;
-    if (this.promptFrequencyCappingEnabled_ && isFrequencyFlow) {
+    // const isSubscriptionOpenaccess =
+    //   this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked();
+    // const isFrequencyFlow =
+    //   !!clientConfig.autoPromptConfig?.frequencyCapConfig ||
+    //   isSubscriptionOpenaccess;
+    // if (this.promptFrequencyCappingEnabled_ && isFrequencyFlow) {
+    //   potentialAction = await this.getPotentialAction_({
+    //     article,
+    //     frequencyCapConfig: clientConfig.autoPromptConfig?.frequencyCapConfig,
+    //   });
+    if (this.promptFrequencyCappingEnabled_) {
       potentialAction = await this.getPotentialAction_({
+        autoPromptType,
         article,
         frequencyCapConfig: clientConfig.autoPromptConfig?.frequencyCapConfig,
       });
@@ -311,6 +317,7 @@ export class AutoPromptManager {
         /* hasPotentialAudienceAction */ potentialAction
       ) && !!promptFn;
     if (
+      !this.promptFrequencyCappingEnabled_ &&
       !shouldShowMonetizationPromptAsSoftPaywall &&
       !shouldShowBlockingPrompt
     ) {
@@ -321,8 +328,11 @@ export class AutoPromptManager {
       (clientConfig?.autoPromptConfig?.clientDisplayTrigger
         ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
+    // Check to display as softpaywall does not apply for frequency capping
+    // flow.
     if (
-      shouldShowMonetizationPromptAsSoftPaywall &&
+      (this.promptFrequencyCappingEnabled_ ||
+        shouldShowMonetizationPromptAsSoftPaywall) &&
       this.isMonetizationAction_(potentialAction?.type)
     ) {
       this.deps_.win().setTimeout(() => {
@@ -598,9 +608,11 @@ export class AutoPromptManager {
   }
 
   private async getPotentialAction_({
+    autoPromptType,
     article,
     frequencyCapConfig,
   }: {
+    autoPromptType: AutoPromptType;
     article: Article;
     frequencyCapConfig: FrequencyCapConfig | undefined;
   }): Promise<Intervention | void> {
@@ -621,7 +633,7 @@ export class AutoPromptManager {
 
     // FrequencyCapConfig may be undefined ONLY for subscription openacess
     // content. If so, display first valid action.
-    if (!frequencyCapConfig) {
+    if (this.isSubscription_(autoPromptType) || !frequencyCapConfig) {
       return actions[0];
     }
 
