@@ -634,16 +634,19 @@ export class AutoPromptManager {
 
     // FrequencyCapConfig may be undefined ONLY for subscription openacess
     // content. If so, display first valid action.
-    if (this.isSubscription_(autoPromptType) || !frequencyCapConfig) {
+    if (
+      this.isSubscription_(autoPromptType) ||
+      !this.isValidFrequencyCap_(frequencyCapConfig)
+    ) {
       return actions[0];
     }
 
     const globalFrequencyCapDuration =
-      frequencyCapConfig.globalFrequencyCap?.frequencyCapDuration;
-    if (globalFrequencyCapDuration) {
+      frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
+    if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
       const globalImpressions = await this.getAllImpressions_();
       if (
-        this.isFrequencyCapped_(globalFrequencyCapDuration, globalImpressions)
+        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalImpressions)
       ) {
         return;
       }
@@ -651,10 +654,10 @@ export class AutoPromptManager {
 
     for (const action of actions) {
       const frequencyCapDuration =
-        frequencyCapConfig.anyPromptFrequencyCap?.frequencyCapDuration;
-      if (frequencyCapDuration) {
+        frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
+      if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
         const impressions = await this.getActionImpressions_(action.type);
-        if (this.isFrequencyCapped_(frequencyCapDuration, impressions)) {
+        if (this.isFrequencyCapped_(frequencyCapDuration!, impressions)) {
           continue;
         }
       }
@@ -671,9 +674,9 @@ export class AutoPromptManager {
   private async getAllImpressions_(): Promise<number[]> {
     const impressions = [];
 
-    for (const storageKey of new Set(
-      INTERVENTION_TO_STORAGE_KEY_MAP.values()
-    )) {
+    for (const storageKey of new Set([
+      ...INTERVENTION_TO_STORAGE_KEY_MAP.values(),
+    ])) {
       const promptImpressions = await this.storage_.getEvent(storageKey);
       impressions.push(...promptImpressions);
     }
@@ -685,8 +688,8 @@ export class AutoPromptManager {
    * Fetches timestamp impressions from local storage for a given action type.
    */
   private async getActionImpressions_(actionType: string): Promise<number[]> {
-    if (ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.has(actionType)) {
-      // error
+    if (!ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.has(actionType)) {
+      // TODO: handle missing storage key for action
       return [];
     }
 
@@ -703,7 +706,7 @@ export class AutoPromptManager {
     frequencyCapDuration: Duration,
     impressions: number[]
   ): boolean {
-    if (!impressions) {
+    if (impressions.length === 0) {
       return false;
     }
 
@@ -711,7 +714,7 @@ export class AutoPromptManager {
     const durationInMs =
       (frequencyCapDuration.seconds || 0) * 1000 +
       Math.floor((frequencyCapDuration.nano || 0) / 1000000);
-    return durationInMs < Date.now() - lastImpression;
+    return Date.now() - lastImpression < durationInMs;
   }
 
   private audienceActionPrompt_({
@@ -1023,6 +1026,23 @@ export class AutoPromptManager {
       return googletagExists;
     }
     return true;
+  }
+
+  private isValidFrequencyCap_(
+    frequencyCapConfig: FrequencyCapConfig | undefined
+  ) {
+    return (
+      this.isValidFrequencyCapDuration_(
+        frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration
+      ) ||
+      this.isValidFrequencyCapDuration_(
+        frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration
+      )
+    );
+  }
+
+  private isValidFrequencyCapDuration_(duration: Duration | undefined) {
+    return !!duration?.seconds || !!duration?.nano;
   }
 
   /**
