@@ -16,7 +16,7 @@
 
 import * as audienceActionFlow from './audience-action-flow';
 import * as audienceActionLocalFlow from './audience-action-local-flow';
-import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, Duration, EventOriginator} from '../proto/api_messages';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
@@ -2946,6 +2946,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+      autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = false;
     });
 
     it('should execute the legacy frequency cap flow if there is no frequency cap config', async () => {
@@ -3030,6 +3031,43 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should not show any prompt if the global frequency cap is met', async () => {
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      expectFrequencyCappingGlobalImpressions(storageMock, {
+        contribution: (
+          CURRENT_TIME -
+          0.5 * globalFrequencyCapDurationSeconds * 1000
+        ).toString(),
+      });
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(1000);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+    });
+
+    it('should not show any prompt if the global frequency cap is met via nanos', async () => {
+      autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        numImpressionsBetweenPrompts: 2,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+        globalFrequencyCapDurationNano:
+          globalFrequencyCapDurationSeconds * Math.pow(10, 9),
+      });
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
       setupPreviousImpressionAndDismissals(storageMock, {
         dismissedPromptGetCallCount: 1,
         getUserToken: true,
@@ -3338,26 +3376,147 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    /**
-     * Experiment On:
-     * - no frequency cap config (DONE)
-     * - contribution flow with no impressions (DONE)
-     * - contribution flow with frequencycappingconfig, cap not met (DONE)
-     * - contribution flow with global frequency cap met (DONE)
-     * - contribution flow with 1/3 anypromptcap met (contribution) (DONE)
-     * - contribution flow with 1/3 anypromptcap met (contribution) and survey inellgibile (DONE)
-     * - contribution flow with 2/3 anypromptcap met (DONE)
-     * - contribution flow with 3/3 anypromptcap met (DONE)
-     * - subscription flow (islocked) (DONE)
-     * - subscription openaccess (unlocked) (DONE)
-     *
-     * Experiment Off:
-     * - contribution prompt old frequency capping logic
-     * - subscription prompt
-     *
-     * Helper functions
-     * - isFrequencyCapMet
-     */
+    it('should execute the legacy frequency cap flow if the experiment is disabled', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              CONTRIBUTION_INTERVENTION,
+              SURVEY_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ true,
+        /* setSurveyExpectations */ false
+      );
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(10);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(false);
+      expect(
+        autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
+      ).to.equal(true);
+      expect(autoPromptManager.interventionDisplayed_?.type).to.equal(
+        'TYPE_CONTRIBUTION'
+      );
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should execute the legacy subscription flow if the experiment is disabled', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              SURVEY_INTERVENTION,
+              REGWALL_INTERVENTION,
+              SUBSCRIPTION_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /*setAutopromptExpectations*/ false
+      );
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+      });
+      await tick(10);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(false);
+      expect(
+        autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
+      ).to.equal(false);
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        isClosable: false,
+      });
+    });
+  });
+
+  describe('Frequency Capping Helper Functions', () => {
+    it('should return false for empty impressions', async () => {
+      const duration = {seconds: 60, nano: 0};
+      const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
+        duration,
+        []
+      );
+      expect(isFrequencyCapped).to.equal(false);
+    });
+
+    it('should return false for impressions that occurred outside of the cap duration', async () => {
+      const duration = {seconds: 60, nano: 0};
+      const impressions = [CURRENT_TIME - 120 * 1000];
+      const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
+        duration,
+        impressions
+      );
+      expect(isFrequencyCapped).to.equal(false);
+    });
+
+    it('should return true if the max impression occurred within of the cap duration', async () => {
+      const duration = {seconds: 60, nano: 0};
+      const impressions = [CURRENT_TIME - 10 * 1000, CURRENT_TIME - 120 * 1000];
+      const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
+        duration,
+        impressions
+      );
+      expect(isFrequencyCapped).to.equal(true);
+    });
+
+    it('should return true for impressions that occurred within the cap duration', async () => {
+      const duration = {seconds: 60, nano: 0};
+      const impressions = [CURRENT_TIME - 10 * 1000];
+      const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
+        duration,
+        impressions
+      );
+      expect(isFrequencyCapped).to.equal(true);
+    });
+
+    it('should return true if the max impression occurred within the cap duration, including nanos', async () => {
+      const duration = {seconds: 60, nano: 60 * Math.pow(10, 9)};
+      const impressions = [CURRENT_TIME - 90 * 1000];
+      const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
+        duration,
+        impressions
+      );
+      expect(isFrequencyCapped).to.equal(true);
+    });
+
+    it('should return false if the max impression occurred within the cap duration, including negative nanos', async () => {
+      const duration = {seconds: 120, nano: -60 * Math.pow(10, 9)};
+      const impressions = [CURRENT_TIME - 90 * 1000];
+      const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
+        duration,
+        impressions
+      );
+      expect(isFrequencyCapped).to.equal(false);
+    });
   });
 
   function expectFrequencyCappingGlobalImpressions(
