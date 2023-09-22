@@ -276,16 +276,6 @@ export class AutoPromptManager {
     let potentialAction: Intervention | void;
 
     // Frequency Capping Flow
-    // const isSubscriptionOpenaccess =
-    //   this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked();
-    // const isFrequencyFlow =
-    //   !!clientConfig.autoPromptConfig?.frequencyCapConfig ||
-    //   isSubscriptionOpenaccess;
-    // if (this.promptFrequencyCappingEnabled_ && isFrequencyFlow) {
-    //   potentialAction = await this.getPotentialAction_({
-    //     article,
-    //     frequencyCapConfig: clientConfig.autoPromptConfig?.frequencyCapConfig,
-    //   });
     if (this.promptFrequencyCappingEnabled_) {
       potentialAction = await this.getPotentialAction_({
         autoPromptType,
