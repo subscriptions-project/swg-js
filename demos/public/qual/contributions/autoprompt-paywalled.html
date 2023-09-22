@@ -19,14 +19,15 @@
       src="/examples/sample-pub/redirect-to/swg-basic.js"
     ></script>
 
-    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
     <script>
-      (self.SWG_BASIC = self.SWG_BASIC || []).push( basicSubscriptions => {
+      (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
         basicSubscriptions.init({
-          type: "NewsArticle",
-          isPartOfType: ["Product"],
-          isPartOfProductId: "CAowxdCEAQ:openaccess",
-          clientOptions: { theme: "light", lang: "en" },
+          type: 'NewsArticle',
+          isAccessibleForFree: false,
+          isPartOfType: ['Product'],
+          isPartOfProductId: 'CAowjLuEAQ:cool',
+          autoPromptType: 'contribution',
+          clientOptions: {theme: 'dark', lang: 'en'},
         });
       });
     </script>
