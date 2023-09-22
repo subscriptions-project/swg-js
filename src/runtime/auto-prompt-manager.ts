@@ -665,61 +665,6 @@ export class AutoPromptManager {
     return;
   }
 
-  /**
-   * Fetches timestamp impressions from local storage for all frequency capping
-   * related prompts and aggregates them into one array. Timestamps are not
-   * sorted.
-   */
-  private async getAllImpressions_(): Promise<number[]> {
-    const impressions = [];
-
-    for (const storageKey of new Set([
-      ...INTERVENTION_TO_STORAGE_KEY_MAP.values(),
-    ])) {
-      const promptImpressions = await this.storage_.getEvent(storageKey);
-      impressions.push(...promptImpressions);
-    }
-
-    return impressions;
-  }
-
-  /**
-   * Fetches timestamp impressions from local storage for a given action type.
-   */
-  private async getActionImpressions_(actionType: string): Promise<number[]> {
-    if (!ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.has(actionType)) {
-      // TODO: handle missing storage key for action
-      return [];
-    }
-
-    return this.storage_.getEvent(
-      ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.get(actionType)!
-    );
-  }
-
-  /**
-   * Computes if the frequency cap is met from the timestamps of previous
-   * impressions by using the maximum/most recent timestsamp.
-   */
-  private isFrequencyCapped_(
-    frequencyCapDuration: Duration,
-    impressions: number[]
-  ): boolean {
-    if (impressions.length === 0) {
-      return false;
-    }
-
-    const lastImpression = Math.max(...impressions);
-    const durationInMs =
-      (frequencyCapDuration.seconds || 0) * SECOND_IN_MILLIS +
-      this.nanoToMiliseconds_(frequencyCapDuration.nano || 0);
-    return Date.now() - lastImpression < durationInMs;
-  }
-
-  private nanoToMiliseconds_(nano: number): number {
-    return Math.floor(nano / Math.pow(10, 6));
-  }
-
   private audienceActionPrompt_({
     actionType,
     configurationId,
@@ -848,7 +793,11 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines whether the given prompt type is an action prompt type with display delay.
+   * Determines whether the given prompt type is an action prompt type with
+   * display delay. Under the legacy flow, this function is only used to
+   * determine the delay for non-monetization prompt. Under the frequency
+   * capping experiment, this is expanded to also provide the delay for
+   * monetization prompts.
    */
   private isActionPromptWithDelay_(
     potentialActionPromptType?: string
@@ -983,6 +932,61 @@ export class AutoPromptManager {
    */
   private getDismissals_(): Promise<number[]> {
     return this.storage_.getEvent(StorageKeys.DISMISSALS);
+  }
+
+  /**
+   * Fetches timestamp impressions from local storage for all frequency capping
+   * related prompts and aggregates them into one array. Timestamps are not
+   * sorted.
+   */
+  private async getAllImpressions_(): Promise<number[]> {
+    const impressions = [];
+
+    for (const storageKey of new Set([
+      ...INTERVENTION_TO_STORAGE_KEY_MAP.values(),
+    ])) {
+      const promptImpressions = await this.storage_.getEvent(storageKey);
+      impressions.push(...promptImpressions);
+    }
+
+    return impressions;
+  }
+
+  /**
+   * Fetches timestamp impressions from local storage for a given action type.
+   */
+  private async getActionImpressions_(actionType: string): Promise<number[]> {
+    if (!ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.has(actionType)) {
+      // TODO: handle missing storage key for action
+      return [];
+    }
+
+    return this.storage_.getEvent(
+      ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.get(actionType)!
+    );
+  }
+
+  /**
+   * Computes if the frequency cap is met from the timestamps of previous
+   * impressions by using the maximum/most recent timestsamp.
+   */
+  private isFrequencyCapped_(
+    frequencyCapDuration: Duration,
+    impressions: number[]
+  ): boolean {
+    if (impressions.length === 0) {
+      return false;
+    }
+
+    const lastImpression = Math.max(...impressions);
+    const durationInMs =
+      (frequencyCapDuration.seconds || 0) * SECOND_IN_MILLIS +
+      this.nanoToMiliseconds_(frequencyCapDuration.nano || 0);
+    return Date.now() - lastImpression < durationInMs;
+  }
+
+  private nanoToMiliseconds_(nano: number): number {
+    return Math.floor(nano / Math.pow(10, 6));
   }
 
   /**

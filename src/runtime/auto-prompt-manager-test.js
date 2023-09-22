@@ -3556,6 +3556,13 @@ describes.realWin('AutoPromptManager', (env) => {
       ]);
       expect(isSurveyEligible).to.equal(false);
     });
+
+    it('isActionPromptWithDelay_ returns false for a monetization action with the frequency cap experiment disabled', async () => {
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = false;
+      const isActionPromptWithDelay =
+        autoPromptManager.isActionPromptWithDelay_('TYPE_CONTRIBUTION');
+      expect(isActionPromptWithDelay).to.equal(false);
+    });
   });
 
   function expectFrequencyCappingGlobalImpressions(
