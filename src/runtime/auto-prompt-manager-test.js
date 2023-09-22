@@ -2895,9 +2895,12 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  describe('Prompt Frequency Capping', () => {
+  describe('Prompt Frequency Capping Flow', () => {
     let autoPromptConfig;
     let getArticleExpectation;
+    let getClientConfigExpectation;
+    const globalFrequencyCapDurationSeconds = 100;
+    const anyPromptFrequencyCapDurationSeconds = 600;
 
     beforeEach(() => {
       autoPromptConfig = new AutoPromptConfig({
@@ -2908,17 +2911,16 @@ describes.realWin('AutoPromptManager', (env) => {
         maxDismissalsResultingHideSeconds: 10,
         maxImpressions: 2,
         maxImpressionsResultingHideSeconds: 10,
-        globalFrequencyCapDurationSeconds: 100,
-        anyPromptFrequencyCapDurationSeconds: 600,
+        globalFrequencyCapDurationSeconds,
+        anyPromptFrequencyCapDurationSeconds,
       });
       const clientConfig = new ClientConfig({
         autoPromptConfig,
         useUpdatedOfferFlows: true,
       });
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .resolves(clientConfig)
-        .once();
+      getClientConfigExpectation =
+        clientConfigManagerMock.expects('getClientConfig');
+      getClientConfigExpectation.resolves(clientConfig).once();
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       const entitlements = new Entitlements();
       sandbox.stub(entitlements, 'enablesThis').returns(false);
@@ -2947,16 +2949,74 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
     });
 
-    it('should show the first prompt if there are no stored impressions', async () => {
-      await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1500);
+    it('should execute the legacy frequency cap flow if there is no frequency cap config', async () => {
+      autoPromptConfig = new AutoPromptConfig({
+        displayDelaySeconds: 0,
+        numImpressionsBetweenPrompts: 2,
+        dismissalBackOffSeconds: 5,
+        maxDismissalsPerWeek: 2,
+        maxDismissalsResultingHideSeconds: 10,
+        maxImpressions: 2,
+        maxImpressionsResultingHideSeconds: 10,
+      });
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
 
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(10);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(
+        autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
+      ).to.equal(true);
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should show the first prompt if there are no stored impressions', async () => {
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      expectFrequencyCappingGlobalImpressions(storageMock);
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(1000);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should show the first prompt if the frequency cap is not met', async () => {
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      expectFrequencyCappingGlobalImpressions(storageMock, {
+        contribution: (
+          CURRENT_TIME -
+          2 * globalFrequencyCapDurationSeconds * 1000
+        ).toString(),
+      });
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(50000);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
 
     /**
      * Experiment On:
-     * - no frequency cap config
+     * - no frequency cap config (DONE)
+     * - contribution flow with no impressions
      * - contribution flow with frequencycappingconfig, cap not met (DONE)
      * - contribution flow with global frequency cap met
      * - contribution flow with 1/3 anypromptcap met (contribution)
@@ -2974,6 +3034,51 @@ describes.realWin('AutoPromptManager', (env) => {
      * - isFrequencyCapMet
      */
   });
+
+  function expectFrequencyCappingGlobalImpressions(
+    storageMock,
+    impressions = {}
+  ) {
+    const {contribution, newsletter, regwall, survey} = {
+      contribution: null,
+      newsletter: null,
+      regwall: null,
+      survey: null,
+      ...impressions,
+    };
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(contribution)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+        /* useLocalStorage */ true
+      )
+      .resolves(newsletter)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.REGISTRATION_WALL,
+        /* useLocalStorage */ true
+      )
+      .resolves(regwall)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.REWARDED_SURVEY,
+        /* useLocalStorage */ true
+      )
+      .resolves(survey)
+      .once();
+  }
 
   describe('AudienceActionLocalFlow', () => {
     let getArticleExpectation;
