@@ -15,10 +15,10 @@
  */
 
 import {Doc, resolveDoc} from '../model/doc';
-import { FriendlyIframe } from './friendly-iframe';
-import { Graypane } from './graypane';
-import { LoadingView } from '../ui/loading-view';
-import { UI_CSS } from '../ui/ui-css';
+import {FriendlyIframe} from './friendly-iframe';
+import {Graypane} from './graypane';
+import {LoadingView} from '../ui/loading-view';
+import {UI_CSS} from '../ui/ui-css';
 import {View} from './view';
 import {
   createElement,
@@ -26,8 +26,8 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import { setImportantStyles, setStyles } from '../utils/style';
-import { transition } from '../utils/animation';
+import {setImportantStyles, setStyles} from '../utils/style';
+import {transition} from '../utils/animation';
 
 const Z_INDEX = 2147483647;
 
@@ -136,8 +136,7 @@ export class Dialog {
     const desktopDialogConfig = dialogConfig.desktopConfig || {};
     const supportsWideScreen = !!desktopDialogConfig.supportsWideScreen;
 
-    const defaultIframeCssClass = `swg-dialog ${
-      supportsWideScreen ? 'swg-wide-dialog' : ''
+    const defaultIframeCssClass = `swg-dialog ${supportsWideScreen ? 'swg-wide-dialog' : ''
       }`;
     const iframeCssClass =
       dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
@@ -475,8 +474,7 @@ export class Dialog {
             'height': `${newHeight}px`,
           };
           if (!this.shouldPositionCenter_()) {
-            immediateStyles['transform'] = `translateY(${
-              newHeight - oldHeight
+            immediateStyles['transform'] = `translateY(${newHeight - oldHeight
               }px)`;
           }
           setImportantStyles(this.getElement(), immediateStyles);
