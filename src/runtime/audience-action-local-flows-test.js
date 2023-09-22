@@ -35,6 +35,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       /* config= */ undefined,
       /* clientOptions= */ {}
     );
+    env.win.fetch = sandbox.spy();
+    env.win.localStorage.getItem = () => 'abc';
   });
 
   describe('start', () => {
@@ -281,6 +283,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       it('renders thanks with rewardedSlotGranted', async () => {
         const params = {
           action: 'TYPE_REWARDED_AD',
+          configurationId: 'xyz',
         };
         const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
 
@@ -299,6 +302,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+
+        expect(env.win.fetch).to.be.calledOnceWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
+        );
       });
 
       it('closes on thanks', async () => {

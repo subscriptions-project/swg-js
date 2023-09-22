@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AudienceActionFlow} from './audience-action-flow';
+import {AudienceActionFlow, TYPE_REWARDED_AD} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   CLOSE_BUTTON_HTML,
@@ -26,12 +26,15 @@ import {
   SUBSCRIPTION_ICON,
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
+import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
+import {addQueryParam} from '../utils/url';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
 import {msg} from '../utils/i18n';
+import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
 export interface AudienceActionLocalParams {
@@ -81,7 +84,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private createPrompt_(): HTMLElement {
-    if (this.params_.action === 'TYPE_REWARDED_AD') {
+    if (this.params_.action === TYPE_REWARDED_AD) {
       return this.renderAndInitRewardedAdWall_();
     } else {
       return this.renderErrorView_();
@@ -311,6 +314,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     });
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
+    this.complete_();
   }
 
   private closeRewardedAdWall_() {
@@ -346,6 +350,39 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         this.closeRewardedAdWall_.bind(this)
       );
     this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
+  }
+
+  private async complete_() {
+    const init: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Accept': 'text/plain, application/json',
+      },
+      credentials: 'include',
+    };
+    const publicationId = this.deps_.pageConfig().getPublicationId();
+    const baseUrl = `/publication/${encodeURIComponent(
+      publicationId
+    )}/completeaudienceaction`;
+    const swgUserToken = await this.deps_
+      .storage()
+      .get(Constants.USER_TOKEN, true);
+    const queryParams = [
+      // TODO: mhkawano - check and error out if swgUserToken is null
+      ['sut', swgUserToken!],
+      // TODO: mhkawano - configurationId should not be optional
+      ['configurationId', this.params_.configurationId!],
+      ['audienceActionType', this.params_.action],
+    ];
+    const url = queryParams.reduce(
+      (url, [param, value]) => addQueryParam(url, param, value),
+      serviceUrl(baseUrl)
+    );
+    this.deps_.win().fetch(url, init);
+    // TODO: mhkawano - log error
+    // TODO: mhkawano - handle entitlement consumption logic on completion
+    // ex: this.entitlementsManager_.getEntitlements();
   }
 
   async start() {
