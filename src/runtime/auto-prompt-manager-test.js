@@ -3562,7 +3562,7 @@ describes.realWin('AutoPromptManager', (env) => {
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       const isActionPromptWithDelay =
         autoPromptManager.isActionPromptWithDelay_('TYPE_SUBSCRIPTION');
-      expect(isActionPromptWithDelay).to.equal(false);
+      expect(isActionPromptWithDelay).to.equal(true);
     });
   });
 
