@@ -16,7 +16,7 @@
 
 import * as audienceActionFlow from './audience-action-flow';
 import * as audienceActionLocalFlow from './audience-action-local-flow';
-import {AnalyticsEvent, Duration, EventOriginator} from '../proto/api_messages';
+import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
@@ -3521,6 +3521,13 @@ describes.realWin('AutoPromptManager', (env) => {
         impressions
       );
       expect(isFrequencyCapped).to.equal(false);
+    });
+
+    it('should return empty timestamps if an action type does not map to the storage key', async () => {
+      const impressions = await autoPromptManager.getActionImpressions_(
+        'undefined'
+      );
+      expect(impressions).to.equal([]);
     });
   });
 
