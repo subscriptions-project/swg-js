@@ -712,9 +712,13 @@ export class AutoPromptManager {
 
     const lastImpression = Math.max(...impressions);
     const durationInMs =
-      (frequencyCapDuration.seconds || 0) * 1000 +
-      Math.floor((frequencyCapDuration.nano || 0) / 1000000);
+      (frequencyCapDuration.seconds || 0) * SECOND_IN_MILLIS +
+      this.nanoToMiliseconds_(frequencyCapDuration.nano || 0);
     return Date.now() - lastImpression < durationInMs;
+  }
+
+  private nanoToMiliseconds_(nano: number): number {
+    return Math.floor(nano / Math.pow(10, 6));
   }
 
   private audienceActionPrompt_({
