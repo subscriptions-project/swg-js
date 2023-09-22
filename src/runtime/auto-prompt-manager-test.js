@@ -3557,10 +3557,11 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isSurveyEligible).to.equal(false);
     });
 
-    it('isActionPromptWithDelay_ returns false for a monetization action with the frequency cap experiment disabled', async () => {
-      autoPromptManager.frequencyCappingLocalStorageEnabled_ = false;
+    it('isActionPromptWithDelay_ returns true for a subscription action on unlocked content with the frequency cap experiment enabled', async () => {
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
       const isActionPromptWithDelay =
-        autoPromptManager.isActionPromptWithDelay_('TYPE_CONTRIBUTION');
+        autoPromptManager.isActionPromptWithDelay_('TYPE_SUBSCRIPTION');
       expect(isActionPromptWithDelay).to.equal(false);
     });
   });
