@@ -3529,6 +3529,13 @@ describes.realWin('AutoPromptManager', (env) => {
       );
       expect(impressions.length).to.equal(0);
     });
+
+    it('isSurveyEligible_ returns false when survey is not a potential audience action', async () => {
+      const isSurveyEligible = autoPromptManager.isSurveyEligible_([
+        CONTRIBUTION_INTERVENTION,
+      ]);
+      expect(isSurveyEligible).to.equal(false);
+    });
   });
 
   function expectFrequencyCappingGlobalImpressions(
