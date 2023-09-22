@@ -3461,7 +3461,7 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Frequency Capping Helper Functions', () => {
-    it('should return false for empty impressions', async () => {
+    it('isFrequencyCapped_ should return false for empty impressions', async () => {
       const duration = {seconds: 60, nano: 0};
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
@@ -3470,7 +3470,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isFrequencyCapped).to.equal(false);
     });
 
-    it('should return false for impressions that occurred outside of the cap duration', async () => {
+    it('isFrequencyCapped_ should return false for impressions that occurred outside of the cap duration', async () => {
       const duration = {seconds: 60, nano: 0};
       const impressions = [CURRENT_TIME - 120 * SECOND_IN_MILLIS];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
@@ -3480,7 +3480,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isFrequencyCapped).to.equal(false);
     });
 
-    it('should return true if the max impression occurred within of the cap duration', async () => {
+    it('isFrequencyCapped_ should return true if the max impression occurred within of the cap duration', async () => {
       const duration = {seconds: 60, nano: 0};
       const impressions = [
         CURRENT_TIME - 10 * SECOND_IN_MILLIS,
@@ -3493,7 +3493,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isFrequencyCapped).to.equal(true);
     });
 
-    it('should return true for impressions that occurred within the cap duration', async () => {
+    it('isFrequencyCapped_ should return true for impressions that occurred within the cap duration', async () => {
       const duration = {seconds: 60, nano: 0};
       const impressions = [CURRENT_TIME - 10 * SECOND_IN_MILLIS];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
@@ -3503,7 +3503,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isFrequencyCapped).to.equal(true);
     });
 
-    it('should return true if the max impression occurred within the cap duration, including nanos', async () => {
+    it('isFrequencyCapped_ should return true if the max impression occurred within the cap duration, including nanos', async () => {
       const duration = {seconds: 60, nano: 60 * SECOND_IN_NANO};
       const impressions = [CURRENT_TIME - 90 * SECOND_IN_MILLIS];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
@@ -3513,7 +3513,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isFrequencyCapped).to.equal(true);
     });
 
-    it('should return false if the max impression occurred within the cap duration, including negative nanos', async () => {
+    it('isFrequencyCapped_ should return false if the max impression occurred within the cap duration, including negative nanos', async () => {
       const duration = {seconds: 120, nano: -60 * SECOND_IN_NANO};
       const impressions = [CURRENT_TIME - 90 * SECOND_IN_MILLIS];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
@@ -3523,11 +3523,11 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isFrequencyCapped).to.equal(false);
     });
 
-    it('should return empty timestamps if an action type does not map to the storage key', async () => {
+    it('getActionImpressions_ should return empty timestamps if an action type does not map to the storage key', async () => {
       const impressions = await autoPromptManager.getActionImpressions_(
         'undefined'
       );
-      expect(impressions).to.equal([]);
+      expect(impressions.length).to.equal(0);
     });
   });
 
