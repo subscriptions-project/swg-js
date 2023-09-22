@@ -315,9 +315,18 @@ export class AutoPromptManager {
       return;
     }
 
-    const displayDelayMs =
-      (clientConfig?.autoPromptConfig?.clientDisplayTrigger
-        ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
+    let displayDelayMs = 0;
+    if (this.promptFrequencyCappingEnabled_) {
+      if (this.isActionPromptWithDelay_(potentialAction?.type)) {
+        displayDelayMs =
+          (clientConfig?.autoPromptConfig?.clientDisplayTrigger
+            ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
+      }
+    } else {
+      displayDelayMs =
+        (clientConfig?.autoPromptConfig?.clientDisplayTrigger
+          ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
+    }
 
     // Check to display as softpaywall does not apply for frequency capping
     // flow.
@@ -844,10 +853,18 @@ export class AutoPromptManager {
   private isActionPromptWithDelay_(
     potentialActionPromptType?: string
   ): boolean {
-    return (
+    const isDelayedSurvey =
       !this.pageConfig_.isLocked() &&
-      potentialActionPromptType === TYPE_REWARDED_SURVEY
-    );
+      potentialActionPromptType === TYPE_REWARDED_SURVEY;
+
+    // Delayed properties for frequency capping flow, applies to contribution
+    // prompts and subscription prompts on unlocked content.
+    const isDelayedMonetizationPrompt =
+      this.frequencyCappingLocalStorageEnabled_ &&
+      this.isMonetizationAction_(potentialActionPromptType) &&
+      (potentialActionPromptType === TYPE_CONTRIBUTION ||
+        !this.pageConfig_.isLocked());
+    return isDelayedSurvey || isDelayedMonetizationPrompt;
   }
 
   /**
@@ -974,7 +991,10 @@ export class AutoPromptManager {
    * error timestamps.
    */
   private async isSurveyEligible_(actions: Intervention[]): Promise<boolean> {
-    if (!actions.filter((action) => action.type === TYPE_REWARDED_SURVEY)) {
+    if (
+      actions.filter((action) => action.type === TYPE_REWARDED_SURVEY)
+        .length === 0
+    ) {
       return false;
     }
 

@@ -955,11 +955,16 @@ describes.realWin('AutoPromptManager', (env) => {
     // Two stored impressions.
     const storedImpressions =
       (CURRENT_TIME - 1).toString() + ',' + CURRENT_TIME.toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -1089,11 +1094,16 @@ describes.realWin('AutoPromptManager', (env) => {
       .once();
     // One stored impression.
     const storedImpressions = (CURRENT_TIME - 6000).toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -1225,12 +1235,17 @@ describes.realWin('AutoPromptManager', (env) => {
     // One stored impression from 10ms ago and one dismissal from 5ms ago.
     const storedImpressions = (CURRENT_TIME - 10).toString();
     const storedDismissals = (CURRENT_TIME - 5).toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      storedDismissals,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        storedDismissals,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -1376,12 +1391,17 @@ describes.realWin('AutoPromptManager', (env) => {
     // One stored impression from 20s ago and one dismissal from 6s ago.
     const storedImpressions = (CURRENT_TIME - 20000).toString();
     const storedDismissals = (CURRENT_TIME - 6000).toString();
-    setupPreviousImpressionAndDismissals(storageMock, {
-      storedImpressions,
-      storedDismissals,
-      dismissedPromptGetCallCount: 1,
-      getUserToken: false,
-    });
+    setupPreviousImpressionAndDismissals(
+      storageMock,
+      {
+        storedImpressions,
+        storedDismissals,
+        dismissedPromptGetCallCount: 1,
+        getUserToken: false,
+      },
+      /* setAutopromptExpectations */ true,
+      /* setSurveyExpectations */ false
+    );
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
@@ -3531,7 +3551,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('isSurveyEligible_ returns false when survey is not a potential audience action', async () => {
-      const isSurveyEligible = autoPromptManager.isSurveyEligible_([
+      const isSurveyEligible = await autoPromptManager.isSurveyEligible_([
         CONTRIBUTION_INTERVENTION,
       ]);
       expect(isSurveyEligible).to.equal(false);
