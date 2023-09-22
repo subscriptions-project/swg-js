@@ -64,10 +64,16 @@ export interface AudienceActionIframeParams {
   isClosable?: boolean;
 }
 
+// Action types returned by the article endpoint
+export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
+export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
+export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
+export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
+
 const actionToIframeMapping: {[key: string]: string} = {
-  'TYPE_REGISTRATION_WALL': '/regwalliframe',
-  'TYPE_NEWSLETTER_SIGNUP': '/newsletteriframe',
-  'TYPE_REWARDED_SURVEY': '/surveyiframe',
+  TYPE_REGISTRATION_WALL: '/regwalliframe',
+  TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
+  TYPE_REWARDED_SURVEY: '/surveyiframe',
 };
 
 const autopromptTypeToProductTypeMapping: {
