@@ -31,15 +31,6 @@ export class Graypane {
       .getWin()
       .document.createElement('swg-popup-background');
 
-    var el = null;
-    this.doc_.getWin().document.body.children.forEach(element => {
-      if (element.tagName == 'swg-popup-background') {
-        el = element;
-      }
-    });
-
-    throw new Error(el);
-
     setImportantStyles(this.fadeBackground_, {
       'z-index': zIndex,
       'display': 'none',
