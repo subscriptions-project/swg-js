@@ -15,10 +15,10 @@
  */
 
 import {Doc, resolveDoc} from '../model/doc';
-import {FriendlyIframe} from './friendly-iframe';
-import {Graypane} from './graypane';
-import {LoadingView} from '../ui/loading-view';
-import {UI_CSS} from '../ui/ui-css';
+import { FriendlyIframe } from './friendly-iframe';
+import { Graypane } from './graypane';
+import { LoadingView } from '../ui/loading-view';
+import { UI_CSS } from '../ui/ui-css';
 import {View} from './view';
 import {
   createElement,
@@ -26,8 +26,8 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {setImportantStyles, setStyles} from '../utils/style';
-import {transition} from '../utils/animation';
+import { setImportantStyles, setStyles } from '../utils/style';
+import { transition } from '../utils/animation';
 
 const Z_INDEX = 2147483647;
 
@@ -66,7 +66,7 @@ const resetViewStyles = {
 };
 
 /**
- * Display configration options for dialogs.
+ * Display configuration options for dialogs.
  *
  * Properties:
  * - desktopConfig: Options for dialogs on desktop screens.
@@ -82,6 +82,7 @@ export interface DialogConfig {
   maxAllowedHeightRatio?: number;
   iframeCssClassOverride?: string;
   shouldDisableBodyScrolling?: boolean;
+  isClosable?: boolean;
 }
 
 /**
@@ -112,6 +113,7 @@ export class Dialog {
   /** Helps identify stale animations. */
   private animationNumber_: number;
   private hidden_: boolean;
+  private isClosable_: boolean;
   private previousProgressView_: View | null;
   private maxAllowedHeightRatio_: number;
   private positionCenterOnDesktop_: boolean;
@@ -136,7 +138,7 @@ export class Dialog {
 
     const defaultIframeCssClass = `swg-dialog ${
       supportsWideScreen ? 'swg-wide-dialog' : ''
-    }`;
+      }`;
     const iframeCssClass =
       dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
 
@@ -145,6 +147,15 @@ export class Dialog {
     });
 
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
+
+    // Avoid modifying the behavior of existing callers by only registering
+    // the click event if isClosable is set.
+    if (dialogConfig.isClosable !== undefined) {
+      this.isClosable_ = !!dialogConfig.isClosable;
+      this.graypane_
+        .getElement()
+        .addEventListener('click', this.onGrayPaneClick_.bind(this));
+    }
 
     const modifiedImportantStyles = Object.assign(
       {},
@@ -422,6 +433,14 @@ export class Dialog {
     this.hidden_ = false;
   }
 
+  /** Supresses click events, unless the window is closable. */
+  onGrayPaneClick_() {
+    if (this.isClosable_) {
+      this.close();
+    }
+    return false;
+  }
+
   /**
    * Resizes the dialog container.
    */
@@ -458,7 +477,7 @@ export class Dialog {
           if (!this.shouldPositionCenter_()) {
             immediateStyles['transform'] = `translateY(${
               newHeight - oldHeight
-            }px)`;
+              }px)`;
           }
           setImportantStyles(this.getElement(), immediateStyles);
 
@@ -480,15 +499,15 @@ export class Dialog {
           const transitionPromise = isStale()
             ? Promise.resolve()
             : transition(
-                this.getElement(),
-                {
-                  'transform': this.shouldPositionCenter_()
-                    ? this.getDefaultTranslateY_()
-                    : `translateY(${oldHeight - newHeight}px)`,
-                },
-                300,
-                'ease-out'
-              );
+              this.getElement(),
+              {
+                'transform': this.shouldPositionCenter_()
+                  ? this.getDefaultTranslateY_()
+                  : `translateY(${oldHeight - newHeight}px)`,
+              },
+              300,
+              'ease-out'
+            );
 
           await transitionPromise;
 
