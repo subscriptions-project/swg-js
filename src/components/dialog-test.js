@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Dialog} from './dialog';
-import {GlobalDoc} from '../model/doc';
-import {getStyle} from '../utils/style';
+import { Dialog } from './dialog';
+import { GlobalDoc } from '../model/doc';
+import { getStyle } from '../utils/style';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
@@ -30,7 +30,6 @@ describes.realWin('Dialog', (env) => {
   let graypaneStubs;
   let view;
   let element;
-  let grayPaneElement;
 
   const documentHeight = 100;
 
@@ -43,7 +42,7 @@ describes.realWin('Dialog', (env) => {
     view = {
       getElement: () => element,
       init: (dialog) => Promise.resolve(dialog),
-      resized: () => {},
+      resized: () => { },
       shouldFadeBody: () => true,
     };
 
@@ -59,8 +58,7 @@ describes.realWin('Dialog', (env) => {
 
   describe('dialog', () => {
     beforeEach(() => {
-      dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
-      grayPaneElement = doc.getElementsByTagName('swg-popup-background')[0];
+      dialog = new Dialog(globalDoc, { height: `${documentHeight}px` });
       graypaneStubs = sandbox.stub(dialog.graypane_);
     });
 
@@ -86,38 +84,6 @@ describes.realWin('Dialog', (env) => {
       expect(dialog.graypane_.fadeBackground_.style.zIndex).to.equal(
         '2147483646'
       );
-    });
-
-    it('should have created fade background without click event', async () => {
-      const openedDialog = await dialog.open(NO_ANIMATE);
-      await openedDialog.openView(view);
-      grayPaneElement.click();
-
-      expect(graypaneStubs.onGrayPaneClick_).to.not.be.called;
-    });
-
-    it('should have created fade background that suppresses clicks', async () => {
-      dialog = new Dialog(globalDoc, { height: `${documentHeight}px` }, { isClosable: false });
-      graypaneStubs = sandbox.stub(dialog.graypane_);
-
-      const openedDialog = await dialog.open(NO_ANIMATE);
-      await openedDialog.openView(view);
-      grayPaneElement.click();
-
-      expect(graypaneStubs.onGrayPaneClick_).to.be.calledOnce;
-      expect(graypaneStubs.onGrayPaneClick_.click()).to.be.false;
-      expect(dialog.close).to.not.be.called;
-    });
-
-    it('should have created fade background that closes dialog onclick', async () => {
-      dialog = new Dialog(globalDoc, { height: `${documentHeight}px` }, { isClosable: true });
-      graypaneStubs = sandbox.stub(dialog.graypane_);
-
-      const openedDialog = await dialog.open(NO_ANIMATE);
-      await openedDialog.openView(view);
-      grayPaneElement.click();
-
-      expect(dialog.close).to.be.calledOnce;
     });
 
     it('should open dialog with animation', async () => {
@@ -452,7 +418,7 @@ describes.realWin('Dialog', (env) => {
       await openedDialog.openView(view);
       const view2 = {
         getElement: () => element,
-        resized: () => {},
+        resized: () => { },
         shouldFadeBody: () => true,
       };
       let styleDuringInit;
@@ -469,6 +435,74 @@ describes.realWin('Dialog', (env) => {
       expect(styleDuringInit).to.equal('display: none !important;');
     });
 
+    describe('fade background', () => {
+      it('should not register click event by default', async () => {
+        const old = Dialog.prototype.onGrayPaneClick_;
+        let wasClicked = false;
+        Dialog.prototype.onGrayPaneClick_ = function () { wasClicked = true; };
+
+        dialog = new Dialog(globalDoc, {});
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+
+        el.click();
+
+        expect(wasClicked).to.be.false;
+
+        Dialog.prototype.onGrayPaneClick_ = old;
+      });
+
+      it('should register click event', async () => {
+        const old = Dialog.prototype.onGrayPaneClick_;
+        let wasClicked = false;
+        Dialog.prototype.onGrayPaneClick_ = function () { wasClicked = true; };
+
+        dialog = new Dialog(globalDoc, {}, {}, { isClosable: false });
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+
+        el.click();
+
+        expect(wasClicked).to.be.true;
+
+        Dialog.prototype.onGrayPaneClick_ = old;
+      });
+
+
+      it('should have a click event that returns false', async () => {
+        dialog = new Dialog(globalDoc, {});
+        expect(dialog.onGrayPaneClick_()).to.be.false;
+      });
+
+      it('respects not closable', async () => {
+        dialog = new Dialog(globalDoc, {}, {}, { isClosable: false, shouldDisableBodyScrolling: true });
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        expect(doc.body).to.have.class('swg-disable-scroll');
+
+        el.click();
+
+        expect(doc.body).to.have.class('swg-disable-scroll');
+      });
+
+      it('respects closable', async () => {
+        dialog = new Dialog(globalDoc, {}, {}, { isClosable: true, shouldDisableBodyScrolling: true });
+
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        expect(doc.body).to.have.class('swg-disable-scroll');
+
+        el.click();
+
+        expect(doc.body).not.to.have.class('swg-disable-scroll');
+      });
+
+    });
+
     describe('body scrolling disabled', () => {
       describe('openView', () => {
         it('adds swg-disable-scroll class if config specifies scrolling should be disabled', async () => {
@@ -476,7 +510,7 @@ describes.realWin('Dialog', (env) => {
             globalDoc,
             /* importantStyles */ {},
             /* styles */ {},
-            {shouldDisableBodyScrolling: true}
+            { shouldDisableBodyScrolling: true }
           );
           await dialog.open();
           view.shouldDisableBodyScrolling = () => true;
@@ -489,7 +523,7 @@ describes.realWin('Dialog', (env) => {
             globalDoc,
             /* importantStyles */ {},
             /* styles */ {},
-            {shouldDisableBodyScrolling: false}
+            { shouldDisableBodyScrolling: false }
           );
           await dialog.open();
           view.shouldDisableBodyScrolling = () => false;
@@ -504,7 +538,7 @@ describes.realWin('Dialog', (env) => {
             globalDoc,
             /* importantStyles */ {},
             /* styles */ {},
-            {shouldDisableBodyScrolling: true}
+            { shouldDisableBodyScrolling: true }
           );
           await dialog.open();
           view.shouldDisableBodyScrolling = () => true;
@@ -523,9 +557,9 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
-        {height: `${documentHeight}px`},
+        { height: `${documentHeight}px` },
         /* styles */ {},
-        {maxAllowedHeightRatio: MAX_ALLOWED_HEIGHT_RATIO}
+        { maxAllowedHeightRatio: MAX_ALLOWED_HEIGHT_RATIO }
       );
     });
 
@@ -552,9 +586,9 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
-        {height: `${documentHeight}px`},
+        { height: `${documentHeight}px` },
         /* styles */ {},
-        {desktopConfig: {supportsWideScreen: true}}
+        { desktopConfig: { supportsWideScreen: true } }
       );
     });
 
@@ -571,9 +605,9 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
-        {height: `${documentHeight}px`},
+        { height: `${documentHeight}px` },
         /* styles */ {},
-        {iframeCssClassOverride}
+        { iframeCssClassOverride }
       );
     });
 
@@ -607,9 +641,9 @@ describes.realWin('Dialog', (env) => {
 
       dialog = new Dialog(
         globalDoc,
-        {height: `${documentHeight}px`},
+        { height: `${documentHeight}px` },
         /* styles */ {},
-        {desktopConfig: {isCenterPositioned: true}}
+        { desktopConfig: { isCenterPositioned: true } }
       );
     });
 
@@ -675,9 +709,9 @@ describes.realWin('Dialog', (env) => {
 
       dialog = new Dialog(
         globalDoc,
-        {height: `${documentHeight}px`},
+        { height: `${documentHeight}px` },
         /* styles */ {},
-        {desktopConfig: {isCenterPositioned: true}}
+        { desktopConfig: { isCenterPositioned: true } }
       );
       immediate();
     });
