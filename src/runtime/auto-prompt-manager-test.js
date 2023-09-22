@@ -3460,7 +3460,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  describe('Frequency Capping Helper Functions', () => {
+  describe('Helper Functions', () => {
     it('isFrequencyCapped_ should return false for empty impressions', async () => {
       const duration = {seconds: 60, nano: 0};
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
