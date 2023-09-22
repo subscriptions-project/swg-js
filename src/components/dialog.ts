@@ -151,11 +151,11 @@ export class Dialog {
     // Avoid modifying the behavior of existing callers by only registering
     // the click event if isClosable is set.
     if (dialogConfig.isClosable !== undefined) {
-      this.isClosable_ = !!dialogConfig.isClosable;
       this.graypane_
         .getElement()
         .addEventListener('click', this.onGrayPaneClick_.bind(this));
     }
+    this.isClosable_ = !!dialogConfig.isClosable;
 
     const modifiedImportantStyles = Object.assign(
       {},
