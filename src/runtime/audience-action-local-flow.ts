@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AudienceActionFlow} from './audience-action-flow';
+import {AudienceActionFlow, TYPE_REWARDED_AD} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   CLOSE_BUTTON_HTML,
@@ -46,8 +46,6 @@ export interface AudienceActionLocalParams {
   isClosable?: boolean;
   monetizationFunction?: () => void;
 }
-
-const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 
 // Default timeout for waiting on ready callback.
 const GPT_TIMEOUT_MS = 3000;
@@ -359,6 +357,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     );
     this.deps_.win().fetch(url, init);
     // TODO: mhkawano - log error
+    // TODO: mhkawano - handle entitlement consumption logic on completion
+    // ex: this.entitlementsManager_.getEntitlements();
   }
 
   async start() {
