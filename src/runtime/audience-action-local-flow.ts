@@ -34,6 +34,7 @@ import {addQueryParam} from '../utils/url';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
 import {msg} from '../utils/i18n';
+import {parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
@@ -45,6 +46,16 @@ export interface AudienceActionLocalParams {
   onResult?: (result: {}) => Promise<boolean> | boolean;
   isClosable?: boolean;
   monetizationFunction?: () => void;
+}
+
+interface AudienceActionConfig {
+  publication?: {
+    name?: string;
+  };
+  rewardedAdParameters?: {
+    adunit?: string;
+    customMessage?: string;
+  };
 }
 
 // Default timeout for waiting on ready callback.
@@ -60,6 +71,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly wrapper_: HTMLElement;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
+  private readonly config_: Promise<AudienceActionConfig | null>;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Resolve function to signal that the ready callback has finished executing.
@@ -77,6 +89,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
     this.doc_ = this.deps_.doc().getRootNode();
+
+    this.config_ = this.getConfig_();
 
     this.prompt_ = this.createPrompt_();
 
@@ -162,13 +176,20 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private initGpt_(resolve: (result: boolean) => void) {
+  private async initGpt_(resolve: (result: boolean) => void) {
     // Save resolve so that it can be called in rewardedSlotReady_.
     this.rewardedResolve_ = resolve;
 
+    const config = await this.config_;
+    const adunit = config?.rewardedAdParameters?.adunit;
+    // TODO: mhkawano - render error view if invalid config
+    // const validRewardedAdParams =
+    //   adunit &&
+    //   config?.rewardedAdParameters?.customMessage &&
+    //   config?.publication?.name;
     const googletag = this.deps_.win().googletag;
     this.rewardedSlot_ = googletag.defineOutOfPageSlot(
-      '/22639388115/rewarded_web_example',
+      adunit,
       googletag.enums.OutOfPageFormat.REWARDED
     );
 
@@ -214,11 +235,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   /**
    * When gpt.js is ready to show an ad, we replace the loading view and wire up the buttons.
    */
-  private rewardedSlotReady_(
+  private async rewardedSlotReady_(
     rewardedAd: googletag.events.RewardedSlotReadyEvent
   ) {
     this.rewardedReadyCalled_ = true;
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
+
+    const config = await this.config_;
 
     const isContribution =
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
@@ -230,7 +253,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // TODO: mhkawnao - Support premonetization
     const language = this.clientConfigManager_.getLanguage();
 
-    const publication = 'The Daily News'; // publicaition will be a publisher defined string
+    // verified existance in initGpt_
+    const publication = config!.publication!.name!;
     const closeButtonDescription = msg(
       SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
       language
@@ -242,9 +266,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         )
       : '';
     const icon = isContribution ? CONTRIBUTION_ICON : SUBSCRIPTION_ICON;
-    const message = isContribution // message  will be a publisher defined string
-      ? `To support ${publication}, view an ad or contribute`
-      : 'To access this article, subscribe or view an ad';
+    // verified existance in initGpt_
+    const message = config!.rewardedAdParameters!.customMessage!;
     const viewad = 'View an ad';
     const support = isContribution
       ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
@@ -352,9 +375,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
   }
 
-  private async complete_() {
+  private async fetch_(
+    method: string,
+    endpoint: string,
+    queryParams: string[][]
+  ): Promise<Response> {
     const init: RequestInit = {
-      method: 'POST',
+      method,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
         'Accept': 'text/plain, application/json',
@@ -364,7 +391,38 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const publicationId = this.deps_.pageConfig().getPublicationId();
     const baseUrl = `/publication/${encodeURIComponent(
       publicationId
-    )}/completeaudienceaction`;
+    )}/${endpoint}`;
+    const url = queryParams.reduce(
+      (url, [param, value]) => addQueryParam(url, param, value),
+      serviceUrl(baseUrl)
+    );
+    return this.deps_.win().fetch(url, init);
+  }
+
+  private async getConfig_(): Promise<AudienceActionConfig | null> {
+    const queryParams = [
+      ['publicationId', this.deps_.pageConfig().getPublicationId()],
+      // TODO: mhkawano - configurationId should not be optional
+      ['configurationId', this.params_.configurationId!],
+      ['origin', parseUrl(this.deps_.win().location.href).origin],
+    ];
+    const response = await this.fetch_(
+      'GET',
+      'getactionconfigurationui',
+      queryParams
+    );
+    if (response.ok) {
+      const text = await response.text();
+      // Remove "")]}'\n" XSSI prevention prefix in safe responses.
+      const cleanedText = text.replace(/^(\)\]\}'\n)/, '');
+      return JSON.parse(cleanedText) as AudienceActionConfig;
+    } else {
+      // TODO: mhkawano - log error
+      return null;
+    }
+  }
+
+  private async complete_() {
     const swgUserToken = await this.deps_
       .storage()
       .get(Constants.USER_TOKEN, true);
@@ -375,11 +433,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       ['configurationId', this.params_.configurationId!],
       ['audienceActionType', this.params_.action],
     ];
-    const url = queryParams.reduce(
-      (url, [param, value]) => addQueryParam(url, param, value),
-      serviceUrl(baseUrl)
-    );
-    this.deps_.win().fetch(url, init);
+    this.fetch_('POST', 'completeaudienceaction', queryParams);
     // TODO: mhkawano - log error
     // TODO: mhkawano - handle entitlement consumption logic on completion
     // ex: this.entitlementsManager_.getEntitlements();

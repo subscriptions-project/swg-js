@@ -35,7 +35,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       /* config= */ undefined,
       /* clientOptions= */ {}
     );
-    env.win.fetch = sandbox.spy();
+    env.win.fetch = sandbox.stub().returns(Promise.resolve(new Response(null, {status: 200})));
     env.win.localStorage.getItem = () => 'abc';
   });
 
