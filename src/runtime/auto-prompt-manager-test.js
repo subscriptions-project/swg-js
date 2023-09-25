@@ -3042,10 +3042,14 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the first prompt if there are no stored impressions', async () => {
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       expectFrequencyCappingGlobalImpressions(storageMock);
       storageMock
         .expects('get')
@@ -3064,10 +3068,14 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the first prompt if the frequency cap is not met', async () => {
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       const contributionTimestamps = (
         CURRENT_TIME -
         10 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
@@ -3092,10 +3100,14 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should not show any prompt if the global frequency cap is met', async () => {
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: (
           CURRENT_TIME -
@@ -3129,10 +3141,14 @@ describes.realWin('AutoPromptManager', (env) => {
         useUpdatedOfferFlows: true,
       });
       getClientConfigExpectation.resolves(clientConfig).once();
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: (
           CURRENT_TIME -
@@ -3150,10 +3166,14 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the second prompt if the frequency cap for contributions is met', async () => {
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       const contributionTimestamps = (
         CURRENT_TIME -
         2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
@@ -3201,7 +3221,7 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ true,
+        /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
       const contributionTimestamps = (
@@ -3244,10 +3264,14 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the third prompt if the frequency caps for contributions and surveys are met', async () => {
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       const promptTimestamps = (
         CURRENT_TIME -
         2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
@@ -3297,10 +3321,14 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should not show any prompt if the frequency cap is met for all prompts (but global cap is not)', async () => {
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       const promptTimestamps = (
         CURRENT_TIME -
         2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
@@ -3345,10 +3373,14 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the contribution as a mini prompt', async () => {
-      setupPreviousImpressionAndDismissals(storageMock, {
-        dismissedPromptGetCallCount: 1,
-        getUserToken: true,
-      });
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
       expectFrequencyCappingGlobalImpressions(storageMock);
       storageMock
         .expects('get')

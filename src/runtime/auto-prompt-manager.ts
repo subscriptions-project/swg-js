@@ -176,7 +176,7 @@ export class AutoPromptManager {
     if (params.alwaysShow) {
       this.showPrompt_(
         this.getPromptTypeToDisplay_(params.autoPromptType),
-        this.getMonetizationPromptFn_(
+        this.getLargeMonetizationPromptFn_(
           params.autoPromptType,
           params.isClosable ?? !this.isSubscription_(params.autoPromptType)
         )
@@ -262,17 +262,6 @@ export class AutoPromptManager {
     const isClosable =
       params.isClosable ?? !this.isSubscription_(autoPromptType);
 
-    const canDisplayMonetizationPrompt = this.canDisplayMonetizationPrompt(
-      article?.audienceActions?.actions
-    );
-
-    const shouldShowMonetizationPromptAsSoftPaywall =
-      canDisplayMonetizationPrompt &&
-      (await this.shouldShowMonetizationPromptAsSoftPaywall(
-        autoPromptType,
-        clientConfig.autoPromptConfig
-      ));
-
     const frequencyCapConfig =
       clientConfig.autoPromptConfig?.frequencyCapConfig;
     // Frequency Capping Flow
@@ -287,7 +276,10 @@ export class AutoPromptManager {
       });
 
       const promptFn = this.isMonetizationAction_(potentialAction?.type)
-        ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
+        ? this.getMonetizationPromptFn_(
+            autoPromptType,
+            this.getLargeMonetizationPromptFn_(autoPromptType, isClosable)
+          )
         : potentialAction
         ? this.audienceActionPrompt_({
             actionType: potentialAction.type,
@@ -306,16 +298,20 @@ export class AutoPromptManager {
         ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
             ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS
         : 0;
-
-      if (this.isMonetizationAction_(potentialAction?.type)) {
-        this.deps_.win().setTimeout(() => {
-          this.showPrompt_(autoPromptType, promptFn);
-        }, displayDelayMs);
-      } else {
-        this.deps_.win().setTimeout(promptFn, displayDelayMs);
-      }
+      this.deps_.win().setTimeout(promptFn, displayDelayMs);
       return;
     }
+
+    const canDisplayMonetizationPrompt = this.canDisplayMonetizationPrompt(
+      article?.audienceActions?.actions
+    );
+
+    const shouldShowMonetizationPromptAsSoftPaywall =
+      canDisplayMonetizationPrompt &&
+      (await this.shouldShowMonetizationPromptAsSoftPaywall(
+        autoPromptType,
+        clientConfig.autoPromptConfig
+      ));
 
     const potentialAction = await this.getAction_({
       article,
@@ -326,7 +322,7 @@ export class AutoPromptManager {
     });
 
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
-      ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
+      ? this.getLargeMonetizationPromptFn_(autoPromptType, isClosable)
       : potentialAction
       ? this.audienceActionPrompt_({
           actionType: potentialAction.type,
@@ -388,10 +384,41 @@ export class AutoPromptManager {
   }
 
   /**
+   * Returns a function that will call the mini prompt api with an eligible
+   * autoprompt type.
+   */
+  private getMonetizationPromptFn_(
+    autoPromptType: AutoPromptType,
+    largeMonetizationPromptFn: (() => void) | undefined
+  ): () => void {
+    return () => {
+      if (!largeMonetizationPromptFn) {
+        return;
+      }
+
+      if (
+        autoPromptType === AutoPromptType.SUBSCRIPTION ||
+        autoPromptType === AutoPromptType.CONTRIBUTION
+      ) {
+        this.miniPromptAPI_.create({
+          autoPromptType,
+          clickCallback: largeMonetizationPromptFn,
+        });
+      } else if (
+        (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
+        largeMonetizationPromptFn
+      ) {
+        largeMonetizationPromptFn();
+      }
+    };
+  }
+
+  /**
    * Returns a function to show the appropriate monetization prompt,
    * or undefined if the type of prompt cannot be determined.
    */
-  private getMonetizationPromptFn_(
+  private getLargeMonetizationPromptFn_(
     autoPromptType: AutoPromptType | undefined,
     isClosable: boolean
   ): (() => void) | undefined {
@@ -706,7 +733,7 @@ export class AutoPromptManager {
               autoPromptType,
               onCancel: this.storeLastDismissal_.bind(this),
               isClosable,
-              monetizationFunction: this.getMonetizationPromptFn_(
+              monetizationFunction: this.getLargeMonetizationPromptFn_(
                 autoPromptType,
                 !!isClosable
               ),
