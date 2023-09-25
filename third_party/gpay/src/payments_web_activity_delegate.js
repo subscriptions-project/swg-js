@@ -451,7 +451,7 @@ class PaymentsWebActivityDelegate {
       // http://yaqs/4912322941550592
       return '/ui/pay';
     }
-    return this.getBasePath_() + '/ui/pay';
+    return this.getBasePath_() + '/ui/pay?swg=true';
   }
 
   /**
@@ -464,12 +464,12 @@ class PaymentsWebActivityDelegate {
   getIframeUrl(environment, origin) {
     // TODO: These should be compile time constants and not dependent
     // on the environment.
-    let iframeUrl = `https://pay.google.com/gp/p/ui/pay?origin=${origin}`;
+    let iframeUrl = `https://pay.google.com/gp/p/ui/pay?origin=${origin}&swg=true`;
     if (
       environment == Constants.Environment.SANDBOX ||
       environment == Constants.Environment.PREPROD
     ) {
-      iframeUrl = `https://pay'+  (environment == Constants.Environment.PREPROD ? '-preprod' : '')+  '.sandbox.google.com/gp/p/ui/pay?origin=${origin}`;
+      iframeUrl = `https://pay'+  (environment == Constants.Environment.PREPROD ? '-preprod' : '')+  '.sandbox.google.com/gp/p/ui/pay?origin=${origin}&swg=true`;
     }
     return iframeUrl;
   }
