@@ -264,7 +264,7 @@ export class AutoPromptManager {
 
     const frequencyCapConfig =
       clientConfig.autoPromptConfig?.frequencyCapConfig;
-    // Frequency Capping Flow
+    // New Triggering Flow
     if (
       this.promptFrequencyCappingEnabled_ &&
       this.isValidFrequencyCap_(frequencyCapConfig)
@@ -301,7 +301,7 @@ export class AutoPromptManager {
       this.deps_.win().setTimeout(promptFn, displayDelayMs);
       return;
     }
-
+    // Legacy Triggering Flow
     const canDisplayMonetizationPrompt = this.canDisplayMonetizationPrompt(
       article?.audienceActions?.actions
     );
@@ -405,9 +405,8 @@ export class AutoPromptManager {
           clickCallback: largeMonetizationPromptFn,
         });
       } else if (
-        (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
-        largeMonetizationPromptFn
+        autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
       ) {
         largeMonetizationPromptFn();
       }

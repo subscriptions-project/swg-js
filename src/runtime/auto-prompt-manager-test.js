@@ -3576,6 +3576,88 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: false,
       });
     });
+
+    it('should not display a prompt for an unknown autoprompt type if the next action is a monetization prompt', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /*setAutopromptExpectations*/ false
+      );
+      expectFrequencyCappingGlobalImpressions(storageMock);
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          ImpressionStorageKeys.CONTRIBUTION,
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: 'unknown',
+        alwaysShow: false,
+      });
+      await tick(10);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('should display a prompt prompt for an unknown autoprompt type if the next action is a nonmonetization prompt', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+      const contributionTimestamps = (
+        CURRENT_TIME -
+        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+      ).toString();
+      expectFrequencyCappingGlobalImpressions(storageMock, {
+        contribution: contributionTimestamps,
+      });
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          ImpressionStorageKeys.CONTRIBUTION,
+          /* useLocalStorage */ true
+        )
+        .resolves(contributionTimestamps)
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          ImpressionStorageKeys.REWARDED_SURVEY,
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: 'unknown',
+        alwaysShow: false,
+      });
+      await tick(1000);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+      });
+    });
   });
 
   describe('Helper Functions', () => {
