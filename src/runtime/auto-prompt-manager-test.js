@@ -3738,7 +3738,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('getMonetizationPromptFun_ returns function that does not open a mini or large prompt with an undefined input', async () => {
-      miniPromptApiMock.expects('start').never();
+      miniPromptApiMock.expects('create').never();
       const fn = autoPromptManager.getMonetizationPromptFn_(
         AutoPromptType.CONTRIBUTION,
         undefined
@@ -3747,8 +3747,8 @@ describes.realWin('AutoPromptManager', (env) => {
       await fn();
       await tick(10);
 
-      expect(contributionPromptFnSpy).to.not.have.been.called();
-      expect(startSpy).to.not.have.been.called();
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
     });
   });
 
