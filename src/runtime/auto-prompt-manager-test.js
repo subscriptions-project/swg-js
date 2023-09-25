@@ -799,6 +799,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: undefined,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
     expect(subscriptionPromptFnSpy).to.not.be.called;
   });
@@ -838,7 +840,8 @@ describes.realWin('AutoPromptManager', (env) => {
         },
       })
       .once();
-    const clientConfig = new ClientConfig({});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .returns(clientConfig)
@@ -849,7 +852,43 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
+  });
+
+  it('should not display any prompt if canDisplayAutoPrompt is false', async () => {
+    const entitlements = new Entitlements();
+    entitlementsManagerMock
+      .expects('getEntitlements')
+      .resolves(entitlements)
+      .once();
+    entitlementsManagerMock
+      .expects('getArticle')
+      .resolves({
+        audienceActions: {
+          actions: [CONTRIBUTION_INTERVENTION],
+          engineId: '123',
+        },
+      })
+      .once();
+    const autoPromptConfig = new AutoPromptConfig({});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ false);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(clientConfig)
+      .once();
+    miniPromptApiMock.expects('create').never();
+
+    await autoPromptManager.showAutoPrompt({
+      // autoPromptType value not provided
+      alwaysShow: false,
+    });
+    await tick(10);
+
+    expect(contributionPromptFnSpy).to.not.be.called;
+    expect(subscriptionPromptFnSpy).to.not.be.called;
   });
 
   it('should display the mini prompt if the user has no entitlements and auto prompt config does not cap impressions', async () => {
@@ -868,7 +907,8 @@ describes.realWin('AutoPromptManager', (env) => {
       })
       .once();
     const autoPromptConfig = new AutoPromptConfig({});
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -879,6 +919,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -890,7 +932,8 @@ describes.realWin('AutoPromptManager', (env) => {
       .once();
     entitlementsManagerMock.expects('getArticle').resolves(null).once();
     const autoPromptConfig = new AutoPromptConfig({});
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -901,6 +944,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -912,7 +957,8 @@ describes.realWin('AutoPromptManager', (env) => {
       .once();
     entitlementsManagerMock.expects('getArticle').resolves({}).once();
     const autoPromptConfig = new AutoPromptConfig({});
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -923,6 +969,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -945,7 +993,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -964,6 +1013,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -986,7 +1037,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1012,6 +1064,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1034,7 +1088,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1057,6 +1112,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1080,7 +1137,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 5,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1098,6 +1156,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1120,7 +1180,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1140,7 +1201,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
       alwaysShow: false,
     });
-    await tick(8);
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
@@ -1163,7 +1225,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1188,6 +1251,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1215,7 +1280,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1235,6 +1301,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1262,7 +1330,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1287,6 +1356,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1314,7 +1385,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxDismissalsPerWeek: 1,
       maxImpressions: 2,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1339,6 +1411,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1366,7 +1440,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1386,6 +1461,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1413,7 +1490,8 @@ describes.realWin('AutoPromptManager', (env) => {
       maxImpressions: 2,
       maxImpressionsResultingHideSeconds: 10,
     });
-    const clientConfig = new ClientConfig({autoPromptConfig});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1438,7 +1516,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
-    await tick(8);
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1457,7 +1536,9 @@ describes.realWin('AutoPromptManager', (env) => {
         },
       })
       .once();
-    const clientConfig = new ClientConfig({});
+    const autoPromptConfig = new AutoPromptConfig({});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1468,7 +1549,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       alwaysShow: false,
     });
-    await tick(8);
+    await tick(10);
+
     expect(subscriptionPromptFnSpy).to.not.be.called;
   });
 
@@ -1479,7 +1561,9 @@ describes.realWin('AutoPromptManager', (env) => {
       .resolves(entitlements)
       .once();
     entitlementsManagerMock.expects('getArticle').resolves({}).once();
-    const clientConfig = new ClientConfig({});
+    const autoPromptConfig = new AutoPromptConfig({});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1490,7 +1574,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       alwaysShow: false,
     });
-    await tick(8);
+    await tick(10);
+
     expect(subscriptionPromptFnSpy).to.not.be.called;
   });
 
@@ -1529,7 +1614,8 @@ describes.realWin('AutoPromptManager', (env) => {
         maxImpressions: 2,
         maxImpressionsResultingHideSeconds: 10,
       });
-      const clientConfig = new ClientConfig({autoPromptConfig});
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
       clientConfigManagerMock
         .expects('getClientConfig')
         .resolves(clientConfig)
@@ -1539,7 +1625,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType,
         alwaysShow: false,
       });
-      await tick(7);
+      await tick(10);
 
       expect(
         autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
@@ -1566,7 +1652,9 @@ describes.realWin('AutoPromptManager', (env) => {
         },
       })
       .once();
-    const clientConfig = new ClientConfig({});
+    const autoPromptConfig = new AutoPromptConfig({});
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1577,6 +1665,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1597,14 +1687,8 @@ describes.realWin('AutoPromptManager', (env) => {
       })
       .once();
     const autoPromptConfig = new AutoPromptConfig({});
-    const uiPredicates = new UiPredicates(
-      /* canDisplayAutoPrompt */ true,
-      /* canDisplayButton */ true
-    );
-    const clientConfig = new ClientConfig({
-      autoPromptConfig,
-      uiPredicates,
-    });
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    const clientConfig = new ClientConfig({autoPromptConfig, uiPredicates});
     clientConfigManagerMock
       .expects('getClientConfig')
       .resolves(clientConfig)
@@ -1615,8 +1699,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
 
-    await tick(5);
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
@@ -1649,10 +1733,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       const autoPromptConfig = new AutoPromptConfig({});
-      const uiPredicates = new UiPredicates(
-        /* canDisplayAutoPrompt */ true,
-        /* canDisplayButton */ true
-      );
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
         useUpdatedOfferFlows: true,
@@ -1669,7 +1750,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType,
         alwaysShow: false,
       });
-      await tick(7);
+      await tick(10);
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
@@ -1695,10 +1776,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .once();
 
     const autoPromptConfig = new AutoPromptConfig({});
-    const uiPredicates = new UiPredicates(
-      /* canDisplayAutoPrompt */ true,
-      /* canDisplayButton */ true
-    );
+    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
     const clientConfig = new ClientConfig({
       autoPromptConfig,
       useUpdatedOfferFlows: true,
@@ -1714,6 +1792,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: false,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.not.be.called;
   });
 
@@ -1735,6 +1815,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: true,
     });
+    await tick(10);
+
     expect(logEventSpy).to.be.calledOnceWith(expectedEvent);
   });
 
@@ -1747,6 +1829,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: true,
     });
+    await tick(10);
+
     expect(contributionPromptFnSpy).to.be.calledOnce;
   });
 
@@ -1759,6 +1843,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       alwaysShow: true,
     });
+    await tick(10);
+
     expect(subscriptionPromptFnSpy).to.be.calledOnce;
   });
 
@@ -1780,6 +1866,8 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       alwaysShow: true,
     });
+    await tick(10);
+
     logEventSpy.should.not.have.been.calledWith(expectedEvent);
     expect(contributionPromptFnSpy).to.not.be.called;
   });
@@ -1803,10 +1891,7 @@ describes.realWin('AutoPromptManager', (env) => {
         maxImpressions: 2,
         maxImpressionsResultingHideSeconds: 10,
       });
-      const uiPredicates = new UiPredicates(
-        /* canDisplayAutoPrompt */ true,
-        /* canDisplayButton */ true
-      );
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
         useUpdatedOfferFlows: true,

@@ -229,6 +229,10 @@ export class AutoPromptManager {
       return;
     }
 
+    if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
+      return;
+    }
+
     // Article response is honored over code snippet in case of conflict, such
     // as when publisher changes revenue model but does not update snippet.
     const autoPromptType = this.getAutoPromptType_(
