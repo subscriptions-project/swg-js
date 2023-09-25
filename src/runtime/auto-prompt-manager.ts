@@ -273,24 +273,52 @@ export class AutoPromptManager {
         clientConfig.autoPromptConfig
       ));
 
-    let potentialAction: Intervention | void;
-
     // Frequency Capping Flow
     if (this.promptFrequencyCappingEnabled_) {
-      potentialAction = await this.getPotentialAction_({
+      const potentialAction = await this.getPotentialAction_({
         autoPromptType,
         article,
         frequencyCapConfig: clientConfig.autoPromptConfig?.frequencyCapConfig,
       });
-    } else {
-      potentialAction = await this.getAction_({
-        article,
-        autoPromptType,
-        dismissedPrompts,
-        canDisplayMonetizationPrompt,
-        shouldShowMonetizationPromptAsSoftPaywall,
-      });
+
+      const promptFn = this.isMonetizationAction_(potentialAction?.type)
+        ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
+        : potentialAction
+        ? this.audienceActionPrompt_({
+            actionType: potentialAction.type,
+            configurationId: potentialAction.configurationId,
+            autoPromptType,
+            isClosable,
+          })
+        : undefined;
+
+      if (!promptFn) {
+        return;
+      }
+
+      // Add display delay to dismissible prompts.
+      const displayDelayMs = isClosable
+        ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
+            ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS
+        : 0;
+
+      if (this.isMonetizationAction_(potentialAction?.type)) {
+        this.deps_.win().setTimeout(() => {
+          this.showPrompt_(autoPromptType, promptFn);
+        }, displayDelayMs);
+        return;
+      }
+      this.deps_.win().setTimeout(promptFn, displayDelayMs);
+      return;
     }
+
+    const potentialAction = await this.getAction_({
+      article,
+      autoPromptType,
+      dismissedPrompts,
+      canDisplayMonetizationPrompt,
+      shouldShowMonetizationPromptAsSoftPaywall,
+    });
 
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
       ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
@@ -308,31 +336,18 @@ export class AutoPromptManager {
         /* hasPotentialAudienceAction */ potentialAction
       ) && !!promptFn;
     if (
-      !this.promptFrequencyCappingEnabled_ &&
       !shouldShowMonetizationPromptAsSoftPaywall &&
       !shouldShowBlockingPrompt
     ) {
       return;
     }
 
-    let displayDelayMs = 0;
-    if (this.promptFrequencyCappingEnabled_) {
-      if (this.isActionPromptWithDelay_(potentialAction?.type)) {
-        displayDelayMs =
-          (clientConfig?.autoPromptConfig?.clientDisplayTrigger
-            ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
-      }
-    } else {
-      displayDelayMs =
-        (clientConfig?.autoPromptConfig?.clientDisplayTrigger
-          ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
-    }
+    const displayDelayMs =
+      (clientConfig?.autoPromptConfig?.clientDisplayTrigger
+        ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS;
 
-    // Check to display as softpaywall does not apply for frequency capping
-    // flow.
     if (
-      (this.promptFrequencyCappingEnabled_ ||
-        shouldShowMonetizationPromptAsSoftPaywall) &&
+      shouldShowMonetizationPromptAsSoftPaywall &&
       this.isMonetizationAction_(potentialAction?.type)
     ) {
       this.deps_.win().setTimeout(() => {
@@ -632,7 +647,8 @@ export class AutoPromptManager {
     );
 
     // FrequencyCapConfig may be undefined ONLY for subscription openacess
-    // content. If so, display first valid action.
+    // content. If so, display first valid action. TODO: add error event for
+    // missing frequency cap config.
     if (
       this.isSubscription_(autoPromptType) ||
       !this.isValidFrequencyCap_(frequencyCapConfig)

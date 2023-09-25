@@ -2971,7 +2971,7 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = false;
     });
 
-    it('should execute the legacy frequency cap flow if there is no frequency cap config', async () => {
+    it('should show the first prompt if there is no frequency cap config', async () => {
       autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
         numImpressionsBetweenPrompts: 2,
@@ -2996,9 +2996,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await tick(10);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
-      expect(
-        autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
-      ).to.equal(true);
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
 
