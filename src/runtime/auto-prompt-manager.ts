@@ -273,12 +273,17 @@ export class AutoPromptManager {
         clientConfig.autoPromptConfig
       ));
 
+    const frequencyCapConfig =
+      clientConfig.autoPromptConfig?.frequencyCapConfig;
     // Frequency Capping Flow
-    if (this.promptFrequencyCappingEnabled_) {
+    if (
+      this.promptFrequencyCappingEnabled_ &&
+      this.isValidFrequencyCap_(frequencyCapConfig)
+    ) {
       const potentialAction = await this.getPotentialAction_({
         autoPromptType,
         article,
-        frequencyCapConfig: clientConfig.autoPromptConfig?.frequencyCapConfig,
+        frequencyCapConfig,
       });
 
       const promptFn = this.isMonetizationAction_(potentialAction?.type)
