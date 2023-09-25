@@ -810,26 +810,15 @@ export class AutoPromptManager {
 
   /**
    * Determines whether the given prompt type is an action prompt type with
-   * display delay. Under the legacy flow, this function is only used to
-   * determine the delay for non-monetization prompt. Under the frequency
-   * capping experiment, this is expanded to also provide the delay for
-   * monetization prompts.
+   * display delay.
    */
   private isActionPromptWithDelay_(
     potentialActionPromptType?: string
   ): boolean {
-    const isDelayedSurvey =
+    return (
       !this.pageConfig_.isLocked() &&
-      potentialActionPromptType === TYPE_REWARDED_SURVEY;
-
-    // Delayed properties for frequency capping flow, applies to contribution
-    // prompts and subscription prompts on unlocked content.
-    const isDelayedMonetizationPrompt =
-      this.frequencyCappingLocalStorageEnabled_ &&
-      this.isMonetizationAction_(potentialActionPromptType) &&
-      (potentialActionPromptType === TYPE_CONTRIBUTION ||
-        !this.pageConfig_.isLocked());
-    return isDelayedSurvey || isDelayedMonetizationPrompt;
+      potentialActionPromptType === TYPE_REWARDED_SURVEY
+    );
   }
 
   /**
