@@ -328,4 +328,22 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '找不到會籍',
     'zh-tw': '找不到會員資料',
   },
+  'CLOSE_BUTTON_DESCRIPTION': {
+    'en': 'Close dialog',
+  },
+  'CONTRIBUTE': {
+    'en': 'Contribute',
+  },
+  'SUBSCRIBE': {
+    'en': 'Subscribe',
+  },
+  'ALREADY_A_CONTRIBUTOR': {
+    'en': 'Already a contributor?',
+  },
+  'ALREADY_A_SUBSCRIBER': {
+    'en': 'Already a subscriber?',
+  },
+  'THANKS_FOR_VIEWING_THIS_AD': {
+    'en': 'Thanks for viewing this ad',
+  },
 };

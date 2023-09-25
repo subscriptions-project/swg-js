@@ -224,22 +224,34 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
 
-    // TODO: mhkawano - Provide internationalization.
     // TODO: mhkawnao - Escape user provided strings.
     // TODO: mhkawano - Fetch message and publication name from backend.
     // TODO: mhkawnao - Support priority actions
     // TODO: mhkawnao - Support premonetization
-    const publication = 'The Daily News';
-    const closeHtml = this.params_.isClosable ? CLOSE_BUTTON_HTML : '';
+    const language = this.clientConfigManager_.getLanguage();
+
+    const publication = 'The Daily News'; // publicaition will be a publisher defined string
+    const closeButtonDescription = msg(
+      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
+      language
+    )!;
+    const closeHtml = this.params_.isClosable
+      ? CLOSE_BUTTON_HTML.replace(
+          '$CLOSE_BUTTON_DESCRIPTION$',
+          closeButtonDescription
+        )
+      : '';
     const icon = isContribution ? CONTRIBUTION_ICON : SUBSCRIPTION_ICON;
-    const message = isContribution
+    const message = isContribution // message  will be a publisher defined string
       ? `To support ${publication}, view an ad or contribute`
       : 'To access this article, subscribe or view an ad';
     const viewad = 'View an ad';
-    const support = isContribution ? 'Contribute' : 'Subscribe';
+    const support = isContribution
+      ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
+      : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
     const signin = isContribution
-      ? 'Already a contributor?'
-      : 'Already a subscriber?';
+      ? msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!
+      : msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!;
 
     this.prompt_./*OK*/ innerHTML = REWARDED_AD_HTML.replace(
       '$TITLE$',
@@ -280,7 +292,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private rewardedSlotGranted_() {
-    this.prompt_./*OK*/ innerHTML = REWARDED_AD_THANKS_HTML;
+    const language = this.clientConfigManager_.getLanguage();
+    const closeButtonDescription = msg(
+      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
+      language
+    )!;
+    const thanksMessage = msg(
+      SWG_I18N_STRINGS['THANKS_FOR_VIEWING_THIS_AD'],
+      language
+    )!;
+    this.prompt_./*OK*/ innerHTML = REWARDED_AD_THANKS_HTML.replace(
+      '$CLOSE_BUTTON_DESCRIPTION$',
+      closeButtonDescription
+    ).replace('$THANKS_FOR_VIEWING_THIS_AD$', thanksMessage);
 
     const closeButton = this.prompt_.getElementsByClassName(
       'rewarded-ad-close-button'
