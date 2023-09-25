@@ -83,6 +83,7 @@ const CLOSE_BUTTON_CSS = css`
 `;
 
 export const CLOSE_BUTTON_HTML = html`<button
+  aria-label="$CLOSE_BUTTON_DESCRIPTION$"
   class="rewarded-ad-close-button"
 ></button>`;
 
@@ -387,7 +388,7 @@ export const REWARDED_AD_THANKS_HTML = html`
   <div class="rewarded-ad-prompt">
     <div class="rewarded-ad-thanks-container">
       <div class="rewarded-ad-thanks-icon"></div>
-      <div class="rewarded-ad-thanks-message">Thanks for viewing this ad</div>
+      <div class="rewarded-ad-thanks-message">$THANKS_FOR_VIEWING_THIS_AD$</div>
       ${CLOSE_BUTTON_HTML}
       <div></div>
     </div>
