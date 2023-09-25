@@ -512,6 +512,11 @@ export interface OffersRequest {
    * upgrade or downgrade their current subscription.
    */
   oldSku?: string;
+
+  /**
+   * Optional. Determines if the graypane fades in.
+   */
+  shouldNotFadeBody?: boolean;
 }
 
 export interface LoginRequest {

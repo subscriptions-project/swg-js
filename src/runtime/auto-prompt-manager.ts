@@ -163,7 +163,8 @@ export class AutoPromptManager {
         this.getPromptTypeToDisplay_(params.autoPromptType),
         this.getMonetizationPromptFn_(
           params.autoPromptType,
-          params.isClosable ?? !this.isSubscription_(params.autoPromptType)
+          params.isClosable ?? !this.isSubscription_(params.autoPromptType),
+          /* shouldNotFadeBody */ false
         )
       );
       return;
@@ -262,7 +263,11 @@ export class AutoPromptManager {
     });
 
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
-      ? this.getMonetizationPromptFn_(autoPromptType, isClosable)
+      ? this.getMonetizationPromptFn_(
+          autoPromptType,
+          isClosable,
+          /* shouldNotFadeBody */ false
+        )
       : potentialAction
       ? this.audienceActionPrompt_({
           actionType: potentialAction.type,
@@ -329,9 +334,10 @@ export class AutoPromptManager {
    */
   private getMonetizationPromptFn_(
     autoPromptType: AutoPromptType | undefined,
-    isClosable: boolean
+    isClosable: boolean,
+    shouldNotFadeBody: boolean
   ): (() => void) | undefined {
-    const options: OffersRequest = {isClosable};
+    const options: OffersRequest = {isClosable, shouldNotFadeBody};
     if (this.isSubscription_(autoPromptType)) {
       return () => {
         this.configuredRuntime_.showOffers(options);
@@ -601,7 +607,8 @@ export class AutoPromptManager {
               isClosable,
               monetizationFunction: this.getMonetizationPromptFn_(
                 autoPromptType,
-                !!isClosable
+                !!isClosable,
+                /* shouldNotFadeBody */ true
               ),
             })
           : new AudienceActionIframeFlow(this.deps_, {

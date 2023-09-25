@@ -141,7 +141,7 @@ export class OffersFlow {
       this.activityPorts_,
       this.getUrl_(clientConfig, this.deps_.pageConfig()),
       args as {[key: string]: string},
-      /* shouldFadeBody */ true
+      /* shouldFadeBody */ !args.shouldNotFadeBody
     );
   }
 
