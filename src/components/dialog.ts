@@ -136,8 +136,9 @@ export class Dialog {
     const desktopDialogConfig = dialogConfig.desktopConfig || {};
     const supportsWideScreen = !!desktopDialogConfig.supportsWideScreen;
 
-    const defaultIframeCssClass = `swg-dialog ${supportsWideScreen ? 'swg-wide-dialog' : ''
-      }`;
+    const defaultIframeCssClass = `swg-dialog ${
+      supportsWideScreen ? 'swg-wide-dialog' : ''
+    }`;
     const iframeCssClass =
       dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
 
@@ -474,8 +475,9 @@ export class Dialog {
             'height': `${newHeight}px`,
           };
           if (!this.shouldPositionCenter_()) {
-            immediateStyles['transform'] = `translateY(${newHeight - oldHeight
-              }px)`;
+            immediateStyles['transform'] = `translateY(${
+              newHeight - oldHeight
+            }px)`;
           }
           setImportantStyles(this.getElement(), immediateStyles);
 
@@ -497,15 +499,15 @@ export class Dialog {
           const transitionPromise = isStale()
             ? Promise.resolve()
             : transition(
-              this.getElement(),
-              {
-                'transform': this.shouldPositionCenter_()
-                  ? this.getDefaultTranslateY_()
-                  : `translateY(${oldHeight - newHeight}px)`,
-              },
-              300,
-              'ease-out'
-            );
+                this.getElement(),
+                {
+                  'transform': this.shouldPositionCenter_()
+                    ? this.getDefaultTranslateY_()
+                    : `translateY(${oldHeight - newHeight}px)`,
+                },
+                300,
+                'ease-out'
+              );
 
           await transitionPromise;
 
