@@ -637,7 +637,7 @@ export class AutoPromptManager {
     frequencyCapConfig: FrequencyCapConfig | undefined;
   }): Promise<Intervention | void> {
     let actions = article.audienceActions?.actions;
-    if (!actions) {
+    if (!actions || actions.length === 0) {
       return;
     }
 
