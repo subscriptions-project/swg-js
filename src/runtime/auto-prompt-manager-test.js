@@ -1634,7 +1634,7 @@ describes.realWin('AutoPromptManager', (env) => {
     miniPromptApiMock.expects('create').never();
 
     await autoPromptManager.showAutoPrompt({
-      autoPromptType: AutoPromptType.CONTRIBUTION,
+      autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
       alwaysShow: false,
     });
 
@@ -3552,14 +3552,6 @@ describes.realWin('AutoPromptManager', (env) => {
         CONTRIBUTION_INTERVENTION,
       ]);
       expect(isSurveyEligible).to.equal(false);
-    });
-
-    it('isActionPromptWithDelay_ returns true for a subscription action on unlocked content with the frequency cap experiment enabled', async () => {
-      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
-      sandbox.stub(pageConfig, 'isLocked').returns(false);
-      const isActionPromptWithDelay =
-        autoPromptManager.isActionPromptWithDelay_('TYPE_SUBSCRIPTION');
-      expect(isActionPromptWithDelay).to.equal(true);
     });
   });
 
