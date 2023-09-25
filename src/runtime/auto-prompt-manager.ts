@@ -306,9 +306,9 @@ export class AutoPromptManager {
         this.deps_.win().setTimeout(() => {
           this.showPrompt_(autoPromptType, promptFn);
         }, displayDelayMs);
-        return;
+      } else {
+        this.deps_.win().setTimeout(promptFn, displayDelayMs);
       }
-      this.deps_.win().setTimeout(promptFn, displayDelayMs);
       return;
     }
 
