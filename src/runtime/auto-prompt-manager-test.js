@@ -3344,6 +3344,33 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
     });
 
+    it('should show the contribution as a mini prompt', async () => {
+      setupPreviousImpressionAndDismissals(storageMock, {
+        dismissedPromptGetCallCount: 1,
+        getUserToken: true,
+      });
+      expectFrequencyCappingGlobalImpressions(storageMock);
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          ImpressionStorageKeys.CONTRIBUTION,
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: false,
+      });
+      await tick(1000);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
     it('should show the first nondismissible prompt for metered flow', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       getArticleExpectation
