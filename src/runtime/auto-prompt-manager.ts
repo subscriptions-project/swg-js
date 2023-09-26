@@ -1036,10 +1036,7 @@ export class AutoPromptManager {
    * error timestamps.
    */
   private async isSurveyEligible_(actions: Intervention[]): Promise<boolean> {
-    if (
-      actions.filter((action) => action.type === TYPE_REWARDED_SURVEY)
-        .length === 0
-    ) {
+    if (!actions.find((action) => action.type === TYPE_REWARDED_SURVEY)) {
       return false;
     }
 
