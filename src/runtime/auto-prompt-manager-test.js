@@ -3061,7 +3061,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
@@ -3093,7 +3093,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(15);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
@@ -3116,7 +3116,7 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(10);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -3157,7 +3157,7 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(10);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -3199,7 +3199,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -3249,7 +3249,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -3306,7 +3306,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(30);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -3364,7 +3364,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(10);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -3396,7 +3396,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: false,
       });
-      await tick(1000);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -3434,7 +3434,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(1000);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
@@ -3482,7 +3482,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: false,
         isClosable: true,
       });
-      await tick(1000);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
@@ -3645,7 +3645,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: 'unknown',
         alwaysShow: false,
       });
-      await tick(1000);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
