@@ -3033,7 +3033,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(10);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -3116,8 +3116,17 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(10);
+      await tick(20);
 
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+        },
+        timestamp: sandbox.match.number,
+      });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -3157,8 +3166,17 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(10);
+      await tick(20);
 
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+        },
+        timestamp: sandbox.match.number,
+      });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -3201,6 +3219,16 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
 
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+          actionType: 'TYPE_CONTRIBUTION',
+        },
+        timestamp: sandbox.match.number,
+      });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.have.been.calledOnce;
@@ -3251,6 +3279,16 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
 
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+          actionType: 'TYPE_CONTRIBUTION',
+        },
+        timestamp: sandbox.match.number,
+      });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.have.been.calledOnce;
@@ -3308,6 +3346,26 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(30);
 
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+          actionType: 'TYPE_CONTRIBUTION',
+        },
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+          actionType: 'TYPE_REWARDED_SURVEY',
+        },
+        timestamp: sandbox.match.number,
+      });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.have.been.calledOnce;
@@ -3364,8 +3422,38 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(10);
+      await tick(20);
 
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+          actionType: 'TYPE_CONTRIBUTION',
+        },
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+          actionType: 'TYPE_REWARDED_SURVEY',
+        },
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+          actionType: 'TYPE_NEWSLETTER_SIGNUP',
+        },
+        timestamp: sandbox.match.number,
+      });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -3723,10 +3811,21 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isFrequencyCapped).to.equal(false);
     });
 
-    it('getActionImpressions_ should return empty timestamps if an action type does not map to the storage key', async () => {
+    it('getActionImpressions_ should return empty timestamps and log error event if an action type does not map to the storage key', async () => {
       const impressions = await autoPromptManager.getActionImpressions_(
         'undefined'
       );
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType:
+          AnalyticsEvent.EVENT_ACTION_IMPRESSIONS_STORAGE_KEY_NOT_FOUND_ERROR,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+          actionType: 'undefined',
+        },
+        timestamp: sandbox.match.number,
+      });
       expect(impressions.length).to.equal(0);
     });
 
@@ -3749,6 +3848,26 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
+    });
+
+    it('getPotentialAction_ returns the first action and logs error event for contribution flow with no frequencyCapConfig', async () => {
+      const action = await autoPromptManager.getPotentialAction_({
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        article: {audienceActions: {actions: [CONTRIBUTION_INTERVENTION]}},
+        frequencyCapConfig: {},
+      });
+      await tick(10);
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: {
+          publicationid: pubId,
+        },
+        timestamp: sandbox.match.number,
+      });
+      expect(action).to.equal(CONTRIBUTION_INTERVENTION);
     });
   });
 
