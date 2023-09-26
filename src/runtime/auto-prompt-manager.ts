@@ -689,14 +689,9 @@ export class AutoPromptManager {
       !this.isValidFrequencyCap_(frequencyCapConfig)
     ) {
       if (!this.isSubscription_(autoPromptType)) {
-        this.eventManager_.logEvent({
-          eventType: AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: {
-            publicationid: this.pageConfig_.getPublicationId(),
-          },
-        });
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
+        );
       }
       return actions[0];
     }
@@ -708,14 +703,9 @@ export class AutoPromptManager {
       if (
         this.isFrequencyCapped_(globalFrequencyCapDuration!, globalImpressions)
       ) {
-        this.eventManager_.logEvent({
-          eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: {
-            publicationid: this.pageConfig_.getPublicationId(),
-          },
-        });
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
+        );
         return;
       }
     }
@@ -726,15 +716,9 @@ export class AutoPromptManager {
       if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
         const impressions = await this.getActionImpressions_(action.type);
         if (this.isFrequencyCapped_(frequencyCapDuration!, impressions)) {
-          this.eventManager_.logEvent({
-            eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
-            eventOriginator: EventOriginator.SWG_CLIENT,
-            isFromUserAction: false,
-            additionalParameters: {
-              publicationid: this.pageConfig_.getPublicationId(),
-              actionType: action.type,
-            },
-          });
+          this.eventManager_.logSwgEvent(
+            AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
+          );
           continue;
         }
       }
@@ -1023,16 +1007,9 @@ export class AutoPromptManager {
    */
   private async getActionImpressions_(actionType: string): Promise<number[]> {
     if (!ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.has(actionType)) {
-      this.eventManager_.logEvent({
-        eventType:
-          AnalyticsEvent.EVENT_ACTION_IMPRESSIONS_STORAGE_KEY_NOT_FOUND_ERROR,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: {
-          publicationid: this.pageConfig_.getPublicationId(),
-          actionType,
-        },
-      });
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_ACTION_IMPRESSIONS_STORAGE_KEY_NOT_FOUND_ERROR
+      );
       return [];
     }
 

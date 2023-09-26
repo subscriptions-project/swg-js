@@ -3122,9 +3122,7 @@ describes.realWin('AutoPromptManager', (env) => {
         eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
@@ -3172,9 +3170,7 @@ describes.realWin('AutoPromptManager', (env) => {
         eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
@@ -3223,10 +3219,7 @@ describes.realWin('AutoPromptManager', (env) => {
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-          actionType: 'TYPE_CONTRIBUTION',
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
@@ -3283,10 +3276,7 @@ describes.realWin('AutoPromptManager', (env) => {
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-          actionType: 'TYPE_CONTRIBUTION',
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
@@ -3350,20 +3340,14 @@ describes.realWin('AutoPromptManager', (env) => {
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-          actionType: 'TYPE_CONTRIBUTION',
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-          actionType: 'TYPE_REWARDED_SURVEY',
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
@@ -3428,30 +3412,21 @@ describes.realWin('AutoPromptManager', (env) => {
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-          actionType: 'TYPE_CONTRIBUTION',
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-          actionType: 'TYPE_REWARDED_SURVEY',
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-          actionType: 'TYPE_NEWSLETTER_SIGNUP',
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
@@ -3820,10 +3795,7 @@ describes.realWin('AutoPromptManager', (env) => {
           AnalyticsEvent.EVENT_ACTION_IMPRESSIONS_STORAGE_KEY_NOT_FOUND_ERROR,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-          actionType: 'undefined',
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(impressions.length).to.equal(0);
@@ -3862,9 +3834,7 @@ describes.realWin('AutoPromptManager', (env) => {
         eventType: AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
-        additionalParameters: {
-          publicationid: pubId,
-        },
+        additionalParameters: null,
         timestamp: sandbox.match.number,
       });
       expect(action).to.equal(CONTRIBUTION_INTERVENTION);
