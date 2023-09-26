@@ -262,9 +262,13 @@ export class AutoPromptManager {
     const isClosable =
       params.isClosable ?? !this.isSubscription_(autoPromptType);
 
+    // ** New Triggering Flow - Prompt Frequency Cap Experiment **
+    // Guarded by experiment flag and presence of FrequencyCapConfig. Frequency
+    // cap flow utilizes config and impressions to determine next action.
+    // Metered flow strictly follows prompt order, with subscription last.
+    // Display delay is applied to all dismissible prompts.
     const frequencyCapConfig =
       clientConfig.autoPromptConfig?.frequencyCapConfig;
-    // New Triggering Flow
     if (
       this.promptFrequencyCappingEnabled_ &&
       this.isValidFrequencyCap_(frequencyCapConfig)
@@ -301,7 +305,8 @@ export class AutoPromptManager {
       this.deps_.win().setTimeout(promptFn, displayDelayMs);
       return;
     }
-    // Legacy Triggering Flow
+    // Legacy Triggering Flow, to be deprecated after Prompt Frequency Cap
+    // flow is fully launched.
     const canDisplayMonetizationPrompt = this.canDisplayMonetizationPrompt(
       article?.audienceActions?.actions
     );
