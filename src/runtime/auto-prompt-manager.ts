@@ -845,8 +845,7 @@ export class AutoPromptManager {
   }
 
   /**
-   * Determines whether the given prompt type is an action prompt type with
-   * display delay.
+   * Determines whether the given prompt type is an action prompt type with display delay.
    */
   private isActionPromptWithDelay_(
     potentialActionPromptType?: string
