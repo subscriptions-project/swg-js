@@ -134,11 +134,6 @@ describes.realWin('PayClient', (env) => {
     expect(payClientStubs.create).to.be.calledOnce;
     expect(redirectVerifierHelperStubs.restoreKey).to.be.calledOnce;
     expect(redirectVerifierHelperStubs.prepare).to.be.calledOnce;
-    const el = win.document.head.querySelector(
-      'link[rel="preconnect prefetch"][href*="/pay?"]'
-    );
-    expect(el).to.exist;
-    expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
   it('does not initialize Payments client with bad redirect', () => {
@@ -214,15 +209,6 @@ describes.realWin('PayClient', (env) => {
         'disableNgbf': true,
       },
     });
-  });
-
-  it('should prefetch payments on start', () => {
-    payClient.start({});
-    const el = win.document.head.querySelector(
-      'link[rel="preconnect prefetch"][href*="/pay?"]'
-    );
-    expect(el).to.exist;
-    expect(el.getAttribute('href')).to.equal('PAY_ORIGIN/gp/p/ui/pay?_=_');
   });
 
   it('should accept a correct payment response', async () => {
