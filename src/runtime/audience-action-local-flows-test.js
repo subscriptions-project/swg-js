@@ -78,6 +78,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       let pubadsobj;
       let eventListeners;
       let readyEventArg;
+      let configResponse;
 
       beforeEach(() => {
         rewardedSlot = {
@@ -101,12 +102,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           display: () => {},
           destroySlots: sandbox.spy(),
         };
+        configResponse = new Response(null, {status: 200});
       });
 
       async function renderAndAssertRewardedAd(params, config) {
-        const response = new Response(null, {status: 200});
-        response.text = sandbox.stub().returns(Promise.resolve(config));
-        env.win.fetch = sandbox.stub().returns(Promise.resolve(response));
+        configResponse.text = sandbox.stub().returns(Promise.resolve(config));
+        env.win.fetch = sandbox.stub().returns(Promise.resolve(configResponse));
 
         const flow = new AudienceActionLocalFlow(
           runtime,
@@ -269,6 +270,21 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(loginSpy).to.be.calledOnce.calledWithExactly({
           linkRequested: false,
         });
+      });
+
+      it('fails to render with config fetch failure', async () => {
+        configResponse = new Response(null, {status: 404});
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG
+        );
+
+        // Manually invoke the command for gpt.js.
+        expect(env.win.googletag.cmd[0]).to.not.be.null;
+        env.win.googletag.cmd[0]();
+
+        const errorPrompt = state.wrapper.shadowRoot.querySelector('.prompt');
+        expect(errorPrompt.innerHTML).contains('Something went wrong.');
       });
 
       it('fails to render with bad config', async () => {

@@ -157,7 +157,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private initRewardedAdWall_(config: AudienceActionConfig | null): boolean {
     const validRewardedAdParams =
-      config!.rewardedAdParameters?.adunit &&
+      config?.rewardedAdParameters?.adunit &&
       config?.rewardedAdParameters?.customMessage &&
       config?.publication?.name;
 
