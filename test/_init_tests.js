@@ -17,7 +17,6 @@
 // This must load before all other tests.
 import * as describes from '../test/describes';
 import {MODES} from '../src/runtime/services';
-import {PAY_ORIGIN} from '../src/runtime/pay-client';
 import stringify from 'json-stable-stringify';
 
 // All exposed describes.
@@ -27,7 +26,6 @@ beforeEach(function () {
   this.timeout(5000);
   window.TEST = true;
   MODES.default['feCache'] = 'zero';
-  PAY_ORIGIN['TEST'] = 'PAY_ORIGIN';
 });
 
 // Global cleanup of tags added during tests. Cool to add more
