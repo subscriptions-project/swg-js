@@ -76,13 +76,15 @@ const resetViewStyles = {
  *       default classes such as swg-dialog.
  * - shouldDisableBodyScrolling: Whether to disable scrolling on the content page
  *       when the dialog is visible.
+ * - closeOnBackgroundClick: Whether the dialog should be dismissed if the gray
+ *                           background is clicked.
  */
 export interface DialogConfig {
   desktopConfig?: DesktopDialogConfig;
   maxAllowedHeightRatio?: number;
   iframeCssClassOverride?: string;
   shouldDisableBodyScrolling?: boolean;
-  isClosable?: boolean;
+  closeOnBackgroundClick?: boolean;
 }
 
 /**
@@ -113,7 +115,7 @@ export class Dialog {
   /** Helps identify stale animations. */
   private animationNumber_: number;
   private hidden_: boolean;
-  private isClosable_: boolean;
+  private closeOnBackgroundClick_: boolean;
   private previousProgressView_: View | null;
   private maxAllowedHeightRatio_: number;
   private positionCenterOnDesktop_: boolean;
@@ -150,12 +152,12 @@ export class Dialog {
 
     // Avoid modifying the behavior of existing callers by only registering
     // the click event if isClosable is set.
-    if (dialogConfig.isClosable !== undefined) {
+    if (dialogConfig.closeOnBackgroundClick !== undefined) {
       this.graypane_
         .getElement()
         .addEventListener('click', this.onGrayPaneClick_.bind(this));
     }
-    this.isClosable_ = !!dialogConfig.isClosable;
+    this.closeOnBackgroundClick_ = !!dialogConfig.closeOnBackgroundClick;
 
     const modifiedImportantStyles = Object.assign(
       {},
@@ -434,8 +436,9 @@ export class Dialog {
   }
 
   /** Supresses click events, unless the window is closable. */
-  onGrayPaneClick_() {
-    if (this.isClosable_) {
+  private onGrayPaneClick_(event: Event) {
+    event.stopPropagation();
+    if (this.closeOnBackgroundClick_) {
       this.close();
     }
     return false;

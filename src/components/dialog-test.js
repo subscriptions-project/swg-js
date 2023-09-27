@@ -412,47 +412,49 @@ describes.realWin('Dialog', (env) => {
     });
 
     describe('fade background', () => {
-      it('should not register click event by default', async () => {
-        const old = Dialog.prototype.onGrayPaneClick_;
+      it('should not suppress click events by default', async () => {
         let wasClicked = false;
-        Dialog.prototype.onGrayPaneClick_ = function () {
+        const clickFun = function () {
           wasClicked = true;
         };
-
-        dialog = new Dialog(globalDoc, {});
+        dialog = new Dialog(globalDoc);
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
-
+        doc.body.addEventListener('click', clickFun);
         el.click();
 
-        expect(wasClicked).to.be.false;
-
-        Dialog.prototype.onGrayPaneClick_ = old;
+        expect(wasClicked).to.be.true;
       });
 
-      it('should register click event', async () => {
-        const old = Dialog.prototype.onGrayPaneClick_;
+      it('should suppress event bubbling if not closable', async () => {
         let wasClicked = false;
-        Dialog.prototype.onGrayPaneClick_ = function () {
+        const clickFun = function () {
           wasClicked = true;
         };
-
         dialog = new Dialog(globalDoc, {}, {}, {isClosable: false});
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
-
+        doc.body.addEventListener('click', clickFun);
         el.click();
 
-        expect(wasClicked).to.be.true;
-
-        Dialog.prototype.onGrayPaneClick_ = old;
+        expect(wasClicked).to.be.false;
       });
 
-      it('should have a click event that returns false', async () => {
-        dialog = new Dialog(globalDoc, {});
-        expect(dialog.onGrayPaneClick_()).to.be.false;
+      it('should suppress event bubbling if closable', async () => {
+        let wasClicked = false;
+        const clickFun = function () {
+          wasClicked = true;
+        };
+        dialog = new Dialog(globalDoc, {}, {}, {isClosable: true});
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        doc.body.addEventListener('click', clickFun);
+        el.click();
+
+        expect(wasClicked).to.be.false;
       });
 
       it('respects not closable', async () => {
