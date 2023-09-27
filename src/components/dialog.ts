@@ -435,7 +435,7 @@ export class Dialog {
     this.hidden_ = false;
   }
 
-  /** Supresses click events, unless the window is closable. */
+  /** Suppresses click events and may close the window. */
   private onGrayPaneClick_(event: Event) {
     event.stopPropagation();
     if (this.closeOnBackgroundClick_) {

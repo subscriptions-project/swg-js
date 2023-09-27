@@ -467,6 +467,7 @@ describes.realWin('Dialog', (env) => {
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
+        // This class is added when the screen is opened.
         expect(doc.body).to.have.class('swg-disable-scroll');
 
         el.click();
@@ -485,10 +486,12 @@ describes.realWin('Dialog', (env) => {
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
+        // This class is added when the screen is opened.
         expect(doc.body).to.have.class('swg-disable-scroll');
 
         el.click();
 
+        // This class is removed when the screen is closed.
         expect(doc.body).to.not.have.class('swg-disable-scroll');
       });
     });
