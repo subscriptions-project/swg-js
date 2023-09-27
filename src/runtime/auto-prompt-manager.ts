@@ -244,6 +244,10 @@ export class AutoPromptManager {
       return;
     }
 
+    if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
+      return;
+    }
+
     const hasValidEntitlements = entitlements.enablesThis();
     if (hasValidEntitlements) {
       return;
