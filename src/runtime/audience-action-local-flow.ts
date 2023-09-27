@@ -71,15 +71,15 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly wrapper_: HTMLElement;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
-  private readonly config_: Promise<AudienceActionConfig | null>;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
-  // Resolve function to signal that the ready callback has finished executing.
-  private rewardedResolve_?: (value: boolean) => void;
   // Ad slot used to host the rewarded ad.
   private rewardedSlot_?: googletag.Slot;
-  // Used to render the rewarded ad, returned from the ready callback
+  // Used to render the rewarded ad, returned from the ready callback.
   private makeRewardedVisible_?: () => void;
+  // Used for testing.
+  // @ts-ignore
+  private rewardedTimout_: Promise<boolean> | null = null;
 
   constructor(
     private readonly deps_: Deps,
@@ -90,22 +90,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     this.doc_ = this.deps_.doc().getRootNode();
 
-    this.config_ = this.getConfig_();
+    this.prompt_ = createElement(this.doc_, 'div', {});
 
-    this.prompt_ = this.createPrompt_();
-
-    this.wrapper_ = this.createWrapper_(this.prompt_);
+    this.wrapper_ = this.createWrapper_();
   }
 
-  private createPrompt_(): HTMLElement {
-    if (this.params_.action === TYPE_REWARDED_AD) {
-      return this.renderAndInitRewardedAdWall_();
-    } else {
-      return this.renderErrorView_();
-    }
-  }
-
-  private createWrapper_(prompt: HTMLElement): HTMLElement {
+  private createWrapper_(): HTMLElement {
     const wrapper = createElement(this.doc_, 'div', {
       'class': 'audience-action-local-wrapper',
     });
@@ -129,132 +119,131 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     const shadow = wrapper.attachShadow({mode: 'open'});
 
-    shadow.appendChild(prompt);
+    shadow.appendChild(this.prompt_);
 
     return wrapper;
   }
 
-  private renderErrorView_(): HTMLElement {
-    const prompt = createElement(this.doc_, 'div', {});
-    return this.makeErrorView(prompt);
+  private renderErrorView_() {
+    // TODO: mhkawano - Make closeable.
+    // TODO: mhkawano - Make look nicer.
+    this.prompt_./*OK*/ innerHTML = ERROR_HTML;
   }
 
-  private makeErrorView(prompt: HTMLElement): HTMLElement {
-    prompt./*OK*/ innerHTML = ERROR_HTML;
-    return prompt;
-  }
-
-  private renderAndInitRewardedAdWall_(): HTMLElement {
-    // Setup callback for googletag init.
-    const googletag = this.deps_.win().googletag;
-    googletag.cmd.push(this.initRewardedAdWall_.bind(this));
-
-    const prompt = createElement(this.doc_, 'div', {});
-    setImportantStyles(prompt, {
+  private renderLoadingView_() {
+    setImportantStyles(this.prompt_, {
       'height': '100%',
       'display': 'flex',
       'display-flex-direction': 'column',
     });
-
-    prompt./*OK*/ innerHTML = LOADING_HTML;
-
-    return prompt;
+    this.prompt_./*OK*/ innerHTML = LOADING_HTML;
   }
 
-  private async initRewardedAdWall_() {
-    // TODO: mhkawano - Get action config.
-    // TODO: mhkawano - support premon.
-
-    // Init gpt.js
-    const initGptPromise = new Promise<boolean>(this.initGpt_.bind(this));
-    const initSuccess = await initGptPromise;
-
-    // Replace with error view if init fails.
-    // TODO: mhkawano - Make closeable.
-    if (!initSuccess) {
-      this.makeErrorView(this.prompt_);
+  private async initPrompt_() {
+    if (this.params_.action === TYPE_REWARDED_AD) {
+      const config = await this.getConfig_();
+      // Setup callback for googletag init.
+      const googletag = this.deps_.win().googletag;
+      googletag.cmd.push(() => {
+        const initSuccess = this.initRewardedAdWall_(config);
+        if (!initSuccess) {
+          this.renderErrorView_();
+        }
+      });
+    } else {
+      this.renderErrorView_();
     }
   }
 
-  private async initGpt_(resolve: (result: boolean) => void) {
-    // Save resolve so that it can be called in rewardedSlotReady_.
-    this.rewardedResolve_ = resolve;
+  private initRewardedAdWall_(config: AudienceActionConfig | null): boolean {
+    const validRewardedAdParams =
+      config!.rewardedAdParameters?.adunit &&
+      config?.rewardedAdParameters?.customMessage &&
+      config?.publication?.name;
 
-    const config = await this.config_;
-    const adunit = config?.rewardedAdParameters?.adunit;
-    // TODO: mhkawano - render error view if invalid config
-    // const validRewardedAdParams =
-    //   adunit &&
-    //   config?.rewardedAdParameters?.customMessage &&
-    //   config?.publication?.name;
+    if (!validRewardedAdParams) {
+      return false;
+    }
+
+    const adunit = config!.rewardedAdParameters?.adunit;
     const googletag = this.deps_.win().googletag;
     this.rewardedSlot_ = googletag.defineOutOfPageSlot(
       adunit,
       googletag.enums.OutOfPageFormat.REWARDED
     );
 
-    if (this.rewardedSlot_) {
-      this.rewardedSlot_.addService(googletag.pubads());
-      googletag
-        .pubads()
-        .addEventListener(
-          'rewardedSlotReady',
-          this.rewardedSlotReady_.bind(this)
-        );
-      googletag
-        .pubads()
-        .addEventListener(
-          'rewardedSlotClosed',
-          this.rewardedSlotClosed_.bind(this)
-        );
-      googletag
-        .pubads()
-        .addEventListener(
-          'rewardedSlotGranted',
-          this.rewardedSlotGranted_.bind(this)
-        );
-      googletag.enableServices();
-      googletag.display(this.rewardedSlot_);
-
-      // gpt.js has no way of knowing that an ad unit is invalid besides checking that rewardedSlotReady is called. Error out after 3 seconds of waiting.
-      setTimeout(this.rewardedAdTimeout_.bind(this), this.gptTimeoutMs_);
-    } else {
-      resolve(false);
+    if (!this.rewardedSlot_) {
+      return false;
     }
+
+    this.rewardedSlot_.addService(googletag.pubads());
+    googletag
+      .pubads()
+      .addEventListener(
+        'rewardedSlotReady',
+        (event: googletag.events.RewardedSlotReadyEvent) =>
+          this.rewardedSlotReady_(event, config!)
+      );
+    googletag
+      .pubads()
+      .addEventListener(
+        'rewardedSlotClosed',
+        this.rewardedSlotClosed_.bind(this)
+      );
+    googletag
+      .pubads()
+      .addEventListener(
+        'rewardedSlotGranted',
+        this.rewardedSlotGranted_.bind(this)
+      );
+    googletag.enableServices();
+    googletag.display(this.rewardedSlot_);
+
+    // gpt.js has no way of knowing that an ad unit is invalid besides checking
+    // that rewardedSlotReady is called. Error out after 3 seconds of waiting.
+    this.rewardedTimout_ = new Promise((resolve) => {
+      setTimeout(() => {
+        this.rewardedAdTimeout_(resolve);
+      }, this.gptTimeoutMs_);
+    });
+
+    return true;
   }
 
-  private rewardedAdTimeout_() {
+  private rewardedAdTimeout_(resolve: (value: boolean) => void) {
     if (!this.rewardedReadyCalled_) {
       const googletag = this.deps_.win().googletag;
       googletag.destroySlots([this.rewardedSlot_!]);
-      this.rewardedResolve_!(false);
+      this.renderErrorView_();
+      resolve(true);
       // TODO: mhkawano - Launch payflow if monetized, cancel if not.
     }
+    resolve(false);
   }
 
   /**
-   * When gpt.js is ready to show an ad, we replace the loading view and wire up the buttons.
+   * When gpt.js is ready to show an ad, we replace the loading view and wire up
+   * the buttons.
    */
-  private async rewardedSlotReady_(
-    rewardedAd: googletag.events.RewardedSlotReadyEvent
+  private rewardedSlotReady_(
+    rewardedAd: googletag.events.RewardedSlotReadyEvent,
+    config: AudienceActionConfig
   ) {
     this.rewardedReadyCalled_ = true;
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
-
-    const config = await this.config_;
 
     const isContribution =
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
 
-    // TODO: mhkawnao - Escape user provided strings.
-    // TODO: mhkawano - Fetch message and publication name from backend.
+    // TODO: mhkawnao - Escape user provided strings. For Alpha it will be
+    //                  specified by us so we don't need to do it yet.
     // TODO: mhkawnao - Support priority actions
     // TODO: mhkawnao - Support premonetization
     const language = this.clientConfigManager_.getLanguage();
 
-    // verified existance in initGpt_
-    const publication = config!.publication!.name!;
+    // verified existance in initRewardedAdWall_
+    const publication = config.publication!.name!;
     const closeButtonDescription = msg(
       SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
       language
@@ -266,8 +255,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         )
       : '';
     const icon = isContribution ? CONTRIBUTION_ICON : SUBSCRIPTION_ICON;
-    // verified existance in initGpt_
-    const message = config!.rewardedAdParameters!.customMessage!;
+    // verified existance in initRewardedAdWall_
+    const message = config.rewardedAdParameters!.customMessage!;
     const viewad = 'View an ad';
     const support = isContribution
       ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
@@ -299,8 +288,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
-
-    this.rewardedResolve_!(true);
   }
 
   private rewardedSlotClosed_() {
@@ -356,7 +343,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.params_.monetizationFunction!();
   }
 
-  private async viewRewardedAdWall_() {
+  private viewRewardedAdWall_() {
     const viewButton = this.prompt_.getElementsByClassName(
       'rewarded-ad-view-ad-button'
     );
@@ -440,9 +427,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   async start() {
+    this.renderLoadingView_();
     this.doc_.body.appendChild(this.wrapper_);
     this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(this.wrapper_, {'opacity': '1.0'});
+    await this.initPrompt_();
   }
 
   showNoEntitlementFoundToast() {
