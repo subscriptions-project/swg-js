@@ -244,12 +244,12 @@ export class AutoPromptManager {
       return;
     }
 
-    const hasValidEntitlements = entitlements.enablesThis();
-    if (hasValidEntitlements) {
+    if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
       return;
     }
-
-    if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
+    
+    const hasValidEntitlements = entitlements.enablesThis();
+    if (hasValidEntitlements) {
       return;
     }
 
