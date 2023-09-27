@@ -49,8 +49,22 @@ describes.sandboxed('Entitlements', () => {
 
   it('should test products', () => {
     const list = [
-      new Entitlement('source1', ['product1', 'product2'], 'token1'),
-      new Entitlement('source2', ['product2', 'product3'], 'token2'),
+      new Entitlement(
+        'source1',
+        ['product1', 'product2'],
+        'token1',
+        /* subscriptionTokenContents= */ undefined,
+        /* subscriptionTimestamp= */ null,
+        'userId'
+      ),
+      new Entitlement(
+        'source2',
+        ['product2', 'product3'],
+        'token2',
+        /* subscriptionTokenContents= */ undefined,
+        /* subscriptionTimestamp= */ null,
+        'userId'
+      ),
     ];
     const ents = new Entitlements('service1', 'RaW', list, 'product1', ackSpy);
     expect(ents.enablesAny()).to.be.true;
@@ -103,7 +117,16 @@ describes.sandboxed('Entitlements', () => {
   });
 
   it('should match products by wildcard in entitlement', () => {
-    const list = [new Entitlement('source1', ['pub:*'], 'token1')];
+    const list = [
+      new Entitlement(
+        'source1',
+        ['pub:*'],
+        'token1',
+        /* subscriptionTokenContents= */ undefined,
+        /* subscriptionTimestamp= */ null,
+        'userId'
+      ),
+    ];
     const ents = new Entitlements(
       'service1',
       'RaW',
@@ -130,7 +153,16 @@ describes.sandboxed('Entitlements', () => {
   });
 
   it('should match products by wildcard in product id', () => {
-    const list = [new Entitlement('source1', ['pub:test'], 'token1')];
+    const list = [
+      new Entitlement(
+        'source1',
+        ['pub:test'],
+        'token1',
+        /* subscriptionTokenContents= */ undefined,
+        /* subscriptionTimestamp= */ null,
+        'userId'
+      ),
+    ];
     const ents = new Entitlements('service1', 'RaW', list, 'pub:*', ackSpy);
     expect(ents.enablesAny()).to.be.true;
     expect(ents.enablesThis()).to.be.true;
@@ -151,8 +183,22 @@ describes.sandboxed('Entitlements', () => {
 
   it('should clone', () => {
     const list = [
-      new Entitlement('source1', ['product1', 'product2'], 'token1'),
-      new Entitlement('source2', ['product2', 'product3'], 'token2'),
+      new Entitlement(
+        'source1',
+        ['product1', 'product2'],
+        'token1',
+        /* subscriptionTokenContents= */ undefined,
+        /* subscriptionTimestamp= */ null,
+        'userId1'
+      ),
+      new Entitlement(
+        'source2',
+        ['product2', 'product3'],
+        'token2',
+        /* subscriptionTokenContents= */ undefined,
+        /* subscriptionTimestamp= */ null,
+        'userId2'
+      ),
     ];
     const ents = new Entitlements('service1', 'RaW', list, 'product1', ackSpy);
     const cloned = ents.clone();
@@ -164,11 +210,13 @@ describes.sandboxed('Entitlements', () => {
           source: 'source1',
           products: ['product1', 'product2'],
           subscriptionToken: 'token1',
+          userId: 'userId1',
         },
         {
           source: 'source2',
           products: ['product2', 'product3'],
           subscriptionToken: 'token2',
+          userId: 'userId2',
         },
       ],
       isReadyToPay: false,
@@ -177,8 +225,22 @@ describes.sandboxed('Entitlements', () => {
 
   it('should always test as false for a null product', () => {
     const list = [
-      new Entitlement('', ['product1', 'product2'], 'token1'),
-      new Entitlement('', ['product2', 'product3'], 'token2'),
+      new Entitlement(
+        '',
+        ['product1', 'product2'],
+        'token1',
+        /* subscriptionTokenContents= */ undefined,
+        /* subscriptionTimestamp= */ null,
+        'userId'
+      ),
+      new Entitlement(
+        '',
+        ['product2', 'product3'],
+        'token2',
+        /* subscriptionTokenContents= */ undefined,
+        /* subscriptionTimestamp= */ null,
+        'userId'
+      ),
     ];
     const ents = new Entitlements('service1', 'RaW', list, null, ackSpy);
     expect(ents.enablesAny()).to.be.true;
@@ -190,12 +252,14 @@ describes.sandboxed('Entitlements', () => {
       const list = Entitlement.parseListFromJson({
         products: ['product1'],
         subscriptionToken: 'token1',
+        userId: 'userId',
       });
       expect(list).to.have.length(1);
       expect(list[0].json()).to.deep.equal({
         source: '',
         products: ['product1'],
         subscriptionToken: 'token1',
+        userId: 'userId',
       });
     });
 
@@ -209,6 +273,7 @@ describes.sandboxed('Entitlements', () => {
         source: '',
         products: ['product1', 'product2'],
         subscriptionToken: 'token1',
+        userId: undefined,
       });
     });
 
@@ -228,11 +293,13 @@ describes.sandboxed('Entitlements', () => {
         source: '',
         products: ['product1', 'product2'],
         subscriptionToken: 'token1',
+        userId: undefined,
       });
       expect(list[1].json()).to.deep.equal({
         source: '',
         products: ['product2', 'product3'],
         subscriptionToken: 'token2',
+        userId: undefined,
       });
     });
 

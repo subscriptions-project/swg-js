@@ -91,6 +91,27 @@ export interface ClientConfigJson {
       maxImpressions?: number;
       maxImpressionsResultingHideSeconds?: number;
     };
+    frequencyCapConfig?: {
+      globalFrequencyCap?: {
+        frequencyCapDuration?: {
+          seconds?: number;
+          nano?: number;
+        };
+      };
+      promptFrequencyCap?: {
+        audienceActionType?: string;
+        frequencyCapDuration?: {
+          seconds?: number;
+          nano?: number;
+        };
+      };
+      anyPromptFrequencyCap?: {
+        frequencyCapDuration?: {
+          seconds?: number;
+          nano?: number;
+        };
+      };
+    };
   };
   paySwgVersion?: string;
   uiPredicates?: {

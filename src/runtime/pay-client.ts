@@ -29,24 +29,11 @@ import {Preconnect} from '../utils/preconnect';
 import {StorageKeys} from '../utils/constants';
 import {bytesToString, stringToBytes} from '../utils/bytes';
 import {createCancelError} from '../utils/errors';
-import {feCached} from './services';
 import {getSwgMode} from './services';
 
 export interface PayOptionsDef {
   forceRedirect?: boolean;
   forceDisableNative?: boolean;
-}
-
-/**
- * Visible for testing only.
- */
-export const PAY_ORIGIN: {[key: string]: string} = {
-  'PRODUCTION': 'https://pay.google.com',
-  'SANDBOX': 'https://pay.sandbox.google.com',
-};
-
-function payUrl(): string {
-  return feCached(PAY_ORIGIN[getSwgMode().payEnv] + '/gp/p/ui/pay');
 }
 
 export interface PaymentCancelledError extends Error {
@@ -109,7 +96,6 @@ export class PayClient {
   }
 
   preconnect(pre: Preconnect): void {
-    pre.prefetch(payUrl());
     pre.prefetch(
       'https://payments.google.com/payments/v4/js/integrator.js?ss=md'
     );

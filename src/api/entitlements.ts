@@ -244,6 +244,7 @@ interface EntitlementJson {
   products?: string[];
   subscriptionToken?: string;
   subscriptionTimestamp?: Timestamp | null;
+  userId?: string;
 }
 
 /**
@@ -255,7 +256,8 @@ export class Entitlement {
     readonly products: string[],
     readonly subscriptionToken: string,
     readonly subscriptionTokenContents: unknown,
-    readonly subscriptionTimestamp: Timestamp | null
+    readonly subscriptionTimestamp: Timestamp | null,
+    readonly userId?: string
   ) {}
 
   clone(): Entitlement {
@@ -264,7 +266,8 @@ export class Entitlement {
       this.products.slice(0),
       this.subscriptionToken,
       this.subscriptionTokenContents,
-      this.subscriptionTimestamp
+      this.subscriptionTimestamp,
+      this.userId
     );
   }
 
@@ -273,6 +276,7 @@ export class Entitlement {
       'source': this.source,
       'products': this.products,
       'subscriptionToken': this.subscriptionToken,
+      'userId': this.userId,
     };
   }
 
@@ -313,6 +317,7 @@ export class Entitlement {
     const source = json['source'] || '';
     const products = json['products'] || [];
     const subscriptionToken = json['subscriptionToken'] || '';
+    const userId = json['userId'];
     let subscriptionTokenContents;
     try {
       subscriptionTokenContents = subscriptionToken
@@ -336,7 +341,8 @@ export class Entitlement {
       products,
       subscriptionToken,
       subscriptionTokenContents,
-      subscriptionTimestamp
+      subscriptionTimestamp,
+      userId
     );
   }
 

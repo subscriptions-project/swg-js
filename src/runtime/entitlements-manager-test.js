@@ -746,6 +746,7 @@ describes.realWin('EntitlementsManager', (env) => {
             products: ['pub1:label1'],
             subscriptionToken: 'token1',
             subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
+            userId: 'userId',
           },
         });
       const testSubscriptionTokenContents = {
@@ -793,6 +794,7 @@ describes.realWin('EntitlementsManager', (env) => {
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
           subscriptionTimestamp: SUBSCRIPTION_TIMESTAMP,
+          userId: 'userId',
         },
       ]);
 
@@ -1134,6 +1136,7 @@ describes.realWin('EntitlementsManager', (env) => {
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
           subscriptionTimestamp: null,
+          userId: undefined,
         },
       ]);
       expect(ents.enablesThis()).to.be.true;
@@ -1760,6 +1763,7 @@ describes.realWin('EntitlementsManager', (env) => {
           subscriptionToken: 'token1',
           subscriptionTokenContents: testSubscriptionTokenContents,
           subscriptionTimestamp: null,
+          userId: undefined,
         },
       ]);
       expect(ents.raw).to.equal('SIGNED_DATA');
