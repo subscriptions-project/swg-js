@@ -46,4 +46,10 @@ export enum ArticleExperimentFlags {
    * Experiment flag for enabling Frequency Capping local storage of impressions.
    */
   FREQUENCY_CAPPING_LOCAL_STORAGE = 'frequency_capping_local_storage_experiment',
+
+  /**
+   * Experiment flag for enabling Prompt Frequency Capping experiment for
+   * triggering.
+   */
+  PROMPT_FREQUENCY_CAPPING_EXPERIMENT = 'prompt_frequency_capping_experiment',
 }
