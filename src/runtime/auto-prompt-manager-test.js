@@ -3021,8 +3021,10 @@ describes.realWin('AutoPromptManager', (env) => {
         globalFrequencyCapDurationSeconds,
         anyPromptFrequencyCapDurationSeconds,
       });
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
+        uiPredicates,
         useUpdatedOfferFlows: true,
       });
       getClientConfigExpectation =
@@ -3066,8 +3068,10 @@ describes.realWin('AutoPromptManager', (env) => {
         maxImpressions: 2,
         maxImpressionsResultingHideSeconds: 10,
       });
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
+        uiPredicates,
         useUpdatedOfferFlows: true,
       });
       getClientConfigExpectation.resolves(clientConfig).once();
@@ -3228,8 +3232,10 @@ describes.realWin('AutoPromptManager', (env) => {
         globalFrequencyCapDurationNano:
           globalFrequencyCapDurationSeconds * SECOND_IN_NANO,
       });
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
+        uiPredicates,
         useUpdatedOfferFlows: true,
       });
       getClientConfigExpectation.resolves(clientConfig).once();
