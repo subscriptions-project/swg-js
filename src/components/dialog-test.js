@@ -432,7 +432,7 @@ describes.realWin('Dialog', (env) => {
         const clickFun = function () {
           wasClicked = true;
         };
-        dialog = new Dialog(globalDoc, {}, {}, {isClosable: false});
+        dialog = new Dialog(globalDoc, {}, {}, {closeOnBackgroundClick: false});
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -447,7 +447,7 @@ describes.realWin('Dialog', (env) => {
         const clickFun = function () {
           wasClicked = true;
         };
-        dialog = new Dialog(globalDoc, {}, {}, {isClosable: true});
+        dialog = new Dialog(globalDoc, {}, {}, {closeOnBackgroundClick: true});
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -462,7 +462,7 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           {},
           {},
-          {isClosable: false, shouldDisableBodyScrolling: true}
+          {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
         );
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
@@ -479,7 +479,7 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           {},
           {},
-          {isClosable: true, shouldDisableBodyScrolling: true}
+          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
         );
 
         const el = dialog.graypane_.getElement();
@@ -489,7 +489,7 @@ describes.realWin('Dialog', (env) => {
 
         el.click();
 
-        expect(doc.body).not.to.have.class('swg-disable-scroll');
+        expect(doc.body).to.not.have.class('swg-disable-scroll');
       });
     });
 
