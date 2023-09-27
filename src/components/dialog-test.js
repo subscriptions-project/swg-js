@@ -411,6 +411,91 @@ describes.realWin('Dialog', (env) => {
       expect(styleDuringInit).to.equal('display: none !important;');
     });
 
+    describe('fade background', () => {
+      it('should not suppress click events by default', async () => {
+        let wasClicked = false;
+        const clickFun = function () {
+          wasClicked = true;
+        };
+        dialog = new Dialog(globalDoc);
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        doc.body.addEventListener('click', clickFun);
+        el.click();
+
+        expect(wasClicked).to.be.true;
+      });
+
+      it('should suppress event bubbling if not closable', async () => {
+        let wasClicked = false;
+        const clickFun = function () {
+          wasClicked = true;
+        };
+        dialog = new Dialog(globalDoc, {}, {}, {closeOnBackgroundClick: false});
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        doc.body.addEventListener('click', clickFun);
+        el.click();
+
+        expect(wasClicked).to.be.false;
+      });
+
+      it('should suppress event bubbling if closable', async () => {
+        let wasClicked = false;
+        const clickFun = function () {
+          wasClicked = true;
+        };
+        dialog = new Dialog(globalDoc, {}, {}, {closeOnBackgroundClick: true});
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        doc.body.addEventListener('click', clickFun);
+        el.click();
+
+        expect(wasClicked).to.be.false;
+      });
+
+      it('respects not closable', async () => {
+        dialog = new Dialog(
+          globalDoc,
+          {},
+          {},
+          {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
+        );
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        // This class is added when the screen is opened.
+        expect(doc.body).to.have.class('swg-disable-scroll');
+
+        el.click();
+
+        expect(doc.body).to.have.class('swg-disable-scroll');
+      });
+
+      it('respects closable', async () => {
+        dialog = new Dialog(
+          globalDoc,
+          {},
+          {},
+          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
+        );
+
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        // This class is added when the screen is opened.
+        expect(doc.body).to.have.class('swg-disable-scroll');
+
+        el.click();
+
+        // This class is removed when the screen is closed.
+        expect(doc.body).to.not.have.class('swg-disable-scroll');
+      });
+    });
+
     describe('body scrolling disabled', () => {
       describe('openView', () => {
         it('adds swg-disable-scroll class if config specifies scrolling should be disabled', async () => {

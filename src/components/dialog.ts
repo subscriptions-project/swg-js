@@ -66,7 +66,7 @@ const resetViewStyles = {
 };
 
 /**
- * Display configration options for dialogs.
+ * Display configuration options for dialogs.
  *
  * Properties:
  * - desktopConfig: Options for dialogs on desktop screens.
@@ -76,12 +76,15 @@ const resetViewStyles = {
  *       default classes such as swg-dialog.
  * - shouldDisableBodyScrolling: Whether to disable scrolling on the content page
  *       when the dialog is visible.
+ * - closeOnBackgroundClick: Whether the dialog should be dismissed if the gray
+ *                           background is clicked.
  */
 export interface DialogConfig {
   desktopConfig?: DesktopDialogConfig;
   maxAllowedHeightRatio?: number;
   iframeCssClassOverride?: string;
   shouldDisableBodyScrolling?: boolean;
+  closeOnBackgroundClick?: boolean;
 }
 
 /**
@@ -112,6 +115,7 @@ export class Dialog {
   /** Helps identify stale animations. */
   private animationNumber_: number;
   private hidden_: boolean;
+  private closeOnBackgroundClick_: boolean;
   private previousProgressView_: View | null;
   private maxAllowedHeightRatio_: number;
   private positionCenterOnDesktop_: boolean;
@@ -145,6 +149,15 @@ export class Dialog {
     });
 
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
+
+    // Avoid modifying the behavior of existing callers by only registering
+    // the click event if isClosable is set.
+    if (dialogConfig.closeOnBackgroundClick !== undefined) {
+      this.graypane_
+        .getElement()
+        .addEventListener('click', this.onGrayPaneClick_.bind(this));
+    }
+    this.closeOnBackgroundClick_ = !!dialogConfig.closeOnBackgroundClick;
 
     const modifiedImportantStyles = Object.assign(
       {},
@@ -420,6 +433,15 @@ export class Dialog {
     });
 
     this.hidden_ = false;
+  }
+
+  /** Suppresses click events and may close the window. */
+  private onGrayPaneClick_(event: Event) {
+    event.stopPropagation();
+    if (this.closeOnBackgroundClick_) {
+      this.close();
+    }
+    return false;
   }
 
   /**
