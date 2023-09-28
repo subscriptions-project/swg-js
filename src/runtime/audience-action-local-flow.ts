@@ -406,7 +406,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // Empty message send as part of the post.
     const emptyMessage: Message = {
       toArray: () => [],
-      label: () => '',
+      label: String,
     };
     this.fetcher_.sendPost(url, emptyMessage);
     // TODO: mhkawano - log error
