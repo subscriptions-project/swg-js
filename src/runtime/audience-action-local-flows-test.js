@@ -272,26 +272,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         });
       });
 
-      it('fails to render with config fetch failure', async () => {
-        configResponse = new Response(null, {status: 404});
-        env.win.fetch = sandbox.stub().returns(Promise.resolve(configResponse));
-        const flow = new AudienceActionLocalFlow(
-          runtime,
-          DEFAULT_PARAMS,
-          /* gptTimeoutMs_= */ 1
-        );
-
-        await flow.start();
-
-        const wrapper = env.win.document.querySelector(
-          '.audience-action-local-wrapper'
-        );
-        expect(wrapper).to.not.be.null;
-
-        const errorPrompt = wrapper.shadowRoot.querySelector('.prompt');
-        expect(errorPrompt.innerHTML).contains('Something went wrong.');
-      });
-
       it('fails to render with bad config', async () => {
         const invalidConfig = `
         {

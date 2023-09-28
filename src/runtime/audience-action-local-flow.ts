@@ -28,8 +28,10 @@ import {
 import {ClientConfigManager} from './client-config-manager';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
+import {Message} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
+import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
@@ -71,6 +73,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly wrapper_: HTMLElement;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
+  private readonly fetcher_: XhrFetcher;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Ad slot used to host the rewarded ad.
@@ -93,6 +96,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_ = createElement(this.doc_, 'div', {});
 
     this.wrapper_ = this.createWrapper_();
+
+    this.fetcher_ = new XhrFetcher(this.deps_.win());
   }
 
   private createWrapper_(): HTMLElement {
@@ -362,19 +367,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
   }
 
-  private async fetch_(
-    method: string,
-    endpoint: string,
-    queryParams: string[][]
-  ): Promise<Response> {
-    const init: RequestInit = {
-      method,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'Accept': 'text/plain, application/json',
-      },
-      credentials: 'include',
-    };
+  private buildEndpointUrl_(endpoint: string, queryParams: string[][]): string {
     const publicationId = this.deps_.pageConfig().getPublicationId();
     const baseUrl = `/publication/${encodeURIComponent(
       publicationId
@@ -383,30 +376,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       (url, [param, value]) => addQueryParam(url, param, value),
       serviceUrl(baseUrl)
     );
-    return this.deps_.win().fetch(url, init);
+    return url;
   }
 
-  private async getConfig_(): Promise<AudienceActionConfig | null> {
+  private async getConfig_(): Promise<AudienceActionConfig> {
     const queryParams = [
       ['publicationId', this.deps_.pageConfig().getPublicationId()],
       // TODO: mhkawano - configurationId should not be optional
       ['configurationId', this.params_.configurationId!],
       ['origin', parseUrl(this.deps_.win().location.href).origin],
     ];
-    const response = await this.fetch_(
-      'GET',
-      'getactionconfigurationui',
-      queryParams
-    );
-    if (response.ok) {
-      const text = await response.text();
-      // Remove "")]}'\n" XSSI prevention prefix in safe responses.
-      const cleanedText = text.replace(/^(\)\]\}'\n)/, '');
-      return JSON.parse(cleanedText) as AudienceActionConfig;
-    } else {
-      // TODO: mhkawano - log error
-      return null;
-    }
+
+    const url = this.buildEndpointUrl_('getactionconfigurationui', queryParams);
+    return await this.fetcher_.fetchCredentialedJson(url);
   }
 
   private async complete_() {
@@ -420,7 +402,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       ['configurationId', this.params_.configurationId!],
       ['audienceActionType', this.params_.action],
     ];
-    this.fetch_('POST', 'completeaudienceaction', queryParams);
+    const url = this.buildEndpointUrl_('completeaudienceaction', queryParams);
+    // Empty message send as part of the post.
+    const emptyMessage: Message = {
+      toArray: () => [],
+      label: () => '',
+    };
+    this.fetcher_.sendPost(url, emptyMessage);
     // TODO: mhkawano - log error
     // TODO: mhkawano - handle entitlement consumption logic on completion
     // ex: this.entitlementsManager_.getEntitlements();
