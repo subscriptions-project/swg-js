@@ -141,73 +141,72 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async initPrompt_() {
     if (this.params_.action === TYPE_REWARDED_AD) {
-      const config = await this.getConfig_();
+      await this.initRewardedAdWall_();
+    } else {
+      this.renderErrorView_();
+    }
+  }
+
+  private async initRewardedAdWall_() {
+    const config = await this.getConfig_();
+
+    const validRewardedAdParams =
+      config?.rewardedAdParameters?.adunit &&
+      config?.rewardedAdParameters?.customMessage &&
+      config?.publication?.name;
+    if (validRewardedAdParams) {
       // Setup callback for googletag init.
       const googletag = this.deps_.win().googletag;
       googletag.cmd.push(() => {
-        const initSuccess = this.initRewardedAdWall_(config);
-        if (!initSuccess) {
-          this.renderErrorView_();
-        }
+        this.initRewardedAdSlot_(config);
       });
     } else {
       this.renderErrorView_();
     }
   }
 
-  private initRewardedAdWall_(config: AudienceActionConfig | null): boolean {
-    const validRewardedAdParams =
-      config?.rewardedAdParameters?.adunit &&
-      config?.rewardedAdParameters?.customMessage &&
-      config?.publication?.name;
-
-    if (!validRewardedAdParams) {
-      return false;
-    }
-
-    const adunit = config!.rewardedAdParameters?.adunit;
+  private initRewardedAdSlot_(config: AudienceActionConfig) {
     const googletag = this.deps_.win().googletag;
+
     this.rewardedSlot_ = googletag.defineOutOfPageSlot(
-      adunit,
+      config.rewardedAdParameters!.adunit!,
       googletag.enums.OutOfPageFormat.REWARDED
     );
 
-    if (!this.rewardedSlot_) {
-      return false;
+    if (this.rewardedSlot_) {
+      this.rewardedSlot_.addService(googletag.pubads());
+      googletag
+        .pubads()
+        .addEventListener(
+          'rewardedSlotReady',
+          (event: googletag.events.RewardedSlotReadyEvent) =>
+            this.rewardedSlotReady_(event, config!)
+        );
+      googletag
+        .pubads()
+        .addEventListener(
+          'rewardedSlotClosed',
+          this.rewardedSlotClosed_.bind(this)
+        );
+      googletag
+        .pubads()
+        .addEventListener(
+          'rewardedSlotGranted',
+          this.rewardedSlotGranted_.bind(this)
+        );
+      googletag.enableServices();
+      googletag.display(this.rewardedSlot_);
+
+      // gpt.js has no way of knowing that an ad unit is invalid besides checking
+      // that rewardedSlotReady is called. Error out after 3 seconds of waiting.
+      this.rewardedTimout_ = new Promise((resolve) => {
+        setTimeout(() => {
+          this.rewardedAdTimeout_(resolve);
+        }, this.gptTimeoutMs_);
+      });
+    } else {
+      this.renderErrorView_();
     }
-
-    this.rewardedSlot_.addService(googletag.pubads());
-    googletag
-      .pubads()
-      .addEventListener(
-        'rewardedSlotReady',
-        (event: googletag.events.RewardedSlotReadyEvent) =>
-          this.rewardedSlotReady_(event, config!)
-      );
-    googletag
-      .pubads()
-      .addEventListener(
-        'rewardedSlotClosed',
-        this.rewardedSlotClosed_.bind(this)
-      );
-    googletag
-      .pubads()
-      .addEventListener(
-        'rewardedSlotGranted',
-        this.rewardedSlotGranted_.bind(this)
-      );
-    googletag.enableServices();
-    googletag.display(this.rewardedSlot_);
-
-    // gpt.js has no way of knowing that an ad unit is invalid besides checking
-    // that rewardedSlotReady is called. Error out after 3 seconds of waiting.
-    this.rewardedTimout_ = new Promise((resolve) => {
-      setTimeout(() => {
-        this.rewardedAdTimeout_(resolve);
-      }, this.gptTimeoutMs_);
-    });
-
-    return true;
   }
 
   private rewardedAdTimeout_(resolve: (value: boolean) => void) {
