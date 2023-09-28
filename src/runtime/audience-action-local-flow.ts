@@ -213,7 +213,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private rewardedAdTimeout_(resolve: (value: boolean) => void) {
     if (!this.rewardedReadyCalled_) {
       const googletag = this.deps_.win().googletag;
-      this.renderErrorView_();  
+      this.renderErrorView_();
       googletag.destroySlots([this.rewardedSlot_!]);
       resolve(true);
       // TODO: mhkawano - Launch payflow if monetized, cancel if not.
