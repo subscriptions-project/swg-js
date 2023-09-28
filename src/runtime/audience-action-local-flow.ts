@@ -160,6 +160,15 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       googletag.cmd.push(() => {
         this.initRewardedAdSlot_(config);
       });
+
+      // There is no good method of checking that gpt.js is working correctly.
+      // This timeout allows us to sanity check and error out if things are not
+      // working correctly.
+      this.rewardedTimout_ = new Promise((resolve) => {
+        setTimeout(() => {
+          this.rewardedAdTimeout_(resolve);
+        }, this.gptTimeoutMs_);
+      });
     } else {
       this.renderErrorView_();
     }
@@ -196,14 +205,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         );
       googletag.enableServices();
       googletag.display(this.rewardedSlot_);
-
-      // gpt.js has no way of knowing that an ad unit is invalid besides checking
-      // that rewardedSlotReady is called. Error out after 3 seconds of waiting.
-      this.rewardedTimout_ = new Promise((resolve) => {
-        setTimeout(() => {
-          this.rewardedAdTimeout_(resolve);
-        }, this.gptTimeoutMs_);
-      });
     } else {
       this.renderErrorView_();
     }
@@ -212,8 +213,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private rewardedAdTimeout_(resolve: (value: boolean) => void) {
     if (!this.rewardedReadyCalled_) {
       const googletag = this.deps_.win().googletag;
+      this.renderErrorView_();  
       googletag.destroySlots([this.rewardedSlot_!]);
-      this.renderErrorView_();
       resolve(true);
       // TODO: mhkawano - Launch payflow if monetized, cancel if not.
     }
