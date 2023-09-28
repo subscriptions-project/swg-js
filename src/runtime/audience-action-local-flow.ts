@@ -28,12 +28,15 @@ import {
 import {ClientConfigManager} from './client-config-manager';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
+import {Message} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
+import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
 import {msg} from '../utils/i18n';
+import {parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
@@ -45,6 +48,16 @@ export interface AudienceActionLocalParams {
   onResult?: (result: {}) => Promise<boolean> | boolean;
   isClosable?: boolean;
   monetizationFunction?: () => void;
+}
+
+interface AudienceActionConfig {
+  publication?: {
+    name?: string;
+  };
+  rewardedAdParameters?: {
+    adunit?: string;
+    customMessage?: string;
+  };
 }
 
 // Default timeout for waiting on ready callback.
@@ -60,14 +73,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly wrapper_: HTMLElement;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
+  private readonly fetcher_: XhrFetcher;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
-  // Resolve function to signal that the ready callback has finished executing.
-  private rewardedResolve_?: (value: boolean) => void;
   // Ad slot used to host the rewarded ad.
   private rewardedSlot_?: googletag.Slot;
-  // Used to render the rewarded ad, returned from the ready callback
+  // Used to render the rewarded ad, returned from the ready callback.
   private makeRewardedVisible_?: () => void;
+  // Used for testing.
+  // @ts-ignore
+  private rewardedTimout_: Promise<boolean> | null = null;
 
   constructor(
     private readonly deps_: Deps,
@@ -78,20 +93,14 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     this.doc_ = this.deps_.doc().getRootNode();
 
-    this.prompt_ = this.createPrompt_();
+    this.prompt_ = createElement(this.doc_, 'div', {});
 
-    this.wrapper_ = this.createWrapper_(this.prompt_);
+    this.wrapper_ = this.createWrapper_();
+
+    this.fetcher_ = new XhrFetcher(this.deps_.win());
   }
 
-  private createPrompt_(): HTMLElement {
-    if (this.params_.action === TYPE_REWARDED_AD) {
-      return this.renderAndInitRewardedAdWall_();
-    } else {
-      return this.renderErrorView_();
-    }
-  }
-
-  private createWrapper_(prompt: HTMLElement): HTMLElement {
+  private createWrapper_(): HTMLElement {
     const wrapper = createElement(this.doc_, 'div', {
       'class': 'audience-action-local-wrapper',
     });
@@ -115,60 +124,66 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     const shadow = wrapper.attachShadow({mode: 'open'});
 
-    shadow.appendChild(prompt);
+    shadow.appendChild(this.prompt_);
 
     return wrapper;
   }
 
-  private renderErrorView_(): HTMLElement {
-    const prompt = createElement(this.doc_, 'div', {});
-    return this.makeErrorView(prompt);
+  private renderErrorView_() {
+    // TODO: mhkawano - Make closeable.
+    // TODO: mhkawano - Make look nicer.
+    this.prompt_./*OK*/ innerHTML = ERROR_HTML;
   }
 
-  private makeErrorView(prompt: HTMLElement): HTMLElement {
-    prompt./*OK*/ innerHTML = ERROR_HTML;
-    return prompt;
-  }
-
-  private renderAndInitRewardedAdWall_(): HTMLElement {
-    // Setup callback for googletag init.
-    const googletag = this.deps_.win().googletag;
-    googletag.cmd.push(this.initRewardedAdWall_.bind(this));
-
-    const prompt = createElement(this.doc_, 'div', {});
-    setImportantStyles(prompt, {
+  private renderLoadingView_() {
+    setImportantStyles(this.prompt_, {
       'height': '100%',
       'display': 'flex',
       'display-flex-direction': 'column',
     });
-
-    prompt./*OK*/ innerHTML = LOADING_HTML;
-
-    return prompt;
+    this.prompt_./*OK*/ innerHTML = LOADING_HTML;
   }
 
-  private async initRewardedAdWall_() {
-    // TODO: mhkawano - Get action config.
-    // TODO: mhkawano - support premon.
-
-    // Init gpt.js
-    const initGptPromise = new Promise<boolean>(this.initGpt_.bind(this));
-    const initSuccess = await initGptPromise;
-
-    // Replace with error view if init fails.
-    // TODO: mhkawano - Make closeable.
-    if (!initSuccess) {
-      this.makeErrorView(this.prompt_);
+  private async initPrompt_() {
+    if (this.params_.action === TYPE_REWARDED_AD) {
+      await this.initRewardedAdWall_();
+    } else {
+      this.renderErrorView_();
     }
   }
 
-  private initGpt_(resolve: (result: boolean) => void) {
-    // Save resolve so that it can be called in rewardedSlotReady_.
-    this.rewardedResolve_ = resolve;
+  private async initRewardedAdWall_() {
+    const config = await this.getConfig_();
 
+    const validRewardedAdParams =
+      config?.rewardedAdParameters?.adunit &&
+      config?.rewardedAdParameters?.customMessage &&
+      config?.publication?.name;
+    if (validRewardedAdParams) {
+      // Setup callback for googletag init.
+      const googletag = this.deps_.win().googletag;
+      googletag.cmd.push(() => {
+        this.initRewardedAdSlot_(config);
+      });
+
+      // There is no good method of checking that gpt.js is working correctly.
+      // This timeout allows us to sanity check and error out if things are not
+      // working correctly.
+      this.rewardedTimout_ = new Promise((resolve) => {
+        setTimeout(() => {
+          this.rewardedAdTimeout_(resolve);
+        }, this.gptTimeoutMs_);
+      });
+    } else {
+      this.renderErrorView_();
+    }
+  }
+
+  private initRewardedAdSlot_(config: AudienceActionConfig) {
     const googletag = this.deps_.win().googletag;
+
     this.rewardedSlot_ = googletag.defineOutOfPageSlot(
-      '/22639388115/rewarded_web_example',
+      config.rewardedAdParameters!.adunit!,
       googletag.enums.OutOfPageFormat.REWARDED
     );
 
@@ -178,7 +193,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         .pubads()
         .addEventListener(
           'rewardedSlotReady',
-          this.rewardedSlotReady_.bind(this)
+          (event: googletag.events.RewardedSlotReadyEvent) =>
+            this.rewardedSlotReady_(event, config!)
         );
       googletag
         .pubads()
@@ -194,28 +210,29 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         );
       googletag.enableServices();
       googletag.display(this.rewardedSlot_);
-
-      // gpt.js has no way of knowing that an ad unit is invalid besides checking that rewardedSlotReady is called. Error out after 3 seconds of waiting.
-      setTimeout(this.rewardedAdTimeout_.bind(this), this.gptTimeoutMs_);
     } else {
-      resolve(false);
+      this.renderErrorView_();
     }
   }
 
-  private rewardedAdTimeout_() {
+  private rewardedAdTimeout_(resolve: (value: boolean) => void) {
     if (!this.rewardedReadyCalled_) {
       const googletag = this.deps_.win().googletag;
+      this.renderErrorView_();
       googletag.destroySlots([this.rewardedSlot_!]);
-      this.rewardedResolve_!(false);
+      resolve(true);
       // TODO: mhkawano - Launch payflow if monetized, cancel if not.
     }
+    resolve(false);
   }
 
   /**
-   * When gpt.js is ready to show an ad, we replace the loading view and wire up the buttons.
+   * When gpt.js is ready to show an ad, we replace the loading view and wire up
+   * the buttons.
    */
   private rewardedSlotReady_(
-    rewardedAd: googletag.events.RewardedSlotReadyEvent
+    rewardedAd: googletag.events.RewardedSlotReadyEvent,
+    config: AudienceActionConfig
   ) {
     this.rewardedReadyCalled_ = true;
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
@@ -224,13 +241,14 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
 
-    // TODO: mhkawnao - Escape user provided strings.
-    // TODO: mhkawano - Fetch message and publication name from backend.
+    // TODO: mhkawnao - Escape user provided strings. For Alpha it will be
+    //                  specified by us so we don't need to do it yet.
     // TODO: mhkawnao - Support priority actions
     // TODO: mhkawnao - Support premonetization
     const language = this.clientConfigManager_.getLanguage();
 
-    const publication = 'The Daily News'; // publicaition will be a publisher defined string
+    // verified existance in initRewardedAdWall_
+    const publication = config.publication!.name!;
     const closeButtonDescription = msg(
       SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
       language
@@ -242,9 +260,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         )
       : '';
     const icon = isContribution ? CONTRIBUTION_ICON : SUBSCRIPTION_ICON;
-    const message = isContribution // message  will be a publisher defined string
-      ? `To support ${publication}, view an ad or contribute`
-      : 'To access this article, subscribe or view an ad';
+    // verified existance in initRewardedAdWall_
+    const message = config.rewardedAdParameters!.customMessage!;
     const viewad = 'View an ad';
     const support = isContribution
       ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
@@ -276,8 +293,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
-
-    this.rewardedResolve_!(true);
   }
 
   private rewardedSlotClosed_() {
@@ -333,7 +348,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.params_.monetizationFunction!();
   }
 
-  private async viewRewardedAdWall_() {
+  private viewRewardedAdWall_() {
     const viewButton = this.prompt_.getElementsByClassName(
       'rewarded-ad-view-ad-button'
     );
@@ -352,19 +367,31 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
   }
 
-  private async complete_() {
-    const init: RequestInit = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'Accept': 'text/plain, application/json',
-      },
-      credentials: 'include',
-    };
+  private buildEndpointUrl_(endpoint: string, queryParams: string[][]): string {
     const publicationId = this.deps_.pageConfig().getPublicationId();
     const baseUrl = `/publication/${encodeURIComponent(
       publicationId
-    )}/completeaudienceaction`;
+    )}/${endpoint}`;
+    const url = queryParams.reduce(
+      (url, [param, value]) => addQueryParam(url, param, value),
+      serviceUrl(baseUrl)
+    );
+    return url;
+  }
+
+  private async getConfig_(): Promise<AudienceActionConfig> {
+    const queryParams = [
+      ['publicationId', this.deps_.pageConfig().getPublicationId()],
+      // TODO: mhkawano - configurationId should not be optional
+      ['configurationId', this.params_.configurationId!],
+      ['origin', parseUrl(this.deps_.win().location.href).origin],
+    ];
+
+    const url = this.buildEndpointUrl_('getactionconfigurationui', queryParams);
+    return await this.fetcher_.fetchCredentialedJson(url);
+  }
+
+  private async complete_() {
     const swgUserToken = await this.deps_
       .storage()
       .get(Constants.USER_TOKEN, true);
@@ -375,20 +402,24 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       ['configurationId', this.params_.configurationId!],
       ['audienceActionType', this.params_.action],
     ];
-    const url = queryParams.reduce(
-      (url, [param, value]) => addQueryParam(url, param, value),
-      serviceUrl(baseUrl)
-    );
-    this.deps_.win().fetch(url, init);
+    const url = this.buildEndpointUrl_('completeaudienceaction', queryParams);
+    // Empty message send as part of the post.
+    const emptyMessage: Message = {
+      toArray: () => [],
+      label: String,
+    };
+    this.fetcher_.sendPost(url, emptyMessage);
     // TODO: mhkawano - log error
     // TODO: mhkawano - handle entitlement consumption logic on completion
     // ex: this.entitlementsManager_.getEntitlements();
   }
 
   async start() {
+    this.renderLoadingView_();
     this.doc_.body.appendChild(this.wrapper_);
     this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(this.wrapper_, {'opacity': '1.0'});
+    await this.initPrompt_();
   }
 
   showNoEntitlementFoundToast() {

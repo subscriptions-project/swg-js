@@ -21,6 +21,22 @@ import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
 import {tick} from '../../test/tick';
 
+const DEFAULT_PARAMS = {
+  action: 'TYPE_REWARDED_AD',
+  configurationId: 'xyz',
+};
+
+const DEFAULT_CONFIG = `
+{
+  "publication": {
+    "name": "PUBLICATOIN_NAME"
+  },
+  "rewardedAdParameters": {
+    "adunit": "ADUNIT",
+    "customMessage": "CUSTOM_MESSAGE"
+  }
+}`;
+
 describes.realWin('AudienceActionLocalFlow', (env) => {
   let runtime;
 
@@ -35,7 +51,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       /* config= */ undefined,
       /* clientOptions= */ {}
     );
-    env.win.fetch = sandbox.spy();
     env.win.localStorage.getItem = () => 'abc';
   });
 
@@ -46,7 +61,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
-      flow.start();
+      await flow.start();
 
       const wrapper = env.win.document.querySelector(
         '.audience-action-local-wrapper'
@@ -63,6 +78,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       let pubadsobj;
       let eventListeners;
       let readyEventArg;
+      let configResponse;
 
       beforeEach(() => {
         rewardedSlot = {
@@ -86,16 +102,20 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           display: () => {},
           destroySlots: sandbox.spy(),
         };
+        configResponse = new Response(null, {status: 200});
       });
 
-      function renderAndAssertRewardedAd(params) {
+      async function renderAndAssertRewardedAd(params, config) {
+        configResponse.text = sandbox.stub().returns(Promise.resolve(config));
+        env.win.fetch = sandbox.stub().returns(Promise.resolve(configResponse));
+
         const flow = new AudienceActionLocalFlow(
           runtime,
           params,
-          /* gptTimeoutMs_= */ 1000
+          /* gptTimeoutMs_= */ 1
         );
 
-        flow.start();
+        await flow.start();
 
         const wrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
@@ -109,9 +129,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         // Manually invoke the command for gpt.js.
         expect(env.win.googletag.cmd[0]).to.not.be.null;
-        const initPromise = env.win.googletag.cmd[0]();
+        env.win.googletag.cmd[0]();
 
-        return {wrapper, initPromise};
+        return {flow, wrapper};
       }
 
       it('renders subscription', async () => {
@@ -120,15 +140,17 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
           monetizationFunction: sandbox.spy(),
         };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        await initPromise;
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=undefined&origin=about%3Asrcdoc'
+        );
 
-        const subscribeButton = wrapper.shadowRoot.querySelector(
+        const subscribeButton = state.wrapper.shadowRoot.querySelector(
           '.rewarded-ad-support-button'
         );
         expect(subscribeButton.innerHTML).contains('Subscribe');
@@ -150,15 +172,17 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
           monetizationFunction: sandbox.spy(),
         };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        await initPromise;
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=undefined&origin=about%3Asrcdoc'
+        );
 
-        const contributeButton = wrapper.shadowRoot.querySelector(
+        const contributeButton = state.wrapper.shadowRoot.querySelector(
           '.rewarded-ad-support-button'
         );
         expect(contributeButton.innerHTML).contains('Contribute');
@@ -181,15 +205,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           isClosable: true,
           onCancel: sandbox.spy(),
         };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        await initPromise;
-
-        const closeButton = wrapper.shadowRoot.querySelector(
+        const closeButton = state.wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
         );
         expect(closeButton).not.to.be.null;
@@ -213,15 +235,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
           isClosable: false,
         };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        await initPromise;
-
-        const prompt = wrapper.shadowRoot.querySelector(
+        const prompt = state.wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
         );
         expect(prompt).to.be.null;
@@ -230,19 +250,16 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       it('renders sign-in', async () => {
         const loginSpy = sandbox.spy();
         runtime.setOnLoginRequest(loginSpy);
-        const params = {
-          action: 'TYPE_REWARDED_AD',
-          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-        };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG
+        );
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        await initPromise;
-
-        const signinButton = wrapper.shadowRoot.querySelector(
+        const signinButton = state.wrapper.shadowRoot.querySelector(
           '.rewarded-ad-sign-in-button'
         );
         expect(signinButton).to.not.be.null;
@@ -255,47 +272,73 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         });
       });
 
-      it('fails to render with bad ad slot', async () => {
-        env.win.googletag.defineOutOfPageSlot = () => null;
-        const params = {
-          action: 'TYPE_REWARDED_AD',
-        };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+      it('fails to render with bad config', async () => {
+        const invalidConfig = `
+        {
+          "publication": {
+            "name": "PUBLICATOIN_NAME"
+          }
+        }`;
+        configResponse.text = sandbox
+          .stub()
+          .returns(Promise.resolve(invalidConfig));
+        env.win.fetch = sandbox.stub().returns(Promise.resolve(configResponse));
+        const flow = new AudienceActionLocalFlow(
+          runtime,
+          DEFAULT_PARAMS,
+          /* gptTimeoutMs_= */ 1
+        );
 
-        await initPromise;
+        await flow.start();
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
 
         const errorPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        expect(errorPrompt.innerHTML).contains('Something went wrong.');
+      });
+
+      it('fails to render with bad ad slot', async () => {
+        env.win.googletag.defineOutOfPageSlot = () => null;
+
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG
+        );
+
+        const errorPrompt = state.wrapper.shadowRoot.querySelector('.prompt');
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
       });
 
       it('fails to render with gpt.js timeout', async () => {
-        const params = {
-          action: 'TYPE_REWARDED_AD',
-        };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG
+        );
 
-        await initPromise;
+        await state.flow.rewardedTimout_;
 
-        const errorPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        const errorPrompt = state.wrapper.shadowRoot.querySelector('.prompt');
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
       });
 
       it('renders thanks with rewardedSlotGranted', async () => {
-        const params = {
-          action: 'TYPE_REWARDED_AD',
-          configurationId: 'xyz',
-        };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG
+        );
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']();
 
-        await initPromise;
-
-        const prompt = wrapper.shadowRoot.querySelector('.rewarded-ad-prompt');
+        const prompt = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-prompt'
+        );
         expect(prompt).to.not.be.null;
         expect(prompt.innerHTML).contains('Thanks for viewing this ad');
 
@@ -303,26 +346,24 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
 
-        expect(env.win.fetch).to.be.calledOnceWith(
+        expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
         );
       });
 
       it('closes on thanks', async () => {
-        const params = {
-          action: 'TYPE_REWARDED_AD',
-        };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG
+        );
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']();
 
-        await initPromise;
-
-        const closeButton = wrapper.shadowRoot.querySelector(
+        const closeButton = state.wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
         );
         await closeButton.click();
@@ -340,15 +381,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           isClosable: true,
           onCancel: sandbox.spy(),
         };
-        const render = renderAndAssertRewardedAd(params);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
-        eventListeners['rewardedSlotClosed']();
-
-        await render.initPromise;
+        await eventListeners['rewardedSlotClosed']();
 
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
@@ -365,15 +404,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           action: 'TYPE_REWARDED_AD',
           isClosable: false,
         };
-        const render = renderAndAssertRewardedAd(params);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
         expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
-        eventListeners['rewardedSlotClosed']();
-
-        await render.initPromise;
+        await eventListeners['rewardedSlotClosed']();
 
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
@@ -385,19 +422,16 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('shows an ad', async () => {
-        const params = {
-          action: 'TYPE_REWARDED_AD',
-          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-        };
-        const {wrapper, initPromise} = renderAndAssertRewardedAd(params);
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG
+        );
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        eventListeners['rewardedSlotReady'](readyEventArg);
+        await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        await initPromise;
-
-        const viewButton = wrapper.shadowRoot.querySelector(
+        const viewButton = state.wrapper.shadowRoot.querySelector(
           '.rewarded-ad-view-ad-button'
         );
         expect(viewButton).to.not.be.null;
@@ -416,10 +450,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
   describe('showNoEntitlementFoundToast', () => {
     it('opens toast', () => {
-      const params = {
-        action: 'action',
-      };
-      const flow = new AudienceActionLocalFlow(runtime, params);
+      const flow = new AudienceActionLocalFlow(runtime, DEFAULT_PARAMS);
 
       const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 

@@ -226,7 +226,6 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-header {
     display: grid !important;
     grid-template-columns: 24px 1fr 24px;
-    grid-template-rows: 40px;
   }
 
   .rewarded-ad-title {
