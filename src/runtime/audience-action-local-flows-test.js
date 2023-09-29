@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
@@ -39,6 +40,7 @@ const DEFAULT_CONFIG = `
 
 describes.realWin('AudienceActionLocalFlow', (env) => {
   let runtime;
+  let eventManager;
 
   beforeEach(() => {
     runtime = new ConfiguredRuntime(
@@ -52,6 +54,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       /* clientOptions= */ {}
     );
     env.win.localStorage.getItem = () => 'abc';
+    eventManager = {
+      logSwgEvent: sandbox.spy(),
+    };
+    runtime.eventManager = () => eventManager;
   });
 
   describe('start', () => {
@@ -164,6 +170,15 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_REWARDED_AD
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_READY
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT
+        );
       });
 
       it('renders contribution', async () => {
@@ -196,6 +211,15 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_REWARDED_AD
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_READY
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT
+        );
       });
 
       it('renders isClosable == true', async () => {
@@ -227,6 +251,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_CLOSE
+        );
       });
 
       it('renders isClosable == false', async () => {
@@ -270,6 +297,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(loginSpy).to.be.calledOnce.calledWithExactly({
           linkRequested: false,
         });
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_SIGN_IN
+        );
       });
 
       it('fails to render with bad config', async () => {
@@ -298,6 +328,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const errorPrompt = wrapper.shadowRoot.querySelector('.prompt');
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_CONFIG_ERROR
+        );
       });
 
       it('fails to render with bad ad slot', async () => {
@@ -310,6 +343,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const errorPrompt = state.wrapper.shadowRoot.querySelector('.prompt');
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR
+        );
       });
 
       it('fails to render with gpt.js timeout', async () => {
@@ -322,6 +358,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const errorPrompt = state.wrapper.shadowRoot.querySelector('.prompt');
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
+        );
       });
 
       it('renders thanks with rewardedSlotGranted', async () => {
@@ -348,6 +387,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_GRANTED
         );
       });
 
@@ -397,6 +439,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD
+        );
       });
 
       it('renders with rewardedSlotClosed for locked content', async () => {
@@ -419,6 +464,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD
+        );
       });
 
       it('shows an ad', async () => {
@@ -444,6 +492,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(
           readyEventArg.makeRewardedVisible
         ).to.be.calledOnce.calledWithExactly();
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_VIEW
+        );
       });
     });
   });

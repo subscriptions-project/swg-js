@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../proto/api_messages';
 import {AudienceActionFlow, TYPE_REWARDED_AD} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
@@ -26,6 +27,7 @@ import {
   SUBSCRIPTION_ICON,
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {Message} from '../proto/api_messages';
@@ -74,6 +76,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly doc_: Document;
   private readonly fetcher_: XhrFetcher;
+  private readonly eventManager_: ClientEventManager;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Ad slot used to host the rewarded ad.
@@ -91,13 +94,15 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   ) {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
-    this.doc_ = this.deps_.doc().getRootNode();
+    this.doc_ = deps_.doc().getRootNode();
 
     this.prompt_ = createElement(this.doc_, 'div', {});
 
     this.wrapper_ = this.createWrapper_();
 
-    this.fetcher_ = new XhrFetcher(this.deps_.win());
+    this.fetcher_ = new XhrFetcher(deps_.win());
+
+    this.eventManager_ = deps_.eventManager();
   }
 
   private createWrapper_(): HTMLElement {
@@ -153,6 +158,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async initRewardedAdWall_() {
+    this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_REWARDED_AD);
+
     const config = await this.getConfig_();
 
     const validRewardedAdParams =
@@ -175,6 +182,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         }, this.gptTimeoutMs_);
       });
     } else {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_REWARDED_AD_CONFIG_ERROR
+      );
       this.renderErrorView_();
     }
   }
@@ -211,6 +221,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       googletag.enableServices();
       googletag.display(this.rewardedSlot_);
     } else {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR
+      );
       this.renderErrorView_();
     }
   }
@@ -220,6 +233,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       const googletag = this.deps_.win().googletag;
       this.renderErrorView_();
       googletag.destroySlots([this.rewardedSlot_!]);
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
+      );
       resolve(true);
       // TODO: mhkawano - Launch payflow if monetized, cancel if not.
     }
@@ -293,6 +309,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
+
+    this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }
 
   private rewardedSlotClosed_() {
@@ -304,6 +322,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         this.params_.onCancel();
       }
     }
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+      /* isFromUserAction */ true
+    );
   }
 
   private rewardedSlotGranted_() {
@@ -329,6 +351,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     });
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
+    this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
     this.complete_();
   }
 
@@ -339,12 +362,20 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     if (this.params_.onCancel) {
       this.params_.onCancel();
     }
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
+      /* isFromUserAction */ true
+    );
   }
 
   private supportRewardedAdWall_() {
     removeElement(this.wrapper_);
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT,
+      /* isFromUserAction */ true
+    );
     this.params_.monetizationFunction!();
   }
 
@@ -353,7 +384,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'rewarded-ad-view-ad-button'
     );
     viewButton.item(0)?.setAttribute('disabled', 'true');
-
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_REWARDED_AD_VIEW,
+      /* isFromUserAction */ true
+    );
     this.makeRewardedVisible_!();
   }
 
@@ -365,6 +399,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         this.closeRewardedAdWall_.bind(this)
       );
     this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_REWARDED_AD_SIGN_IN,
+      /* isFromUserAction */ true
+    );
   }
 
   private buildEndpointUrl_(endpoint: string, queryParams: string[][]): string {
