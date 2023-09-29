@@ -40,6 +40,7 @@ import {OffersFlow} from './offers-flow';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {Toast} from '../ui/toast';
+import {UiPredicates} from '../model/client-config';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
@@ -783,7 +784,10 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
           },
         })
         .once();
-      clientConfigManagerMock.expects('getClientConfig').resolves({});
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves({uiPredicates});
       configuredClassicRuntimeMock
         .expects('showOffers')
         .withExactArgs({
@@ -810,7 +814,10 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
           },
         })
         .once();
-      clientConfigManagerMock.expects('getClientConfig').resolves({});
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves({uiPredicates});
       configuredClassicRuntimeMock
         .expects('showContributionOptions')
         .withExactArgs({
