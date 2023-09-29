@@ -1096,6 +1096,11 @@ export class AutoPromptManager {
     } else if (actionType === TYPE_REWARDED_ADS) {
       // Because we have fetched the article endpoint googletag.cmd should already exist.
       const googletagExists = !!this.deps_.win().googletag?.cmd;
+      if (!googletagExists) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
+        );
+      }
       return googletagExists;
     }
     return true;
