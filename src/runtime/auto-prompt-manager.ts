@@ -947,7 +947,7 @@ export class AutoPromptManager {
       this.hasStoredMiniPromptImpression_ = true;
     }
     return this.storage_.storeFrequencyCappingEvent(
-      INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)
+      INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
     );
   }
 
