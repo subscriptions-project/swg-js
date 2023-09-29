@@ -4071,6 +4071,12 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.interventionDisplayed_.type).to.equal(
         'TYPE_SUBSCRIPTION'
       );
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
     });
   });
 
