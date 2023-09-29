@@ -45,7 +45,7 @@ import {ImpressionStorageKeys, StorageKeys} from '../utils/constants';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
-import {Storage} from './storage';
+import {Storage, TWO_WEEKS_IN_MILLIS} from './storage';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
@@ -942,8 +942,8 @@ export class AutoPromptManager {
       }
       this.hasStoredMiniPromptImpression_ = true;
     }
-    return this.storage_.storeEvent(
-      INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
+    return this.storage_.storeFrequencyCappingEvent(
+      INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)
     );
   }
 
@@ -995,7 +995,9 @@ export class AutoPromptManager {
     for (const storageKey of new Set([
       ...INTERVENTION_TO_STORAGE_KEY_MAP.values(),
     ])) {
-      const promptImpressions = await this.storage_.getEvent(storageKey);
+      const promptImpressions = await this.storage_.getFrequencyCappingEvent(
+        storageKey
+      );
       impressions.push(...promptImpressions);
     }
 
@@ -1013,7 +1015,7 @@ export class AutoPromptManager {
       return [];
     }
 
-    return this.storage_.getEvent(
+    return this.storage_.getFrequencyCappingEvent(
       ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.get(actionType)!
     );
   }
