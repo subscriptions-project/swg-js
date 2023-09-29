@@ -45,7 +45,7 @@ import {ImpressionStorageKeys, StorageKeys} from '../utils/constants';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
-import {Storage, TWO_WEEKS_IN_MILLIS} from './storage';
+import {Storage} from './storage';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
