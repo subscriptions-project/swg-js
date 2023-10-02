@@ -17,6 +17,7 @@
 const PREFIX = 'subscribe.google.com';
 const STORAGE_DELIMITER = ',';
 const WEEK_IN_MILLIS = 604800000;
+const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 
 /**
  * This class is responsible for the storage of data in session storage. If
@@ -90,7 +91,8 @@ export class Storage {
 
   /**
    * Stores the current timestamp to local storage, under the storageKey provided.
-   * Removes timestamps older than a week in the process.
+   * Removes timestamps older than a week in the process. To be deprecated in
+   * favor of new storeFrequencyCappingEvent with new frequency capping flow.
    */
   async storeEvent(storageKey: string): Promise<void> {
     const timestamps = await this.getEvent(storageKey);
@@ -101,11 +103,38 @@ export class Storage {
 
   /**
    * Retrieves timestamps from local storage, under the storageKey provided.
-   * Filters out timestamps older than a week.
+   * Filters out timestamps older than a week. To be deprecated in favor of new
+   * getFrequencyCappingEvent with new frequency capping flow.
    */
   async getEvent(storageKey: string): Promise<number[]> {
     const value = await this.get(storageKey, /* useLocalStorage */ true);
     return this.pruneTimestamps_(this.deserializeTimestamps_(value));
+  }
+  /**
+   * Stores the current timestamp to local storage, under the storageKey
+   * provided for the frequency capping flow. To replace the legacy storeEvent
+   * fn when the legacy triggering flow is deprecated. Prunes timestamps
+   * older than two weeks in the process.
+   */
+  async storeFrequencyCappingEvent(storageKey: string): Promise<void> {
+    const timestamps = await this.getFrequencyCappingEvent(storageKey);
+    timestamps.push(Date.now());
+    const valueToStore = this.serializeTimestamps_(timestamps);
+    this.set(storageKey, valueToStore, /* useLocalStorage */ true);
+  }
+
+  /**
+   * Retrieves timestamps from local storage, under the storageKey provided
+   * for the frequency capping flow. To replace the legacy getEvent fn when the
+   * legacy triggering flow is deprecated. Prunes timestamps older than two
+   * weeks. Based on product requirement for maximum freqency cap support.
+   */
+  async getFrequencyCappingEvent(storageKey: string): Promise<number[]> {
+    const value = await this.get(storageKey, /* useLocalStorage */ true);
+    return this.pruneTimestamps_(
+      this.deserializeTimestamps_(value),
+      TWO_WEEKS_IN_MILLIS
+    );
   }
 
   /**
@@ -131,14 +160,17 @@ export class Storage {
   /**
    * Filters out values that are older than a week.
    */
-  pruneTimestamps_(timestamps: number[]): number[] {
+  pruneTimestamps_(
+    timestamps: number[],
+    timestampLifespan = WEEK_IN_MILLIS
+  ): number[] {
     const now = Date.now();
     let sliceIndex = timestamps.length;
     for (let i = 0; i < timestamps.length; i++) {
       // The arrays are sorted in time, so if you find a time in the array
       // that's within the week boundary, we can skip over the remainder because
       // the rest of the array else should be too.
-      if (now - timestamps[i] <= WEEK_IN_MILLIS) {
+      if (now - timestamps[i] <= timestampLifespan) {
         sliceIndex = i;
         break;
       }
