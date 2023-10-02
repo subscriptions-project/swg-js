@@ -56,6 +56,8 @@ const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_ADS = 'TYPE_REWARDED_AD';
 const SECOND_IN_MILLIS = 1000;
+const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
+  'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
 const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -294,6 +296,7 @@ export class AutoPromptManager {
             configurationId: potentialAction.configurationId,
             autoPromptType,
             isClosable,
+            preference: potentialAction.preference,
           })
         : undefined;
 
@@ -338,6 +341,7 @@ export class AutoPromptManager {
           configurationId: potentialAction.configurationId,
           autoPromptType,
           isClosable,
+          preference: potentialAction.preference,
         })
       : undefined;
 
@@ -736,11 +740,13 @@ export class AutoPromptManager {
     configurationId,
     autoPromptType,
     isClosable,
+    preference,
   }: {
     actionType: string;
     configurationId?: string;
     autoPromptType?: AutoPromptType;
     isClosable?: boolean;
+    preference?: string;
   }): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
@@ -755,6 +761,15 @@ export class AutoPromptManager {
                 autoPromptType,
                 !!isClosable
               ),
+            })
+          : actionType === TYPE_NEWSLETTER_SIGNUP &&
+            preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
+          ? new AudienceActionLocalFlow(this.deps_, {
+              action: actionType,
+              configurationId,
+              autoPromptType,
+              onCancel: this.storeLastDismissal_.bind(this),
+              isClosable,
             })
           : new AudienceActionIframeFlow(this.deps_, {
               action: actionType,

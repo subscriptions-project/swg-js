@@ -2002,6 +2002,41 @@ describes.realWin('EntitlementsManager', (env) => {
             {
               type: 'TEST_ACTION',
               configurationId: 'TEST_CONFIGURATION_ID',
+              preference: 'PREFERENCE_GOOGLE_PROVIDED_PROMPT',
+            },
+          ],
+        },
+      };
+      sandbox.stub(manager, 'getArticle').resolves(article);
+      expect(await manager.getAvailableInterventions()).to.deep.equal(
+        [
+          new AvailableIntervention(
+            {
+              type: 'TEST_ACTION',
+              configurationId: 'TEST_CONFIGURATION_ID',
+              preference: 'PREFERENCE_GOOGLE_PROVIDED_PROMPT',
+            },
+            deps
+          ),
+        ],
+        'getAvailableInterventions should return correct action'
+      );
+    });
+
+    it('should return correct AvailableInterventions without prompt preference', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {
+        audienceActions: {
+          actions: [
+            {
+              type: 'TEST_ACTION',
+              configurationId: 'TEST_CONFIGURATION_ID',
             },
           ],
         },

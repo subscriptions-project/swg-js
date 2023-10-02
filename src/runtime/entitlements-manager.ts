@@ -75,15 +75,18 @@ export interface ShowInterventionParams {
 export interface Intervention {
   readonly type: string;
   readonly configurationId?: string;
+  readonly preference?: string;
 }
 
 export class AvailableIntervention implements Intervention {
   readonly type: string;
   readonly configurationId?: string;
+  readonly preference?: string;
 
   constructor(original: Intervention, private readonly deps_: Deps) {
     this.type = original.type;
     this.configurationId = original.configurationId;
+    this.preference = original.preference;
   }
 
   /**
