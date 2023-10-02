@@ -152,6 +152,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private async initPrompt_() {
     if (this.params_.action === TYPE_REWARDED_AD) {
       await this.initRewardedAdWall_();
+    } else if () {
+
     } else {
       this.renderErrorView_();
     }
