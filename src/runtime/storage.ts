@@ -114,7 +114,7 @@ export class Storage {
    * Stores the current timestamp to local storage, under the storageKey
    * provided for the frequency capping flow. To replace the legacy storeEvent
    * fn when the legacy triggering flow is deprecated. Prunes timestamps
-   * older than two weekw in the process.
+   * older than two weeks in the process.
    */
   async storeFrequencyCappingEvent(storageKey: string): Promise<void> {
     const timestamps = await this.getFrequencyCappingEvent(storageKey);
@@ -127,7 +127,7 @@ export class Storage {
    * Retrieves timestamps from local storage, under the storageKey provided
    * for the frequency capping flow. To replace the legacy getEvent fn when the
    * legacy triggering flow is deprecated. Prunes timestamps older than two
-   * weeks.
+   * weeks. Based on product requirement for maximum freqency cap support.
    */
   async getFrequencyCappingEvent(storageKey: string): Promise<number[]> {
     const value = await this.get(storageKey, /* useLocalStorage */ true);
