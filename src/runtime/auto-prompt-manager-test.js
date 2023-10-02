@@ -56,6 +56,11 @@ const NEWSLETTER_INTERVENTION = {
   type: 'TYPE_NEWSLETTER_SIGNUP',
   configurationId: 'newsletter_config_id',
 };
+const NEWSLETTER_INTERVENTION_PUBLISHER_PROMPT = {
+  type: 'TYPE_NEWSLETTER_SIGNUP',
+  configurationId: 'newsletter_config_id',
+  preference: 'PREFERENCE_PUBLISHER_PROVIDED_PROMPT',
+};
 const REGWALL_INTERVENTION = {
   type: 'TYPE_REGISTRATION_WALL',
   configurationId: 'regwall_config_id',
@@ -4077,6 +4082,41 @@ describes.realWin('AutoPromptManager', (env) => {
         isFromUserAction: null,
         additionalParameters: null,
       });
+    });
+
+    it('is rendered for TYPE_NEWSLETTER_SIGNUP', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              NEWSLETTER_INTERVENTION_PUBLISHER_PROMPT,
+              CONTRIBUTION_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        alwaysShow: false,
+      });
+
+      await tick(7);
+
+      expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        configurationId: 'newsletter_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        onCancel: sandbox.match.any,
+        isClosable: true,
+      });
+      expect(startLocalSpy).to.have.been.calledOnce;
+      expect(startSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
+        'TYPE_NEWSLETTER_SIGNUP'
+      );
     });
   });
 
