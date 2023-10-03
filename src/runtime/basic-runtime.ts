@@ -16,6 +16,7 @@
 
 import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
+import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {
@@ -521,8 +522,14 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
 
     const jwt = response['jwt'];
     if (jwt) {
-      // If entitlements are returned, close the subscription/contribution offers iframe
-      this.configuredClassicRuntime_.closeDialog();
+      // If entitlements are returned, close the prompt
+      const lastAudienceActionFlow =
+        this.autoPromptManager_.getLastAudienceActionFlow();
+      if (lastAudienceActionFlow instanceof AudienceActionLocalFlow) {
+        lastAudienceActionFlow.close();
+      } else {
+        this.configuredClassicRuntime_.closeDialog();
+      }
 
       // Also save the entitlements and user token
       this.entitlementsManager().pushNextEntitlements(jwt);
