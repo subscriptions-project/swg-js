@@ -187,7 +187,66 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private renderOptinPrompt_(codeSnippet: String) {
+  private renderOptinPrompt_(codeSnippet: string) {
+    this.prompt_./*OK*/ innerHTML = codeSnippet;
+    // const wrapper = createElement(doc, 'div', {});
+
+    // const buttonWrapper = doc.createElement('div');
+    // buttonWrapper.innerHTML = String.raw`<p>close</p>`;
+    // wrapper.appendChild(buttonWrapper);
+    // const shadowOpen = wrapper.attachShadow({mode: 'open'});
+
+    // shadowOpen.innerHTML = promptHtml;
+
+    // setImportantStyles(wrapper, {
+    //   'all': 'unset',
+    //   'background-color': 'white',
+    //   'border': 'none',
+    //   'bottom': '0px',
+    //   'height': '200px',
+    //   'left': '620px',
+    //   'opacity': '1',
+    //   'pointer-events': 'auto',
+    //   'position': 'fixed',
+    //   'right': '200px',
+    //   'transition': 'opacity 0.5s',
+    //   'top': 'auto',
+    //   'width': '400px',
+    //   'z-index': '2147483648',
+    // });
+
+    // const shadowRoot = wrapper.shadowRoot;
+
+    // doc.body.appendChild(wrapper);
+
+    // shadowOpen.appendChild(prompt);
+  //   function formSubmit_(event) {
+  //     console.log(event);
+  //     console.log(doc.body);
+  //     const regex =
+  // /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          
+  //     if (shadowRoot) {
+  //       const inputs = shadowRoot.querySelectorAll('input');
+  //       inputs.forEach(input => {
+  //         if (regex.test(input.value)) {
+  //           console.log(input.value);
+  //         }
+  //       });
+  //     }
+  //   }
+
+  //   if (shadowRoot) {
+  //     console.log(shadowRoot);
+  //     const form = shadowRoot.querySelector('form');
+  //     if (form) {
+  //       form.addEventListener('submit', formSubmit_);
+  //     } else {
+  //       console.log('no fooooooooooooooorm!');
+  //     }
+  //   } else {
+  //     console.log('no roooooooooooooooooot!');
+  //   }
 
   }
 
