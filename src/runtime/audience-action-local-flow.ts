@@ -338,7 +338,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     );
   }
 
-  private rewardedSlotGranted_() {
+  private async rewardedSlotGranted_() {
     const language = this.clientConfigManager_.getLanguage();
     const closeButtonDescription = msg(
       SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
@@ -362,7 +362,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
-    this.complete_();
+    await this.complete_();
   }
 
   private closeRewardedAdWall_() {
@@ -471,7 +471,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       await this.deps_
         .storage()
         .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
-      this.entitlementsManager_.getEntitlements();
+      await this.entitlementsManager_.getEntitlements();
     }
     // TODO: mhkawano - else log error
   }
