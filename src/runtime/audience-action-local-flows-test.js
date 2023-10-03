@@ -56,9 +56,17 @@ const NEWSLETTER_CONFIG = `
   }
 }`;
 
+const DEFAULT_COMPLETE_RESPONSE = `
+{
+  "updated": true,
+  "alreadyCompleted": true,
+  "swgUserToken": "xyz"
+}`;
+
 describes.realWin('AudienceActionLocalFlow', (env) => {
   let runtime;
   let eventManager;
+  let entitlementsManager;
 
   beforeEach(() => {
     runtime = new ConfiguredRuntime(
@@ -76,6 +84,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       logSwgEvent: sandbox.spy(),
     };
     runtime.eventManager = () => eventManager;
+    entitlementsManager = {
+      clear: sandbox.spy(),
+      getEntitlements: sandbox.spy(),
+    };
+    runtime.entitlementsManager = () => entitlementsManager;
   });
 
   describe('start', () => {
@@ -103,6 +116,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       let eventListeners;
       let readyEventArg;
       let configResponse;
+      let completeResponse;
 
       beforeEach(() => {
         rewardedSlot = {
@@ -127,11 +141,17 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           destroySlots: sandbox.spy(),
         };
         configResponse = new Response(null, {status: 200});
+        completeResponse = new Response(null, {status: 200});
+        completeResponse.text = sandbox
+          .stub()
+          .returns(Promise.resolve(DEFAULT_COMPLETE_RESPONSE));
       });
 
       async function renderAndAssertRewardedAd(params, config) {
         configResponse.text = sandbox.stub().returns(Promise.resolve(config));
-        env.win.fetch = sandbox.stub().returns(Promise.resolve(configResponse));
+        env.win.fetch = sandbox.stub();
+        env.win.fetch.onCall(0).returns(Promise.resolve(configResponse));
+        env.win.fetch.onCall(1).returns(Promise.resolve(completeResponse));
 
         const flow = new AudienceActionLocalFlow(
           runtime,
@@ -409,6 +429,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_GRANTED
         );
+        expect(entitlementsManager.clear).to.be.called;
+        expect(entitlementsManager.getEntitlements).to.be.called;
       });
 
       it('closes on thanks', async () => {
