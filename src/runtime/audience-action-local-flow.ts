@@ -15,7 +15,11 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
-import {AudienceActionFlow, TYPE_REWARDED_AD} from './audience-action-flow';
+import {
+  AudienceActionFlow,
+  TYPE_REWARDED_AD,
+  TYPE_NEWSLETTER_SIGNUP
+} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   CLOSE_BUTTON_HTML,
@@ -60,11 +64,19 @@ interface AudienceActionConfig {
     adunit?: string;
     customMessage?: string;
   };
+  optInParameters?: {
+    title: string;
+    body: string;
+    promptPreference?: string;
+    codeSnippet?: string;
+  }
 }
 
 // Default timeout for waiting on ready callback.
 const GPT_TIMEOUT_MS = 3000;
 const CHECK_ENTITLEMENTS_REQUEST_ID = 'CHECK_ENTITLEMENTS';
+const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
+  'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
 /**
  * An audience action local flow will show a dialog prompt to a reader, asking them
@@ -152,11 +164,31 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private async initPrompt_() {
     if (this.params_.action === TYPE_REWARDED_AD) {
       await this.initRewardedAdWall_();
-    } else if () {
-
+    } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
+      await this.initNewsletterSignup_();
     } else {
       this.renderErrorView_();
     }
+  }
+
+  private async initNewsletterSignup_() {
+    //TODO: chuyangwang - Log impression.
+    const config = await this.getConfig_();
+
+    const validNewsletterSignupParams =
+      config?.optInParameters?.codeSnippet &&
+      config?.optInParameters?.promptPreference ===
+        PREFERENCE_PUBLISHER_PROVIDED_PROMPT &&
+      config?.publication?.name;
+    if (validNewsletterSignupParams) {
+      this.renderOptinPrompt_(config?.optInParameters?.codeSnippet);
+    } else {
+      //TODO: chuyangwang - Log Error.
+    }
+  }
+
+  private renderOptinPrompt_(codeSnippet: String) {
+
   }
 
   private async initRewardedAdWall_() {
