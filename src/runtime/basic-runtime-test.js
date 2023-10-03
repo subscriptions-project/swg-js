@@ -20,6 +20,7 @@ import {
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActionIframeFlow} from './audience-action-flow';
+import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
@@ -930,6 +931,59 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       expect(toast).not.to.be.null;
       expect(toast.src_).to.contain('flavor=basic');
       storageMock.verify();
+    });
+
+    it('should handle an EntitlementsResponse with jwt and usertoken for AudienceActionLocalFlow', async () => {
+      const port = new MockActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {'jwt': 'abc', 'usertoken': 'xyz'};
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const audienceActionFlow = new AudienceActionLocalFlow(
+        configuredBasicRuntime,
+        {action: 'foo', configurationId: 'configId'}
+      );
+      const audienceActionFlowMock = sandbox.mock(audienceActionFlow);
+      audienceActionFlowMock.expects('close').withExactArgs().once();
+      const autoPromptManagerMock = sandbox.mock(
+        configuredBasicRuntime.autoPromptManager_
+      );
+      autoPromptManagerMock
+        .expects('getLastAudienceActionFlow')
+        .withExactArgs()
+        .returns(audienceActionFlow)
+        .once();
+
+      entitlementsManagerMock
+        .expects('pushNextEntitlements')
+        .withExactArgs('abc')
+        .once();
+
+      const storageMock = sandbox.mock(configuredBasicRuntime.storage());
+      storageMock
+        .expects('set')
+        .withExactArgs('USER_TOKEN', 'xyz', true)
+        .once();
+
+      let toast;
+      const toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+
+      expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
+      expect(toast.src_).to.contain('flavor=basic');
+      storageMock.verify();
+
+      audienceActionFlowMock.verify();
     });
 
     it('should handle an empty EntitlementsResponse from subscription offers flow', async () => {
