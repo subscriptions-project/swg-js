@@ -575,6 +575,50 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(prompt.innerHTML).contains('newsletter_code_snippet');
       });
 
+      it('not render newsletter prompt with Google prompt preference', async () => {
+        const NEWSLETTER_GOOGLE_PROMPT_CONFIG = `
+        {
+          "publication": {
+            "name": "PUBLICATOIN_NAME"
+          },
+          "optInParameters": {
+            "title": "newsletter_title",
+            "body": "newsletter_body",
+            "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT",
+            "codeSnippet": "<form>newsletter_code_snippet</form>"
+          }
+        }`;
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_GOOGLE_PROMPT_CONFIG
+        );
+
+        const prompt = state.wrapper.shadowRoot;
+        expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
+      });
+
+      it('not render newsletter prompt with no code snippet', async () => {
+        const NEWSLETTER_NO_SNIPPET_CONFIG = `
+        {
+          "publication": {
+            "name": "PUBLICATOIN_NAME"
+          },
+          "optInParameters": {
+            "title": "newsletter_title",
+            "body": "newsletter_body",
+            "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT",
+            "codeSnippet": ""
+          }
+        }`;
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_NO_SNIPPET_CONFIG
+        );
+
+        const prompt = state.wrapper.shadowRoot;
+        expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
+      });
+
       it('newsletter prompt submit triggers completion event', async () => {
         const state = await renderNewsletterPrompt(
           NEWSLETTER_PARAMS,
