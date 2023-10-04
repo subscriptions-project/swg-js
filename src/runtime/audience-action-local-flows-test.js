@@ -638,6 +638,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const prompt = state.wrapper.shadowRoot;
         expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
+        const form = state.wrapper.shadowRoot.querySelector('form');
+        expect(form).to.be.null;
       });
 
       it('will not render with code snippet not containing form element', async () => {
@@ -660,6 +662,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const prompt = state.wrapper.shadowRoot;
         expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
+        const form = state.wrapper.shadowRoot.querySelector('form');
+        expect(form).to.be.null;
       });
 
       it('submit event triggers completion event', async () => {
