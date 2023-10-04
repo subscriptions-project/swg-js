@@ -570,7 +570,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc'
         );
 
-        // const prompt = state.wrapper.shadowRoot;
         const prompt = state.wrapper.shadowRoot;
         expect(prompt).to.not.be.null;
         expect(prompt.innerHTML).contains('newsletter_code_snippet');
@@ -582,7 +581,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           NEWSLETTER_CONFIG
         );
 
-        // const prompt = state.wrapper.shadowRoot;
         const form = state.wrapper.shadowRoot.querySelector('form');
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
