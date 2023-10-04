@@ -189,20 +189,20 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private renderOptinPrompt_(codeSnippet?: string) {
     if (!codeSnippet || !codeSnippet.includes('form')) {
       ////TODO: chuyangwang - Log Error.
-      return;
-    }
-    //TODO: chuyangwang - set prompt to be at the right position.
-    this.prompt_./*OK*/ innerHTML = codeSnippet;
-    const shadowRoot = this.wrapper_.shadowRoot;
-    if (shadowRoot) {
-      const form = shadowRoot.querySelector('form');
-      if (form) {
-        form.addEventListener('submit', this.formSubmit_.bind(this));
+    } else {
+      //TODO: chuyangwang - set prompt to be at the right position.
+      this.prompt_./*OK*/ innerHTML = codeSnippet;
+      const shadowRoot = this.wrapper_.shadowRoot;
+      if (shadowRoot) {
+        const form = shadowRoot.querySelector('form');
+        if (form) {
+          form.addEventListener('submit', this.formSubmit_.bind(this));
+        } else {
+          //TODO: chuyangwang - Log Error.
+        }
       } else {
         //TODO: chuyangwang - Log Error.
       }
-    } else {
-      //TODO: chuyangwang - Log Error.
     }
   }
 
