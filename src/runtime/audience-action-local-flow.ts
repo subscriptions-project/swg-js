@@ -173,22 +173,25 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private async initNewsletterSignup_() {
     //TODO: chuyangwang - Log impression.
     const config = await this.getConfig_();
+    const codeSnippet = config?.optInParameters?.codeSnippet;
 
     const validNewsletterSignupParams =
-      config?.optInParameters?.codeSnippet &&
+      codeSnippet &&
       config?.optInParameters?.promptPreference ===
         PREFERENCE_PUBLISHER_PROVIDED_PROMPT;
 
     if (validNewsletterSignupParams) {
-      this.renderOptinPrompt_(config?.optInParameters?.codeSnippet);
+      this.renderOptinPrompt_(codeSnippet);
     } else {
       //TODO: chuyangwang - Log Error.
+      this.renderErrorView_();
     }
   }
 
-  private renderOptinPrompt_(codeSnippet?: string) {
-    if (!codeSnippet || !codeSnippet.includes('form')) {
+  private renderOptinPrompt_(codeSnippet: string) {
+    if (!codeSnippet.includes('form')) {
       ////TODO: chuyangwang - Log Error.
+      this.renderErrorView_();
     } else {
       //TODO: chuyangwang - set prompt to be at the right position.
       this.prompt_./*OK*/ innerHTML = codeSnippet;
@@ -199,9 +202,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
           form.addEventListener('submit', this.formSubmit_.bind(this));
         } else {
           //TODO: chuyangwang - Log Error.
+          this.renderErrorView_();
         }
       } else {
         //TODO: chuyangwang - Log Error.
+        this.renderErrorView_();
       }
     }
   }

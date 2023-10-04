@@ -570,9 +570,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc'
         );
 
-        const prompt = state.wrapper.shadowRoot;
-        expect(prompt).to.not.be.null;
-        expect(prompt.innerHTML).contains('newsletter_code_snippet');
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot).to.not.be.null;
+        expect(shadowRoot.innerHTML).contains('newsletter_code_snippet');
       });
 
       it('will not render with Google prompt preference', async () => {
@@ -593,8 +593,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           NEWSLETTER_GOOGLE_PROMPT_CONFIG
         );
 
-        const prompt = state.wrapper.shadowRoot;
-        expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
       });
 
       it('will not render with no code snippet', async () => {
@@ -606,7 +606,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           "optInParameters": {
             "title": "newsletter_title",
             "body": "newsletter_body",
-            "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT"
+            "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT"
           }
         }`;
         const state = await renderNewsletterPrompt(
@@ -614,8 +614,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           NEWSLETTER_NO_SNIPPET_CONFIG
         );
 
-        const prompt = state.wrapper.shadowRoot;
-        expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
+        const prompt = shadowRoot.querySelector('.prompt');
+        expect(prompt.innerHTML).contains('Something went wrong.');
       });
 
       it('will not render with code snippet not containing form', async () => {
@@ -627,7 +629,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           "optInParameters": {
             "title": "newsletter_title",
             "body": "newsletter_body",
-            "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT",
+            "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
             "codeSnippet": "<input>newsletter_code_snippet</input>"
           }
         }`;
@@ -636,10 +638,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           NEWSLETTER_NO_SNIPPET_CONFIG
         );
 
-        const prompt = state.wrapper.shadowRoot;
-        expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
         const form = state.wrapper.shadowRoot.querySelector('form');
         expect(form).to.be.null;
+        const prompt = state.wrapper.shadowRoot.querySelector('.prompt');
+        expect(prompt.innerHTML).contains('Something went wrong.');
       });
 
       it('will not render with code snippet not containing form element', async () => {
@@ -651,7 +655,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           "optInParameters": {
             "title": "newsletter_title",
             "body": "newsletter_body",
-            "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT",
+            "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
             "codeSnippet": "<input>newsletter_code_snippet_fake_form</input>"
           }
         }`;
@@ -660,10 +664,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           NEWSLETTER_NO_SNIPPET_CONFIG
         );
 
-        const prompt = state.wrapper.shadowRoot;
-        expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
         const form = state.wrapper.shadowRoot.querySelector('form');
         expect(form).to.be.null;
+        const prompt = state.wrapper.shadowRoot.querySelector('.prompt');
+        expect(prompt.innerHTML).contains('Something went wrong.');
       });
 
       it('submit event triggers completion event', async () => {
