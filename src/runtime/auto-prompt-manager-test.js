@@ -3136,6 +3136,41 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
+    it('should not show any prompt if there are no eligible audience actions', async () => {
+      setWinWithAnalytics(/* gtag */ false, /* ga */ false);
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: [
+              'frequency_capping_local_storage_experiment',
+              'prompt_frequency_capping_experiment',
+            ],
+          },
+        })
+        .once();
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /*setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
+      );
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(20);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
     it('should show the first prompt if there are no stored impressions', async () => {
       setupPreviousImpressionAndDismissals(
         storageMock,
