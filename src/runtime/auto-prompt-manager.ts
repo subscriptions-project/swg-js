@@ -93,12 +93,12 @@ const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
     AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
     ImpressionStorageKeys.REGISTRATION_WALL,
   ],
+  [AnalyticsEvent.IMPRESSION_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
   [
     AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
     ImpressionStorageKeys.SUBSCRIPTION,
   ],
   [AnalyticsEvent.IMPRESSION_OFFERS, ImpressionStorageKeys.SUBSCRIPTION],
-  [AnalyticsEvent.IMPRESSION_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
 ]);
 
 const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
