@@ -17,8 +17,8 @@
 import {AnalyticsEvent} from '../proto/api_messages';
 import {
   AudienceActionFlow,
+  TYPE_NEWSLETTER_SIGNUP,
   TYPE_REWARDED_AD,
-  TYPE_NEWSLETTER_SIGNUP
 } from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
@@ -179,6 +179,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       config?.optInParameters?.codeSnippet &&
       config?.optInParameters?.promptPreference ===
         PREFERENCE_PUBLISHER_PROVIDED_PROMPT;
+
     if (validNewsletterSignupParams) {
       this.renderOptinPrompt_(config?.optInParameters?.codeSnippet);
     } else {
@@ -191,6 +192,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       ////TODO: chuyangwang - Log Error.
       return;
     }
+    //TODO: chuyangwang - set prompt to be at the right position.
     this.prompt_./*OK*/ innerHTML = codeSnippet;
     const shadowRoot = this.wrapper_.shadowRoot;
     if (shadowRoot) {
