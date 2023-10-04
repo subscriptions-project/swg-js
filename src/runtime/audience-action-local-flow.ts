@@ -195,15 +195,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     } else {
       //TODO: chuyangwang - set prompt to be at the right position.
       this.prompt_./*OK*/ innerHTML = codeSnippet;
-      const shadowRoot = this.wrapper_.shadowRoot;
-      if (shadowRoot) {
-        const form = shadowRoot.querySelector('form');
-        if (form) {
-          form.addEventListener('submit', this.formSubmit_.bind(this));
-        } else {
-          //TODO: chuyangwang - Log Error.
-          this.renderErrorView_();
-        }
+      const form = this.prompt_.querySelector('form');
+      if (form) {
+        form.addEventListener('submit', this.formSubmit_.bind(this));
       } else {
         //TODO: chuyangwang - Log Error.
         this.renderErrorView_();
