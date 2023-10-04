@@ -527,6 +527,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
   it('should set frequency cap local storage if experiment is enabled and a contribution prompt was triggered on a locked page', async () => {
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.autoPromptType_ = AutoPromptType.CONTRIBUTION_LARGE;
     sandbox.stub(pageConfig, 'isLocked').returns(true);
     storageMock
       .expects('get')
