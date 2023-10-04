@@ -112,11 +112,11 @@
     "@nightwatch/vrt": "^3.0.0",
     "@rollup/plugin-commonjs": "25.0.4",
     "@rollup/plugin-replace": "5.0.2",
-    "@storybook/addon-actions": "7.4.5",
-    "@storybook/addon-essentials": "7.4.5",
-    "@storybook/addon-links": "7.4.5",
-    "@storybook/builder-webpack5": "7.4.5",
-    "@storybook/html": "7.4.5",
+    "@storybook/addon-actions": "7.4.6",
+    "@storybook/addon-essentials": "7.4.6",
+    "@storybook/addon-links": "7.4.6",
+    "@storybook/builder-webpack5": "7.4.6",
+    "@storybook/html": "7.4.6",
     "@storybook/manager-webpack5": "6.5.16",
     "cheerio": "1.0.0-rc.12",
     "chromedriver": "117.0.3",
@@ -126,7 +126,7 @@
     "jsonwebtoken": "9.0.2",
     "nightwatch": "2.6.22",
     "rollup-plugin-visualizer": "5.9.2",
-    "vite": "4.4.9"
+    "vite": "4.4.10"
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,

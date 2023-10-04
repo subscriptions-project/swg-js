@@ -514,6 +514,23 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           AnalyticsEvent.ACTION_REWARDED_AD_VIEW
         );
       });
+
+      it('close removes prompt', async () => {
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG
+        );
+
+        state.flow.close();
+
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(updatedWrapper).to.be.null;
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+      });
     });
 
     describe('newsletter publisher prompt', () => {

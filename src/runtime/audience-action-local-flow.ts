@@ -74,7 +74,6 @@ interface AudienceActionConfig {
 
 // Default timeout for waiting on ready callback.
 const GPT_TIMEOUT_MS = 3000;
-const CHECK_ENTITLEMENTS_REQUEST_ID = 'CHECK_ENTITLEMENTS';
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
@@ -447,12 +446,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private signinRewardedAdWall_() {
-    this.deps_
-      .activities()
-      .onResult(
-        CHECK_ENTITLEMENTS_REQUEST_ID,
-        this.closeRewardedAdWall_.bind(this)
-      );
     this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_SIGN_IN,
@@ -528,5 +521,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         customText,
       })
     ).open();
+  }
+
+  close() {
+    removeElement(this.wrapper_);
+    if (this.rewardedSlot_) {
+      const googletag = this.deps_.win().googletag;
+      googletag.destroySlots([this.rewardedSlot_]);
+    }
   }
 }
