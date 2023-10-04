@@ -93,6 +93,11 @@ const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
     AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
     ImpressionStorageKeys.REGISTRATION_WALL,
   ],
+  [
+    AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
+    ImpressionStorageKeys.SUBSCRIPTION,
+  ],
+  [AnalyticsEvent.IMPRESSION_OFFERS, ImpressionStorageKeys.SUBSCRIPTION],
   [AnalyticsEvent.IMPRESSION_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
 ]);
 
@@ -103,6 +108,10 @@ const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
   [TYPE_REWARDED_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
   [TYPE_REWARDED_ADS, ImpressionStorageKeys.REWARDED_AD],
 ]);
+
+const SUBSCRIPTION_OPENACCESS_GLOBAL_FREQUENCY_CAP_DURATION: Duration = {
+  seconds: 3600, // 1 hour
+};
 
 export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
@@ -690,12 +699,15 @@ export class AutoPromptManager {
       )
     );
 
+    if (actions.length === 0) {
+      return;
+    }
+
     // FrequencyCapConfig may be undefined ONLY for subscription openacess
     // content. If so, display first valid action.
-    if (
-      this.isSubscription_(autoPromptType) ||
-      !this.isValidFrequencyCap_(frequencyCapConfig)
-    ) {
+    const isLockedContent =
+      this.isSubscription_(autoPromptType) && this.pageConfig_.isLocked();
+    if (isLockedContent || !this.isValidFrequencyCap_(frequencyCapConfig)) {
       if (!this.isSubscription_(autoPromptType)) {
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
@@ -704,8 +716,11 @@ export class AutoPromptManager {
       return actions[0];
     }
 
-    const globalFrequencyCapDuration =
-      frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
+    const isSubscriptionOpenaccess =
+      this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked();
+    const globalFrequencyCapDuration = isSubscriptionOpenaccess
+      ? SUBSCRIPTION_OPENACCESS_GLOBAL_FREQUENCY_CAP_DURATION
+      : frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
       const globalImpressions = await this.getAllImpressions_();
       if (
@@ -716,6 +731,12 @@ export class AutoPromptManager {
         );
         return;
       }
+    }
+
+    // Do not apply per prompt frequency cap for subscription publications.
+    // Only reachable by openaccess content.
+    if (this.isSubscription_(autoPromptType)) {
+      return actions[0];
     }
 
     for (const action of actions) {

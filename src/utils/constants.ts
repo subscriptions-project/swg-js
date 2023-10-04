@@ -97,6 +97,8 @@ const ImpressionStorageKeys = {
 
   REWARDED_AD: 'imp_ad',
 
+  SUBSCRIPTION: 'imp_subscription',
+
   REWARDED_SURVEY: 'imp_survey',
 };
 

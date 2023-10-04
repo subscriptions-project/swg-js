@@ -42,8 +42,9 @@ import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
-const SECOND_IN_MILLIS = Math.pow(10, 3);
+const SECOND_IN_MS = Math.pow(10, 3);
 const SECOND_IN_NANO = Math.pow(10, 9);
+const HOUR_IN_MS = 3600 * SECOND_IN_MS;
 const CONTRIBUTION_INTERVENTION = {
   type: 'TYPE_CONTRIBUTION',
   configurationId: 'contribution_config_id',
@@ -3172,7 +3173,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
       const contributionTimestamps = (
         CURRENT_TIME -
-        10 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+        10 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
       ).toString();
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: contributionTimestamps,
@@ -3187,7 +3188,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(15);
+      await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
@@ -3205,7 +3206,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: (
           CURRENT_TIME -
-          0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+          0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
         ).toString(),
       });
 
@@ -3255,7 +3256,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: (
           CURRENT_TIME -
-          0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+          0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
         ).toString(),
       });
 
@@ -3286,7 +3287,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
       const contributionTimestamps = (
         CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
       ).toString();
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: contributionTimestamps,
@@ -3343,7 +3344,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
       const contributionTimestamps = (
         CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
       ).toString();
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: contributionTimestamps,
@@ -3398,7 +3399,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
       const promptTimestamps = (
         CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
       ).toString();
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: promptTimestamps,
@@ -3469,7 +3470,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
       const promptTimestamps = (
         CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
       ).toString();
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: promptTimestamps,
@@ -3607,7 +3608,7 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it('should show the first dismissible prompt for metered flow on unlocked content', async () => {
+    it('should show the first dismissible prompt for subscriptions on unlocked content outside the global cap', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       getArticleExpectation
         .resolves({
@@ -3636,6 +3637,9 @@ describes.realWin('AutoPromptManager', (env) => {
         },
         /*setAutopromptExpectations*/ false
       );
+      expectFrequencyCappingGlobalImpressions(storageMock, {
+        subscription: (CURRENT_TIME - HOUR_IN_MS).toString(),
+      });
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
@@ -3653,6 +3657,62 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: true,
       });
+    });
+
+    it('should not show any prompt if the global frequency cap is met for subscriptions on unlocked content', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              SURVEY_INTERVENTION,
+              REGWALL_INTERVENTION,
+              SUBSCRIPTION_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: [
+              'frequency_capping_local_storage_experiment',
+              'prompt_frequency_capping_experiment',
+            ],
+          },
+        })
+        .once();
+
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+
+      expectFrequencyCappingGlobalImpressions(storageMock, {
+        subscription: (
+          CURRENT_TIME -
+          0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
+        ).toString(),
+      });
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        isClosable: true,
+      });
+      await tick(20);
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
     });
 
     it('should execute the legacy frequency cap flow if the experiment is disabled', async () => {
@@ -3778,7 +3838,7 @@ describes.realWin('AutoPromptManager', (env) => {
       );
       const contributionTimestamps = (
         CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MILLIS
+        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
       ).toString();
       expectFrequencyCappingGlobalImpressions(storageMock, {
         contribution: contributionTimestamps,
@@ -3831,7 +3891,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('isFrequencyCapped_ should return false for impressions that occurred outside of the cap duration', async () => {
       const duration = {seconds: 60, nano: 0};
-      const impressions = [CURRENT_TIME - 120 * SECOND_IN_MILLIS];
+      const impressions = [CURRENT_TIME - 120 * SECOND_IN_MS];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
@@ -3842,8 +3902,8 @@ describes.realWin('AutoPromptManager', (env) => {
     it('isFrequencyCapped_ should return true if the max impression occurred within of the cap duration', async () => {
       const duration = {seconds: 60, nano: 0};
       const impressions = [
-        CURRENT_TIME - 10 * SECOND_IN_MILLIS,
-        CURRENT_TIME - 120 * SECOND_IN_MILLIS,
+        CURRENT_TIME - 10 * SECOND_IN_MS,
+        CURRENT_TIME - 120 * SECOND_IN_MS,
       ];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
@@ -3854,7 +3914,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('isFrequencyCapped_ should return true for impressions that occurred within the cap duration', async () => {
       const duration = {seconds: 60, nano: 0};
-      const impressions = [CURRENT_TIME - 10 * SECOND_IN_MILLIS];
+      const impressions = [CURRENT_TIME - 10 * SECOND_IN_MS];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
@@ -3864,7 +3924,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('isFrequencyCapped_ should return true if the max impression occurred within the cap duration, including nanos', async () => {
       const duration = {seconds: 60, nano: 60 * SECOND_IN_NANO};
-      const impressions = [CURRENT_TIME - 90 * SECOND_IN_MILLIS];
+      const impressions = [CURRENT_TIME - 90 * SECOND_IN_MS];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
@@ -3874,7 +3934,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('isFrequencyCapped_ should return false if the max impression occurred within the cap duration, including negative nanos', async () => {
       const duration = {seconds: 120, nano: -60 * SECOND_IN_NANO};
-      const impressions = [CURRENT_TIME - 90 * SECOND_IN_MILLIS];
+      const impressions = [CURRENT_TIME - 90 * SECOND_IN_MS];
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
@@ -3941,10 +4001,11 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock,
     impressions = {}
   ) {
-    const {contribution, newsletter, regwall, survey} = {
+    const {contribution, newsletter, regwall, subscription, survey} = {
       contribution: null,
       newsletter: null,
       regwall: null,
+      subscription: null,
       survey: null,
       ...impressions,
     };
@@ -3971,6 +4032,14 @@ describes.realWin('AutoPromptManager', (env) => {
         /* useLocalStorage */ true
       )
       .resolves(regwall)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.SUBSCRIPTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(subscription)
       .once();
     storageMock
       .expects('get')
