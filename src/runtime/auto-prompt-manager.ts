@@ -122,6 +122,7 @@ export class AutoPromptManager {
   private interventionDisplayed_: Intervention | null = null;
   private frequencyCappingLocalStorageEnabled_: boolean = false;
   private promptFrequencyCappingEnabled_: boolean = false;
+  private autoPromptType_?: AutoPromptType;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -261,6 +262,7 @@ export class AutoPromptManager {
       article.audienceActions?.actions,
       params.autoPromptType
     )!;
+    this.autoPromptType_ = autoPromptType;
 
     // Default isClosable to what is set in the page config.
     // Otherwise, the prompt is blocking for publications with a
@@ -947,10 +949,12 @@ export class AutoPromptManager {
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
+    const isLockedContent =
+      this.isSubscription_(this.autoPromptType_) && this.pageConfig_.isLocked();
     // TODO(b/300963305): manually triggered prompts should also be excluded.
     if (
       !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
-      this.pageConfig_.isLocked()
+      isLockedContent
     ) {
       return;
     }
