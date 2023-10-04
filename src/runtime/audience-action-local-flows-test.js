@@ -560,7 +560,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         return {flow, wrapper};
       }
 
-      it('renders newsletter prompt', async () => {
+      it('renders', async () => {
         const state = await renderNewsletterPrompt(
           NEWSLETTER_PARAMS,
           NEWSLETTER_CONFIG
@@ -575,7 +575,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(prompt.innerHTML).contains('newsletter_code_snippet');
       });
 
-      it('not render newsletter prompt with Google prompt preference', async () => {
+      it('will not render with Google prompt preference', async () => {
         const NEWSLETTER_GOOGLE_PROMPT_CONFIG = `
         {
           "publication": {
@@ -597,7 +597,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
       });
 
-      it('not render newsletter prompt with no code snippet', async () => {
+      it('will not render with no code snippet', async () => {
         const NEWSLETTER_NO_SNIPPET_CONFIG = `
         {
           "publication": {
@@ -619,7 +619,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
       });
 
-      it('newsletter prompt submit triggers completion event', async () => {
+      it('submit event triggers completion event', async () => {
         const state = await renderNewsletterPrompt(
           NEWSLETTER_PARAMS,
           NEWSLETTER_CONFIG
