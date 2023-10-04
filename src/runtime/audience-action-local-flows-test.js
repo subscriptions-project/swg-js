@@ -597,7 +597,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(prompt.innerHTML).to.not.contain('newsletter_code_snippet');
       });
 
-      it('will not render with no code snippet', async () => {
+      it('renders error view with no code snippet', async () => {
         const NEWSLETTER_NO_SNIPPET_CONFIG = `
         {
           "publication": {
@@ -607,7 +607,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
             "title": "newsletter_title",
             "body": "newsletter_body",
             "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT",
-            "codeSnippet": ""
           }
         }`;
         const state = await renderNewsletterPrompt(
