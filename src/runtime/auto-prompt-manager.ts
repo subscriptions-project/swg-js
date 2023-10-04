@@ -262,6 +262,7 @@ export class AutoPromptManager {
       article.audienceActions?.actions,
       params.autoPromptType
     )!;
+    // TODO(b/303489420): cleanup passing of autoPromptType variable.
     this.autoPromptType_ = autoPromptType;
 
     // Default isClosable to what is set in the page config.
