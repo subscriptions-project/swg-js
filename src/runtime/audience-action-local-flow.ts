@@ -69,7 +69,7 @@ interface AudienceActionConfig {
     body: string;
     promptPreference?: string;
     codeSnippet?: string;
-  }
+  };
 }
 
 // Default timeout for waiting on ready callback.
