@@ -185,6 +185,20 @@ export const AnalyticsEventToGoogleAnalyticsEvent: {
     'success',
     false
   ),
+  [AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN]:
+    createGoogleAnalyticsEvent(
+      'NTG newsletter',
+      'newsletter modal impression',
+      '',
+      true
+    ),
+  [AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT]:
+    createGoogleAnalyticsEvent(
+      'NTG newsletter',
+      'newsletter signup',
+      'success',
+      false
+    ),
   [AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN]: createGoogleAnalyticsEvent(
     'NTG account',
     'registration modal impression',
