@@ -3088,7 +3088,7 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /*setAutopromptExpectations */ true,
+        /* setAutopromptExpectations */ true,
         /* setSurveyExpectations */ false
       );
 
@@ -3123,7 +3123,7 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /*setAutopromptExpectations */ false,
+        /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
 
@@ -3158,7 +3158,7 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /*setAutopromptExpectations */ false,
+        /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
 
@@ -3625,7 +3625,7 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /*setAutopromptExpectations*/ false
+        /* setAutopromptExpectations */ false
       );
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -3670,7 +3670,7 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /*setAutopromptExpectations*/ false
+        /* setAutopromptExpectations */ false
       );
       expectFrequencyCappingGlobalImpressions(storageMock, {
         subscription: (CURRENT_TIME - HOUR_IN_MS).toString(),
@@ -3808,7 +3808,7 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /*setAutopromptExpectations*/ false
+        /* setAutopromptExpectations */ false
       );
 
       await autoPromptManager.showAutoPrompt({
@@ -3838,7 +3838,7 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /*setAutopromptExpectations*/ false
+        /* setAutopromptExpectations */ false
       );
       expectFrequencyCappingGlobalImpressions(storageMock);
       storageMock
