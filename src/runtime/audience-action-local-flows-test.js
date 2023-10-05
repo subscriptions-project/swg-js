@@ -80,6 +80,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       /* clientOptions= */ {}
     );
     env.win.localStorage.getItem = () => 'abc';
+    env.win.localStorage.setItem = sandbox.spy();
+    env.win.sessionStorage.setItem = sandbox.spy();
     eventManager = {
       logSwgEvent: sandbox.spy(),
     };
@@ -142,13 +144,17 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         };
         configResponse = new Response(null, {status: 200});
         completeResponse = new Response(null, {status: 200});
-        completeResponse.text = sandbox
-          .stub()
-          .returns(Promise.resolve(DEFAULT_COMPLETE_RESPONSE));
       });
 
-      async function renderAndAssertRewardedAd(params, config) {
+      async function renderAndAssertRewardedAd(
+        params,
+        config,
+        complete = DEFAULT_COMPLETE_RESPONSE
+      ) {
         configResponse.text = sandbox.stub().returns(Promise.resolve(config));
+        completeResponse.text = sandbox
+          .stub()
+          .returns(Promise.resolve(complete));
         env.win.fetch = sandbox.stub();
         env.win.fetch.onCall(0).returns(Promise.resolve(configResponse));
         env.win.fetch.onCall(1).returns(Promise.resolve(completeResponse));
@@ -431,6 +437,74 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         expect(entitlementsManager.clear).to.be.called;
         expect(entitlementsManager.getEntitlements).to.be.called;
+        expect(env.win.localStorage.setItem).to.be.calledWith(
+          'subscribe.google.com:USER_TOKEN',
+          'xyz'
+        );
+        expect(env.win.sessionStorage.setItem).to.be.calledWith(
+          'subscribe.google.com:READ_TIME'
+        );
+      });
+
+      it('does not update entitlements when complete fails', async () => {
+        await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG,
+          `{
+            "updated": false,
+            "alreadyCompleted": true,
+            "swgUserToken": "xyz"
+          }`
+        );
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+        expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
+        await eventListeners['rewardedSlotGranted']();
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
+        );
+        expect(entitlementsManager.clear).to.not.be.called;
+        expect(entitlementsManager.getEntitlements).to.not.be.called;
+        expect(env.win.localStorage.setItem).to.not.be.calledWith(
+          'subscribe.google.com:USER_TOKEN',
+          'xyz'
+        );
+        expect(env.win.sessionStorage.setItem).to.not.be.calledWith(
+          'subscribe.google.com:READ_TIME'
+        );
+      });
+
+      it('does not update token if non returned', async () => {
+        await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          DEFAULT_CONFIG,
+          `{
+            "updated": true,
+            "alreadyCompleted": true
+          }`
+        );
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+        expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
+        await eventListeners['rewardedSlotGranted']();
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
+        );
+        expect(entitlementsManager.clear).to.be.called;
+        expect(entitlementsManager.getEntitlements).to.be.called;
+        expect(env.win.localStorage.setItem).to.not.be.calledWith(
+          'subscribe.google.com:USER_TOKEN',
+          'xyz'
+        );
+        expect(env.win.sessionStorage.setItem).to.be.calledWith(
+          'subscribe.google.com:READ_TIME'
+        );
       });
 
       it('closes on thanks', async () => {
