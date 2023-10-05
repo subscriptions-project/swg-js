@@ -79,6 +79,12 @@ interface CompleteAudienceActionResponse {
   swgUserToken?: string;
 }
 
+interface CompleteAudienceActionResponse {
+  updated?: boolean;
+  alreadyCompleted?: boolean;
+  swgUserToken?: string;
+}
+
 // Default timeout for waiting on ready callback.
 const GPT_TIMEOUT_MS = 3000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
