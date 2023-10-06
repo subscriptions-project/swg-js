@@ -39,6 +39,8 @@ function whenReady(callback) {
   });
 }
 
+let onEntitlements = () => {};
+
 // Callbacks.
 whenReady((subscriptions) => {
   function eventCallback(eventName) {
@@ -52,7 +54,10 @@ whenReady((subscriptions) => {
     };
   }
 
-  subscriptions.setOnEntitlementsResponse(eventCallback('entitlements'));
+  subscriptions.setOnEntitlementsResponse(() => {
+    eventCallback('entitlements');
+    onEntitlements(subscriptions);
+  });
   subscriptions.setOnLinkComplete(eventCallback('link-complete'));
   subscriptions.setOnLoginRequest(eventCallback('login-request'));
   subscriptions.setOnPaymentResponse(subscribeResponse_);
@@ -95,7 +100,6 @@ async function subscribeResponse_(responsePromise) {
  * Selects the flow based on the URL query parameter.
  * The query parameter is the name of the function defined in runtime.
  * Defaults to 'showOffers'.
- * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
  * @param {string} flow
  * @param {...} var_args
  */
@@ -120,7 +124,6 @@ function startFlow(flow, var_args) {
  * (ex: http://localhost:8000/examples/sample-pub/1?metering)
  * The query parameter is the name of the function defined in runtime.
  * Defaults to 'showOffers'.
- * Current valid values are: 'showOffers', 'linkAccount', 'getEntitlements'.
  */
 function startFlowAuto() {
   let flow = (location.search || '').split('?')[1] || 'demo';
@@ -393,6 +396,17 @@ function startFlowAuto() {
     });
     return;
   }
+
+  if (flow === 'showContributionOptions') {
+    onEntitlements = (subscriptions) => {
+      subscriptions.showContributionOptions();
+    };
+    whenReady((subscriptions) => {
+      subscriptions.start();
+    });
+    return;
+  }
+
   startFlow(flow);
 }
 
