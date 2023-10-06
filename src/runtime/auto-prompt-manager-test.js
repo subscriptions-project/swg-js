@@ -3295,6 +3295,26 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
 
+    it('should show the first contribution prompt if it is not dismissible', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        isClosable: false,
+      });
+      await tick(20);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
     it('should not show any prompt if the global frequency cap is met', async () => {
       setupPreviousImpressionAndDismissals(
         storageMock,
@@ -3661,14 +3681,14 @@ describes.realWin('AutoPromptManager', (env) => {
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(autoPromptManager.isClosable_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
     });
 
-    it('should show the second prompt if the frequency cap for contributions is met on lock content', async () => {
+    it('should show the second dismissible prompt if the frequency cap for contributions is met on lock content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
-      // autoPromptManager.isClosable_ = true;
       setupPreviousImpressionAndDismissals(
         storageMock,
         {
@@ -3712,6 +3732,7 @@ describes.realWin('AutoPromptManager', (env) => {
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(autoPromptManager.isClosable_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -3754,7 +3775,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
-    it('should show the first nondismissible prompt for metered flow', async () => {
+    it('should show the first nondismissible subscription prompt for metered flow', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       getArticleExpectation
         .resolves({
@@ -3799,8 +3820,7 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it('should show the first dismissible prompt for subscriptions outside the global cap', async () => {
-      autoPromptManager.isClosable_ = true;
+    it('should show the first dismissible prompt when outside the global cap for subscription openaccess content', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -3842,6 +3862,7 @@ describes.realWin('AutoPromptManager', (env) => {
       await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(autoPromptManager.isClosable_).to.equal(true);
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -3853,8 +3874,7 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it('should not show any prompt if the global frequency cap is met for subscriptions on unlocked content', async () => {
-      autoPromptManager.isClosable_ = true;
+    it('should not show any prompt if the global frequency cap is met for subscription openaccess content', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -3904,6 +3924,7 @@ describes.realWin('AutoPromptManager', (env) => {
         timestamp: sandbox.match.number,
       });
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(autoPromptManager.isClosable_).to.equal(true);
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
