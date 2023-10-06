@@ -3653,7 +3653,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
     });
 
-    it('should not show any prompt if the global frequency cap is met on locked content', async () => {
+    it('should not show any dismissible prompt if the global frequency cap is met on locked content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       setupPreviousImpressionAndDismissals(
         storageMock,
@@ -3876,7 +3876,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
     });
 
-    it('should show the second dismissible prompt if the frequency cap ism et for subscription openaccess content', async () => {
+    it('should show the second dismissible prompt if the frequency cap is met for subscription openaccess content', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
