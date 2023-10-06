@@ -181,7 +181,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async initNewsletterSignup_() {
-    //TODO: chuyangwang - Log impression.
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
+    );
     const config = await this.getConfig_();
     const codeSnippet = config?.optInParameters?.codeSnippet;
 
@@ -193,14 +195,18 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     if (validNewsletterSignupParams) {
       this.renderOptinPrompt_(codeSnippet);
     } else {
-      //TODO: chuyangwang - Log Error.
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR
+      );
       this.renderErrorView_();
     }
   }
 
   private renderOptinPrompt_(codeSnippet: string) {
     if (!codeSnippet.includes('form')) {
-      ////TODO: chuyangwang - Log Error.
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
+      );
       this.renderErrorView_();
     } else {
       //TODO: chuyangwang - set prompt to be at the right position.
@@ -209,7 +215,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       if (form) {
         form.addEventListener('submit', this.formSubmit_.bind(this));
       } else {
-        //TODO: chuyangwang - Log Error.
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
+        );
         this.renderErrorView_();
       }
     }
@@ -217,6 +225,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private formSubmit_() {
     //TODO: chuyangwang - verify email being submitted.
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
+    );
     this.complete_();
   }
 

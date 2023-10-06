@@ -669,6 +669,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const shadowRoot = state.wrapper.shadowRoot;
         expect(shadowRoot).to.not.be.null;
         expect(shadowRoot.innerHTML).contains('newsletter_code_snippet');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
+        );
       });
 
       it('will not render with Google prompt preference', async () => {
@@ -691,6 +694,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const shadowRoot = state.wrapper.shadowRoot;
         expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR
+        );
       });
 
       it('will not render with no code snippet', async () => {
@@ -714,6 +720,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
         const prompt = shadowRoot.querySelector('.prompt');
         expect(prompt.innerHTML).contains('Something went wrong.');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR
+        );
       });
 
       it('will not render with code snippet not containing form', async () => {
@@ -740,6 +749,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.be.null;
         const prompt = state.wrapper.shadowRoot.querySelector('.prompt');
         expect(prompt.innerHTML).contains('Something went wrong.');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
+        );
       });
 
       it('will not render with code snippet not containing form element', async () => {
@@ -766,6 +778,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.be.null;
         const prompt = state.wrapper.shadowRoot.querySelector('.prompt');
         expect(prompt.innerHTML).contains('Something went wrong.');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
+        );
       });
 
       it('submit event triggers completion event', async () => {
@@ -783,6 +798,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(env.win.fetch).to.be.calledTwice;
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=newsletter_config_id&audienceActionType=TYPE_NEWSLETTER_SIGNUP'
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
         );
       });
     });
