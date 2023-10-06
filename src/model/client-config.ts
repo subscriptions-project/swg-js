@@ -27,6 +27,7 @@ interface ClientConfigOptions {
   uiPredicates?: UiPredicates;
   useUpdatedOfferFlows?: boolean;
   skipAccountCreationScreen?: boolean;
+  handlePaywallBackgroundClicks?: boolean;
 }
 
 /**
@@ -39,6 +40,7 @@ export class ClientConfig {
   public readonly uiPredicates?: UiPredicates;
   public readonly useUpdatedOfferFlows?: boolean;
   public readonly skipAccountCreationScreen?: boolean;
+  public readonly handlePaywallBackgroundClicks?: boolean;
 
   constructor({
     attributionParams,
@@ -47,6 +49,7 @@ export class ClientConfig {
     uiPredicates,
     useUpdatedOfferFlows,
     skipAccountCreationScreen,
+    handlePaywallBackgroundClicks,
   }: ClientConfigOptions) {
     this.autoPromptConfig = autoPromptConfig;
     this.paySwgVersion = paySwgVersion;
@@ -54,6 +57,7 @@ export class ClientConfig {
     this.skipAccountCreationScreen = skipAccountCreationScreen || false;
     this.uiPredicates = uiPredicates;
     this.attributionParams = attributionParams;
+    this.handlePaywallBackgroundClicks = handlePaywallBackgroundClicks === true;
   }
 }
 
@@ -121,4 +125,5 @@ export interface ClientConfigJson {
   };
   useUpdatedOfferFlows?: boolean;
   skipAccountCreationScreen?: boolean;
+  handlePaywallBackgroundClicks?: boolean;
 }

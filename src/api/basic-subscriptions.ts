@@ -114,6 +114,10 @@ export interface ClientOptions {
   allowScroll?: boolean;
   /** Skip account creation screen if requested. */
   skipAccountCreationScreen?: boolean;
+  /** Prevents links from being clicked through the background.  Clicking also
+   *  closes the dialog if the screen is closable.
+   */
+  handlePaywallBackgroundClicks?: boolean;
 }
 
 export interface LoginRequest {

@@ -235,6 +235,7 @@ export class ClientConfigManager {
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
       uiPredicates,
       attributionParams,
+      handlePaywallBackgroundClicks: json['handlePaywallBackgroundClicks'],
     });
   }
 }

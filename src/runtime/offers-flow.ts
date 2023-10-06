@@ -69,6 +69,7 @@ export class OffersFlow {
   private readonly skus_?: string[];
   private readonly clientConfigPromise_?: Promise<ClientConfig>;
   private readonly activityIframeViewPromise_?: Promise<ActivityIframeView | null>;
+  private readonly isClosable_?: boolean;
 
   constructor(private readonly deps_: Deps, options?: OffersRequest) {
     this.win_ = deps_.win();
@@ -82,14 +83,14 @@ export class OffersFlow {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
     // Default to hiding close button.
-    const isClosable = options?.isClosable ?? false;
+    this.isClosable_ = options?.isClosable ?? false;
 
     const feArgsObj: OffersRequest = deps_.activities().addDefaultArguments({
       'showNative': deps_.callbacks().hasSubscribeRequestCallback(),
       'productType': ProductType.SUBSCRIPTION,
       'list': options?.list || 'default',
       'skus': options?.skus || null,
-      'isClosable': isClosable,
+      'isClosable': this.isClosable_,
     });
 
     if (options?.oldSku) {
@@ -235,10 +236,15 @@ export class OffersFlow {
     clientConfig: ClientConfig,
     shouldAllowScroll: boolean
   ): DialogConfig {
+    const closeOnClick = clientConfig.handlePaywallBackgroundClicks
+      ? this.isClosable_
+      : undefined;
+
     return clientConfig.useUpdatedOfferFlows
       ? {
           desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
           shouldDisableBodyScrolling: !shouldAllowScroll,
+          closeOnBackgroundClick: closeOnClick,
         }
       : {};
   }
