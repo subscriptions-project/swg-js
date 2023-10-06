@@ -109,10 +109,6 @@ const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
   [TYPE_REWARDED_ADS, ImpressionStorageKeys.REWARDED_AD],
 ]);
 
-const SUBSCRIPTION_OPENACCESS_GLOBAL_FREQUENCY_CAP_DURATION: Duration = {
-  seconds: 3600, // 1 hour
-};
-
 export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
@@ -131,6 +127,7 @@ export class AutoPromptManager {
   private interventionDisplayed_: Intervention | null = null;
   private frequencyCappingLocalStorageEnabled_: boolean = false;
   private promptFrequencyCappingEnabled_: boolean = false;
+  private isClosable_: boolean | undefined;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -276,6 +273,8 @@ export class AutoPromptManager {
     // subscription revenue model, while all others can be dismissed.
     const isClosable =
       params.isClosable ?? !this.isSubscription_(autoPromptType);
+    // TODO(b/303489420): cleanup passing of autoPromptManager params.
+    this.isClosable_ = isClosable;
 
     // ** New Triggering Flow - Prompt Frequency Cap Experiment **
     // Guarded by experiment flag and presence of FrequencyCapConfig. Frequency
@@ -703,24 +702,20 @@ export class AutoPromptManager {
       return;
     }
 
-    // FrequencyCapConfig may be undefined ONLY for subscription openacess
-    // content. If so, display first valid action.
-    const isLockedContent =
-      this.isSubscription_(autoPromptType) && this.pageConfig_.isLocked();
-    if (isLockedContent || !this.isValidFrequencyCap_(frequencyCapConfig)) {
-      if (!this.isSubscription_(autoPromptType)) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
-        );
-      }
+    if (!this.isClosable_) {
       return actions[0];
     }
 
-    const isSubscriptionOpenaccess =
-      this.isSubscription_(autoPromptType) && !this.pageConfig_.isLocked();
-    const globalFrequencyCapDuration = isSubscriptionOpenaccess
-      ? SUBSCRIPTION_OPENACCESS_GLOBAL_FREQUENCY_CAP_DURATION
-      : frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
+    // If prompt is dismissible, frequencyCapConfig should be valid.
+    if (!this.isValidFrequencyCap_(frequencyCapConfig)) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
+      );
+      return actions[0];
+    }
+
+    const globalFrequencyCapDuration =
+      frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
       const globalImpressions = await this.getAllImpressions_();
       if (
@@ -734,7 +729,7 @@ export class AutoPromptManager {
     }
 
     // Do not apply per prompt frequency cap for subscription publications.
-    // Only reachable by openaccess content.
+    // Only reachable by dismissible prompts.
     if (this.isSubscription_(autoPromptType)) {
       return actions[0];
     }
@@ -971,7 +966,7 @@ export class AutoPromptManager {
     // TODO(b/300963305): manually triggered prompts should also be excluded.
     if (
       !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
-      this.pageConfig_.isLocked()
+      !this.isClosable_
     ) {
       return;
     }
