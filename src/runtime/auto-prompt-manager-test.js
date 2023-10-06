@@ -3820,60 +3820,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it('should show the first dismissible prompt when outside the global cap for subscription openaccess content', async () => {
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [
-              SURVEY_INTERVENTION,
-              REGWALL_INTERVENTION,
-              SUBSCRIPTION_INTERVENTION,
-            ],
-            engineId: '123',
-          },
-          experimentConfig: {
-            experimentFlags: [
-              'frequency_capping_local_storage_experiment',
-              'prompt_frequency_capping_experiment',
-            ],
-          },
-        })
-        .once();
-
-      setupPreviousImpressionAndDismissals(
-        storageMock,
-        {
-          dismissedPromptGetCallCount: 1,
-          getUserToken: true,
-        },
-        /* setAutopromptExpectations */ false
-      );
-      expectFrequencyCappingGlobalImpressions(storageMock, {
-        subscription: (
-          CURRENT_TIME -
-          globalFrequencyCapDurationSeconds * SECOND_IN_MS
-        ).toString(),
-      });
-
-      await autoPromptManager.showAutoPrompt({
-        alwaysShow: false,
-        isClosable: true,
-      });
-      await tick(20);
-
-      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
-      expect(autoPromptManager.isClosable_).to.equal(true);
-      expect(subscriptionPromptFnSpy).to.not.have.been.called;
-      expect(startSpy).to.have.been.calledOnce;
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REWARDED_SURVEY',
-        configurationId: 'survey_config_id',
-        onCancel: sandbox.match.any,
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-        isClosable: true,
-      });
-    });
-
     it('should not show any prompt if the global frequency cap is met for subscription openaccess content', async () => {
       getArticleExpectation
         .resolves({
@@ -3928,6 +3874,78 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
+    });
+
+    it('should show the second dismissible prompt if the frequency cap ism et for subscription openaccess content', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              SURVEY_INTERVENTION,
+              REGWALL_INTERVENTION,
+              SUBSCRIPTION_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: [
+              'frequency_capping_local_storage_experiment',
+              'prompt_frequency_capping_experiment',
+            ],
+          },
+        })
+        .once();
+
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false
+      );
+
+      const surveyTimestamps = (
+        CURRENT_TIME -
+        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
+      ).toString();
+      expectFrequencyCappingGlobalImpressions(storageMock, {
+        survey: surveyTimestamps,
+      });
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          ImpressionStorageKeys.REWARDED_SURVEY,
+          /* useLocalStorage */ true
+        )
+        .resolves(surveyTimestamps)
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          ImpressionStorageKeys.REGISTRATION_WALL,
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.showAutoPrompt({
+        alwaysShow: false,
+        isClosable: true,
+      });
+      await tick(20);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(autoPromptManager.isClosable_).to.equal(true);
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        isClosable: true,
+      });
     });
 
     it('should execute the legacy frequency cap flow if the experiment is disabled', async () => {

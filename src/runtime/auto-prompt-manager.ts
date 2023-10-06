@@ -288,7 +288,6 @@ export class AutoPromptManager {
       this.isValidFrequencyCap_(frequencyCapConfig)
     ) {
       const potentialAction = await this.getPotentialAction_({
-        autoPromptType,
         article,
         frequencyCapConfig,
       });
@@ -675,11 +674,9 @@ export class AutoPromptManager {
   }
 
   private async getPotentialAction_({
-    autoPromptType,
     article,
     frequencyCapConfig,
   }: {
-    autoPromptType: AutoPromptType;
     article: Article;
     frequencyCapConfig: FrequencyCapConfig | undefined;
   }): Promise<Intervention | void> {
@@ -726,12 +723,6 @@ export class AutoPromptManager {
         );
         return;
       }
-    }
-
-    // Do not apply per prompt frequency cap for subscription publications.
-    // Only reachable by dismissible prompts.
-    if (this.isSubscription_(autoPromptType)) {
-      return actions[0];
     }
 
     for (const action of actions) {
