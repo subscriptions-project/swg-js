@@ -72,12 +72,18 @@ export class OffersFlow {
 
   constructor(private readonly deps_: Deps, options?: OffersRequest) {
     this.win_ = deps_.win();
+
     this.activityPorts_ = deps_.activities();
+
     this.dialogManager_ = deps_.dialogManager();
+
     this.eventManager_ = deps_.eventManager();
+
     this.clientConfigManager_ = deps_.clientConfigManager();
+
     // Default to hiding close button.
     const isClosable = options?.isClosable ?? false;
+
     const feArgsObj: OffersRequest = deps_.activities().addDefaultArguments({
       'showNative': deps_.callbacks().hasSubscribeRequestCallback(),
       'productType': ProductType.SUBSCRIPTION,
