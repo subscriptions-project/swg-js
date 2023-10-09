@@ -23,7 +23,6 @@ import {
   SubscribeResponse,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {ExperimentFlags} from './experiment-flags';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
@@ -42,7 +41,6 @@ import {SubscriptionRequest} from '../api/subscriptions';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
 import {parseQueryString} from '../utils/url';
-import {isExperimentOn} from './experiments';
 
 function getEventParams(sku: string): EventParams {
   return new EventParams([, , , , sku]);
@@ -71,7 +69,6 @@ export class OffersFlow {
   private readonly skus_?: string[];
   private readonly clientConfigPromise_?: Promise<ClientConfig>;
   private readonly activityIframeViewPromise_?: Promise<ActivityIframeView | null>;
-  private readonly isClosable_?: boolean;
 
   constructor(private readonly deps_: Deps, options?: OffersRequest) {
     this.win_ = deps_.win();
@@ -80,13 +77,13 @@ export class OffersFlow {
     this.eventManager_ = deps_.eventManager();
     this.clientConfigManager_ = deps_.clientConfigManager();
     // Default to hiding close button.
-    this.isClosable_ = options?.isClosable ?? false;
+    const isClosable = options?.isClosable ?? false;
     const feArgsObj: OffersRequest = deps_.activities().addDefaultArguments({
       'showNative': deps_.callbacks().hasSubscribeRequestCallback(),
       'productType': ProductType.SUBSCRIPTION,
       'list': options?.list || 'default',
       'skus': options?.skus || null,
-      'isClosable': this.isClosable_,
+      'isClosable': isClosable,
     });
 
     if (options?.oldSku) {
@@ -232,17 +229,10 @@ export class OffersFlow {
     clientConfig: ClientConfig,
     shouldAllowScroll: boolean
   ): DialogConfig {
-    const useBackgroundClick = isExperimentOn(
-      this.win_,
-      ExperimentFlags.ENABLE_PAYWALL_BACKGROUND_CLICK
-    );
     return clientConfig.useUpdatedOfferFlows
       ? {
           desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
           shouldDisableBodyScrolling: !shouldAllowScroll,
-          closeOnBackgroundClick: useBackgroundClick
-            ? this.isClosable_
-            : undefined,
         }
       : {};
   }

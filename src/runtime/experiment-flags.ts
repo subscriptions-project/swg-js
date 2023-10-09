@@ -36,13 +36,6 @@ export enum ExperimentFlags {
    * Experiment flag to enable populating the client config in the Classic runtime.
    */
   POPULATE_CLIENT_CONFIG_CLASSIC = 'populate-client-config-classic',
-
-  /**
-   * Experiment flag to enable paywall background click behavior so that links
-   * cannot be clicked through the darkened background and so that it closes
-   * closable popups.
-   */
-  ENABLE_PAYWALL_BACKGROUND_CLICK = 'enable-paywall-background-click',
 }
 
 /**
@@ -59,4 +52,11 @@ export enum ArticleExperimentFlags {
    * triggering.
    */
   PROMPT_FREQUENCY_CAPPING_EXPERIMENT = 'prompt_frequency_capping_experiment',
+
+  /**
+   * Experiment flag to enable paywall background click behavior so that links
+   * cannot be clicked through the darkened background and so that it closes
+   * closable popups.
+   */
+  BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 }
