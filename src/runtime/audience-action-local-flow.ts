@@ -30,6 +30,7 @@ import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
+import {EntitlementsManager} from './entitlements-manager';
 import {Message} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
@@ -62,6 +63,12 @@ interface AudienceActionConfig {
   };
 }
 
+interface CompleteAudienceActionResponse {
+  updated?: boolean;
+  alreadyCompleted?: boolean;
+  swgUserToken?: string;
+}
+
 // Default timeout for waiting on ready callback.
 const GPT_TIMEOUT_MS = 3000;
 
@@ -76,6 +83,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly doc_: Document;
   private readonly fetcher_: XhrFetcher;
   private readonly eventManager_: ClientEventManager;
+  private readonly entitlementsManager_: EntitlementsManager;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Ad slot used to host the rewarded ad.
@@ -102,6 +110,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.fetcher_ = new XhrFetcher(deps_.win());
 
     this.eventManager_ = deps_.eventManager();
+
+    this.entitlementsManager_ = deps_.entitlementsManager();
   }
 
   private createWrapper_(): HTMLElement {
@@ -332,7 +342,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     );
   }
 
-  private rewardedSlotGranted_() {
+  private async rewardedSlotGranted_() {
     const language = this.clientConfigManager_.getLanguage();
     const closeButtonDescription = msg(
       SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
@@ -356,7 +366,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
-    this.complete_();
+    await this.complete_();
   }
 
   private closeRewardedAdWall_() {
@@ -444,10 +454,24 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       toArray: () => [],
       label: String,
     };
-    this.fetcher_.sendPost(url, emptyMessage);
-    // TODO: mhkawano - log error
-    // TODO: mhkawano - handle entitlement consumption logic on completion
-    // ex: this.entitlementsManager_.getEntitlements();
+    const response = (await this.fetcher_.sendPost(
+      url,
+      emptyMessage
+    )) as unknown as CompleteAudienceActionResponse;
+    if (response.updated) {
+      this.entitlementsManager_.clear();
+      if (response.swgUserToken) {
+        await this.deps_
+          .storage()
+          .set(Constants.USER_TOKEN, response.swgUserToken, true);
+      }
+      const now = Date.now().toString();
+      await this.deps_
+        .storage()
+        .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+      await this.entitlementsManager_.getEntitlements();
+    }
+    // TODO: mhkawano - else log error
   }
 
   async start() {
