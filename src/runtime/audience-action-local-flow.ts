@@ -313,11 +313,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .querySelector('.rewarded-ad-support-button')
       ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
     this.prompt_
-      .querySelector('.rewarded-ad-view-ad-button')
-      ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
-    this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
+    const viewAdButton: HTMLElement | null = this.prompt_.querySelector(
+      '.rewarded-ad-view-ad-button'
+    );
+    viewAdButton?.addEventListener(
+      'click',
+      this.viewRewardedAdWall_.bind(this)
+    );
+    viewAdButton?.focus();
 
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }

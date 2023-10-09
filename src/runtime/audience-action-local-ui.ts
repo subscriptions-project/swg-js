@@ -62,30 +62,41 @@ const DEFAULT_BUTTON = css`
     padding: 0;
     font: inherit;
     cursor: pointer;
-    outline: inherit;
+    outline-offset: 4px;
+    outline-color: #145ab5;
   }
 `;
 
 const CLOSE_BUTTON_CSS = css`
   .rewarded-ad-close-button {
+    padding: 8px;
+    height: 40px;
+    width: 40px;
+    grid-column: 3;
+    grid-row: 1;
+    border-radius: 4px;
+  }
+  .rewarded-ad-close-img {
+    border-radius: 20px;
     height: 24px;
     width: 24px;
-    padding: 8px;
-    border-radius: 20px;
-
     background: #5f6368;
     -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg)
       center/contain no-repeat;
+  }
 
-    grid-column: 3;
-    grid-row: 1;
+  .rewarded-ad-close-button:hover,
+  .rewarded-ad-close-button:focus {
+    background-color: #f2f8ff;
   }
 `;
 
 export const CLOSE_BUTTON_HTML = html`<button
   aria-label="$CLOSE_BUTTON_DESCRIPTION$"
   class="rewarded-ad-close-button"
-></button>`;
+>
+  <div class="rewarded-ad-close-img"></div>
+</button>`;
 
 // Error view for prompts that fail to init.
 // TODO: mhkawano - Update once UX finished.
@@ -218,14 +229,14 @@ const REWARDED_AD_CSS = css`
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-container {
-    margin: 20px;
+    margin: 20px 20px 0px 20px;
     text-align: center;
     font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
   }
 
   .rewarded-ad-header {
     display: grid !important;
-    grid-template-columns: 24px 1fr 24px;
+    grid-template-columns: 40px 1fr 40px;
   }
 
   .rewarded-ad-title {
@@ -272,6 +283,11 @@ const REWARDED_AD_CSS = css`
     letter-spacing: 0.25px;
   }
 
+  .rewarded-ad-view-ad-button:focus,
+  .rewarded-ad-view-ad-button:hover {
+    background-color: #145ab5;
+  }
+
   .rewarded-ad-view-ad-button:disabled {
     background-color: darkgrey;
     color: lightgrey;
@@ -290,14 +306,19 @@ const REWARDED_AD_CSS = css`
     letter-spacing: 0.25px;
   }
 
+  .rewarded-ad-support-button:focus,
+  .rewarded-ad-support-button:hover {
+    background-color: #e6e6e6;
+  }
+
   .rewarded-ad-footer {
-    padding-top: 24px;
-    padding-bottom: 24px;
+    height: 24px;
   }
 
   .rewarded-ad-google-logo {
     float: left;
     height: 24px;
+    margin: 20px 0px 20px 0px;
   }
 
   .rewarded-ad-sign-in-button {
@@ -308,6 +329,15 @@ const REWARDED_AD_CSS = css`
     letter-spacing: 0.25px;
     text-align: right;
     color: #1a73e8;
+    height: 32px;
+    border-radius: 4px;
+    margin: 16px 0px 16px 0px;
+    padding: 0px 7px 0px 7px;
+  }
+
+  .rewarded-ad-sign-in-button:focus,
+  .rewarded-ad-sign-in-button:hover {
+    background-color: #f2f8ff;
   }
 `;
 
