@@ -52,4 +52,11 @@ export enum ArticleExperimentFlags {
    * triggering.
    */
   PROMPT_FREQUENCY_CAPPING_EXPERIMENT = 'prompt_frequency_capping_experiment',
+
+  /**
+   * Experiment flag to enable paywall background click behavior so that links
+   * cannot be clicked through the darkened background and so that it closes
+   * closable popups.
+   */
+  BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 }
