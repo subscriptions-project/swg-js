@@ -366,7 +366,7 @@ describes.realWin('ContributionsFlow', (env) => {
     await contributionsFlow.start();
   });
 
-  it('opens dialog with closeOnBackgroundClick true when isClosable=false and useUpdatedOfferFlows=true', async () => {
+  it('opens dialog with closeOnBackgroundClick false when isClosable=false and useUpdatedOfferFlows=true', async () => {
     sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
       new ClientConfig({
         useUpdatedOfferFlows: true,
