@@ -516,7 +516,7 @@ export interface OffersRequest {
   /**
    * Optional. Sets if the fade in of is animated.
    */
-  shouldNotAnimateFade?: boolean;
+  shouldAnimateFade?: boolean;
 }
 
 export interface LoginRequest {

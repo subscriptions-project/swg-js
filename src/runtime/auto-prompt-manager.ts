@@ -440,9 +440,9 @@ export class AutoPromptManager {
   private getLargeMonetizationPromptFn_(
     autoPromptType: AutoPromptType | undefined,
     isClosable: boolean,
-    shouldNotAnimateFade: boolean = false
+    shouldAnimateFade: boolean = true
   ): (() => void) | undefined {
-    const options: OffersRequest = {isClosable, shouldNotAnimateFade};
+    const options: OffersRequest = {isClosable, shouldAnimateFade};
     if (this.isSubscription_(autoPromptType)) {
       return () => {
         this.configuredRuntime_.showOffers(options);
@@ -768,7 +768,7 @@ export class AutoPromptManager {
               monetizationFunction: this.getLargeMonetizationPromptFn_(
                 autoPromptType,
                 !!isClosable,
-                /* shouldNotAnimateFade */ true
+                /* shouldAnimateFade */ false
               ),
             })
           : actionType === TYPE_NEWSLETTER_SIGNUP &&

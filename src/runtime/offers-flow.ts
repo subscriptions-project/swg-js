@@ -146,7 +146,7 @@ export class OffersFlow {
       args as {[key: string]: string},
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
-      /* shouldAnimateFade */ !this.options?.shouldNotAnimateFade
+      /* shouldAnimateFade */ !!this.options?.shouldAnimateFade
     );
   }
 
