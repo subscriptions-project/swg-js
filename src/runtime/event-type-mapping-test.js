@@ -112,21 +112,13 @@ describes.realWin('analyticsEventToEntitlementResult', () => {
 });
 
 describes.realWin('analyticsEventToGoogleAnalyticsEvent', () => {
-  it('not allow the same event to be mapped to twice', () => {
+  it('not allow the same event to be mapped twice', () => {
     const mapped = {};
-    for (const event in AnalyticsEvent) {
-      const result = analyticsEventToGoogleAnalyticsEvent(
-        AnalyticsEvent[event]
-      );
-      // Not all analytics events are mapped
-      if (result === undefined) {
-        continue;
-      }
-      expect(typeof result).to.be.equal('object');
-      const resultString = JSON.stringify(result);
-      // Each Google Analytics event should only be mapped to once
-      expect(mapped[resultString]).to.be.undefined;
-      mapped[resultString] = (mapped[resultString] || 0) + 1;
+    for (const key in AnalyticsEventToGoogleAnalyticsEvent) {
+      const keyString = JSON.stringify(key);
+      // Each event should only be mapped once
+      expect(mapped[keyString]).to.be.undefined;
+      mapped[keyString] = (mapped[keyString] || 0) + 1;
     }
   });
 

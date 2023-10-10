@@ -48,7 +48,7 @@
     "chai-as-promised": "7.1.1",
     "cssnano": "6.0.1",
     "del": "7.1.0",
-    "eslint": "8.50.0",
+    "eslint": "8.51.0",
     "eslint-plugin-google-camelcase": "0.0.2",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
@@ -110,13 +110,13 @@
   },
   "optionalDependencies": {
     "@nightwatch/vrt": "^3.0.0",
-    "@rollup/plugin-commonjs": "25.0.4",
-    "@rollup/plugin-replace": "5.0.2",
-    "@storybook/addon-actions": "7.4.5",
-    "@storybook/addon-essentials": "7.4.5",
-    "@storybook/addon-links": "7.4.5",
-    "@storybook/builder-webpack5": "7.4.5",
-    "@storybook/html": "7.4.5",
+    "@rollup/plugin-commonjs": "25.0.5",
+    "@rollup/plugin-replace": "5.0.3",
+    "@storybook/addon-actions": "7.4.6",
+    "@storybook/addon-essentials": "7.4.6",
+    "@storybook/addon-links": "7.4.6",
+    "@storybook/builder-webpack5": "7.4.6",
+    "@storybook/html": "7.4.6",
     "@storybook/manager-webpack5": "6.5.16",
     "cheerio": "1.0.0-rc.12",
     "chromedriver": "117.0.3",
@@ -126,7 +126,7 @@
     "jsonwebtoken": "9.0.2",
     "nightwatch": "2.6.22",
     "rollup-plugin-visualizer": "5.9.2",
-    "vite": "4.4.9"
+    "vite": "4.4.11"
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,

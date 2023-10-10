@@ -98,6 +98,8 @@ const ImpressionStorageKeys = {
   REWARDED_AD: 'imp_ad',
 
   REWARDED_SURVEY: 'imp_survey',
+
+  SUBSCRIPTION: 'imp_subscription',
 };
 
 export {Constants, ImpressionStorageKeys, StorageKeys};
