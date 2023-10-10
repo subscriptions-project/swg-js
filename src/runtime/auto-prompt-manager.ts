@@ -954,7 +954,6 @@ export class AutoPromptManager {
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
-    // TODO(b/300963305): manually triggered prompts should also be excluded.
     if (
       !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
       !this.isClosable_
