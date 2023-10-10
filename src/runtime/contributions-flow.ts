@@ -80,7 +80,9 @@ export class ContributionsFlow {
         'isClosable': isClosable,
         'supportsEventManager': true,
       }),
-      /* shouldFadeBody */ true
+      /* shouldFadeBody */ true,
+      /* hasLoadingIndicator_ */ false,
+      /* shouldAnimateFade */ !this.options_?.shouldNotAnimateFade
     );
   }
 

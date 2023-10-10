@@ -512,6 +512,11 @@ export interface OffersRequest {
    * upgrade or downgrade their current subscription.
    */
   oldSku?: string;
+
+  /**
+   * Optional. Sets if the fade in of is animated.
+   */
+  shouldNotAnimateFade?: boolean;
 }
 
 export interface LoginRequest {

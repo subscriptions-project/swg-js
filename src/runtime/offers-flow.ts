@@ -70,7 +70,10 @@ export class OffersFlow {
   private readonly clientConfigPromise_?: Promise<ClientConfig>;
   private readonly activityIframeViewPromise_?: Promise<ActivityIframeView | null>;
 
-  constructor(private readonly deps_: Deps, options?: OffersRequest) {
+  constructor(
+    private readonly deps_: Deps,
+    private readonly options?: OffersRequest
+  ) {
     this.win_ = deps_.win();
 
     this.activityPorts_ = deps_.activities();
@@ -141,7 +144,9 @@ export class OffersFlow {
       this.activityPorts_,
       this.getUrl_(clientConfig, this.deps_.pageConfig()),
       args as {[key: string]: string},
-      /* shouldFadeBody */ true
+      /* shouldFadeBody */ true,
+      /* hasLoadingIndicator_ */ false,
+      /* shouldAnimateFade */ !this.options?.shouldNotAnimateFade
     );
   }
 
