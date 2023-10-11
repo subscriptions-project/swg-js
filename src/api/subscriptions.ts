@@ -515,7 +515,7 @@ export interface OffersRequest {
 
   /**
    * Optional. Disables the fade in animation if set to false. Defaults to true
-   * if unset. This field may be remove din the future.
+   * if unset.
    * TODO: b/304803271 - remove this field form the api.
    */
   shouldAnimateFade?: boolean;
