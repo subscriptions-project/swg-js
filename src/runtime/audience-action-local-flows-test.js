@@ -725,35 +725,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
       });
 
-      it('will not render with code snippet not containing form', async () => {
-        const NEWSLETTER_NO_SNIPPET_CONFIG = `
-        {
-          "publication": {
-            "name": "PUBLICATOIN_NAME"
-          },
-          "optInParameters": {
-            "title": "newsletter_title",
-            "body": "newsletter_body",
-            "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
-            "codeSnippet": "<input>newsletter_code_snippet</input>"
-          }
-        }`;
-        const state = await renderNewsletterPrompt(
-          NEWSLETTER_PARAMS,
-          NEWSLETTER_NO_SNIPPET_CONFIG
-        );
-
-        const shadowRoot = state.wrapper.shadowRoot;
-        expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
-        const form = state.wrapper.shadowRoot.querySelector('form');
-        expect(form).to.be.null;
-        const prompt = state.wrapper.shadowRoot.querySelector('.prompt');
-        expect(prompt.innerHTML).contains('Something went wrong.');
-        expect(eventManager.logSwgEvent).to.be.calledWith(
-          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
-        );
-      });
-
       it('will not render with code snippet not containing form element', async () => {
         const NEWSLETTER_NO_SNIPPET_CONFIG = `
         {

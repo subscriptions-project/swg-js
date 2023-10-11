@@ -193,7 +193,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         PREFERENCE_PUBLISHER_PROVIDED_PROMPT;
 
     if (validNewsletterSignupParams) {
-      this.renderOptinPrompt_(codeSnippet);
+      this.renderOptInPrompt_(codeSnippet);
     } else {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR
@@ -202,24 +202,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private renderOptinPrompt_(codeSnippet: string) {
-    if (!codeSnippet.includes('form')) {
+  private renderOptInPrompt_(codeSnippet: string) {
+    const optInPrompt = createElement(this.doc_, 'div', {});
+    optInPrompt.innerHTML = codeSnippet;
+    const form = optInPrompt.querySelector('form');
+    if (form && this.wrapper_) {
+      this.wrapper_.shadowRoot?.removeChild(this.prompt_);
+      this.wrapper_.shadowRoot?.appendChild(optInPrompt);
+      form.addEventListener('submit', this.formSubmit_.bind(this));
+    } else {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
       );
       this.renderErrorView_();
-    } else {
-      //TODO: chuyangwang - set prompt to be at the right position.
-      this.prompt_./*OK*/ innerHTML = codeSnippet;
-      const form = this.prompt_.querySelector('form');
-      if (form) {
-        form.addEventListener('submit', this.formSubmit_.bind(this));
-      } else {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
-        );
-        this.renderErrorView_();
-      }
     }
   }
 
