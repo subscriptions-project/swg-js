@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {Dialog} from './dialog';
 import {GlobalDoc} from '../model/doc';
 import {getStyle} from '../utils/style';
+import {setExperimentsStringForTesting} from '../runtime/experiments';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
@@ -429,7 +431,67 @@ describes.realWin('Dialog', (env) => {
       expect(styleDuringInit).to.equal('display: none !important;');
     });
 
-    describe('fade background', () => {
+    describe('fade background experiment disabled', () => {
+      beforeEach(() => {
+        setExperimentsStringForTesting('');
+      });
+
+      it('should not suppress click events or close window when true', async () => {
+        let wasClicked = false;
+        const clickFun = function () {
+          wasClicked = true;
+        };
+        dialog = new Dialog(
+          globalDoc,
+          {},
+          {},
+          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
+        );
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        doc.body.addEventListener('click', clickFun);
+        // This class is added when the screen is opened.
+        expect(doc.body).to.have.class('swg-disable-scroll');
+
+        el.click();
+
+        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(wasClicked).to.be.true;
+      });
+
+      it('should not suppress click events or close window when false', async () => {
+        let wasClicked = false;
+        const clickFun = function () {
+          wasClicked = true;
+        };
+        dialog = new Dialog(
+          globalDoc,
+          {},
+          {},
+          {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
+        );
+        const el = dialog.graypane_.getElement();
+        const openedDialog = await dialog.open(NO_ANIMATE);
+        await openedDialog.openView(view);
+        doc.body.addEventListener('click', clickFun);
+        // This class is added when the screen is opened.
+        expect(doc.body).to.have.class('swg-disable-scroll');
+
+        el.click();
+
+        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(wasClicked).to.be.true;
+      });
+    });
+
+    describe('fade background experiment enabled', () => {
+      beforeEach(() => {
+        setExperimentsStringForTesting(
+          ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+        );
+      });
+
       it('should not suppress click events by default', async () => {
         let wasClicked = false;
         const clickFun = function () {

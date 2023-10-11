@@ -45,7 +45,8 @@ export class ContributionsFlow {
   private readonly activityPorts_: ActivityPorts;
   private readonly dialogManager_: DialogManager;
   private readonly activityIframeViewPromise_: Promise<ActivityIframeView>;
-  private readonly shouldAnimateFade: boolean;
+  private readonly shouldAnimateFade_: boolean;
+  private isClosable_: boolean;
 
   constructor(
     private readonly deps_: Deps,
@@ -59,18 +60,17 @@ export class ContributionsFlow {
 
     this.dialogManager_ = deps_.dialogManager();
 
+    // Default to showing close button.
+    this.isClosable_ = this.options_?.isClosable ?? true;
     this.activityIframeViewPromise_ = this.getActivityIframeView_();
 
-    this.shouldAnimateFade =
+    this.shouldAnimateFade_ =
       this.options_?.shouldAnimateFade === undefined
         ? true
         : this.options_?.shouldAnimateFade;
   }
 
   private async getActivityIframeView_(): Promise<ActivityIframeView> {
-    // Default to showing close button.
-    const isClosable = this.options_?.isClosable ?? true;
-
     const clientConfig = await this.clientConfigManager_.getClientConfig();
 
     return new ActivityIframeView(
@@ -83,12 +83,12 @@ export class ContributionsFlow {
         'productType': ProductType.UI_CONTRIBUTION,
         'list': this.options_?.list || 'default',
         'skus': this.options_?.skus || null,
-        'isClosable': isClosable,
+        'isClosable': this.isClosable_,
         'supportsEventManager': true,
       }),
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
-      /* shouldAnimateFade */ this.shouldAnimateFade
+      /* shouldAnimateFade */ this.shouldAnimateFade_
     );
   }
 
@@ -160,7 +160,10 @@ export class ContributionsFlow {
     shouldAllowScroll: boolean
   ): DialogConfig {
     return clientConfig.useUpdatedOfferFlows && !shouldAllowScroll
-      ? {shouldDisableBodyScrolling: true}
+      ? {
+          shouldDisableBodyScrolling: true,
+          closeOnBackgroundClick: this.isClosable_,
+        }
       : {};
   }
 
