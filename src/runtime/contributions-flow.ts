@@ -45,6 +45,7 @@ export class ContributionsFlow {
   private readonly activityPorts_: ActivityPorts;
   private readonly dialogManager_: DialogManager;
   private readonly activityIframeViewPromise_: Promise<ActivityIframeView>;
+  private readonly shouldAnimateFade: boolean;
 
   constructor(
     private readonly deps_: Deps,
@@ -59,6 +60,11 @@ export class ContributionsFlow {
     this.dialogManager_ = deps_.dialogManager();
 
     this.activityIframeViewPromise_ = this.getActivityIframeView_();
+
+    this.shouldAnimateFade =
+      this.options_?.shouldAnimateFade === undefined
+        ? true
+        : this.options_?.shouldAnimateFade;
   }
 
   private async getActivityIframeView_(): Promise<ActivityIframeView> {
@@ -82,7 +88,7 @@ export class ContributionsFlow {
       }),
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
-      /* shouldNotAnimateFade */ !!this.options_?.shouldNotAnimateFade
+      /* shouldAnimateFade */ this.shouldAnimateFade
     );
   }
 

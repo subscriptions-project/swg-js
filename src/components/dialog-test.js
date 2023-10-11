@@ -43,7 +43,7 @@ describes.realWin('Dialog', (env) => {
       init: (dialog) => Promise.resolve(dialog),
       resized: () => {},
       shouldFadeBody: () => true,
-      shouldNotAnimateFade: () => false,
+      shouldAnimateFade: () => true,
     };
 
     sandbox.stub(self, 'requestAnimationFrame').callsFake((callback) => {
@@ -87,7 +87,7 @@ describes.realWin('Dialog', (env) => {
     });
 
     it('should have created fade background with no animation', async () => {
-      view.shouldNotAnimateFade = () => true;
+      view.shouldAnimateFade = () => false;
 
       expect(graypaneStubs.attach).to.not.be.called;
       const openedDialog = await dialog.open(NO_ANIMATE);
@@ -413,7 +413,7 @@ describes.realWin('Dialog', (env) => {
         getElement: () => element,
         resized: () => {},
         shouldFadeBody: () => true,
-        shouldNotAnimateFade: () => false,
+        shouldAnimateFade: () => false,
       };
       let styleDuringInit;
       view2.init = () => {

@@ -69,11 +69,9 @@ export class OffersFlow {
   private readonly skus_?: string[];
   private readonly clientConfigPromise_?: Promise<ClientConfig>;
   private readonly activityIframeViewPromise_?: Promise<ActivityIframeView | null>;
+  private readonly shouldAnimateFade: boolean;
 
-  constructor(
-    private readonly deps_: Deps,
-    private readonly options?: OffersRequest
-  ) {
+  constructor(private readonly deps_: Deps, options?: OffersRequest) {
     this.win_ = deps_.win();
 
     this.activityPorts_ = deps_.activities();
@@ -83,6 +81,11 @@ export class OffersFlow {
     this.eventManager_ = deps_.eventManager();
 
     this.clientConfigManager_ = deps_.clientConfigManager();
+
+    this.shouldAnimateFade =
+      options?.shouldAnimateFade === undefined
+        ? true
+        : options?.shouldAnimateFade;
 
     // Default to hiding close button.
     const isClosable = options?.isClosable ?? false;
@@ -146,7 +149,7 @@ export class OffersFlow {
       args as {[key: string]: string},
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
-      /* shouldNotAnimateFade */ !!this.options?.shouldNotAnimateFade
+      /* shouldAnimateFade */ this.shouldAnimateFade
     );
   }
 

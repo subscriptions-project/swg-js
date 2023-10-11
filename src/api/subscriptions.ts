@@ -514,9 +514,11 @@ export interface OffersRequest {
   oldSku?: string;
 
   /**
-   * Optional. Sets if the fade in of is animated.
+   * Optional. Disables the fade in animation if set to false. Defaults to true
+   * if unset. This field may be remove din the future.
+   * TODO: b/304803271 - remove this field form the api.
    */
-  shouldNotAnimateFade?: boolean;
+  shouldAnimateFade?: boolean;
 }
 
 export interface LoginRequest {
