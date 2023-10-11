@@ -48,7 +48,7 @@ export class ActivityIframeView extends View {
     private readonly args_: {[key: string]: string},
     private readonly shouldFadeBody_: boolean = false,
     private readonly hasLoadingIndicator_: boolean = false,
-    private readonly shouldAnimateFade_: boolean = false
+    private readonly shouldNotAnimateFade_: boolean = false
   ) {
     super();
 
@@ -168,7 +168,7 @@ export class ActivityIframeView extends View {
     }
   }
 
-  shouldAnimateFade(): boolean {
-    return this.shouldAnimateFade_;
+  shouldNotAnimateFade(): boolean {
+    return this.shouldNotAnimateFade_;
   }
 }

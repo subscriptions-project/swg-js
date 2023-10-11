@@ -82,7 +82,7 @@ export class ContributionsFlow {
       }),
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
-      /* shouldAnimateFade */ !!this.options_?.shouldAnimateFade
+      /* shouldNotAnimateFade */ !!this.options_?.shouldNotAnimateFade
     );
   }
 

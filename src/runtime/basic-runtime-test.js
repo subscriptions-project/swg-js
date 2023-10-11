@@ -793,7 +793,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         .expects('showOffers')
         .withExactArgs({
           isClosable: false,
-          shouldAnimateFade: true,
+          shouldNotAnimateFade: false,
         })
         .once();
 
@@ -824,7 +824,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         .expects('showContributionOptions')
         .withExactArgs({
           isClosable: true,
-          shouldAnimateFade: true,
+          shouldNotAnimateFade: false,
         })
         .once();
 

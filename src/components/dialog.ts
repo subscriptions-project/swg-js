@@ -390,7 +390,7 @@ export class Dialog {
 
     // If the current view should fade the parent document.
     if (view.shouldFadeBody() && !this.hidden_) {
-      this.graypane_.show(/* animated */ view.shouldAnimateFade());
+      this.graypane_.show(/* animated */ !view.shouldNotAnimateFade());
     }
 
     await view.init(this);
@@ -399,7 +399,7 @@ export class Dialog {
     });
     if (this.hidden_) {
       if (view.shouldFadeBody()) {
-        this.graypane_.show(/* animated */ true);
+        this.graypane_.show(/* animated */ !view.shouldNotAnimateFade());
       }
       this.show_();
     }

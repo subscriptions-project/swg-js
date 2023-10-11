@@ -49,5 +49,5 @@ export abstract class View {
 
   abstract hasLoadingIndicator(): boolean;
 
-  abstract shouldAnimateFade(): boolean;
+  abstract shouldNotAnimateFade(): boolean;
 }
