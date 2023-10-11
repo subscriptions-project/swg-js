@@ -207,8 +207,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private renderOptInPrompt_(codeSnippet: string) {
     const optInPrompt = createElement(this.doc_, 'div', {});
-    optInPrompt.innerHTML = codeSnippet;
+    optInPrompt./*OK*/ innerHTML = codeSnippet;
     const form = optInPrompt.querySelector('form');
+
     if (form && this.wrapper_) {
       this.wrapper_.shadowRoot?.removeChild(this.prompt_);
       this.wrapper_.shadowRoot?.appendChild(optInPrompt);
