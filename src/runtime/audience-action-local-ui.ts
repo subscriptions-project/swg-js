@@ -48,9 +48,16 @@ const REWARDED_AD_PROMPT = css`
     margin-top: auto !important;
     border-top-left-radius: 20px !important;
     border-top-right-radius: 20px !important;
-    width: 375px !important;
     pointer-events: auto !important;
     background: white !important;
+    max-height: 90%;
+    overflow: auto;
+  }
+
+  @media (min-width: 450px) {
+    .rewarded-ad-prompt {
+      width: 375px !important;
+    }
   }
 `;
 
@@ -62,30 +69,41 @@ const DEFAULT_BUTTON = css`
     padding: 0;
     font: inherit;
     cursor: pointer;
-    outline: inherit;
+    outline-offset: 4px;
+    outline-color: #145ab5;
   }
 `;
 
 const CLOSE_BUTTON_CSS = css`
   .rewarded-ad-close-button {
+    padding: 12px;
+    height: 48px;
+    width: 48px;
+    grid-column: 3;
+    grid-row: 1;
+    border-radius: 4px;
+  }
+  .rewarded-ad-close-img {
+    border-radius: 20px;
     height: 24px;
     width: 24px;
-    padding: 8px;
-    border-radius: 20px;
-
     background: #5f6368;
     -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg)
       center/contain no-repeat;
+  }
 
-    grid-column: 3;
-    grid-row: 1;
+  .rewarded-ad-close-button:hover,
+  .rewarded-ad-close-button:focus {
+    background-color: #f2f8ff;
   }
 `;
 
 export const CLOSE_BUTTON_HTML = html`<button
   aria-label="$CLOSE_BUTTON_DESCRIPTION$"
   class="rewarded-ad-close-button"
-></button>`;
+>
+  <div class="rewarded-ad-close-img"></div>
+</button>`;
 
 // Error view for prompts that fail to init.
 // TODO: mhkawano - Update once UX finished.
@@ -218,24 +236,25 @@ const REWARDED_AD_CSS = css`
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-container {
-    margin: 20px;
+    margin: 20px 20px 0px 20px;
     text-align: center;
     font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
   }
 
   .rewarded-ad-header {
     display: grid !important;
-    grid-template-columns: 24px 1fr 24px;
+    grid-template-columns: 48px 1fr 48px;
   }
 
   .rewarded-ad-title {
-    font-size: 28px;
+    font-size: 1.75rem;
+    line-height: 2.25rem;
     font-weight: 400;
-    line-height: 36px;
     letter-spacing: 0em;
     color: #202124;
     grid-column: 2;
     grid-row: 1;
+    line-break: anywhere;
   }
 
   .rewarded-ad-icon {
@@ -249,9 +268,9 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-message {
     margin-top: 8px;
     padding: 0px 11px 0px 11px;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 500;
-    line-height: 24px;
+    line-height: 1.5rem;
     letter-spacing: 0.25px;
     color: #202124;
   }
@@ -262,14 +281,19 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-view-ad-button {
     width: 100%;
-    height: 36px;
+    height: 2.25rem;
     background-color: #1a73e8;
     color: white;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
-    line-height: 20px;
+    line-height: 1.25rem;
     letter-spacing: 0.25px;
+  }
+
+  .rewarded-ad-view-ad-button:focus,
+  .rewarded-ad-view-ad-button:hover {
+    background-color: #145ab5;
   }
 
   .rewarded-ad-view-ad-button:disabled {
@@ -279,37 +303,62 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-support-button {
     width: 100%;
-    height: 36px;
+    height: 2.25rem;
     border: 1px solid #dadce0;
     margin-top: 8px;
     border-radius: 4px;
     color: #1a73e8;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
-    line-height: 20px;
+    line-height: 1.25rem;
     letter-spacing: 0.25px;
   }
 
+  .rewarded-ad-support-button:focus,
+  .rewarded-ad-support-button:hover {
+    background-color: #e6e6e6;
+  }
+
   .rewarded-ad-footer {
-    padding-top: 24px;
-    padding-bottom: 24px;
   }
 
   .rewarded-ad-google-logo {
     float: left;
     height: 24px;
+    margin: 20px 0px 20px 0px;
   }
 
   .rewarded-ad-sign-in-button {
     float: right;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
-    line-height: 20px;
+    line-height: 1.25rem;
     letter-spacing: 0.25px;
     text-align: right;
     color: #1a73e8;
+    height: 48px;
+    border-radius: 4px;
+    margin: 8px 0px 8px 0px;
+    padding: 0px 7px 0px 7px;
+  }
+
+  .rewarded-ad-sign-in-button:focus,
+  .rewarded-ad-sign-in-button:hover {
+    background-color: #f2f8ff;
   }
 `;
+
+export const REWARDED_AD_SUPPORT_HTML = html`<button
+  class="rewarded-ad-support-button"
+>
+  $SUPPORT_MESSAGE$
+</button>`;
+
+export const REWARDED_AD_SIGN_IN_HTML = html`<button
+  class="rewarded-ad-sign-in-button"
+>
+  $SIGN_IN_MESSAGE$
+</button>`;
 
 export const REWARDED_AD_HTML = html`
   <style>
@@ -325,7 +374,7 @@ export const REWARDED_AD_HTML = html`
       <div class="rewarded-ad-message">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
         <button class="rewarded-ad-view-ad-button">$VIEW_AN_AD$</button>
-        <button class="rewarded-ad-support-button">$SUPPORT_BUTTON$</button>
+        $SUPPORT_BUTTON$
       </div>
       <div class="rewarded-ad-footer">
         <img
@@ -333,7 +382,7 @@ export const REWARDED_AD_HTML = html`
           class="rewarded-ad-google-logo"
           src="${GOOGLE_LOGO_IMAGE_DATA}"
         />
-        <button class="rewarded-ad-sign-in-button">$SIGN_IN_BUTTON$</button>
+        $SIGN_IN_BUTTON$
       </div>
     </div>
   </div>
@@ -352,8 +401,8 @@ const REWARDED_AD_THANKS_CSS = css`
   .rewarded-ad-thanks-container {
     height: 100%;
     display: grid !important;
-    grid-template-columns: 24px 1fr 24px;
-    grid-template-rows: 40px 24px 8px 28px;
+    grid-template-columns: 48px 1fr 48px;
+    grid-template-rows: 1fr 24px 8px 28px;
   }
 
   .rewarded-ad-thanks-icon {
@@ -368,9 +417,9 @@ const REWARDED_AD_THANKS_CSS = css`
   }
 
   .rewarded-ad-thanks-message {
-    font-size: 22px;
+    font-size: 1.375rem;
     font-weight: 400;
-    line-height: 28px;
+    line-height: 1.75rem;
     letter-spacing: 0px;
     text-align: center;
     color: #202124;

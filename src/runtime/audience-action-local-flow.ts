@@ -27,6 +27,8 @@ import {
   ERROR_HTML,
   LOADING_HTML,
   REWARDED_AD_HTML,
+  REWARDED_AD_SIGN_IN_HTML,
+  REWARDED_AD_SUPPORT_HTML,
   REWARDED_AD_THANKS_HTML,
   SUBSCRIPTION_ICON,
 } from './audience-action-local-ui';
@@ -46,6 +48,7 @@ import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
+import {setStyle} from '../utils/style';
 
 export interface AudienceActionLocalParams {
   action: string;
@@ -325,11 +328,14 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const isContribution =
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
       this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
+    const isSubscription =
+      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION ||
+      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION_LARGE;
+    const isPremonetization = !isContribution && !isSubscription;
 
     // TODO: mhkawnao - Escape user provided strings. For Alpha it will be
     //                  specified by us so we don't need to do it yet.
     // TODO: mhkawnao - Support priority actions
-    // TODO: mhkawnao - Support premonetization
     const language = this.clientConfigManager_.getLanguage();
 
     // verified existance in initRewardedAdWall_
@@ -344,16 +350,27 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
           closeButtonDescription
         )
       : '';
-    const icon = isContribution ? CONTRIBUTION_ICON : SUBSCRIPTION_ICON;
+    const icon = isSubscription ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
     const viewad = 'View an ad';
-    const support = isContribution
-      ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
-      : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
-    const signin = isContribution
-      ? msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!
-      : msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!;
+    const supportHtml = isPremonetization
+      ? ''
+      : REWARDED_AD_SUPPORT_HTML.replace(
+          '$SUPPORT_MESSAGE$',
+          isContribution
+            ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
+            : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!
+        );
+
+    const signinHtml = isPremonetization
+      ? ''
+      : REWARDED_AD_SIGN_IN_HTML.replace(
+          '$SIGN_IN_MESSAGE$',
+          isContribution
+            ? msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!
+            : msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!
+        );
 
     this.prompt_./*OK*/ innerHTML = REWARDED_AD_HTML.replace(
       '$TITLE$',
@@ -363,8 +380,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .replace('$ICON$', icon)
       .replace('$MESSAGE$', message)
       .replace('$VIEW_AN_AD$', viewad)
-      .replace('$SUPPORT_BUTTON$', support)
-      .replace('$SIGN_IN_BUTTON$', signin);
+      .replace('$SUPPORT_BUTTON$', supportHtml)
+      .replace('$SIGN_IN_BUTTON$', signinHtml);
 
     this.prompt_
       .querySelector('.rewarded-ad-close-button')
@@ -373,11 +390,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .querySelector('.rewarded-ad-support-button')
       ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
     this.prompt_
-      .querySelector('.rewarded-ad-view-ad-button')
-      ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
-    this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
+    const viewAdButton: HTMLElement | null = this.prompt_.querySelector(
+      '.rewarded-ad-view-ad-button'
+    );
+    viewAdButton?.addEventListener(
+      'click',
+      this.viewRewardedAdWall_.bind(this)
+    );
+    viewAdButton?.focus();
 
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }
@@ -386,7 +408,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_]);
     if (this.params_.isClosable) {
-      removeElement(this.wrapper_);
+      this.unlock_();
       if (this.params_.onCancel) {
         this.params_.onCancel();
       }
@@ -415,9 +437,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const closeButton = this.prompt_.getElementsByClassName(
       'rewarded-ad-close-button'
     );
-    closeButton.item(0)?.addEventListener('click', () => {
-      removeElement(this.wrapper_);
-    });
+    closeButton.item(0)?.addEventListener('click', this.unlock_.bind(this));
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
@@ -425,7 +445,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private closeRewardedAdWall_() {
-    removeElement(this.wrapper_);
+    this.unlock_();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     if (this.params_.onCancel) {
@@ -438,7 +458,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private supportRewardedAdWall_() {
-    removeElement(this.wrapper_);
+    this.unlock_();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(
@@ -529,9 +549,15 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // TODO: mhkawano - else log error
   }
 
+  private unlock_() {
+    removeElement(this.wrapper_);
+    setStyle(this.doc_.body, 'overflow', '');
+  }
+
   async start() {
     this.renderLoadingView_();
     this.doc_.body.appendChild(this.wrapper_);
+    setStyle(this.doc_.body, 'overflow', 'hidden');
     this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(this.wrapper_, {'opacity': '1.0'});
     await this.initPrompt_();
@@ -553,7 +579,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   close() {
-    removeElement(this.wrapper_);
+    this.unlock_();
     if (this.rewardedSlot_) {
       const googletag = this.deps_.win().googletag;
       googletag.destroySlots([this.rewardedSlot_]);

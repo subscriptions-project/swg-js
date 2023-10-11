@@ -25,6 +25,7 @@ import {tick} from '../../test/tick';
 const DEFAULT_PARAMS = {
   action: 'TYPE_REWARDED_AD',
   configurationId: 'xyz',
+  autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
 };
 
 const NEWSLETTER_PARAMS = {
@@ -266,6 +267,33 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
       });
 
+      it('renders premonetization', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          autoPromptType: undefined,
+          monetizationFunction: sandbox.spy(),
+        };
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=undefined&origin=about%3Asrcdoc'
+        );
+
+        const subscribeButton = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(subscribeButton).to.be.null;
+
+        const signinButton = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-sign-in-button'
+        );
+        expect(signinButton).to.be.null;
+      });
+
       it('renders isClosable == true', async () => {
         const params = {
           action: 'TYPE_REWARDED_AD',
@@ -274,6 +302,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           onCancel: sandbox.spy(),
         };
         const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        expect(env.win.document.body.style.overflow).to.equal('hidden');
 
         // Manually invoke the rewardedSlotReady callback.
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
@@ -287,6 +317,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await closeButton.click();
         await tick();
 
+        expect(env.win.document.body.style.overflow).to.equal('');
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );

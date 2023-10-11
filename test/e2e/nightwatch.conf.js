@@ -63,6 +63,7 @@ module.exports = {
           'logging-audience-activity',
           'disable-desktop-miniprompt',
           'populate-client-config-classic',
+          'background_click_behavior_experiment',
         ],
       },
       '@nightwatch/vrt': {
