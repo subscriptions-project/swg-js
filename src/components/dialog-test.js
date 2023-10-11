@@ -45,6 +45,7 @@ describes.realWin('Dialog', (env) => {
       init: (dialog) => Promise.resolve(dialog),
       resized: () => {},
       shouldFadeBody: () => true,
+      shouldAnimateFade: () => true,
     };
 
     sandbox.stub(self, 'requestAnimationFrame').callsFake((callback) => {
@@ -73,7 +74,7 @@ describes.realWin('Dialog', (env) => {
       expect(getStyle(iframe, 'display')).to.equal('block');
     });
 
-    it('should have created fade background', async () => {
+    it('should have created fade background with animation', async () => {
       expect(graypaneStubs.attach).to.not.be.called;
       const openedDialog = await dialog.open(NO_ANIMATE);
       expect(graypaneStubs.attach).to.be.calledOnce;
@@ -81,6 +82,22 @@ describes.realWin('Dialog', (env) => {
 
       await openedDialog.openView(view);
       expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
+      expect(graypaneStubs.attach).to.be.calledOnce;
+      expect(dialog.graypane_.fadeBackground_.style.zIndex).to.equal(
+        '2147483646'
+      );
+    });
+
+    it('should have created fade background with no animation', async () => {
+      view.shouldAnimateFade = () => false;
+
+      expect(graypaneStubs.attach).to.not.be.called;
+      const openedDialog = await dialog.open(NO_ANIMATE);
+      expect(graypaneStubs.attach).to.be.calledOnce;
+      expect(graypaneStubs.show).to.not.be.called;
+
+      await openedDialog.openView(view);
+      expect(graypaneStubs.show).to.be.calledOnce.calledWith(NO_ANIMATE);
       expect(graypaneStubs.attach).to.be.calledOnce;
       expect(dialog.graypane_.fadeBackground_.style.zIndex).to.equal(
         '2147483646'
@@ -398,6 +415,7 @@ describes.realWin('Dialog', (env) => {
         getElement: () => element,
         resized: () => {},
         shouldFadeBody: () => true,
+        shouldAnimateFade: () => false,
       };
       let styleDuringInit;
       view2.init = () => {

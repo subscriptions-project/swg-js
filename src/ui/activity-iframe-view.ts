@@ -47,7 +47,8 @@ export class ActivityIframeView extends View {
     /** Additional data to be passed to the iframe. */
     private readonly args_: {[key: string]: string},
     private readonly shouldFadeBody_: boolean = false,
-    private readonly hasLoadingIndicator_: boolean = false
+    private readonly hasLoadingIndicator_: boolean = false,
+    private readonly shouldAnimateFade_: boolean = true
   ) {
     super();
 
@@ -165,5 +166,9 @@ export class ActivityIframeView extends View {
     if (this.port_) {
       this.port_.resized();
     }
+  }
+
+  shouldAnimateFade(): boolean {
+    return this.shouldAnimateFade_;
   }
 }

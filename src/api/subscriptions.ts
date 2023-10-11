@@ -512,6 +512,13 @@ export interface OffersRequest {
    * upgrade or downgrade their current subscription.
    */
   oldSku?: string;
+
+  /**
+   * Optional. Disables the fade in animation if set to false. Defaults to true
+   * if unset.
+   * TODO: b/304803271 - remove this field from the api.
+   */
+  shouldAnimateFade?: boolean;
 }
 
 export interface LoginRequest {
