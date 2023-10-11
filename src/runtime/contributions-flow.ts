@@ -45,6 +45,7 @@ export class ContributionsFlow {
   private readonly activityPorts_: ActivityPorts;
   private readonly dialogManager_: DialogManager;
   private readonly activityIframeViewPromise_: Promise<ActivityIframeView>;
+  private readonly shouldAnimateFade_: boolean;
   private isClosable_: boolean;
 
   constructor(
@@ -62,6 +63,11 @@ export class ContributionsFlow {
     // Default to showing close button.
     this.isClosable_ = this.options_?.isClosable ?? true;
     this.activityIframeViewPromise_ = this.getActivityIframeView_();
+
+    this.shouldAnimateFade_ =
+      this.options_?.shouldAnimateFade === undefined
+        ? true
+        : this.options_?.shouldAnimateFade;
   }
 
   private async getActivityIframeView_(): Promise<ActivityIframeView> {
@@ -80,7 +86,9 @@ export class ContributionsFlow {
         'isClosable': this.isClosable_,
         'supportsEventManager': true,
       }),
-      /* shouldFadeBody */ true
+      /* shouldFadeBody */ true,
+      /* hasLoadingIndicator_ */ false,
+      /* shouldAnimateFade */ this.shouldAnimateFade_
     );
   }
 
