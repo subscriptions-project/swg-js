@@ -164,6 +164,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       /* hidden */ false,
       /* dialogConfig */ {
         shouldDisableBodyScrolling: true,
+        closeOnBackgroundClick: !!this.params_.isClosable,
       }
     );
   }

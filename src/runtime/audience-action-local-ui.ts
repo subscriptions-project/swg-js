@@ -48,9 +48,16 @@ const REWARDED_AD_PROMPT = css`
     margin-top: auto !important;
     border-top-left-radius: 20px !important;
     border-top-right-radius: 20px !important;
-    width: 375px !important;
     pointer-events: auto !important;
     background: white !important;
+    max-height: 90%;
+    overflow: auto;
+  }
+
+  @media (min-width: 450px) {
+    .rewarded-ad-prompt {
+      width: 375px !important;
+    }
   }
 `;
 
@@ -69,9 +76,9 @@ const DEFAULT_BUTTON = css`
 
 const CLOSE_BUTTON_CSS = css`
   .rewarded-ad-close-button {
-    padding: 8px;
-    height: 40px;
-    width: 40px;
+    padding: 12px;
+    height: 48px;
+    width: 48px;
     grid-column: 3;
     grid-row: 1;
     border-radius: 4px;
@@ -236,17 +243,18 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-header {
     display: grid !important;
-    grid-template-columns: 40px 1fr 40px;
+    grid-template-columns: 48px 1fr 48px;
   }
 
   .rewarded-ad-title {
-    font-size: 28px;
+    font-size: 1.75rem;
+    line-height: 2.25rem;
     font-weight: 400;
-    line-height: 36px;
     letter-spacing: 0em;
     color: #202124;
     grid-column: 2;
     grid-row: 1;
+    line-break: anywhere;
   }
 
   .rewarded-ad-icon {
@@ -260,9 +268,9 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-message {
     margin-top: 8px;
     padding: 0px 11px 0px 11px;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 500;
-    line-height: 24px;
+    line-height: 1.5rem;
     letter-spacing: 0.25px;
     color: #202124;
   }
@@ -273,13 +281,13 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-view-ad-button {
     width: 100%;
-    height: 36px;
+    height: 2.25rem;
     background-color: #1a73e8;
     color: white;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
-    line-height: 20px;
+    line-height: 1.25rem;
     letter-spacing: 0.25px;
   }
 
@@ -295,14 +303,14 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-support-button {
     width: 100%;
-    height: 36px;
+    height: 2.25rem;
     border: 1px solid #dadce0;
     margin-top: 8px;
     border-radius: 4px;
     color: #1a73e8;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
-    line-height: 20px;
+    line-height: 1.25rem;
     letter-spacing: 0.25px;
   }
 
@@ -312,7 +320,6 @@ const REWARDED_AD_CSS = css`
   }
 
   .rewarded-ad-footer {
-    height: 24px;
   }
 
   .rewarded-ad-google-logo {
@@ -323,15 +330,15 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-sign-in-button {
     float: right;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
-    line-height: 20px;
+    line-height: 1.25rem;
     letter-spacing: 0.25px;
     text-align: right;
     color: #1a73e8;
-    height: 32px;
+    height: 48px;
     border-radius: 4px;
-    margin: 16px 0px 16px 0px;
+    margin: 8px 0px 8px 0px;
     padding: 0px 7px 0px 7px;
   }
 
@@ -395,7 +402,7 @@ const REWARDED_AD_THANKS_CSS = css`
     height: 100%;
     display: grid !important;
     grid-template-columns: 48px 1fr 48px;
-    grid-template-rows: 48px 24px 8px 28px;
+    grid-template-rows: 1fr 24px 8px 28px;
   }
 
   .rewarded-ad-thanks-icon {
@@ -410,9 +417,9 @@ const REWARDED_AD_THANKS_CSS = css`
   }
 
   .rewarded-ad-thanks-message {
-    font-size: 22px;
+    font-size: 1.375rem;
     font-weight: 400;
-    line-height: 28px;
+    line-height: 1.75rem;
     letter-spacing: 0px;
     text-align: center;
     color: #202124;

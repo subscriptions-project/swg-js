@@ -1339,6 +1339,71 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     dialogManagerMock.verify();
   });
 
+  it('opens dialog with closeOnBackgroundClick=false by default', async () => {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+    });
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          closeOnBackgroundClick: false,
+        })
+      )
+      .once();
+    await audienceActionFlow.start();
+    dialogManagerMock.verify();
+  });
+
+  it('opens dialog with closeOnBackgroundClick=false when isClosable=false', async () => {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      isClosable: false,
+    });
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          closeOnBackgroundClick: false,
+        })
+      )
+      .once();
+    await audienceActionFlow.start();
+    dialogManagerMock.verify();
+  });
+
+  it('opens dialog with closeOnBackgroundClick=true when isClosable=true', async () => {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      isClosable: true,
+    });
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          closeOnBackgroundClick: true,
+        })
+      )
+      .once();
+    await audienceActionFlow.start();
+    dialogManagerMock.verify();
+  });
+
   it(`opens an AudienceActionIframeFlow and passes isClosable in query param`, async () => {
     sandbox.stub(runtime.storage(), 'get').resolves(null);
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {

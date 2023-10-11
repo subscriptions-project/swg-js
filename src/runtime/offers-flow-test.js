@@ -310,6 +310,48 @@ describes.realWin('OffersFlow', (env) => {
     await offersFlow.start();
   });
 
+  it('passes isClosable to openView when false for new offer flows', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+      })
+    );
+    offersFlow = new OffersFlow(runtime, {'isClosable': false});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          closeOnBackgroundClick: false,
+        })
+      )
+      .once();
+    await offersFlow.start();
+  });
+
+  it('passes isClosable to openView when true for new offer flows', async () => {
+    const clientConfigManager = runtime.clientConfigManager();
+    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+      new ClientConfig({
+        useUpdatedOfferFlows: true,
+      })
+    );
+    offersFlow = new OffersFlow(runtime, {'isClosable': true});
+    dialogManagerMock
+      .expects('openView')
+      .withExactArgs(
+        sandbox.match.any,
+        false,
+        sandbox.match({
+          closeOnBackgroundClick: true,
+        })
+      )
+      .once();
+    await offersFlow.start();
+  });
+
   it('should trigger on cancel', async () => {
     callbacksMock
       .expects('triggerFlowStarted')
