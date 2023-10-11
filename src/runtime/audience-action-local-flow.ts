@@ -227,6 +227,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
     );
+    this.unlock_();
     this.complete_();
   }
 
