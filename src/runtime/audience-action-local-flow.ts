@@ -15,7 +15,11 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
-import {AudienceActionFlow, TYPE_REWARDED_AD} from './audience-action-flow';
+import {
+  AudienceActionFlow,
+  TYPE_NEWSLETTER_SIGNUP,
+  TYPE_REWARDED_AD,
+} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   CLOSE_BUTTON_HTML,
@@ -64,6 +68,12 @@ interface AudienceActionConfig {
     adunit?: string;
     customMessage?: string;
   };
+  optInParameters?: {
+    title: string;
+    body: string;
+    promptPreference?: string;
+    codeSnippet?: string;
+  };
 }
 
 interface CompleteAudienceActionResponse {
@@ -74,6 +84,8 @@ interface CompleteAudienceActionResponse {
 
 // Default timeout for waiting on ready callback.
 const GPT_TIMEOUT_MS = 3000;
+const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
+  'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
 /**
  * An audience action local flow will show a dialog prompt to a reader, asking them
@@ -164,9 +176,58 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private async initPrompt_() {
     if (this.params_.action === TYPE_REWARDED_AD) {
       await this.initRewardedAdWall_();
+    } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
+      await this.initNewsletterSignup_();
     } else {
       this.renderErrorView_();
     }
+  }
+
+  private async initNewsletterSignup_() {
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
+    );
+    const config = await this.getConfig_();
+    const codeSnippet = config?.optInParameters?.codeSnippet;
+
+    const validNewsletterSignupParams =
+      codeSnippet &&
+      config?.optInParameters?.promptPreference ===
+        PREFERENCE_PUBLISHER_PROVIDED_PROMPT;
+
+    if (validNewsletterSignupParams) {
+      this.renderOptInPrompt_(codeSnippet);
+    } else {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR
+      );
+      this.renderErrorView_();
+    }
+  }
+
+  private renderOptInPrompt_(codeSnippet: string) {
+    const optInPrompt = createElement(this.doc_, 'div', {});
+    optInPrompt./*OK*/ innerHTML = codeSnippet;
+    const form = optInPrompt.querySelector('form');
+
+    if (form && this.wrapper_) {
+      this.wrapper_.shadowRoot?.removeChild(this.prompt_);
+      this.wrapper_.shadowRoot?.appendChild(optInPrompt);
+      form.addEventListener('submit', this.formSubmit_.bind(this));
+    } else {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
+      );
+      this.renderErrorView_();
+    }
+  }
+
+  private formSubmit_() {
+    //TODO: chuyangwang - verify email being submitted.
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
+    );
+    this.complete_();
   }
 
   private async initRewardedAdWall_() {

@@ -28,6 +28,11 @@ const DEFAULT_PARAMS = {
   autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
 };
 
+const NEWSLETTER_PARAMS = {
+  action: 'TYPE_NEWSLETTER_SIGNUP',
+  configurationId: 'newsletter_config_id',
+};
+
 const DEFAULT_CONFIG = `
 {
   "publication": {
@@ -36,6 +41,19 @@ const DEFAULT_CONFIG = `
   "rewardedAdParameters": {
     "adunit": "ADUNIT",
     "customMessage": "CUSTOM_MESSAGE"
+  }
+}`;
+
+const NEWSLETTER_CONFIG = `
+{
+  "publication": {
+    "name": "PUBLICATOIN_NAME"
+  },
+  "optInParameters": {
+    "title": "newsletter_title",
+    "body": "newsletter_body",
+    "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
+    "codeSnippet": "<form>newsletter_code_snippet</form>"
   }
 }`;
 
@@ -639,6 +657,153 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+      });
+    });
+
+    describe('newsletter publisher prompt', () => {
+      let configResponse;
+
+      beforeEach(() => {
+        configResponse = new Response(null, {status: 200});
+      });
+
+      async function renderNewsletterPrompt(params, config) {
+        configResponse.text = sandbox.stub().returns(Promise.resolve(config));
+        env.win.fetch = sandbox.stub().returns(Promise.resolve(configResponse));
+
+        const flow = new AudienceActionLocalFlow(
+          runtime,
+          params,
+          /* gptTimeoutMs_= */ 1
+        );
+
+        await flow.start();
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
+
+        return {flow, wrapper};
+      }
+
+      it('renders', async () => {
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_CONFIG
+        );
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc'
+        );
+
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot).to.not.be.null;
+        expect(shadowRoot.innerHTML).contains('newsletter_code_snippet');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
+        );
+      });
+
+      it('will not render with Google prompt preference', async () => {
+        const NEWSLETTER_GOOGLE_PROMPT_CONFIG = `
+        {
+          "publication": {
+            "name": "PUBLICATOIN_NAME"
+          },
+          "optInParameters": {
+            "title": "newsletter_title",
+            "body": "newsletter_body",
+            "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT",
+            "codeSnippet": "<form>newsletter_code_snippet</form>"
+          }
+        }`;
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_GOOGLE_PROMPT_CONFIG
+        );
+
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR
+        );
+      });
+
+      it('will not render with no code snippet', async () => {
+        const NEWSLETTER_NO_SNIPPET_CONFIG = `
+        {
+          "publication": {
+            "name": "PUBLICATOIN_NAME"
+          },
+          "optInParameters": {
+            "title": "newsletter_title",
+            "body": "newsletter_body",
+            "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT"
+          }
+        }`;
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_NO_SNIPPET_CONFIG
+        );
+
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
+        const prompt = shadowRoot.querySelector('.prompt');
+        expect(prompt.innerHTML).contains('Something went wrong.');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR
+        );
+      });
+
+      it('will not render with code snippet not containing form element', async () => {
+        const NEWSLETTER_NO_SNIPPET_CONFIG = `
+        {
+          "publication": {
+            "name": "PUBLICATOIN_NAME"
+          },
+          "optInParameters": {
+            "title": "newsletter_title",
+            "body": "newsletter_body",
+            "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
+            "codeSnippet": "<input>newsletter_code_snippet_fake_form</input>"
+          }
+        }`;
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_NO_SNIPPET_CONFIG
+        );
+
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
+        const form = state.wrapper.shadowRoot.querySelector('form');
+        expect(form).to.be.null;
+        const prompt = state.wrapper.shadowRoot.querySelector('.prompt');
+        expect(prompt.innerHTML).contains('Something went wrong.');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
+        );
+      });
+
+      it('submit event triggers completion event', async () => {
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_CONFIG
+        );
+
+        const form = state.wrapper.shadowRoot.querySelector('form');
+        expect(form).to.not.be.null;
+        expect(form.innerHTML).contains('newsletter_code_snippet');
+        form.dispatchEvent(new SubmitEvent('submit'));
+        await tick();
+
+        expect(env.win.fetch).to.be.calledTwice;
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=newsletter_config_id&audienceActionType=TYPE_NEWSLETTER_SIGNUP'
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
+        );
       });
     });
   });
