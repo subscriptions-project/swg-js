@@ -341,6 +341,18 @@ const REWARDED_AD_CSS = css`
   }
 `;
 
+export const REWARDED_AD_SUPPORT_HTML = html`<button
+  class="rewarded-ad-support-button"
+>
+  $SUPPORT_MESSAGE$
+</button>`;
+
+export const REWARDED_AD_SIGN_IN_HTML = html`<button
+  class="rewarded-ad-sign-in-button"
+>
+  $SIGN_IN_MESSAGE$
+</button>`;
+
 export const REWARDED_AD_HTML = html`
   <style>
     ${REWARDED_AD_CSS}
@@ -355,7 +367,7 @@ export const REWARDED_AD_HTML = html`
       <div class="rewarded-ad-message">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
         <button class="rewarded-ad-view-ad-button">$VIEW_AN_AD$</button>
-        <button class="rewarded-ad-support-button">$SUPPORT_BUTTON$</button>
+        $SUPPORT_BUTTON$
       </div>
       <div class="rewarded-ad-footer">
         <img
@@ -363,7 +375,7 @@ export const REWARDED_AD_HTML = html`
           class="rewarded-ad-google-logo"
           src="${GOOGLE_LOGO_IMAGE_DATA}"
         />
-        <button class="rewarded-ad-sign-in-button">$SIGN_IN_BUTTON$</button>
+        $SIGN_IN_BUTTON$
       </div>
     </div>
   </div>
@@ -382,8 +394,8 @@ const REWARDED_AD_THANKS_CSS = css`
   .rewarded-ad-thanks-container {
     height: 100%;
     display: grid !important;
-    grid-template-columns: 24px 1fr 24px;
-    grid-template-rows: 40px 24px 8px 28px;
+    grid-template-columns: 48px 1fr 48px;
+    grid-template-rows: 48px 24px 8px 28px;
   }
 
   .rewarded-ad-thanks-icon {
