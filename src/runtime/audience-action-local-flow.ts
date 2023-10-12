@@ -211,6 +211,22 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const form = optInPrompt.querySelector('form');
 
     if (form && this.wrapper_) {
+      setImportantStyles(optInPrompt, {
+        'background-color': 'white',
+        'border': 'none',
+        'border-top-left-radius': '20px',
+        'border-top-right-radius': '20px',
+        'bottom': '0',
+        'left': '50%',
+        'max-height': '90%',
+        'max-width': '100%',
+        'pointer-events': 'auto',
+        'position': 'fixed',
+        'overflow': 'scroll',
+        'text-align': 'center',
+        'transform': 'translate(-50%, 0)',
+        'z-index': '2147483646',
+      });
       this.wrapper_.shadowRoot?.removeChild(this.prompt_);
       this.wrapper_.shadowRoot?.appendChild(optInPrompt);
       form.addEventListener('submit', this.formSubmit_.bind(this));
@@ -227,6 +243,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
     );
+    // Close the prompt.
     this.unlock_();
     this.complete_();
   }
