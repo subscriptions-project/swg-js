@@ -395,6 +395,7 @@ const REWARDED_AD_THANKS_CSS = css`
 
   .rewarded-ad-prompt {
     height: 125px !important;
+    width: 100%;
     padding: 20px;
   }
 
@@ -402,7 +403,7 @@ const REWARDED_AD_THANKS_CSS = css`
     height: 100%;
     display: grid !important;
     grid-template-columns: 48px 1fr 48px;
-    grid-template-rows: 1fr 24px 8px 28px;
+    grid-template-rows: 48px 14px 14px 1fr 14px
   }
 
   .rewarded-ad-thanks-icon {
@@ -423,8 +424,7 @@ const REWARDED_AD_THANKS_CSS = css`
     letter-spacing: 0px;
     text-align: center;
     color: #202124;
-
-    grid-column: 2;
+    grid-column: 1 / 4;
     grid-row: 4;
   }
 `;
