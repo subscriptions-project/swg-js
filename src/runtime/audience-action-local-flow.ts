@@ -238,14 +238,14 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private formSubmit_() {
+  private async formSubmit_() {
     //TODO: chuyangwang - verify email being submitted.
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
     );
     // Close the prompt.
     this.unlock_();
-    this.complete_();
+    await this.complete_();
   }
 
   private async initRewardedAdWall_() {
