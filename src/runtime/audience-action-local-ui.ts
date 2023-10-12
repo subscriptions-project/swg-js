@@ -403,7 +403,7 @@ const REWARDED_AD_THANKS_CSS = css`
     height: 100%;
     display: grid !important;
     grid-template-columns: 48px 1fr 48px;
-    grid-template-rows: 48px 14px 14px 1fr 14px
+    grid-template-rows: 48px 14px 14px 1fr 14px;
   }
 
   .rewarded-ad-thanks-icon {
