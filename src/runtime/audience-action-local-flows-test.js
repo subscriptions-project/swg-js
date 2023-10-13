@@ -808,13 +808,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         form.dispatchEvent(new SubmitEvent('submit'));
         await tick(3);
 
-        const updatedWrapper = env.win.document.querySelector(
-          '.audience-action-local-wrapper'
-        );
-        expect(updatedWrapper).to.be.null;
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
         );
+        // First fetch event was getActionConfigurationUI to retrive data
+        // Second fetch event was to completeAudienceAction.
         expect(env.win.fetch).to.be.calledTwice;
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=newsletter_config_id&audienceActionType=TYPE_NEWSLETTER_SIGNUP'
@@ -823,6 +821,25 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(entitlementsManager.clear).to.be.called;
         await tick();
         expect(entitlementsManager.getEntitlements).to.be.called;
+      });
+
+      it('submit event remove prompt', async () => {
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_CONFIG
+        );
+
+        const form = state.wrapper.shadowRoot.querySelector('form');
+        expect(form).to.not.be.null;
+        expect(form.innerHTML).contains('newsletter_code_snippet');
+        form.dispatchEvent(new SubmitEvent('submit'));
+        await tick();
+
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        // The prompt is expected to be removed.
+        expect(updatedWrapper).to.be.null;
       });
     });
   });
