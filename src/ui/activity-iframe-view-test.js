@@ -126,6 +126,8 @@ describes.realWin('ActivityIframeView', (env) => {
       expect(secondArgument).to.equal(src);
       const thirdArgument = activityPorts.openIframe.getCall(0).args[2];
       expect(thirdArgument).to.equal(activityArgs);
+      const fourthArgument = activityPorts.openIframe.getCall(0).args[3];
+      expect(fourthArgument).to.equal(true);
 
       expect(activityIframePort.onResizeRequest).to.have.been.calledOnce;
       expect(activityIframePort.whenReady).to.have.been.calledOnce;

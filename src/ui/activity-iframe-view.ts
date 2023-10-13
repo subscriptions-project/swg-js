@@ -69,7 +69,8 @@ export class ActivityIframeView extends View {
     const port = await this.activityPorts_.openIframe(
       this.iframe_,
       this.src_,
-      this.args_
+      this.args_,
+      true
     );
     return this.onOpenIframeResponse_(port, dialog);
   }
