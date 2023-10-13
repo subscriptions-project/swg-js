@@ -209,7 +209,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private renderOptInPrompt_(codeSnippet: string) {
     const optInPrompt = createElement(this.doc_, 'div', {});
     const closeHtml = this.getCloseButtonHtml_(OPT_IN_CLOSE_BUTTON_HTML);
-    optInPrompt./*OK*/ innerHTML = closeHtml + codeSnippet;
+    optInPrompt./*OK*/ innerHTML = closeHtml.concat(codeSnippet);
     const form = optInPrompt.querySelector('form');
 
     if (form && this.wrapper_) {
@@ -257,7 +257,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE
     );
-    this.unlock_();
+
+    if (this.params_.isClosable) {
+      this.unlock_();
+      if (this.params_.onCancel) {
+        this.params_.onCancel();
+      }
+    }
   }
 
   private async initRewardedAdWall_() {

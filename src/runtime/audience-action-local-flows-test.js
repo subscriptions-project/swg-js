@@ -716,6 +716,60 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
       });
 
+      it('renders prompt with close button', async () => {
+        const params = {
+          action: 'TYPE_NEWSLETTER_SIGNUP',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          isClosable: true,
+          configurationId: 'newsletter_config_id',
+        };
+        const state = await renderNewsletterPrompt(params, NEWSLETTER_CONFIG);
+
+        const closeButton = state.wrapper.shadowRoot.querySelector(
+          '.opt-in-close-button'
+        );
+        expect(closeButton).not.to.be.null;
+      });
+
+      it('close button click', async () => {
+        const params = {
+          action: 'TYPE_NEWSLETTER_SIGNUP',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          isClosable: true,
+          configurationId: 'newsletter_config_id',
+          onCancel: sandbox.spy(),
+        };
+        const state = await renderNewsletterPrompt(params, NEWSLETTER_CONFIG);
+        const closeButton = state.wrapper.shadowRoot.querySelector(
+          '.opt-in-close-button'
+        );
+
+        await closeButton.click();
+        await tick();
+
+        expect(env.win.document.body.style.overflow).to.equal('');
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(updatedWrapper).to.be.null;
+        expect(params.onCancel).to.be.calledOnce.calledWithExactly();
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE
+        );
+      });
+
+      it('renders prompt without close button', async () => {
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_CONFIG
+        );
+
+        const closeButton = state.wrapper.shadowRoot.querySelector(
+          '.opt-in-close-button'
+        );
+        expect(closeButton).to.be.null;
+      });
+
       it('will not render with Google prompt preference', async () => {
         const NEWSLETTER_GOOGLE_PROMPT_CONFIG = `
         {
