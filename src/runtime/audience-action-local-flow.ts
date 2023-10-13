@@ -260,9 +260,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     if (this.params_.isClosable) {
       this.unlock_();
-      if (this.params_.onCancel) {
-        this.params_.onCancel();
-      }
+      this.params_.onCancel?.();
     }
   }
 
