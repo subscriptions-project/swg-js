@@ -811,7 +811,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
         );
-        // First fetch event was getActionConfigurationUI to retrive data
+        // First fetch event was getActionConfigurationUI to retrieve config.
         // Second fetch event was to completeAudienceAction.
         expect(env.win.fetch).to.be.calledTwice;
         expect(env.win.fetch).to.be.calledWith(
@@ -823,7 +823,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(entitlementsManager.getEntitlements).to.be.called;
       });
 
-      it('submit event remove prompt', async () => {
+      it('submit event removes prompt', async () => {
         const state = await renderNewsletterPrompt(
           NEWSLETTER_PARAMS,
           NEWSLETTER_CONFIG
