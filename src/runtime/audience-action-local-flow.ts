@@ -108,7 +108,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // Used for testing.
   // @ts-ignore
   private rewardedTimout_: Promise<void> | null = null;
-  private rewardedCanceled_ = false;
 
   constructor(
     private readonly deps_: Deps,
@@ -264,9 +263,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private initRewardedAdSlot_(config: AudienceActionConfig) {
-    if (this.rewardedCanceled_) {
-      return;
-    }
     const googletag = this.deps_.win().googletag;
 
     this.rewardedSlot_ = googletag.defineOutOfPageSlot(
@@ -307,7 +303,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private rewardedAdTimeout_(resolve: () => void) {
     if (!this.rewardedReadyCalled_) {
-      this.rewardedCanceled_ = true;
       if (this.rewardedSlot_) {
         const googletag = this.deps_.win().googletag;
         googletag.destroySlots([this.rewardedSlot_!]);
@@ -334,9 +329,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     rewardedAd: googletag.events.RewardedSlotReadyEvent,
     config: AudienceActionConfig
   ) {
-    if (this.rewardedCanceled_) {
-      return;
-    }
     this.rewardedReadyCalled_ = true;
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
 
