@@ -424,18 +424,28 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('fails to render with gpt.js timeout', async () => {
-        const state = await renderAndAssertRewardedAd(
-          DEFAULT_PARAMS,
-          DEFAULT_CONFIG
-        );
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          configurationId: 'xyz',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          onCancel: sandbox.spy(),
+          monetizationFunction: sandbox.spy(),
+        };
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         await state.flow.rewardedTimout_;
 
-        const errorPrompt = state.wrapper.shadowRoot.querySelector('.prompt');
-        expect(errorPrompt.innerHTML).contains('Something went wrong.');
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(params.onCancel).to.be.calledOnce.calledWithExactly();
+
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
         );
+        expect(
+          params.monetizationFunction
+        ).to.be.calledOnce.calledWithExactly();
       });
 
       it('renders thanks with rewardedSlotGranted', async () => {
