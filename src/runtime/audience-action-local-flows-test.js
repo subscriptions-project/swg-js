@@ -806,7 +806,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
         form.dispatchEvent(new SubmitEvent('submit'));
-        await tick();
+        await tick(2);
 
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
