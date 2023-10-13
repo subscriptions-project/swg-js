@@ -74,7 +74,7 @@ const DEFAULT_BUTTON = css`
   }
 `;
 
-const CLOSE_BUTTON_CSS = css`
+const REWARDED_AD_CLOSE_BUTTON_CSS = css`
   .rewarded-ad-close-button {
     padding: 12px;
     height: 48px;
@@ -98,12 +98,50 @@ const CLOSE_BUTTON_CSS = css`
   }
 `;
 
-export const CLOSE_BUTTON_HTML = html`<button
+export const REWARDED_AD_CLOSE_BUTTON_HTML = html`<button
   aria-label="$CLOSE_BUTTON_DESCRIPTION$"
   class="rewarded-ad-close-button"
 >
   <div class="rewarded-ad-close-img"></div>
 </button>`;
+
+const OPT_IN_CLOSE_BUTTON_CSS = css`
+  .opt-in-close-button-container {
+    text-align: end !important;
+  }
+
+  .opt-in-close-button {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    height: 48px;
+    padding: 12px;
+    width: 48px;
+  }
+
+  .opt-in-close-img {
+    border-radius: 20px;
+    height: 24px;
+    width: 24px;
+    background: #5f6368;
+    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg)
+      center/contain no-repeat;
+  }
+
+  .opt-in-close-button:hover,
+  .opt-in-close-button:focus {
+    background-color: #f2f8ff;
+  }
+`;
+
+export const OPT_IN_CLOSE_BUTTON_HTML = html`<style>
+    ${OPT_IN_CLOSE_BUTTON_CSS}
+  </style>
+  <div class="opt-in-close-button-container">
+    <button aria-label="$CLOSE_BUTTON_DESCRIPTION$" class="opt-in-close-button">
+      <div class="opt-in-close-img"></div>
+    </button>
+  </div>`;
 
 // Error view for prompts that fail to init.
 // TODO: mhkawano - Update once UX finished.
@@ -232,7 +270,7 @@ export const LOADING_HTML = html`
 // TODO: mhkawano - translate static strings.
 const REWARDED_AD_CSS = css`
   ${DEFAULT_BUTTON}
-  ${CLOSE_BUTTON_CSS}
+  ${REWARDED_AD_CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-container {
@@ -368,7 +406,7 @@ export const REWARDED_AD_HTML = html`
     <div class="rewarded-ad-container">
       <div class="rewarded-ad-header">
         <div class="rewarded-ad-title">$TITLE$</div>
-        $CLOSE_BUTTON_HTML$
+        $REWARDED_AD_CLOSE_BUTTON_HTML$
       </div>
       <div class="rewarded-ad-icon"></div>
       <div class="rewarded-ad-message">$MESSAGE$</div>
@@ -390,7 +428,7 @@ export const REWARDED_AD_HTML = html`
 
 const REWARDED_AD_THANKS_CSS = css`
   ${DEFAULT_BUTTON}
-  ${CLOSE_BUTTON_CSS}
+  ${REWARDED_AD_CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-prompt {
@@ -437,7 +475,7 @@ export const REWARDED_AD_THANKS_HTML = html`
     <div class="rewarded-ad-thanks-container">
       <div class="rewarded-ad-thanks-icon"></div>
       <div class="rewarded-ad-thanks-message">$THANKS_FOR_VIEWING_THIS_AD$</div>
-      ${CLOSE_BUTTON_HTML}
+      ${REWARDED_AD_CLOSE_BUTTON_HTML}
       <div></div>
     </div>
   </div>

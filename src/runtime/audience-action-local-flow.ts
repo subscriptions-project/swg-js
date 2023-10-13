@@ -22,10 +22,11 @@ import {
 } from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
-  CLOSE_BUTTON_HTML,
   CONTRIBUTION_ICON,
   ERROR_HTML,
   LOADING_HTML,
+  OPT_IN_CLOSE_BUTTON_HTML,
+  REWARDED_AD_CLOSE_BUTTON_HTML,
   REWARDED_AD_HTML,
   REWARDED_AD_SIGN_IN_HTML,
   REWARDED_AD_SUPPORT_HTML,
@@ -207,11 +208,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private renderOptInPrompt_(codeSnippet: string) {
     const optInPrompt = createElement(this.doc_, 'div', {});
-    optInPrompt./*OK*/ innerHTML = codeSnippet;
+    const closeHtml = this.getCloseButtonHtml_(OPT_IN_CLOSE_BUTTON_HTML);
+    optInPrompt./*OK*/ innerHTML = closeHtml.concat(codeSnippet);
     const form = optInPrompt.querySelector('form');
 
     if (form && this.wrapper_) {
-      //TODO: chuyangwang - add close button if prompt is closeable.
       setImportantStyles(optInPrompt, {
         'background-color': 'white',
         'border': 'none',
@@ -223,13 +224,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         'max-width': '100%',
         'pointer-events': 'auto',
         'position': 'fixed',
-        'overflow': 'scroll',
+        'overflow': 'auto',
         'text-align': 'center',
         'transform': 'translate(-50%, 0)',
         'z-index': '2147483646',
       });
       this.wrapper_.shadowRoot?.removeChild(this.prompt_);
       this.wrapper_.shadowRoot?.appendChild(optInPrompt);
+      optInPrompt
+        .querySelector('.opt-in-close-button')
+        ?.addEventListener('click', this.closeOptInPrompt_.bind(this));
       form.addEventListener('submit', this.formSubmit_.bind(this));
     } else {
       this.eventManager_.logSwgEvent(
@@ -247,6 +251,17 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // Close the prompt.
     this.unlock_();
     await this.complete_();
+  }
+
+  private closeOptInPrompt_() {
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE
+    );
+
+    if (this.params_.isClosable) {
+      this.unlock_();
+      this.params_.onCancel?.();
+    }
   }
 
   private async initRewardedAdWall_() {
@@ -366,16 +381,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     // verified existance in initRewardedAdWall_
     const publication = config.publication!.name!;
-    const closeButtonDescription = msg(
-      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
-      language
-    )!;
-    const closeHtml = this.params_.isClosable
-      ? CLOSE_BUTTON_HTML.replace(
-          '$CLOSE_BUTTON_DESCRIPTION$',
-          closeButtonDescription
-        )
-      : '';
+    const closeHtml = this.getCloseButtonHtml_(REWARDED_AD_CLOSE_BUTTON_HTML);
     const icon = isSubscription ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
@@ -402,7 +408,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       '$TITLE$',
       publication
     )
-      .replace('$CLOSE_BUTTON_HTML$', closeHtml)
+      .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
       .replace('$ICON$', icon)
       .replace('$MESSAGE$', message)
       .replace('$VIEW_AN_AD$', viewad)
@@ -587,6 +593,18 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(this.wrapper_, {'opacity': '1.0'});
     await this.initPrompt_();
+  }
+
+  private getCloseButtonHtml_(html: string) {
+    const language = this.clientConfigManager_.getLanguage();
+    const closeButtonDescription = msg(
+      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
+      language
+    )!;
+    const closeHtml = this.params_.isClosable
+      ? html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription)
+      : '';
+    return closeHtml;
   }
 
   showNoEntitlementFoundToast() {
