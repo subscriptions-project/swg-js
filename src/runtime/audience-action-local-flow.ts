@@ -211,7 +211,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const form = optInPrompt.querySelector('form');
 
     if (form && this.wrapper_) {
-      //TODO: chuyangwang - add close button is prompt is closeable.
+      //TODO: chuyangwang - add close button if prompt is closeable.
       setImportantStyles(optInPrompt, {
         'background-color': 'white',
         'border': 'none',
