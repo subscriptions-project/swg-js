@@ -662,14 +662,25 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
     describe('newsletter publisher prompt', () => {
       let configResponse;
+      let completeResponse;
 
       beforeEach(() => {
         configResponse = new Response(null, {status: 200});
+        completeResponse = new Response(null, {status: 200});
       });
 
-      async function renderNewsletterPrompt(params, config) {
+      async function renderNewsletterPrompt(
+        params,
+        config,
+        complete = DEFAULT_COMPLETE_RESPONSE
+      ) {
         configResponse.text = sandbox.stub().returns(Promise.resolve(config));
-        env.win.fetch = sandbox.stub().returns(Promise.resolve(configResponse));
+        completeResponse.text = sandbox
+          .stub()
+          .returns(Promise.resolve(complete));
+        env.win.fetch = sandbox.stub();
+        env.win.fetch.onCall(0).returns(Promise.resolve(configResponse));
+        env.win.fetch.onCall(1).returns(Promise.resolve(completeResponse));
 
         const flow = new AudienceActionLocalFlow(
           runtime,
@@ -795,15 +806,40 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
         form.dispatchEvent(new SubmitEvent('submit'));
-        await tick();
+        await tick(3);
 
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
+        );
+        // First fetch event was getActionConfigurationUI to retrieve config.
+        // Second fetch event was to completeAudienceAction.
         expect(env.win.fetch).to.be.calledTwice;
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=newsletter_config_id&audienceActionType=TYPE_NEWSLETTER_SIGNUP'
         );
-        expect(eventManager.logSwgEvent).to.be.calledWith(
-          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
+        await tick();
+        expect(entitlementsManager.clear).to.be.called;
+        await tick();
+        expect(entitlementsManager.getEntitlements).to.be.called;
+      });
+
+      it('submit event removes prompt', async () => {
+        const state = await renderNewsletterPrompt(
+          NEWSLETTER_PARAMS,
+          NEWSLETTER_CONFIG
         );
+
+        const form = state.wrapper.shadowRoot.querySelector('form');
+        expect(form).to.not.be.null;
+        expect(form.innerHTML).contains('newsletter_code_snippet');
+        form.dispatchEvent(new SubmitEvent('submit'));
+        await tick();
+
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        // The prompt is expected to be removed.
+        expect(updatedWrapper).to.be.null;
       });
     });
   });
