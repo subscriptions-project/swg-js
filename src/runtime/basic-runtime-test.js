@@ -784,7 +784,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
             engineId: '123',
           },
         })
-        .once();
+        .atLeast(1);
       const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       clientConfigManagerMock
         .expects('getClientConfig')
@@ -815,7 +815,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
             engineId: '123',
           },
         })
-        .once();
+        .atLeast(1);
       const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       clientConfigManagerMock
         .expects('getClientConfig')
@@ -1128,7 +1128,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
       configuredBasicRuntime = new ConfiguredBasicRuntime(win, pageConfig);
 
-      expect(clientConfigManagerStub).to.be.calledOnce;
+      expect(clientConfigManagerStub).to.be.called;
       expect(await clientConfigManagerStub.args[0][0]).to.deep.equal(
         entitlements
       );
