@@ -834,27 +834,30 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should use default fetcher', async () => {
-      const ents = {};
+      const article = {entitlements: {}};
       const xhrFetchStub = sandbox
         .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
-        .callsFake(() => Promise.resolve(ents));
-
+        .callsFake(() => Promise.resolve(article));
+      runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
+        useArticleEndpoint: true,
+      });
       await runtime.getEntitlements();
       expect(xhrFetchStub).to.be.calledOnce;
     });
 
     it('should override fetcher', async () => {
-      const ents = {};
+      const article = {entitlements: {}};
       const otherFetcher = new XhrFetcher(env.win);
       const fetchStub = sandbox
         .stub(otherFetcher, 'fetchCredentialedJson')
-        .callsFake(() => Promise.resolve(ents));
+        .callsFake(() => Promise.resolve(article));
       const xhrFetchStub = sandbox.stub(
         XhrFetcher.prototype,
         'fetchCredentialedJson'
       );
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         fetcher: otherFetcher,
+        useArticleEndpoint: true,
       });
 
       await runtime.getEntitlements();
@@ -1466,7 +1469,13 @@ describes.realWin('ConfiguredRuntime', (env) => {
       });
 
       describe('getEntitlements', () => {
-        it('does not populate client config by default', async () => {
+        it('starts entitlements flow and fetches client config', async () => {
+          setExperiment(
+            win,
+            ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC,
+            true
+          );
+
           const entitlements = new Entitlements(
             'service',
             'raw',
@@ -1481,43 +1490,15 @@ describes.realWin('ConfiguredRuntime', (env) => {
             .resolves(entitlements)
             .once();
 
-          clientConfigManagerMock.expects('fetchClientConfig').never();
+          clientConfigManagerMock
+            .expects('fetchClientConfig')
+            .callsFake(async (readyPromise) => {
+              const promiseValue = await readyPromise;
+              expect(promiseValue).to.equal(entitlements);
+            })
+            .once();
 
           await runtime.getEntitlements();
-        });
-
-        describe('with POPULATE_CLIENT_CONFIG_CLASSIC flag enabled', () => {
-          it('starts entitlements flow and fetches client config', async () => {
-            setExperiment(
-              win,
-              ExperimentFlags.POPULATE_CLIENT_CONFIG_CLASSIC,
-              true
-            );
-
-            const entitlements = new Entitlements(
-              'service',
-              'raw',
-              [],
-              'product1',
-              () => {}
-            );
-
-            entitlementsManagerMock
-              .expects('getEntitlements')
-              .withExactArgs(undefined)
-              .resolves(entitlements)
-              .once();
-
-            clientConfigManagerMock
-              .expects('fetchClientConfig')
-              .callsFake(async (readyPromise) => {
-                const promiseValue = await readyPromise;
-                expect(promiseValue).to.equal(entitlements);
-              })
-              .once();
-
-            await runtime.getEntitlements();
-          });
         });
       });
     });
