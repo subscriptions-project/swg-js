@@ -344,13 +344,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
       );
-      if (this.params_.onCancel) {
-        this.params_.onCancel();
-      }
+      this.params_.onCancel?.();
       this.unlock_();
-      if (this.params_.monetizationFunction) {
-        this.params_.monetizationFunction();
-      }
+      this.params_.monetizationFunction?.();
     }
     resolve();
   }
@@ -441,9 +437,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     googletag.destroySlots([this.rewardedSlot_]);
     if (this.params_.isClosable) {
       this.unlock_();
-      if (this.params_.onCancel) {
-        this.params_.onCancel();
-      }
+      this.params_.onCancel?.();
     }
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
@@ -480,9 +474,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.unlock_();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
-    if (this.params_.onCancel) {
-      this.params_.onCancel();
-    }
+    this.params_.onCancel?.();
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
       /* isFromUserAction */ true
