@@ -292,7 +292,7 @@ const REWARDED_AD_CSS = css`
     color: #202124;
     grid-column: 2;
     grid-row: 1;
-    line-break: anywhere;
+    line-break: auto;
   }
 
   .rewarded-ad-icon {

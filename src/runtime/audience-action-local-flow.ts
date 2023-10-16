@@ -84,7 +84,7 @@ interface CompleteAudienceActionResponse {
 }
 
 // Default timeout for waiting on ready callback.
-const GPT_TIMEOUT_MS = 3000;
+const GPT_TIMEOUT_MS = 6000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
@@ -108,7 +108,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private makeRewardedVisible_?: () => void;
   // Used for testing.
   // @ts-ignore
-  private rewardedTimout_: Promise<boolean> | null = null;
+  private rewardedTimout_: Promise<void> | null = null;
 
   constructor(
     private readonly deps_: Deps,
@@ -335,18 +335,20 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private rewardedAdTimeout_(resolve: (value: boolean) => void) {
+  private rewardedAdTimeout_(resolve: () => void) {
     if (!this.rewardedReadyCalled_) {
-      const googletag = this.deps_.win().googletag;
-      this.renderErrorView_();
-      googletag.destroySlots([this.rewardedSlot_!]);
+      if (this.rewardedSlot_) {
+        const googletag = this.deps_.win().googletag;
+        googletag.destroySlots([this.rewardedSlot_!]);
+      }
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
       );
-      resolve(true);
-      // TODO: mhkawano - Launch payflow if monetized, cancel if not.
+      this.params_.onCancel?.();
+      this.unlock_();
+      this.params_.monetizationFunction?.();
     }
-    resolve(false);
+    resolve();
   }
 
   /**
@@ -435,9 +437,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     googletag.destroySlots([this.rewardedSlot_]);
     if (this.params_.isClosable) {
       this.unlock_();
-      if (this.params_.onCancel) {
-        this.params_.onCancel();
-      }
+      this.params_.onCancel?.();
     }
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
@@ -474,9 +474,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.unlock_();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
-    if (this.params_.onCancel) {
-      this.params_.onCancel();
-    }
+    this.params_.onCancel?.();
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
       /* isFromUserAction */ true
