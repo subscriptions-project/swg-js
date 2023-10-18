@@ -69,7 +69,7 @@ const DEFAULT_BUTTON = css`
     padding: 0;
     font: inherit;
     cursor: pointer;
-    outline-offset: 4px;
+    outline-offset: 0.25rem;
     outline-color: #145ab5;
   }
 `;
@@ -184,7 +184,7 @@ const LOADING_CSS = css`
     border-top-right-radius: 8px !important;
 
     height: 148px !important;
-    width: 375px !important;
+    width: 100% !important;
 
     display: flex !important;
     align-items: center !important;
@@ -248,6 +248,12 @@ const LOADING_CSS = css`
     }
     to {
       transform: rotate(-360deg);
+    }
+  }
+
+  @media (min-width: 450px) {
+    swg-loading-container {
+      width: 375px !important;
     }
   }
 `;
@@ -317,47 +323,48 @@ const REWARDED_AD_CSS = css`
     margin-top: 20px;
   }
 
-  .rewarded-ad-view-ad-button {
+  .rewarded-ad-cta-button {
+    padding: 0.375rem;
     width: 100%;
-    height: 2.25rem;
-    background-color: #1a73e8;
-    color: white;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.25rem;
-    letter-spacing: 0.25px;
+    outline-offset: -0.125rem;
   }
 
-  .rewarded-ad-view-ad-button:focus,
-  .rewarded-ad-view-ad-button:hover {
+  .rewarded-ad-cta-button-inner {
+    width: 100%;
+    height: 2.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .rewarded-ad-view-ad-button-inner {
+    background-color: #1a73e8;
+    color: white;
+  }
+
+  .rewarded-ad-cta-button:focus .rewarded-ad-view-ad-button-inner,
+  .rewarded-ad-cta-button:hover .rewarded-ad-view-ad-button-inner {
     background-color: #145ab5;
   }
 
-  .rewarded-ad-view-ad-button:disabled {
+  .rewarded-ad-view-ad-button:disabled .rewarded-ad-view-ad-button-inner {
     background-color: darkgrey;
     color: lightgrey;
   }
 
-  .rewarded-ad-support-button {
-    width: 100%;
-    height: 2.25rem;
+  .rewarded-ad-support-button-inner {
     border: 1px solid #dadce0;
-    margin-top: 8px;
-    border-radius: 4px;
+    border-radius: 0.25rem;
     color: #1a73e8;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.25rem;
-    letter-spacing: 0.25px;
   }
 
-  .rewarded-ad-support-button:focus,
-  .rewarded-ad-support-button:hover {
+  .rewarded-ad-cta-button:focus .rewarded-ad-support-button-inner,
+  .rewarded-ad-cta-button:hover .rewarded-ad-support-button-inner {
     background-color: #e6e6e6;
-  }
-
-  .rewarded-ad-footer {
   }
 
   .rewarded-ad-google-logo {
@@ -387,9 +394,11 @@ const REWARDED_AD_CSS = css`
 `;
 
 export const REWARDED_AD_SUPPORT_HTML = html`<button
-  class="rewarded-ad-support-button"
+  class="rewarded-ad-support-button rewarded-ad-cta-button"
 >
-  $SUPPORT_MESSAGE$
+  <div class="rewarded-ad-support-button-inner rewarded-ad-cta-button-inner">
+    $SUPPORT_MESSAGE$
+  </div>
 </button>`;
 
 export const REWARDED_AD_SIGN_IN_HTML = html`<button
@@ -411,7 +420,13 @@ export const REWARDED_AD_HTML = html`
       <div class="rewarded-ad-icon"></div>
       <div class="rewarded-ad-message">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
-        <button class="rewarded-ad-view-ad-button">$VIEW_AN_AD$</button>
+        <button class="rewarded-ad-view-ad-button rewarded-ad-cta-button">
+          <div
+            class="rewarded-ad-view-ad-button-inner rewarded-ad-cta-button-inner"
+          >
+            $VIEW_AN_AD$
+          </div>
+        </button>
         $SUPPORT_BUTTON$
       </div>
       <div class="rewarded-ad-footer">
