@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2023 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 module.exports = {
     '@tags': ['rewardedads'],
   
-    'Show rewarded ad prompts': (browser) => {
-      const rewardedads = browser.page.contribution();
+    'Show rewarded ad dialog': (browser) => {
+      const rewardedads = browser.page.rewardedads();
       rewardedads
         .navigate()
-        .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-        .waitForElementVisible('@swgDialog')
+        .waitForElementPresent('@rewardedAdDialog', 'Found Rewarded Ad Dialog')
+        .waitForElementVisible('@rewardedAdDialog')
         .pause(1000)
         .assert.screenshotIdenticalToBaseline('body', 'rewarded-ads')
         .end();

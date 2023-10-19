@@ -29,14 +29,14 @@ module.exports = {
   url: function () {
     return swgPageUrl(
       this.api.launchUrl,
-      '/examples/sample-pub/1?showContributionOptions',
+      '/demos/public/prod/subscriptions/rewarded-ads.html',
       this.api.globals.swg_experiments
     );
   },
   commands: [commands],
   elements: {
-    swgDialog: {
-      selector: '.swg-dialog',
+    rewardedAdDialog: {
+      selector: '.audience-action-local-wrapper',
     },
   },
 };
