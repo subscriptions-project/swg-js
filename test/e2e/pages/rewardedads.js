@@ -23,7 +23,14 @@ const {swgPageUrl} = require('../util');
 /**
  * @fileoverview Page object for the first article with contribution on scenic.
  */
-const commands = {};
+const commands = {
+  viewAnAd: function () {
+    return this.log('Clicking "View an ad" button')
+      .getShadowRoot('@rewardedAdDialog', shadowRoot => {
+        shadowRoot.click('@viewAnAdButton');
+      });
+  },
+};
 
 module.exports = {
   url: function () {
@@ -37,6 +44,9 @@ module.exports = {
   elements: {
     rewardedAdDialog: {
       selector: '.audience-action-local-wrapper',
+    },
+    viewAnAdButton: {
+      selector: '.rewarded-ad-view-ad-button',
     },
   },
 };
