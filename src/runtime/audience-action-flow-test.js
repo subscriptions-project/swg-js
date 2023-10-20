@@ -25,7 +25,6 @@ import {
   SurveyDataTransferResponse,
   SurveyQuestion,
 } from '../proto/api_messages';
-import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
