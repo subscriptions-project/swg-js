@@ -34,6 +34,7 @@ import {
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
 import {Constants, StorageKeys} from '../utils/constants';
@@ -140,7 +141,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   /**
    * Starts the flow for the suggested audience action.
    */
-  start(): Promise<void> {
+  async start(): Promise<void> {
     this.activityIframeView_.on(CompleteAudienceActionResponse, (response) =>
       this.handleCompleteAudienceActionResponse_(response)
     );
@@ -159,12 +160,20 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       this.activityIframeView_.onCancel(onCancel);
     }
 
+    const isClickEnabled = await this.deps_
+      .entitlementsManager()
+      .isExperimentEnabled(
+        ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+      );
+
     return this.dialogManager_.openView(
       this.activityIframeView_,
       /* hidden */ false,
       /* dialogConfig */ {
         shouldDisableBodyScrolling: true,
-        closeOnBackgroundClick: !!this.params_.isClosable,
+        closeOnBackgroundClick: isClickEnabled
+          ? !!this.params_.isClosable
+          : undefined,
       }
     );
   }

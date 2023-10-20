@@ -21,6 +21,7 @@ import {
   EntitlementsResponse,
   SkuSelectedResponse,
 } from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
@@ -140,13 +141,14 @@ export class ContributionsFlow {
     activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
 
     const clientConfig = await this.clientConfigManager_.getClientConfig();
+    const dialogConfig = await this.getDialogConfig_(
+      clientConfig,
+      this.clientConfigManager_.shouldAllowScroll()
+    );
     return this.dialogManager_.openView(
       activityIframeView,
       /* hidden */ false,
-      this.getDialogConfig_(
-        clientConfig,
-        this.clientConfigManager_.shouldAllowScroll()
-      )
+      dialogConfig
     );
   }
 
@@ -155,14 +157,19 @@ export class ContributionsFlow {
    * responsive desktop design properties if the updated offer flows UI (for
    * SwG Basic) is enabled. Permits override to allow scrolling.
    */
-  private getDialogConfig_(
+  private async getDialogConfig_(
     clientConfig: ClientConfig,
     shouldAllowScroll: boolean
-  ): DialogConfig {
+  ): Promise<DialogConfig> {
+    const isClickEnabled = await this.deps_
+      .entitlementsManager()
+      .isExperimentEnabled(
+        ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+      );
     return clientConfig.useUpdatedOfferFlows && !shouldAllowScroll
       ? {
           shouldDisableBodyScrolling: true,
-          closeOnBackgroundClick: this.isClosable_,
+          closeOnBackgroundClick: isClickEnabled ? this.isClosable_ : undefined,
         }
       : {};
   }

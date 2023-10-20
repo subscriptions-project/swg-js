@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {Doc, resolveDoc} from '../model/doc';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
@@ -27,7 +26,6 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {isExperimentOn} from '../runtime/experiments';
 import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
@@ -154,13 +152,7 @@ export class Dialog {
 
     // Avoid modifying the behavior of existing callers by only registering
     // the click event if isClosable is set and the experiment is active.
-    if (
-      dialogConfig.closeOnBackgroundClick !== undefined &&
-      isExperimentOn(
-        this.doc_.getWin(),
-        ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
-      )
-    ) {
+    if (dialogConfig.closeOnBackgroundClick !== undefined) {
       this.graypane_
         .getElement()
         .addEventListener('click', this.onGrayPaneClick_.bind(this));

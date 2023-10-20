@@ -1658,6 +1658,26 @@ describes.realWin('EntitlementsManager', (env) => {
       expect(expFlags[1]).to.equal('flag2');
     });
 
+    it('should be able to determine if an experiment is active', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {
+        experimentConfig: {
+          experimentFlags: ['flag1', 'flag2'],
+        },
+      };
+      sandbox.stub(manager, 'getArticle').resolves(article);
+      const flag1 = await manager.isExperimentEnabled('flag1');
+      const flag3 = await manager.isExperimentEnabled('flag3');
+      expect(flag1).to.be.true;
+      expect(flag3).to.be.false;
+    });
+
     it('should fetch empty experiment list if no experiment flags specified in article endpoint', async () => {
       manager = new EntitlementsManager(
         win,

@@ -24,6 +24,7 @@ import {
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -225,13 +226,14 @@ export class OffersFlow {
     );
 
     const clientConfig = await this.clientConfigPromise_!;
+    const dialogConfig = await this.getDialogConfig_(
+      clientConfig,
+      this.clientConfigManager_.shouldAllowScroll()
+    );
     return this.dialogManager_.openView(
       this.activityIframeView_,
       /* hidden */ false,
-      this.getDialogConfig_(
-        clientConfig,
-        this.clientConfigManager_.shouldAllowScroll()
-      )
+      dialogConfig
     );
   }
 
@@ -240,15 +242,20 @@ export class OffersFlow {
    * responsive desktop design properties if the updated offer flows UI (for
    * SwG Basic) is enabled. Permits override to allow scrolling.
    */
-  getDialogConfig_(
+  async getDialogConfig_(
     clientConfig: ClientConfig,
     shouldAllowScroll: boolean
-  ): DialogConfig {
+  ): Promise<DialogConfig> {
+    const isEnabled = await this.deps_
+      .entitlementsManager()
+      .isExperimentEnabled(
+        ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+      );
     return clientConfig.useUpdatedOfferFlows
       ? {
           desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
           shouldDisableBodyScrolling: !shouldAllowScroll,
-          closeOnBackgroundClick: this.isClosable_,
+          closeOnBackgroundClick: isEnabled ? this.isClosable_ : undefined,
         }
       : {};
   }

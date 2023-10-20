@@ -25,6 +25,7 @@ import {
   SurveyDataTransferResponse,
   SurveyQuestion,
 } from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
@@ -1339,69 +1340,159 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     dialogManagerMock.verify();
   });
 
-  it('opens dialog with closeOnBackgroundClick=false by default', async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REGISTRATION_WALL',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
+  describe('closeOnBackgroundClick experiment active', () => {
+    after(() => {
+      dialogManagerMock.verify();
     });
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(
-        sandbox.match.any,
-        false,
-        sandbox.match({
-          closeOnBackgroundClick: false,
-        })
-      )
-      .once();
-    await audienceActionFlow.start();
-    dialogManagerMock.verify();
+
+    it('opens dialog with closeOnBackgroundClick=false by default', async () => {
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(true));
+      const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'configId',
+        onCancel: onCancelSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+      });
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: false,
+          })
+        )
+        .once();
+      await audienceActionFlow.start();
+    });
+
+    it('opens dialog with closeOnBackgroundClick=false when isClosable=false and experiment active', async () => {
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(true));
+      const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'configId',
+        onCancel: onCancelSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        isClosable: false,
+      });
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: false,
+          })
+        )
+        .once();
+      await audienceActionFlow.start();
+    });
+
+    it('opens dialog with closeOnBackgroundClick=true when isClosable=true', async () => {
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(true));
+      const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'configId',
+        onCancel: onCancelSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        isClosable: true,
+      });
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: true,
+          })
+        )
+        .once();
+      await audienceActionFlow.start();
+    });
   });
 
-  it('opens dialog with closeOnBackgroundClick=false when isClosable=false', async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REGISTRATION_WALL',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-      isClosable: false,
+  describe('closeOnBackgroundClick experiment inactive', () => {
+    after(() => {
+      dialogManagerMock.verify();
     });
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(
-        sandbox.match.any,
-        false,
-        sandbox.match({
-          closeOnBackgroundClick: false,
-        })
-      )
-      .once();
-    await audienceActionFlow.start();
-    dialogManagerMock.verify();
-  });
 
-  it('opens dialog with closeOnBackgroundClick=true when isClosable=true', async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REGISTRATION_WALL',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-      isClosable: true,
+    it('opens dialog with closeOnBackgroundClick=undefined by default', async () => {
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(false));
+      const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'configId',
+        onCancel: onCancelSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+      });
+
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: undefined,
+          })
+        )
+        .once();
+      await audienceActionFlow.start();
     });
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(
-        sandbox.match.any,
-        false,
-        sandbox.match({
-          closeOnBackgroundClick: true,
-        })
-      )
-      .once();
-    await audienceActionFlow.start();
-    dialogManagerMock.verify();
+
+    it('opens dialog with closeOnBackgroundClick=undefined when isClosable=false', async () => {
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(false));
+      const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'configId',
+        onCancel: onCancelSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        isClosable: false,
+      });
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: undefined,
+          })
+        )
+        .once();
+      await audienceActionFlow.start();
+    });
+
+    it('opens dialog with closeOnBackgroundClick=undefined when isClosable=true', async () => {
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(false));
+      const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'configId',
+        onCancel: onCancelSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        isClosable: true,
+      });
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: undefined,
+          })
+        )
+        .once();
+      await audienceActionFlow.start();
+    });
   });
 
   it(`opens an AudienceActionIframeFlow and passes isClosable in query param`, async () => {

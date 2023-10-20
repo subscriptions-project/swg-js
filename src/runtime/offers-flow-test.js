@@ -310,46 +310,104 @@ describes.realWin('OffersFlow', (env) => {
     await offersFlow.start();
   });
 
-  it('passes isClosable to openView when false for new offer flows', async () => {
-    const clientConfigManager = runtime.clientConfigManager();
-    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
-      new ClientConfig({
-        useUpdatedOfferFlows: true,
-      })
-    );
-    offersFlow = new OffersFlow(runtime, {'isClosable': false});
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(
-        sandbox.match.any,
-        false,
-        sandbox.match({
-          closeOnBackgroundClick: false,
+  describe('click experiment active', () => {
+    it('passes isClosable to openView when false for new offer flows', async () => {
+      const clientConfigManager = runtime.clientConfigManager();
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(true));
+      sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+        new ClientConfig({
+          useUpdatedOfferFlows: true,
         })
-      )
-      .once();
-    await offersFlow.start();
+      );
+      offersFlow = new OffersFlow(runtime, {'isClosable': false});
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: false,
+          })
+        )
+        .once();
+      await offersFlow.start();
+    });
+
+    it('passes isClosable to openView when true for new offer flows', async () => {
+      const clientConfigManager = runtime.clientConfigManager();
+      sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+        new ClientConfig({
+          useUpdatedOfferFlows: true,
+        })
+      );
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(true));
+      offersFlow = new OffersFlow(runtime, {'isClosable': true});
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: true,
+          })
+        )
+        .once();
+      await offersFlow.start();
+    });
   });
 
-  it('passes isClosable to openView when true for new offer flows', async () => {
-    const clientConfigManager = runtime.clientConfigManager();
-    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
-      new ClientConfig({
-        useUpdatedOfferFlows: true,
-      })
-    );
-    offersFlow = new OffersFlow(runtime, {'isClosable': true});
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(
-        sandbox.match.any,
-        false,
-        sandbox.match({
-          closeOnBackgroundClick: true,
+  describe('click experiment inactive', () => {
+    it('passes undefined to openView when false for new offer flows', async () => {
+      const clientConfigManager = runtime.clientConfigManager();
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(false));
+      sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+        new ClientConfig({
+          useUpdatedOfferFlows: true,
         })
-      )
-      .once();
-    await offersFlow.start();
+      );
+      offersFlow = new OffersFlow(runtime, {'isClosable': false});
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: undefined,
+          })
+        )
+        .once();
+      await offersFlow.start();
+    });
+
+    it('passes undefined to openView when true for new offer flows', async () => {
+      const clientConfigManager = runtime.clientConfigManager();
+      sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+        new ClientConfig({
+          useUpdatedOfferFlows: true,
+        })
+      );
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(false));
+      offersFlow = new OffersFlow(runtime, {'isClosable': true});
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: undefined,
+          })
+        )
+        .once();
+      await offersFlow.start();
+    });
   });
 
   it('should trigger on cancel', async () => {
