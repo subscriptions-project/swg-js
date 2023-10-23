@@ -1340,10 +1340,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   });
 
   describe('closeOnBackgroundClick experiment active', () => {
-    after(() => {
-      dialogManagerMock.verify();
-    });
-
     it('opens dialog with closeOnBackgroundClick=false by default', async () => {
       sandbox
         .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
@@ -1365,6 +1361,8 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         )
         .once();
       await audienceActionFlow.start();
+
+      dialogManagerMock.verify();
     });
 
     it('opens dialog with closeOnBackgroundClick=false when isClosable=false and experiment active', async () => {
@@ -1389,6 +1387,8 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         )
         .once();
       await audienceActionFlow.start();
+
+      dialogManagerMock.verify();
     });
 
     it('opens dialog with closeOnBackgroundClick=true when isClosable=true', async () => {
@@ -1413,14 +1413,12 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         )
         .once();
       await audienceActionFlow.start();
+
+      dialogManagerMock.verify();
     });
   });
 
   describe('closeOnBackgroundClick experiment inactive', () => {
-    after(() => {
-      dialogManagerMock.verify();
-    });
-
     it('opens dialog with closeOnBackgroundClick=undefined by default', async () => {
       sandbox
         .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
@@ -1443,6 +1441,8 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         )
         .once();
       await audienceActionFlow.start();
+
+      dialogManagerMock.verify();
     });
 
     it('opens dialog with closeOnBackgroundClick=undefined when isClosable=false', async () => {
@@ -1467,6 +1467,8 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         )
         .once();
       await audienceActionFlow.start();
+
+      dialogManagerMock.verify();
     });
 
     it('opens dialog with closeOnBackgroundClick=undefined when isClosable=true', async () => {
@@ -1491,6 +1493,8 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         )
         .once();
       await audienceActionFlow.start();
+
+      dialogManagerMock.verify();
     });
   });
 
