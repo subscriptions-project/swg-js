@@ -255,7 +255,7 @@ export class OffersFlow {
       ? {
           desktopConfig: {isCenterPositioned: true, supportsWideScreen: true},
           shouldDisableBodyScrolling: !shouldAllowScroll,
-          closeOnBackgroundClick: isEnabled ? this.isClosable_ : undefined,
+          closeOnBackgroundClick: isEnabled ? !!this.isClosable_ : undefined,
         }
       : {};
   }

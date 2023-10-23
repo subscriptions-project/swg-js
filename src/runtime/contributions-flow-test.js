@@ -349,7 +349,7 @@ describes.realWin('ContributionsFlow', (env) => {
   });
 
   describe('closeOnBackgroundClick experiment enabled', () => {
-    it('opens dialog with closeOnBackgroundClick true when isClosable=true and useUpdatedOfferFlows=true', async () => {
+    beforeEach(() => {
       sandbox
         .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
         .callsFake(() => Promise.resolve(true));
@@ -359,6 +359,29 @@ describes.realWin('ContributionsFlow', (env) => {
           uiPredicates: {canDisplayAutoPrompt: true},
         })
       );
+    });
+
+    it('opens dialog with closeOnBackgroundClick true when isClosable=undefined and useUpdatedOfferFlows=true', async () => {
+      contributionsFlow = new ContributionsFlow(runtime, {
+        list: 'other',
+        isClosable: undefined,
+      });
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({closeOnBackgroundClick: true})
+        )
+        .once();
+      await contributionsFlow.start();
+    });
+
+    it('opens dialog with closeOnBackgroundClick true when isClosable=true and useUpdatedOfferFlows=true', async () => {
+      contributionsFlow = new ContributionsFlow(runtime, {
+        list: 'other',
+        isClosable: true,
+      });
       dialogManagerMock
         .expects('openView')
         .withExactArgs(
@@ -371,15 +394,6 @@ describes.realWin('ContributionsFlow', (env) => {
     });
 
     it('opens dialog with closeOnBackgroundClick false when isClosable=false and useUpdatedOfferFlows=true', async () => {
-      sandbox
-        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
-        .callsFake(() => Promise.resolve(true));
-      sandbox.stub(runtime.clientConfigManager(), 'getClientConfig').resolves(
-        new ClientConfig({
-          useUpdatedOfferFlows: true,
-          uiPredicates: {canDisplayAutoPrompt: true},
-        })
-      );
       contributionsFlow = new ContributionsFlow(runtime, {
         list: 'other',
         isClosable: false,

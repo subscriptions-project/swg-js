@@ -169,7 +169,9 @@ export class ContributionsFlow {
     return clientConfig.useUpdatedOfferFlows && !shouldAllowScroll
       ? {
           shouldDisableBodyScrolling: true,
-          closeOnBackgroundClick: isClickEnabled ? this.isClosable_ : undefined,
+          closeOnBackgroundClick: isClickEnabled
+            ? !!this.isClosable_
+            : undefined,
         }
       : {};
   }
