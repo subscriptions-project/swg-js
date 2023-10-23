@@ -224,15 +224,14 @@ export class AutoPromptManager {
     if (!article) {
       return;
     }
+    const articleExpFlags =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
 
-    this.frequencyCappingLocalStorageEnabled_ =
-      this.isArticleExperimentEnabled_(
-        article,
-        ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
-      );
+    this.frequencyCappingLocalStorageEnabled_ = articleExpFlags.includes(
+      ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
+    );
 
-    this.promptFrequencyCappingEnabled_ = this.isArticleExperimentEnabled_(
-      article,
+    this.promptFrequencyCappingEnabled_ = articleExpFlags.includes(
       ArticleExperimentFlags.PROMPT_FREQUENCY_CAPPING_EXPERIMENT
     );
   }
@@ -1144,18 +1143,5 @@ export class AutoPromptManager {
 
   private isValidFrequencyCapDuration_(duration: Duration | undefined) {
     return !!duration?.seconds || !!duration?.nano;
-  }
-
-  /**
-   * Checks if provided ExperimentFlag is enabled within article experiment
-   * config.
-   */
-  private isArticleExperimentEnabled_(
-    article: Article,
-    experimentFlag: string
-  ): boolean {
-    const articleExpFlags =
-      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    return articleExpFlags.includes(experimentFlag);
   }
 }
