@@ -53,7 +53,7 @@ const NEWSLETTER_CONFIG = `
     "title": "newsletter_title",
     "body": "newsletter_body",
     "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
-    "codeSnippet": "<form>newsletter_code_snippet</form>"
+    "rawCodeSnippet": "<form>newsletter_code_snippet</form>"
   }
 }`;
 
@@ -790,7 +790,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
             "title": "newsletter_title",
             "body": "newsletter_body",
             "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT",
-            "codeSnippet": "<form>newsletter_code_snippet</form>"
+            "rawCodeSnippet": "<form>newsletter_code_snippet</form>"
           }
         }`;
         const state = await renderNewsletterPrompt(
@@ -841,7 +841,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
             "title": "newsletter_title",
             "body": "newsletter_body",
             "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
-            "codeSnippet": "<input>newsletter_code_snippet_fake_form</input>"
+            "rawCodeSnippet": "<input>newsletter_code_snippet_fake_form</input>"
           }
         }`;
         const state = await renderNewsletterPrompt(
