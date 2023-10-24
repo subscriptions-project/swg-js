@@ -381,7 +381,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const icon = isSubscription ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
-    const viewad = 'View an ad';
+    const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
     const supportHtml = isPremonetization
       ? ''
       : REWARDED_AD_SUPPORT_HTML.replace(
@@ -420,14 +420,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
-    const viewAdButton: HTMLElement | null = this.prompt_.querySelector(
-      '.rewarded-ad-view-ad-button'
-    );
-    viewAdButton?.addEventListener(
-      'click',
-      this.viewRewardedAdWall_.bind(this)
-    );
-    viewAdButton?.focus();
+    this.prompt_
+      .querySelector('.rewarded-ad-view-ad-button')
+      ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
+    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
 
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }
@@ -464,6 +460,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'rewarded-ad-close-button'
     );
     closeButton.item(0)?.addEventListener('click', this.unlock_.bind(this));
+    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
