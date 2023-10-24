@@ -76,6 +76,7 @@ const DEFAULT_BUTTON = css`
 
 const REWARDED_AD_CLOSE_BUTTON_CSS = css`
   .rewarded-ad-close-button {
+    margin: 8px 8px 0px 0px;
     padding: 12px;
     height: 48px;
     width: 48px;
@@ -280,17 +281,18 @@ const REWARDED_AD_CSS = css`
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-container {
-    margin: 20px 20px 0px 20px;
+    margin: 0px;
     text-align: center;
     font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
   }
 
   .rewarded-ad-header {
     display: grid !important;
-    grid-template-columns: 48px 1fr 48px;
+    grid-template-columns: 56px 1fr 56px;
   }
 
   .rewarded-ad-title {
+    margin-top: 20px;
     font-size: 1.75rem;
     line-height: 2.25rem;
     font-weight: 400;
@@ -320,7 +322,7 @@ const REWARDED_AD_CSS = css`
   }
 
   .rewarded-ad-cta {
-    margin-top: 20px;
+    margin: 20px 14px 0px 14px;
   }
 
   .rewarded-ad-cta-button {
@@ -391,6 +393,11 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-sign-in-button:hover {
     background-color: #f2f8ff;
   }
+
+  .rewarded-ad-footer {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
 `;
 
 export const REWARDED_AD_SUPPORT_HTML = html`<button
@@ -449,14 +456,14 @@ const REWARDED_AD_THANKS_CSS = css`
   .rewarded-ad-prompt {
     height: 125px !important;
     width: 100%;
-    padding: 20px;
+    padding-bottom: 20px;
   }
 
   .rewarded-ad-thanks-container {
     height: 100%;
     display: grid !important;
-    grid-template-columns: 48px 1fr 48px;
-    grid-template-rows: 48px 14px 14px 1fr 14px;
+    grid-template-columns: 56px 1fr 56px;
+    grid-template-rows: 56px 14px 14px 1fr 34px;
   }
 
   .rewarded-ad-thanks-icon {

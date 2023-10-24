@@ -381,7 +381,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const icon = isSubscription ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
-    const viewad = 'View an ad';
+    const viewad = this.params_.isClosable
+      ? msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!
+      : msg(SWG_I18N_STRINGS['VIEW_AN_AD_FOR_FREE_ACCESS'], language)!;
     const supportHtml = isPremonetization
       ? ''
       : REWARDED_AD_SUPPORT_HTML.replace(
@@ -578,7 +580,18 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     setStyle(this.doc_.body, 'overflow', '');
   }
 
+  private addFont_() {
+    // We need to load the font in the global scope to use it in the shadow dom.
+    const font = createElement(this.doc_, 'link', {
+      'href':
+        'https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700',
+      'rel': 'stylesheet',
+    });
+    this.doc_.head.appendChild(font);
+  }
+
   async start() {
+    this.addFont_();
     this.renderLoadingView_();
     this.doc_.body.appendChild(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', 'hidden');
