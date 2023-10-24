@@ -73,7 +73,7 @@ interface AudienceActionConfig {
     title: string;
     body: string;
     promptPreference?: string;
-    codeSnippet?: string;
+    rawCodeSnippet?: string;
   };
 }
 
@@ -189,7 +189,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
     );
     const config = await this.getConfig_();
-    const codeSnippet = config?.optInParameters?.codeSnippet;
+    const codeSnippet = config?.optInParameters?.rawCodeSnippet;
 
     const validNewsletterSignupParams =
       codeSnippet &&
