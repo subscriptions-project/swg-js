@@ -551,5 +551,5 @@ export const SWG_I18N_STRINGS = {
     'zh-cn': 'View an ad',
     'zh-hk': 'View an ad',
     'zh-tw': 'View an ad',
-  }
+  },
 };

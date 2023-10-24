@@ -52,6 +52,7 @@ const REWARDED_AD_PROMPT = css`
     background: white !important;
     max-height: 90%;
     overflow: auto;
+    outline: none;
   }
 
   @media (min-width: 450px) {
@@ -418,14 +419,21 @@ export const REWARDED_AD_HTML = html`
   <style>
     ${REWARDED_AD_CSS}
   </style>
-  <div class="rewarded-ad-prompt">
+  <div
+    class="rewarded-ad-prompt"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="title-id"
+    aria-describedby="message-id"
+    aria-modal="true"
+  >
     <div class="rewarded-ad-container">
       <div class="rewarded-ad-header">
-        <div class="rewarded-ad-title">$TITLE$</div>
+        <div class="rewarded-ad-title" id="title-id">$TITLE$</div>
         $REWARDED_AD_CLOSE_BUTTON_HTML$
       </div>
       <div class="rewarded-ad-icon"></div>
-      <div class="rewarded-ad-message">$MESSAGE$</div>
+      <div class="rewarded-ad-message" id="message-id">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
         <button class="rewarded-ad-view-ad-button rewarded-ad-cta-button">
           <div
@@ -463,7 +471,7 @@ const REWARDED_AD_THANKS_CSS = css`
     height: 100%;
     display: grid !important;
     grid-template-columns: 56px 1fr 56px;
-    grid-template-rows: 56px 14px 14px 1fr 34px;
+    grid-template-rows: 56px 26px 14px 1fr 34px;
   }
 
   .rewarded-ad-thanks-icon {
@@ -475,6 +483,7 @@ const REWARDED_AD_THANKS_CSS = css`
       center/contain no-repeat;
     grid-column: 2;
     grid-row: 1 / 2;
+    margin-top: 20px;
   }
 
   .rewarded-ad-thanks-message {
@@ -493,10 +502,18 @@ export const REWARDED_AD_THANKS_HTML = html`
   <style>
     ${REWARDED_AD_THANKS_CSS}
   </style>
-  <div class="rewarded-ad-prompt">
+  <div
+    class="rewarded-ad-prompt"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="thanks-id"
+    aria-modal="true"
+  >
     <div class="rewarded-ad-thanks-container">
       <div class="rewarded-ad-thanks-icon"></div>
-      <div class="rewarded-ad-thanks-message">$THANKS_FOR_VIEWING_THIS_AD$</div>
+      <div class="rewarded-ad-thanks-message" id="thanks-id">
+        $THANKS_FOR_VIEWING_THIS_AD$
+      </div>
       ${REWARDED_AD_CLOSE_BUTTON_HTML}
       <div></div>
     </div>
