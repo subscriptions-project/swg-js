@@ -520,6 +520,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '感謝觀看此廣告',
     'zh-tw': '感謝觀看這則廣告',
   },
+  // TODO: mhkawano - Update once TC translations are done
   'VIEW_AN_AD': {
     'en': 'View an ad',
     'ar': 'View an ad',
@@ -542,7 +543,7 @@ export const SWG_I18N_STRINGS = {
     'no': 'View an ad',
     'pl': 'View an ad',
     'pt': 'View an ad',
-    'pt-br': 'View an ad',
+    'pt-br': 'Veja um anúncio',
     'ru': 'View an ad',
     'se': 'View an ad',
     'th': 'View an ad',
