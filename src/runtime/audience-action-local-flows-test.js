@@ -21,6 +21,7 @@ import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
 import {tick} from '../../test/tick';
+import {getStyle} from '../utils/style';
 
 const DEFAULT_PARAMS = {
   action: 'TYPE_REWARDED_AD',
@@ -897,8 +898,14 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
         form.dispatchEvent(new SubmitEvent('submit'));
-        await new Promise((resolve) => setTimeout(resolve, 1001));
 
+        await tick();
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper.style.opacity).to.equal('0');
+
+        await new Promise((resolve) => setTimeout(resolve, 1001));
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );

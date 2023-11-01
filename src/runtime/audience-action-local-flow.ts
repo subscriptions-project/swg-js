@@ -246,6 +246,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private async formSubmit_() {
     //TODO: chuyangwang - verify email being submitted.
 
+    // Hide prompt before closing the prompt.
+    setImportantStyles(this.wrapper_, {'opacity': '0'});
     // Wait for form submit request to send before closing the prompt.
     await this.delay_(1000);
     this.eventManager_.logSwgEvent(
