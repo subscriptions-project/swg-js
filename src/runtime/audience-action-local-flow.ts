@@ -100,7 +100,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly fetcher_: XhrFetcher;
   private readonly eventManager_: ClientEventManager;
   private readonly entitlementsManager_: EntitlementsManager;
-  private focusableElements_?: NodeListOf<HTMLElement>;
+  private docFocusableElement?: NodeListOf<HTMLElement>;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Ad slot used to host the rewarded ad.
@@ -110,6 +110,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // Used for testing.
   // @ts-ignore
   private rewardedTimout_: Promise<void> | null = null;
+  private focusLastBound_?: () => void;
 
   constructor(
     private readonly deps_: Deps,
@@ -236,7 +237,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         .querySelector('.opt-in-close-button')
         ?.addEventListener('click', this.closeOptInPrompt_.bind(this));
       form.addEventListener('submit', this.formSubmit_.bind(this));
-      this.updateFocusable_();
     } else {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
@@ -425,8 +425,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_
       .querySelector('.rewarded-ad-view-ad-button')
       ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
-    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
-    this.updateFocusable_();
+    this.focusRewardedAds_();
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }
 
@@ -462,11 +461,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'rewarded-ad-close-button'
     );
     closeButton.item(0)?.addEventListener('click', this.unlock_.bind(this));
-    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
-    this.updateFocusable_();
+    this.focusRewardedAds_();
     await this.complete_();
   }
 
@@ -579,37 +577,32 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.removeFocusTrap_();
   }
 
+  private focusRewardedAds_() {
+    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
+  }
+
   private addFocusTrap_() {
-    this.doc_.addEventListener('keydown', this.focusTrap_.bind(this));
-  }
-
-  private removeFocusTrap_() {
-    this.doc_.removeEventListener('keydown', this.focusTrap_.bind(this));
-  }
-
-  private updateFocusable_() {
-    this.focusableElements_ = this.prompt_.querySelectorAll(
+    this.focusLastBound_ = this.focusLast_.bind(this);
+    this.docFocusableElement = this.doc_.body.querySelectorAll(
       'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
     );
+    this.docFocusableElement.forEach((element) => {
+      element.addEventListener('focus', this.focusLastBound_!);
+    });
+  }
+  private removeFocusTrap_() {
+    this.docFocusableElement?.forEach((element) => {
+      element.removeEventListener('focus', this.focusLastBound_!);
+    });
   }
 
-  private focusTrap_(e: KeyboardEvent) {
-    if (
-      e.key !== 'Tab' ||
-      this.focusableElements_ == null ||
-      this.focusableElements_.length === 0
-    ) {
-      return;
-    }
-    if (
-      (!e.shiftKey &&
-        this.focusableElements_[this.focusableElements_.length - 1] ===
-          this.wrapper_.shadowRoot?.activeElement) ||
-      (e.shiftKey &&
-        this.focusableElements_[0] === this.wrapper_.shadowRoot?.activeElement)
-    ) {
-      e.preventDefault();
-    }
+  private focusLast_() {
+    const promptFocusableElement = this.wrapper_!.shadowRoot!.querySelectorAll(
+      'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
+    );
+    (
+      promptFocusableElement[promptFocusableElement.length - 1] as HTMLElement
+    ).focus();
   }
 
   async start() {

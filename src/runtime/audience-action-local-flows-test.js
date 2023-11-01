@@ -668,6 +668,20 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
       });
+
+      it('tab focus trap works', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          autoPromptType: undefined,
+          monetizationFunction: sandbox.spy(),
+        };
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+
+        state.flow.focusLast_();
+      });
     });
 
     describe('newsletter publisher prompt', () => {
