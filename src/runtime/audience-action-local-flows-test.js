@@ -653,6 +653,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('close removes prompt', async () => {
+        const outterButton = env.win.document.createElement('button');
+        outterButton.removeEventListener = sandbox.spy();
+        env.win.document.body.append(outterButton);
+
         const state = await renderAndAssertRewardedAd(
           DEFAULT_PARAMS,
           DEFAULT_CONFIG
@@ -667,9 +671,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(outterButton.removeEventListener).to.be.called;
       });
 
       it('tab focus trap works', async () => {
+        const outterButton = env.win.document.createElement('button');
+        env.win.document.body.append(outterButton);
+
         const params = {
           action: 'TYPE_REWARDED_AD',
           autoPromptType: undefined,
@@ -680,7 +688,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
         await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        state.flow.focusLast_();
+        outterButton.focus();
+
+        expect(env.win.document.activeElement).not.to.equal(outterButton);
       });
     });
 
