@@ -100,6 +100,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly fetcher_: XhrFetcher;
   private readonly eventManager_: ClientEventManager;
   private readonly entitlementsManager_: EntitlementsManager;
+  private focusableElements_?: NodeListOf<HTMLElement>;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Ad slot used to host the rewarded ad.
@@ -235,6 +236,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         .querySelector('.opt-in-close-button')
         ?.addEventListener('click', this.closeOptInPrompt_.bind(this));
       form.addEventListener('submit', this.formSubmit_.bind(this));
+      this.updateFocusable_();
     } else {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
@@ -424,7 +426,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .querySelector('.rewarded-ad-view-ad-button')
       ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
     (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
-
+    this.updateFocusable_();
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }
 
@@ -464,6 +466,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
+    this.updateFocusable_();
     await this.complete_();
   }
 
@@ -573,12 +576,47 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private unlock_() {
     removeElement(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', '');
+    this.removeFocusTrap_();
+  }
+
+  private addFocusTrap_() {
+    this.doc_.addEventListener('keydown', this.focusTrap_.bind(this));
+  }
+
+  private removeFocusTrap_() {
+    this.doc_.removeEventListener('keydown', this.focusTrap_.bind(this));
+  }
+
+  private updateFocusable_() {
+    this.focusableElements_ = this.prompt_.querySelectorAll(
+      'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
+    );
+  }
+
+  private focusTrap_(e: KeyboardEvent) {
+    if (
+      e.key !== 'Tab' ||
+      this.focusableElements_ == null ||
+      this.focusableElements_.length === 0
+    ) {
+      return;
+    }
+    if (
+      (!e.shiftKey &&
+        this.focusableElements_[this.focusableElements_.length - 1] ===
+          this.wrapper_.shadowRoot?.activeElement) ||
+      (e.shiftKey &&
+        this.focusableElements_[0] === this.wrapper_.shadowRoot?.activeElement)
+    ) {
+      e.preventDefault();
+    }
   }
 
   async start() {
     this.renderLoadingView_();
     this.doc_.body.appendChild(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', 'hidden');
+    this.addFocusTrap_();
     this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(this.wrapper_, {'opacity': '1.0'});
     await this.initPrompt_();
