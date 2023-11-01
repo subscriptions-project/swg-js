@@ -245,12 +245,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async formSubmit_() {
     //TODO: chuyangwang - verify email being submitted.
+
+    // Wait for form submit request to send before closing the prompt.
+    await this.delay_(2000);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
     );
     // Close the prompt.
     this.unlock_();
     await this.complete_();
+  }
+
+  private async delay_(time: number) {
+    return new Promise((res) => setTimeout(res, time));
   }
 
   private closeOptInPrompt_() {
