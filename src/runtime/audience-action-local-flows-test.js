@@ -21,7 +21,6 @@ import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
 import {tick} from '../../test/tick';
-import {getStyle} from '../utils/style';
 
 const DEFAULT_PARAMS = {
   action: 'TYPE_REWARDED_AD',
