@@ -34,7 +34,7 @@
     "@babel/core": "7.23.2",
     "@babel/eslint-parser": "7.22.15",
     "@babel/preset-env": "7.23.2",
-    "@types/google-publisher-tag": "1.20230925.1",
+    "@types/google-publisher-tag": "1.20231023.0",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
     "ansi-colors": "4.1.3",
