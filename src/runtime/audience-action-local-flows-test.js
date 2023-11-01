@@ -870,7 +870,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
         form.dispatchEvent(new SubmitEvent('submit'));
-        await tick(3);
+        await new Promise((resolve) => setTimeout(resolve, 1001));
 
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
@@ -897,7 +897,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
         form.dispatchEvent(new SubmitEvent('submit'));
-        await tick();
+        await new Promise((resolve) => setTimeout(resolve, 1001));
 
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
