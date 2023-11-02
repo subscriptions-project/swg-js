@@ -668,6 +668,32 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
       });
+
+      it('tab focus trap works', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          autoPromptType: undefined,
+          monetizationFunction: sandbox.spy(),
+        };
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+
+        const topSentinal = state.wrapper.shadowRoot.querySelector(
+          'audience-action-top-sentinal'
+        );
+        await topSentinal.focus();
+
+        expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
+
+        const bottomSentinal = state.wrapper.shadowRoot.querySelector(
+          'audience-action-bottom-sentinal'
+        );
+        await bottomSentinal.focus();
+
+        expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
+      });
     });
 
     describe('newsletter publisher prompt', () => {

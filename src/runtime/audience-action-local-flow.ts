@@ -154,7 +154,27 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     const shadow = wrapper.attachShadow({mode: 'open'});
 
+    const topSentinal = createElement(
+      this.doc_,
+      'audience-action-top-sentinal',
+      {
+        'tabindex': '0',
+      }
+    );
+    topSentinal.addEventListener('focus', this.focusLast_.bind(this));
+
+    const bottomSentinal = createElement(
+      this.doc_,
+      'audience-action-bottom-sentinal',
+      {
+        'tabindex': '0',
+      }
+    );
+    bottomSentinal.addEventListener('focus', this.focusFirst_.bind(this));
+
+    shadow.appendChild(topSentinal);
     shadow.appendChild(this.prompt_);
+    shadow.appendChild(bottomSentinal);
 
     return wrapper;
   }
@@ -432,8 +452,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_
       .querySelector('.rewarded-ad-view-ad-button')
       ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
-    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
-
+    this.focusRewardedAds_();
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }
 
@@ -469,10 +488,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'rewarded-ad-close-button'
     );
     closeButton.item(0)?.addEventListener('click', this.unlock_.bind(this));
-    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
+    this.focusRewardedAds_();
     await this.complete_();
   }
 
@@ -582,6 +601,26 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private unlock_() {
     removeElement(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', '');
+  }
+
+  private focusRewardedAds_() {
+    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
+  }
+
+  private focusFirst_() {
+    const focusable = this.getFocusable_();
+    (focusable[1] as HTMLElement).focus();
+  }
+
+  private focusLast_() {
+    const focusable = this.getFocusable_();
+    (focusable[focusable.length - 2] as HTMLElement).focus();
+  }
+
+  private getFocusable_() {
+    return this.wrapper_!.shadowRoot!.querySelectorAll(
+      'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
+    );
   }
 
   async start() {
