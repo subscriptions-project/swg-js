@@ -100,7 +100,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly fetcher_: XhrFetcher;
   private readonly eventManager_: ClientEventManager;
   private readonly entitlementsManager_: EntitlementsManager;
-  private docFocusableElement?: NodeListOf<HTMLElement>;
   // Used by rewarded ads to check if the ready callback has been called.
   private rewardedReadyCalled_ = false;
   // Ad slot used to host the rewarded ad.
@@ -110,7 +109,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // Used for testing.
   // @ts-ignore
   private rewardedTimout_: Promise<void> | null = null;
-  private focusLastBound_?: () => void;
 
   constructor(
     private readonly deps_: Deps,
@@ -156,7 +154,27 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     const shadow = wrapper.attachShadow({mode: 'open'});
 
+    const topSentinal = createElement(
+      this.doc_,
+      'audience-action-top-sentinal',
+      {
+        'tabindex': '0',
+      }
+    );
+    topSentinal.addEventListener('focus', this.focusLast_.bind(this));
+
+    const bottomSentinal = createElement(
+      this.doc_,
+      'audience-action-bottom-sentinal',
+      {
+        'tabindex': '0',
+      }
+    );
+    bottomSentinal.addEventListener('focus', this.focusFirst_.bind(this));
+
+    shadow.appendChild(topSentinal);
     shadow.appendChild(this.prompt_);
+    shadow.appendChild(bottomSentinal);
 
     return wrapper;
   }
@@ -574,42 +592,32 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private unlock_() {
     removeElement(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', '');
-    this.removeFocusTrap_();
   }
 
   private focusRewardedAds_() {
     (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
   }
 
-  private addFocusTrap_() {
-    this.focusLastBound_ = this.focusLast_.bind(this);
-    this.docFocusableElement = this.doc_.body.querySelectorAll(
-      'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
-    );
-    this.docFocusableElement.forEach((element) => {
-      element.addEventListener('focus', this.focusLastBound_!);
-    });
-  }
-  private removeFocusTrap_() {
-    this.docFocusableElement?.forEach((element) => {
-      element.removeEventListener('focus', this.focusLastBound_!);
-    });
+  private focusFirst_() {
+    const focusable = this.getFocusable_();
+    (focusable[1] as HTMLElement).focus();
   }
 
   private focusLast_() {
-    const promptFocusableElement = this.wrapper_!.shadowRoot!.querySelectorAll(
+    const focusable = this.getFocusable_();
+    (focusable[focusable.length - 2] as HTMLElement).focus();
+  }
+
+  private getFocusable_() {
+    return this.wrapper_!.shadowRoot!.querySelectorAll(
       'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
     );
-    (
-      promptFocusableElement[promptFocusableElement.length - 1] as HTMLElement
-    ).focus();
   }
 
   async start() {
     this.renderLoadingView_();
     this.doc_.body.appendChild(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', 'hidden');
-    this.addFocusTrap_();
     this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(this.wrapper_, {'opacity': '1.0'});
     await this.initPrompt_();

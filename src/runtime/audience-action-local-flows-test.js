@@ -653,10 +653,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('close removes prompt', async () => {
-        const outterButton = env.win.document.createElement('button');
-        outterButton.removeEventListener = sandbox.spy();
-        env.win.document.body.append(outterButton);
-
         const state = await renderAndAssertRewardedAd(
           DEFAULT_PARAMS,
           DEFAULT_CONFIG
@@ -671,26 +667,32 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
-        expect(outterButton.removeEventListener).to.be.called;
       });
 
       it('tab focus trap works', async () => {
-        const outterButton = env.win.document.createElement('button');
-        env.win.document.body.append(outterButton);
-
         const params = {
           action: 'TYPE_REWARDED_AD',
           autoPromptType: undefined,
           monetizationFunction: sandbox.spy(),
         };
-        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
         await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        await outterButton.focus();
+        const topSentinal = state.wrapper.shadowRoot.querySelector(
+          'audience-action-top-sentinal'
+        );
+        await topSentinal.focus();
 
-        expect(env.win.document.activeElement).not.to.equal(outterButton);
+        expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
+
+        const bottomSentinal = state.wrapper.shadowRoot.querySelector(
+          'audience-action-bottom-sentinal'
+        );
+        await bottomSentinal.focus();
+
+        expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
       });
     });
 
