@@ -53,7 +53,7 @@ const NEWSLETTER_CONFIG = `
     "title": "newsletter_title",
     "body": "newsletter_body",
     "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
-    "codeSnippet": "<form>newsletter_code_snippet</form>"
+    "rawCodeSnippet": "<form>newsletter_code_snippet</form>"
   }
 }`;
 
@@ -668,6 +668,32 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           env.win.googletag.destroySlots
         ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
       });
+
+      it('tab focus trap works', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          autoPromptType: undefined,
+          monetizationFunction: sandbox.spy(),
+        };
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+
+        const topSentinal = state.wrapper.shadowRoot.querySelector(
+          'audience-action-top-sentinal'
+        );
+        await topSentinal.focus();
+
+        expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
+
+        const bottomSentinal = state.wrapper.shadowRoot.querySelector(
+          'audience-action-bottom-sentinal'
+        );
+        await bottomSentinal.focus();
+
+        expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
+      });
     });
 
     describe('newsletter publisher prompt', () => {
@@ -790,7 +816,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
             "title": "newsletter_title",
             "body": "newsletter_body",
             "promptPreference": "PREFERENCE_GOOGLE_PROVIDED_PROMPT",
-            "codeSnippet": "<form>newsletter_code_snippet</form>"
+            "rawCodeSnippet": "<form>newsletter_code_snippet</form>"
           }
         }`;
         const state = await renderNewsletterPrompt(
@@ -841,7 +867,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
             "title": "newsletter_title",
             "body": "newsletter_body",
             "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
-            "codeSnippet": "<input>newsletter_code_snippet_fake_form</input>"
+            "rawCodeSnippet": "<input>newsletter_code_snippet_fake_form</input>"
           }
         }`;
         const state = await renderNewsletterPrompt(
@@ -870,7 +896,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
         form.dispatchEvent(new SubmitEvent('submit'));
-        await tick(3);
+        await new Promise((resolve) => setTimeout(resolve, 1001));
 
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
@@ -897,8 +923,14 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
         form.dispatchEvent(new SubmitEvent('submit'));
-        await tick();
 
+        await tick();
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper.style.opacity).to.equal('0');
+
+        await new Promise((resolve) => setTimeout(resolve, 1001));
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );

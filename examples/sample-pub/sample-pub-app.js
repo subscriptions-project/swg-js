@@ -63,6 +63,24 @@ const METER_COOKIE = 'SCENIC_METER';
 const MAX_METER = 3;
 
 /**
+ * Configs to be used to set publication data by URL param.
+ */
+const CONFIGS = {
+  'rrme-subscriptions-prod': {
+    publicationId: 'CAow5rTUCw',
+  },
+  'rrme-subscriptions-qual': {
+    publicationId: 'CAowwuyEAQ',
+  },
+  'rrme-contributions-prod': {
+    publicationId: 'CAowtrTUCw',
+  },
+  'rrme-contributions-qual': {
+    publicationId: 'CAow-Jp5',
+  },
+};
+
+/**
  * List all Articles.
  */
 app.get('/', (req, res) => {
@@ -87,8 +105,17 @@ app.get('/', (req, res) => {
 /**
  * An Article.
  */
-app.get('/((\\d+))', (req, res) => {
-  const id = parseInt(req.params[0], 10);
+app.get('/:id(\\d+)', (req, res) => {
+  renderArticle(req, res);
+});
+
+app.get('/config/:config/:id(\\d+)', (req, res) => {
+  renderArticle(req, res);
+});
+
+function renderArticle(req, res) {
+  const {id, config} = req.params;
+  const publicationId = CONFIGS[config]?.publicationId ?? PUBLICATION_ID;
   const article = ARTICLES[id - 1];
   const prevId = id - 1 >= 0 ? String(id - 1) : false;
   const nextId = id + 1 < ARTICLES.length ? String(id + 1) : false;
@@ -98,14 +125,14 @@ app.get('/((\\d+))', (req, res) => {
     swgJsUrl: SWG_JS_URLS[setup.script],
     swgGaaJsUrl: SWG_GAA_JS_URLS[setup.script],
     setup,
-    publicationId: PUBLICATION_ID,
+    publicationId,
     id,
     article,
     prev: prevId,
     next: nextId,
     testParams: getTestParams(req),
   });
-});
+}
 
 /**
  * Subscribe page. Format:

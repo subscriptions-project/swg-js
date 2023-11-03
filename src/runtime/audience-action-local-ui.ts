@@ -52,6 +52,7 @@ const REWARDED_AD_PROMPT = css`
     background: white !important;
     max-height: 90%;
     overflow: auto;
+    outline: none;
   }
 
   @media (min-width: 450px) {
@@ -76,6 +77,7 @@ const DEFAULT_BUTTON = css`
 
 const REWARDED_AD_CLOSE_BUTTON_CSS = css`
   .rewarded-ad-close-button {
+    margin: 8px 8px 0px 0px;
     padding: 12px;
     height: 48px;
     width: 48px;
@@ -280,17 +282,18 @@ const REWARDED_AD_CSS = css`
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-container {
-    margin: 20px 20px 0px 20px;
+    margin: 0px;
     text-align: center;
     font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
   }
 
   .rewarded-ad-header {
     display: grid !important;
-    grid-template-columns: 48px 1fr 48px;
+    grid-template-columns: 56px 1fr 56px;
   }
 
   .rewarded-ad-title {
+    margin-top: 20px;
     font-size: 1.75rem;
     line-height: 2.25rem;
     font-weight: 400;
@@ -320,7 +323,7 @@ const REWARDED_AD_CSS = css`
   }
 
   .rewarded-ad-cta {
-    margin-top: 20px;
+    margin: 20px 14px 0px 14px;
   }
 
   .rewarded-ad-cta-button {
@@ -391,6 +394,11 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-sign-in-button:hover {
     background-color: #f2f8ff;
   }
+
+  .rewarded-ad-footer {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
 `;
 
 export const REWARDED_AD_SUPPORT_HTML = html`<button
@@ -411,14 +419,21 @@ export const REWARDED_AD_HTML = html`
   <style>
     ${REWARDED_AD_CSS}
   </style>
-  <div class="rewarded-ad-prompt">
+  <div
+    class="rewarded-ad-prompt"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="title-id"
+    aria-describedby="message-id"
+    aria-modal="true"
+  >
     <div class="rewarded-ad-container">
       <div class="rewarded-ad-header">
-        <div class="rewarded-ad-title">$TITLE$</div>
+        <div class="rewarded-ad-title" id="title-id">$TITLE$</div>
         $REWARDED_AD_CLOSE_BUTTON_HTML$
       </div>
       <div class="rewarded-ad-icon"></div>
-      <div class="rewarded-ad-message">$MESSAGE$</div>
+      <div class="rewarded-ad-message" id="message-id">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
         <button class="rewarded-ad-view-ad-button rewarded-ad-cta-button">
           <div
@@ -449,14 +464,14 @@ const REWARDED_AD_THANKS_CSS = css`
   .rewarded-ad-prompt {
     height: 125px !important;
     width: 100%;
-    padding: 20px;
+    padding-bottom: 20px;
   }
 
   .rewarded-ad-thanks-container {
     height: 100%;
     display: grid !important;
-    grid-template-columns: 48px 1fr 48px;
-    grid-template-rows: 48px 14px 14px 1fr 14px;
+    grid-template-columns: 56px 1fr 56px;
+    grid-template-rows: 56px 26px 14px 1fr 34px;
   }
 
   .rewarded-ad-thanks-icon {
@@ -468,6 +483,7 @@ const REWARDED_AD_THANKS_CSS = css`
       center/contain no-repeat;
     grid-column: 2;
     grid-row: 1 / 2;
+    margin-top: 20px;
   }
 
   .rewarded-ad-thanks-message {
@@ -486,10 +502,18 @@ export const REWARDED_AD_THANKS_HTML = html`
   <style>
     ${REWARDED_AD_THANKS_CSS}
   </style>
-  <div class="rewarded-ad-prompt">
+  <div
+    class="rewarded-ad-prompt"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="thanks-id"
+    aria-modal="true"
+  >
     <div class="rewarded-ad-thanks-container">
       <div class="rewarded-ad-thanks-icon"></div>
-      <div class="rewarded-ad-thanks-message">$THANKS_FOR_VIEWING_THIS_AD$</div>
+      <div class="rewarded-ad-thanks-message" id="thanks-id">
+        $THANKS_FOR_VIEWING_THIS_AD$
+      </div>
       ${REWARDED_AD_CLOSE_BUTTON_HTML}
       <div></div>
     </div>

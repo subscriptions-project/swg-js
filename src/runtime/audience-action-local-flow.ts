@@ -73,7 +73,7 @@ interface AudienceActionConfig {
     title: string;
     body: string;
     promptPreference?: string;
-    codeSnippet?: string;
+    rawCodeSnippet?: string;
   };
 }
 
@@ -154,7 +154,27 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     const shadow = wrapper.attachShadow({mode: 'open'});
 
+    const topSentinal = createElement(
+      this.doc_,
+      'audience-action-top-sentinal',
+      {
+        'tabindex': '0',
+      }
+    );
+    topSentinal.addEventListener('focus', this.focusLast_.bind(this));
+
+    const bottomSentinal = createElement(
+      this.doc_,
+      'audience-action-bottom-sentinal',
+      {
+        'tabindex': '0',
+      }
+    );
+    bottomSentinal.addEventListener('focus', this.focusFirst_.bind(this));
+
+    shadow.appendChild(topSentinal);
     shadow.appendChild(this.prompt_);
+    shadow.appendChild(bottomSentinal);
 
     return wrapper;
   }
@@ -189,7 +209,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
     );
     const config = await this.getConfig_();
-    const codeSnippet = config?.optInParameters?.codeSnippet;
+    const codeSnippet = config?.optInParameters?.rawCodeSnippet;
 
     const validNewsletterSignupParams =
       codeSnippet &&
@@ -245,12 +265,21 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async formSubmit_() {
     //TODO: chuyangwang - verify email being submitted.
+
+    // Hide prompt before closing the prompt.
+    setImportantStyles(this.wrapper_, {'opacity': '0'});
+    // Wait for form submit request to send before closing the prompt.
+    await this.delay_(1000);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
     );
     // Close the prompt.
     this.unlock_();
     await this.complete_();
+  }
+
+  private async delay_(time: number) {
+    return new Promise((res) => this.deps_.win().setTimeout(res, time));
   }
 
   private closeOptInPrompt_() {
@@ -381,7 +410,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const icon = isSubscription ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
-    const viewad = 'View an ad';
+    const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
     const supportHtml = isPremonetization
       ? ''
       : REWARDED_AD_SUPPORT_HTML.replace(
@@ -420,15 +449,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
-    const viewAdButton: HTMLElement | null = this.prompt_.querySelector(
-      '.rewarded-ad-view-ad-button'
-    );
-    viewAdButton?.addEventListener(
-      'click',
-      this.viewRewardedAdWall_.bind(this)
-    );
-    viewAdButton?.focus();
-
+    this.prompt_
+      .querySelector('.rewarded-ad-view-ad-button')
+      ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
+    this.focusRewardedAds_();
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }
 
@@ -467,6 +491,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
+    this.focusRewardedAds_();
     await this.complete_();
   }
 
@@ -576,6 +601,26 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private unlock_() {
     removeElement(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', '');
+  }
+
+  private focusRewardedAds_() {
+    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
+  }
+
+  private focusFirst_() {
+    const focusable = this.getFocusable_();
+    (focusable[1] as HTMLElement).focus();
+  }
+
+  private focusLast_() {
+    const focusable = this.getFocusable_();
+    (focusable[focusable.length - 2] as HTMLElement).focus();
+  }
+
+  private getFocusable_() {
+    return this.wrapper_!.shadowRoot!.querySelectorAll(
+      'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
+    );
   }
 
   async start() {
