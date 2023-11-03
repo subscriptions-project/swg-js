@@ -15,20 +15,19 @@
  */
 
 module.exports = {
-    '@tags': ['rewardedads'],
-  
-    'Show rewarded ad dialog': (browser) => {
-      const rewardedads = browser.page.rewardedads();
-      rewardedads
-        .navigate()
-        .waitForElementPresent('@rewardedAdDialog', 'Found Rewarded Ad Dialog')
-        .waitForElementVisible('@rewardedAdDialog')
-        .pause(1000)
-        .assert.screenshotIdenticalToBaseline('body', 'rewarded-ads-dialog')
-        .viewAnAd()
-        .pause(13000)
-        .assert.screenshotIdenticalToBaseline('body', 'rewarded-ads-thanks')
-        .end();
-    },
-  };
-  
+  '@tags': ['rewardedads'],
+
+  'Show rewarded ad dialog': (browser) => {
+    const rewardedads = browser.page.rewardedads();
+    rewardedads
+      .navigate()
+      .waitForElementPresent('@rewardedAdDialog', 'Found Rewarded Ad Dialog')
+      .waitForElementVisible('@rewardedAdDialog')
+      .pause(1000)
+      .assert.screenshotIdenticalToBaseline('body', 'rewarded-ads-dialog')
+      .viewAnAd()
+      .pause(13000)
+      .assert.screenshotIdenticalToBaseline('body', 'rewarded-ads-thanks')
+      .end();
+  },
+};
