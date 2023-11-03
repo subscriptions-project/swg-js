@@ -24,12 +24,10 @@ const {swgPageUrl} = require('../util');
  * @fileoverview Page object for the first article with contribution on scenic.
  */
 const commands = {
-  viewAnAd: async function () {
+  viewAnAd: function () {
     return this.log('Clicking "View an ad" button')
-      .element('@rewardedAdDialog')
-      .getShadowRoot()
-      .then((shadowRoot) => shadowRoot.find('.rewarded-ad-view-ad-button'))
-      .then((viewAnAd) => viewAnAd.click());
+      .getShadowRoot('@rewardedAdDialog')
+      .click('.rewarded-ad-view-ad-button');
   },
 };
 
