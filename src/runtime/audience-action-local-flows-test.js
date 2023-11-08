@@ -53,7 +53,7 @@ const NEWSLETTER_CONFIG = `
     "title": "newsletter_title",
     "body": "newsletter_body",
     "promptPreference": "PREFERENCE_PUBLISHER_PROVIDED_PROMPT",
-    "rawCodeSnippet": "<form>newsletter_code_snippet</form>"
+    "rawCodeSnippet": "<form>newsletter_code_snippet<input></form>"
   }
 }`;
 
@@ -771,24 +771,33 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const params = {
           action: 'TYPE_NEWSLETTER_SIGNUP',
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-          isClosable: true,
+          isClosable: false,
           configurationId: 'newsletter_config_id',
         };
         const state = await renderNewsletterPrompt(params, NEWSLETTER_CONFIG);
+
+        const inputComponent = state.wrapper.shadowRoot.querySelector('input');
+        let focused = state.wrapper.shadowRoot.querySelector(':focus');
+
+        expect(focused).to.equal(inputComponent);
 
         const topSentinal = state.wrapper.shadowRoot.querySelector(
           'audience-action-top-sentinal'
         );
         await topSentinal.focus();
+        focused = state.wrapper.shadowRoot.querySelector(':focus');
 
-        expect(env.win.document.activeElement).not.to.equal(topSentinal);
+        expect(focused).to.equal(inputComponent);
+        expect(focused).not.to.equal(topSentinal);
 
         const bottomSentinal = state.wrapper.shadowRoot.querySelector(
           'audience-action-bottom-sentinal'
         );
         await bottomSentinal.focus();
+        focused = state.wrapper.shadowRoot.querySelector(':focus');
 
-        expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
+        expect(focused).to.equal(inputComponent);
+        expect(focused).not.to.equal(bottomSentinal);
       });
 
       it('close button click', async () => {

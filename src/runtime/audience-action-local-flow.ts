@@ -110,7 +110,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // @ts-ignore
   private rewardedTimout_: Promise<void> | null = null;
   // Used for focus trap.
-  private bottomSentinal_?: HTMLElement;
+  private bottomSentinal_!: HTMLElement;
 
   constructor(
     private readonly deps_: Deps,
@@ -267,11 +267,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private focusOnOptinPrompt_() {
-    if (this.bottomSentinal_) {
-      // Reorganize the order of the optin prompt and the bottomSentinal.
-      this.wrapper_.shadowRoot?.removeChild(this.bottomSentinal_);
-      this.wrapper_.shadowRoot?.appendChild(this.bottomSentinal_);
-    }
+    // Reorganize the order of the optin prompt and the bottomSentinal.
+    this.wrapper_.shadowRoot?.appendChild(this.bottomSentinal_);
     const focusable = this.getFocusableInput_();
     if (focusable.length > 0) {
       (this.getFocusableInput_()[0] as HTMLElement).focus();
