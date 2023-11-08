@@ -267,7 +267,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private focusOnOptinPrompt_() {
-    // Reorganize the order of the optin prompt and the bottomSentinal.
+    // Move the bottomSentinal element after any focusable inputs.
     this.wrapper_.shadowRoot?.appendChild(this.bottomSentinal_);
     const focusable = this.getFocusableInput_();
     if (focusable.length > 0) {
