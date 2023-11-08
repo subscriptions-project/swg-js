@@ -262,14 +262,10 @@ interface RedirectVerifierPairDef {
  * Visible for testing only.
  */
 export class RedirectVerifierHelper {
-  pairPromise_: Promise<RedirectVerifierPairDef | null> | null = null;
-  pair_: RedirectVerifierPairDef | null = null;
+  private pairPromise_: Promise<RedirectVerifierPairDef | null> | null = null;
+  private pair_: RedirectVerifierPairDef | null = null;
 
-  constructor(private readonly win_: Window) {
-    this.pairPromise_ = null;
-
-    this.pair_ = null;
-  }
+  constructor(private readonly win_: Window) {}
 
   /**
    * To avoid popup blockers, the key/verifier pair is created as soon as
