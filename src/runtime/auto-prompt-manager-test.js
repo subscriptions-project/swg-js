@@ -847,6 +847,24 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it('should not show monetization prompt as soft paywall if the type is undefined', async () => {
+    const shouldShow =
+      await autoPromptManager.shouldShowMonetizationPromptAsSoftPaywall({
+        autoPromptType: undefined,
+        alwaysShow: false,
+      });
+    expect(shouldShow).to.be.false;
+  });
+
+  it('should not show monetization prompt as soft paywall if the type is NONE', async () => {
+    const shouldShow =
+      await autoPromptManager.shouldShowMonetizationPromptAsSoftPaywall({
+        autoPromptType: AutoPromptType.NONE,
+        alwaysShow: false,
+      });
+    expect(shouldShow).to.be.false;
+  });
+
   it('should not display a prompt if the type is undefined', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
