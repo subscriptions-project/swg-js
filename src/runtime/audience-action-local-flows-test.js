@@ -767,6 +767,30 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(closeButton).not.to.be.null;
       });
 
+      it('tab focus trap works', async () => {
+        const params = {
+          action: 'TYPE_NEWSLETTER_SIGNUP',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          isClosable: true,
+          configurationId: 'newsletter_config_id',
+        };
+        const state = await renderNewsletterPrompt(params, NEWSLETTER_CONFIG);
+
+        const topSentinal = state.wrapper.shadowRoot.querySelector(
+          'audience-action-top-sentinal'
+        );
+        await topSentinal.focus();
+
+        expect(env.win.document.activeElement).not.to.equal(topSentinal);
+
+        const bottomSentinal = state.wrapper.shadowRoot.querySelector(
+          'audience-action-bottom-sentinal'
+        );
+        await bottomSentinal.focus();
+
+        expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
+      });
+
       it('close button click', async () => {
         const params = {
           action: 'TYPE_NEWSLETTER_SIGNUP',
