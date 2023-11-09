@@ -130,6 +130,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           addEventListener: (event, handler) => {
             eventListeners[event] = handler;
           },
+          refresh: sandbox.spy(),
         };
         readyEventArg = {
           makeRewardedVisible: sandbox.spy(),
@@ -224,6 +225,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT
         );
+        expect(pubadsobj.refresh).to.be.called;
       });
 
       it('renders contribution', async () => {
@@ -265,6 +267,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT
         );
+        expect(pubadsobj.refresh).to.be.called;
       });
 
       it('renders premonetization', async () => {

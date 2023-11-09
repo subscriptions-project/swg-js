@@ -469,9 +469,7 @@ const REWARDED_AD_THANKS_CSS = css`
   ${REWARDED_AD_PROMPT}
 
   .rewarded-ad-prompt {
-    height: 125px !important;
     width: 100%;
-    padding-bottom: 20px;
   }
 
   .rewarded-ad-thanks-container {
