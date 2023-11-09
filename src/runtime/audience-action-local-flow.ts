@@ -109,6 +109,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // Used for testing.
   // @ts-ignore
   private rewardedTimout_: Promise<void> | null = null;
+  // Used for focus trap.
+  private bottomSentinal_!: HTMLElement;
 
   constructor(
     private readonly deps_: Deps,
@@ -163,18 +165,18 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     );
     topSentinal.addEventListener('focus', this.focusLast_.bind(this));
 
-    const bottomSentinal = createElement(
+    this.bottomSentinal_ = createElement(
       this.doc_,
       'audience-action-bottom-sentinal',
       {
         'tabindex': '0',
       }
     );
-    bottomSentinal.addEventListener('focus', this.focusFirst_.bind(this));
+    this.bottomSentinal_.addEventListener('focus', this.focusFirst_.bind(this));
 
     shadow.appendChild(topSentinal);
     shadow.appendChild(this.prompt_);
-    shadow.appendChild(bottomSentinal);
+    shadow.appendChild(this.bottomSentinal_);
 
     return wrapper;
   }
@@ -251,6 +253,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       });
       this.wrapper_.shadowRoot?.removeChild(this.prompt_);
       this.wrapper_.shadowRoot?.appendChild(optInPrompt);
+      this.focusOnOptinPrompt_();
       optInPrompt
         .querySelector('.opt-in-close-button')
         ?.addEventListener('click', this.closeOptInPrompt_.bind(this));
@@ -260,6 +263,15 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
       );
       this.renderErrorView_();
+    }
+  }
+
+  private focusOnOptinPrompt_() {
+    // Move the bottomSentinal element after any focusable inputs.
+    this.wrapper_.shadowRoot?.appendChild(this.bottomSentinal_);
+    const focusable = this.getFocusableInput_();
+    if (focusable.length > 0) {
+      (this.getFocusableInput_()[0] as HTMLElement).focus();
     }
   }
 
@@ -622,6 +634,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return this.wrapper_!.shadowRoot!.querySelectorAll(
       'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
     );
+  }
+
+  private getFocusableInput_() {
+    return this.wrapper_!.shadowRoot!.querySelectorAll('input, textarea');
   }
 
   async start() {
