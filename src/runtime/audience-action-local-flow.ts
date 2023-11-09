@@ -356,6 +356,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         );
       googletag.enableServices();
       googletag.display(this.rewardedSlot_);
+      googletag.pubads().refresh([this.rewardedSlot_]);
     } else {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR
