@@ -84,7 +84,7 @@ interface CompleteAudienceActionResponse {
 }
 
 // Default timeout for waiting on ready callback.
-const GPT_TIMEOUT_MS = 6000;
+const GPT_TIMEOUT_MS = 10000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
