@@ -1,6 +1,5 @@
-src/ @alin04 @chrisantaki @fikus @jpettitt @hartmannr76
-third_party/ @alin04  @chrisantaki @fikus @jpettitt @hartmannr76
-exports/ @alin04  @chrisantaki @fikus @jpettitt @hartmannr76
-src/api/ @jpettitt
-src/runtime/pay*.js @alin04 @younmi-park @jpettitt
-docs/CODEOWNERS @alin04 @fikus @jpettitt @hartmannr76
+src/ @chrisantaki @jpettitt @justinchou-google @oyj9109 @Wayne-X
+third_party/ @chrisantaki @jpettitt @justinchou-google @oyj9109 @Wayne-X
+src/api/ @chrisantaki @jpettitt @justinchou-google @oyj9109 @Wayne-X
+src/runtime/pay*.js @chrisantaki @younmi-park @jpettitt @justinchou-google @oyj9109 @Wayne-X
+docs/CODEOWNERS @chrisantaki @jpettitt @justinchou-google @oyj9109 @Wayne-X
