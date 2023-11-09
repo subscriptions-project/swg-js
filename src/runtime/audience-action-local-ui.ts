@@ -125,14 +125,17 @@ const OPT_IN_CLOSE_BUTTON_CSS = css`
     border-radius: 20px;
     height: 24px;
     width: 24px;
-    background: #5f6368;
-    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg)
-      center/contain no-repeat;
   }
 
   .opt-in-close-button:hover,
   .opt-in-close-button:focus {
     background-color: #f2f8ff;
+  }
+
+  @media (forced-colors: active) {
+    .opt-in-close-img {
+      background: buttonText;
+    }
   }
 `;
 
@@ -141,7 +144,11 @@ export const OPT_IN_CLOSE_BUTTON_HTML = html`<style>
   </style>
   <div class="opt-in-close-button-container">
     <button aria-label="$CLOSE_BUTTON_DESCRIPTION$" class="opt-in-close-button">
-      <div class="opt-in-close-img"></div>
+      <img
+        class="opt-in-close-img"
+        src="https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/close/default/24px.svg"
+        alt="Close button"
+      />
     </button>
   </div>`;
 
