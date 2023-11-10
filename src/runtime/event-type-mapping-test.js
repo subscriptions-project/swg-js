@@ -122,7 +122,7 @@ describes.realWin('analyticsEventToGoogleAnalyticsEvent', () => {
     }
   });
 
-  it('uses subscriptionFlow param correclty on "subscription"', () => {
+  it('uses subscriptionFlow param correctly on "subscription"', () => {
     const actual = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
       SubscriptionFlows.SUBSCRIBE
@@ -134,7 +134,7 @@ describes.realWin('analyticsEventToGoogleAnalyticsEvent', () => {
     expect(actual).to.be.equal(expected);
   });
 
-  it('uses subscriptionFlow param correclty on "contribution"', () => {
+  it('uses subscriptionFlow param correctly on "contribution"', () => {
     const actual = analyticsEventToGoogleAnalyticsEvent(
       AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
       SubscriptionFlows.CONTRIBUTE
