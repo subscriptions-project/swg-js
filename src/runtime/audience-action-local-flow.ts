@@ -151,7 +151,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'transition': 'opacity 0.5s',
       'top': '0',
       'width': '100%',
-      'z-index': '2147483646',
+      'z-index': '2147483647',
     });
 
     const shadow = wrapper.attachShadow({mode: 'open'});
@@ -642,7 +642,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   async start() {
     this.renderLoadingView_();
-    this.doc_.body.appendChild(this.wrapper_);
+    this.doc_.documentElement.appendChild(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', 'hidden');
     this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(this.wrapper_, {'opacity': '1.0'});
