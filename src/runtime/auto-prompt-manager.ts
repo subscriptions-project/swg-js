@@ -485,28 +485,28 @@ export class AutoPromptManager {
       autoPromptType === undefined ||
       autoPromptType === AutoPromptType.NONE
     ) {
-      return Promise.resolve(false);
+      return false;
     }
 
     // For paygated content, a soft paywall should not restrict access.
     if (this.pageConfig_.isLocked()) {
-      return Promise.resolve(false);
+      return false;
     }
 
     // Do not frequency cap subscription prompts as soft paywall.
     if (this.isSubscription_(autoPromptType)) {
-      return Promise.resolve(true);
+      return true;
     }
 
     // For other contributions, if no auto prompt config was returned, do not
     // show a soft paywall.
     if (autoPromptConfig === undefined) {
-      return Promise.resolve(false);
+      return false;
     }
 
     // Fetched config returned no maximum cap.
     if (autoPromptConfig.impressionConfig.maxImpressions === undefined) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const [impressions, dismissals] = await Promise.all([
