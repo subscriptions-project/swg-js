@@ -167,4 +167,13 @@ describes.realWin('analyticsEventToGoogleAnalyticsEvent', () => {
       ];
     expect(actual).to.be.equal(expected);
   });
+
+  it('returns undefined when event is falsy', () => {
+    const actual = analyticsEventToGoogleAnalyticsEvent(
+      null,
+      SubscriptionFlows.CONTRIBUTE
+    );
+    const expected = undefined;
+    expect(actual).to.be.equal(expected);
+  });
 });
