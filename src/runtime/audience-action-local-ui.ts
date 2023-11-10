@@ -70,7 +70,7 @@ const DEFAULT_BUTTON = css`
     padding: 0;
     font: inherit;
     cursor: pointer;
-    outline-offset: 0.25rem;
+    outline-offset: 4px; // 0.25rem;
     outline-color: #145ab5;
   }
 `;
@@ -301,8 +301,8 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-title {
     margin-top: 20px;
-    font-size: 1.75rem;
-    line-height: 2.25rem;
+    font-size: 28px; //1.75rem;
+    line-height: 36px; // 2.25rem;
     font-weight: 400;
     letter-spacing: 0em;
     color: #202124;
@@ -322,9 +322,9 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-message {
     margin-top: 8px;
     padding: 0px 11px 0px 11px;
-    font-size: 1rem;
+    font-size: 16px; // 1rem;
     font-weight: 500;
-    line-height: 1.5rem;
+    line-height: 24px; // 1.5rem;
     letter-spacing: 0.25px;
     color: #202124;
   }
@@ -334,16 +334,16 @@ const REWARDED_AD_CSS = css`
   }
 
   .rewarded-ad-cta-button {
-    padding: 0.375rem;
+    padding: 6px; // 0.375rem;
     width: 100%;
-    outline-offset: -0.125rem;
+    outline-offset: -2px; // 0.125rem;
   }
 
   .rewarded-ad-cta-button-inner {
     width: 100%;
-    height: 2.25rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
+    height: 36px; // 2.25rem;
+    border-radius: 4px; // 0.25rem;
+    font-size: 14px; // 0.875rem;
     font-weight: 500;
     letter-spacing: 0.25px;
     display: flex;
@@ -368,7 +368,7 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-support-button-inner {
     border: 1px solid #dadce0;
-    border-radius: 0.25rem;
+    border-radius: 4px; // 0.25rem;
     color: #1a73e8;
   }
 
@@ -385,9 +385,9 @@ const REWARDED_AD_CSS = css`
 
   .rewarded-ad-sign-in-button {
     float: right;
-    font-size: 0.875rem;
+    font-size: 14px; // 0.875rem;
     font-weight: 500;
-    line-height: 1.25rem;
+    line-height: 20px; // 1.25rem;
     letter-spacing: 0.25px;
     text-align: right;
     color: #1a73e8;
@@ -492,9 +492,9 @@ const REWARDED_AD_THANKS_CSS = css`
   }
 
   .rewarded-ad-thanks-message {
-    font-size: 1.375rem;
+    font-size: 22px; // 1.375rem;
     font-weight: 400;
-    line-height: 1.75rem;
+    line-height: 28px; // 1.75rem;
     letter-spacing: 0px;
     text-align: center;
     color: #202124;
