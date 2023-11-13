@@ -479,6 +479,12 @@ export class EntitlementsManager {
     return this.parseArticleExperimentConfigFlags(article);
   }
 
+  /** Check if an article specific experiment is enabled. */
+  async isExperimentEnabled(experimentFlag: string) {
+    const flags = await this.getExperimentConfigFlags();
+    return flags.includes(experimentFlag);
+  }
+
   /**
    * Parses the experiment flags from the Article.
    */

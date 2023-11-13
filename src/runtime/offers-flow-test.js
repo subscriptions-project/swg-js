@@ -310,46 +310,102 @@ describes.realWin('OffersFlow', (env) => {
     await offersFlow.start();
   });
 
-  it('passes isClosable to openView when false for new offer flows', async () => {
-    const clientConfigManager = runtime.clientConfigManager();
-    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
-      new ClientConfig({
-        useUpdatedOfferFlows: true,
-      })
-    );
-    offersFlow = new OffersFlow(runtime, {'isClosable': false});
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(
-        sandbox.match.any,
-        false,
-        sandbox.match({
-          closeOnBackgroundClick: false,
+  describe('click experiment active', () => {
+    beforeEach(() => {
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(true));
+      const clientConfigManager = runtime.clientConfigManager();
+      sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+        new ClientConfig({
+          useUpdatedOfferFlows: true,
         })
-      )
-      .once();
-    await offersFlow.start();
+      );
+    });
+
+    it('passes false to openView when isClosable=undefined for new offer flows', async () => {
+      offersFlow = new OffersFlow(runtime);
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: false,
+          })
+        )
+        .once();
+      await offersFlow.start();
+    });
+
+    it('passes isClosable to openView when false for new offer flows', async () => {
+      offersFlow = new OffersFlow(runtime, {'isClosable': false});
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: false,
+          })
+        )
+        .once();
+      await offersFlow.start();
+    });
+
+    it('passes isClosable to openView when true for new offer flows', async () => {
+      offersFlow = new OffersFlow(runtime, {'isClosable': true});
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: true,
+          })
+        )
+        .once();
+      await offersFlow.start();
+    });
   });
 
-  it('passes isClosable to openView when true for new offer flows', async () => {
-    const clientConfigManager = runtime.clientConfigManager();
-    sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
-      new ClientConfig({
-        useUpdatedOfferFlows: true,
-      })
-    );
-    offersFlow = new OffersFlow(runtime, {'isClosable': true});
-    dialogManagerMock
-      .expects('openView')
-      .withExactArgs(
-        sandbox.match.any,
-        false,
-        sandbox.match({
-          closeOnBackgroundClick: true,
+  describe('click experiment inactive', () => {
+    beforeEach(() => {
+      const clientConfigManager = runtime.clientConfigManager();
+      sandbox
+        .stub(runtime.entitlementsManager(), 'isExperimentEnabled')
+        .callsFake(() => Promise.resolve(false));
+      sandbox.stub(clientConfigManager, 'getClientConfig').resolves(
+        new ClientConfig({
+          useUpdatedOfferFlows: true,
         })
-      )
-      .once();
-    await offersFlow.start();
+      );
+      dialogManagerMock
+        .expects('openView')
+        .withExactArgs(
+          sandbox.match.any,
+          false,
+          sandbox.match({
+            closeOnBackgroundClick: undefined,
+          })
+        )
+        .once();
+    });
+
+    it('passes undefined to openView when false for new offer flows', async () => {
+      offersFlow = new OffersFlow(runtime, {'isClosable': false});
+      await offersFlow.start();
+    });
+
+    it('passes undefined to openView when true for new offer flows', async () => {
+      offersFlow = new OffersFlow(runtime, {'isClosable': true});
+      await offersFlow.start();
+    });
+
+    it('passes undefined to openView when isClosable=undefined for new offer flows', async () => {
+      offersFlow = new OffersFlow(runtime);
+      await offersFlow.start();
+    });
   });
 
   it('should trigger on cancel', async () => {
