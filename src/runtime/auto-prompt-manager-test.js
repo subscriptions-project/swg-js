@@ -847,6 +847,24 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it('should not show monetization prompt as soft paywall if the type is undefined', async () => {
+    const shouldShow =
+      await autoPromptManager.shouldShowMonetizationPromptAsSoftPaywall(
+        undefined,
+        false
+      );
+    expect(shouldShow).to.be.false;
+  });
+
+  it('should not show monetization prompt as soft paywall if the type is NONE', async () => {
+    const shouldShow =
+      await autoPromptManager.shouldShowMonetizationPromptAsSoftPaywall(
+        AutoPromptType.NONE,
+        false
+      );
+    expect(shouldShow).to.be.false;
+  });
+
   it('should not display a prompt if the type is undefined', async () => {
     const entitlements = new Entitlements();
     entitlementsManagerMock
@@ -4342,7 +4360,10 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('is rendered for TYPE_REWARDED_ADS', async () => {
-      win.googletag = {cmd: []};
+      win.googletag = {
+        apiReady: true,
+        getVersion: () => 'gpt_version_foo',
+      };
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
