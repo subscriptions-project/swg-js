@@ -85,6 +85,8 @@ interface CompleteAudienceActionResponse {
 
 // Default timeout for waiting on ready callback.
 const GPT_TIMEOUT_MS = 10000;
+// Default timeout to auto-dismiss the rewarded ad thanks prompt
+const THANKS_TIMEOUT_MS = 3000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
@@ -100,22 +102,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly fetcher_: XhrFetcher;
   private readonly eventManager_: ClientEventManager;
   private readonly entitlementsManager_: EntitlementsManager;
-  // Used by rewarded ads to check if the ready callback has been called.
-  private rewardedReadyCalled_ = false;
   // Ad slot used to host the rewarded ad.
   private rewardedSlot_?: googletag.Slot;
   // Used to render the rewarded ad, returned from the ready callback.
   private makeRewardedVisible_?: () => void;
-  // Used for testing.
-  // @ts-ignore
-  private rewardedTimout_: Promise<void> | null = null;
+  private rewardedAdTimeout_?: NodeJS.Timeout;
   // Used for focus trap.
   private bottomSentinal_!: HTMLElement;
 
   constructor(
     private readonly deps_: Deps,
     private readonly params_: AudienceActionLocalParams,
-    private readonly gptTimeoutMs_: number = GPT_TIMEOUT_MS
+    private readonly gptTimeoutMs_: number = GPT_TIMEOUT_MS,
+    private readonly thanksTimeoutMs_: number = THANKS_TIMEOUT_MS
   ) {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
@@ -324,11 +323,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       // There is no good method of checking that gpt.js is working correctly.
       // This timeout allows us to sanity check and error out if things are not
       // working correctly.
-      this.rewardedTimout_ = new Promise((resolve) => {
-        setTimeout(() => {
-          this.rewardedAdTimeout_(resolve);
-        }, this.gptTimeoutMs_);
-      });
+      this.rewardedAdTimeout_ = setTimeout(
+        this.rewardedAdTimeoutHandler_.bind(this),
+        this.gptTimeoutMs_
+      );
     } else {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_CONFIG_ERROR
@@ -377,20 +375,15 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private rewardedAdTimeout_(resolve: () => void) {
-    if (!this.rewardedReadyCalled_) {
-      if (this.rewardedSlot_) {
-        const googletag = this.deps_.win().googletag;
-        googletag.destroySlots([this.rewardedSlot_!]);
-      }
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
-      );
-      this.params_.onCancel?.();
-      this.unlock_();
-      this.params_.monetizationFunction?.();
+  private rewardedAdTimeoutHandler_() {
+    if (this.rewardedSlot_) {
+      const googletag = this.deps_.win().googletag;
+      googletag.destroySlots([this.rewardedSlot_!]);
     }
-    resolve();
+    this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR);
+    this.params_.onCancel?.();
+    this.unlock_();
+    this.params_.monetizationFunction?.();
   }
 
   /**
@@ -401,7 +394,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     rewardedAd: googletag.events.RewardedSlotReadyEvent,
     config: AudienceActionConfig
   ) {
-    this.rewardedReadyCalled_ = true;
+    clearTimeout(this.rewardedAdTimeout_);
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
 
     const isContribution =
@@ -500,7 +493,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const closeButton = this.prompt_.getElementsByClassName(
       'rewarded-ad-close-button'
     );
-    closeButton.item(0)?.addEventListener('click', this.unlock_.bind(this));
+    const timeout = setTimeout(this.unlock_.bind(this), this.thanksTimeoutMs_);
+    closeButton.item(0)?.addEventListener('click', () => {
+      clearTimeout(timeout);
+      this.unlock_();
+    });
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
