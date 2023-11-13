@@ -4342,7 +4342,10 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('is rendered for TYPE_REWARDED_ADS', async () => {
-      win.googletag = {cmd: []};
+      win.googletag = {
+        apiReady: true,
+        getVersion: () => 'gpt_version_foo',
+      };
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
