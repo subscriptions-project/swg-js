@@ -164,7 +164,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const flow = new AudienceActionLocalFlow(
           runtime,
           params,
-          /* gptTimeoutMs_= */ 1
+          /* gptTimeoutMs_= */ 5,
+          /* thanksTimeoutMs_= */ 5
         );
 
         await flow.start();
@@ -434,9 +435,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           onCancel: sandbox.spy(),
           monetizationFunction: sandbox.spy(),
         };
-        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        await state.flow.rewardedTimout_;
+        await new Promise((resolve) => setTimeout(resolve, 10));
 
         expect(
           env.win.googletag.destroySlots
@@ -568,6 +569,23 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         await closeButton.click();
         await tick();
+
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(updatedWrapper).to.be.null;
+      });
+
+      it('closes on thanks automatically', async () => {
+        await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+        expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
+        await eventListeners['rewardedSlotGranted']();
+
+        await new Promise((resolve) => setTimeout(resolve, 10));
 
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'

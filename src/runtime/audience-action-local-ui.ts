@@ -53,6 +53,7 @@ const REWARDED_AD_PROMPT = css`
     max-height: 90%;
     overflow: auto;
     outline: none;
+    font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
   }
 
   @media (min-width: 450px) {
@@ -291,7 +292,6 @@ const REWARDED_AD_CSS = css`
   .rewarded-ad-container {
     margin: 0px;
     text-align: center;
-    font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
   }
 
   .rewarded-ad-header {
