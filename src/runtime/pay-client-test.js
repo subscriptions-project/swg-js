@@ -276,6 +276,16 @@ describes.realWin('PayClient', (env) => {
     expect(response).to.deep.equal(INTEGR_DATA_OBJ);
   });
 
+  it('sets Google transaction ID on PaymentsAsyncClient', () => {
+    payClientStubs.create.restore();
+    PaymentsAsyncClient.googleTransactionId_ = '';
+
+    payClient.start({});
+    expect(PaymentsAsyncClient.googleTransactionId_).to.equal(
+      GOOGLE_TRANSACTION_ID
+    );
+  });
+
   // Native support temp disabled due to b/298029927
   //   describe('native support', () => {
   //     let top;
@@ -315,16 +325,6 @@ describes.realWin('PayClient', (env) => {
   //           'disableNative': true,
   //         },
   //       });
-  //     });
-
-  //     it('sets Google transaction ID on PaymentsAsyncClient', () => {
-  //       payClientStubs.create.restore();
-  //       PaymentsAsyncClient.googleTransactionId_ = '';
-
-  //       payClient.start({});
-  //       expect(PaymentsAsyncClient.googleTransactionId_).to.equal(
-  //         GOOGLE_TRANSACTION_ID
-  //       );
   //     });
   //   });
 });
