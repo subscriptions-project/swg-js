@@ -1124,7 +1124,7 @@ export class AutoPromptManager {
        */
       const googletagExists =
         !!this.deps_.win().googletag?.apiReady &&
-        this.deps_.win().googletag?.getVersion() != '';
+        !!this.deps_.win().googletag?.getVersion();
       if (!googletagExists) {
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
