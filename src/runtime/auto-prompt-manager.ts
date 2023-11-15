@@ -890,7 +890,8 @@ export class AutoPromptManager {
   ): boolean {
     return (
       !this.pageConfig_.isLocked() &&
-      potentialActionPromptType === TYPE_REWARDED_SURVEY
+      (potentialActionPromptType === TYPE_REWARDED_SURVEY ||
+        potentialActionPromptType === TYPE_REWARDED_ADS)
     );
   }
 
