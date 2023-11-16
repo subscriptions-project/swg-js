@@ -215,7 +215,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           action: 'TYPE_REWARDED_AD',
           autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
           monetizationFunction: sandbox.spy(),
-          onCancel: sandbox.spy(),
         };
         const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
@@ -258,6 +257,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           action: 'TYPE_REWARDED_AD',
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
           monetizationFunction: sandbox.spy(),
+          onCancel: sandbox.spy(),
+          isClosable: true,
         };
         const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
@@ -277,6 +278,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await contributeButton.click();
         await tick();
 
+        expect(params.onCancel).to.be.calledOnce.calledWithExactly();
         expect(
           params.monetizationFunction
         ).to.be.calledOnce.calledWithExactly();
