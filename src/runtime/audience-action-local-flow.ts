@@ -183,7 +183,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private renderErrorView_() {
-    if (this.params_.isClosable) {
+    if (this.params_.isClosable || this.params_.monetizationFunction) {
       if (this.rewardedSlot_) {
         const googletag = this.deps_.win().googletag;
         googletag.destroySlots([this.rewardedSlot_!]);
@@ -339,7 +339,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async initRewardedAdWall_() {
     this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_REWARDED_AD);
-    const googletagAvailable = await this.checkGoogletagAvailable_();
+    const [config, googletagAvailable] = await Promise.all([this.getConfig_(), this.checkGoogletagAvailable_()]);
     if (!googletagAvailable) {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
@@ -347,8 +347,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.renderErrorView_();
       return;
     }
-
-    const config = await this.getConfig_();
     const validRewardedAdParams =
       config?.rewardedAdParameters?.adunit &&
       config?.rewardedAdParameters?.customMessage &&
