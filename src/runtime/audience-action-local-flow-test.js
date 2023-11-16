@@ -15,11 +15,13 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
+import {setExperimentsStringForTesting} from './experiments';
 import {tick} from '../../test/tick';
 
 const DEFAULT_PARAMS = {
@@ -70,6 +72,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   let entitlementsManager;
 
   beforeEach(() => {
+    setExperimentsStringForTesting('');
     runtime = new ConfiguredRuntime(
       env.win,
       new PageConfig(
@@ -185,7 +188,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           runtime,
           params,
           /* gptTimeoutMs_= */ 5,
-          /* thanksTimeoutMs_= */ 5
+          /* thanksTimeoutMs_= */ 5,
+          /* detectGptRetries_= */ 1,
+          /* detectGptRetriesMs_= */ 5
         );
 
         await flow.start();
@@ -271,6 +276,61 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(contributeButton.innerHTML).contains('Contribute');
 
         await contributeButton.click();
+        await tick();
+
+        expect(
+          params.monetizationFunction
+        ).to.be.calledOnce.calledWithExactly();
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_REWARDED_AD
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_READY
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT
+        );
+        expect(pubadsobj.refresh).to.be.called;
+      });
+
+      it('renders contribution with all experiments on', async () => {
+        setExperimentsStringForTesting(
+          `${ArticleExperimentFlags.REWARDED_ADS_CLOSABLE_ENABLED},${ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED}`
+        );
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          monetizationFunction: sandbox.spy(),
+        };
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=undefined&origin=about%3Asrcdoc'
+        );
+
+        const closeButton = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-close-button'
+        );
+        expect(closeButton).to.be.null;
+
+        const contributeButton = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(contributeButton.innerHTML).contains('View an ad');
+
+        const viewButton = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-view-ad-button'
+        );
+        expect(viewButton.innerHTML).contains('Contribute');
+
+        await viewButton.click();
         await tick();
 
         expect(
@@ -415,7 +475,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const flow = new AudienceActionLocalFlow(
           runtime,
           DEFAULT_PARAMS,
-          /* gptTimeoutMs_= */ 1
+          /* gptTimeoutMs_= */ 5,
+          /* thanksTimeoutMs_= */ 5,
+          /* detectGptRetries_= */ 1,
+          /* detectGptRetriesMs_= */ 5
         );
 
         await flow.start();
@@ -763,7 +826,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const flow = new AudienceActionLocalFlow(
           runtime,
           params,
-          /* gptTimeoutMs_= */ 1
+          /* gptTimeoutMs_= */ 5,
+          /* thanksTimeoutMs_= */ 5,
+          /* detectGptRetries_= */ 1,
+          /* detectGptRetriesMs_= */ 5
         );
 
         await flow.start();

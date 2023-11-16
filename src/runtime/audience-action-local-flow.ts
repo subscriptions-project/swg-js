@@ -89,6 +89,10 @@ interface CompleteAudienceActionResponse {
 const GPT_TIMEOUT_MS = 10000;
 // Default timeout to auto-dismiss the rewarded ad thanks prompt
 const THANKS_TIMEOUT_MS = 3000;
+// Default re-try count for detecting gpt.js
+const DETECT_GPT_RETRIES = 10;
+// Default re-try interval for detecting gpt.js
+const DETECT_GPT_RETRIES_MS = 500;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
@@ -116,7 +120,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     private readonly deps_: Deps,
     private readonly params_: AudienceActionLocalParams,
     private readonly gptTimeoutMs_: number = GPT_TIMEOUT_MS,
-    private readonly thanksTimeoutMs_: number = THANKS_TIMEOUT_MS
+    private readonly thanksTimeoutMs_: number = THANKS_TIMEOUT_MS,
+    private readonly detectGptRetries_: number = DETECT_GPT_RETRIES,
+    private readonly detectGptRetriesMs_: number = DETECT_GPT_RETRIES_MS
   ) {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
@@ -317,7 +323,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   // Checks if googletag is loaded every 0.5 seconds for 5 seconds.
   private googletagReady_(): Promise<boolean> {
     return new Promise((resolve) => {
-      let count = 10;
+      let count = this.detectGptRetries_;
       const interval = setInterval(() => {
         if (this.deps_.win().googletag?.apiReady === true) {
           clearInterval(interval);
@@ -328,7 +334,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
           clearInterval(interval);
           resolve(false);
         }
-      }, 500);
+      }, this.detectGptRetriesMs_);
     });
   }
 
@@ -339,7 +345,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private async initRewardedAdWall_() {
     this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_REWARDED_AD);
-    const [config, googletagAvailable] = await Promise.all([this.getConfig_(), this.checkGoogletagAvailable_()]);
+    const [config, googletagAvailable] = await Promise.all([
+      this.getConfig_(),
+      this.checkGoogletagAvailable_(),
+    ]);
     if (!googletagAvailable) {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
