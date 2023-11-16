@@ -696,12 +696,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private getCloseButtonHtml_(html: string) {
     if (
-      !this.params_.isClosable || (
-      this.params_.action === TYPE_REWARDED_AD &&
-      isExperimentOn(
-        this.deps_.doc().getWin(),
-        ArticleExperimentFlags.REWARDED_ADS_CLOSABLE_ENABLED
-      ))
+      !this.params_.isClosable ||
+      (this.params_.action === TYPE_REWARDED_AD &&
+        isExperimentOn(
+          this.deps_.doc().getWin(),
+          ArticleExperimentFlags.REWARDED_ADS_CLOSABLE_ENABLED
+        ))
     ) {
       return '';
     }
