@@ -188,9 +188,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           runtime,
           params,
           /* gptTimeoutMs_= */ 5,
-          /* thanksTimeoutMs_= */ 5,
-          /* detectGptRetries_= */ 1,
-          /* detectGptRetriesMs_= */ 5
+          /* thanksTimeoutMs_= */ 5
         );
 
         await flow.start();
@@ -476,9 +474,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           runtime,
           DEFAULT_PARAMS,
           /* gptTimeoutMs_= */ 5,
-          /* thanksTimeoutMs_= */ 5,
-          /* detectGptRetries_= */ 1,
-          /* detectGptRetriesMs_= */ 5
+          /* thanksTimeoutMs_= */ 5
         );
 
         await flow.start();
@@ -510,6 +506,58 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
       });
 
+      it('fails to render with gpt.js detection timeout', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          configurationId: 'xyz',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          onCancel: sandbox.spy(),
+          monetizationFunction: sandbox.spy(),
+          isClosable: true,
+        };
+        env.win.googletag.apiReady = undefined;
+
+        configResponse.text = sandbox
+          .stub()
+          .returns(Promise.resolve(DEFAULT_CONFIG));
+        completeResponse.text = sandbox
+          .stub()
+          .returns(Promise.resolve(DEFAULT_COMPLETE_RESPONSE));
+        env.win.fetch = sandbox.stub();
+        env.win.fetch.onCall(0).returns(Promise.resolve(configResponse));
+        env.win.fetch.onCall(1).returns(Promise.resolve(completeResponse));
+
+        const flow = new AudienceActionLocalFlow(
+          runtime,
+          params,
+          /* gptTimeoutMs_= */ 5,
+          /* thanksTimeoutMs_= */ 5,
+          /* detectGptRetries_= */ 1,
+          /* detectGptRetriesMs_= */ 5
+        );
+
+        await flow.start();
+
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.be.null;
+
+        expect(
+          env.win.googletag.destroySlots
+        ).to.not.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(params.onCancel).to.be.calledOnce.calledWithExactly();
+
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
+        );
+        expect(
+          params.monetizationFunction
+        ).to.be.calledOnce.calledWithExactly();
+      });
+
       it('fails to render with gpt.js timeout', async () => {
         const params = {
           action: 'TYPE_REWARDED_AD',
@@ -522,6 +570,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         await new Promise((resolve) => setTimeout(resolve, 10));
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.be.null;
 
         expect(
           env.win.googletag.destroySlots
@@ -827,9 +880,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           runtime,
           params,
           /* gptTimeoutMs_= */ 5,
-          /* thanksTimeoutMs_= */ 5,
-          /* detectGptRetries_= */ 1,
-          /* detectGptRetriesMs_= */ 5
+          /* thanksTimeoutMs_= */ 5
         );
 
         await flow.start();

@@ -320,22 +320,14 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  // Checks if googletag is loaded every 0.5 seconds for 5 seconds.
-  private googletagReady_(): Promise<boolean> {
-    return new Promise((resolve) => {
-      let count = this.detectGptRetries_;
-      const interval = setInterval(() => {
-        if (this.deps_.win().googletag?.apiReady === true) {
-          clearInterval(interval);
-          resolve(true);
-        } else if (this.deps_.win().googletag?.apiReady === undefined) {
-          count -= 1;
-        } else if (count == 0) {
-          clearInterval(interval);
-          resolve(false);
-        }
-      }, this.detectGptRetriesMs_);
-    });
+  private async googletagReady_(): Promise<boolean> {
+    for (let i = 0; i < this.detectGptRetries_; i++) {
+      if (this.deps_.win().googletag?.apiReady !== undefined) {
+        return this.deps_.win().googletag.apiReady;
+      }
+      await new Promise((r) => setTimeout(r, this.detectGptRetriesMs_));
+    }
+    return false;
   }
 
   private async checkGoogletagAvailable_(): Promise<boolean> {
