@@ -95,9 +95,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   });
 
   describe('start', () => {
-    it('renders with error view prompt', async () => {
+    it('invalid action renders with error view prompt when not closable', async () => {
       const params = {
         action: 'invlid action',
+        isClosable: false,
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
@@ -111,6 +112,23 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       expect(prompt.innerHTML).contains('Something went wrong.');
       const closePromptButton = prompt.querySelector('.closePromptButton');
       expect(closePromptButton).to.be.null;
+    });
+
+    it('invalid action renders with error view prompt when closable', async () => {
+      const params = {
+        action: 'invlid action',
+        isClosable: true,
+        monetizationFunction: sandbox.spy(),
+      };
+      const flow = new AudienceActionLocalFlow(runtime, params);
+
+      await flow.start();
+
+      const wrapper = env.win.document.querySelector(
+        '.audience-action-local-wrapper'
+      );
+      expect(wrapper).to.be.null;
+      expect(params.monetizationFunction).to.be.calledOnce.calledWithExactly();
     });
 
     describe('rewarded ad', () => {
@@ -143,6 +161,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           enableServices: () => {},
           display: () => {},
           destroySlots: sandbox.spy(),
+          apiReady: true,
+          getVersion: () => 'GOOGLETAG_VERSION',
         };
         configResponse = new Response(null, {status: 200});
         completeResponse = new Response(null, {status: 200});
@@ -434,6 +454,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
           onCancel: sandbox.spy(),
           monetizationFunction: sandbox.spy(),
+          isClosable: true,
         };
         await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 

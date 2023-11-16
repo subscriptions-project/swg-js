@@ -15,6 +15,7 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   TYPE_NEWSLETTER_SIGNUP,
@@ -45,6 +46,7 @@ import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
+import {isExperimentOn} from './experiments';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
@@ -181,9 +183,17 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private renderErrorView_() {
-    // TODO: mhkawano - Make closeable.
-    // TODO: mhkawano - Make look nicer.
-    this.prompt_./*OK*/ innerHTML = ERROR_HTML;
+    if (this.params_.isClosable) {
+      if (this.rewardedSlot_) {
+        const googletag = this.deps_.win().googletag;
+        googletag.destroySlots([this.rewardedSlot_!]);
+      }
+      this.params_.onCancel?.();
+      this.unlock_();
+      this.params_.monetizationFunction?.();
+    } else {
+      this.prompt_./*OK*/ innerHTML = ERROR_HTML;
+    }
   }
 
   private renderLoadingView_() {
@@ -304,35 +314,68 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
+  // Checks if googletag is loaded every 0.5 seconds for 5 seconds.
+  private googletagReady_(): Promise<boolean> {
+    return new Promise((resolve) => {
+      let count = 10;
+      const interval = setInterval(() => {
+        if (this.deps_.win().googletag?.apiReady === true) {
+          clearInterval(interval);
+          resolve(true);
+        } else if (this.deps_.win().googletag?.apiReady === undefined) {
+          count -= 1;
+        } else if (count == 0) {
+          clearInterval(interval);
+          resolve(false);
+        }
+      }, 500);
+    });
+  }
+
+  private async checkGoogletagAvailable_(): Promise<boolean> {
+    const googletagReady = await this.googletagReady_();
+    return googletagReady && !!this.deps_.win().googletag?.getVersion();
+  }
+
   private async initRewardedAdWall_() {
     this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_REWARDED_AD);
+    const googletagAvailable = await this.checkGoogletagAvailable_();
+    if (!googletagAvailable) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
+      );
+      this.renderErrorView_();
+      return;
+    }
 
     const config = await this.getConfig_();
-
     const validRewardedAdParams =
       config?.rewardedAdParameters?.adunit &&
       config?.rewardedAdParameters?.customMessage &&
       config?.publication?.name;
-    if (validRewardedAdParams) {
-      // Setup callback for googletag init.
-      const googletag = this.deps_.win().googletag;
-      googletag.cmd.push(() => {
-        this.initRewardedAdSlot_(config);
-      });
-
-      // There is no good method of checking that gpt.js is working correctly.
-      // This timeout allows us to sanity check and error out if things are not
-      // working correctly.
-      this.rewardedAdTimeout_ = setTimeout(
-        this.rewardedAdTimeoutHandler_.bind(this),
-        this.gptTimeoutMs_
-      );
-    } else {
+    if (!validRewardedAdParams) {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_CONFIG_ERROR
       );
       this.renderErrorView_();
+      return;
     }
+
+    // Setup callback for googletag init.
+    const googletag = this.deps_.win().googletag;
+    googletag.cmd.push(() => {
+      this.initRewardedAdSlot_(config);
+    });
+
+    // There is no good method of checking that gpt.js is working correctly.
+    // This timeout allows us to sanity check and error out if things are not
+    // working correctly.
+    this.rewardedAdTimeout_ = setTimeout(() => {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
+      );
+      this.renderErrorView_();
+    }, this.gptTimeoutMs_);
   }
 
   private initRewardedAdSlot_(config: AudienceActionConfig) {
@@ -343,47 +386,36 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       googletag.enums.OutOfPageFormat.REWARDED
     );
 
-    if (this.rewardedSlot_) {
-      this.rewardedSlot_.addService(googletag.pubads());
-      googletag
-        .pubads()
-        .addEventListener(
-          'rewardedSlotReady',
-          (event: googletag.events.RewardedSlotReadyEvent) =>
-            this.rewardedSlotReady_(event, config!)
-        );
-      googletag
-        .pubads()
-        .addEventListener(
-          'rewardedSlotClosed',
-          this.rewardedSlotClosed_.bind(this)
-        );
-      googletag
-        .pubads()
-        .addEventListener(
-          'rewardedSlotGranted',
-          this.rewardedSlotGranted_.bind(this)
-        );
-      googletag.enableServices();
-      googletag.display(this.rewardedSlot_);
-      googletag.pubads().refresh([this.rewardedSlot_]);
-    } else {
+    if (!this.rewardedSlot_) {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR
       );
       this.renderErrorView_();
+      return;
     }
-  }
-
-  private rewardedAdTimeoutHandler_() {
-    if (this.rewardedSlot_) {
-      const googletag = this.deps_.win().googletag;
-      googletag.destroySlots([this.rewardedSlot_!]);
-    }
-    this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR);
-    this.params_.onCancel?.();
-    this.unlock_();
-    this.params_.monetizationFunction?.();
+    this.rewardedSlot_.addService(googletag.pubads());
+    googletag
+      .pubads()
+      .addEventListener(
+        'rewardedSlotReady',
+        (event: googletag.events.RewardedSlotReadyEvent) =>
+          this.rewardedSlotReady_(event, config!)
+      );
+    googletag
+      .pubads()
+      .addEventListener(
+        'rewardedSlotClosed',
+        this.rewardedSlotClosed_.bind(this)
+      );
+    googletag
+      .pubads()
+      .addEventListener(
+        'rewardedSlotGranted',
+        this.rewardedSlotGranted_.bind(this)
+      );
+    googletag.enableServices();
+    googletag.display(this.rewardedSlot_);
+    googletag.pubads().refresh([this.rewardedSlot_]);
   }
 
   /**
@@ -416,14 +448,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const icon = isSubscription ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
+    const prioritySwaped = isExperimentOn(
+      this.deps_.doc().getWin(),
+      ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED
+    );
     const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
+    const support = isContribution
+      ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
+      : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
     const supportHtml = isPremonetization
       ? ''
       : REWARDED_AD_SUPPORT_HTML.replace(
           '$SUPPORT_MESSAGE$',
-          isContribution
-            ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
-            : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!
+          prioritySwaped ? viewad : support
         );
 
     const signinHtml = isPremonetization
@@ -442,22 +479,31 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
       .replace('$ICON$', icon)
       .replace('$MESSAGE$', message)
-      .replace('$VIEW_AN_AD$', viewad)
+      .replace('$VIEW_AN_AD$', prioritySwaped ? support : viewad)
       .replace('$SUPPORT_BUTTON$', supportHtml)
       .replace('$SIGN_IN_BUTTON$', signinHtml);
 
+    if (prioritySwaped) {
+      this.prompt_
+        .querySelector('.rewarded-ad-support-button')
+        ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
+      this.prompt_
+        .querySelector('.rewarded-ad-view-ad-button')
+        ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
+    } else {
+      this.prompt_
+        .querySelector('.rewarded-ad-support-button')
+        ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
+      this.prompt_
+        .querySelector('.rewarded-ad-view-ad-button')
+        ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
+    }
     this.prompt_
       .querySelector('.rewarded-ad-close-button')
       ?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
     this.prompt_
-      .querySelector('.rewarded-ad-support-button')
-      ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
-    this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
-    this.prompt_
-      .querySelector('.rewarded-ad-view-ad-button')
-      ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
     this.focusRewardedAds_();
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
   }
@@ -517,6 +563,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private supportRewardedAdWall_() {
+    if (this.params_.isClosable) {
+      this.params_.onCancel?.();
+    }
     this.unlock_();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
@@ -647,15 +696,21 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private getCloseButtonHtml_(html: string) {
+    if (
+      !this.params_.isClosable ||
+      isExperimentOn(
+        this.deps_.doc().getWin(),
+        ArticleExperimentFlags.REWARDED_ADS_CLOSABLE_ENABLED
+      )
+    ) {
+      return '';
+    }
     const language = this.clientConfigManager_.getLanguage();
     const closeButtonDescription = msg(
       SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
       language
     )!;
-    const closeHtml = this.params_.isClosable
-      ? html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription)
-      : '';
-    return closeHtml;
+    return html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription);
   }
 
   showNoEntitlementFoundToast() {

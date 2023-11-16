@@ -4387,27 +4387,6 @@ describes.realWin('AutoPromptManager', (env) => {
       );
     });
 
-    it('is filtered for TYPE_REWARDED_ADS when googletag does not exist', async () => {
-      win.googletag = undefined;
-
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-      });
-
-      await tick(7);
-
-      expect(startLocalSpy).to.not.have.been.called;
-      expect(autoPromptManager.interventionDisplayed_.type).to.equal(
-        'TYPE_SUBSCRIPTION'
-      );
-      await eventManagerCallback({
-        eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-
     it('is rendered for TYPE_NEWSLETTER_SIGNUP', async () => {
       getArticleExpectation
         .resolves({
