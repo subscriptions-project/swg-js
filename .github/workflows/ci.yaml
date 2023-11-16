@@ -44,6 +44,13 @@ jobs:
       - name: E2E Tests
         run: npm run e2e
 
+      - name: Archive binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: |
+            dist/*.js
+
       - name: Upload VRT report
         if: always()
         uses: actions/upload-artifact@v3
