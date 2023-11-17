@@ -44,21 +44,37 @@ jobs:
       - name: E2E Tests
         run: npm run e2e
 
-      - name: Archive binaries
-        uses: actions/upload-artifact@v3
-        with:
-          name: binaries
-          path: |
-            dist/*.js
-
       - name: Upload VRT report
-        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: vrt-report
           path: |
             .vrt
             vrt-report
+
+  binaries:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the right version of Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build binaries
+        run: . ./build_binaries.sh
+
+      - name: Archive binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: |
+            dist/*.js
 
   unit:
     runs-on: ubuntu-latest
