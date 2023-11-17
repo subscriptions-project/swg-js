@@ -42,7 +42,7 @@ jobs:
         run: npm ci
 
       - name: E2E Tests
-        run: npm run e2e
+        run: . ./build_and_run_e2e.sh
 
       - name: Upload VRT report
         if: always()
@@ -53,7 +53,7 @@ jobs:
             .vrt
             vrt-report
 
-  e2e-with-all-experiments:
+  e2e-with-all-experiments-enabled:
     runs-on: ubuntu-latest
 
     steps:
@@ -67,8 +67,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: E2E Tests with all experiments
-        run: . ./build_and_run_e2e.sh experiments_enabled
+      - name: E2E Tests with all experiments enabled
+        run: . ./build_and_run_e2e.sh all_experiments_enabled
 
       - name: Upload VRT report
         if: always()
