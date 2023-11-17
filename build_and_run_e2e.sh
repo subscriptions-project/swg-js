@@ -6,9 +6,12 @@ npx vite build -- --target=gaa &
 npx vite build -- --target=basic &
 wait
 
-# Run all test configurations. Report failure if any run fails.
+# Run E2E tests. Report failure if any run fails.
 status=0
-npx gulp e2e $* || ((status++))
-npx gulp e2e --env=all_experiments_enabled $* || ((status++))
+if [[ "$1" == "experiments_enabled" ]]; then
+    npx gulp e2e --env=all_experiments_enabled $* || ((status++))
+else
+    npx gulp e2e $* || ((status++))
+fi
 
 exit $status
