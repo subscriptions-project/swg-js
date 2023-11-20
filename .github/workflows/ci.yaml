@@ -42,7 +42,32 @@ jobs:
         run: npm ci
 
       - name: E2E Tests
-        run: npm run e2e
+        run: . ./build_and_run_e2e.sh
+
+      - name: Upload VRT report
+        uses: actions/upload-artifact@v3
+        with:
+          name: vrt-report
+          path: |
+            .vrt
+            vrt-report
+
+  e2e-with-all-experiments-enabled:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the right version of Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: E2E Tests with all experiments enabled
+        run: . ./build_and_run_e2e.sh all_experiments_enabled
 
       - name: Upload VRT report
         uses: actions/upload-artifact@v3
