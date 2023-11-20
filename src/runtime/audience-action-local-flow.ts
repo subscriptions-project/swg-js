@@ -189,6 +189,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private renderErrorView_() {
+    // TODO: mhkawano - Make closeable.
+    // TODO: mhkawano - Make look nicer.
+    this.prompt_./*OK*/ innerHTML = ERROR_HTML;
+  }
+
+  private bailoutPrompt_() {
     if (this.params_.isClosable || this.params_.monetizationFunction) {
       if (this.rewardedSlot_) {
         const googletag = this.deps_.win().googletag;
@@ -198,7 +204,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.unlock_();
       this.params_.monetizationFunction?.();
     } else {
-      this.prompt_./*OK*/ innerHTML = ERROR_HTML;
+      this.renderErrorView_();
     }
   }
 
@@ -217,7 +223,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
       await this.initNewsletterSignup_();
     } else {
-      this.renderErrorView_();
+      this.bailoutPrompt_();
     }
   }
 
@@ -345,7 +351,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
       );
-      this.renderErrorView_();
+      this.bailoutPrompt_();
       return;
     }
     const validRewardedAdParams =
@@ -356,7 +362,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_CONFIG_ERROR
       );
-      this.renderErrorView_();
+      this.bailoutPrompt_();
       return;
     }
 
@@ -373,7 +379,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
       );
-      this.renderErrorView_();
+      this.bailoutPrompt_();
     }, this.gptTimeoutMs_);
   }
 
@@ -389,7 +395,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR
       );
-      this.renderErrorView_();
+      this.bailoutPrompt_();
       return;
     }
     this.rewardedSlot_.addService(googletag.pubads());
