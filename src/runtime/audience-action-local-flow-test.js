@@ -513,7 +513,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const params = {
           action: 'TYPE_REWARDED_AD',
           configurationId: 'xyz',
-          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
           onCancel: sandbox.spy(),
           monetizationFunction: sandbox.spy(),
           isClosable: true,
