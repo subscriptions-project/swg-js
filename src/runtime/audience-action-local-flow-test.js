@@ -516,7 +516,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
           onCancel: sandbox.spy(),
           monetizationFunction: sandbox.spy(),
-          isClosable: true,
+          isClosable: false,
         };
         env.win.googletag.apiReady = undefined;
 
