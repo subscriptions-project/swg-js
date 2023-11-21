@@ -15,11 +15,13 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
+import {setExperimentsStringForTesting} from './experiments';
 import {tick} from '../../test/tick';
 
 const DEFAULT_PARAMS = {
@@ -70,6 +72,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   let entitlementsManager;
 
   beforeEach(() => {
+    setExperimentsStringForTesting('');
     runtime = new ConfiguredRuntime(
       env.win,
       new PageConfig(
@@ -95,9 +98,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   });
 
   describe('start', () => {
-    it('renders with error view prompt', async () => {
+    it('invalid action renders with error view prompt when not closable', async () => {
       const params = {
         action: 'invlid action',
+        isClosable: false,
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
@@ -111,6 +115,23 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       expect(prompt.innerHTML).contains('Something went wrong.');
       const closePromptButton = prompt.querySelector('.closePromptButton');
       expect(closePromptButton).to.be.null;
+    });
+
+    it('invalid action renders with error view prompt when closable', async () => {
+      const params = {
+        action: 'invlid action',
+        isClosable: true,
+        monetizationFunction: sandbox.spy(),
+      };
+      const flow = new AudienceActionLocalFlow(runtime, params);
+
+      await flow.start();
+
+      const wrapper = env.win.document.querySelector(
+        '.audience-action-local-wrapper'
+      );
+      expect(wrapper).to.be.null;
+      expect(params.monetizationFunction).to.be.calledOnce.calledWithExactly();
     });
 
     describe('rewarded ad', () => {
@@ -143,6 +164,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           enableServices: () => {},
           display: () => {},
           destroySlots: sandbox.spy(),
+          apiReady: true,
+          getVersion: () => 'GOOGLETAG_VERSION',
         };
         configResponse = new Response(null, {status: 200});
         completeResponse = new Response(null, {status: 200});
@@ -234,6 +257,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           action: 'TYPE_REWARDED_AD',
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
           monetizationFunction: sandbox.spy(),
+          onCancel: sandbox.spy(),
+          isClosable: true,
         };
         const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
@@ -251,6 +276,62 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(contributeButton.innerHTML).contains('Contribute');
 
         await contributeButton.click();
+        await tick();
+
+        expect(params.onCancel).to.be.calledOnce.calledWithExactly();
+        expect(
+          params.monetizationFunction
+        ).to.be.calledOnce.calledWithExactly();
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_REWARDED_AD
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_READY
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT
+        );
+        expect(pubadsobj.refresh).to.be.called;
+      });
+
+      it('renders contribution with all experiments on', async () => {
+        setExperimentsStringForTesting(
+          `${ArticleExperimentFlags.REWARDED_ADS_CLOSABLE_ENABLED},${ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED}`
+        );
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          monetizationFunction: sandbox.spy(),
+        };
+        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=undefined&origin=about%3Asrcdoc'
+        );
+
+        const closeButton = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-close-button'
+        );
+        expect(closeButton).to.be.null;
+
+        const contributeButton = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(contributeButton.innerHTML).contains('View an ad');
+
+        const viewButton = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-view-ad-button'
+        );
+        expect(viewButton.innerHTML).contains('Contribute');
+
+        await viewButton.click();
         await tick();
 
         expect(
@@ -395,7 +476,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const flow = new AudienceActionLocalFlow(
           runtime,
           DEFAULT_PARAMS,
-          /* gptTimeoutMs_= */ 1
+          /* gptTimeoutMs_= */ 5,
+          /* thanksTimeoutMs_= */ 5
         );
 
         await flow.start();
@@ -427,6 +509,58 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
       });
 
+      it('fails to render with gpt.js detection timeout', async () => {
+        const params = {
+          action: 'TYPE_REWARDED_AD',
+          configurationId: 'xyz',
+          autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+          onCancel: sandbox.spy(),
+          monetizationFunction: sandbox.spy(),
+          isClosable: false,
+        };
+        env.win.googletag.apiReady = undefined;
+
+        configResponse.text = sandbox
+          .stub()
+          .returns(Promise.resolve(DEFAULT_CONFIG));
+        completeResponse.text = sandbox
+          .stub()
+          .returns(Promise.resolve(DEFAULT_COMPLETE_RESPONSE));
+        env.win.fetch = sandbox.stub();
+        env.win.fetch.onCall(0).returns(Promise.resolve(configResponse));
+        env.win.fetch.onCall(1).returns(Promise.resolve(completeResponse));
+
+        const flow = new AudienceActionLocalFlow(
+          runtime,
+          params,
+          /* gptTimeoutMs_= */ 5,
+          /* thanksTimeoutMs_= */ 5,
+          /* detectGptRetries_= */ 1,
+          /* detectGptRetriesMs_= */ 5
+        );
+
+        await flow.start();
+
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.be.null;
+
+        expect(
+          env.win.googletag.destroySlots
+        ).to.not.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(params.onCancel).to.be.calledOnce.calledWithExactly();
+
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
+        );
+        expect(
+          params.monetizationFunction
+        ).to.be.calledOnce.calledWithExactly();
+      });
+
       it('fails to render with gpt.js timeout', async () => {
         const params = {
           action: 'TYPE_REWARDED_AD',
@@ -434,10 +568,16 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
           onCancel: sandbox.spy(),
           monetizationFunction: sandbox.spy(),
+          isClosable: true,
         };
         await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
         await new Promise((resolve) => setTimeout(resolve, 10));
+
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.be.null;
 
         expect(
           env.win.googletag.destroySlots
@@ -742,7 +882,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const flow = new AudienceActionLocalFlow(
           runtime,
           params,
-          /* gptTimeoutMs_= */ 1
+          /* gptTimeoutMs_= */ 5,
+          /* thanksTimeoutMs_= */ 5
         );
 
         await flow.start();
