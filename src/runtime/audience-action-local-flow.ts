@@ -326,7 +326,24 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
+  private isSubscription() {
+    return (
+      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION ||
+      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION_LARGE
+    );
+  }
+
+  private isContribution() {
+    return (
+      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
+      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE
+    );
+  }
+
   private async googletagReady_(): Promise<boolean> {
+    if (this.isContribution()) {
+      return !!this.deps_.win().googletag.apiReady;
+    }
     for (let i = 0; i < this.detectGptRetries_; i++) {
       if (this.deps_.win().googletag?.apiReady !== undefined) {
         return this.deps_.win().googletag.apiReady;
@@ -342,7 +359,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async initRewardedAdWall_() {
-    this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_REWARDED_AD);
+    // TODO: mhkawano - Come up with new event for total rewarded ad views.
     const [config, googletagAvailable] = await Promise.all([
       this.getConfig_(),
       this.checkGoogletagAvailable_(),
@@ -434,13 +451,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     clearTimeout(this.rewardedAdTimeout_);
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
 
-    const isContribution =
-      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
-      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE;
-    const isSubscription =
-      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION ||
-      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION_LARGE;
-    const isPremonetization = !isContribution && !isSubscription;
+    const isPremonetization = !this.isContribution() && !this.isSubscription();
 
     // TODO: mhkawnao - Escape user provided strings. For Alpha it will be
     //                  specified by us so we don't need to do it yet.
@@ -452,7 +463,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const closeHtml = this.getCloseButtonOrEmptyHtml_(
       REWARDED_AD_CLOSE_BUTTON_HTML
     );
-    const icon = isSubscription ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
+    const icon = this.isSubscription() ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
     const prioritySwaped = isExperimentOn(
@@ -460,7 +471,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED
     );
     const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
-    const support = isContribution
+    const support = this.isContribution()
       ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
       : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
     // TODO: mhkawano - make seperate elements for each button variation
@@ -475,7 +486,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       ? ''
       : REWARDED_AD_SIGN_IN_HTML.replace(
           '$SIGN_IN_MESSAGE$',
-          isContribution
+          this.isContribution()
             ? msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!
             : msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!
         );
@@ -513,7 +524,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
     this.focusRewardedAds_();
+    // TODO: mhkawano - EVENT_REWARDED_AD_READY and IMPRESSION_REWARDED_AD are redundant.
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
+    this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_REWARDED_AD);
   }
 
   private rewardedSlotClosed_() {
@@ -704,14 +717,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private getCloseButtonOrEmptyHtml_(html: string) {
-    if (
-      !this.params_.isClosable ||
-      (this.params_.action === TYPE_REWARDED_AD &&
-        isExperimentOn(
-          this.deps_.doc().getWin(),
-          ArticleExperimentFlags.REWARDED_ADS_ALWAYS_BLOCKING_ENABLED
-        ))
-    ) {
+    const initialPromptIsClosable =
+      this.params_.action === TYPE_REWARDED_AD &&
+      isExperimentOn(
+        this.deps_.doc().getWin(),
+        ArticleExperimentFlags.REWARDED_ADS_ALWAYS_BLOCKING_ENABLED
+      );
+    if (!this.params_.isClosable || initialPromptIsClosable) {
       return '';
     }
     const language = this.clientConfigManager_.getLanguage();
