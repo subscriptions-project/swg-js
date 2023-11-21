@@ -341,7 +341,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async googletagReady_(): Promise<boolean> {
-    if (this.isContribution()) {
+    if (this.params_.isClosable) {
       return !!this.deps_.win().googletag.apiReady;
     }
     for (let i = 0; i < this.detectGptRetries_; i++) {
