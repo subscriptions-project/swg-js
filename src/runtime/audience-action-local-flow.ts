@@ -251,7 +251,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   private renderOptInPrompt_(codeSnippet: string) {
     const optInPrompt = createElement(this.doc_, 'div', {});
-    const closeHtml = this.getCloseButtonHtml_(OPT_IN_CLOSE_BUTTON_HTML);
+    const closeHtml = this.getCloseButtonOrEmptyHtml_(OPT_IN_CLOSE_BUTTON_HTML);
     optInPrompt./*OK*/ innerHTML = closeHtml.concat(codeSnippet);
     const form = optInPrompt.querySelector('form');
 
@@ -449,7 +449,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     // verified existance in initRewardedAdWall_
     const publication = config.publication!.name!;
-    const closeHtml = this.getCloseButtonHtml_(REWARDED_AD_CLOSE_BUTTON_HTML);
+    const closeHtml = this.getCloseButtonOrEmptyHtml_(
+      REWARDED_AD_CLOSE_BUTTON_HTML
+    );
     const icon = isSubscription ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
@@ -461,6 +463,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const support = isContribution
       ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
       : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
+    // TODO: mhkawano - make seperate elements for each button variation
     const supportHtml = isPremonetization
       ? ''
       : REWARDED_AD_SUPPORT_HTML.replace(
@@ -700,13 +703,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     await this.initPrompt_();
   }
 
-  private getCloseButtonHtml_(html: string) {
+  private getCloseButtonOrEmptyHtml_(html: string) {
     if (
       !this.params_.isClosable ||
       (this.params_.action === TYPE_REWARDED_AD &&
         isExperimentOn(
           this.deps_.doc().getWin(),
-          ArticleExperimentFlags.REWARDED_ADS_CLOSABLE_ENABLED
+          ArticleExperimentFlags.REWARDED_ADS_ALWAYS_BLOCKING_ENABLED
         ))
     ) {
       return '';
