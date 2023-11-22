@@ -72,7 +72,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   let articleExperimentFlags;
 
   beforeEach(() => {
-    setExperimentsStringForTesting('');
     runtime = new ConfiguredRuntime(
       env.win,
       new PageConfig(
