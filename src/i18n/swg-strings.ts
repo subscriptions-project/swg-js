@@ -536,7 +536,7 @@ export const SWG_I18N_STRINGS = {
     'id': 'Lihat iklan',
     'it': 'Visualizza un annuncio',
     'ja': '広告を表示',
-    'ko': 'V광고 보기',
+    'ko': '광고 보기',
     'ms': 'Lihat iklan',
     'nl': 'Een advertentie bekijken',
     'no': 'Se en annonsv',
