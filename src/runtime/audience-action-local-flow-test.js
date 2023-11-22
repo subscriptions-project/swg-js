@@ -93,11 +93,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
     entitlementsManager = {
       clear: sandbox.spy(),
       getEntitlements: sandbox.spy(),
-      getArticle: () => ({
-        experimentConfig: {
-          experimentFlags: articleExperimentFlags,
-        },
-      }),
+      getArticle: () => {},
+      parseArticleExperimentConfigFlags: (_) => articleExperimentFlags,
     };
     runtime.entitlementsManager = () => entitlementsManager;
   });
