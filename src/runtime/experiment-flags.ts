@@ -54,4 +54,14 @@ export enum ArticleExperimentFlags {
    * closable popups.
    */
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
+
+  /**
+   * When enabled the rewarded ad wall isn't closable until the ad is viewed.
+   */
+  REWARDED_ADS_ALWAYS_BLOCKING_ENABLED = 'rewarded_ads_always_blocking_enabled',
+
+  /**
+   * When enabled the ad and buyflow ctas are swapped.
+   */
+  REWARDED_ADS_PRIORITY_ENABLED = 'rewarded_ads_priority_enabled',
 }

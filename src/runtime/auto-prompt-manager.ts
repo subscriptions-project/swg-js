@@ -1117,21 +1117,6 @@ export class AutoPromptManager {
       return canDisplayMonetizationPrompt;
     } else if (actionType === TYPE_REWARDED_SURVEY) {
       return isSurveyEligible;
-    } else if (actionType === TYPE_REWARDED_ADS) {
-      /*
-       * Because we have fetched the article endpoint gpt.js should
-       * already be ready, but this is a race condition. Failing the race
-       * condition results in not showing the prompt.
-       */
-      const googletagExists =
-        !!this.deps_.win().googletag?.apiReady &&
-        !!this.deps_.win().googletag?.getVersion();
-      if (!googletagExists) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
-        );
-      }
-      return googletagExists;
     }
     return true;
   }
