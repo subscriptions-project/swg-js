@@ -46,7 +46,6 @@ import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
-import {isExperimentOn} from './experiments';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
@@ -115,6 +114,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private rewardedAdTimeout_?: NodeJS.Timeout;
   // Used for focus trap.
   private bottomSentinal_!: HTMLElement;
+  private articleExpFlags_?: string[];
 
   constructor(
     private readonly deps_: Deps,
@@ -467,8 +467,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const icon = this.isSubscription() ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = config.rewardedAdParameters!.customMessage!;
-    const prioritySwaped = isExperimentOn(
-      this.deps_.doc().getWin(),
+    const prioritySwaped = !!this.articleExpFlags_?.includes(
       ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED
     );
     const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
@@ -709,6 +708,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   async start() {
+    const article = await this.entitlementsManager_.getArticle();
+    this.articleExpFlags_ =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
     this.renderLoadingView_();
     this.doc_.documentElement.appendChild(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', 'hidden');
@@ -720,8 +722,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private getCloseButtonOrEmptyHtml_(html: string) {
     const initialPromptIsClosable =
       this.params_.action === TYPE_REWARDED_AD &&
-      isExperimentOn(
-        this.deps_.doc().getWin(),
+      !!this.articleExpFlags_?.includes(
         ArticleExperimentFlags.REWARDED_ADS_ALWAYS_BLOCKING_ENABLED
       );
     if (!this.params_.isClosable || initialPromptIsClosable) {

@@ -21,7 +21,6 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
-import {setExperimentsStringForTesting} from './experiments';
 import {tick} from '../../test/tick';
 
 const DEFAULT_PARAMS = {
@@ -70,9 +69,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   let runtime;
   let eventManager;
   let entitlementsManager;
+  let articleExperimentFlags;
 
   beforeEach(() => {
-    setExperimentsStringForTesting('');
     runtime = new ConfiguredRuntime(
       env.win,
       new PageConfig(
@@ -90,9 +89,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       logSwgEvent: sandbox.spy(),
     };
     runtime.eventManager = () => eventManager;
+    articleExperimentFlags = [];
     entitlementsManager = {
       clear: sandbox.spy(),
       getEntitlements: sandbox.spy(),
+      getArticle: () => {},
+      parseArticleExperimentConfigFlags: (_) => articleExperimentFlags,
     };
     runtime.entitlementsManager = () => entitlementsManager;
   });
@@ -298,9 +300,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('renders contribution with all experiments on', async () => {
-        setExperimentsStringForTesting(
-          `${ArticleExperimentFlags.REWARDED_ADS_CLOSABLE_ENABLED},${ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED}`
-        );
+        articleExperimentFlags = [
+          ArticleExperimentFlags.REWARDED_ADS_CLOSABLE_ENABLED,
+          ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED,
+        ];
         const params = {
           action: 'TYPE_REWARDED_AD',
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
