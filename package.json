@@ -30,9 +30,9 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@babel/core": "7.23.3",
+    "@babel/core": "7.23.5",
     "@babel/eslint-parser": "7.23.3",
-    "@babel/preset-env": "7.23.3",
+    "@babel/preset-env": "7.23.5",
     "@types/google-publisher-tag": "1.20231113.1",
     "@typescript-eslint/eslint-plugin": "6.13.1",
     "@typescript-eslint/parser": "6.13.1",
