@@ -1094,7 +1094,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(form).to.not.be.null;
         expect(form.innerHTML).contains('newsletter_code_snippet');
         form.dispatchEvent(new SubmitEvent('submit'));
-        await new Promise((resolve) => setTimeout(resolve, 1001));
+        await tick(3);
 
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
