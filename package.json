@@ -89,7 +89,7 @@
     "lazypipe": "1.0.2",
     "minimist": "1.2.8",
     "mocha": "10.2.0",
-    "nodemon": "3.0.1",
+    "nodemon": "3.0.2",
     "plugin-error": "2.0.1",
     "postcss": "8.4.31",
     "postcss-import": "15.1.0",
