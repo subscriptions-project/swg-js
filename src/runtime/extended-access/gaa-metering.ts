@@ -574,7 +574,7 @@ export class GaaMetering {
     }
 
     throw new Error(
-      'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
+      'Showcase articles must define a product ID with either JSON-LD or Microdata.'
     );
   }
 
