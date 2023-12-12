@@ -55,7 +55,7 @@ describes.sandboxed('Entitlements', () => {
         'token1',
         /* subscriptionTokenContents= */ undefined,
         /* subscriptionTimestamp= */ null,
-        'userId'
+        'readerId'
       ),
       new Entitlement(
         'source2',
@@ -63,7 +63,7 @@ describes.sandboxed('Entitlements', () => {
         'token2',
         /* subscriptionTokenContents= */ undefined,
         /* subscriptionTimestamp= */ null,
-        'userId'
+        'readerId'
       ),
     ];
     const ents = new Entitlements('service1', 'RaW', list, 'product1', ackSpy);
@@ -124,7 +124,7 @@ describes.sandboxed('Entitlements', () => {
         'token1',
         /* subscriptionTokenContents= */ undefined,
         /* subscriptionTimestamp= */ null,
-        'userId'
+        'readerId'
       ),
     ];
     const ents = new Entitlements(
@@ -160,7 +160,7 @@ describes.sandboxed('Entitlements', () => {
         'token1',
         /* subscriptionTokenContents= */ undefined,
         /* subscriptionTimestamp= */ null,
-        'userId'
+        'readerId'
       ),
     ];
     const ents = new Entitlements('service1', 'RaW', list, 'pub:*', ackSpy);
@@ -189,7 +189,7 @@ describes.sandboxed('Entitlements', () => {
         'token1',
         /* subscriptionTokenContents= */ undefined,
         /* subscriptionTimestamp= */ null,
-        'userId1'
+        'readerId1'
       ),
       new Entitlement(
         'source2',
@@ -197,7 +197,7 @@ describes.sandboxed('Entitlements', () => {
         'token2',
         /* subscriptionTokenContents= */ undefined,
         /* subscriptionTimestamp= */ null,
-        'userId2'
+        'readerId2'
       ),
     ];
     const ents = new Entitlements('service1', 'RaW', list, 'product1', ackSpy);
@@ -210,13 +210,13 @@ describes.sandboxed('Entitlements', () => {
           source: 'source1',
           products: ['product1', 'product2'],
           subscriptionToken: 'token1',
-          userId: 'userId1',
+          readerId: 'readerId1',
         },
         {
           source: 'source2',
           products: ['product2', 'product3'],
           subscriptionToken: 'token2',
-          userId: 'userId2',
+          readerId: 'readerId2',
         },
       ],
       isReadyToPay: false,
@@ -231,7 +231,7 @@ describes.sandboxed('Entitlements', () => {
         'token1',
         /* subscriptionTokenContents= */ undefined,
         /* subscriptionTimestamp= */ null,
-        'userId'
+        'readerId'
       ),
       new Entitlement(
         '',
@@ -239,7 +239,7 @@ describes.sandboxed('Entitlements', () => {
         'token2',
         /* subscriptionTokenContents= */ undefined,
         /* subscriptionTimestamp= */ null,
-        'userId'
+        'readerId'
       ),
     ];
     const ents = new Entitlements('service1', 'RaW', list, null, ackSpy);
@@ -252,14 +252,14 @@ describes.sandboxed('Entitlements', () => {
       const list = Entitlement.parseListFromJson({
         products: ['product1'],
         subscriptionToken: 'token1',
-        userId: 'userId',
+        readerId: 'readerId',
       });
       expect(list).to.have.length(1);
       expect(list[0].json()).to.deep.equal({
         source: '',
         products: ['product1'],
         subscriptionToken: 'token1',
-        userId: 'userId',
+        readerId: 'readerId',
       });
     });
 
@@ -273,7 +273,7 @@ describes.sandboxed('Entitlements', () => {
         source: '',
         products: ['product1', 'product2'],
         subscriptionToken: 'token1',
-        userId: undefined,
+        readerId: undefined,
       });
     });
 
@@ -293,13 +293,13 @@ describes.sandboxed('Entitlements', () => {
         source: '',
         products: ['product1', 'product2'],
         subscriptionToken: 'token1',
-        userId: undefined,
+        readerId: undefined,
       });
       expect(list[1].json()).to.deep.equal({
         source: '',
         products: ['product2', 'product3'],
         subscriptionToken: 'token2',
-        userId: undefined,
+        readerId: undefined,
       });
     });
 
