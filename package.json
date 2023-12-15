@@ -94,7 +94,7 @@
     "postcss": "8.4.32",
     "postcss-import": "15.1.0",
     "prettier": "2.8.8",
-    "regenerator-runtime": "0.14.0",
+    "regenerator-runtime": "0.14.1",
     "request": "2.88.2",
     "shuffle-seed": "1.1.6",
     "sinon": "17.0.1",
