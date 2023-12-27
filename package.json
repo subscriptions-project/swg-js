@@ -124,7 +124,7 @@
     "is-running": "2.1.0",
     "jsonwebtoken": "9.0.2",
     "nightwatch": "2.6.24",
-    "rollup-plugin-visualizer": "5.11.0",
+    "rollup-plugin-visualizer": "5.12.0",
     "vite": "5.0.10"
   },
   "cloud-repo-tools": {
