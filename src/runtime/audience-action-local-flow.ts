@@ -158,7 +158,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'transition': 'opacity 0.5s',
       'top': '0',
       'width': '100%',
-      'z-index': '2147483647',
+      'z-index': '2147483646',
     });
 
     const shadow = wrapper.attachShadow({mode: 'open'});
