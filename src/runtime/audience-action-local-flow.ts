@@ -191,7 +191,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private renderErrorView_() {
     // TODO: mhkawano - Make closeable.
     // TODO: mhkawano - Make look nicer.
-    this.prompt_./*OK*/ innerHTML = ERROR_HTML;
+    const closeHtml = this.getCloseButtonOrEmptyHtml_(
+      REWARDED_AD_CLOSE_BUTTON_HTML
+    );
+    this.prompt_./*OK*/ innerHTML = ERROR_HTML
+      .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml);
+    this.prompt_.getElementsByClassName('rewarded-ad-close-button')
+      .item(0)?.addEventListener('click', () => {
+        this.unlock_();
+    });
+    this.focusRewardedAds_();
   }
 
   private bailoutPrompt_() {
