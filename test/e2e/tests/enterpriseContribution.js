@@ -25,7 +25,7 @@ module.exports = {
       .assert.screenshotIdenticalToBaseline('html', 'enterprise-contribution')
       .viewContributionOffers()
       .assert.textContains('@contributionHeader', 'RRM:E Contributions Demo')
-      .assert.textContains('@priceChip', '$25')
+      .assert.textContains('@priceChip', '$16')
       .contribute()
       .checkPayment()
       .end();
