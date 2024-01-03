@@ -204,9 +204,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.unlock_();
       this.params_.monetizationFunction?.();
     } else {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
-      );
+      if (this.params_.action === TYPE_REWARDED_AD) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
+        );
+      }
       this.renderErrorView_();
     }
   }
