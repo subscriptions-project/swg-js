@@ -160,8 +160,7 @@ const ERROR_CSS = css`
 
 export const ERROR_HTML = html`
   <style>
-    ${ERROR_CSS}
-    .rewarded-ad-prompt {
+    ${ERROR_CSS} .rewarded-ad-prompt {
       height: 120px;
       width: 100%;
       align-items: center;
