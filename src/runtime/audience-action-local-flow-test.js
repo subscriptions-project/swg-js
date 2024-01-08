@@ -209,6 +209,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(env.win.googletag.cmd[0]).to.not.be.null;
         env.win.googletag.cmd[0]();
 
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_REWARDED_AD_FLOW_INIT
+        );
+
         return {flow, wrapper};
       }
 
@@ -495,6 +499,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_CONFIG_ERROR
         );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
+        );
       });
 
       it('fails to render with bad ad slot', async () => {
@@ -509,6 +516,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR
+        );
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
         );
       });
 

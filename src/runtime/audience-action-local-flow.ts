@@ -204,6 +204,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.unlock_();
       this.params_.monetizationFunction?.();
     } else {
+      if (this.params_.action === TYPE_REWARDED_AD) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
+        );
+      }
       this.renderErrorView_();
     }
   }
@@ -360,7 +365,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async initRewardedAdWall_() {
-    // TODO: mhkawano - Come up with new event for total rewarded ad views.
+    this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_FLOW_INIT);
     const [config, googletagAvailable] = await Promise.all([
       this.getConfig_(),
       this.checkGoogletagAvailable_(),
