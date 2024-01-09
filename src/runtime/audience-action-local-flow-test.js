@@ -113,7 +113,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         '.audience-action-local-wrapper'
       );
       expect(wrapper).to.not.be.null;
-      const prompt = wrapper.shadowRoot.querySelector('.prompt');
+      const prompt = wrapper.shadowRoot.querySelector('.rewarded-ad-prompt');
       expect(prompt.innerHTML).contains('Something went wrong.');
       const closePromptButton = prompt.querySelector('.closePromptButton');
       expect(closePromptButton).to.be.null;
@@ -494,7 +494,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         expect(wrapper).to.not.be.null;
 
-        const errorPrompt = wrapper.shadowRoot.querySelector('.prompt');
+        const errorPrompt = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-prompt'
+        );
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_CONFIG_ERROR
@@ -512,7 +514,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           DEFAULT_CONFIG
         );
 
-        const errorPrompt = state.wrapper.shadowRoot.querySelector('.prompt');
+        const errorPrompt = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-prompt'
+        );
         expect(errorPrompt.innerHTML).contains('Something went wrong.');
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR
@@ -1058,7 +1062,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const shadowRoot = state.wrapper.shadowRoot;
         expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
-        const prompt = shadowRoot.querySelector('.prompt');
+        const prompt = shadowRoot.querySelector('.rewarded-ad-prompt');
         expect(prompt.innerHTML).contains('Something went wrong.');
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR
@@ -1087,7 +1091,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(shadowRoot.innerHTML).to.not.contain('newsletter_code_snippet');
         const form = state.wrapper.shadowRoot.querySelector('form');
         expect(form).to.be.null;
-        const prompt = state.wrapper.shadowRoot.querySelector('.prompt');
+        const prompt = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-prompt'
+        );
         expect(prompt.innerHTML).contains('Something went wrong.');
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR
