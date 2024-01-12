@@ -341,7 +341,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private async checkGoogletagAvailable_(): Promise<boolean> {
     const window = this.deps_.win();
     // Shortcut the check if there is a fake api loaded
-    if (!!window.googletag.apiReady && !window.googletag?.getVersion()) {
+    if (!!window.googletag?.apiReady && !window.googletag?.getVersion()) {
       return false;
     }
     // Race aginst the command queue to confirm that it has been loaded

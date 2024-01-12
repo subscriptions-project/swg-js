@@ -603,7 +603,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('fails to render with gpt.js detection timeout', async () => {
-        env.win.googletag.apiReady = undefined;
+        env.win.googletag = undefined;
 
         setUpConfig(DEFAULT_CONFIG);
 
@@ -621,8 +621,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
         );
-
-        expect(env.win.googletag.destroySlots).to.not.be.called;
 
         await didBailout(DEFAULT_PARAMS);
       });
