@@ -183,8 +183,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private renderErrorView_() {
-    // TODO: mhkawano - Make closeable.
-    // TODO: mhkawano - Make look nicer.
     this.prompt_./*OK*/ innerHTML = ERROR_HTML;
   }
 
@@ -341,15 +339,18 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async checkGoogletagAvailable_(): Promise<boolean> {
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        resolve(false);
-      }, this.gptTimeoutMs_);
-      const window = this.deps_.win().googletag;
+    const window = this.deps_.win();
+    // Shortcut the check if there is a fake api loaded
+    if (!!window.googletag.apiReady && !window.googletag?.getVersion()) {
+      return false;
+    }
+    // Race aginst the command queue to confirm that it has been loaded
+    return new Promise((res) => {
+      const timeout = setTimeout(() => res(false), this.gptTimeoutMs_);
       window.googletag = window.googletag || {cmd: []};
       window.googletag.cmd.push(() => {
         clearTimeout(timeout);
-        resolve(true);
+        res(true);
       });
     });
   }
@@ -378,13 +379,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.bailoutPrompt_();
       return;
     }
-
     // Setup callback for googletag init.
     const googletag = this.deps_.win().googletag;
     googletag.cmd.push(() => {
       this.initRewardedAdSlot_(config);
     });
-
     // There is no good method of checking that gpt.js is working correctly.
     // This timeout allows us to sanity check and error out if things are not
     // working correctly.
@@ -468,7 +467,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     // TODO: mhkawnao - Escape user provided strings. For Alpha it will be
     //                  specified by us so we don't need to do it yet.
-    // TODO: mhkawnao - Support priority actions
     const language = this.clientConfigManager_.getLanguage();
 
     // verified existance in initRewardedAdWall_
