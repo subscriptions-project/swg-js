@@ -88,10 +88,6 @@ interface CompleteAudienceActionResponse {
 const GPT_TIMEOUT_MS = 10000;
 // Default timeout to auto-dismiss the rewarded ad thanks prompt
 const THANKS_TIMEOUT_MS = 3000;
-// Default re-try count for detecting gpt.js
-const DETECT_GPT_RETRIES = 10;
-// Default re-try interval for detecting gpt.js
-const DETECT_GPT_RETRIES_MS = 500;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
@@ -120,9 +116,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     private readonly deps_: Deps,
     private readonly params_: AudienceActionLocalParams,
     private readonly gptTimeoutMs_: number = GPT_TIMEOUT_MS,
-    private readonly thanksTimeoutMs_: number = THANKS_TIMEOUT_MS,
-    private readonly detectGptRetries_: number = DETECT_GPT_RETRIES,
-    private readonly detectGptRetriesMs_: number = DETECT_GPT_RETRIES_MS
+    private readonly thanksTimeoutMs_: number = THANKS_TIMEOUT_MS
   ) {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
@@ -189,8 +183,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private renderErrorView_() {
-    // TODO: mhkawano - Make closeable.
-    // TODO: mhkawano - Make look nicer.
     this.prompt_./*OK*/ innerHTML = ERROR_HTML;
   }
 
@@ -346,22 +338,21 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     );
   }
 
-  private async googletagReady_(): Promise<boolean> {
-    if (this.params_.isClosable) {
-      return !!this.deps_.win().googletag.apiReady;
-    }
-    for (let i = 0; i < this.detectGptRetries_; i++) {
-      if (this.deps_.win().googletag?.apiReady !== undefined) {
-        return this.deps_.win().googletag.apiReady;
-      }
-      await new Promise((r) => setTimeout(r, this.detectGptRetriesMs_));
-    }
-    return false;
-  }
-
   private async checkGoogletagAvailable_(): Promise<boolean> {
-    const googletagReady = await this.googletagReady_();
-    return googletagReady && !!this.deps_.win().googletag?.getVersion();
+    const window = this.deps_.win();
+    // Shortcut the check if there is a fake api loaded
+    if (!!window.googletag?.apiReady && !window.googletag?.getVersion()) {
+      return false;
+    }
+    // Race aginst the command queue to confirm that it has been loaded
+    return new Promise((res) => {
+      const timeout = setTimeout(() => res(false), this.gptTimeoutMs_);
+      window.googletag = window.googletag || {cmd: []};
+      window.googletag.cmd.push(() => {
+        clearTimeout(timeout);
+        res(true);
+      });
+    });
   }
 
   private async initRewardedAdWall_() {
@@ -388,13 +379,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.bailoutPrompt_();
       return;
     }
-
     // Setup callback for googletag init.
     const googletag = this.deps_.win().googletag;
     googletag.cmd.push(() => {
       this.initRewardedAdSlot_(config);
     });
-
     // There is no good method of checking that gpt.js is working correctly.
     // This timeout allows us to sanity check and error out if things are not
     // working correctly.
@@ -441,9 +430,26 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         'rewardedSlotGranted',
         this.rewardedSlotGranted_.bind(this)
       );
+    googletag
+      .pubads()
+      .addEventListener('slotRenderEnded', this.slotRenderEnded_.bind(this));
     googletag.enableServices();
     googletag.display(this.rewardedSlot_);
     googletag.pubads().refresh([this.rewardedSlot_]);
+  }
+
+  /**
+   * Called when rendering the slot has ended. Used to determine if a slot was
+   * filled.
+   */
+  private slotRenderEnded_(event: googletag.events.SlotRenderEndedEvent) {
+    if (event.slot === this.rewardedSlot_! && event.isEmpty) {
+      clearTimeout(this.rewardedAdTimeout_);
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED
+      );
+      this.bailoutPrompt_();
+    }
   }
 
   /**
@@ -461,7 +467,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     // TODO: mhkawnao - Escape user provided strings. For Alpha it will be
     //                  specified by us so we don't need to do it yet.
-    // TODO: mhkawnao - Support priority actions
     const language = this.clientConfigManager_.getLanguage();
 
     // verified existance in initRewardedAdWall_
