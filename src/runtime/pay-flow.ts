@@ -233,6 +233,19 @@ export class PayCompleteFlow {
               : SubscriptionFlows.SUBSCRIBE
           )
         );
+        if (response.productType == ProductType.UI_CONTRIBUTION) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams(sku || '', SubscriptionFlows.CONTRIBUTE)
+          );
+        } else if (response.productType == ProductType.SUBSCRIPTION) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams(sku || '', SubscriptionFlows.SUBSCRIBE)
+          );
+        }
         flow.start(response);
       } catch (err) {
         const reason = err as PaymentCancelledError;
