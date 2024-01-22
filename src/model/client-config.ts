@@ -98,13 +98,13 @@ export interface ClientConfigJson {
           nano?: number;
         };
       };
-      promptFrequencyCap?: {
+      promptFrequencyCaps?: Array<{
         audienceActionType?: string;
         frequencyCapDuration?: {
           seconds?: number;
           nano?: number;
         };
-      };
+      }>;
       anyPromptFrequencyCap?: {
         frequencyCapDuration?: {
           seconds?: number;
