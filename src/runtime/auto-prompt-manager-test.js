@@ -3494,7 +3494,6 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptConfig = new AutoPromptConfig({
         displayDelaySeconds: 0,
         numImpressionsBetweenPrompts: 2,
-
         dismissalBackOffSeconds: 5,
         maxDismissalsPerWeek: 2,
         maxDismissalsResultingHideSeconds: 10,
