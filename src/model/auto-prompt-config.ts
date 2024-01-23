@@ -85,12 +85,12 @@ export class AutoPromptConfig {
         )
       ),
       promptFrequencyCaps?.map(
-        (fq) =>
+        (promptFrequencyCap) =>
           new PromptFrequencyCap(
-            fq.audienceActionType,
+            promptFrequencyCap.audienceActionType,
             new Duration(
-              fq.frequencyCapDuration?.seconds,
-              fq.frequencyCapDuration?.nano
+              promptFrequencyCap.frequencyCapDuration?.seconds,
+              promptFrequencyCap.frequencyCapDuration?.nano
             )
           )
       ),
