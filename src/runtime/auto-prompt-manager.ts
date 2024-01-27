@@ -728,6 +728,9 @@ export class AutoPromptManager {
 
     for (const action of actions) {
       const frequencyCapDuration =
+        frequencyCapConfig?.promptFrequencyCaps?.find(
+          (frequencyCap) => frequencyCap.audienceActionType === action.type
+        )?.frequencyCapDuration ||
         frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
       if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
         const impressions = await this.getActionImpressions_(action.type);
@@ -1128,6 +1131,9 @@ export class AutoPromptManager {
       this.isValidFrequencyCapDuration_(
         frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration
       ) ||
+      frequencyCapConfig?.promptFrequencyCaps
+        ?.map((frequencyCap) => frequencyCap.frequencyCapDuration)
+        .some(this.isValidFrequencyCapDuration_) ||
       this.isValidFrequencyCapDuration_(
         frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration
       )
