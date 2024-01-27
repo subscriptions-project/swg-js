@@ -1370,6 +1370,13 @@ describes.realWin('PayCompleteFlow', (env) => {
             true,
             getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
+          );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
         data['googleTransactionId'] = 'NEW_TRANSACTION_ID';
 
@@ -1388,6 +1395,13 @@ describes.realWin('PayCompleteFlow', (env) => {
           .expects('logSwgEvent')
           .withExactArgs(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
+          );
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
             true,
             getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
@@ -1415,6 +1429,13 @@ describes.realWin('PayCompleteFlow', (env) => {
             true,
             getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
+          );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
         data['googleTransactionId'] = newTxId;
 
@@ -1435,6 +1456,13 @@ describes.realWin('PayCompleteFlow', (env) => {
           .expects('logSwgEvent')
           .withExactArgs(
             AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
+          );
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
             true,
             getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
@@ -1459,6 +1487,13 @@ describes.realWin('PayCompleteFlow', (env) => {
             true,
             getEventParams('', SubscriptionFlows.SUBSCRIBE)
           );
+        eventManagerMock
+          .expects('logSwgEvent')
+          .withExactArgs(
+            AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+            true,
+            getEventParams('', SubscriptionFlows.SUBSCRIBE)
+          );
         const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
 
         await responseCallback(Promise.resolve(data));
@@ -1477,6 +1512,13 @@ describes.realWin('PayCompleteFlow', (env) => {
         .expects('logSwgEvent')
         .withExactArgs(
           AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.CONTRIBUTE)
+        );
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
           true,
           getEventParams('', SubscriptionFlows.CONTRIBUTE)
         );
