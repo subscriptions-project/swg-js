@@ -32,19 +32,15 @@ import {serviceUrl} from './services';
  * configuration details from the server.
  */
 export class ClientConfigManager {
+  private defaultPaySwgVersion_?: string;
   private responsePromise_: Promise<ClientConfig> | null = null;
-  private readonly defaultConfig_: ClientConfig;
 
   constructor(
     private readonly deps_: Deps,
     private readonly publicationId_: string,
     private readonly fetcher_: Fetcher,
     private readonly clientOptions_: ClientOptions = {}
-  ) {
-    this.defaultConfig_ = new ClientConfig({
-      skipAccountCreationScreen: clientOptions_.skipAccountCreationScreen,
-    });
-  }
+  ) {}
 
   /**
    * Fetches the client config from the server.
@@ -63,10 +59,23 @@ export class ClientConfigManager {
 
   /**
    * Gets the client config, if already requested. Otherwise returns a Promise
-   * with an empty ClientConfig.
+   * with a default ClientConfig.
    */
   getClientConfig(): Promise<ClientConfig> {
-    return this.responsePromise_ || Promise.resolve(this.defaultConfig_);
+    return this.responsePromise_ || this.getDefaultConfig_();
+  }
+
+  /** Sets the default value for `paySwgVersion`. */
+  setDefaultPaySwgVersion(paySwgVersion?: string): void {
+    this.defaultPaySwgVersion_ = paySwgVersion;
+  }
+
+  /** Gets the default config. */
+  private async getDefaultConfig_(): Promise<ClientConfig> {
+    return new ClientConfig({
+      paySwgVersion: this.defaultPaySwgVersion_,
+      skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
+    });
   }
 
   /**

@@ -230,6 +230,17 @@ describes.realWin('ClientConfigManager', (env) => {
     expect(clientConfig).to.deep.equal(expectedClientConfig);
   });
 
+  it.only('setDefaultPaySwgVersion should update the default paySwgVersion', async () => {
+    clientConfigManager.setDefaultPaySwgVersion('123');
+
+    const clientConfig = await clientConfigManager.getClientConfig();
+    const expectedClientConfig = new ClientConfig({
+      usePrefixedHostPath: true,
+      paySwgVersion: '123',
+    });
+    expect(clientConfig).to.deep.equal(expectedClientConfig);
+  });
+
   it('should return default client options if unspecified', () => {
     expect(clientConfigManager.getLanguage()).to.equal('en');
     expect(clientConfigManager.getTheme()).to.equal(ClientTheme.LIGHT);
