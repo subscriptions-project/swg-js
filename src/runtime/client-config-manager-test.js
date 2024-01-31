@@ -23,6 +23,7 @@ import {XhrFetcher} from './fetcher';
 
 describes.realWin('ClientConfigManager', (env) => {
   let clientConfigManager;
+  let config;
   let fetcher;
   let fetcherMock;
   let deps;
@@ -31,6 +32,11 @@ describes.realWin('ClientConfigManager', (env) => {
 
   beforeEach(() => {
     deps = new MockDeps();
+
+    // Mock config.
+    config = {};
+    deps.config = () => config;
+
     fetcher = new XhrFetcher(env.win);
     fetcherMock = sandbox.mock(fetcher);
     depsMock = sandbox.mock(deps);
@@ -230,15 +236,28 @@ describes.realWin('ClientConfigManager', (env) => {
     expect(clientConfig).to.deep.equal(expectedClientConfig);
   });
 
-  it('setDefaultPaySwgVersion should update the default paySwgVersion', async () => {
-    clientConfigManager.setDefaultPaySwgVersion('123');
+  it('uses `paySwgVersion` from runtime config (before fetching client config)', async () => {
+    config.paySwgVersion = '123';
 
     const clientConfig = await clientConfigManager.getClientConfig();
-    const expectedClientConfig = new ClientConfig({
-      usePrefixedHostPath: true,
-      paySwgVersion: '123',
-    });
-    expect(clientConfig).to.deep.equal(expectedClientConfig);
+
+    expect(clientConfig.paySwgVersion).to.equal('123');
+  });
+
+  it('uses `paySwgVersion` from runtime config (after fetching client config)', async () => {
+    config.paySwgVersion = '123';
+
+    const expectedUrl =
+      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
+    fetcherMock
+      .expects('fetchCredentialedJson')
+      .withExactArgs(expectedUrl)
+      .resolves({paySwgVersion: '999'})
+      .once();
+
+    const clientConfig = await clientConfigManager.fetchClientConfig();
+
+    expect(clientConfig.paySwgVersion).to.equal('123');
   });
 
   it('should return default client options if unspecified', () => {

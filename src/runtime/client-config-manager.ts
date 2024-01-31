@@ -32,7 +32,6 @@ import {serviceUrl} from './services';
  * configuration details from the server.
  */
 export class ClientConfigManager {
-  private defaultPaySwgVersion_?: string;
   private responsePromise_: Promise<ClientConfig> | null = null;
 
   constructor(
@@ -65,15 +64,10 @@ export class ClientConfigManager {
     return this.responsePromise_ || this.getDefaultConfig_();
   }
 
-  /** Sets the default value for `paySwgVersion`. */
-  setDefaultPaySwgVersion(paySwgVersion?: string): void {
-    this.defaultPaySwgVersion_ = paySwgVersion;
-  }
-
   /** Gets the default config. */
   private async getDefaultConfig_(): Promise<ClientConfig> {
     return new ClientConfig({
-      paySwgVersion: this.defaultPaySwgVersion_,
+      paySwgVersion: this.deps_.config().paySwgVersion,
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
     });
   }
@@ -174,7 +168,8 @@ export class ClientConfigManager {
    * Parses the fetched config into the ClientConfig container object.
    */
   parseClientConfig_(json: ClientConfigJson): ClientConfig {
-    const paySwgVersion = json['paySwgVersion'];
+    const paySwgVersion =
+      this.deps_.config().paySwgVersion || json['paySwgVersion'];
     const autoPromptConfigJson = json['autoPromptConfig'];
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {

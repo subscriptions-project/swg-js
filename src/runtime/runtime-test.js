@@ -380,6 +380,16 @@ describes.realWin('Runtime', (env) => {
       const entitlementsManager = configuredRuntime.entitlementsManager();
       expect(entitlementsManager.useArticleEndpoint_).to.be.false;
     });
+
+    it('sets paySwgVersion from config', async () => {
+      runtime.configure({paySwgVersion: '123'});
+      runtime.init('pub2');
+      const configuredRuntime = await runtime.configured_(true);
+      const clientConfig = await configuredRuntime
+        .clientConfigManager()
+        .getClientConfig();
+      expect(clientConfig.paySwgVersion).to.eq('123');
+    });
   });
 
   describe('configured', () => {
