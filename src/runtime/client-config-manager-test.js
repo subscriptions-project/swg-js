@@ -236,28 +236,31 @@ describes.realWin('ClientConfigManager', (env) => {
     expect(clientConfig).to.deep.equal(expectedClientConfig);
   });
 
-  it('uses `paySwgVersion` from runtime config (before fetching client config)', async () => {
-    config.paySwgVersion = '123';
+  describe('prefers `paySwgVersion` from `deps.config()`, if available', () => {
+    it('before fetching client config', async () => {
+      config.paySwgVersion = '123';
 
-    const clientConfig = await clientConfigManager.getClientConfig();
+      const clientConfig = await clientConfigManager.getClientConfig();
 
-    expect(clientConfig.paySwgVersion).to.equal('123');
-  });
+      expect(clientConfig.paySwgVersion).to.equal('123');
+    });
 
-  it('uses `paySwgVersion` from runtime config (after fetching client config)', async () => {
-    config.paySwgVersion = '123';
+    it('after fetching client config', async () => {
+      config.paySwgVersion = '123';
 
-    const expectedUrl =
-      'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
-    fetcherMock
-      .expects('fetchCredentialedJson')
-      .withExactArgs(expectedUrl)
-      .resolves({paySwgVersion: '999'})
-      .once();
+      // Mock response.
+      const expectedUrl =
+        'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
+      fetcherMock
+        .expects('fetchCredentialedJson')
+        .withExactArgs(expectedUrl)
+        .resolves({paySwgVersion: '999'})
+        .once();
 
-    const clientConfig = await clientConfigManager.fetchClientConfig();
+      const clientConfig = await clientConfigManager.fetchClientConfig();
 
-    expect(clientConfig.paySwgVersion).to.equal('123');
+      expect(clientConfig.paySwgVersion).to.equal('123');
+    });
   });
 
   it('should return default client options if unspecified', () => {
