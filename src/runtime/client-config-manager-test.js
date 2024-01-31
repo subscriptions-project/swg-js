@@ -23,7 +23,6 @@ import {XhrFetcher} from './fetcher';
 
 describes.realWin('ClientConfigManager', (env) => {
   let clientConfigManager;
-  let config;
   let fetcher;
   let fetcherMock;
   let deps;
@@ -32,10 +31,7 @@ describes.realWin('ClientConfigManager', (env) => {
 
   beforeEach(() => {
     deps = new MockDeps();
-
-    // Mock config.
-    config = {};
-    deps.config = () => config;
+    deps.config = () => ({});
 
     fetcher = new XhrFetcher(env.win);
     fetcherMock = sandbox.mock(fetcher);
@@ -236,18 +232,19 @@ describes.realWin('ClientConfigManager', (env) => {
     expect(clientConfig).to.deep.equal(expectedClientConfig);
   });
 
-  describe('prefers `paySwgVersion` from `deps.config()`, if available', () => {
-    it('before fetching client config', async () => {
-      config.paySwgVersion = '123';
+  describe('when `deps.config().paySwgVersion` override exists', () => {
+    beforeEach(() => {
+      // Mock `deps.config().paySwgVersion` override.
+      deps.config = () => ({paySwgVersion: '123'});
+    });
 
+    it('prefers override, before fetching client config', async () => {
       const clientConfig = await clientConfigManager.getClientConfig();
 
       expect(clientConfig.paySwgVersion).to.equal('123');
     });
 
-    it('after fetching client config', async () => {
-      config.paySwgVersion = '123';
-
+    it('prefers override, after fetching client config', async () => {
       // Mock response.
       const expectedUrl =
         'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
