@@ -230,7 +230,7 @@ describes.realWin('ClientConfigManager', (env) => {
     expect(clientConfig).to.deep.equal(expectedClientConfig);
   });
 
-  it.only('setDefaultPaySwgVersion should update the default paySwgVersion', async () => {
+  it('setDefaultPaySwgVersion should update the default paySwgVersion', async () => {
     clientConfigManager.setDefaultPaySwgVersion('123');
 
     const clientConfig = await clientConfigManager.getClientConfig();
