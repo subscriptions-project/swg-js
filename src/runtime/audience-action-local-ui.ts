@@ -154,27 +154,21 @@ export const OPT_IN_CLOSE_BUTTON_HTML = html`<style>
   </div>`;
 
 // Error view for prompts that fail to init.
-// TODO: mhkawano - Update once UX finished.
-// TODO: mhkawano - allow error view to be closed.
 const ERROR_CSS = css`
-  .prompt {
-    margin-left: auto !important;
-    margin-right: auto !important;
-    margin-top: auto !important;
-    width: 600px;
-    height: 200px;
-    background: white;
-    pointer-events: auto !important;
-    text-align: center;
-  }
+  ${REWARDED_AD_PROMPT}
 `;
 
-// TODO: mhkawano - allow error view to be closed.
 export const ERROR_HTML = html`
   <style>
-    ${ERROR_CSS}
+    ${ERROR_CSS} .rewarded-ad-prompt {
+      height: 120px;
+      width: 100%;
+      align-items: center;
+      justify-items: center;
+      display: grid;
+    }
   </style>
-  <div class="prompt">Something went wrong.</div>
+  <div class="rewarded-ad-prompt">Something went wrong.</div>
 `;
 
 const LOADING_CSS = css`
