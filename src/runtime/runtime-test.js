@@ -1364,6 +1364,13 @@ describes.realWin('ConfiguredRuntime', (env) => {
           'useArticleEndpoint must be a boolean, type: string'
         );
       });
+
+      it('throws on unknown paySwgVersion value', () => {
+        const mistake = () => runtime.configure({paySwgVersion: 123});
+        expect(mistake).to.throw(
+          'paySwgVersion must be a string, type: number'
+        );
+      });
     });
 
     it('should prefetch loading indicator', () => {
