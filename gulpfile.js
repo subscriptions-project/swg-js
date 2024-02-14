@@ -23,6 +23,7 @@ if (!isCiBuild()) {
 }
 
 const $$ = require('gulp-load-plugins')();
+const dotenv = require('dotenv').config(); // eslint-disable-line
 const gulp = $$.help(require('gulp'));
 const {assets} = require('./build-system/tasks/assets');
 const {build, clean, watch} = require('./build-system/tasks/builders');

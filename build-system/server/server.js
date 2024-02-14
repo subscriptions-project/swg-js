@@ -25,8 +25,8 @@ const isRunning = require('is-running');
 const log = require('fancy-log');
 const webserver = require('gulp-webserver');
 
-const host = process.env.SERVE_HOST;
-const port = process.env.SERVE_PORT;
+const host = process.env.SERVE_HOST || process.env.HOST;
+const port = process.env.SERVE_PORT || process.env.PORT;
 const useHttps = process.env.SERVE_USEHTTPS == 'true' ? true : false;
 const gulpProcess = process.env.SERVE_PROCESS_ID;
 const quiet = process.env.SERVE_QUIET == 'true' ? true : false;
