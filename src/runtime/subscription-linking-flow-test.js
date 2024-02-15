@@ -27,6 +27,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
   let dialogManagerMock;
   let messageMap;
   let subscriptionLinkingFlow;
+  let cancelCallback;
 
   const PUBLICATION_ID = 'pub1';
   const REQUEST = {publisherProvidedId: 'ppid'};
@@ -41,6 +42,9 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       const messageType = new ctor();
       const label = messageType.label();
       messageMap[label] = cb;
+    });
+    sandbox.stub(ActivityIframeView.prototype, 'onCancel').callsFake((cb) => {
+      cancelCallback = cb;
     });
     subscriptionLinkingFlow = new SubscriptionLinkingFlow(runtime);
   });
@@ -126,5 +130,16 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         subscriptionLinkingFlow.start(REQUEST)
       ).to.eventually.be.rejectedWith('Dialog error');
     });
+  });
+
+  it.only('resolves promise with success=false when cancelled', async () => {
+    dialogManagerMock.expects('openView').once().resolves();
+
+    const resultPromise = subscriptionLinkingFlow.start(REQUEST);
+
+    cancelCallback();
+
+    const result = await resultPromise;
+    expect(result).to.deep.equal({publisherProvidedId: 'ppid', success: false});
   });
 });
