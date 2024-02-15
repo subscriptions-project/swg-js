@@ -431,6 +431,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         expect(closeButton).not.to.be.null;
 
+        const backToHome = state.wrapper.shadowRoot.querySelector(
+          '.back-to-home-container'
+        );
+        expect(backToHome).to.be.null;
+
         await closeButton.click();
         await tick();
 
@@ -463,6 +468,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.rewarded-ad-close-button'
         );
         expect(prompt).to.be.null;
+
+        const backToHome = state.wrapper.shadowRoot.querySelector(
+          '.back-to-home-container'
+        );
+        expect(backToHome).not.to.be.null;
       });
 
       it('renders sign-in', async () => {
