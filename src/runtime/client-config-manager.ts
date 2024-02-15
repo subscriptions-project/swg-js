@@ -69,7 +69,7 @@ export class ClientConfigManager {
     return new ClientConfig({
       paySwgVersion: this.deps_.config().paySwgVersion,
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
-      useUpdatedOfferFlows: !!this.deps_.config().paySwgVersion,
+      useUpdatedOfferFlows: !!this.deps_.config().paySwgVersion || undefined,
     });
   }
 
