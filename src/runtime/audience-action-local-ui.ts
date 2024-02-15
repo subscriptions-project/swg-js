@@ -38,6 +38,37 @@ const SLIDE_UP_ANIMATION = css`
   }
 `;
 
+const BACK_TO_HOME_CSS = css`
+  .back-to-home-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse;
+  }
+
+  .back-to-home-button {
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    color: #1a73e8;
+    padding: 17px;
+    outline-offset: 4px;
+    outline-color: #145ab5;
+  }
+
+  .back-to-home-button:focus,
+  .back-to-home-button:hover {
+    background-color: #f2f8ff;
+  }
+`;
+
+export const BACK_TO_HOME_HTML = html`
+  <div class="back-to-home-container">
+    <a class="back-to-home-button" href="$BACK_TO_HOME_LINK$"
+      >$BACK_TO_HOME_TEXT$</a
+    >
+  </div>
+`;
+
 const REWARDED_AD_PROMPT = css`
   ${SLIDE_UP_ANIMATION}
 
@@ -276,12 +307,11 @@ export const LOADING_HTML = html`
 `;
 
 // Rewarded ad wall prompt css and html.
-// TODO: mhkawano - accessibility.
-// TODO: mhkawano - translate static strings.
 const REWARDED_AD_CSS = css`
   ${DEFAULT_BUTTON}
   ${REWARDED_AD_CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
+  ${BACK_TO_HOME_CSS}
 
   .rewarded-ad-container {
     margin: 0px;
@@ -429,6 +459,7 @@ export const REWARDED_AD_HTML = html`
     aria-modal="true"
   >
     <div class="rewarded-ad-container">
+      $BACK_TO_HOME_BUTTON$
       <div class="rewarded-ad-header">
         <div class="rewarded-ad-title" id="title-id">$TITLE$</div>
         $REWARDED_AD_CLOSE_BUTTON_HTML$

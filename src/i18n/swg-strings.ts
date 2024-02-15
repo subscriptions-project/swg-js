@@ -552,4 +552,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '觀看廣告',
     'zh-tw': '觀看廣告',
   },
+  'BACK_TO_HOMEPAGE': {
+    'en': 'Back to homepage',
+  },
 };
