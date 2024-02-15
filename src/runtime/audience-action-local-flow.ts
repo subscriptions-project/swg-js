@@ -147,7 +147,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'height': '100%',
       'left': '0',
       'opacity': '0',
-      'pointer-events': 'auto',
+      'pointer-events': 'none',
       'position': 'fixed',
       'right': '0',
       'transition': 'opacity 0.5s',
@@ -155,10 +155,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'width': '100%',
       'z-index': '2147483646',
     });
-
-    if (!!this.params_.isClosable) {
-      wrapper.onclick = this.closeRewardedAdWall_.bind(this);
-    }
 
     const shadow = wrapper.attachShadow({mode: 'open'});
 
