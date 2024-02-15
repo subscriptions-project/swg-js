@@ -857,6 +857,12 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
               'useArticleEndpoint must be a boolean, type: ' + typeof value;
           }
           break;
+        case 'paySwgVersion':
+          if (typeof value !== 'string') {
+            error = 'paySwgVersion must be a string, type: ' + typeof value;
+            break;
+          }
+          break;
         default:
           error = 'Unknown config property: ' + key;
       }

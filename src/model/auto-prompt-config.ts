@@ -25,9 +25,13 @@ interface AutoPromptConfigParams {
   maxImpressionsResultingHideSeconds?: number;
   globalFrequencyCapDurationSeconds?: number;
   globalFrequencyCapDurationNano?: number;
-  audienceActionType?: string;
-  promptFrequencyCapDurationSeconds?: number;
-  promptFrequencyCapDurationNano?: number;
+  promptFrequencyCaps?: {
+    audienceActionType?: string;
+    frequencyCapDuration?: {
+      seconds?: number;
+      nano?: number;
+    };
+  }[];
   anyPromptFrequencyCapDurationSeconds?: number;
   anyPromptFrequencyCapDurationNano?: number;
 }
@@ -55,9 +59,7 @@ export class AutoPromptConfig {
     maxImpressionsResultingHideSeconds,
     globalFrequencyCapDurationSeconds,
     globalFrequencyCapDurationNano,
-    audienceActionType,
-    promptFrequencyCapDurationSeconds,
-    promptFrequencyCapDurationNano,
+    promptFrequencyCaps,
     anyPromptFrequencyCapDurationSeconds,
     anyPromptFrequencyCapDurationNano,
   }: AutoPromptConfigParams) {
@@ -82,12 +84,15 @@ export class AutoPromptConfig {
           globalFrequencyCapDurationNano
         )
       ),
-      new PromptFrequencyCap(
-        audienceActionType,
-        new Duration(
-          promptFrequencyCapDurationSeconds,
-          promptFrequencyCapDurationNano
-        )
+      promptFrequencyCaps?.map(
+        (promptFrequencyCap) =>
+          new PromptFrequencyCap(
+            promptFrequencyCap.audienceActionType,
+            new Duration(
+              promptFrequencyCap.frequencyCapDuration?.seconds,
+              promptFrequencyCap.frequencyCapDuration?.nano
+            )
+          )
       ),
       new AnyPromptFrequencyCap(
         new Duration(
@@ -137,7 +142,7 @@ export class ImpressionConfig {
 export class FrequencyCapConfig {
   constructor(
     public readonly globalFrequencyCap?: GlobalFrequencyCap,
-    public readonly promptFrequencyCap?: PromptFrequencyCap,
+    public readonly promptFrequencyCaps?: PromptFrequencyCap[],
     public readonly anyPromptFrequencyCap?: AnyPromptFrequencyCap
   ) {}
 }

@@ -31,6 +31,8 @@ describes.realWin('ClientConfigManager', (env) => {
 
   beforeEach(() => {
     deps = new MockDeps();
+    deps.config = () => ({});
+
     fetcher = new XhrFetcher(env.win);
     fetcherMock = sandbox.mock(fetcher);
     depsMock = sandbox.mock(deps);
@@ -228,6 +230,34 @@ describes.realWin('ClientConfigManager', (env) => {
     const clientConfig = await clientConfigManager.getClientConfig();
     const expectedClientConfig = new ClientConfig({usePrefixedHostPath: true});
     expect(clientConfig).to.deep.equal(expectedClientConfig);
+  });
+
+  describe('when `deps.config().paySwgVersion` override exists', () => {
+    beforeEach(() => {
+      // Mock `deps.config().paySwgVersion` override.
+      deps.config = () => ({paySwgVersion: '123'});
+    });
+
+    it('prefers override, before fetching client config', async () => {
+      const clientConfig = await clientConfigManager.getClientConfig();
+
+      expect(clientConfig.paySwgVersion).to.equal('123');
+    });
+
+    it('prefers override, after fetching client config', async () => {
+      // Mock response.
+      const expectedUrl =
+        'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
+      fetcherMock
+        .expects('fetchCredentialedJson')
+        .withExactArgs(expectedUrl)
+        .resolves({paySwgVersion: '999'})
+        .once();
+
+      const clientConfig = await clientConfigManager.fetchClientConfig();
+
+      expect(clientConfig.paySwgVersion).to.equal('123');
+    });
   });
 
   it('should return default client options if unspecified', () => {
