@@ -156,6 +156,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'z-index': '2147483646',
     });
 
+    if (!!this.params_.isClosable) {
+      wrapper.onclick = this.closeRewardedAdWall_.bind(this);
+    }
+
     const shadow = wrapper.attachShadow({mode: 'open'});
 
     const topSentinal = createElement(
