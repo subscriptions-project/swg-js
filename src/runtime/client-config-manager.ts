@@ -69,6 +69,7 @@ export class ClientConfigManager {
     return new ClientConfig({
       paySwgVersion: this.deps_.config().paySwgVersion,
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
+      useUpdatedOfferFlows: !!this.deps_.config().paySwgVersion,
     });
   }
 
@@ -168,8 +169,6 @@ export class ClientConfigManager {
    * Parses the fetched config into the ClientConfig container object.
    */
   parseClientConfig_(json: ClientConfigJson): ClientConfig {
-    const paySwgVersion =
-      this.deps_.config().paySwgVersion || json['paySwgVersion'];
     const autoPromptConfigJson = json['autoPromptConfig'];
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
@@ -225,10 +224,16 @@ export class ClientConfigManager {
       );
     }
 
+    const paySwgVersion =
+      this.deps_.config().paySwgVersion || json['paySwgVersion'];
+
+    const useUpdatedOfferFlows =
+      !!this.deps_.config().paySwgVersion || json['useUpdatedOfferFlows'];
+
     return new ClientConfig({
       autoPromptConfig,
       paySwgVersion,
-      useUpdatedOfferFlows: json['useUpdatedOfferFlows'],
+      useUpdatedOfferFlows,
       skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
       uiPredicates,
       attributionParams,
