@@ -33,18 +33,13 @@ import {serviceUrl} from './services';
  */
 export class ClientConfigManager {
   private responsePromise_: Promise<ClientConfig> | null = null;
-  private readonly defaultConfig_: ClientConfig;
 
   constructor(
     private readonly deps_: Deps,
     private readonly publicationId_: string,
     private readonly fetcher_: Fetcher,
     private readonly clientOptions_: ClientOptions = {}
-  ) {
-    this.defaultConfig_ = new ClientConfig({
-      skipAccountCreationScreen: clientOptions_.skipAccountCreationScreen,
-    });
-  }
+  ) {}
 
   /**
    * Fetches the client config from the server.
@@ -63,10 +58,18 @@ export class ClientConfigManager {
 
   /**
    * Gets the client config, if already requested. Otherwise returns a Promise
-   * with an empty ClientConfig.
+   * with a default ClientConfig.
    */
   getClientConfig(): Promise<ClientConfig> {
-    return this.responsePromise_ || Promise.resolve(this.defaultConfig_);
+    return this.responsePromise_ || this.getDefaultConfig_();
+  }
+
+  /** Gets the default config. */
+  private async getDefaultConfig_(): Promise<ClientConfig> {
+    return new ClientConfig({
+      paySwgVersion: this.deps_.config().paySwgVersion,
+      skipAccountCreationScreen: this.clientOptions_.skipAccountCreationScreen,
+    });
   }
 
   /**
@@ -165,7 +168,8 @@ export class ClientConfigManager {
    * Parses the fetched config into the ClientConfig container object.
    */
   parseClientConfig_(json: ClientConfigJson): ClientConfig {
-    const paySwgVersion = json['paySwgVersion'];
+    const paySwgVersion =
+      this.deps_.config().paySwgVersion || json['paySwgVersion'];
     const autoPromptConfigJson = json['autoPromptConfig'];
     let autoPromptConfig = undefined;
     if (autoPromptConfigJson) {
@@ -191,15 +195,8 @@ export class ClientConfigManager {
         globalFrequencyCapDurationNano:
           autoPromptConfigJson.frequencyCapConfig?.globalFrequencyCap
             ?.frequencyCapDuration?.nano,
-        audienceActionType:
-          autoPromptConfigJson.frequencyCapConfig?.promptFrequencyCap
-            ?.audienceActionType,
-        promptFrequencyCapDurationSeconds:
-          autoPromptConfigJson.frequencyCapConfig?.promptFrequencyCap
-            ?.frequencyCapDuration?.seconds,
-        promptFrequencyCapDurationNano:
-          autoPromptConfigJson.frequencyCapConfig?.promptFrequencyCap
-            ?.frequencyCapDuration?.nano,
+        promptFrequencyCaps:
+          autoPromptConfigJson.frequencyCapConfig?.promptFrequencyCaps,
         anyPromptFrequencyCapDurationSeconds:
           autoPromptConfigJson.frequencyCapConfig?.anyPromptFrequencyCap
             ?.frequencyCapDuration?.seconds,

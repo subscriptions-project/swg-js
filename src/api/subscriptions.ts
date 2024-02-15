@@ -372,6 +372,7 @@ export interface Config {
   enablePropensity?: boolean;
   publisherProvidedId?: string;
   useArticleEndpoint?: boolean;
+  paySwgVersion?: string;
 }
 
 /**
