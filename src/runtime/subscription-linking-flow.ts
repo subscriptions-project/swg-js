@@ -71,7 +71,7 @@ export class SubscriptionLinkingFlow {
     );
 
     activityIframeView.onCancel(() => {
-      const completionStatus = AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_FAILED;
+      const completionStatus = AnalyticsEvent.ACTION_SUBSCRIPTION_LINKING_CLOSE;
 
       this.deps_.eventManager().logSwgEvent(completionStatus, true);
 
