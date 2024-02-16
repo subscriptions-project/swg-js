@@ -258,6 +258,20 @@ describes.realWin('ClientConfigManager', (env) => {
 
       expect(clientConfig.paySwgVersion).to.equal('123');
     });
+
+    it('overrides `useUpdatedOfferFlows` to true', async () => {
+      // Mock response.
+      const expectedUrl =
+        'https://news.google.com/swg/_/api/v1/publication/pubId/clientconfiguration';
+      fetcherMock
+        .expects('fetchCredentialedJson')
+        .withExactArgs(expectedUrl)
+        .resolves({useUpdatedOfferFlows: false})
+        .once();
+
+      const clientConfig = await clientConfigManager.fetchClientConfig();
+      expect(clientConfig.useUpdatedOfferFlows).to.be.true;
+    });
   });
 
   it('should return default client options if unspecified', () => {
