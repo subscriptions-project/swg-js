@@ -132,7 +132,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
     });
   });
 
-  it.only('resolves promise with success=false when cancelled', async () => {
+  it('resolves promise with success=false when cancelled', async () => {
     dialogManagerMock.expects('openView').once().resolves();
 
     const resultPromise = subscriptionLinkingFlow.start(REQUEST);
