@@ -69,14 +69,26 @@ export class SubscriptionLinkingFlow {
       args,
       /* shouldFadeBody= */ false
     );
+
+    activityIframeView.onCancel(() => {
+      const completionStatus = AnalyticsEvent.ACTION_SUBSCRIPTION_LINKING_CLOSE;
+
+      this.deps_.eventManager().logSwgEvent(completionStatus, true);
+
+      this.completionResolver_({
+        publisherProvidedId,
+        success: false,
+      });
+    });
+
     activityIframeView.on(
       SubscriptionLinkingCompleteResponse,
       (response: SubscriptionLinkingCompleteResponse) => {
-        const CompletionStatus = response.getSuccess()
+        const completionStatus = response.getSuccess()
           ? AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_SUCCESS
           : AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_FAILED;
 
-        this.deps_.eventManager().logSwgEvent(CompletionStatus);
+        this.deps_.eventManager().logSwgEvent(completionStatus);
 
         this.completionResolver_({
           publisherProvidedId: response.getPublisherProvidedId(),
