@@ -19,7 +19,7 @@ const args = require('./args');
 const log = require('fancy-log');
 const nodemon = require('nodemon');
 
-const host = args.host || 'localhost';
+const host = args.host || process.env.HOST || 'localhost';
 const port = args.port || process.env.PORT || 8000;
 const useHttps = args.https != undefined;
 const quiet = args.quiet != undefined;
