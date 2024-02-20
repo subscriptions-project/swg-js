@@ -598,7 +598,7 @@ export class AutoPromptManager {
     }
 
     const snippetAction =
-      potentialAction.type === TYPE_CONTRIBUTION
+      potentialAction.type === TYPE_CONTRIBUTION //1
         ? // Allow autoPromptType to enable miniprompt.
           autoPromptType === AutoPromptType.CONTRIBUTION
           ? AutoPromptType.CONTRIBUTION
