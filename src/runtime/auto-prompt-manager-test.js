@@ -3477,7 +3477,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(20);
+      await tick(25);
 
       expect(logEventSpy).to.be.calledOnceWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3619,7 +3619,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(20);
+      await tick(25);
 
       expect(logEventSpy).to.be.calledOnceWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -4055,7 +4055,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
     });
 
-    it('should show the second dismissible prompt if the frequency cap for contributions is met on lock content', async () => {
+    it('should show the second dismissible prompt if the frequency cap for contributions is met on locked content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       setupPreviousImpressionAndDismissals(
         storageMock,
@@ -4090,7 +4090,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
-      await tick(20);
+      await tick(25);
 
       expect(logEventSpy).to.be.calledOnceWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -4301,7 +4301,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: false,
         isClosable: true,
       });
-      await tick(20);
+      await tick(25);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(autoPromptManager.isClosable_).to.equal(true);
@@ -4397,7 +4397,7 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it('should not display a prompt for an unknown autoprompt type if the next action is a monetization prompt', async () => {
+    it('should display a monetization prompt for an unknown autoprompt type if the next action is a monetization prompt', async () => {
       setupPreviousImpressionAndDismissals(
         storageMock,
         {
@@ -4420,11 +4420,11 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: 'unknown',
         alwaysShow: false,
       });
-      await tick(10);
+      await tick(25);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(contributionPromptFnSpy).to.be.calledOnce;
       expect(startSpy).to.not.have.been.called;
     });
 
@@ -4465,7 +4465,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: 'unknown',
         alwaysShow: false,
       });
-      await tick(20);
+      await tick(25);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
       expect(contributionPromptFnSpy).to.not.have.been.called;
