@@ -598,16 +598,14 @@ export class AutoPromptManager {
     }
 
     const snippetAction =
-      potentialAction.type === TYPE_CONTRIBUTION //1
+      potentialAction.type === TYPE_CONTRIBUTION
         ? // Allow autoPromptType to enable miniprompt.
           autoPromptType === AutoPromptType.CONTRIBUTION
           ? AutoPromptType.CONTRIBUTION
           : AutoPromptType.CONTRIBUTION_LARGE
-        : potentialAction.type === TYPE_SUBSCRIPTION
-        ? autoPromptType === AutoPromptType.SUBSCRIPTION
-          ? AutoPromptType.SUBSCRIPTION
-          : AutoPromptType.SUBSCRIPTION_LARGE
-        : undefined;
+        : autoPromptType === AutoPromptType.SUBSCRIPTION
+        ? AutoPromptType.SUBSCRIPTION
+        : AutoPromptType.SUBSCRIPTION_LARGE;
 
     return this.getPromptTypeToDisplay_(snippetAction);
   }
