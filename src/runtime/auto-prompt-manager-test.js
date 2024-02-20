@@ -790,6 +790,10 @@ describes.realWin('AutoPromptManager', (env) => {
       eventType: AnalyticsEvent.IMPRESSION_SURVEY,
       storageKey: ImpressionStorageKeys.REWARDED_SURVEY,
     },
+    {
+      eventType: AnalyticsEvent.IMPRESSION_REWARDED_AD,
+      storageKey: ImpressionStorageKeys.REWARDED_AD,
+    },
   ].forEach(({eventType, storageKey}) => {
     it(`for eventType=${eventType} and storageKey=${storageKey}, should set frequency cap timestamps via local storage if experiment is enabled`, async () => {
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
