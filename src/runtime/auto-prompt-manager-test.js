@@ -4173,7 +4173,10 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false
       );
 
-      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        alwaysShow: false,
+      });
       await tick(20);
 
       expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
