@@ -775,19 +775,23 @@ describes.realWin('AutoPromptManager', (env) => {
 
   [
     {
-      storageKey: ImpressionStorageKeys.NEWSLETTER_SIGNUP,
       eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+      storageKey: ImpressionStorageKeys.NEWSLETTER_SIGNUP,
     },
     {
-      storageKey: ImpressionStorageKeys.REGISTRATION_WALL,
+      eventType: AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN,
+      storageKey: ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+    },
+    {
       eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+      storageKey: ImpressionStorageKeys.REGISTRATION_WALL,
     },
     {
-      storageKey: ImpressionStorageKeys.REWARDED_SURVEY,
       eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+      storageKey: ImpressionStorageKeys.REWARDED_SURVEY,
     },
-  ].forEach(({storageKey, eventType}) => {
-    it(`for storageKey=${storageKey} and eventType=${eventType}, should set frequency cap local storage if experiment is enabled`, async () => {
+  ].forEach(({eventType, storageKey}) => {
+    it(`for eventType=${eventType} and storageKey=${storageKey}, should set frequency cap timestamps via local storage if experiment is enabled`, async () => {
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
       storageMock
