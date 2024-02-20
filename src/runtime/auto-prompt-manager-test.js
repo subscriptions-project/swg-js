@@ -4603,11 +4603,12 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock,
     impressions = {}
   ) {
-    const {contribution, newsletter, regwall, survey, subscription} = {
+    const {contribution, newsletter, regwall, survey, ad, subscription} = {
       contribution: null,
       newsletter: null,
       regwall: null,
       survey: null,
+      ad: null,
       subscription: null,
       ...impressions,
     };
@@ -4642,6 +4643,14 @@ describes.realWin('AutoPromptManager', (env) => {
         /* useLocalStorage */ true
       )
       .resolves(survey)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        ImpressionStorageKeys.REWARDED_AD,
+        /* useLocalStorage */ true
+      )
+      .resolves(ad)
       .once();
     storageMock
       .expects('get')
