@@ -23,6 +23,7 @@ import {
 } from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
+  BACK_TO_HOME_HTML,
   CONTRIBUTION_ICON,
   ERROR_HTML,
   LOADING_HTML,
@@ -471,6 +472,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     // verified existance in initRewardedAdWall_
     const publication = config.publication!.name!;
+    const backToHomeHtml = this.getBackToHomeOrEmptyHTML_();
     const closeHtml = this.getCloseButtonOrEmptyHtml_(
       REWARDED_AD_CLOSE_BUTTON_HTML
     );
@@ -505,6 +507,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       '$TITLE$',
       publication
     )
+      .replace('$BACK_TO_HOME_BUTTON$', backToHomeHtml)
       .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
       .replace('$ICON$', icon)
       .replace('$MESSAGE$', message)
@@ -727,6 +730,25 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
     setImportantStyles(this.wrapper_, {'opacity': '1.0'});
     await this.initPrompt_();
+  }
+
+  private getBackToHomeOrEmptyHTML_(): string {
+    if (!this.params_.isClosable) {
+      const language = this.clientConfigManager_.getLanguage();
+      const backToHomeText = msg(
+        SWG_I18N_STRINGS['BACK_TO_HOMEPAGE'],
+        language
+      )!;
+      return BACK_TO_HOME_HTML.replace(
+        '$BACK_TO_HOME_TEXT$',
+        backToHomeText
+      ).replace(
+        '$BACK_TO_HOME_LINK$',
+        parseUrl(this.deps_.win().location.href).origin
+      );
+    } else {
+      return '';
+    }
   }
 
   private getCloseButtonOrEmptyHtml_(html: string) {

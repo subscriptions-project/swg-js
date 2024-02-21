@@ -552,4 +552,9 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '觀看廣告',
     'zh-tw': '觀看廣告',
   },
+  // TODO: mhkawano - Update with translations once they have been translated.
+  // Message ID: 7478828886861577969
+  'BACK_TO_HOMEPAGE': {
+    'en': 'Back to homepage',
+  },
 };
