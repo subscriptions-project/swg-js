@@ -413,6 +413,41 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(signinButton).to.be.null;
       });
 
+      it('escapes bad input', async () => {
+        const BAD_CONFIG = `
+          {
+            "publication": {
+              "name": "<script>PUBLICATOIN_NAME</script>"
+            },
+            "rewardedAdParameters": {
+              "adunit": "ADUNIT",
+              "customMessage": "<h1>CUSTOM_MESSAGE</h1>"
+            }
+          }`;
+
+        const state = await renderAndAssertRewardedAd(
+          DEFAULT_PARAMS,
+          BAD_CONFIG
+        );
+
+        // Manually invoke the rewardedSlotReady callback.
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+
+        const title =
+          state.wrapper.shadowRoot.querySelector('.rewarded-ad-title');
+        expect(title.innerHTML).to.equal(
+          '&lt;script&gt;PUBLICATOIN_NAME&lt;/script&gt;'
+        );
+
+        const message = state.wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-message'
+        );
+        expect(message.innerHTML).to.equal(
+          '&lt;h1&gt;CUSTOM_MESSAGE&lt;/h1&gt;'
+        );
+      });
+
       it('renders isClosable == true', async () => {
         const params = {
           ...DEFAULT_PARAMS,
