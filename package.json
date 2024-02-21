@@ -27,7 +27,7 @@
     "build-storybook": "build-storybook"
   },
   "dependencies": {
-    "safevalues": "^0.5.2",
+    "safevalues": "0.5.2",
     "web-activities": "1.24.0"
   },
   "devDependencies": {
