@@ -31,7 +31,7 @@ const NEWSLETTER_PARAMS = {
 const DEFAULT_CONFIG = `
 {
   "publication": {
-    "name": "PUBLICATOIN_NAME"
+    "name": "PUBLICATION_NAME"
   },
   "rewardedAdParameters": {
     "adunit": "ADUNIT",
@@ -42,7 +42,7 @@ const DEFAULT_CONFIG = `
 const NEWSLETTER_CONFIG = `
 {
   "publication": {
-    "name": "PUBLICATOIN_NAME"
+    "name": "PUBLICATION_NAME"
   },
   "optInParameters": {
     "title": "newsletter_title",
@@ -417,7 +417,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const BAD_CONFIG = `
           {
             "publication": {
-              "name": "<script>PUBLICATOIN_NAME</script>"
+              "name": "<script>PUBLICATION_NAME</script>"
             },
             "rewardedAdParameters": {
               "adunit": "ADUNIT",
@@ -437,7 +437,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const title =
           state.wrapper.shadowRoot.querySelector('.rewarded-ad-title');
         expect(title.innerHTML).to.equal(
-          '&lt;script&gt;PUBLICATOIN_NAME&lt;/script&gt;'
+          '&lt;script&gt;PUBLICATION_NAME&lt;/script&gt;'
         );
 
         const message = state.wrapper.shadowRoot.querySelector(
@@ -539,7 +539,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('fails to render with bad config', async () => {
-        const invalidConfig = '{"publication": {"name": "PUBLICATOIN_NAME"}}';
+        const invalidConfig = '{"publication": {"name": "PUBLICATION_NAME"}}';
         configResponse.text = sandbox
           .stub()
           .returns(Promise.resolve(invalidConfig));
@@ -1091,7 +1091,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const NEWSLETTER_GOOGLE_PROMPT_CONFIG = `
         {
           "publication": {
-            "name": "PUBLICATOIN_NAME"
+            "name": "PUBLICATION_NAME"
           },
           "optInParameters": {
             "title": "newsletter_title",
@@ -1116,7 +1116,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const NEWSLETTER_NO_SNIPPET_CONFIG = `
         {
           "publication": {
-            "name": "PUBLICATOIN_NAME"
+            "name": "PUBLICATION_NAME"
           },
           "optInParameters": {
             "title": "newsletter_title",
@@ -1142,7 +1142,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const NEWSLETTER_NO_SNIPPET_CONFIG = `
         {
           "publication": {
-            "name": "PUBLICATOIN_NAME"
+            "name": "PUBLICATION_NAME"
           },
           "optInParameters": {
             "title": "newsletter_title",
