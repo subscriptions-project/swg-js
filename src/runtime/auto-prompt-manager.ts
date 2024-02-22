@@ -717,20 +717,7 @@ export class AutoPromptManager {
       return actions[0];
     }
 
-    const globalFrequencyCapDuration =
-      frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
-    if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
-      const globalImpressions = await this.getAllImpressions_();
-      if (
-        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalImpressions)
-      ) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
-        );
-        return;
-      }
-    }
-
+    let potentialAction;
     for (const action of actions) {
       const frequencyCapDuration =
         frequencyCapConfig?.promptFrequencyCaps?.find(
@@ -746,9 +733,28 @@ export class AutoPromptManager {
           continue;
         }
       }
-      return action;
+      potentialAction = action;
+      break;
     }
-    return;
+
+    if (!potentialAction) {
+      return;
+    }
+
+    const globalFrequencyCapDuration =
+      frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
+    if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
+      const globalImpressions = await this.getAllImpressions_();
+      if (
+        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalImpressions)
+      ) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
+        );
+        return;
+      }
+    }
+    return potentialAction;
   }
 
   private audienceActionPrompt_({
