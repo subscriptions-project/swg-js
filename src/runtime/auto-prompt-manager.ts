@@ -717,6 +717,10 @@ export class AutoPromptManager {
       return actions[0];
     }
 
+    // b/325512849: Evaluate prompt frequency cap before global frequency cap.
+    // This disambiguates the scenarios where a reader meets the cap when the
+    // reader is only eligible for 1 prompt vs. when the publisher only has 1
+    // prompt configured.
     let potentialAction;
     for (const action of actions) {
       const frequencyCapDuration =
