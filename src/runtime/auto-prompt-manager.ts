@@ -38,14 +38,14 @@ import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
-import {Doc} from '../model/doc';
-import {Entitlements} from '../api/entitlements';
-import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {
   DismissalStorageKeys,
   ImpressionStorageKeys,
   StorageKeys,
 } from '../utils/constants';
+import {Doc} from '../model/doc';
+import {Entitlements} from '../api/entitlements';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
@@ -1052,7 +1052,7 @@ export class AutoPromptManager {
     }
     return this.storage_.storeFrequencyCappingEvent(
       DISMISSALS_TO_STORAGE_KEY_MAP.has(analyticsEvent)
-        ? DISMISSALS_TO_STORAGE_KEY_MAP.get(analyticsEvent)
+        ? DISMISSALS_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
         : INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
     );
   }
