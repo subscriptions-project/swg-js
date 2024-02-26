@@ -41,7 +41,11 @@ import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {ImpressionStorageKeys, StorageKeys} from '../utils/constants';
+import {
+  DismissalStorageKeys,
+  ImpressionStorageKeys,
+  StorageKeys,
+} from '../utils/constants';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
@@ -76,6 +80,39 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
   [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, StorageKeys.SURVEY_COMPLETED],
 ]);
 
+const DISMISSALS_TO_STORAGE_KEY_MAP = new Map([
+  [
+    AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+    DismissalStorageKeys.CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+    DismissalStorageKeys.CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE,
+    DismissalStorageKeys.NEWSLETTER_SIGNUP,
+  ],
+  [
+    AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE,
+    DismissalStorageKeys.NEWSLETTER_SIGNUP,
+  ],
+  [
+    AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE,
+    DismissalStorageKeys.REGISTRATION_WALL,
+  ],
+  [AnalyticsEvent.ACTION_SURVEY_CLOSED, DismissalStorageKeys.REWARDED_SURVEY],
+  [AnalyticsEvent.ACTION_REWARDED_AD_CLOSE, DismissalStorageKeys.REWARDED_AD],
+  [
+    AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+    DismissalStorageKeys.SUBSCRIPTION,
+  ],
+  [
+    AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+    DismissalStorageKeys.SUBSCRIPTION,
+  ],
+]);
+
 const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
   [
     AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -106,6 +143,14 @@ const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
   [AnalyticsEvent.IMPRESSION_OFFERS, ImpressionStorageKeys.SUBSCRIPTION],
 ]);
 
+const ACTION_TO_DISMISSAL_STORAGE_KEY_MAP = new Map([
+  [TYPE_CONTRIBUTION, DismissalStorageKeys.CONTRIBUTION],
+  [TYPE_NEWSLETTER_SIGNUP, DismissalStorageKeys.NEWSLETTER_SIGNUP],
+  [TYPE_REGISTRATION_WALL, DismissalStorageKeys.REGISTRATION_WALL],
+  [TYPE_REWARDED_SURVEY, DismissalStorageKeys.REWARDED_SURVEY],
+  [TYPE_REWARDED_ADS, DismissalStorageKeys.REWARDED_AD],
+]);
+
 const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
   [TYPE_CONTRIBUTION, ImpressionStorageKeys.CONTRIBUTION],
   [TYPE_NEWSLETTER_SIGNUP, ImpressionStorageKeys.NEWSLETTER_SIGNUP],
@@ -130,6 +175,7 @@ export class AutoPromptManager {
   private hasStoredMiniPromptImpression_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
+  private frequencyCappingByDismissalsEnabled_: boolean = false;
   private frequencyCappingLocalStorageEnabled_: boolean = false;
   private promptFrequencyCappingEnabled_: boolean = false;
   private isClosable_: boolean | undefined;
@@ -229,6 +275,12 @@ export class AutoPromptManager {
     if (!article) {
       return;
     }
+
+    this.frequencyCappingByDismissalsEnabled_ =
+      this.isArticleExperimentEnabled_(
+        article,
+        ArticleExperimentFlags.FREQUENCY_CAPPING_BY_DISMISSALS
+      );
 
     this.frequencyCappingLocalStorageEnabled_ =
       this.isArticleExperimentEnabled_(
@@ -729,8 +781,10 @@ export class AutoPromptManager {
         )?.frequencyCapDuration ||
         frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
       if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
-        const impressions = await this.getActionImpressions_(action.type);
-        if (this.isFrequencyCapped_(frequencyCapDuration!, impressions)) {
+        const timestamps = this.frequencyCappingByDismissalsEnabled_
+          ? await this.getActionDismissals_(action.type)
+          : await this.getActionImpressions_(action.type);
+        if (this.isFrequencyCapped_(frequencyCapDuration!, timestamps)) {
           this.eventManager_.logSwgEvent(
             AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
           );
@@ -748,9 +802,11 @@ export class AutoPromptManager {
     const globalFrequencyCapDuration =
       frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
-      const globalImpressions = await this.getAllImpressions_();
+      const globalTimestamps = this.frequencyCappingByDismissalsEnabled_
+        ? await this.getAllDismissals_()
+        : await this.getAllImpressions_();
       if (
-        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalImpressions)
+        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
       ) {
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
@@ -930,7 +986,10 @@ export class AutoPromptManager {
     }
 
     // ** Frequency Capping Impressions **
-    if (this.frequencyCappingLocalStorageEnabled_) {
+    if (
+      this.frequencyCappingByDismissalsEnabled_ ||
+      this.frequencyCappingLocalStorageEnabled_
+    ) {
       await this.handleFrequencyCappingLocalStorage_(event.eventType);
     }
 
@@ -976,7 +1035,10 @@ export class AutoPromptManager {
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
     if (
-      !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
+      !(
+        INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
+        DISMISSALS_TO_STORAGE_KEY_MAP.has(analyticsEvent)
+      ) ||
       !this.isClosable_
     ) {
       return;
@@ -989,7 +1051,9 @@ export class AutoPromptManager {
       this.hasStoredMiniPromptImpression_ = true;
     }
     return this.storage_.storeFrequencyCappingEvent(
-      INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
+      DISMISSALS_TO_STORAGE_KEY_MAP.has(analyticsEvent)
+        ? DISMISSALS_TO_STORAGE_KEY_MAP.get(analyticsEvent)
+        : INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
     );
   }
 
@@ -1031,7 +1095,27 @@ export class AutoPromptManager {
   }
 
   /**
-   * Fetches timestamp impressions from local storage for all frequency capping
+   * Fetches dismissal timestamps from local storage for all frequency capping
+   * related prompts and aggregates them into one array. Timestamps are not
+   * sorted.
+   */
+  private async getAllDismissals_(): Promise<number[]> {
+    const dismissals = [];
+
+    for (const storageKey of new Set([
+      ...DISMISSALS_TO_STORAGE_KEY_MAP.values(),
+    ])) {
+      const promptDismissals = await this.storage_.getFrequencyCappingEvent(
+        storageKey
+      );
+      dismissals.push(...promptDismissals);
+    }
+
+    return dismissals;
+  }
+
+  /**
+   * Fetches impressions timestamp from local storage for all frequency capping
    * related prompts and aggregates them into one array. Timestamps are not
    * sorted.
    */
@@ -1051,7 +1135,24 @@ export class AutoPromptManager {
   }
 
   /**
-   * Fetches timestamp impressions from local storage for a given action type.
+   * Fetches dismissal timestamps from local storage for a given action type.
+   */
+  private async getActionDismissals_(actionType: string): Promise<number[]> {
+    if (!ACTION_TO_DISMISSAL_STORAGE_KEY_MAP.has(actionType)) {
+      // TODO(justinchou): Update to new error event for dismissals.
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_ACTION_IMPRESSIONS_STORAGE_KEY_NOT_FOUND_ERROR
+      );
+      return [];
+    }
+
+    return this.storage_.getFrequencyCappingEvent(
+      ACTION_TO_DISMISSAL_STORAGE_KEY_MAP.get(actionType)!
+    );
+  }
+
+  /**
+   * Fetches impression timestamps from local storage for a given action type.
    */
   private async getActionImpressions_(actionType: string): Promise<number[]> {
     if (!ACTION_TO_IMPRESSION_STORAGE_KEY_MAP.has(actionType)) {
