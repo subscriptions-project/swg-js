@@ -26,6 +26,7 @@ import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {
   Constants,
+  DismissalStorageKeys,
   ImpressionStorageKeys,
   StorageKeys,
 } from '../utils/constants';
@@ -821,6 +822,8 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
   });
+
+  // events based on dismissals
 
   it('should display the mini prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
     entitlementsManagerMock.expects('getEntitlements').never();
@@ -4779,7 +4782,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock);
+      expectFrequencyCappingGlobalDismissals(storageMock);
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -4809,7 +4812,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(contributionTimestamps)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: contributionTimestamps,
       });
 
@@ -4869,7 +4872,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: contributionTimestamps,
       });
 
@@ -5011,7 +5014,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: contributionTimestamps,
       });
 
@@ -5068,7 +5071,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: contributionTimestamps,
       });
 
@@ -5131,7 +5134,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: promptTimestamps,
         survey: promptTimestamps,
       });
@@ -5220,7 +5223,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: promptTimestamps,
         survey: promptTimestamps,
       });
@@ -5283,7 +5286,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: timestampsWithinGlobalFrequencyCap,
       });
 
@@ -5359,7 +5362,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: timestampsWithinGlobalFrequencyCap,
       });
 
@@ -5570,7 +5573,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: contributionTimestamps,
       });
 
@@ -5627,7 +5630,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: (
           CURRENT_TIME -
           0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
@@ -5667,7 +5670,7 @@ describes.realWin('AutoPromptManager', (env) => {
         },
         /* setAutopromptExpectations */ false
       );
-      expectFrequencyCappingGlobalImpressions(storageMock);
+      expectFrequencyCappingGlobalDismissals(storageMock);
       storageMock
         .expects('get')
         .withExactArgs(
@@ -5781,7 +5784,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         survey: surveyTimestamps,
       });
 
@@ -5858,7 +5861,7 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         survey: surveyTimestamps,
       });
 
@@ -5979,7 +5982,7 @@ describes.realWin('AutoPromptManager', (env) => {
         },
         /* setAutopromptExpectations */ false
       );
-      expectFrequencyCappingGlobalImpressions(storageMock);
+      expectFrequencyCappingGlobalDismissals(storageMock);
       storageMock
         .expects('get')
         .withExactArgs(
@@ -6014,7 +6017,7 @@ describes.realWin('AutoPromptManager', (env) => {
         CURRENT_TIME -
         2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
       ).toString();
-      expectFrequencyCappingGlobalImpressions(storageMock, {
+      expectFrequencyCappingGlobalDismissals(storageMock, {
         contribution: contributionTimestamps,
       });
       storageMock
@@ -6171,6 +6174,69 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(action).to.equal(CONTRIBUTION_INTERVENTION);
     });
   });
+
+  function expectFrequencyCappingGlobalDismissals(
+    storageMock,
+    dismissals = {}
+  ) {
+    const {contribution, newsletter, regwall, survey, ad, subscription} = {
+      contribution: null,
+      newsletter: null,
+      regwall: null,
+      survey: null,
+      ad: null,
+      subscription: null,
+      ...dismissals,
+    };
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        DismissalStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(contribution)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        DismissalStorageKeys.NEWSLETTER_SIGNUP,
+        /* useLocalStorage */ true
+      )
+      .resolves(newsletter)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        DismissalStorageKeys.REGISTRATION_WALL,
+        /* useLocalStorage */ true
+      )
+      .resolves(regwall)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        DismissalStorageKeys.REWARDED_SURVEY,
+        /* useLocalStorage */ true
+      )
+      .resolves(survey)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        DismissalStorageKeys.REWARDED_AD,
+        /* useLocalStorage */ true
+      )
+      .resolves(ad)
+      .once();
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        DismissalStorageKeys.SUBSCRIPTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(subscription)
+      .once();
+  }
 
   function expectFrequencyCappingGlobalImpressions(
     storageMock,
