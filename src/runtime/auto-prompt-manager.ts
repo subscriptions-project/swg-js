@@ -149,6 +149,7 @@ const ACTION_TO_DISMISSAL_STORAGE_KEY_MAP = new Map([
   [TYPE_REGISTRATION_WALL, DismissalStorageKeys.REGISTRATION_WALL],
   [TYPE_REWARDED_SURVEY, DismissalStorageKeys.REWARDED_SURVEY],
   [TYPE_REWARDED_ADS, DismissalStorageKeys.REWARDED_AD],
+  [TYPE_SUBSCRIPTION, DismissalStorageKeys.SUBSCRIPTION],
 ]);
 
 const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
@@ -157,6 +158,7 @@ const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
   [TYPE_REGISTRATION_WALL, ImpressionStorageKeys.REGISTRATION_WALL],
   [TYPE_REWARDED_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
   [TYPE_REWARDED_ADS, ImpressionStorageKeys.REWARDED_AD],
+  [TYPE_SUBSCRIPTION, ImpressionStorageKeys.SUBSCRIPTION],
 ]);
 
 export interface ShowAutoPromptParams {
@@ -985,11 +987,8 @@ export class AutoPromptManager {
       );
     }
 
-    // ** Frequency Capping Impressions **
-    if (
-      this.frequencyCappingByDismissalsEnabled_ ||
-      this.frequencyCappingLocalStorageEnabled_
-    ) {
+    // ** Frequency Capping Events **
+    if (this.frequencyCappingLocalStorageEnabled_) {
       await this.handleFrequencyCappingLocalStorage_(event.eventType);
     }
 
