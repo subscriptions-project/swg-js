@@ -86,6 +86,23 @@ const StorageKeys = {
 };
 
 /**
+ * Local storage keys for intervention dismissals.
+ */
+const DismissalStorageKeys = {
+  CONTRIBUTION: 'dms_contribution',
+
+  NEWSLETTER_SIGNUP: 'dms_newsletter',
+
+  REGISTRATION_WALL: 'dms_regwall',
+
+  REWARDED_AD: 'dms_ad',
+
+  REWARDED_SURVEY: 'dms_survey',
+
+  SUBSCRIPTION: 'dms_subscription',
+};
+
+/**
  * Local storage keys for intervention impressions.
  */
 const ImpressionStorageKeys = {
@@ -102,4 +119,4 @@ const ImpressionStorageKeys = {
   SUBSCRIPTION: 'imp_subscription',
 };
 
-export {Constants, ImpressionStorageKeys, StorageKeys};
+export {Constants, DismissalStorageKeys, ImpressionStorageKeys, StorageKeys};
