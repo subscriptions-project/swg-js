@@ -1041,7 +1041,6 @@ export class AutoPromptManager {
       ) ||
       !this.isClosable_
     ) {
-      console.log('here');
       return;
     }
 
