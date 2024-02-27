@@ -497,6 +497,49 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it('should not set frequency cap (dismissals) to local storage if experiment is disabled', async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = false;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = false;
+    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        DismissalStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .never();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        DismissalStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .never();
+    // Legacy storage operations
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.DISMISSALS,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   it('should not set frequency cap local storage if experiment is enabled and content is locked', async () => {
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
@@ -823,7 +866,149 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  // events based on dismissals
+  [
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+      storageKey: DismissalStorageKeys.CONTRIBUTION,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+      storageKey: DismissalStorageKeys.CONTRIBUTION,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+      storageKey: DismissalStorageKeys.SUBSCRIPTION,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+      storageKey: DismissalStorageKeys.SUBSCRIPTION,
+    },
+  ].forEach(({eventType, storageKey}) => {
+    it(`for autoprompt eventType=${eventType} and storageKey=${storageKey}, should set frequency cap dismissal timestamps via local storage if experiment is enabled`, async () => {
+      autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      autoPromptManager.isClosable_ = true;
+      storageMock
+        .expects('get')
+        .withExactArgs(storageKey, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          storageKey,
+          CURRENT_TIME.toString(),
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .once();
+      // Legacy storage operations
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.DISMISSALS,
+          CURRENT_TIME.toString(),
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .once();
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
+
+  [
+    {
+      eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE,
+      storageKey: DismissalStorageKeys.NEWSLETTER_SIGNUP,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE,
+      storageKey: DismissalStorageKeys.NEWSLETTER_SIGNUP,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE,
+      storageKey: DismissalStorageKeys.REGISTRATION_WALL,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
+      storageKey: DismissalStorageKeys.REWARDED_SURVEY,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
+      storageKey: DismissalStorageKeys.REWARDED_AD,
+    },
+  ].forEach(({eventType, storageKey}) => {
+    it(`for audienceaction eventType=${eventType} and storageKey=${storageKey}, should set frequency cap dismissal timestamps via local storage if experiment is enabled`, async () => {
+      autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      autoPromptManager.isClosable_ = true;
+      storageMock
+        .expects('get')
+        .withExactArgs(storageKey, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          storageKey,
+          CURRENT_TIME.toString(),
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .once();
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
+
+  // Note: Dismissals on locked content is not an officialy supported case.
+  it('should set frequency cap by dismissal to local storage if experiment is enabled and a contribution prompt is dismissed on a locked page', async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
+    autoPromptManager.isClosable_ = true;
+    sandbox.stub(pageConfig, 'isLocked').returns(true);
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        DismissalStorageKeys.CONTRIBUTION,
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        DismissalStorageKeys.CONTRIBUTION,
+        CURRENT_TIME.toString(),
+        /* useLocalStorage */ true
+      )
+      .resolves()
+      .once();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
 
   it('should display the mini prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
     entitlementsManagerMock.expects('getEntitlements').never();
@@ -2039,7 +2224,7 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation.resolves({
         experimentConfig: {
           experimentFlags: [
-            'frequency_capping_by_dismissals_experiment',
+            'fcbd_exp',
             'frequency_capping_local_storage_experiment',
             'prompt_frequency_capping_experiment',
           ],
@@ -4648,7 +4833,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           experimentConfig: {
             experimentFlags: [
-              'frequency_capping_by_dismissals_experiment',
+              'fcbd_exp',
               'frequency_capping_local_storage_experiment',
               'prompt_frequency_capping_experiment',
             ],
@@ -4777,7 +4962,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -4807,7 +4992,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(contributionTimestamps)
@@ -4859,7 +5044,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(contributionTimestamps)
@@ -4867,7 +5052,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -4931,7 +5116,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(contributionTimestamps)
@@ -4939,7 +5124,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5001,7 +5186,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(contributionTimestamps)
@@ -5009,7 +5194,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5058,7 +5243,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(contributionTimestamps)
@@ -5066,7 +5251,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+          DismissalStorageKeys.NEWSLETTER_SIGNUP,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5113,7 +5298,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5121,7 +5306,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5129,7 +5314,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+          DismissalStorageKeys.NEWSLETTER_SIGNUP,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5202,7 +5387,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5210,7 +5395,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5218,7 +5403,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+          DismissalStorageKeys.NEWSLETTER_SIGNUP,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5273,7 +5458,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(timestampsWithinGlobalFrequencyCap)
@@ -5281,7 +5466,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5349,7 +5534,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(timestampsWithinGlobalFrequencyCap)
@@ -5357,7 +5542,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5405,7 +5590,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5413,7 +5598,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5421,7 +5606,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+          DismissalStorageKeys.NEWSLETTER_SIGNUP,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5491,7 +5676,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5499,7 +5684,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5507,7 +5692,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.NEWSLETTER_SIGNUP,
+          DismissalStorageKeys.NEWSLETTER_SIGNUP,
           /* useLocalStorage */ true
         )
         .resolves(promptTimestamps)
@@ -5560,7 +5745,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(contributionTimestamps)
@@ -5568,7 +5753,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5617,7 +5802,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(contributionTimestsamps)
@@ -5625,7 +5810,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5674,7 +5859,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5750,6 +5935,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           experimentConfig: {
             experimentFlags: [
+              'fcbd_exp',
               'frequency_capping_local_storage_experiment',
               'prompt_frequency_capping_experiment',
             ],
@@ -5771,7 +5957,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(surveyTimestamps)
@@ -5779,7 +5965,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REGISTRATION_WALL,
+          DismissalStorageKeys.REGISTRATION_WALL,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5827,6 +6013,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           experimentConfig: {
             experimentFlags: [
+              'fcbd_exp',
               'frequency_capping_local_storage_experiment',
               'prompt_frequency_capping_experiment',
             ],
@@ -5848,7 +6035,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(surveyTimestamps)
@@ -5856,7 +6043,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REGISTRATION_WALL,
+          DismissalStorageKeys.REGISTRATION_WALL,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -5986,7 +6173,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(null)
@@ -6023,7 +6210,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.CONTRIBUTION,
+          DismissalStorageKeys.CONTRIBUTION,
           /* useLocalStorage */ true
         )
         .resolves(contributionTimestamps)
@@ -6031,7 +6218,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock
         .expects('get')
         .withExactArgs(
-          ImpressionStorageKeys.REWARDED_SURVEY,
+          DismissalStorageKeys.REWARDED_SURVEY,
           /* useLocalStorage */ true
         )
         .resolves(null)
