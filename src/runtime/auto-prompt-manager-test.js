@@ -6321,6 +6321,22 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(impressions.length).to.equal(0);
     });
 
+    it('getActionDismissals_ should return empty timestamps and log error event if an action type does not map to the storage key', async () => {
+      const timestamps = await autoPromptManager.getActionDismisals_(
+        'undefined'
+      );
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType:
+          // TODO: (justinchou-google): update error event to specify dismissals storage key
+          AnalyticsEvent.EVENT_ACTION_IMPRESSIONS_STORAGE_KEY_NOT_FOUND_ERROR,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(timestamps.length).to.equal(0);
+    });
+
     it('isSurveyEligible_ returns false when survey is not a potential audience action', async () => {
       const isSurveyEligible = await autoPromptManager.isSurveyEligible_([
         CONTRIBUTION_INTERVENTION,
