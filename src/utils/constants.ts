@@ -89,17 +89,17 @@ const StorageKeys = {
  * Local storage keys for intervention dismissals.
  */
 const DismissalStorageKeys = {
-  CONTRIBUTION: 'dis_contribution',
+  CONTRIBUTION: 'dms_contribution',
 
-  NEWSLETTER_SIGNUP: 'dis_newsletter',
+  NEWSLETTER_SIGNUP: 'dms_newsletter',
 
-  REGISTRATION_WALL: 'dis_regwall',
+  REGISTRATION_WALL: 'dms_regwall',
 
-  REWARDED_AD: 'dis_ad',
+  REWARDED_AD: 'dms_ad',
 
-  REWARDED_SURVEY: 'dis_survey',
+  REWARDED_SURVEY: 'dms_survey',
 
-  SUBSCRIPTION: 'dis_subscription',
+  SUBSCRIPTION: 'dms_subscription',
 };
 
 /**
