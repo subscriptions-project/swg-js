@@ -717,20 +717,11 @@ export class AutoPromptManager {
       return actions[0];
     }
 
-    const globalFrequencyCapDuration =
-      frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
-    if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
-      const globalImpressions = await this.getAllImpressions_();
-      if (
-        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalImpressions)
-      ) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
-        );
-        return;
-      }
-    }
-
+    // b/325512849: Evaluate prompt frequency cap before global frequency cap.
+    // This disambiguates the scenarios where a reader meets the cap when the
+    // reader is only eligible for 1 prompt vs. when the publisher only has 1
+    // prompt configured.
+    let potentialAction;
     for (const action of actions) {
       const frequencyCapDuration =
         frequencyCapConfig?.promptFrequencyCaps?.find(
@@ -746,9 +737,28 @@ export class AutoPromptManager {
           continue;
         }
       }
-      return action;
+      potentialAction = action;
+      break;
     }
-    return;
+
+    if (!potentialAction) {
+      return;
+    }
+
+    const globalFrequencyCapDuration =
+      frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
+    if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
+      const globalImpressions = await this.getAllImpressions_();
+      if (
+        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalImpressions)
+      ) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
+        );
+        return;
+      }
+    }
+    return potentialAction;
   }
 
   private audienceActionPrompt_({
