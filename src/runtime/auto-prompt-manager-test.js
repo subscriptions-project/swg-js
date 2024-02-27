@@ -6322,7 +6322,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('getActionDismissals_ should return empty timestamps and log error event if an action type does not map to the storage key', async () => {
-      const timestamps = await autoPromptManager.getActionDismisals_(
+      const timestamps = await autoPromptManager.getActionDismissals_(
         'undefined'
       );
       expect(logEventSpy).to.be.calledOnceWith({
