@@ -660,8 +660,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
     this.storage_ = new Storage(this.win_);
 
-    this.dialogManager_ = new DialogManager(this.doc_);
-
     this.callbacks_ = new Callbacks();
 
     // Start listening to Google Analytics events, if applicable.
@@ -690,6 +688,8 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       integr.useArticleEndpoint || false,
       integr.enableDefaultMeteringHandler || false
     );
+
+    this.dialogManager_ = new DialogManager(this.doc_, this);
 
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above

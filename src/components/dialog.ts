@@ -16,6 +16,7 @@
 
 import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {Doc, resolveDoc} from '../model/doc';
+import {EntitlementsManager} from '../runtime/entitlements-manager';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
@@ -27,7 +28,6 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {isExperimentOn} from '../runtime/experiments';
 import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
@@ -131,6 +131,7 @@ export class Dialog {
    */
   constructor(
     doc: Doc,
+    entitlementsManager: EntitlementsManager,
     importantStyles: {[key: string]: string} = {},
     styles: {[key: string]: string} = {},
     dialogConfig: DialogConfig = {}
@@ -152,19 +153,6 @@ export class Dialog {
 
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
 
-    // Avoid modifying the behavior of existing callers by only registering
-    // the click event if isClosable is set and the experiment is active.
-    if (
-      dialogConfig.closeOnBackgroundClick !== undefined &&
-      isExperimentOn(
-        this.doc_.getWin(),
-        ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
-      )
-    ) {
-      this.graypane_
-        .getElement()
-        .addEventListener('click', this.onGrayPaneClick_.bind(this));
-    }
     this.closeOnBackgroundClick_ = !!dialogConfig.closeOnBackgroundClick;
 
     const modifiedImportantStyles = Object.assign(
@@ -205,6 +193,31 @@ export class Dialog {
       .matchMedia('(min-width: 641px)');
 
     this.desktopMediaQueryListener_ = null;
+    this.setupBackgroundClickBehavior(
+      entitlementsManager,
+      dialogConfig.closeOnBackgroundClick
+    );
+  }
+
+  async setupBackgroundClickBehavior(
+    entitlementsManager: EntitlementsManager,
+    closeOnBackgroundClick?: boolean
+  ) {
+    const article = await entitlementsManager.getArticle();
+    const articleExpFlags =
+      entitlementsManager.parseArticleExperimentConfigFlags(article);
+
+    const backgroundClickExp = !!articleExpFlags?.includes(
+      ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+    );
+
+    // Avoid modifying the behavior of existing callers by only registering
+    // the click event if isClosable is set and the experiment is active.
+    if (closeOnBackgroundClick !== undefined && backgroundClickExp) {
+      this.graypane_
+        .getElement()
+        .addEventListener('click', this.onGrayPaneClick_.bind(this));
+    }
   }
 
   /**

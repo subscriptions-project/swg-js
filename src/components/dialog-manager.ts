@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Deps} from '../runtime/deps';
 import {Dialog, DialogConfig} from './dialog';
 import {Doc} from '../model/doc';
 import {Graypane} from './graypane';
@@ -27,12 +28,15 @@ const POPUP_Z_INDEX = 2147483647;
  */
 export class DialogManager {
   private readonly doc_: Doc;
+  private readonly deps_: Deps;
   private dialog_: Dialog | null;
   private openPromise_: Promise<Dialog> | null;
   private readonly popupGraypane_: Graypane;
   private popupWin_: Window | null;
 
-  constructor(doc: Doc) {
+  constructor(doc: Doc, deps: Deps) {
+    this.deps_ = deps;
+
     this.doc_ = doc;
 
     this.dialog_ = null;
@@ -58,6 +62,7 @@ export class DialogManager {
     if (!this.openPromise_) {
       this.dialog_ = new Dialog(
         this.doc_,
+        this.deps_.entitlementsManager(),
         /* importantStyles */ {},
         /* styles */ {},
         dialogConfig
