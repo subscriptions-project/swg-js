@@ -60,7 +60,9 @@ describes.realWin('Dialog', (env) => {
 
   describe('dialog', () => {
     beforeEach(() => {
-      dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
+      dialog = new Dialog(globalDoc, Promise.resolve(false), {
+        height: `${documentHeight}px`,
+      });
       graypaneStubs = sandbox.stub(dialog.graypane_);
     });
 
@@ -443,6 +445,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          Promise.resolve(false),
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
@@ -467,6 +470,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          Promise.resolve(false),
           {},
           {},
           {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
@@ -497,7 +501,7 @@ describes.realWin('Dialog', (env) => {
         const clickFun = function () {
           wasClicked = true;
         };
-        dialog = new Dialog(globalDoc);
+        dialog = new Dialog(globalDoc, Promise.resolve(true));
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -512,7 +516,13 @@ describes.realWin('Dialog', (env) => {
         const clickFun = function () {
           wasClicked = true;
         };
-        dialog = new Dialog(globalDoc, {}, {}, {closeOnBackgroundClick: false});
+        dialog = new Dialog(
+          globalDoc,
+          Promise.resolve(true),
+          {},
+          {},
+          {closeOnBackgroundClick: false}
+        );
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -527,7 +537,13 @@ describes.realWin('Dialog', (env) => {
         const clickFun = function () {
           wasClicked = true;
         };
-        dialog = new Dialog(globalDoc, {}, {}, {closeOnBackgroundClick: true});
+        dialog = new Dialog(
+          globalDoc,
+          Promise.resolve(true),
+          {},
+          {},
+          {closeOnBackgroundClick: true}
+        );
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -540,6 +556,7 @@ describes.realWin('Dialog', (env) => {
       it('respects not closable', async () => {
         dialog = new Dialog(
           globalDoc,
+          Promise.resolve(true),
           {},
           {},
           {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
@@ -558,6 +575,7 @@ describes.realWin('Dialog', (env) => {
       it('respects closable', async () => {
         dialog = new Dialog(
           globalDoc,
+          Promise.resolve(true),
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
@@ -581,6 +599,7 @@ describes.realWin('Dialog', (env) => {
         it('adds swg-disable-scroll class if config specifies scrolling should be disabled', async () => {
           dialog = new Dialog(
             globalDoc,
+            Promise.resolve(false),
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: true}
@@ -594,6 +613,7 @@ describes.realWin('Dialog', (env) => {
         it('does not add swg-disable-scroll otherwise', async () => {
           dialog = new Dialog(
             globalDoc,
+            Promise.resolve(false),
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: false}
@@ -609,6 +629,7 @@ describes.realWin('Dialog', (env) => {
         it('removes swg-disable-scroll class', async () => {
           dialog = new Dialog(
             globalDoc,
+            Promise.resolve(false),
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: true}
@@ -630,6 +651,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        Promise.resolve(false),
         {height: `${documentHeight}px`},
         /* styles */ {},
         {maxAllowedHeightRatio: MAX_ALLOWED_HEIGHT_RATIO}
@@ -659,6 +681,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        Promise.resolve(false),
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {supportsWideScreen: true}}
@@ -678,6 +701,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        Promise.resolve(false),
         {height: `${documentHeight}px`},
         /* styles */ {},
         {iframeCssClassOverride}
@@ -714,6 +738,7 @@ describes.realWin('Dialog', (env) => {
 
       dialog = new Dialog(
         globalDoc,
+        Promise.resolve(false),
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {isCenterPositioned: true}}
@@ -782,6 +807,7 @@ describes.realWin('Dialog', (env) => {
 
       dialog = new Dialog(
         globalDoc,
+        Promise.resolve(false),
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {isCenterPositioned: true}}
