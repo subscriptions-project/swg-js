@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {Deps} from '../runtime/deps';
 import {Dialog, DialogConfig} from './dialog';
 import {Doc} from '../model/doc';
@@ -60,9 +61,21 @@ export class DialogManager {
 
   openDialog(hidden = false, dialogConfig: DialogConfig = {}): Promise<Dialog> {
     if (!this.openPromise_) {
+      const manager = this.deps_.entitlementsManager();
+      const backgroundClickExp = manager
+        .getArticle()
+        .then(
+          (article) =>
+            !!manager
+              .parseArticleExperimentConfigFlags(article)
+              .includes(
+                ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+              )
+        );
+
       this.dialog_ = new Dialog(
         this.doc_,
-        this.deps_.entitlementsManager(),
+        backgroundClickExp,
         /* importantStyles */ {},
         /* styles */ {},
         dialogConfig
