@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {ArticleExperimentFlags} from '../runtime/experiment-flags';
-import {Deps} from '../runtime/deps';
 import {Dialog, DialogConfig} from './dialog';
 import {Doc} from '../model/doc';
 import {Graypane} from './graypane';
@@ -29,14 +27,14 @@ const POPUP_Z_INDEX = 2147483647;
  */
 export class DialogManager {
   private readonly doc_: Doc;
-  private readonly deps_: Deps;
+  private readonly enableBackgroundClickExperiment_: Promise<boolean>;
   private dialog_: Dialog | null;
   private openPromise_: Promise<Dialog> | null;
   private readonly popupGraypane_: Graypane;
   private popupWin_: Window | null;
 
-  constructor(doc: Doc, deps: Deps) {
-    this.deps_ = deps;
+  constructor(doc: Doc, enableBackgroundClickExperiment: Promise<boolean>) {
+    this.enableBackgroundClickExperiment_ = enableBackgroundClickExperiment;
 
     this.doc_ = doc;
 
@@ -61,21 +59,9 @@ export class DialogManager {
 
   openDialog(hidden = false, dialogConfig: DialogConfig = {}): Promise<Dialog> {
     if (!this.openPromise_) {
-      const manager = this.deps_.entitlementsManager();
-      const backgroundClickExp = manager
-        .getArticle()
-        .then(
-          (article) =>
-            !!manager
-              .parseArticleExperimentConfigFlags(article)
-              .includes(
-                ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
-              )
-        );
-
       this.dialog_ = new Dialog(
         this.doc_,
-        backgroundClickExp,
+        this.enableBackgroundClickExperiment_,
         /* importantStyles */ {},
         /* styles */ {},
         dialogConfig

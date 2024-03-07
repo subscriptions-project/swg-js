@@ -16,6 +16,7 @@
 
 import {Dialog} from './dialog';
 import {DialogManager} from './dialog-manager';
+import {EntitlementsManager} from '../runtime/entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 
 describes.realWin('DialogManager', (env) => {
@@ -30,7 +31,10 @@ describes.realWin('DialogManager', (env) => {
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
     win = env.win;
-    dialogManager = new DialogManager(new GlobalDoc(win));
+    dialogManager = new DialogManager(
+      new GlobalDoc(win),
+      Promise.resolve(false)
+    );
     currentView = null;
     initView = {
       whenComplete: () => Promise.resolve(true),
