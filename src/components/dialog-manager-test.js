@@ -16,7 +16,6 @@
 
 import {Dialog} from './dialog';
 import {DialogManager} from './dialog-manager';
-import {EntitlementsManager} from '../runtime/entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 
 describes.realWin('DialogManager', (env) => {
