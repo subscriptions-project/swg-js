@@ -97,7 +97,9 @@ describes.realWin('DialogManager', (env) => {
   it('should pass experiment as false to Dialog', async () => {
     await dialogManager.openDialog();
 
-    expect(dialogManager.dialog_.enableBackgroundClickExperiment_).to.be.false;
+    const experimentValue = await dialogManager.dialog_
+      .enableBackgroundClickExperiment_;
+    expect(experimentValue).to.be.false;
   });
 
   it('should pass experiment as true to Dialog', async () => {
@@ -109,7 +111,9 @@ describes.realWin('DialogManager', (env) => {
 
     await dialogManager.openDialog();
 
-    expect(dialogManager.dialog_.enableBackgroundClickExperiment_).to.be.true;
+    const experimentValue = await dialogManager.dialog_
+      .enableBackgroundClickExperiment_;
+    expect(experimentValue).to.be.true;
   });
 
   it('should re-open the same dialog', async () => {
