@@ -115,7 +115,7 @@ export class Dialog {
   /** Helps identify stale animations. */
   private animationNumber_: number;
   private hidden_: boolean;
-  private closeOnBackgroundClick_: boolean;
+  private closeOnBackgroundClick_?: boolean;
   private previousProgressView_: View | null;
   private maxAllowedHeightRatio_: number;
   private positionCenterOnDesktop_: boolean;
@@ -152,7 +152,7 @@ export class Dialog {
 
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
 
-    this.closeOnBackgroundClick_ = !!dialogConfig.closeOnBackgroundClick;
+    this.closeOnBackgroundClick_ = dialogConfig.closeOnBackgroundClick;
     this.enableBackgroundClickExperiment_ = enableBackgroundClickExperiment;
 
     const modifiedImportantStyles = Object.assign(
