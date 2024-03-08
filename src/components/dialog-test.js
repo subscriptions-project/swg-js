@@ -559,7 +559,6 @@ describes.realWin('Dialog', (env) => {
       it('respects not closable', async () => {
         dialog = new Dialog(
           globalDoc,
-
           {},
           {},
           {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true},
@@ -579,7 +578,6 @@ describes.realWin('Dialog', (env) => {
       it('respects closable', async () => {
         dialog = new Dialog(
           globalDoc,
-
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true},
