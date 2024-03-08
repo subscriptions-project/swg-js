@@ -64,10 +64,10 @@ export class DialogManager {
     if (!this.openPromise_) {
       this.dialog_ = new Dialog(
         this.doc_,
-        this.enableBackgroundClickExperiment_,
         /* importantStyles */ {},
         /* styles */ {},
-        dialogConfig
+        dialogConfig,
+        this.enableBackgroundClickExperiment_
       );
       this.openPromise_ = this.dialog_.open(hidden);
     }

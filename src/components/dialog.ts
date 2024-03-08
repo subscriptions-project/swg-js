@@ -130,10 +130,10 @@ export class Dialog {
    */
   constructor(
     doc: Doc,
-    enableBackgroundClickExperiment = Promise.resolve(false),
     importantStyles: {[key: string]: string} = {},
     styles: {[key: string]: string} = {},
-    dialogConfig: DialogConfig = {}
+    dialogConfig: DialogConfig = {},
+    enableBackgroundClickExperiment = Promise.resolve(false)
   ) {
     this.doc_ = doc;
 
@@ -199,6 +199,10 @@ export class Dialog {
    * Opens the dialog and builds the iframe container.
    */
   async open(hidden = false): Promise<Dialog> {
+    // If this experiment is active, the behavior of the grey background
+    // changes.  If closable, clicking the background closes the dialog.  If not
+    // closable, clicking the background now prevents you from clicking links
+    // on the main page.
     const enableBackgroundClickExperiment = await this
       .enableBackgroundClickExperiment_;
 
