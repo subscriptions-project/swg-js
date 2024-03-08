@@ -38,6 +38,7 @@ import {
   Subscriptions,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
@@ -660,8 +661,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
     this.storage_ = new Storage(this.win_);
 
-    this.dialogManager_ = new DialogManager(this.doc_);
-
     this.callbacks_ = new Callbacks();
 
     // Start listening to Google Analytics events, if applicable.
@@ -690,6 +689,19 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       integr.useArticleEndpoint || false,
       integr.enableDefaultMeteringHandler || false
     );
+
+    const backgroundClickExp = this.entitlementsManager_
+      .getArticle()
+      .then(
+        (article) =>
+          !!this.entitlementsManager_
+            .parseArticleExperimentConfigFlags(article)
+            .includes(
+              ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+            )
+      );
+
+    this.dialogManager_ = new DialogManager(this.doc_, backgroundClickExp);
 
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above
