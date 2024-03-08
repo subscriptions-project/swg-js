@@ -33,7 +33,10 @@ export class DialogManager {
   private readonly popupGraypane_: Graypane;
   private popupWin_: Window | null;
 
-  constructor(doc: Doc, enableBackgroundClickExperiment: Promise<boolean>) {
+  constructor(
+    doc: Doc,
+    enableBackgroundClickExperiment = Promise.resolve(false)
+  ) {
     this.enableBackgroundClickExperiment_ = enableBackgroundClickExperiment;
 
     this.doc_ = doc;

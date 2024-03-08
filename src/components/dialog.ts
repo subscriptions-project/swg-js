@@ -130,7 +130,7 @@ export class Dialog {
    */
   constructor(
     doc: Doc,
-    enableBackgroundClickExperiment: Promise<boolean>,
+    enableBackgroundClickExperiment = Promise.resolve(false),
     importantStyles: {[key: string]: string} = {},
     styles: {[key: string]: string} = {},
     dialogConfig: DialogConfig = {}
