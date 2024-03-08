@@ -30,10 +30,7 @@ describes.realWin('DialogManager', (env) => {
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
     win = env.win;
-    dialogManager = new DialogManager(
-      new GlobalDoc(win),
-      Promise.resolve(false)
-    );
+    dialogManager = new DialogManager(new GlobalDoc(win));
     currentView = null;
     initView = {
       whenComplete: () => Promise.resolve(true),
