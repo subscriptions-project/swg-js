@@ -541,6 +541,8 @@ describes.realWin('AutoPromptManager', (env) => {
   it('should not store events for a non frequency capping event', async () => {
     autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+
     storageMock.expects('get').never();
     storageMock.expects('set').never();
 
