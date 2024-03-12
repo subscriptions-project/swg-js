@@ -1226,7 +1226,7 @@ export class AutoPromptManager {
   async storeImpression(action: string): Promise<void> {
     const timestamps = await this.getTimestamps();
     const index = timestamps.findIndex((t) => t.action === action);
-    const impressions = index > -1 ? timestamps[index]?.impressions! : [];
+    const impressions = index > -1 ? timestamps[index]?.impressions || [] : [];
     impressions.push(Date.now());
     if (index > -1) {
       timestamps[index].impressions = impressions;
@@ -1239,7 +1239,7 @@ export class AutoPromptManager {
   async storeDismissal(action: string): Promise<void> {
     const timestamps = await this.getTimestamps();
     const index = timestamps.findIndex((t) => t.action === action);
-    const dismissals = index > -1 ? timestamps[index]?.dismissals! : [];
+    const dismissals = index > -1 ? timestamps[index]?.dismissals || [] : [];
     dismissals.push(Date.now());
     if (index > -1) {
       timestamps[index].dismissals = dismissals;
@@ -1252,7 +1252,7 @@ export class AutoPromptManager {
   async storeCompletion(action: string): Promise<void> {
     const timestamps = await this.getTimestamps();
     const index = timestamps.findIndex((t) => t.action === action);
-    const completions = index > -1 ? timestamps[index]?.completions! : [];
+    const completions = index > -1 ? timestamps[index]?.completions || [] : [];
     completions.push(Date.now());
     if (index > -1) {
       timestamps[index].completions = completions;

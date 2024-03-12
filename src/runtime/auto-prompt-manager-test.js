@@ -5878,6 +5878,10 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
+        {
+          action: 'TYPE_REWARDED_AD',
+          completions: [CURRENT_TIME],
+        },
       ]);
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -6779,6 +6783,16 @@ describes.realWin('AutoPromptManager', (env) => {
         timestamp: sandbox.match.number,
       });
       expect(action).to.equal(CONTRIBUTION_INTERVENTION);
+    });
+
+    it('setTimestamps sets empty JSON if timestamps array is empty', async () => {
+      storageMock
+        .expects('set')
+        .withExactArgs(StorageKeys.TIMESTAMPS, '', /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.setTimestamps([]);
     });
   });
 
