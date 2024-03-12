@@ -83,23 +83,24 @@ const StorageKeys = {
    * Local storage key for whether toast was shown.
    */
   TOAST: 'toast',
-};
 
-/**
- * Local storage keys for intervention dismissals.
- */
-const DismissalStorageKeys = {
-  CONTRIBUTION: 'dms_contribution',
+  // Prompt Frequency storage keys
+  /**
+   * Local storage key for prompt impression timestamps.
+   */
+  PF_IMPRESSIONS: 'imp',
 
-  NEWSLETTER_SIGNUP: 'dms_newsletter',
+  /**
+   * Local storage key for prompt dismissal timestamps.
+   */
+  PF_DISMISSALS: 'dms',
 
-  REGISTRATION_WALL: 'dms_regwall',
+  /**
+   * Local storage key for prompt completion timestamps.
+   */
+  PF_COMPLETIONS: 'cpt',
 
-  REWARDED_AD: 'dms_ad',
-
-  REWARDED_SURVEY: 'dms_survey',
-
-  SUBSCRIPTION: 'dms_subscription',
+  TIMESTAMPS: 'tsp',
 };
 
 /**
@@ -119,4 +120,4 @@ const ImpressionStorageKeys = {
   SUBSCRIPTION: 'imp_subscription',
 };
 
-export {Constants, DismissalStorageKeys, ImpressionStorageKeys, StorageKeys};
+export {Constants, ImpressionStorageKeys, StorageKeys};
