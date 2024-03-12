@@ -538,6 +538,20 @@ describes.realWin('AutoPromptManager', (env) => {
     );
   });
 
+  it('should not store events for a non frequency capping event', async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    storageMock.expects('get').never();
+    storageMock.expects('set').never();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.UNKNOWN,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   it('should not store events when an impression or dismissal was fired for a paygated article', async () => {
     autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
