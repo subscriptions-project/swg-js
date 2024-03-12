@@ -205,6 +205,7 @@ export class AutoPromptManager {
     this.clientConfigManager_ = deps_.clientConfigManager();
     assert(
       this.clientConfigManager_,
+
       'AutoPromptManager requires an instance of ClientConfigManager.'
     );
 
