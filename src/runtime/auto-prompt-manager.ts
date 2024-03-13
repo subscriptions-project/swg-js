@@ -1367,6 +1367,9 @@ export class AutoPromptManager {
       if (!isAnalyticsEligible) {
         return false;
       }
+      // Do not show survey if there is a previous completion record.
+      // Client side eligibility is required to handle identity transitions
+      // after sign-in flow.
       return !(timestamps[TYPE_REWARDED_SURVEY]?.completions || []).length;
     }
     return true;
