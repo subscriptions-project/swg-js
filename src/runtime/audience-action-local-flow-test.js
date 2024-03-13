@@ -124,7 +124,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       const params = {
         action: 'invlid action',
         isClosable: true,
-         monetizationFunction: sandbox.spy(),
+        monetizationFunction: sandbox.spy(),
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
