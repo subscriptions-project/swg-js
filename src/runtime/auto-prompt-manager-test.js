@@ -1141,6 +1141,30 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it(`should add frequency cap impressions to existing local storage timestamp but no impressions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      [{action: 'TYPE_REWARDED_SURVEY', dismissals: [CURRENT_TIME]}],
+      [
+        {
+          action: 'TYPE_REWARDED_SURVEY',
+          impressions: [CURRENT_TIME],
+          dismissals: [CURRENT_TIME],
+        },
+      ]
+    );
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   [
     {
       eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
@@ -1258,6 +1282,30 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it(`should add frequency cap dismissals to existing local storage timestamp but no dismissals`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      [{action: 'TYPE_REWARDED_SURVEY', impressions: [CURRENT_TIME]}],
+      [
+        {
+          action: 'TYPE_REWARDED_SURVEY',
+          impressions: [CURRENT_TIME],
+          dismissals: [CURRENT_TIME],
+        },
+      ]
+    );
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   [
     {
       eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
@@ -1318,6 +1366,30 @@ describes.realWin('AutoPromptManager', (env) => {
         {
           action: 'TYPE_REWARDED_SURVEY',
           completions: [CURRENT_TIME, CURRENT_TIME],
+        },
+      ]
+    );
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it(`should add frequency cap completions to existing local storage timestamps but no completions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      [{action: 'TYPE_REWARDED_SURVEY', impressions: [CURRENT_TIME]}],
+      [
+        {
+          action: 'TYPE_REWARDED_SURVEY',
+          impressions: [CURRENT_TIME],
+          completions: [CURRENT_TIME],
         },
       ]
     );
