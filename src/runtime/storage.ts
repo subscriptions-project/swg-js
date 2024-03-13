@@ -108,7 +108,7 @@ export class Storage {
    */
   async getEvent(storageKey: string): Promise<number[]> {
     const value = await this.get(storageKey, /* useLocalStorage */ true);
-    return this.pruneTimestamps_(this.deserializeTimestamps_(value));
+    return pruneTimestamps(this.deserializeTimestamps_(value));
   }
   /**
    * Stores the current timestamp to local storage, under the storageKey
@@ -131,7 +131,7 @@ export class Storage {
    */
   async getFrequencyCappingEvent(storageKey: string): Promise<number[]> {
     const value = await this.get(storageKey, /* useLocalStorage */ true);
-    return this.pruneTimestamps_(
+    return pruneTimestamps(
       this.deserializeTimestamps_(value),
       TWO_WEEKS_IN_MILLIS
     );
@@ -156,27 +156,27 @@ export class Storage {
   serializeTimestamps_(timestamps: number[]): string {
     return timestamps.join(STORAGE_DELIMITER);
   }
+}
 
-  /**
-   * Filters out values that are older than a week.
-   */
-  pruneTimestamps_(
-    timestamps: number[],
-    timestampLifespan = WEEK_IN_MILLIS
-  ): number[] {
-    const now = Date.now();
-    let sliceIndex = timestamps.length;
-    for (let i = 0; i < timestamps.length; i++) {
-      // The arrays are sorted in time, so if you find a time in the array
-      // that's within the week boundary, we can skip over the remainder because
-      // the rest of the array else should be too.
-      if (now - timestamps[i] <= timestampLifespan) {
-        sliceIndex = i;
-        break;
-      }
+/**
+ * Filters out values that are older than a week.
+ */
+export function pruneTimestamps(
+  timestamps: number[],
+  timestampLifespan = WEEK_IN_MILLIS
+): number[] {
+  const now = Date.now();
+  let sliceIndex = timestamps.length;
+  for (let i = 0; i < timestamps.length; i++) {
+    // The arrays are sorted in time, so if you find a time in the array
+    // that's within the week boundary, we can skip over the remainder because
+    // the rest of the array else should be too.
+    if (now - timestamps[i] <= timestampLifespan) {
+      sliceIndex = i;
+      break;
     }
-    return timestamps.slice(sliceIndex);
   }
+  return timestamps.slice(sliceIndex);
 }
 
 function storageKey(key: string): string {
