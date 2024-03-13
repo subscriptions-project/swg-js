@@ -552,6 +552,11 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.isClosable_ = true;
     storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
+    storageMock
       .expects('set')
       .withExactArgs(
         StorageKeys.TIMESTAMPS,
@@ -575,6 +580,11 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.isClosable_ = true;
     storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
+    storageMock
       .expects('set')
       .withExactArgs(
         StorageKeys.TIMESTAMPS,
@@ -597,6 +607,11 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
     storageMock
       .expects('set')
       .withExactArgs(
