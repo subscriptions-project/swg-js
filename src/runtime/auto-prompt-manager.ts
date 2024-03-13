@@ -1205,7 +1205,6 @@ export class AutoPromptManager {
               TWO_WEEKS_IN_MILLIS
             ),
             dismissals: pruneTimestamps(value.dismissals, TWO_WEEKS_IN_MILLIS),
-
             completions: pruneTimestamps(
               value.completions,
               TWO_WEEKS_IN_MILLIS
