@@ -124,7 +124,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       const params = {
         action: 'invlid action',
         isClosable: true,
-        monetizationFunction: sandbox.spy(),
+         monetizationFunction: sandbox.spy(),
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
@@ -134,7 +134,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         '.audience-action-local-wrapper'
       );
       expect(wrapper).to.be.null;
-      expect(params.monetizationFunction).to.be.called;
+      expect(params.monetizationFunction).to.be.calledOnce.calledWithExactly();
     });
 
     describe('rewarded ad', () => {
