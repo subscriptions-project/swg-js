@@ -189,22 +189,22 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private bailoutPrompt_() {
-    if (this.params_.isClosable || this.params_.monetizationFunction) {
-      if (this.rewardedSlot_) {
-        const googletag = this.deps_.win().googletag;
-        googletag.destroySlots([this.rewardedSlot_!]);
-      }
-      this.params_.onCancel?.();
-      this.unlock_();
-      this.params_.monetizationFunction?.();
-    } else {
-      if (this.params_.action === TYPE_REWARDED_AD) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
-        );
-      }
-      this.renderErrorView_();
+    if (
+      !this.params_.isClosable &&
+      !this.params_.monetizationFunction &&
+      this.params_.action === TYPE_REWARDED_AD
+    ) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
+      );
     }
+    if (this.rewardedSlot_) {
+      const googletag = this.deps_.win().googletag;
+      googletag.destroySlots([this.rewardedSlot_!]);
+    }
+    this.params_.onCancel?.();
+    this.unlock_();
+    this.params_.monetizationFunction?.();
   }
 
   private renderLoadingView_() {

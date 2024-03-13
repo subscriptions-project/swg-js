@@ -105,7 +105,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   });
 
   describe('start', () => {
-    it('invalid action renders with error view prompt when not closable', async () => {
+    it('invalid action does not render with error view prompt when not closable', async () => {
       const params = {
         action: 'invlid action',
         isClosable: false,
@@ -117,18 +117,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       const wrapper = env.win.document.querySelector(
         '.audience-action-local-wrapper'
       );
-      expect(wrapper).to.not.be.null;
-      const prompt = wrapper.shadowRoot.querySelector('.rewarded-ad-prompt');
-      expect(prompt.innerHTML).contains('Something went wrong.');
-      const closePromptButton = prompt.querySelector('.closePromptButton');
-      expect(closePromptButton).to.be.null;
+      expect(wrapper).to.be.null;
     });
 
-    it('invalid action renders with error view prompt when closable', async () => {
+    it('invalid action does not render with error view prompt when closable', async () => {
       const params = {
         action: 'invlid action',
         isClosable: true,
-        monetizationFunction: sandbox.spy(),
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
@@ -138,7 +133,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         '.audience-action-local-wrapper'
       );
       expect(wrapper).to.be.null;
-      expect(params.monetizationFunction).to.be.calledOnce.calledWithExactly();
     });
 
     describe('rewarded ad', () => {
@@ -562,7 +556,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await didBailout(DEFAULT_PARAMS);
       });
 
-      it('renders error page on failed unclosable premon', async () => {
+      it('default open on failed unclosable premon', async () => {
         env.win.googletag.defineOutOfPageSlot = () => null;
 
         const params = {
@@ -579,15 +573,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
 
-        expect(params.onCancel).to.not.be.called;
+        expect(params.onCancel).to.be.called;
 
         const wrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );
-        expect(wrapper).to.not.be.null;
-        const prompt = wrapper.shadowRoot.querySelector('.rewarded-ad-prompt');
-        expect(prompt).to.not.be.null;
-        expect(prompt.innerHTML).contains('Something went wrong.');
+        expect(wrapper).to.be.null;
       });
 
       it('fails to render with bad ad slot', async () => {
@@ -714,6 +705,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_GRANTED
         );
+        // TODO: b/329307018 - Skip all metering logic for rewarded ads
         expect(entitlementsManager.clear).to.be.called;
         expect(entitlementsManager.getEntitlements).to.be.called;
         expect(env.win.localStorage.setItem).to.be.calledWith(
