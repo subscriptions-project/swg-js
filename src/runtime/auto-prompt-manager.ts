@@ -1369,7 +1369,8 @@ export class AutoPromptManager {
       }
       // Do not show survey if there is a previous completion record.
       // Client side eligibility is required to handle identity transitions
-      // after sign-in flow.
+      // after sign-in flow. TODO(justinchou): update survey completion check
+      // to persist even after 2 weeks.
       return !(timestamps[TYPE_REWARDED_SURVEY]?.completions || []).length;
     }
     return true;
