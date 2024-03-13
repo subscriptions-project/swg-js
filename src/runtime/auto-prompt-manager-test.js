@@ -499,7 +499,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  it(`should properly prune Local Storage Timestamps`, async () => {
+  it(`should properly prune and fill all local storage Timestamps`, async () => {
     autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.isClosable_ = true;
@@ -545,6 +545,75 @@ describes.realWin('AutoPromptManager', (env) => {
         },
       })
     );
+  });
+
+  it(`should set all timestamps on storing impressions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [CURRENT_TIME],
+            dismissals: [],
+            completions: [],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
+  });
+
+  it(`should set all timestamps on storing dismissals`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [],
+            dismissals: [CURRENT_TIME],
+            completions: [],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeDismissal('TYPE_REWARDED_SURVEY');
+  });
+
+  it(`should set all timestamps on storing completions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [],
+            dismissals: [],
+            completions: [CURRENT_TIME],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeCompletion('TYPE_REWARDED_SURVEY');
   });
 
   it('should not store events for a non frequency capping event', async () => {
