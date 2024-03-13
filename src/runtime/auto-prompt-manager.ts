@@ -1192,6 +1192,7 @@ export class AutoPromptManager {
       StorageKeys.TIMESTAMPS,
       /* useLocalStorage */ true
     );
+    // TODO(justinchou): handle parsing error to not disrupt flow.
     const array = stringified ? JSON.parse(stringified) : [];
 
     return array
