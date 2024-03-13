@@ -547,7 +547,7 @@ describes.realWin('AutoPromptManager', (env) => {
     storageMock.expects('set').never();
 
     await eventManagerCallback({
-      eventType: AnalyticsEvent.UNKNOWN,
+      eventType: AnalyticsEvent.ACTION_TWG_CREATOR_BENEFIT_CLICK,
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
