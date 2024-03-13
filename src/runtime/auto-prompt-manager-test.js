@@ -1151,8 +1151,8 @@ describes.realWin('AutoPromptManager', (env) => {
       [
         {
           action: 'TYPE_REWARDED_SURVEY',
-          impressions: [CURRENT_TIME],
           dismissals: [CURRENT_TIME],
+          impressions: [CURRENT_TIME],
         },
       ]
     );
