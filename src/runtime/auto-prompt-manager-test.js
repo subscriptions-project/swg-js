@@ -1299,7 +1299,7 @@ describes.realWin('AutoPromptManager', (env) => {
     );
 
     await eventManagerCallback({
-      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+      eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
