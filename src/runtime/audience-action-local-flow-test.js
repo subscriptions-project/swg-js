@@ -134,7 +134,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         '.audience-action-local-wrapper'
       );
       expect(wrapper).to.be.null;
-      expect(params.monetizationFunction).to.not.be.called;
+      expect(params.monetizationFunction).to.be.called;
     });
 
     describe('rewarded ad', () => {
