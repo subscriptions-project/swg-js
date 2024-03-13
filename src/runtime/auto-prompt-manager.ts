@@ -161,11 +161,14 @@ export interface ShowAutoPromptParams {
   isClosable?: boolean;
 }
 
+interface ActionsTimestamps {
+  [key: string]: ActionTimestamps;
+}
+
 interface ActionTimestamps {
-  action: string;
-  impressions?: number[];
-  dismissals?: number[];
-  completions?: number[];
+  impressions: number[];
+  dismissals: number[];
+  completions: number[];
 }
 
 /**
@@ -748,13 +751,13 @@ export class AutoPromptManager {
       return;
     }
 
-    let timestampsFromLocalStorage;
+    let actionsTimestamps;
     if (this.frequencyCappingByDismissalsEnabled_) {
-      timestampsFromLocalStorage = await this.getTimestamps();
+      actionsTimestamps = await this.getTimestamps();
       actions = actions.filter((action) =>
         this.checkActionEligibilityFromTimestamps_(
           action.type,
-          timestampsFromLocalStorage!
+          actionsTimestamps!
         )
       );
     } else {
@@ -799,9 +802,7 @@ export class AutoPromptManager {
       if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
         let timestamps;
         if (this.frequencyCappingByDismissalsEnabled_) {
-          const actionTimestamps = timestampsFromLocalStorage!.find(
-            (t) => t.action === action.type
-          );
+          const actionTimestamps = actionsTimestamps![action.type];
           timestamps = [
             ...(actionTimestamps?.dismissals || []),
             ...(actionTimestamps?.completions || []),
@@ -831,9 +832,9 @@ export class AutoPromptManager {
       if (this.frequencyCappingByDismissalsEnabled_) {
         globalTimestamps = Array.prototype.concat.apply(
           [],
-          timestampsFromLocalStorage!
-            .filter((t) => t.action !== potentialAction!.type)
-            .map((t) => t?.impressions || [])
+          Object.entries(actionsTimestamps!)
+            .filter(([action, _]) => action !== potentialAction!.type)
+            .map(([_, timestamps]) => timestamps.impressions)
         );
       } else {
         globalTimestamps = await this.getAllImpressions_();
@@ -1187,80 +1188,72 @@ export class AutoPromptManager {
     );
   }
 
-  async getTimestamps(): Promise<ActionTimestamps[]> {
+  async getTimestamps(): Promise<ActionsTimestamps> {
     const stringified = await this.storage_.get(
       StorageKeys.TIMESTAMPS,
       /* useLocalStorage */ true
     );
-    const array = stringified ? JSON.parse(stringified) : [];
-
-    return array
-      .map((t: ActionTimestamps) => {
-        const impressions = pruneTimestamps(
-          t.impressions || [],
-          TWO_WEEKS_IN_MILLIS
-        );
-        const dismissals = pruneTimestamps(
-          t.dismissals || [],
-          TWO_WEEKS_IN_MILLIS
-        );
-        const completions = pruneTimestamps(
-          t.completions || [],
-          TWO_WEEKS_IN_MILLIS
-        );
+    // TODO(justinchou): handle parsing error to not disrupt flow.
+    const map: ActionsTimestamps = stringified ? JSON.parse(stringified) : {};
+    return Object.entries(map).reduce(
+      (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
         return {
-          action: t.action,
-          ...(impressions?.length && {impressions}),
-          ...(dismissals?.length && {dismissals}),
-          ...(completions?.length && {completions}),
+          ...acc,
+          [key]: {
+            impressions: pruneTimestamps(
+              value.impressions,
+              TWO_WEEKS_IN_MILLIS
+            ),
+            dismissals: pruneTimestamps(value.dismissals, TWO_WEEKS_IN_MILLIS),
+            completions: pruneTimestamps(
+              value.completions,
+              TWO_WEEKS_IN_MILLIS
+            ),
+          },
         };
-      })
-      .filter(
-        (t: ActionTimestamps) => t.impressions || t.dismissals || t.completions
-      );
+      },
+      {}
+    );
   }
 
-  async setTimestamps(timestamps: ActionTimestamps[]) {
-    const json = timestamps.length ? JSON.stringify(timestamps) : '';
+  async setTimestamps(timestamps: ActionsTimestamps) {
+    const json = JSON.stringify(timestamps);
     this.storage_.set(StorageKeys.TIMESTAMPS, json, /* useLocalStorage */ true);
   }
 
   async storeImpression(action: string): Promise<void> {
     const timestamps = await this.getTimestamps();
-    const index = timestamps.findIndex((t) => t.action === action);
-    const impressions = index > -1 ? timestamps[index]?.impressions || [] : [];
-    impressions.push(Date.now());
-    if (index > -1) {
-      timestamps[index].impressions = impressions;
-    } else {
-      timestamps.push({action, impressions});
-    }
+    const actionTimestamps = timestamps[action] || {
+      impressions: [],
+      dismissals: [],
+      completions: [],
+    };
+    actionTimestamps.impressions.push(Date.now());
+    timestamps[action] = actionTimestamps;
     this.setTimestamps(timestamps);
   }
 
   async storeDismissal(action: string): Promise<void> {
     const timestamps = await this.getTimestamps();
-    const index = timestamps.findIndex((t) => t.action === action);
-    const dismissals = index > -1 ? timestamps[index]?.dismissals || [] : [];
-    dismissals.push(Date.now());
-    if (index > -1) {
-      timestamps[index].dismissals = dismissals;
-    } else {
-      timestamps.push({action, dismissals});
-    }
+    const actionTimestamps = timestamps[action] || {
+      impressions: [],
+      dismissals: [],
+      completions: [],
+    };
+    actionTimestamps.dismissals.push(Date.now());
+    timestamps[action] = actionTimestamps;
     this.setTimestamps(timestamps);
   }
 
   async storeCompletion(action: string): Promise<void> {
     const timestamps = await this.getTimestamps();
-    const index = timestamps.findIndex((t) => t.action === action);
-    const completions = index > -1 ? timestamps[index]?.completions || [] : [];
-    completions.push(Date.now());
-    if (index > -1) {
-      timestamps[index].completions = completions;
-    } else {
-      timestamps.push({action, completions});
-    }
+    const actionTimestamps = timestamps[action] || {
+      impressions: [],
+      dismissals: [],
+      completions: [],
+    };
+    actionTimestamps.completions.push(Date.now());
+    timestamps[action] = actionTimestamps;
     this.setTimestamps(timestamps);
   }
 
@@ -1364,7 +1357,7 @@ export class AutoPromptManager {
    */
   private checkActionEligibilityFromTimestamps_(
     actionType: string,
-    timestamps: ActionTimestamps[]
+    timestamps: ActionsTimestamps
   ): boolean {
     if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
@@ -1374,13 +1367,11 @@ export class AutoPromptManager {
       if (!isAnalyticsEligible) {
         return false;
       }
-      const index = timestamps.findIndex(
-        (t) => t.action === TYPE_REWARDED_SURVEY
-      );
       // Do not show survey if there is a previous completion record.
       // Client side eligibility is required to handle identity transitions
-      // after sign-in flow.
-      return index === -1 ? true : !timestamps[index].completions?.length;
+      // after sign-in flow. TODO(justinchou): update survey completion check
+      // to persist even after 2 weeks.
+      return !(timestamps[TYPE_REWARDED_SURVEY]?.completions || []).length;
     }
     return true;
   }

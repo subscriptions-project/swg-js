@@ -326,19 +326,18 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(storageMock, '', [
-        {action: autoPromptType, impressions: [CURRENT_TIME]},
-      ]);
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [autoPromptType]: {impressions: [CURRENT_TIME]},
+      });
       expectFrequencyCappingTimestamps(
         storageMock,
-        [{action: autoPromptType, impressions: [CURRENT_TIME]}],
-        [
-          {
-            action: autoPromptType,
+        {[autoPromptType]: {impressions: [CURRENT_TIME]}},
+        {
+          [autoPromptType]: {
             impressions: [CURRENT_TIME],
             dismissals: [CURRENT_TIME],
           },
-        ]
+        }
       );
       // Legacy storage operations
       storageMock
@@ -500,42 +499,136 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  it(`should properly prune Local Storage Timestamps`, async () => {
+  it(`should properly prune and fill all local storage Timestamps`, async () => {
     autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     autoPromptManager.isClosable_ = true;
 
-    expectFrequencyCappingTimestamps(storageMock, [
-      {action: 'TYPE_CONTRIBUTION', impressions: [CURRENT_TIME]},
-      {
-        action: 'TYPE_NEWSLETTER_SIGNUP',
+    expectFrequencyCappingTimestamps(storageMock, {
+      'TYPE_CONTRIBUTION': {impressions: [CURRENT_TIME]},
+      'TYPE_NEWSLETTER_SIGNUP': {
         impressions: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1],
         dismissals: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1],
       },
       // Unsupported case where action is in local storage with no timestamps
-      {
-        action: 'TYPE_REWARDED_SURVEY',
-      },
-      {
-        action: 'TYPE_REWARDED_AD',
+      'TYPE_REWARDED_SURVEY': {},
+      'TYPE_REWARDED_AD': {
         impressions: [
           CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1,
           CURRENT_TIME - TWO_WEEKS_IN_MILLIS,
         ],
         completions: [CURRENT_TIME],
       },
-    ]);
+    });
     const timestamps = await autoPromptManager.getTimestamps();
     expect(JSON.stringify(timestamps)).to.equal(
-      JSON.stringify([
-        {action: 'TYPE_CONTRIBUTION', impressions: [CURRENT_TIME]},
-        {
-          action: 'TYPE_REWARDED_AD',
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [CURRENT_TIME],
+          dismissals: [],
+          completions: [],
+        },
+        'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+        'TYPE_REWARDED_AD': {
           impressions: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS],
+          dismissals: [],
           completions: [CURRENT_TIME],
         },
-      ])
+      })
     );
+  });
+
+  it(`should set all timestamps on storing impressions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [CURRENT_TIME],
+            dismissals: [],
+            completions: [],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
+  });
+
+  it(`should set all timestamps on storing dismissals`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [],
+            dismissals: [CURRENT_TIME],
+            completions: [],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeDismissal('TYPE_REWARDED_SURVEY');
+  });
+
+  it(`should set all timestamps on storing completions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [],
+            dismissals: [],
+            completions: [CURRENT_TIME],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeCompletion('TYPE_REWARDED_SURVEY');
   });
 
   it('should not store events for a non frequency capping event', async () => {
@@ -1046,11 +1139,9 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(
-        storageMock,
-        [],
-        [{action, impressions: [CURRENT_TIME]}]
-      );
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {impressions: [CURRENT_TIME]},
+      });
       // Legacy storage operations
       // TODO(justinchou): once deprecated, join with other impression tests.
       storageMock
@@ -1103,11 +1194,9 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(
-        storageMock,
-        [],
-        [{action, impressions: [CURRENT_TIME]}]
-      );
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {impressions: [CURRENT_TIME]},
+      });
 
       await eventManagerCallback({
         eventType,
@@ -1124,13 +1213,12 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.isClosable_ = true;
     expectFrequencyCappingTimestamps(
       storageMock,
-      [{action: 'TYPE_REWARDED_SURVEY', impressions: [CURRENT_TIME]}],
-      [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
           impressions: [CURRENT_TIME, CURRENT_TIME],
         },
-      ]
+      }
     );
 
     await eventManagerCallback({
@@ -1147,14 +1235,13 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.isClosable_ = true;
     expectFrequencyCappingTimestamps(
       storageMock,
-      [{action: 'TYPE_REWARDED_SURVEY', dismissals: [CURRENT_TIME]}],
-      [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      {'TYPE_REWARDED_SURVEY': {dismissals: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
           dismissals: [CURRENT_TIME],
           impressions: [CURRENT_TIME],
         },
-      ]
+      }
     );
 
     await eventManagerCallback({
@@ -1187,11 +1274,9 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(
-        storageMock,
-        [],
-        [{action, dismissals: [CURRENT_TIME]}]
-      );
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {dismissals: [CURRENT_TIME]},
+      });
       // Legacy storage operations
       // TODO(justinchou): once deprecated, join with other impression tests.
       storageMock
@@ -1244,11 +1329,9 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(
-        storageMock,
-        [],
-        [{action, dismissals: [CURRENT_TIME]}]
-      );
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {dismissals: [CURRENT_TIME]},
+      });
 
       await eventManagerCallback({
         eventType,
@@ -1265,13 +1348,12 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.isClosable_ = true;
     expectFrequencyCappingTimestamps(
       storageMock,
-      [{action: 'TYPE_REWARDED_SURVEY', dismissals: [CURRENT_TIME]}],
-      [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      {'TYPE_REWARDED_SURVEY': {dismissals: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
           dismissals: [CURRENT_TIME, CURRENT_TIME],
         },
-      ]
+      }
     );
 
     await eventManagerCallback({
@@ -1288,14 +1370,13 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.isClosable_ = true;
     expectFrequencyCappingTimestamps(
       storageMock,
-      [{action: 'TYPE_REWARDED_SURVEY', impressions: [CURRENT_TIME]}],
-      [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
           impressions: [CURRENT_TIME],
           dismissals: [CURRENT_TIME],
         },
-      ]
+      }
     );
 
     await eventManagerCallback({
@@ -1340,11 +1421,9 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(
-        storageMock,
-        [],
-        [{action, completions: [CURRENT_TIME]}]
-      );
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {completions: [CURRENT_TIME]},
+      });
 
       await eventManagerCallback({
         eventType,
@@ -1361,13 +1440,12 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.isClosable_ = true;
     expectFrequencyCappingTimestamps(
       storageMock,
-      [{action: 'TYPE_REWARDED_SURVEY', completions: [CURRENT_TIME]}],
-      [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      {'TYPE_REWARDED_SURVEY': {completions: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
           completions: [CURRENT_TIME, CURRENT_TIME],
         },
-      ]
+      }
     );
 
     await eventManagerCallback({
@@ -1384,14 +1462,13 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager.isClosable_ = true;
     expectFrequencyCappingTimestamps(
       storageMock,
-      [{action: 'TYPE_REWARDED_SURVEY', impressions: [CURRENT_TIME]}],
-      [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
           impressions: [CURRENT_TIME],
           completions: [CURRENT_TIME],
         },
-      ]
+      }
     );
 
     await eventManagerCallback({
@@ -1429,11 +1506,9 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
       autoPromptManager.autoPromptType_ = autoPromptType;
-      expectFrequencyCappingTimestamps(
-        storageMock,
-        [],
-        [{action, completions: [CURRENT_TIME]}]
-      );
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {completions: [CURRENT_TIME]},
+      });
 
       await eventManagerCallback({
         eventType,
@@ -5376,7 +5451,7 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, []);
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5412,13 +5487,12 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
           impressions: [CURRENT_TIME],
           completions: [CURRENT_TIME],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5439,7 +5513,7 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, []);
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5458,9 +5532,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -5470,7 +5543,7 @@ describes.realWin('AutoPromptManager', (env) => {
               10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5489,14 +5562,13 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME - globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5515,7 +5587,7 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, []);
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
@@ -5540,13 +5612,12 @@ describes.realWin('AutoPromptManager', (env) => {
       const contributionTimestamps =
         CURRENT_TIME -
         (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [contributionTimestamps],
           dismissals: [contributionTimestamps],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(25);
@@ -5585,13 +5656,12 @@ describes.realWin('AutoPromptManager', (env) => {
       const contributionTimestamps =
         CURRENT_TIME -
         (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [contributionTimestamps],
           completions: [contributionTimestamps],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(25);
@@ -5645,13 +5715,12 @@ describes.realWin('AutoPromptManager', (env) => {
       const contributionTimestamps =
         CURRENT_TIME -
         (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [contributionTimestamps],
           dismissals: [contributionTimestamps],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5703,9 +5772,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
@@ -5713,7 +5781,7 @@ describes.realWin('AutoPromptManager', (env) => {
             CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(25);
@@ -5748,9 +5816,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
@@ -5758,7 +5825,7 @@ describes.realWin('AutoPromptManager', (env) => {
             CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5792,9 +5859,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -5804,8 +5870,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+        'TYPE_REWARDED_SURVEY': {
           impressions: [
             CURRENT_TIME -
               (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -5815,7 +5880,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(30);
@@ -5874,9 +5939,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -5886,8 +5950,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+        'TYPE_REWARDED_SURVEY': {
           impressions: [
             CURRENT_TIME -
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -5897,7 +5960,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(30);
@@ -5938,9 +6001,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -5950,11 +6012,10 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_REWARDED_AD',
+        'TYPE_REWARDED_AD': {
           completions: [CURRENT_TIME],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(50);
@@ -6009,9 +6070,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6021,7 +6081,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(50);
@@ -6056,9 +6116,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6068,8 +6127,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+        'TYPE_REWARDED_SURVEY': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6079,8 +6137,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_NEWSLETTER_SIGNUP',
+        'TYPE_NEWSLETTER_SIGNUP': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6090,7 +6147,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(50);
@@ -6132,9 +6189,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6144,8 +6200,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+        'TYPE_REWARDED_SURVEY': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6155,8 +6210,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_NEWSLETTER_SIGNUP',
+        'TYPE_NEWSLETTER_SIGNUP': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6166,7 +6220,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(50);
@@ -6226,9 +6280,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -6238,8 +6291,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+        'TYPE_REWARDED_SURVEY': {
           impressions: [
             CURRENT_TIME -
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -6249,8 +6301,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-        {
-          action: 'TYPE_NEWSLETTER_SIGNUP',
+        'TYPE_NEWSLETTER_SIGNUP': {
           impressions: [
             CURRENT_TIME -
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -6260,7 +6311,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -6303,9 +6354,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
@@ -6313,7 +6363,7 @@ describes.realWin('AutoPromptManager', (env) => {
             CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(50);
@@ -6349,9 +6399,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6361,7 +6410,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(50);
@@ -6488,9 +6537,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
           impressions: [
             CURRENT_TIME -
               (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -6500,7 +6548,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
@@ -6557,9 +6605,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_REWARDED_SURVEY',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
           impressions: [
             CURRENT_TIME -
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -6569,7 +6616,7 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
@@ -6706,9 +6753,8 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingTimestamps(storageMock, [
-        {
-          action: 'TYPE_CONTRIBUTION',
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
               (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -6718,7 +6764,7 @@ describes.realWin('AutoPromptManager', (env) => {
               (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
-      ]);
+      });
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: 'unknown',
@@ -6856,35 +6902,49 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       expect(action).to.equal(CONTRIBUTION_INTERVENTION);
     });
-
-    it('setTimestamps sets empty JSON if timestamps array is empty', async () => {
-      storageMock
-        .expects('set')
-        .withExactArgs(StorageKeys.TIMESTAMPS, '', /* useLocalStorage */ true)
-        .resolves(null)
-        .once();
-
-      await autoPromptManager.setTimestamps([]);
-    });
   });
 
   function expectFrequencyCappingTimestamps(
     storageMock,
-    get = [],
+    get = {},
     set = undefined
   ) {
+    if (get) {
+      get = JSON.stringify(
+        Object.entries(get).reduce((acc, [key, values]) => {
+          return {
+            ...acc,
+            [key]: {
+              impressions: [],
+              dismissals: [],
+              completions: [],
+              ...values,
+            },
+          };
+        }, {})
+      );
+    }
     storageMock
       .expects('get')
       .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
-      .resolves(!!get.length ? JSON.stringify(get) : '');
+      .resolves(get);
     if (set != undefined) {
+      set = JSON.stringify(
+        Object.entries(set).reduce((acc, [key, values]) => {
+          return {
+            ...acc,
+            [key]: {
+              impressions: [],
+              dismissals: [],
+              completions: [],
+              ...values,
+            },
+          };
+        }, {})
+      );
       storageMock
         .expects('set')
-        .withExactArgs(
-          StorageKeys.TIMESTAMPS,
-          JSON.stringify(set),
-          /* useLocalStorage */ true
-        )
+        .withExactArgs(StorageKeys.TIMESTAMPS, set, /* useLocalStorage */ true)
         .resolves(null)
         .once();
     }
