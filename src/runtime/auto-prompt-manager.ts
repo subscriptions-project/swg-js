@@ -1201,16 +1201,13 @@ export class AutoPromptManager {
           ...acc,
           [key]: {
             impressions: pruneTimestamps(
-              value?.impressions! || [],
+              value.impressions,
               TWO_WEEKS_IN_MILLIS
             ),
-            dismissals: pruneTimestamps(
-              value?.dismissals! || [],
-              TWO_WEEKS_IN_MILLIS
-            ),
+            dismissals: pruneTimestamps(value.dismissals, TWO_WEEKS_IN_MILLIS),
 
             completions: pruneTimestamps(
-              value?.completions! || [],
+              value.completions,
               TWO_WEEKS_IN_MILLIS
             ),
           },
