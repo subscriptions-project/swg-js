@@ -161,7 +161,7 @@ export interface ShowAutoPromptParams {
   isClosable?: boolean;
 }
 
-interface LocalStorageTimestamps {
+interface ActionTimestamps {
   action: string;
   impressions?: number[];
   dismissals?: number[];
@@ -1187,7 +1187,7 @@ export class AutoPromptManager {
     );
   }
 
-  async getTimestamps(): Promise<LocalStorageTimestamps[]> {
+  async getTimestamps(): Promise<ActionTimestamps[]> {
     const stringified = await this.storage_.get(
       StorageKeys.TIMESTAMPS,
       /* useLocalStorage */ true
@@ -1195,16 +1195,19 @@ export class AutoPromptManager {
     const array = stringified ? JSON.parse(stringified) : [];
 
     return array
-      .map((t: LocalStorageTimestamps) => {
-        const impressions = t.impressions
-          ? pruneTimestamps(t.impressions, TWO_WEEKS_IN_MILLIS)
-          : [];
-        const dismissals = t.dismissals
-          ? pruneTimestamps(t.dismissals, TWO_WEEKS_IN_MILLIS)
-          : [];
-        const completions = t.completions
-          ? pruneTimestamps(t.completions, TWO_WEEKS_IN_MILLIS)
-          : [];
+      .map((t: ActionTimestamps) => {
+        const impressions = pruneTimestamps(
+          t.impressions || [],
+          TWO_WEEKS_IN_MILLIS
+        );
+        const dismissals = pruneTimestamps(
+          t.dismissals || [],
+          TWO_WEEKS_IN_MILLIS
+        );
+        const completions = pruneTimestamps(
+          t.completions || [],
+          TWO_WEEKS_IN_MILLIS
+        );
         return {
           action: t.action,
           ...(impressions?.length && {impressions}),
@@ -1213,12 +1216,11 @@ export class AutoPromptManager {
         };
       })
       .filter(
-        (t: LocalStorageTimestamps) =>
-          t.impressions || t.dismissals || t.completions
+        (t: ActionTimestamps) => t.impressions || t.dismissals || t.completions
       );
   }
 
-  async setTimestamps(timestamps: LocalStorageTimestamps[]) {
+  async setTimestamps(timestamps: ActionTimestamps[]) {
     const json = timestamps.length ? JSON.stringify(timestamps) : '';
     this.storage_.set(StorageKeys.TIMESTAMPS, json, /* useLocalStorage */ true);
   }
@@ -1362,7 +1364,7 @@ export class AutoPromptManager {
    */
   private checkActionEligibilityFromTimestamps_(
     actionType: string,
-    timestamps: LocalStorageTimestamps[]
+    timestamps: ActionTimestamps[]
   ): boolean {
     if (actionType === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
@@ -1375,6 +1377,9 @@ export class AutoPromptManager {
       const index = timestamps.findIndex(
         (t) => t.action === TYPE_REWARDED_SURVEY
       );
+      // Do not show survey if there is a previous completion record.
+      // Client side eligibility is required to handle identity transitions
+      // after sign-in flow.
       return index === -1 ? true : !timestamps[index].completions?.length;
     }
     return true;
