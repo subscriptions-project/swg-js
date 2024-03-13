@@ -705,7 +705,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.EVENT_REWARDED_AD_GRANTED
         );
-        // TODO: b/329307018 - Skip all metering logic for rewarded ads
         expect(entitlementsManager.clear).to.be.called;
         expect(entitlementsManager.getEntitlements).to.be.called;
         expect(env.win.localStorage.setItem).to.be.calledWith(
