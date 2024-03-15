@@ -497,7 +497,13 @@ describes.realWin('Dialog', (env) => {
         const clickFun = function () {
           wasClicked = true;
         };
-        dialog = new Dialog(globalDoc);
+        dialog = new Dialog(
+          globalDoc,
+          undefined,
+          undefined,
+          undefined,
+          Promise.resolve(true)
+        );
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -512,7 +518,13 @@ describes.realWin('Dialog', (env) => {
         const clickFun = function () {
           wasClicked = true;
         };
-        dialog = new Dialog(globalDoc, {}, {}, {closeOnBackgroundClick: false});
+        dialog = new Dialog(
+          globalDoc,
+          {},
+          {},
+          {closeOnBackgroundClick: false},
+          Promise.resolve(true)
+        );
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -527,7 +539,14 @@ describes.realWin('Dialog', (env) => {
         const clickFun = function () {
           wasClicked = true;
         };
-        dialog = new Dialog(globalDoc, {}, {}, {closeOnBackgroundClick: true});
+        dialog = new Dialog(
+          globalDoc,
+
+          {},
+          {},
+          {closeOnBackgroundClick: true},
+          Promise.resolve(true)
+        );
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -542,7 +561,8 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           {},
           {},
-          {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
+          {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true},
+          Promise.resolve(true)
         );
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
@@ -560,7 +580,8 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           {},
           {},
-          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
+          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true},
+          Promise.resolve(true)
         );
 
         const el = dialog.graypane_.getElement();

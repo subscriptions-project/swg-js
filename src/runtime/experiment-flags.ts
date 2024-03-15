@@ -38,6 +38,12 @@ export enum ExperimentFlags {
  */
 export enum ArticleExperimentFlags {
   /**
+   * Experiment flag for recording Frequency Capping by dismissals instead of
+   * impressions. String is abbreviated.
+   */
+  FREQUENCY_CAPPING_BY_DISMISSALS = 'fcbd_exp',
+
+  /**
    * Experiment flag for enabling Frequency Capping local storage of impressions.
    */
   FREQUENCY_CAPPING_LOCAL_STORAGE = 'frequency_capping_local_storage_experiment',
