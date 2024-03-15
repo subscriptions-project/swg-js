@@ -424,22 +424,16 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
             }
           }`;
 
-        const state = await renderAndAssertRewardedAd(
-          DEFAULT_PARAMS,
-          BAD_CONFIG
-        );
+        await renderAndAssertRewardedAd(DEFAULT_PARAMS, BAD_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
-        const title =
-          state.wrapper.shadowRoot.querySelector('.rewarded-ad-title');
+        const title = wrapper.shadowRoot.querySelector('.rewarded-ad-title');
         expect(title.innerHTML).to.equal(
           '&lt;script&gt;PUBLICATION_NAME&lt;/script&gt;'
         );
 
-        const message = state.wrapper.shadowRoot.querySelector(
+        const message = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-message'
         );
         expect(message.innerHTML).to.equal(
@@ -457,10 +451,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.document.body.style.overflow).to.equal('hidden');
-
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
 
         const closeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
