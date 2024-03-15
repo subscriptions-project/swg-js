@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {Doc, resolveDoc} from '../model/doc';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
@@ -27,7 +26,6 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
-import {isExperimentOn} from '../runtime/experiments';
 import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
@@ -117,12 +115,13 @@ export class Dialog {
   /** Helps identify stale animations. */
   private animationNumber_: number;
   private hidden_: boolean;
-  private closeOnBackgroundClick_: boolean;
+  private closeOnBackgroundClick_?: boolean;
   private previousProgressView_: View | null;
   private maxAllowedHeightRatio_: number;
   private positionCenterOnDesktop_: boolean;
   private shouldDisableBodyScrolling_: boolean;
   private desktopMediaQuery_: MediaQueryList;
+  private enableBackgroundClickExperiment_: Promise<Boolean>;
   /** Reference to the listener that acts on changes to desktopMediaQuery. */
   private desktopMediaQueryListener_: (() => void) | null;
 
@@ -133,7 +132,8 @@ export class Dialog {
     doc: Doc,
     importantStyles: {[key: string]: string} = {},
     styles: {[key: string]: string} = {},
-    dialogConfig: DialogConfig = {}
+    dialogConfig: DialogConfig = {},
+    enableBackgroundClickExperiment = Promise.resolve(false)
   ) {
     this.doc_ = doc;
 
@@ -152,20 +152,8 @@ export class Dialog {
 
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
 
-    // Avoid modifying the behavior of existing callers by only registering
-    // the click event if isClosable is set and the experiment is active.
-    if (
-      dialogConfig.closeOnBackgroundClick !== undefined &&
-      isExperimentOn(
-        this.doc_.getWin(),
-        ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
-      )
-    ) {
-      this.graypane_
-        .getElement()
-        .addEventListener('click', this.onGrayPaneClick_.bind(this));
-    }
-    this.closeOnBackgroundClick_ = !!dialogConfig.closeOnBackgroundClick;
+    this.closeOnBackgroundClick_ = dialogConfig.closeOnBackgroundClick;
+    this.enableBackgroundClickExperiment_ = enableBackgroundClickExperiment;
 
     const modifiedImportantStyles = Object.assign(
       {},
@@ -211,6 +199,22 @@ export class Dialog {
    * Opens the dialog and builds the iframe container.
    */
   async open(hidden = false): Promise<Dialog> {
+    // If this experiment is active, the behavior of the grey background
+    // changes.  If closable, clicking the background closes the dialog.  If not
+    // closable, clicking the background now prevents you from clicking links
+    // on the main page.
+    const enableBackgroundClickExperiment = await this
+      .enableBackgroundClickExperiment_;
+
+    if (
+      enableBackgroundClickExperiment &&
+      this.closeOnBackgroundClick_ !== undefined
+    ) {
+      this.graypane_
+        .getElement()
+        .addEventListener('click', this.onGrayPaneClick_.bind(this));
+    }
+
     const iframe = this.iframe_;
     if (iframe.isConnected()) {
       throw new Error('already opened');

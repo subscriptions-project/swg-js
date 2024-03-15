@@ -47,6 +47,7 @@ import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
+import {htmlEscape} from 'safevalues';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
@@ -472,19 +473,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     const isPremonetization = !this.isContribution() && !this.isSubscription();
 
-    // TODO: mhkawnao - Escape user provided strings. For Alpha it will be
-    //                  specified by us so we don't need to do it yet.
     const language = this.clientConfigManager_.getLanguage();
 
     // verified existance in initRewardedAdWall_
-    const publication = config.publication!.name!;
+    const publication = htmlEscape(config.publication!.name!).toString();
     const backToHomeHtml = this.getBackToHomeOrEmptyHTML_();
     const closeHtml = this.getCloseButtonOrEmptyHtml_(
       REWARDED_AD_CLOSE_BUTTON_HTML
     );
     const icon = this.isSubscription() ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
-    const message = config.rewardedAdParameters!.customMessage!;
+    const message = htmlEscape(
+      config.rewardedAdParameters!.customMessage!
+    ).toString();
     const prioritySwaped = !!this.articleExpFlags_?.includes(
       ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED
     );

@@ -83,6 +83,24 @@ const StorageKeys = {
    * Local storage key for whether toast was shown.
    */
   TOAST: 'toast',
+
+  // Prompt Frequency storage keys
+  /**
+   * Local storage key for prompt impression timestamps.
+   */
+  PF_IMPRESSIONS: 'imp',
+
+  /**
+   * Local storage key for prompt dismissal timestamps.
+   */
+  PF_DISMISSALS: 'dms',
+
+  /**
+   * Local storage key for prompt completion timestamps.
+   */
+  PF_COMPLETIONS: 'cpt',
+
+  TIMESTAMPS: 'tsp',
 };
 
 /**
