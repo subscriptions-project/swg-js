@@ -109,6 +109,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       const params = {
         action: 'invlid action',
         isClosable: false,
+        onCancel: sandbox.spy(),
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
@@ -122,13 +123,14 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       expect(prompt.innerHTML).contains('Something went wrong.');
       const closePromptButton = prompt.querySelector('.closePromptButton');
       expect(closePromptButton).to.be.null;
+      expect(params.onCancel).to.be.calledOnce.calledWithExactly();
     });
 
-    it('invalid action rdoes not renders when closable', async () => {
+    it('invalid action does not renders when closable', async () => {
       const params = {
         action: 'invlid action',
         isClosable: true,
-        monetizationFunction: sandbox.spy(),
+        onCancel: sandbox.spy(),
       };
       const flow = new AudienceActionLocalFlow(runtime, params);
 
@@ -138,7 +140,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         '.audience-action-local-wrapper'
       );
       expect(wrapper).to.be.null;
-      expect(params.monetizationFunction).to.be.calledOnce.calledWithExactly();
+      expect(params.onCancel).to.be.calledOnce.calledWithExactly();
     });
 
     describe('rewarded ad', () => {
@@ -519,7 +521,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await didBailout(DEFAULT_PARAMS);
       });
 
-      it('fails to renders on failed unclosable premon', async () => {
+      it('does not render on failed unclosable premon', async () => {
         env.win.googletag.defineOutOfPageSlot = () => null;
 
         const params = {
@@ -536,15 +538,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
 
-        expect(params.onCancel).to.not.be.called;
+        expect(params.onCancel).to.be.called;
 
         const wrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );
-        expect(wrapper).to.not.be.null;
-        const prompt = wrapper.shadowRoot.querySelector('.rewarded-ad-prompt');
-        expect(prompt).to.not.be.null;
-        expect(prompt.innerHTML).contains('Something went wrong.');
+        expect(wrapper).to.be.null;
       });
 
       it('fails to render with bad ad slot', async () => {

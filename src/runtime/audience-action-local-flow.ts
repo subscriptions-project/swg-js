@@ -198,25 +198,17 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private bailoutPrompt_() {
-    if (this.params_.isClosable || this.params_.monetizationFunction) {
-      if (this.rewardedSlot_) {
-        const googletag = this.deps_.win().googletag;
-        googletag.destroySlots([this.rewardedSlot_!]);
-      }
-      this.params_.onCancel?.();
-      this.unlock_();
-      this.params_.monetizationFunction?.();
-    } else {
-      if (this.params_.action === TYPE_REWARDED_AD) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
-        );
-      }
-      this.renderErrorView_();
-      if (!this.doc_.body.contains(this.wrapper_)) {
-        this.lock_();
-      }
+    if (!this.params_.isClosable && !this.params_.monetizationFunction) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
+      );
     }
+    if (this.rewardedSlot_) {
+      const googletag = this.deps_.win().googletag;
+      googletag.destroySlots([this.rewardedSlot_!]);
+    }
+    this.params_.onCancel?.();
+    this.params_.monetizationFunction?.();
   }
 
   private renderLoadingView_() {
@@ -229,7 +221,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
       await this.initNewsletterSignup_();
     } else {
-      this.bailoutPrompt_();
+      this.params_.onCancel?.();
+      if (!this.params_.isClosable) {
+        this.renderErrorView_();
+        this.lock_();
+      }
     }
   }
 
