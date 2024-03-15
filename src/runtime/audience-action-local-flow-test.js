@@ -124,7 +124,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       expect(closePromptButton).to.be.null;
     });
 
-    it('invalid action renders with error view prompt when closable', async () => {
+    it('invalid action rdoes not renders when closable', async () => {
       const params = {
         action: 'invlid action',
         isClosable: true,
@@ -197,12 +197,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );
-        expect(wrapper).to.not.be.null;
-
-        const loadingPrompt = wrapper.shadowRoot.querySelector(
-          'swg-loading-container'
-        );
-        expect(loadingPrompt).to.not.be.null;
+        expect(wrapper).to.be.null;
 
         // Manually invoke the command for gpt.js.
         expect(env.win.googletag.cmd[0]).to.not.be.null;
@@ -212,7 +207,17 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           AnalyticsEvent.EVENT_REWARDED_AD_FLOW_INIT
         );
 
-        return {flow, wrapper};
+        return flow;
+      }
+
+      async function callReadyAndReturnWrapper() {
+        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
+        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(wrapper).to.not.be.null;
+        return wrapper;
       }
 
       function setUpConfig(config, complete = DEFAULT_COMPLETE_RESPONSE) {
@@ -254,17 +259,15 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           ...DEFAULT_PARAMS,
           autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         };
-        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
         );
 
-        const subscribeButton = state.wrapper.shadowRoot.querySelector(
+        const subscribeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-support-button'
         );
         expect(subscribeButton.innerHTML).contains('Subscribe');
@@ -295,17 +298,15 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           ...DEFAULT_PARAMS,
           autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         };
-        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
         );
 
-        const contributeButton = state.wrapper.shadowRoot.querySelector(
+        const contributeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-support-button'
         );
         expect(contributeButton.innerHTML).contains('Contribute');
@@ -341,27 +342,25 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           ...DEFAULT_PARAMS,
           isClosable: false,
         };
-        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
         );
 
-        const closeButton = state.wrapper.shadowRoot.querySelector(
+        const closeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
         );
         expect(closeButton).to.be.null;
 
-        const contributeButton = state.wrapper.shadowRoot.querySelector(
+        const contributeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-support-button'
         );
         expect(contributeButton.innerHTML).contains('View an ad');
 
-        const viewButton = state.wrapper.shadowRoot.querySelector(
+        const viewButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-view-ad-button'
         );
         expect(viewButton.innerHTML).contains('Contribute');
@@ -392,22 +391,20 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           ...DEFAULT_PARAMS,
           autoPromptType: undefined,
         };
-        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
         );
 
-        const subscribeButton = state.wrapper.shadowRoot.querySelector(
+        const subscribeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-support-button'
         );
         expect(subscribeButton).to.be.null;
 
-        const signinButton = state.wrapper.shadowRoot.querySelector(
+        const signinButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-sign-in-button'
         );
         expect(signinButton).to.be.null;
@@ -418,7 +415,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           ...DEFAULT_PARAMS,
           isClosable: true,
         };
-        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.document.body.style.overflow).to.equal('hidden');
 
@@ -426,12 +425,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(eventListeners['rewardedSlotReady']).to.not.be.null;
         await eventListeners['rewardedSlotReady'](readyEventArg);
 
-        const closeButton = state.wrapper.shadowRoot.querySelector(
+        const closeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
         );
         expect(closeButton).not.to.be.null;
 
-        const backToHome = state.wrapper.shadowRoot.querySelector(
+        const backToHome = wrapper.shadowRoot.querySelector(
           '.back-to-home-container'
         );
         expect(backToHome).to.be.null;
@@ -458,18 +457,16 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           ...DEFAULT_PARAMS,
           isClosable: false,
         };
-        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
-        const prompt = state.wrapper.shadowRoot.querySelector(
+        const prompt = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
         );
         expect(prompt).to.be.null;
 
-        const backToHome = state.wrapper.shadowRoot.querySelector(
+        const backToHome = wrapper.shadowRoot.querySelector(
           '.back-to-home-container'
         );
         expect(backToHome).not.to.be.null;
@@ -478,16 +475,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       it('renders sign-in', async () => {
         const loginSpy = sandbox.spy();
         runtime.setOnLoginRequest(loginSpy);
-        const state = await renderAndAssertRewardedAd(
-          DEFAULT_PARAMS,
-          DEFAULT_CONFIG
-        );
+        await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
-        const signinButton = state.wrapper.shadowRoot.querySelector(
+        const signinButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-sign-in-button'
         );
         expect(signinButton).to.not.be.null;
@@ -527,7 +519,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await didBailout(DEFAULT_PARAMS);
       });
 
-      it('renders error page on failed unclosable premon', async () => {
+      it('fails to renders on failed unclosable premon', async () => {
         env.win.googletag.defineOutOfPageSlot = () => null;
 
         const params = {
@@ -652,20 +644,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('renders thanks with rewardedSlotGranted', async () => {
-        const state = await renderAndAssertRewardedAd(
-          DEFAULT_PARAMS,
-          DEFAULT_CONFIG
-        );
+        await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
         await eventListeners['rewardedSlotGranted']();
 
-        const prompt = state.wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-prompt'
-        );
+        const prompt = wrapper.shadowRoot.querySelector('.rewarded-ad-prompt');
         expect(prompt).to.not.be.null;
         expect(prompt.innerHTML).contains('Thanks for viewing this ad');
 
@@ -701,9 +686,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           }`
         );
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
         await eventListeners['rewardedSlotGranted']();
 
@@ -726,9 +709,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           }`
         );
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
         await eventListeners['rewardedSlotGranted']();
 
@@ -744,18 +725,14 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('closes on thanks', async () => {
-        const state = await renderAndAssertRewardedAd(
-          DEFAULT_PARAMS,
-          DEFAULT_CONFIG
-        );
+        await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
+
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
         await eventListeners['rewardedSlotGranted']();
 
-        const closeButton = state.wrapper.shadowRoot.querySelector(
+        const closeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
         );
         await closeButton.click();
@@ -770,9 +747,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       it('closes on thanks automatically', async () => {
         await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        await callReadyAndReturnWrapper();
+
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
         await eventListeners['rewardedSlotGranted']();
 
@@ -792,9 +768,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         };
         await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        await callReadyAndReturnWrapper();
+
         expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
         await eventListeners['rewardedSlotClosed']();
 
@@ -818,9 +793,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         };
         await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        await callReadyAndReturnWrapper();
+
         expect(eventListeners['rewardedSlotClosed']).to.not.be.null;
         await eventListeners['rewardedSlotClosed']();
 
@@ -837,16 +811,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('shows an ad', async () => {
-        const state = await renderAndAssertRewardedAd(
-          DEFAULT_PARAMS,
-          DEFAULT_CONFIG
-        );
+        await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
 
-        // Manually invoke the rewardedSlotReady callback.
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
-        const viewButton = state.wrapper.shadowRoot.querySelector(
+        const viewButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-view-ad-button'
         );
         expect(viewButton).to.not.be.null;
@@ -865,12 +834,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('close removes prompt', async () => {
-        const state = await renderAndAssertRewardedAd(
+        const flow = await renderAndAssertRewardedAd(
           DEFAULT_PARAMS,
           DEFAULT_CONFIG
         );
 
-        state.flow.close();
+        flow.close();
 
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
@@ -887,19 +856,18 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           autoPromptType: undefined,
           monetizationFunction: sandbox.spy(),
         };
-        const state = await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
 
-        expect(eventListeners['rewardedSlotReady']).to.not.be.null;
-        await eventListeners['rewardedSlotReady'](readyEventArg);
+        const wrapper = await callReadyAndReturnWrapper();
 
-        const topSentinal = state.wrapper.shadowRoot.querySelector(
+        const topSentinal = wrapper.shadowRoot.querySelector(
           'audience-action-top-sentinal'
         );
         await topSentinal.focus();
 
         expect(env.win.document.activeElement).not.to.equal(bottomSentinal);
 
-        const bottomSentinal = state.wrapper.shadowRoot.querySelector(
+        const bottomSentinal = wrapper.shadowRoot.querySelector(
           'audience-action-bottom-sentinal'
         );
         await bottomSentinal.focus();

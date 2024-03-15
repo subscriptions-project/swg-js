@@ -123,7 +123,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     this.doc_ = deps_.doc().getRootNode();
 
-    this.prompt_ = createElement(this.doc_, 'div', {});
+    this.prompt_ = this.createPrompt_();
 
     this.wrapper_ = this.createWrapper_();
 
@@ -183,6 +183,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return wrapper;
   }
 
+  private createPrompt_(): HTMLElement {
+    const prompt = createElement(this.doc_, 'div', {});
+    setImportantStyles(prompt, {
+      'height': '100%',
+      'display': 'flex',
+      'display-flex-direction': 'column',
+    });
+    return prompt;
+  }
+
   private renderErrorView_() {
     this.prompt_./*OK*/ innerHTML = ERROR_HTML;
   }
@@ -203,15 +213,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         );
       }
       this.renderErrorView_();
+      if (!this.doc_.body.contains(this.wrapper_)) {
+        this.lock_();
+      }
     }
   }
 
   private renderLoadingView_() {
-    setImportantStyles(this.prompt_, {
-      'height': '100%',
-      'display': 'flex',
-      'display-flex-direction': 'column',
-    });
     this.prompt_./*OK*/ innerHTML = LOADING_HTML;
   }
 
@@ -226,6 +234,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async initNewsletterSignup_() {
+    this.renderLoadingView_();
+    this.lock_();
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
     );
@@ -536,6 +546,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_
       .querySelector('.rewarded-ad-sign-in-button')
       ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
+    this.lock_();
     this.focusRewardedAds_();
     // TODO: mhkawano - EVENT_REWARDED_AD_READY and IMPRESSION_REWARDED_AD are redundant.
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
@@ -691,6 +702,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     // TODO: mhkawano - else log error
   }
 
+  private lock_() {
+    this.doc_.documentElement.appendChild(this.wrapper_);
+    setStyle(this.doc_.body, 'overflow', 'hidden');
+    this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
+    setImportantStyles(this.wrapper_, {'opacity': '1.0'});
+  }
+
   private unlock_() {
     removeElement(this.wrapper_);
     setStyle(this.doc_.body, 'overflow', '');
@@ -724,11 +742,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const article = await this.entitlementsManager_.getArticle();
     this.articleExpFlags_ =
       this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    this.renderLoadingView_();
-    this.doc_.documentElement.appendChild(this.wrapper_);
-    setStyle(this.doc_.body, 'overflow', 'hidden');
-    this.wrapper_.offsetHeight; // Trigger a repaint (to prepare the CSS transition).
-    setImportantStyles(this.wrapper_, {'opacity': '1.0'});
     await this.initPrompt_();
   }
 
