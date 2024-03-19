@@ -451,7 +451,11 @@ export class Dialog {
   private onGrayPaneClick_(event: Event) {
     event.stopPropagation();
     if (this.closeOnBackgroundClick_) {
-      this.close();
+      const contentWindow = this.view_!.getElement().contentWindow!;
+      const origin = new URL(this.view_?.getElement().src ?? '').origin;
+      if (contentWindow) {
+        contentWindow.postMessage('close', origin);
+      }
     }
     return false;
   }
