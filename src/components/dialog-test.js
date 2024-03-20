@@ -32,14 +32,17 @@ describes.realWin('Dialog', (env) => {
   let graypaneStubs;
   let view;
   let element;
+  let lastMessage;
   const documentHeight = 100;
 
   beforeEach(() => {
+    lastMessage = null;
     win = env.win;
     doc = env.win.document;
     globalDoc = new GlobalDoc(win);
 
     element = doc.createElement('div');
+    element.contentWindow = {postMessage: (message) => (lastMessage = message)};
     view = {
       getElement: () => element,
       init: (dialog) => Promise.resolve(dialog),
@@ -587,13 +590,15 @@ describes.realWin('Dialog', (env) => {
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
-        // This class is added when the screen is opened.
-        expect(doc.body).to.have.class('swg-disable-scroll');
 
-        el.click();
+        expect(lastMessage).to.equal(null);
 
-        // This class is removed when the screen is closed.
-        expect(doc.body).to.not.have.class('swg-disable-scroll');
+        await el.click();
+
+        //swg-js is expected to post a message of 'close' to the iframe's
+        //contentWindow. Boq listens for the message and then clicks the close
+        //button so it can handle logging.
+        expect(lastMessage).to.equal('close');
       });
     });
 
