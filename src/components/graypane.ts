@@ -14,93 +14,93 @@
  * limitations under the License.
  */
 
- import {Doc} from '../model/doc';
- import {setImportantStyles} from '../utils/style';
- import {transition} from '../utils/animation';
+import {Doc} from '../model/doc';
+import {setImportantStyles} from '../utils/style';
+import {transition} from '../utils/animation';
 
- export class Graypane {
-   private doc_: Doc;
-   private fadeBackground_: HTMLElement;
+export class Graypane {
+  private doc_: Doc;
+  private fadeBackground_: HTMLElement;
 
-   constructor(doc: Doc, zIndex: number) {
-     this.doc_ = doc;
+  constructor(doc: Doc, zIndex: number) {
+    this.doc_ = doc;
 
-     this.fadeBackground_ = this.doc_
-       .getWin()
-       .document.createElement('swg-popup-background');
+    this.fadeBackground_ = this.doc_
+      .getWin()
+      .document.createElement('swg-popup-background');
 
-     this.fadeBackground_.setAttribute('role', 'button');
+    this.fadeBackground_.setAttribute('role', 'button');
 
-     setImportantStyles(this.fadeBackground_, {
-       'z-index': zIndex.toString(),
-       'display': 'none',
-       'position': 'fixed',
-       'top': '0',
-       'right': '0',
-       'bottom': '0',
-       'left': '0',
-       'background-color': 'rgba(32, 33, 36, .6)',
-     });
-   }
+    setImportantStyles(this.fadeBackground_, {
+      'z-index': zIndex.toString(),
+      'display': 'none',
+      'position': 'fixed',
+      'top': '0',
+      'right': '0',
+      'bottom': '0',
+      'left': '0',
+      'background-color': 'rgba(32, 33, 36, .6)',
+    });
+  }
 
-   getElement(): Element {
-     return this.fadeBackground_;
-   }
+  getElement(): Element {
+    return this.fadeBackground_;
+  }
 
-   isAttached(): boolean {
-     return !!this.fadeBackground_.parentNode;
-   }
+  isAttached(): boolean {
+    return !!this.fadeBackground_.parentNode;
+  }
 
-   /**
-    * Attaches the graypane to the document.
-    */
-   attach(): void {
-     this.doc_.getBody()?.appendChild(this.fadeBackground_);
-   }
+  /**
+   * Attaches the graypane to the document.
+   */
+  attach(): void {
+    this.doc_.getBody()?.appendChild(this.fadeBackground_);
+  }
 
-   /**
-    * Detaches the graypane to the document.
-    */
-   destroy(): void {
-     this.doc_.getBody()?.removeChild(this.fadeBackground_);
-   }
+  /**
+   * Detaches the graypane to the document.
+   */
+  destroy(): void {
+    this.doc_.getBody()?.removeChild(this.fadeBackground_);
+  }
 
-   /**
-    * Shows the graypane.
-    */
-   show(animated: boolean): Promise<void> | void {
-     setImportantStyles(this.fadeBackground_, {
-       'display': 'block',
-       'opacity': animated ? '0' : '1',
-     });
+  /**
+   * Shows the graypane.
+   */
+  show(animated: boolean): Promise<void> | void {
+    setImportantStyles(this.fadeBackground_, {
+      'display': 'block',
+      'opacity': animated ? '0' : '1',
+    });
 
-     if (animated) {
-       return transition(
-         this.fadeBackground_,
-         {
-           'opacity': '1',
-         },
-         300,
-         'ease-out'
-       );
-     }
-   }
+    if (animated) {
+      return transition(
+        this.fadeBackground_,
+        {
+          'opacity': '1',
+        },
+        300,
+        'ease-out'
+      );
+    }
+  }
 
-   /**
-    * Hides the graypane.
-    */
-   async hide(animated = true): Promise<void> {
-     if (animated) {
-       await transition(
-         this.fadeBackground_,
-         {
-           'opacity': '0',
-         },
-         300,
-         'ease-out'
-       );
-     }
+  /**
+   * Hides the graypane.
+   */
+  async hide(animated = true): Promise<void> {
+    if (animated) {
+      await transition(
+        this.fadeBackground_,
+        {
+          'opacity': '0',
+        },
+        300,
+        'ease-out'
+      );
+    }
 
-     setImportantStyles(this.fadeBackground_, {'display': 'none'});
-   }
- }
+    setImportantStyles(this.fadeBackground_, {'display': 'none'});
+  }
+}
