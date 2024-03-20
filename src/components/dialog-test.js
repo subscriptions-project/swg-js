@@ -602,7 +602,7 @@ describes.realWin('Dialog', (env) => {
       });
 
       it('respects closable with domain', async () => {
-        element.contentWindow.src = 'http://www.test.com';
+        element.src = 'http://www.test.com';
         dialog = new Dialog(
           globalDoc,
           {},
