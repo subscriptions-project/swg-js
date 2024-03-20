@@ -624,7 +624,7 @@ describes.realWin('Dialog', (env) => {
         //button so it can handle logging.
         expect(lastMessage).to.equal('close');
 
-        element.contentWindow.location = null;
+        element.src = null;
       });
     });
 
