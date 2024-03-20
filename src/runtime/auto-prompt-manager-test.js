@@ -26,7 +26,6 @@ import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {
   Constants,
-  DismissalStorageKeys,
   ImpressionStorageKeys,
   StorageKeys,
 } from '../utils/constants';
@@ -43,6 +42,7 @@ import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
+const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 const SECOND_IN_MS = Math.pow(10, 3);
 const SECOND_IN_NANO = Math.pow(10, 9);
 const CONTRIBUTION_INTERVENTION = {
@@ -248,8 +248,8 @@ describes.realWin('AutoPromptManager', (env) => {
       dismissableEventType,
       autoPromptType,
     } = params;
-
     it(`should not store a ${autoPromptType} impression if a previous prompt impression has been stored`, async () => {
+      autoPromptManager.isClosable_ = true;
       storageMock
         .expects('get')
         .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
@@ -285,14 +285,102 @@ describes.realWin('AutoPromptManager', (env) => {
         isFromUserAction: null,
         additionalParameters: null,
       });
-
       await eventManagerCallback({
         eventType: largePromptEventType,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
       });
+      await eventManagerCallback({
+        eventType: dismissableEventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
 
+  [
+    {
+      miniPromptEventType:
+        AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+      largePromptEventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      dismissableEventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+      autoPromptType: 'TYPE_CONTRIBUTION',
+    },
+    {
+      miniPromptEventType:
+        AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
+      largePromptEventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      dismissableEventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+      autoPromptType: 'TYPE_SUBSCRIPTION',
+    },
+  ].forEach((params) => {
+    const {
+      miniPromptEventType,
+      largePromptEventType,
+      dismissableEventType,
+      autoPromptType,
+    } = params;
+    it(`should not store a frequency capping ${autoPromptType} impression if a previous prompt impression has been stored`, async () => {
+      autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [autoPromptType]: {impressions: [CURRENT_TIME]},
+      });
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {[autoPromptType]: {impressions: [CURRENT_TIME]}},
+        {
+          [autoPromptType]: {
+            impressions: [CURRENT_TIME],
+            dismissals: [CURRENT_TIME],
+          },
+        }
+      );
+      // Legacy storage operations
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.IMPRESSIONS,
+          sandbox.match.any,
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .exactly(1);
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.DISMISSALS,
+          sandbox.match.any,
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .once();
+
+      await eventManagerCallback({
+        eventType: miniPromptEventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+      await eventManagerCallback({
+        eventType: largePromptEventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
       await eventManagerCallback({
         eventType: dismissableEventType,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
@@ -411,7 +499,157 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  it(`should properly prune and fill all local storage Timestamps`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+
+    expectFrequencyCappingTimestamps(storageMock, {
+      'TYPE_CONTRIBUTION': {impressions: [CURRENT_TIME]},
+      'TYPE_NEWSLETTER_SIGNUP': {
+        impressions: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1],
+        dismissals: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1],
+      },
+      // Unsupported case where action is in local storage with no timestamps
+      'TYPE_REWARDED_SURVEY': {},
+      'TYPE_REWARDED_AD': {
+        impressions: [
+          CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1,
+          CURRENT_TIME - TWO_WEEKS_IN_MILLIS,
+        ],
+        completions: [CURRENT_TIME],
+      },
+    });
+    const timestamps = await autoPromptManager.getTimestamps();
+    expect(JSON.stringify(timestamps)).to.equal(
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [CURRENT_TIME],
+          dismissals: [],
+          completions: [],
+        },
+        'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+        'TYPE_REWARDED_AD': {
+          impressions: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS],
+          dismissals: [],
+          completions: [CURRENT_TIME],
+        },
+      })
+    );
+  });
+
+  it(`should set all timestamps on storing impressions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [CURRENT_TIME],
+            dismissals: [],
+            completions: [],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
+  });
+
+  it(`should set all timestamps on storing dismissals`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [],
+            dismissals: [CURRENT_TIME],
+            completions: [],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeDismissal('TYPE_REWARDED_SURVEY');
+  });
+
+  it(`should set all timestamps on storing completions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    storageMock
+      .expects('get')
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves('')
+      .once();
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.TIMESTAMPS,
+        JSON.stringify({
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [],
+            dismissals: [],
+            completions: [CURRENT_TIME],
+          },
+        }),
+        /* useLocalStorage */ true
+      )
+      .resolves(null)
+      .once();
+
+    await autoPromptManager.storeCompletion('TYPE_REWARDED_SURVEY');
+  });
+
+  it('should not store events for a non frequency capping event', async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+
+    storageMock.expects('get').never();
+    storageMock.expects('set').never();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_TWG_CREATOR_BENEFIT_CLICK,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
   it('should not store events when an impression or dismissal was fired for a paygated article', async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
     sandbox.stub(pageConfig, 'isLocked').returns(true);
     storageMock.expects('get').never();
     storageMock.expects('set').never();
@@ -425,6 +663,33 @@ describes.realWin('AutoPromptManager', (env) => {
 
     await eventManagerCallback({
       eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it('should not store frequency capping events when an impression or dismissal was fired for a paygated article', async () => {
+    sandbox.stub(pageConfig, 'isLocked').returns(true);
+    storageMock.expects('get').never();
+    storageMock.expects('set').never();
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
@@ -497,24 +762,13 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  it('should not set frequency cap (dismissals) to local storage if experiment is disabled', async () => {
+  it('should not set frequency cap timestamps to local storage if experiment is disabled', async () => {
     autoPromptManager.frequencyCappingByDismissalsEnabled_ = false;
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = false;
     autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
     storageMock
       .expects('get')
-      .withExactArgs(
-        DismissalStorageKeys.CONTRIBUTION,
-        /* useLocalStorage */ true
-      )
-      .never();
-    storageMock
-      .expects('set')
-      .withExactArgs(
-        DismissalStorageKeys.CONTRIBUTION,
-        CURRENT_TIME.toString(),
-        /* useLocalStorage */ true
-      )
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
       .never();
     // Legacy storage operations
     storageMock
@@ -868,41 +1122,163 @@ describes.realWin('AutoPromptManager', (env) => {
 
   [
     {
-      eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
-      storageKey: DismissalStorageKeys.CONTRIBUTION,
+      eventType: AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+      action: 'TYPE_CONTRIBUTION',
     },
     {
-      eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
-      storageKey: DismissalStorageKeys.CONTRIBUTION,
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      action: 'TYPE_CONTRIBUTION',
     },
     {
-      eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
-      storageKey: DismissalStorageKeys.SUBSCRIPTION,
+      eventType: AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
+      action: 'TYPE_SUBSCRIPTION',
     },
-    {
-      eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
-      storageKey: DismissalStorageKeys.SUBSCRIPTION,
-    },
-  ].forEach(({eventType, storageKey}) => {
-    it(`for autoprompt eventType=${eventType} and storageKey=${storageKey}, should set frequency cap dismissal timestamps via local storage if experiment is enabled`, async () => {
+    {eventType: AnalyticsEvent.IMPRESSION_OFFERS, action: 'TYPE_SUBSCRIPTION'},
+  ].forEach(({eventType, action}) => {
+    it(`for autoprompt eventType=${eventType}, should set frequency cap impressions via local storage for action=${action}`, async () => {
       autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {impressions: [CURRENT_TIME]},
+      });
+      // Legacy storage operations
+      // TODO(justinchou): once deprecated, join with other impression tests.
       storageMock
         .expects('get')
-        .withExactArgs(storageKey, /* useLocalStorage */ true)
+        .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
         .resolves(null)
         .once();
       storageMock
         .expects('set')
         .withExactArgs(
-          storageKey,
+          StorageKeys.IMPRESSIONS,
           CURRENT_TIME.toString(),
           /* useLocalStorage */ true
         )
         .resolves()
         .once();
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
+
+  [
+    {
+      eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+    },
+    {
+      eventType: AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN,
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+    },
+    {
+      eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+      action: 'TYPE_REGISTRATION_WALL',
+    },
+    {
+      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+      action: 'TYPE_REWARDED_SURVEY',
+    },
+    {
+      eventType: AnalyticsEvent.IMPRESSION_REWARDED_AD,
+      action: 'TYPE_REWARDED_AD',
+    },
+  ].forEach(({eventType, action}) => {
+    it(`for eventType=${eventType}, should set frequency cap impressions via local storage for action=${action}`, async () => {
+      autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {impressions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
+
+  it(`should add frequency cap impressions to existing local storage timestamps`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME, CURRENT_TIME],
+        },
+      }
+    );
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it(`should add frequency cap impressions to existing local storage timestamp but no impressions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      {'TYPE_REWARDED_SURVEY': {dismissals: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
+          dismissals: [CURRENT_TIME],
+          impressions: [CURRENT_TIME],
+        },
+      }
+    );
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  [
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+      action: 'TYPE_CONTRIBUTION',
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+      action: 'TYPE_CONTRIBUTION',
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+      action: 'TYPE_SUBSCRIPTION',
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+      action: 'TYPE_SUBSCRIPTION',
+    },
+  ].forEach(({eventType, action}) => {
+    it(`for autoprompt eventType=${eventType}, should set frequency cap dismissals via local storage for action=${action}`, async () => {
+      autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {dismissals: [CURRENT_TIME]},
+      });
       // Legacy storage operations
+      // TODO(justinchou): once deprecated, join with other impression tests.
       storageMock
         .expects('get')
         .withExactArgs(StorageKeys.DISMISSALS, /* useLocalStorage */ true)
@@ -930,43 +1306,32 @@ describes.realWin('AutoPromptManager', (env) => {
   [
     {
       eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE,
-      storageKey: DismissalStorageKeys.NEWSLETTER_SIGNUP,
+      action: 'TYPE_NEWSLETTER_SIGNUP',
     },
     {
       eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE,
-      storageKey: DismissalStorageKeys.NEWSLETTER_SIGNUP,
+      action: 'TYPE_NEWSLETTER_SIGNUP',
     },
     {
       eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE,
-      storageKey: DismissalStorageKeys.REGISTRATION_WALL,
+      action: 'TYPE_REGISTRATION_WALL',
     },
     {
       eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
-      storageKey: DismissalStorageKeys.REWARDED_SURVEY,
+      action: 'TYPE_REWARDED_SURVEY',
     },
     {
       eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
-      storageKey: DismissalStorageKeys.REWARDED_AD,
+      action: 'TYPE_REWARDED_AD',
     },
-  ].forEach(({eventType, storageKey}) => {
-    it(`for audienceaction eventType=${eventType} and storageKey=${storageKey}, should set frequency cap dismissal timestamps via local storage if experiment is enabled`, async () => {
+  ].forEach(({eventType, action}) => {
+    it(`for eventType=${eventType}, should set frequency cap dismissals via local storage for action=${action}`, async () => {
       autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
       autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
       autoPromptManager.isClosable_ = true;
-      storageMock
-        .expects('get')
-        .withExactArgs(storageKey, /* useLocalStorage */ true)
-        .resolves(null)
-        .once();
-      storageMock
-        .expects('set')
-        .withExactArgs(
-          storageKey,
-          CURRENT_TIME.toString(),
-          /* useLocalStorage */ true
-        )
-        .resolves()
-        .once();
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {dismissals: [CURRENT_TIME]},
+      });
 
       await eventManagerCallback({
         eventType,
@@ -977,36 +1342,180 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  // Note: Dismissals on locked content is not an officialy supported case.
-  it('should set frequency cap by dismissal to local storage if experiment is enabled and a contribution prompt is dismissed on a locked page', async () => {
+  it(`should add frequency cap dismissals to existing local storage timestamps`, async () => {
     autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
     autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
-    autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_ = true;
     autoPromptManager.isClosable_ = true;
-    sandbox.stub(pageConfig, 'isLocked').returns(true);
-    storageMock
-      .expects('get')
-      .withExactArgs(
-        DismissalStorageKeys.CONTRIBUTION,
-        /* useLocalStorage */ true
-      )
-      .resolves(null)
-      .once();
-    storageMock
-      .expects('set')
-      .withExactArgs(
-        DismissalStorageKeys.CONTRIBUTION,
-        CURRENT_TIME.toString(),
-        /* useLocalStorage */ true
-      )
-      .resolves()
-      .once();
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      {'TYPE_REWARDED_SURVEY': {dismissals: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
+          dismissals: [CURRENT_TIME, CURRENT_TIME],
+        },
+      }
+    );
 
     await eventManagerCallback({
-      eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+      eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
       eventOriginator: EventOriginator.UNKNOWN_CLIENT,
       isFromUserAction: null,
       additionalParameters: null,
+    });
+  });
+
+  it(`should add frequency cap dismissals to existing local storage timestamp but no dismissals`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME],
+          dismissals: [CURRENT_TIME],
+        },
+      }
+    );
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  [
+    {
+      eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
+      action: 'TYPE_CONTRIBUTION',
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT,
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
+      action: 'TYPE_REGISTRATION_WALL',
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+      action: 'TYPE_REWARDED_SURVEY',
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_REWARDED_AD_VIEW,
+      action: 'TYPE_REWARDED_AD',
+    },
+    {
+      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+      action: 'TYPE_SUBSCRIPTION',
+    },
+  ].forEach(({eventType, action}) => {
+    it(`for eventType=${eventType}, should set frequency cap completions via local storage for action=${action}`, async () => {
+      autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {completions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
+
+  it(`should add frequency cap completions to existing local storage timestamps`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      {'TYPE_REWARDED_SURVEY': {completions: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
+          completions: [CURRENT_TIME, CURRENT_TIME],
+        },
+      }
+    );
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  it(`should add frequency cap completions to existing local storage timestamps but no completions`, async () => {
+    autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+    autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+    autoPromptManager.isClosable_ = true;
+    expectFrequencyCappingTimestamps(
+      storageMock,
+      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+      {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME],
+          completions: [CURRENT_TIME],
+        },
+      }
+    );
+
+    await eventManagerCallback({
+      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+      isFromUserAction: null,
+      additionalParameters: null,
+    });
+  });
+
+  [
+    {
+      eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
+      autoPromptType: AutoPromptType.CONTRIBUTION,
+      action: 'TYPE_CONTRIBUTION',
+    },
+    {
+      eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
+      autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+      action: 'TYPE_CONTRIBUTION',
+    },
+    {
+      eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      action: 'TYPE_SUBSCRIPTION',
+    },
+    {
+      eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
+      autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+      action: 'TYPE_SUBSCRIPTION',
+    },
+  ].forEach(({eventType, autoPromptType, action}) => {
+    it(`for generic eventType=${eventType}, should set frequency cap completions via local storage for autoPromptType=${autoPromptType}`, async () => {
+      autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      autoPromptManager.isClosable_ = true;
+      autoPromptManager.autoPromptType_ = autoPromptType;
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        [action]: {completions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
     });
   });
 
@@ -1530,9 +2039,10 @@ describes.realWin('AutoPromptManager', (env) => {
       .resolves(clientConfig)
       .once();
     // Two stored impressions, the first from 2 weeks ago.
-    const twoWeeksInMs = 1209600000;
     const storedImpressions =
-      (CURRENT_TIME - twoWeeksInMs).toString() + ',' + CURRENT_TIME.toString();
+      (CURRENT_TIME - TWO_WEEKS_IN_MILLIS).toString() +
+      ',' +
+      CURRENT_TIME.toString();
     setupPreviousImpressionAndDismissals(
       storageMock,
       {
@@ -4766,7 +5276,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  describe('Prompt Frequency Capping Flow by Dismissals', () => {
+  describe('Prompt Frequency Capping Flow by Dismissals and Completions, Impressions between different prompts', () => {
     let autoPromptConfig;
     let getArticleExpectation;
     let getClientConfigExpectation;
@@ -4860,7 +5370,6 @@ describes.realWin('AutoPromptManager', (env) => {
         useUpdatedOfferFlows: true,
       });
       getClientConfigExpectation.resolves(clientConfig).once();
-
       setupPreviousImpressionAndDismissals(
         storageMock,
         {
@@ -4890,6 +5399,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           experimentConfig: {
             experimentFlags: [
+              'fcbd_exp',
               'frequency_capping_local_storage_experiment',
               'prompt_frequency_capping_experiment',
             ],
@@ -4925,6 +5435,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           experimentConfig: {
             experimentFlags: [
+              'fcbd_exp',
               'frequency_capping_local_storage_experiment',
               'prompt_frequency_capping_experiment',
             ],
@@ -4940,6 +5451,48 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
+      expectFrequencyCappingTimestamps(storageMock);
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(20);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('survey is ineligible if there are completion timestamps', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: [
+              'fcbd_exp',
+              'frequency_capping_local_storage_experiment',
+              'prompt_frequency_capping_experiment',
+            ],
+          },
+        })
+        .once();
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
+      );
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME],
+          completions: [CURRENT_TIME],
+        },
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -4957,17 +5510,10 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock);
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -4983,22 +5529,45 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const contributionTimestamps = (
-        CURRENT_TIME -
-        10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(contributionTimestamps)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: contributionTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(20);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should show the first prompt if the first prompt was abandoned', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
+      );
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME - globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5015,8 +5584,10 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({
         alwaysShow: false,
@@ -5035,30 +5606,61 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const contributionTimestamps = (
+      const contributionTimestamps =
         CURRENT_TIME -
-        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(contributionTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: contributionTimestamps,
+        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(25);
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        onCancel: sandbox.match.any,
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+      });
+    });
+
+    it('should show the second prompt if the frequency cap for contributions is met via completions', async () => {
+      // Note, a contribution completion completes the funnel, but should be
+      // treated the same as dismissals in terms of prompt frequency.
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
+      );
+      const contributionTimestamps =
+        CURRENT_TIME -
+        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          completions: [contributionTimestamps],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5107,28 +5709,18 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const contributionTimestamps = (
+      const contributionTimestamps =
         CURRENT_TIME -
-        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(contributionTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
+        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5177,30 +5769,18 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const contributionTimestamps = (
-        CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(contributionTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: contributionTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5236,28 +5816,15 @@ describes.realWin('AutoPromptManager', (env) => {
         /* setAutopromptExpectations */ false,
         /* setSurveyExpectations */ false
       );
-      const contributionTimestamps = (
-        CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(contributionTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.NEWSLETTER_SIGNUP,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: contributionTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5289,39 +5856,30 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const promptTimestamps = (
-        CURRENT_TIME -
-        (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.NEWSLETTER_SIGNUP,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: promptTimestamps,
-        survey: promptTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5378,39 +5936,30 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const promptTimestamps = (
-        CURRENT_TIME -
-        (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.NEWSLETTER_SIGNUP,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: promptTimestamps,
-        survey: promptTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5449,30 +5998,23 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const timestampsWithinGlobalFrequencyCap = (
-        CURRENT_TIME -
-        0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(timestampsWithinGlobalFrequencyCap)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: timestampsWithinGlobalFrequencyCap,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_AD': {
+          completions: [CURRENT_TIME],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5525,30 +6067,20 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const timestampsWithinGlobalFrequencyCap = (
-        CURRENT_TIME -
-        0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(timestampsWithinGlobalFrequencyCap)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: timestampsWithinGlobalFrequencyCap,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5581,36 +6113,114 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const promptTimestamps = (
-        CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.NEWSLETTER_SIGNUP,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(50);
+
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
+    });
+
+    it('should not show any prompt if the frequency cap is met for all prompts via completions (but global cap is not)', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
+      );
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(50);
@@ -5667,36 +6277,41 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const promptTimestamps = (
-        CURRENT_TIME -
-        (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.NEWSLETTER_SIGNUP,
-          /* useLocalStorage */ true
-        )
-        .resolves(promptTimestamps)
-        .once();
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+      });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5736,30 +6351,18 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const contributionTimestamps = (
-        CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(contributionTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: contributionTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5793,33 +6396,20 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const contributionTimestsamps = (
-        CURRENT_TIME -
-        0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(contributionTimestsamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: (
-          CURRENT_TIME -
-          0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-        ).toString(),
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
@@ -5853,17 +6443,10 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingGlobalDismissals(storageMock);
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
+      expectFrequencyCappingTimestamps(storageMock);
       miniPromptApiMock.expects('create').once();
 
       await autoPromptManager.showAutoPrompt({
@@ -5891,6 +6474,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           experimentConfig: {
             experimentFlags: [
+              'fcbd_exp',
               'frequency_capping_local_storage_experiment',
               'prompt_frequency_capping_experiment',
             ],
@@ -5904,8 +6488,10 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(20);
@@ -5948,30 +6534,20 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const surveyTimestamps = (
-        CURRENT_TIME -
-        (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(surveyTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REGISTRATION_WALL,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        survey: surveyTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({
@@ -6026,30 +6602,20 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const surveyTimestamps = (
-        CURRENT_TIME -
-        0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(surveyTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REGISTRATION_WALL,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        survey: surveyTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({
@@ -6058,13 +6624,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(50);
 
-      expect(logEventSpy).to.be.calledWith({
-        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: null,
-        timestamp: sandbox.match.number,
-      });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
@@ -6167,17 +6726,10 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      expectFrequencyCappingGlobalDismissals(storageMock);
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: 'unknown',
@@ -6198,31 +6750,21 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissedPromptGetCallCount: 1,
           getUserToken: true,
         },
-        /* setAutopromptExpectations */ false
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
       );
-      const contributionTimestamps = (
-        CURRENT_TIME -
-        2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS
-      ).toString();
-      expectFrequencyCappingGlobalDismissals(storageMock, {
-        contribution: contributionTimestamps,
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
       });
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.CONTRIBUTION,
-          /* useLocalStorage */ true
-        )
-        .resolves(contributionTimestamps)
-        .once();
-      storageMock
-        .expects('get')
-        .withExactArgs(
-          DismissalStorageKeys.REWARDED_SURVEY,
-          /* useLocalStorage */ true
-        )
-        .resolves(null)
-        .once();
 
       await autoPromptManager.showAutoPrompt({
         autoPromptType: 'unknown',
@@ -6321,22 +6863,6 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(impressions.length).to.equal(0);
     });
 
-    it('getActionDismissals_ should return empty timestamps and log error event if an action type does not map to the storage key', async () => {
-      const timestamps = await autoPromptManager.getActionDismissals_(
-        'undefined'
-      );
-      expect(logEventSpy).to.be.calledOnceWith({
-        eventType:
-          // TODO: (justinchou-google): update error event to specify dismissals storage key
-          AnalyticsEvent.EVENT_ACTION_IMPRESSIONS_STORAGE_KEY_NOT_FOUND_ERROR,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: false,
-        additionalParameters: null,
-        timestamp: sandbox.match.number,
-      });
-      expect(timestamps.length).to.equal(0);
-    });
-
     it('isSurveyEligible_ returns false when survey is not a potential audience action', async () => {
       const isSurveyEligible = await autoPromptManager.isSurveyEligible_([
         CONTRIBUTION_INTERVENTION,
@@ -6378,67 +6904,50 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  function expectFrequencyCappingGlobalDismissals(
+  function expectFrequencyCappingTimestamps(
     storageMock,
-    dismissals = {}
+    get = {},
+    set = undefined
   ) {
-    const {contribution, newsletter, regwall, survey, ad, subscription} = {
-      contribution: null,
-      newsletter: null,
-      regwall: null,
-      survey: null,
-      ad: null,
-      subscription: null,
-      ...dismissals,
-    };
+    if (get) {
+      get = JSON.stringify(
+        Object.entries(get).reduce((acc, [key, values]) => {
+          return {
+            ...acc,
+            [key]: {
+              impressions: [],
+              dismissals: [],
+              completions: [],
+              ...values,
+            },
+          };
+        }, {})
+      );
+    }
     storageMock
       .expects('get')
-      .withExactArgs(
-        DismissalStorageKeys.CONTRIBUTION,
-        /* useLocalStorage */ true
-      )
-      .resolves(contribution)
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(
-        DismissalStorageKeys.NEWSLETTER_SIGNUP,
-        /* useLocalStorage */ true
-      )
-      .resolves(newsletter)
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(
-        DismissalStorageKeys.REGISTRATION_WALL,
-        /* useLocalStorage */ true
-      )
-      .resolves(regwall)
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(
-        DismissalStorageKeys.REWARDED_SURVEY,
-        /* useLocalStorage */ true
-      )
-      .resolves(survey)
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(
-        DismissalStorageKeys.REWARDED_AD,
-        /* useLocalStorage */ true
-      )
-      .resolves(ad)
-      .once();
-    storageMock
-      .expects('get')
-      .withExactArgs(
-        DismissalStorageKeys.SUBSCRIPTION,
-        /* useLocalStorage */ true
-      )
-      .resolves(subscription)
-      .once();
+      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+      .resolves(get);
+    if (set != undefined) {
+      set = JSON.stringify(
+        Object.entries(set).reduce((acc, [key, values]) => {
+          return {
+            ...acc,
+            [key]: {
+              impressions: [],
+              dismissals: [],
+              completions: [],
+              ...values,
+            },
+          };
+        }, {})
+      );
+      storageMock
+        .expects('set')
+        .withExactArgs(StorageKeys.TIMESTAMPS, set, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+    }
   }
 
   function expectFrequencyCappingGlobalImpressions(

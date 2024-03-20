@@ -38,18 +38,14 @@ import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
-import {
-  DismissalStorageKeys,
-  ImpressionStorageKeys,
-  StorageKeys,
-} from '../utils/constants';
 import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {ImpressionStorageKeys, StorageKeys} from '../utils/constants';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
-import {Storage} from './storage';
+import {Storage, pruneTimestamps} from './storage';
 import {assert} from '../utils/log';
 import {isExperimentOn} from './experiments';
 
@@ -58,8 +54,9 @@ const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
 const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
-const TYPE_REWARDED_ADS = 'TYPE_REWARDED_AD';
+const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 const SECOND_IN_MILLIS = 1000;
+const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
@@ -80,38 +77,44 @@ const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
   [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, StorageKeys.SURVEY_COMPLETED],
 ]);
 
-const DISMISSALS_TO_STORAGE_KEY_MAP = new Map([
-  [
-    AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
-    DismissalStorageKeys.CONTRIBUTION,
-  ],
-  [
-    AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
-    DismissalStorageKeys.CONTRIBUTION,
-  ],
-  [
-    AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE,
-    DismissalStorageKeys.NEWSLETTER_SIGNUP,
-  ],
-  [
-    AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE,
-    DismissalStorageKeys.NEWSLETTER_SIGNUP,
-  ],
-  [
-    AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE,
-    DismissalStorageKeys.REGISTRATION_WALL,
-  ],
-  [AnalyticsEvent.ACTION_SURVEY_CLOSED, DismissalStorageKeys.REWARDED_SURVEY],
-  [AnalyticsEvent.ACTION_REWARDED_AD_CLOSE, DismissalStorageKeys.REWARDED_AD],
-  [
-    AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
-    DismissalStorageKeys.SUBSCRIPTION,
-  ],
-  [
-    AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
-    DismissalStorageKeys.SUBSCRIPTION,
-  ],
+const DISMISSAL_EVENTS_TO_ACTION_MAP = new Map([
+  [AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE, TYPE_CONTRIBUTION],
+  [AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED, TYPE_CONTRIBUTION],
+  [AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE, TYPE_NEWSLETTER_SIGNUP],
+  [AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE, TYPE_NEWSLETTER_SIGNUP],
+  [AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE, TYPE_REGISTRATION_WALL],
+  [AnalyticsEvent.ACTION_SURVEY_CLOSED, TYPE_REWARDED_SURVEY],
+  [AnalyticsEvent.ACTION_REWARDED_AD_CLOSE, TYPE_REWARDED_AD],
+  [AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE, TYPE_SUBSCRIPTION],
+  [AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED, TYPE_SUBSCRIPTION],
 ]);
+
+const COMPLETION_EVENTS_TO_ACTION_MAP = new Map([
+  [AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE, TYPE_CONTRIBUTION],
+  [
+    AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
+    TYPE_NEWSLETTER_SIGNUP,
+  ],
+  [AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT, TYPE_NEWSLETTER_SIGNUP],
+  [AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK, TYPE_REGISTRATION_WALL],
+  [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK, TYPE_REWARDED_SURVEY],
+  [AnalyticsEvent.ACTION_REWARDED_AD_VIEW, TYPE_REWARDED_AD],
+  [AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE, TYPE_SUBSCRIPTION],
+]);
+
+const IMPRESSION_EVENTS_TO_ACTION_MAP = new Map([
+  [AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT, TYPE_CONTRIBUTION],
+  [AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS, TYPE_CONTRIBUTION],
+  [AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN, TYPE_NEWSLETTER_SIGNUP],
+  [AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN, TYPE_NEWSLETTER_SIGNUP],
+  [AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN, TYPE_REGISTRATION_WALL],
+  [AnalyticsEvent.IMPRESSION_SURVEY, TYPE_REWARDED_SURVEY],
+  [AnalyticsEvent.IMPRESSION_REWARDED_AD, TYPE_REWARDED_AD],
+  [AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT, TYPE_SUBSCRIPTION],
+  [AnalyticsEvent.IMPRESSION_OFFERS, TYPE_SUBSCRIPTION],
+]);
+
+const GENERIC_COMPLETION_EVENTS = [AnalyticsEvent.EVENT_PAYMENT_FAILED];
 
 const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
   [
@@ -143,21 +146,12 @@ const INTERVENTION_TO_STORAGE_KEY_MAP = new Map([
   [AnalyticsEvent.IMPRESSION_OFFERS, ImpressionStorageKeys.SUBSCRIPTION],
 ]);
 
-const ACTION_TO_DISMISSAL_STORAGE_KEY_MAP = new Map([
-  [TYPE_CONTRIBUTION, DismissalStorageKeys.CONTRIBUTION],
-  [TYPE_NEWSLETTER_SIGNUP, DismissalStorageKeys.NEWSLETTER_SIGNUP],
-  [TYPE_REGISTRATION_WALL, DismissalStorageKeys.REGISTRATION_WALL],
-  [TYPE_REWARDED_SURVEY, DismissalStorageKeys.REWARDED_SURVEY],
-  [TYPE_REWARDED_ADS, DismissalStorageKeys.REWARDED_AD],
-  [TYPE_SUBSCRIPTION, DismissalStorageKeys.SUBSCRIPTION],
-]);
-
 const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
   [TYPE_CONTRIBUTION, ImpressionStorageKeys.CONTRIBUTION],
   [TYPE_NEWSLETTER_SIGNUP, ImpressionStorageKeys.NEWSLETTER_SIGNUP],
   [TYPE_REGISTRATION_WALL, ImpressionStorageKeys.REGISTRATION_WALL],
   [TYPE_REWARDED_SURVEY, ImpressionStorageKeys.REWARDED_SURVEY],
-  [TYPE_REWARDED_ADS, ImpressionStorageKeys.REWARDED_AD],
+  [TYPE_REWARDED_AD, ImpressionStorageKeys.REWARDED_AD],
   [TYPE_SUBSCRIPTION, ImpressionStorageKeys.SUBSCRIPTION],
 ]);
 
@@ -165,6 +159,16 @@ export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
   isClosable?: boolean;
+}
+
+interface ActionsTimestamps {
+  [key: string]: ActionTimestamps;
+}
+
+interface ActionTimestamps {
+  impressions: number[];
+  dismissals: number[];
+  completions: number[];
 }
 
 /**
@@ -181,6 +185,7 @@ export class AutoPromptManager {
   private frequencyCappingLocalStorageEnabled_: boolean = false;
   private promptFrequencyCappingEnabled_: boolean = false;
   private isClosable_: boolean | undefined;
+  private autoPromptType_: AutoPromptType | undefined;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -326,6 +331,7 @@ export class AutoPromptManager {
       article.audienceActions?.actions,
       params.autoPromptType
     )!;
+    this.autoPromptType_ = autoPromptType;
 
     // Default isClosable to what is set in the page config.
     // Otherwise, the prompt is blocking for publications with a
@@ -745,15 +751,26 @@ export class AutoPromptManager {
       return;
     }
 
-    const isSurveyEligible = await this.isSurveyEligible_(actions);
-    actions = actions.filter((action) =>
-      this.checkActionEligibility_(
-        action.type,
-        // Monetization check does not apply for new frequency capping flow
-        /** canDisplayMonetizationPrompt */ true,
-        isSurveyEligible
-      )
-    );
+    let actionsTimestamps;
+    if (this.frequencyCappingByDismissalsEnabled_) {
+      actionsTimestamps = await this.getTimestamps();
+      actions = actions.filter((action) =>
+        this.checkActionEligibilityFromTimestamps_(
+          action.type,
+          actionsTimestamps!
+        )
+      );
+    } else {
+      const isSurveyEligible = await this.isSurveyEligible_(actions);
+      actions = actions.filter((action) =>
+        this.checkActionEligibility_(
+          action.type,
+          // Monetization check does not apply for new frequency capping flow
+          /** canDisplayMonetizationPrompt */ true,
+          isSurveyEligible
+        )
+      );
+    }
 
     if (actions.length === 0) {
       return;
@@ -775,7 +792,7 @@ export class AutoPromptManager {
     // This disambiguates the scenarios where a reader meets the cap when the
     // reader is only eligible for 1 prompt vs. when the publisher only has 1
     // prompt configured.
-    let potentialAction;
+    let potentialAction: Intervention | undefined = undefined;
     for (const action of actions) {
       const frequencyCapDuration =
         frequencyCapConfig?.promptFrequencyCaps?.find(
@@ -783,9 +800,16 @@ export class AutoPromptManager {
         )?.frequencyCapDuration ||
         frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
       if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
-        const timestamps = this.frequencyCappingByDismissalsEnabled_
-          ? await this.getActionDismissals_(action.type)
-          : await this.getActionImpressions_(action.type);
+        let timestamps;
+        if (this.frequencyCappingByDismissalsEnabled_) {
+          const actionTimestamps = actionsTimestamps![action.type];
+          timestamps = [
+            ...(actionTimestamps?.dismissals || []),
+            ...(actionTimestamps?.completions || []),
+          ];
+        } else {
+          timestamps = await this.getActionImpressions_(action.type);
+        }
         if (this.isFrequencyCapped_(frequencyCapDuration!, timestamps)) {
           this.eventManager_.logSwgEvent(
             AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
@@ -804,9 +828,17 @@ export class AutoPromptManager {
     const globalFrequencyCapDuration =
       frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
-      const globalTimestamps = this.frequencyCappingByDismissalsEnabled_
-        ? await this.getAllDismissals_()
-        : await this.getAllImpressions_();
+      let globalTimestamps;
+      if (this.frequencyCappingByDismissalsEnabled_) {
+        globalTimestamps = Array.prototype.concat.apply(
+          [],
+          Object.entries(actionsTimestamps!)
+            .filter(([action, _]) => action !== potentialAction!.type)
+            .map(([_, timestamps]) => timestamps.impressions)
+        );
+      } else {
+        globalTimestamps = await this.getAllImpressions_();
+      }
       if (
         this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
       ) {
@@ -834,7 +866,7 @@ export class AutoPromptManager {
   }): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-        actionType === TYPE_REWARDED_ADS
+        actionType === TYPE_REWARDED_AD
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType,
               configurationId,
@@ -967,7 +999,7 @@ export class AutoPromptManager {
     return (
       !this.pageConfig_.isLocked() &&
       (potentialActionPromptType === TYPE_REWARDED_SURVEY ||
-        potentialActionPromptType === TYPE_REWARDED_ADS)
+        potentialActionPromptType === TYPE_REWARDED_AD)
     );
   }
 
@@ -989,7 +1021,11 @@ export class AutoPromptManager {
 
     // ** Frequency Capping Events **
     if (this.frequencyCappingLocalStorageEnabled_) {
-      await this.handleFrequencyCappingLocalStorage_(event.eventType);
+      if (this.frequencyCappingByDismissalsEnabled_) {
+        await this.handleFrequencyCappingLocalStorage_(event.eventType);
+      } else {
+        await this.handleFrequencyCappingLocalStorageLegacy_(event.eventType);
+      }
     }
 
     // Impressions and dimissals of forced (for paygated) or manually triggered
@@ -1026,18 +1062,43 @@ export class AutoPromptManager {
 
   /**
    * Executes required local storage gets and sets for Frequency Capping flow.
-   * Impressions of prompts for paygated content do not count toward frequency
-   * cap. Maintains hasStoredMiniPromptImpression_ so as not to store multiple
-   * impressions for mini/normal contribution prompt.
+   * Events of prompts for paygated content do not count toward frequency cap.
+   * Maintains hasStoredMiniPromptImpression_ so as not to store multiple
+   * impression timestamps for mini/normal contribution prompt.
    */
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
+    if (!this.isClosable_) {
+      return;
+    }
+
     if (
       !(
-        INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
-        DISMISSALS_TO_STORAGE_KEY_MAP.has(analyticsEvent)
-      ) ||
+        IMPRESSION_EVENTS_TO_ACTION_MAP.has(analyticsEvent) ||
+        DISMISSAL_EVENTS_TO_ACTION_MAP.has(analyticsEvent) ||
+        COMPLETION_EVENTS_TO_ACTION_MAP.has(analyticsEvent) ||
+        GENERIC_COMPLETION_EVENTS.find((e) => e === analyticsEvent)
+      )
+    ) {
+      return;
+    }
+
+    if (monetizationImpressionEvents.includes(analyticsEvent)) {
+      if (this.hasStoredMiniPromptImpression_) {
+        return;
+      }
+      this.hasStoredMiniPromptImpression_ = true;
+    }
+
+    this.storeEvent(analyticsEvent);
+  }
+
+  private async handleFrequencyCappingLocalStorageLegacy_(
+    analyticsEvent: AnalyticsEvent
+  ): Promise<void> {
+    if (
+      !INTERVENTION_TO_STORAGE_KEY_MAP.has(analyticsEvent) ||
       !this.isClosable_
     ) {
       return;
@@ -1050,9 +1111,7 @@ export class AutoPromptManager {
       this.hasStoredMiniPromptImpression_ = true;
     }
     return this.storage_.storeFrequencyCappingEvent(
-      DISMISSALS_TO_STORAGE_KEY_MAP.has(analyticsEvent)
-        ? DISMISSALS_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
-        : INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
+      INTERVENTION_TO_STORAGE_KEY_MAP.get(analyticsEvent)!
     );
   }
 
@@ -1094,26 +1153,6 @@ export class AutoPromptManager {
   }
 
   /**
-   * Fetches dismissal timestamps from local storage for all frequency capping
-   * related prompts and aggregates them into one array. Timestamps are not
-   * sorted.
-   */
-  private async getAllDismissals_(): Promise<number[]> {
-    const dismissals = [];
-
-    for (const storageKey of new Set([
-      ...DISMISSALS_TO_STORAGE_KEY_MAP.values(),
-    ])) {
-      const promptDismissals = await this.storage_.getFrequencyCappingEvent(
-        storageKey
-      );
-      dismissals.push(...promptDismissals);
-    }
-
-    return dismissals;
-  }
-
-  /**
    * Fetches impressions timestamp from local storage for all frequency capping
    * related prompts and aggregates them into one array. Timestamps are not
    * sorted.
@@ -1134,23 +1173,6 @@ export class AutoPromptManager {
   }
 
   /**
-   * Fetches dismissal timestamps from local storage for a given action type.
-   */
-  private async getActionDismissals_(actionType: string): Promise<number[]> {
-    if (!ACTION_TO_DISMISSAL_STORAGE_KEY_MAP.has(actionType)) {
-      // TODO(justinchou): Update to new error event for dismissals.
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_ACTION_IMPRESSIONS_STORAGE_KEY_NOT_FOUND_ERROR
-      );
-      return [];
-    }
-
-    return this.storage_.getFrequencyCappingEvent(
-      ACTION_TO_DISMISSAL_STORAGE_KEY_MAP.get(actionType)!
-    );
-  }
-
-  /**
    * Fetches impression timestamps from local storage for a given action type.
    */
   private async getActionImpressions_(actionType: string): Promise<number[]> {
@@ -1166,19 +1188,110 @@ export class AutoPromptManager {
     );
   }
 
+  async getTimestamps(): Promise<ActionsTimestamps> {
+    const stringified = await this.storage_.get(
+      StorageKeys.TIMESTAMPS,
+      /* useLocalStorage */ true
+    );
+    // TODO(justinchou): handle parsing error to not disrupt flow.
+    const map: ActionsTimestamps = stringified ? JSON.parse(stringified) : {};
+    return Object.entries(map).reduce(
+      (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
+        return {
+          ...acc,
+          [key]: {
+            impressions: pruneTimestamps(
+              value.impressions,
+              TWO_WEEKS_IN_MILLIS
+            ),
+            dismissals: pruneTimestamps(value.dismissals, TWO_WEEKS_IN_MILLIS),
+            completions: pruneTimestamps(
+              value.completions,
+              TWO_WEEKS_IN_MILLIS
+            ),
+          },
+        };
+      },
+      {}
+    );
+  }
+
+  async setTimestamps(timestamps: ActionsTimestamps) {
+    const json = JSON.stringify(timestamps);
+    this.storage_.set(StorageKeys.TIMESTAMPS, json, /* useLocalStorage */ true);
+  }
+
+  async storeImpression(action: string): Promise<void> {
+    const timestamps = await this.getTimestamps();
+    const actionTimestamps = timestamps[action] || {
+      impressions: [],
+      dismissals: [],
+      completions: [],
+    };
+    actionTimestamps.impressions.push(Date.now());
+    timestamps[action] = actionTimestamps;
+    this.setTimestamps(timestamps);
+  }
+
+  async storeDismissal(action: string): Promise<void> {
+    const timestamps = await this.getTimestamps();
+    const actionTimestamps = timestamps[action] || {
+      impressions: [],
+      dismissals: [],
+      completions: [],
+    };
+    actionTimestamps.dismissals.push(Date.now());
+    timestamps[action] = actionTimestamps;
+    this.setTimestamps(timestamps);
+  }
+
+  async storeCompletion(action: string): Promise<void> {
+    const timestamps = await this.getTimestamps();
+    const actionTimestamps = timestamps[action] || {
+      impressions: [],
+      dismissals: [],
+      completions: [],
+    };
+    actionTimestamps.completions.push(Date.now());
+    timestamps[action] = actionTimestamps;
+    this.setTimestamps(timestamps);
+  }
+
+  async storeEvent(event: AnalyticsEvent): Promise<void> {
+    let action;
+    if (IMPRESSION_EVENTS_TO_ACTION_MAP.has(event)) {
+      action = IMPRESSION_EVENTS_TO_ACTION_MAP.get(event);
+      this.storeImpression(action!);
+    } else if (DISMISSAL_EVENTS_TO_ACTION_MAP.has(event)) {
+      action = DISMISSAL_EVENTS_TO_ACTION_MAP.get(event);
+      this.storeDismissal(action!);
+    } else if (COMPLETION_EVENTS_TO_ACTION_MAP.has(event)) {
+      action = COMPLETION_EVENTS_TO_ACTION_MAP.get(event);
+      this.storeCompletion(action!);
+    } else if (GENERIC_COMPLETION_EVENTS.includes(event)) {
+      if (this.isContribution_(this.autoPromptType_)) {
+        this.storeCompletion(TYPE_CONTRIBUTION);
+      }
+      if (this.isSubscription_(this.autoPromptType_)) {
+        this.storeCompletion(TYPE_SUBSCRIPTION);
+      }
+      // TODO(justinchou@) handle failure modes for event EVENT_PAYMENT_FAILED
+    }
+  }
+
   /**
    * Computes if the frequency cap is met from the timestamps of previous
-   * impressions by using the maximum/most recent timestsamp.
+   * provided by using the maximum/most recent timestamp.
    */
   private isFrequencyCapped_(
     frequencyCapDuration: Duration,
-    impressions: number[]
+    timestamps: number[]
   ): boolean {
-    if (impressions.length === 0) {
+    if (timestamps.length === 0) {
       return false;
     }
 
-    const lastImpression = Math.max(...impressions);
+    const lastImpression = Math.max(...timestamps);
     const durationInMs =
       (frequencyCapDuration.seconds || 0) * SECOND_IN_MILLIS +
       this.nanoToMiliseconds_(frequencyCapDuration.nano || 0);
@@ -1235,6 +1348,30 @@ export class AutoPromptManager {
       return canDisplayMonetizationPrompt;
     } else if (actionType === TYPE_REWARDED_SURVEY) {
       return isSurveyEligible;
+    }
+    return true;
+  }
+
+  /**
+   * Checks AudienceAction eligbility, used to filter potential actions.
+   */
+  private checkActionEligibilityFromTimestamps_(
+    actionType: string,
+    timestamps: ActionsTimestamps
+  ): boolean {
+    if (actionType === TYPE_REWARDED_SURVEY) {
+      const isAnalyticsEligible =
+        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
+        GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
+        GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
+      if (!isAnalyticsEligible) {
+        return false;
+      }
+      // Do not show survey if there is a previous completion record.
+      // Client side eligibility is required to handle identity transitions
+      // after sign-in flow. TODO(justinchou): update survey completion check
+      // to persist even after 2 weeks.
+      return !(timestamps[TYPE_REWARDED_SURVEY]?.completions || []).length;
     }
     return true;
   }
