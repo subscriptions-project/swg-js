@@ -451,9 +451,12 @@ export class Dialog {
   private onGrayPaneClick_(event: Event) {
     event.stopPropagation();
     if (this.closeOnBackgroundClick_) {
-      const contentWindow = this.view_!.getElement().contentWindow!;
-      const origin = new URL(this.view_?.getElement().src ?? '').origin;
+      const viewEl = this.view_!.getElement();
+      const contentWindow = viewEl.contentWindow!;
       if (contentWindow) {
+        const origin = viewEl.src ? new URL(viewEl.src).origin : '*';
+        // The boq iframe must be listening for this event in order for it to
+        // work.
         contentWindow.postMessage('close', origin);
       }
     }
