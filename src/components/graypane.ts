@@ -29,13 +29,14 @@ export class Graypane {
       .getWin()
       .document.createElement('swg-popup-background');
 
-    this.fadeBackground_.setAttribute('role', 'button');
+    //this.fadeBackground_.setAttribute('role', 'button');
 
     setImportantStyles(this.fadeBackground_, {
       'z-index': zIndex.toString(),
       'display': 'none',
       'position': 'fixed',
       'top': '0',
+      'pointer-events': 'none',
       'right': '0',
       'bottom': '0',
       'left': '0',
