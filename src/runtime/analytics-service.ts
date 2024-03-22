@@ -161,6 +161,14 @@ export class AnalyticsService {
     this.context_.setUrl(url);
   }
 
+  setIsLockedContent(isLocked: boolean): void {
+    this.context_.setIsLockedContent(isLocked);
+  }
+
+  getIsLockedContent(): boolean | null {
+    return this.context_.getIsLockedContent();
+  }
+
   addLabels(labels: string[]): void {
     if (labels && labels.length > 0) {
       const newLabels = ([] as string[]).concat(this.context_.getLabelList()!);
@@ -208,6 +216,7 @@ export class AnalyticsService {
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
     context.setUrl(getCanonicalUrl(this.doc_));
+    context.setIsLockedContent(this.deps_.pageConfig().isLocked());
 
     const utmParams = parseQueryString(this.getQueryString_());
     const campaign = utmParams['utm_campaign'];
