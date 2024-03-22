@@ -161,14 +161,6 @@ export class AnalyticsService {
     this.context_.setUrl(url);
   }
 
-  setIsLockedContent(isLocked: boolean): void {
-    this.context_.setIsLockedContent(isLocked);
-  }
-
-  getIsLockedContent(): boolean | null {
-    return this.context_.getIsLockedContent();
-  }
-
   addLabels(labels: string[]): void {
     if (labels && labels.length > 0) {
       const newLabels = ([] as string[]).concat(this.context_.getLabelList()!);
