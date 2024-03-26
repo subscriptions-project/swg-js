@@ -592,6 +592,7 @@ describes.realWin('Dialog', (env) => {
 
         el.click();
 
+        // This class is removed when the screen is closed.
         expect(doc.body).to.not.have.class('swg-disable-scroll');
       });
     });
