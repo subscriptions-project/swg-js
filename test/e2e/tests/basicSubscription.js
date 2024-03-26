@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['basic'],
-/*
+  /*
   'Subscribe': (browser) => {
     const basic = browser.page.basicSubscription();
     basic

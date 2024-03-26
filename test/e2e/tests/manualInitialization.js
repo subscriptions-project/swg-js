@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['buyflow'],
-/*
+  /*
   'Show offers on web': (browser) => {
     const publication = browser.page.manualInitialization();
     publication

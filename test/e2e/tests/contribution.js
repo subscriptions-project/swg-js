@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['contribution'],
-/*
+  /*
   'Show contribution options': (browser) => {
     const contribution = browser.page.contribution();
     contribution

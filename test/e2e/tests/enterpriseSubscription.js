@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['enterprise'],
-/*
+  /*
   'Enterprise Subscriptions': (browser) => {
     const basic = browser.page.enterpriseSubscription();
     basic
