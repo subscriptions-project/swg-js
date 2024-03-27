@@ -208,6 +208,7 @@ export class AnalyticsService {
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
     context.setUrl(getCanonicalUrl(this.doc_));
+    context.setIsLockedContent(this.deps_.pageConfig().isLocked());
 
     const utmParams = parseQueryString(this.getQueryString_());
     const campaign = utmParams['utm_campaign'];

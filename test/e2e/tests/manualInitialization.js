@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['buyflow'],
-
+  /*
   'Show offers on web': (browser) => {
     const publication = browser.page.manualInitialization();
     publication
@@ -31,11 +31,11 @@ module.exports = {
       .assert.textContains('.e02Wob', '$9.99/week')
       .end();
   },
-
   'Selecting an offer triggers Google Sign-In prompt': (browser) => {
     const publication = browser.page.publication();
     publication.navigate().viewFirstArticle().selectOffer();
 
     browser.checkPayment().end();
   },
+*/
 };

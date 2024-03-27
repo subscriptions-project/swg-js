@@ -21,6 +21,7 @@
 
 /* tslint:disable:enforce-name-casing */
 /* tslint:disable:strip-private-property-underscore */
+
 // clang-format off
 
 /** Carries information relating to RRM. */
@@ -418,6 +419,7 @@ export class AnalyticsContext implements Message {
   private pageLoadBeginTimestamp_: Timestamp | null;
   private loadEventStartDelay_: Duration | null;
   private runtimeCreationTimestamp_: Timestamp | null;
+  private isLockedContent_: boolean | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -476,6 +478,9 @@ export class AnalyticsContext implements Message {
       data[16 + base] == null
         ? null
         : new Timestamp(data[16 + base] as unknown[], includesLabel);
+
+    this.isLockedContent_ =
+      data[17 + base] == null ? null : (data[17 + base] as boolean);
   }
 
   getEmbedderOrigin(): string | null {
@@ -614,6 +619,14 @@ export class AnalyticsContext implements Message {
     this.runtimeCreationTimestamp_ = value;
   }
 
+  getIsLockedContent(): boolean | null {
+    return this.isLockedContent_;
+  }
+
+  setIsLockedContent(value: boolean): void {
+    this.isLockedContent_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.embedderOrigin_, // field 1 - embedder_origin
@@ -639,6 +652,7 @@ export class AnalyticsContext implements Message {
       this.runtimeCreationTimestamp_
         ? this.runtimeCreationTimestamp_.toArray(includeLabel)
         : [], // field 17 - runtime_creation_timestamp
+      this.isLockedContent_, // field 18 - is_locked_content
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2029,35 +2043,35 @@ export class ViewSubscriptionsResponse implements Message {
 }
 
 const PROTO_MAP: {[key: string]: MessageConstructor} = {
-  AccountCreationRequest,
-  ActionRequest,
-  AlreadySubscribedResponse,
-  AnalyticsContext,
-  AnalyticsEventMeta,
-  AnalyticsRequest,
-  AudienceActivityClientLogsRequest,
-  CompleteAudienceActionResponse,
-  Duration,
-  EntitlementJwt,
-  EntitlementsRequest,
-  EntitlementsResponse,
-  EventParams,
-  FinishedLoggingResponse,
-  LinkSaveTokenRequest,
-  LinkingInfoResponse,
-  OpenDialogRequest,
-  SkuSelectedResponse,
-  SmartBoxMessage,
-  SubscribeResponse,
-  SubscriptionLinkingCompleteResponse,
-  SubscriptionLinkingResponse,
-  SurveyAnswer,
-  SurveyDataTransferRequest,
-  SurveyDataTransferResponse,
-  SurveyQuestion,
-  Timestamp,
-  ToastCloseRequest,
-  ViewSubscriptionsResponse,
+  'AccountCreationRequest': AccountCreationRequest,
+  'ActionRequest': ActionRequest,
+  'AlreadySubscribedResponse': AlreadySubscribedResponse,
+  'AnalyticsContext': AnalyticsContext,
+  'AnalyticsEventMeta': AnalyticsEventMeta,
+  'AnalyticsRequest': AnalyticsRequest,
+  'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
+  'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
+  'Duration': Duration,
+  'EntitlementJwt': EntitlementJwt,
+  'EntitlementsRequest': EntitlementsRequest,
+  'EntitlementsResponse': EntitlementsResponse,
+  'EventParams': EventParams,
+  'FinishedLoggingResponse': FinishedLoggingResponse,
+  'LinkSaveTokenRequest': LinkSaveTokenRequest,
+  'LinkingInfoResponse': LinkingInfoResponse,
+  'OpenDialogRequest': OpenDialogRequest,
+  'SkuSelectedResponse': SkuSelectedResponse,
+  'SmartBoxMessage': SmartBoxMessage,
+  'SubscribeResponse': SubscribeResponse,
+  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
+  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
+  'SurveyAnswer': SurveyAnswer,
+  'SurveyDataTransferRequest': SurveyDataTransferRequest,
+  'SurveyDataTransferResponse': SurveyDataTransferResponse,
+  'SurveyQuestion': SurveyQuestion,
+  'Timestamp': Timestamp,
+  'ToastCloseRequest': ToastCloseRequest,
+  'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
 /**
