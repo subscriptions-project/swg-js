@@ -84,7 +84,7 @@ describes.realWin('AnalyticsService', (env) => {
       .callsFake((callback) => (eventManagerCallback = callback));
 
     src = '/serviceiframe';
-    pageConfig = new PageConfig(productId);
+    pageConfig = new PageConfig(productId, true);
     runtime = new ConfiguredRuntime(env.win, pageConfig);
     const mockGetCreationTimestamp = sandbox.spy(() => {
       return 22222;
@@ -144,6 +144,7 @@ describes.realWin('AnalyticsService', (env) => {
       analyticsService.setTransactionId(txId);
       expect(analyticsService.getTransactionId()).to.equal(txId);
       expect(analyticsService.getContext().getUrl()).to.equal(URL);
+      expect(analyticsService.getContext().getIsLockedContent()).to.be.true;
     });
 
     it('should close', () => {
@@ -433,6 +434,7 @@ describes.realWin('AnalyticsService', (env) => {
       expect(context.getUtmCampaign()).to.equal('campaign');
       expect(context.getSku()).to.equal('basic');
       expect(context.getUrl()).to.equal(URL);
+      expect(context.getIsLockedContent()).to.be.true;
       expect(context.getReadyToPay()).to.be.true;
       expect(context.getTransactionId()).to.match(
         /^.{8}-.{4}-.{4}-.{4}-.{12}\.swg$/g

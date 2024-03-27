@@ -274,6 +274,7 @@ describe('AnalyticsContext', () => {
     timestamp3.setSeconds(0);
     timestamp3.setNanos(0);
     analyticscontext1.setRuntimeCreationTimestamp(timestamp3);
+    analyticscontext1.setIsLockedContent(false);
 
     let analyticscontextDeserialized;
 
@@ -338,6 +339,9 @@ describe('AnalyticsContext', () => {
     expect(
       analyticscontextDeserialized.getRuntimeCreationTimestamp()
     ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
+    expect(analyticscontextDeserialized.getIsLockedContent()).to.deep.equal(
+      analyticscontext1.getIsLockedContent()
+    );
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -398,6 +402,9 @@ describe('AnalyticsContext', () => {
     expect(
       analyticscontextDeserialized.getRuntimeCreationTimestamp()
     ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
+    expect(analyticscontextDeserialized.getIsLockedContent()).to.deep.equal(
+      analyticscontext1.getIsLockedContent()
+    );
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -461,6 +468,9 @@ describe('AnalyticsContext', () => {
     expect(
       analyticscontextDeserialized.getRuntimeCreationTimestamp()
     ).to.deep.equal(analyticscontext1.getRuntimeCreationTimestamp());
+    expect(analyticscontextDeserialized.getIsLockedContent()).to.deep.equal(
+      analyticscontext1.getIsLockedContent()
+    );
   });
 });
 
@@ -562,6 +572,7 @@ describe('AnalyticsRequest', () => {
     timestamp3.setSeconds(0);
     timestamp3.setNanos(0);
     analyticscontext1.setRuntimeCreationTimestamp(timestamp3);
+    analyticscontext1.setIsLockedContent(false);
     analyticsrequest1.setContext(analyticscontext1);
     analyticsrequest1.setEvent(AnalyticsEvent.UNKNOWN);
     const /** !AnalyticsEventMeta  */ analyticseventmeta1 =
