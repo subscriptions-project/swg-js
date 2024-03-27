@@ -103,7 +103,7 @@ describes.realWin('EntitlementsManager', (env) => {
       'addListener': (callback) => callback,
     });
     win['addEventListener'] = () => {};
-    pageConfig = new PageConfig('pub1:label1');
+    pageConfig = new PageConfig('pub1:label1', true);
     fetcher = new XhrFetcher(win);
     eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
@@ -1734,7 +1734,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
