@@ -616,6 +616,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   private readonly propensityModule_: Propensity;
   private readonly offersApi_: OffersApi;
   private readonly buttonApi_: ButtonApi;
+  private readonly articleExperimentFlagsPromise_: Promise<string[]>;
+  private articleExperimentFlagsPromiseResolver_: (value: string[]) => void = (
+    a
+  ) => a;
 
   constructor(
     winOrDoc: Window | Document | DocInterface,
@@ -690,16 +694,15 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       integr.enableDefaultMeteringHandler || false
     );
 
-    const backgroundClickExp = this.entitlementsManager_
-      .getArticle()
-      .then(
-        (article) =>
-          !!this.entitlementsManager_
-            .parseArticleExperimentConfigFlags(article)
-            .includes(
-              ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
-            )
-      );
+    this.articleExperimentFlagsPromise_ = new Promise(
+      (resolve) => (this.articleExperimentFlagsPromiseResolver_ = resolve)
+    );
+    const backgroundClickExp = this.articleExperimentFlagsPromise_.then(
+      (flags) =>
+        flags.includes(
+          ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+        )
+    );
 
     this.dialogManager_ = new DialogManager(this.doc_, backgroundClickExp);
 
@@ -910,6 +913,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       return Promise.resolve();
     }
     this.getEntitlements();
+
+    this.entitlementsManager_
+      .getExperimentConfigFlags()
+      .then(this.articleExperimentFlagsPromiseResolver_);
   }
 
   async getEntitlements(
