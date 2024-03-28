@@ -148,7 +148,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'height': '100%',
       'left': '0',
       'opacity': '0',
-      'pointer-events': 'none',
+      'pointer-events': !!this.params_.isClosable ? 'none' : 'auto',
       'position': 'fixed',
       'right': '0',
       'transition': 'opacity 0.5s',
