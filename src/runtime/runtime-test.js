@@ -843,6 +843,23 @@ describes.realWin('Runtime', (env) => {
       );
     });
 
+    it('should resolve experiments', async () => {
+      const experimentFlags = ['a', 'b'];
+      const article = {entitlements: {}, experimentConfig: {experimentFlags}};
+      sandbox
+        .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
+        .callsFake(() => Promise.resolve(article));
+      runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
+        useArticleEndpoint: true,
+      });
+
+      await runtime.getEntitlements();
+
+      expect(await runtime.articleExperimentFlagsPromise_).to.equal(
+        experimentFlags
+      );
+    });
+
     it('should use default fetcher', async () => {
       const article = {entitlements: {}};
       const xhrFetchStub = sandbox

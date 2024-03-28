@@ -913,10 +913,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       return Promise.resolve();
     }
     this.getEntitlements();
-
-    this.entitlementsManager_
-      .getExperimentConfigFlags()
-      .then(this.articleExperimentFlagsPromiseResolver_);
   }
 
   async getEntitlements(
@@ -951,6 +947,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
         }
       } catch (ex) {}
     }
+
+    this.entitlementsManager_
+      .getExperimentConfigFlags()
+      .then(this.articleExperimentFlagsPromiseResolver_);
     return entitlements.clone();
   }
 
