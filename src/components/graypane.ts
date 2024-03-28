@@ -29,6 +29,8 @@ export class Graypane {
       .getWin()
       .document.createElement('swg-popup-background');
 
+    // If the screen is not closable, the button prevents clicks from hitting
+    // links behind the graypane.
     this.fadeBackground_.setAttribute('role', 'button');
 
     setImportantStyles(this.fadeBackground_, {
