@@ -120,6 +120,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     private readonly gptTimeoutMs_: number = GPT_TIMEOUT_MS,
     private readonly thanksTimeoutMs_: number = THANKS_TIMEOUT_MS
   ) {
+    this.params_.isClosable = true;
+
     this.clientConfigManager_ = deps_.clientConfigManager();
 
     this.doc_ = deps_.doc().getRootNode();
@@ -148,7 +150,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'height': '100%',
       'left': '0',
       'opacity': '0',
-      'pointer-events': !!this.params_.isClosable ? 'none' : 'auto',
+      'pointer-events': 'auto',
       'position': 'fixed',
       'right': '0',
       'transition': 'opacity 0.5s',
@@ -156,6 +158,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'width': '100%',
       'z-index': '2147483646',
     });
+
+    if (!!this.params_.isClosable) {
+      wrapper.onclick = () => {
+        this.params_.onCancel?.();
+        this.close();
+      };
+    }
 
     const shadow = wrapper.attachShadow({mode: 'open'});
 
