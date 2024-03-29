@@ -31,6 +31,7 @@ export class DialogManager {
   private openPromise_: Promise<Dialog> | null;
   private readonly popupGraypane_: Graypane;
   private popupWin_: Window | null;
+  private enableBackgroundClickExperiment_ = false;
 
   constructor(doc: Doc) {
     this.doc_ = doc;
@@ -54,13 +55,17 @@ export class DialogManager {
     });
   }
 
+  setEnableBackgroundClickExperiment(value: boolean) {
+    this.enableBackgroundClickExperiment_ = value;
+  }
+
   openDialog(hidden = false, dialogConfig: DialogConfig = {}): Promise<Dialog> {
     if (!this.openPromise_) {
       this.dialog_ = new Dialog(
         this.doc_,
         /* importantStyles */ {},
         /* styles */ {},
-        dialogConfig
+        dialogConfig,
       );
       this.openPromise_ = this.dialog_.open(hidden);
     }

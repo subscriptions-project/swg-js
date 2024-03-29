@@ -40,6 +40,7 @@ import {
 } from './runtime';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
+import {Dialog} from '../components/dialog';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
@@ -852,13 +853,14 @@ describes.realWin('Runtime', (env) => {
       sandbox
         .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
         .callsFake(() => Promise.resolve(article));
+      let receivedValue = null;
+      sandbox
+        .stub(Dialog.prototype, 'setEnableBackgroundClickExperiment')
+        .callsFake(passedValue => receivedValue = passedValue);
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         useArticleEndpoint: true,
       });
-      let receivedValue = null;
-      runtime.dialogManager_.getDialog().setEnableBackgroundClickExperiment = (
-        passedValue
-      ) => (receivedValue = passedValue);
+      expect(runtime.dialogManager_.getDialog()).to.not.be.null;
 
       await runtime.getEntitlements();
 
