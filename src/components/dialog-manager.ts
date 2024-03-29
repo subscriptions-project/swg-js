@@ -26,12 +26,12 @@ const POPUP_Z_INDEX = 2147483647;
  * The class for the top level dialog.
  */
 export class DialogManager {
+  private enableBackgroundClickExperiment_ = false;
   private readonly doc_: Doc;
   private dialog_: Dialog | null;
   private openPromise_: Promise<Dialog> | null;
   private readonly popupGraypane_: Graypane;
   private popupWin_: Window | null;
-  private enableBackgroundClickExperiment_ = false;
 
   constructor(doc: Doc) {
     this.doc_ = doc;

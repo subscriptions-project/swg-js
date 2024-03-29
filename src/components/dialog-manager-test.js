@@ -101,7 +101,8 @@ describes.realWin('DialogManager', (env) => {
 
   it('should pass experiment as true to Dialog', async () => {
     // Open dialog twice.
-    dialogManager = new DialogManager(new GlobalDoc(win), true);
+    dialogManager = new DialogManager(new GlobalDoc(win));
+    dialogManager.setEnableBackgroundClickExperiment(true);
 
     await dialogManager.openDialog();
 

@@ -853,18 +853,15 @@ describes.realWin('Runtime', (env) => {
       sandbox
         .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
         .callsFake(() => Promise.resolve(article));
-      let receivedValue = null;
-      sandbox
-        .stub(Dialog.prototype, 'setEnableBackgroundClickExperiment')
-        .callsFake((passedValue) => (receivedValue = passedValue));
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         useArticleEndpoint: true,
       });
-      expect(runtime.dialogManager_.getDialog()).to.not.be.null;
 
       await runtime.getEntitlements();
 
-      expect(receivedValue).to.equal(experimentFlags);
+      expect(runtime.dialogManager_.enableBackgroundClickExperiment_).to.equal(
+        true
+      );
     });
 
     it('should use default fetcher', async () => {
