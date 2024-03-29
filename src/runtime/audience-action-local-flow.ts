@@ -120,8 +120,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     private readonly gptTimeoutMs_: number = GPT_TIMEOUT_MS,
     private readonly thanksTimeoutMs_: number = THANKS_TIMEOUT_MS
   ) {
-    this.params_.isClosable = true;
-
     this.clientConfigManager_ = deps_.clientConfigManager();
 
     this.doc_ = deps_.doc().getRootNode();
@@ -199,7 +197,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'height': '100%',
       'display': 'flex',
       'display-flex-direction': 'column',
+      'pointer-events': 'none',
     });
+    prompt.onclick = (e) => {
+      e.stopPropagation();
+    };
     return prompt;
   }
 
