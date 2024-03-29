@@ -288,6 +288,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         'transform': 'translate(-50%, 0)',
         'z-index': '2147483646',
       });
+      optInPrompt.onclick = (e) => {
+        e.stopPropagation();
+      };
       this.wrapper_.shadowRoot?.removeChild(this.prompt_);
       this.wrapper_.shadowRoot?.appendChild(optInPrompt);
       this.focusOnOptinPrompt_();
