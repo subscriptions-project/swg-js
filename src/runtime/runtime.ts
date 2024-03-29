@@ -941,9 +941,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
         )
       );
-    this.dialogManager_
-      .getDialog()
-      ?.setEnableBackgroundClickExperiment(experiment);
+    this.dialogManager_.setEnableBackgroundClickExperiment(experiment);
 
     return entitlements.clone();
   }

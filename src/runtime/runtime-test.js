@@ -856,7 +856,7 @@ describes.realWin('Runtime', (env) => {
       let receivedValue = null;
       sandbox
         .stub(Dialog.prototype, 'setEnableBackgroundClickExperiment')
-        .callsFake(passedValue => receivedValue = passedValue);
+        .callsFake((passedValue) => (receivedValue = passedValue));
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         useArticleEndpoint: true,
       });

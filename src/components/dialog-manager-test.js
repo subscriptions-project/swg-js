@@ -91,6 +91,25 @@ describes.realWin('DialogManager', (env) => {
     expect(dialogManager.dialog_).to.equal(dialog);
   });
 
+  it('should pass experiment as false to Dialog', async () => {
+    await dialogManager.openDialog();
+
+    const experimentValue =
+      dialogManager.dialog_.enableBackgroundClickExperiment_;
+    expect(experimentValue).to.be.false;
+  });
+
+  it('should pass experiment as true to Dialog', async () => {
+    // Open dialog twice.
+    dialogManager = new DialogManager(new GlobalDoc(win), true);
+
+    await dialogManager.openDialog();
+
+    const experimentValue =
+      dialogManager.dialog_.enableBackgroundClickExperiment_;
+    expect(experimentValue).to.be.true;
+  });
+
   it('should re-open the same dialog', async () => {
     // Open dialog twice.
     const dialog1 = await dialogManager.openDialog();
