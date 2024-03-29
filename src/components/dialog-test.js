@@ -489,12 +489,6 @@ describes.realWin('Dialog', (env) => {
     });
 
     describe('fade background experiment enabled', () => {
-      beforeEach(() => {
-        setExperimentsStringForTesting(
-          ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
-        );
-      });
-
       it('should not suppress click events by default', async () => {
         let wasClicked = false;
         const clickFun = function () {
@@ -504,9 +498,9 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           undefined,
           undefined,
-          undefined,
-          Promise.resolve(true)
+          undefined
         );
+        dialog.setEnableBackgroundClickExperiment(true);
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -525,9 +519,9 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           {},
           {},
-          {closeOnBackgroundClick: false},
-          Promise.resolve(true)
+          {closeOnBackgroundClick: false}
         );
+        dialog.setEnableBackgroundClickExperiment(true);
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -547,9 +541,9 @@ describes.realWin('Dialog', (env) => {
 
           {},
           {},
-          {closeOnBackgroundClick: true},
-          Promise.resolve(true)
+          {closeOnBackgroundClick: true}
         );
+        dialog.setEnableBackgroundClickExperiment(true);
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -564,9 +558,9 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           {},
           {},
-          {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true},
-          Promise.resolve(true)
+          {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
         );
+        dialog.setEnableBackgroundClickExperiment(true);
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
         await openedDialog.openView(view);
@@ -583,9 +577,9 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           {},
           {},
-          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true},
-          Promise.resolve(true)
+          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
         );
+        dialog.setEnableBackgroundClickExperiment(true);
 
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);
@@ -607,9 +601,9 @@ describes.realWin('Dialog', (env) => {
           globalDoc,
           {},
           {},
-          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true},
-          Promise.resolve(true)
+          {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
         );
+        dialog.setEnableBackgroundClickExperiment(true);
 
         const el = dialog.graypane_.getElement();
         const openedDialog = await dialog.open(NO_ANIMATE);

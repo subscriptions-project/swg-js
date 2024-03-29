@@ -27,18 +27,12 @@ const POPUP_Z_INDEX = 2147483647;
  */
 export class DialogManager {
   private readonly doc_: Doc;
-  private readonly enableBackgroundClickExperiment_: Promise<boolean>;
   private dialog_: Dialog | null;
   private openPromise_: Promise<Dialog> | null;
   private readonly popupGraypane_: Graypane;
   private popupWin_: Window | null;
 
-  constructor(
-    doc: Doc,
-    enableBackgroundClickExperiment = Promise.resolve(false)
-  ) {
-    this.enableBackgroundClickExperiment_ = enableBackgroundClickExperiment;
-
+  constructor(doc: Doc) {
     this.doc_ = doc;
 
     this.dialog_ = null;
@@ -66,8 +60,7 @@ export class DialogManager {
         this.doc_,
         /* importantStyles */ {},
         /* styles */ {},
-        dialogConfig,
-        this.enableBackgroundClickExperiment_
+        dialogConfig
       );
       this.openPromise_ = this.dialog_.open(hidden);
     }

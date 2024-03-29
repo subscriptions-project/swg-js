@@ -29,6 +29,7 @@ import {
   ShowcaseEvent,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {
@@ -843,8 +844,10 @@ describes.realWin('Runtime', (env) => {
       );
     });
 
-    it('should resolve experiments', async () => {
-      const experimentFlags = ['a', 'b'];
+    it('should set dialog experiment', async () => {
+      const experimentFlags = [
+        ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT,
+      ];
       const article = {entitlements: {}, experimentConfig: {experimentFlags}};
       sandbox
         .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
@@ -852,12 +855,14 @@ describes.realWin('Runtime', (env) => {
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         useArticleEndpoint: true,
       });
+      let receivedValue = null;
+      runtime.dialogManager_.getDialog().setEnableBackgroundClickExperiment = (
+        passedValue
+      ) => (receivedValue = passedValue);
 
       await runtime.getEntitlements();
 
-      expect(await runtime.articleExperimentFlagsPromise_).to.equal(
-        experimentFlags
-      );
+      expect(receivedValue).to.equal(experimentFlags);
     });
 
     it('should use default fetcher', async () => {

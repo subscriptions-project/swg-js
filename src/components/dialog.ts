@@ -121,7 +121,7 @@ export class Dialog {
   private positionCenterOnDesktop_: boolean;
   private shouldDisableBodyScrolling_: boolean;
   private desktopMediaQuery_: MediaQueryList;
-  private enableBackgroundClickExperiment_: Promise<Boolean>;
+  private enableBackgroundClickExperiment_ = false;
   /** Reference to the listener that acts on changes to desktopMediaQuery. */
   private desktopMediaQueryListener_: (() => void) | null;
 
@@ -132,8 +132,7 @@ export class Dialog {
     doc: Doc,
     importantStyles: {[key: string]: string} = {},
     styles: {[key: string]: string} = {},
-    dialogConfig: DialogConfig = {},
-    enableBackgroundClickExperiment = Promise.resolve(false)
+    dialogConfig: DialogConfig = {}
   ) {
     this.doc_ = doc;
 
@@ -153,7 +152,6 @@ export class Dialog {
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
 
     this.closeOnBackgroundClick_ = dialogConfig.closeOnBackgroundClick;
-    this.enableBackgroundClickExperiment_ = enableBackgroundClickExperiment;
 
     const modifiedImportantStyles = Object.assign(
       {},
@@ -195,6 +193,9 @@ export class Dialog {
     this.desktopMediaQueryListener_ = null;
   }
 
+  setEnableBackgroundClickExperiment(value: boolean) {
+    this.enableBackgroundClickExperiment_ = value;
+  }
   /**
    * Opens the dialog and builds the iframe container.
    */
@@ -202,12 +203,9 @@ export class Dialog {
     // If this experiment is active, the behavior of the grey background
     // changes.  If closable, clicking the background closes the dialog.  If not
     // closable, clicking the background now prevents you from clicking links
-    // on the main page.
-    const enableBackgroundClickExperiment = await this
-      .enableBackgroundClickExperiment_;
-
+    // on the main page.;
     if (
-      enableBackgroundClickExperiment &&
+      this.enableBackgroundClickExperiment_ &&
       this.closeOnBackgroundClick_ !== undefined
     ) {
       this.graypane_

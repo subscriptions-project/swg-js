@@ -616,10 +616,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   private readonly propensityModule_: Propensity;
   private readonly offersApi_: OffersApi;
   private readonly buttonApi_: ButtonApi;
-  private readonly articleExperimentFlagsPromise_: Promise<string[]>;
-  private articleExperimentFlagsPromiseResolver_: (value: string[]) => void = (
-    a
-  ) => a;
 
   constructor(
     winOrDoc: Window | Document | DocInterface,
@@ -694,17 +690,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       integr.enableDefaultMeteringHandler || false
     );
 
-    this.articleExperimentFlagsPromise_ = new Promise(
-      (resolve) => (this.articleExperimentFlagsPromiseResolver_ = resolve)
-    );
-    const backgroundClickExp = this.articleExperimentFlagsPromise_.then(
-      (flags) =>
-        flags.includes(
-          ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
-        )
-    );
-
-    this.dialogManager_ = new DialogManager(this.doc_, backgroundClickExp);
+    this.dialogManager_ = new DialogManager(this.doc_);
 
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above
@@ -948,9 +934,17 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       } catch (ex) {}
     }
 
-    this.entitlementsManager_
+    const experiment = await this.entitlementsManager_
       .getExperimentConfigFlags()
-      .then(this.articleExperimentFlagsPromiseResolver_);
+      .then((flags) =>
+        flags.includes(
+          ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+        )
+      );
+    this.dialogManager_
+      .getDialog()
+      ?.setEnableBackgroundClickExperiment(experiment);
+
     return entitlements.clone();
   }
 
