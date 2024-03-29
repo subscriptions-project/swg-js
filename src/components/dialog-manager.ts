@@ -66,6 +66,7 @@ export class DialogManager {
         /* importantStyles */ {},
         /* styles */ {},
         dialogConfig,
+        this.enableBackgroundClickExperiment_
       );
       this.openPromise_ = this.dialog_.open(hidden);
     }
