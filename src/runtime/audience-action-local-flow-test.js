@@ -256,6 +256,25 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         ).to.be.calledOnce.calledWithExactly();
       }
 
+      it('clicking on locked greypane closes', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        };
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        wrapper.click();
+        await tick();
+
+        expect(env.win.document.body.style.overflow).to.equal('');
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(updatedWrapper).to.be.null;
+      });
+
       it('renders subscription', async () => {
         const params = {
           ...DEFAULT_PARAMS,
