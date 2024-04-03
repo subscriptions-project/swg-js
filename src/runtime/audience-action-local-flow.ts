@@ -158,10 +158,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     });
 
     if (!!this.params_.isClosable) {
-      wrapper.onclick = () => {
-        this.params_.onCancel?.();
-        this.close();
-      };
+      wrapper.onclick = this.close.bind(this);
     }
 
     const shadow = wrapper.attachShadow({mode: 'open'});
@@ -808,10 +805,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   close() {
-    this.unlock_();
-    if (this.rewardedSlot_) {
-      const googletag = this.deps_.win().googletag;
-      googletag.destroySlots([this.rewardedSlot_]);
+    if (this.params_.action === TYPE_REWARDED_AD) {
+      this.closeRewardedAdWall_();
+    } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
+      this.closeOptInPrompt_();
     }
   }
 }
