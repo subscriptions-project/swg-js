@@ -256,6 +256,28 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         ).to.be.calledOnce.calledWithExactly();
       }
 
+      it('clicking on locked greypane closes', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        };
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        wrapper.click();
+        await tick();
+
+        expect(env.win.document.body.style.overflow).to.equal('');
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(updatedWrapper).to.be.null;
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_CLOSE
+        );
+      });
+
       it('renders subscription', async () => {
         const params = {
           ...DEFAULT_PARAMS,
@@ -970,6 +992,28 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.opt-in-close-button'
         );
         expect(closeButton).not.to.be.null;
+      });
+
+      it('clicking on locked greypane closes', async () => {
+        const params = {
+          action: 'TYPE_NEWSLETTER_SIGNUP',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          isClosable: true,
+          configurationId: 'newsletter_config_id',
+        };
+        const state = await renderNewsletterPrompt(params, NEWSLETTER_CONFIG);
+
+        state.wrapper.click();
+        await tick();
+
+        expect(env.win.document.body.style.overflow).to.equal('');
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(updatedWrapper).to.be.null;
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE
+        );
       });
 
       it('tab focus trap works', async () => {

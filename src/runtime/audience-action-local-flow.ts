@@ -148,7 +148,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'height': '100%',
       'left': '0',
       'opacity': '0',
-      'pointer-events': 'none',
+      'pointer-events': 'auto',
       'position': 'fixed',
       'right': '0',
       'transition': 'opacity 0.5s',
@@ -156,6 +156,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'width': '100%',
       'z-index': '2147483646',
     });
+
+    if (!!this.params_.isClosable) {
+      wrapper.onclick = this.close.bind(this);
+    }
 
     const shadow = wrapper.attachShadow({mode: 'open'});
 
@@ -190,7 +194,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       'height': '100%',
       'display': 'flex',
       'display-flex-direction': 'column',
+      'pointer-events': 'none',
     });
+    prompt.onclick = (e) => {
+      e.stopPropagation();
+    };
     return prompt;
   }
 
@@ -277,6 +285,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         'transform': 'translate(-50%, 0)',
         'z-index': '2147483646',
       });
+      optInPrompt.onclick = (e) => {
+        e.stopPropagation();
+      };
       this.wrapper_.shadowRoot?.removeChild(this.prompt_);
       this.wrapper_.shadowRoot?.appendChild(optInPrompt);
       this.focusOnOptinPrompt_();
@@ -794,10 +805,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   close() {
-    this.unlock_();
-    if (this.rewardedSlot_) {
-      const googletag = this.deps_.win().googletag;
-      googletag.destroySlots([this.rewardedSlot_]);
+    if (this.params_.action === TYPE_REWARDED_AD) {
+      this.closeRewardedAdWall_();
+    } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
+      this.closeOptInPrompt_();
     }
   }
 }
