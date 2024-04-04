@@ -15,7 +15,6 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
-import {ArticleExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   TYPE_NEWSLETTER_SIGNUP,
@@ -112,7 +111,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private rewardedAdTimeout_?: NodeJS.Timeout;
   // Used for focus trap.
   private bottomSentinal_!: HTMLElement;
-  private articleExpFlags_?: string[];
 
   constructor(
     private readonly deps_: Deps,
@@ -497,20 +495,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const message = htmlEscape(
       config.rewardedAdParameters!.customMessage!
     ).toString();
-    const prioritySwaped = !!this.articleExpFlags_?.includes(
-      ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED
-    );
     const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
     const support = this.isContribution()
       ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
       : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
-    // TODO: mhkawano - make seperate elements for each button variation
     const supportHtml = isPremonetization
       ? ''
-      : REWARDED_AD_SUPPORT_HTML.replace(
-          '$SUPPORT_MESSAGE$',
-          prioritySwaped ? viewad : support
-        );
+      : REWARDED_AD_SUPPORT_HTML.replace('$SUPPORT_MESSAGE$', support);
 
     const signinHtml = isPremonetization
       ? ''
@@ -529,25 +520,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
       .replace('$ICON$', icon)
       .replace('$MESSAGE$', message)
-      .replace('$VIEW_AN_AD$', prioritySwaped ? support : viewad)
+      .replace('$VIEW_AN_AD$', viewad)
       .replace('$SUPPORT_BUTTON$', supportHtml)
       .replace('$SIGN_IN_BUTTON$', signinHtml);
 
-    if (prioritySwaped) {
-      this.prompt_
-        .querySelector('.rewarded-ad-support-button')
-        ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
-      this.prompt_
-        .querySelector('.rewarded-ad-view-ad-button')
-        ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
-    } else {
-      this.prompt_
-        .querySelector('.rewarded-ad-support-button')
-        ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
-      this.prompt_
-        .querySelector('.rewarded-ad-view-ad-button')
-        ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
-    }
+    this.prompt_
+      .querySelector('.rewarded-ad-support-button')
+      ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
+    this.prompt_
+      .querySelector('.rewarded-ad-view-ad-button')
+      ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
     this.prompt_
       .querySelector('.rewarded-ad-close-button')
       ?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
@@ -747,9 +729,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   async start() {
-    const article = await this.entitlementsManager_.getArticle();
-    this.articleExpFlags_ =
-      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
     await this.initPrompt_();
   }
 
@@ -773,12 +752,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private getCloseButtonOrEmptyHtml_(html: string) {
-    const initialPromptIsClosable =
-      this.params_.action === TYPE_REWARDED_AD &&
-      !!this.articleExpFlags_?.includes(
-        ArticleExperimentFlags.REWARDED_ADS_ALWAYS_BLOCKING_ENABLED
-      );
-    if (!this.params_.isClosable || initialPromptIsClosable) {
+    if (!this.params_.isClosable) {
       return '';
     }
     const language = this.clientConfigManager_.getLanguage();

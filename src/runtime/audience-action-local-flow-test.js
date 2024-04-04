@@ -15,7 +15,6 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
-import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
@@ -63,7 +62,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   let runtime;
   let eventManager;
   let entitlementsManager;
-  let articleExperimentFlags;
   let DEFAULT_PARAMS;
 
   beforeEach(() => {
@@ -84,7 +82,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       logSwgEvent: sandbox.spy(),
     };
     runtime.eventManager = () => eventManager;
-    articleExperimentFlags = [];
     entitlementsManager = {
       clear: sandbox.spy(),
       getEntitlements: sandbox.spy(),
@@ -339,59 +336,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await tick();
 
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
-        expect(
-          params.monetizationFunction
-        ).to.be.calledOnce.calledWithExactly();
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
-        expect(eventManager.logSwgEvent).to.be.calledWith(
-          AnalyticsEvent.IMPRESSION_REWARDED_AD
-        );
-        expect(eventManager.logSwgEvent).to.be.calledWith(
-          AnalyticsEvent.EVENT_REWARDED_AD_READY
-        );
-        expect(eventManager.logSwgEvent).to.be.calledWith(
-          AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT
-        );
-        expect(pubadsobj.refresh).to.be.called;
-      });
-
-      it('renders contribution with all experiments on', async () => {
-        articleExperimentFlags = [
-          ArticleExperimentFlags.REWARDED_ADS_ALWAYS_BLOCKING_ENABLED,
-          ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED,
-        ];
-        const params = {
-          ...DEFAULT_PARAMS,
-          isClosable: false,
-        };
-        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
-
-        const wrapper = await callReadyAndReturnWrapper();
-
-        expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
-        );
-
-        const closeButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-close-button'
-        );
-        expect(closeButton).to.be.null;
-
-        const contributeButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-support-button'
-        );
-        expect(contributeButton.innerHTML).contains('View an ad');
-
-        const viewButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-view-ad-button'
-        );
-        expect(viewButton.innerHTML).contains('Contribute');
-
-        await viewButton.click();
-        await tick();
-
         expect(
           params.monetizationFunction
         ).to.be.calledOnce.calledWithExactly();
