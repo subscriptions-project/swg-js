@@ -5599,38 +5599,35 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
 
-    if (
-      ('should show the first prompt and log an error if the timestamps parseed from localstorage is invalid',
-      async () => {
-        setupPreviousImpressionAndDismissals(
-          storageMock,
-          {
-            dismissedPromptGetCallCount: 1,
-            getUserToken: true,
-          },
-          /* setAutopromptExpectations */ false,
-          /* setSurveyExpectations */ false
-        );
-        expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            notImpressions: [
-              CURRENT_TIME -
-                10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
-        });
+    it('should show the first prompt and log an error if the timestamps parseed from localstorage is invalid', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
+      );
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          notImpressions: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+      });
 
-        await autoPromptManager.showAutoPrompt({alwaysShow: false});
-        await tick(20);
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(20);
 
-        expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
-        expect(contributionPromptFnSpy).to.have.been.calledOnce;
-      })
-    );
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
 
     it('should show the second prompt if the frequency cap for contributions is met', async () => {
       setupPreviousImpressionAndDismissals(
