@@ -5613,7 +5613,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
 
-    it('should show the first prompt and log an error if the timestamps parseed from localstorage is invalid', async () => {
+    it('should show the first prompt and log an error if the timestamps parsed from localstorage is invalid', async () => {
       setupPreviousImpressionAndDismissals(
         storageMock,
         {
