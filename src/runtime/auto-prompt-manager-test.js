@@ -4241,7 +4241,14 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(25);
 
-      expect(logEventSpy).to.be.calledOnceWith({
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
@@ -5014,7 +5021,14 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(50);
 
-      expect(logEventSpy).to.be.calledOnceWith({
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
@@ -5816,7 +5830,14 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(25);
 
-      expect(logEventSpy).to.be.calledOnceWith({
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
@@ -6586,7 +6607,14 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(50);
 
-      expect(logEventSpy).to.be.calledOnceWith({
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,

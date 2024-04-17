@@ -794,11 +794,16 @@ export class AutoPromptManager {
     // prompt configured.
     let potentialAction: Intervention | undefined = undefined;
     for (const action of actions) {
-      const frequencyCapDuration =
-        frequencyCapConfig?.promptFrequencyCaps?.find(
-          (frequencyCap) => frequencyCap.audienceActionType === action.type
-        )?.frequencyCapDuration ||
-        frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
+      let frequencyCapDuration = frequencyCapConfig?.promptFrequencyCaps?.find(
+        (frequencyCap) => frequencyCap.audienceActionType === action.type
+      )?.frequencyCapDuration;
+      if (!frequencyCapDuration) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND
+        );
+        frequencyCapDuration =
+          frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
+      }
       if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
         let timestamps;
         if (this.frequencyCappingByDismissalsEnabled_) {
