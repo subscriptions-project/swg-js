@@ -1193,9 +1193,18 @@ export class AutoPromptManager {
       StorageKeys.TIMESTAMPS,
       /* useLocalStorage */ true
     );
-    // TODO(justinchou): handle parsing error to not disrupt flow.
-    const map: ActionsTimestamps = stringified ? JSON.parse(stringified) : {};
-    return Object.entries(map).reduce(
+    if (!stringified) {
+      return {};
+    }
+
+    const timestamps: ActionsTimestamps = JSON.parse(stringified);
+    if (!this.isValidActionsTimestamps_(timestamps)) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+      );
+      return {};
+    }
+    return Object.entries(timestamps).reduce(
       (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
         return {
           ...acc,
@@ -1213,6 +1222,22 @@ export class AutoPromptManager {
         };
       },
       {}
+    );
+  }
+
+  isValidActionsTimestamps_(timestamps: ActionsTimestamps) {
+    return (
+      timestamps instanceof Object &&
+      !(timestamps instanceof Array) &&
+      Object.values(
+        Object.values(timestamps).map(
+          (t) =>
+            Object.keys(t).length === 3 &&
+            t.impressions.every((n) => !isNaN(n)) &&
+            t.dismissals.every((n) => !isNaN(n)) &&
+            t.completions.every((n) => !isNaN(n))
+        )
+      ).every(Boolean)
     );
   }
 
