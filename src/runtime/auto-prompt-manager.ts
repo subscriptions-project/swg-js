@@ -797,6 +797,7 @@ export class AutoPromptManager {
       let frequencyCapDuration = frequencyCapConfig?.promptFrequencyCaps?.find(
         (frequencyCap) => frequencyCap.audienceActionType === action.type
       )?.frequencyCapDuration;
+
       if (!frequencyCapDuration) {
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND
