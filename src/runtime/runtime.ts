@@ -690,18 +690,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       integr.enableDefaultMeteringHandler || false
     );
 
-    const backgroundClickExp = this.entitlementsManager_
-      .getArticle()
-      .then(
-        (article) =>
-          !!this.entitlementsManager_
-            .parseArticleExperimentConfigFlags(article)
-            .includes(
-              ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
-            )
-      );
-
-    this.dialogManager_ = new DialogManager(this.doc_, backgroundClickExp);
+    this.dialogManager_ = new DialogManager(this.doc_);
 
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above
@@ -944,6 +933,16 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
         }
       } catch (ex) {}
     }
+
+    const experiment = await this.entitlementsManager_
+      .getExperimentConfigFlags()
+      .then((flags) =>
+        flags.includes(
+          ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT
+        )
+      );
+    this.dialogManager_.setEnableBackgroundClickExperiment(experiment);
+
     return entitlements.clone();
   }
 

@@ -29,6 +29,7 @@ import {
   ShowcaseEvent,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {
@@ -840,6 +841,25 @@ describes.realWin('Runtime', (env) => {
         button,
         options,
         callback
+      );
+    });
+
+    it('should set dialog experiment', async () => {
+      const experimentFlags = [
+        ArticleExperimentFlags.BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT,
+      ];
+      const article = {entitlements: {}, experimentConfig: {experimentFlags}};
+      sandbox
+        .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
+        .callsFake(() => Promise.resolve(article));
+      runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
+        useArticleEndpoint: true,
+      });
+
+      await runtime.getEntitlements();
+
+      expect(runtime.dialogManager_.enableBackgroundClickExperiment_).to.equal(
+        true
       );
     });
 

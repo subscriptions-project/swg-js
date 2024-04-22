@@ -121,7 +121,7 @@ export class Dialog {
   private positionCenterOnDesktop_: boolean;
   private shouldDisableBodyScrolling_: boolean;
   private desktopMediaQuery_: MediaQueryList;
-  private enableBackgroundClickExperiment_: Promise<Boolean>;
+  private enableBackgroundClickExperiment_: boolean;
   /** Reference to the listener that acts on changes to desktopMediaQuery. */
   private desktopMediaQueryListener_: (() => void) | null;
 
@@ -133,7 +133,7 @@ export class Dialog {
     importantStyles: {[key: string]: string} = {},
     styles: {[key: string]: string} = {},
     dialogConfig: DialogConfig = {},
-    enableBackgroundClickExperiment = Promise.resolve(false)
+    enableBackgroundClickExperiment = false
   ) {
     this.doc_ = doc;
 
@@ -203,11 +203,8 @@ export class Dialog {
     // changes.  If closable, clicking the background closes the dialog.  If not
     // closable, clicking the background now prevents you from clicking links
     // on the main page.
-    const enableBackgroundClickExperiment = await this
-      .enableBackgroundClickExperiment_;
-
     if (
-      enableBackgroundClickExperiment &&
+      this.enableBackgroundClickExperiment_ &&
       this.closeOnBackgroundClick_ !== undefined
     ) {
       this.graypane_

@@ -27,18 +27,13 @@ const POPUP_Z_INDEX = 2147483647;
  */
 export class DialogManager {
   private readonly doc_: Doc;
-  private readonly enableBackgroundClickExperiment_: Promise<boolean>;
+  private enableBackgroundClickExperiment_ = false;
   private dialog_: Dialog | null;
   private openPromise_: Promise<Dialog> | null;
   private readonly popupGraypane_: Graypane;
   private popupWin_: Window | null;
 
-  constructor(
-    doc: Doc,
-    enableBackgroundClickExperiment = Promise.resolve(false)
-  ) {
-    this.enableBackgroundClickExperiment_ = enableBackgroundClickExperiment;
-
+  constructor(doc: Doc) {
     this.doc_ = doc;
 
     this.dialog_ = null;
@@ -58,6 +53,10 @@ export class DialogManager {
         }
       }
     });
+  }
+
+  setEnableBackgroundClickExperiment(value: boolean) {
+    this.enableBackgroundClickExperiment_ = value;
   }
 
   openDialog(hidden = false, dialogConfig: DialogConfig = {}): Promise<Dialog> {
