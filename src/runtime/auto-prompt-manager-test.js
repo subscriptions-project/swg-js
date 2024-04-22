@@ -4241,7 +4241,14 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(25);
 
-      expect(logEventSpy).to.be.calledOnceWith({
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
@@ -5014,7 +5021,14 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(50);
 
-      expect(logEventSpy).to.be.calledOnceWith({
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
@@ -5599,6 +5613,36 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
 
+    it('should show the first prompt and log an error if the timestamps parsed from localstorage is invalid', async () => {
+      setupPreviousImpressionAndDismissals(
+        storageMock,
+        {
+          dismissedPromptGetCallCount: 1,
+          getUserToken: true,
+        },
+        /* setAutopromptExpectations */ false,
+        /* setSurveyExpectations */ false
+      );
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          notImpressions: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({alwaysShow: false});
+      await tick(20);
+
+      expect(autoPromptManager.promptFrequencyCappingEnabled_).to.equal(true);
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
     it('should show the second prompt if the frequency cap for contributions is met', async () => {
       setupPreviousImpressionAndDismissals(
         storageMock,
@@ -5786,7 +5830,14 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({alwaysShow: false});
       await tick(25);
 
-      expect(logEventSpy).to.be.calledOnceWith({
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
@@ -6556,7 +6607,14 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(50);
 
-      expect(logEventSpy).to.be.calledOnceWith({
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+      });
+      expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
@@ -6786,6 +6844,82 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Helper Functions', () => {
+    [
+      '12345',
+      'this is a string',
+      [],
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {},
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+        },
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+          dismissals: [0, '12345'],
+          completions: [],
+        },
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+          dismissals: [0, 'not a timestamps'],
+          completions: [],
+        },
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+          dismissals: [0],
+          completions: [],
+          extraField: [],
+        },
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+          dismissals: [0],
+          completions: [],
+        },
+        'TYPE WITH EMPTY TIMESTAMPS': {},
+      }),
+    ].forEach((timestamps) => {
+      it('isValidActionsTimestamps_ should return false for invalid timestamps', async () => {
+        const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
+        expect(isValid).to.be.false;
+      });
+    });
+
+    [
+      '',
+      '{}',
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+          dismissals: [0],
+          completions: [],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+        'SOME_TYPE': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+      }),
+    ].forEach((timestamps) => {
+      it('isValidActionsTimestamps_ should return true for valid timestamps', async () => {
+        const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
+        expect(isValid).to.be.false;
+      });
+    });
+
     it('isFrequencyCapped_ should return false for empty impressions', async () => {
       const duration = {seconds: 60, nano: 0};
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(

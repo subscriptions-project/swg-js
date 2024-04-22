@@ -31,9 +31,9 @@
     "web-activities": "1.24.0"
   },
   "devDependencies": {
-    "@babel/core": "7.24.3",
+    "@babel/core": "7.24.4",
     "@babel/eslint-parser": "7.24.1",
-    "@babel/preset-env": "7.24.3",
+    "@babel/preset-env": "7.24.4",
     "@types/google-publisher-tag": "1.20240219.0",
     "@typescript-eslint/eslint-plugin": "6.20.0",
     "@typescript-eslint/parser": "6.20.0",
@@ -56,8 +56,8 @@
     "express": "4.19.2",
     "fancy-log": "2.0.0",
     "fs-extra": "11.2.0",
-    "glob": "10.3.10",
-    "gulp": "4.0.2",
+    "glob": "10.3.12",
+    "gulp": "5.0.0",
     "gulp-eslint-if-fixed": "1.0.0",
     "gulp-help": "chmontgomery/gulp-help#gulp4",
     "gulp-if": "3.0.0",
@@ -103,7 +103,7 @@
     "through2": "4.0.2",
     "touch": "3.1.0",
     "tsify": "5.0.4",
-    "typescript": "5.4.3",
+    "typescript": "5.4.5",
     "vinyl-buffer": "1.0.1",
     "vinyl-source-stream": "2.0.0",
     "watchify": "4.0.0"
@@ -119,14 +119,14 @@
     "@storybook/html": "7.6.17",
     "@storybook/manager-webpack5": "6.5.16",
     "cheerio": "1.0.0-rc.12",
-    "chromedriver": "123.0.0",
+    "chromedriver": "123.0.4",
     "cookie-parser": "1.4.6",
     "hogan-express": "0.5.2",
     "is-running": "2.1.0",
     "jsonwebtoken": "9.0.2",
     "nightwatch": "2.6.25",
     "rollup-plugin-visualizer": "5.12.0",
-    "vite": "5.2.6"
+    "vite": "5.2.9"
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,

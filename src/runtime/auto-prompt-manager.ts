@@ -794,11 +794,16 @@ export class AutoPromptManager {
     // prompt configured.
     let potentialAction: Intervention | undefined = undefined;
     for (const action of actions) {
-      const frequencyCapDuration =
-        frequencyCapConfig?.promptFrequencyCaps?.find(
-          (frequencyCap) => frequencyCap.audienceActionType === action.type
-        )?.frequencyCapDuration ||
-        frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
+      let frequencyCapDuration = frequencyCapConfig?.promptFrequencyCaps?.find(
+        (frequencyCap) => frequencyCap.audienceActionType === action.type
+      )?.frequencyCapDuration;
+      if (!frequencyCapDuration) {
+        this.eventManager_.logSwgEvent(
+          AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND
+        );
+        frequencyCapDuration =
+          frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
+      }
       if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
         let timestamps;
         if (this.frequencyCappingByDismissalsEnabled_) {
@@ -1193,9 +1198,18 @@ export class AutoPromptManager {
       StorageKeys.TIMESTAMPS,
       /* useLocalStorage */ true
     );
-    // TODO(justinchou): handle parsing error to not disrupt flow.
-    const map: ActionsTimestamps = stringified ? JSON.parse(stringified) : {};
-    return Object.entries(map).reduce(
+    if (!stringified) {
+      return {};
+    }
+
+    const timestamps: ActionsTimestamps = JSON.parse(stringified);
+    if (!this.isValidActionsTimestamps_(timestamps)) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+      );
+      return {};
+    }
+    return Object.entries(timestamps).reduce(
       (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
         return {
           ...acc,
@@ -1213,6 +1227,22 @@ export class AutoPromptManager {
         };
       },
       {}
+    );
+  }
+
+  isValidActionsTimestamps_(timestamps: ActionsTimestamps) {
+    return (
+      timestamps instanceof Object &&
+      !(timestamps instanceof Array) &&
+      Object.values(
+        Object.values(timestamps).map(
+          (t) =>
+            Object.keys(t).length === 3 &&
+            t.impressions.every((n) => !isNaN(n)) &&
+            t.dismissals.every((n) => !isNaN(n)) &&
+            t.completions.every((n) => !isNaN(n))
+        )
+      ).every(Boolean)
     );
   }
 

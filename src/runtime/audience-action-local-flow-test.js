@@ -15,7 +15,6 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
-import {ArticleExperimentFlags} from '../runtime/experiment-flags';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
@@ -63,7 +62,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   let runtime;
   let eventManager;
   let entitlementsManager;
-  let articleExperimentFlags;
   let DEFAULT_PARAMS;
 
   beforeEach(() => {
@@ -84,7 +82,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       logSwgEvent: sandbox.spy(),
     };
     runtime.eventManager = () => eventManager;
-    articleExperimentFlags = [];
     entitlementsManager = {
       clear: sandbox.spy(),
       getEntitlements: sandbox.spy(),
@@ -256,6 +253,28 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         ).to.be.calledOnce.calledWithExactly();
       }
 
+      it('clicking on locked greypane closes', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        };
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        wrapper.click();
+        await tick();
+
+        expect(env.win.document.body.style.overflow).to.equal('');
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(updatedWrapper).to.be.null;
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_REWARDED_AD_CLOSE
+        );
+      });
+
       it('renders subscription', async () => {
         const params = {
           ...DEFAULT_PARAMS,
@@ -317,59 +336,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await tick();
 
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
-        expect(
-          params.monetizationFunction
-        ).to.be.calledOnce.calledWithExactly();
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
-        expect(eventManager.logSwgEvent).to.be.calledWith(
-          AnalyticsEvent.IMPRESSION_REWARDED_AD
-        );
-        expect(eventManager.logSwgEvent).to.be.calledWith(
-          AnalyticsEvent.EVENT_REWARDED_AD_READY
-        );
-        expect(eventManager.logSwgEvent).to.be.calledWith(
-          AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT
-        );
-        expect(pubadsobj.refresh).to.be.called;
-      });
-
-      it('renders contribution with all experiments on', async () => {
-        articleExperimentFlags = [
-          ArticleExperimentFlags.REWARDED_ADS_ALWAYS_BLOCKING_ENABLED,
-          ArticleExperimentFlags.REWARDED_ADS_PRIORITY_ENABLED,
-        ];
-        const params = {
-          ...DEFAULT_PARAMS,
-          isClosable: false,
-        };
-        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
-
-        const wrapper = await callReadyAndReturnWrapper();
-
-        expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
-        );
-
-        const closeButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-close-button'
-        );
-        expect(closeButton).to.be.null;
-
-        const contributeButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-support-button'
-        );
-        expect(contributeButton.innerHTML).contains('View an ad');
-
-        const viewButton = wrapper.shadowRoot.querySelector(
-          '.rewarded-ad-view-ad-button'
-        );
-        expect(viewButton.innerHTML).contains('Contribute');
-
-        await viewButton.click();
-        await tick();
-
         expect(
           params.monetizationFunction
         ).to.be.calledOnce.calledWithExactly();
@@ -970,6 +936,28 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.opt-in-close-button'
         );
         expect(closeButton).not.to.be.null;
+      });
+
+      it('clicking on locked greypane closes', async () => {
+        const params = {
+          action: 'TYPE_NEWSLETTER_SIGNUP',
+          autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+          isClosable: true,
+          configurationId: 'newsletter_config_id',
+        };
+        const state = await renderNewsletterPrompt(params, NEWSLETTER_CONFIG);
+
+        state.wrapper.click();
+        await tick();
+
+        expect(env.win.document.body.style.overflow).to.equal('');
+        const updatedWrapper = env.win.document.querySelector(
+          '.audience-action-local-wrapper'
+        );
+        expect(updatedWrapper).to.be.null;
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE
+        );
       });
 
       it('tab focus trap works', async () => {
