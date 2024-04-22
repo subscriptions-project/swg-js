@@ -57,7 +57,7 @@
     "fancy-log": "2.0.0",
     "fs-extra": "11.2.0",
     "glob": "10.3.12",
-    "gulp": "4.0.2",
+    "gulp": "5.0.0",
     "gulp-eslint-if-fixed": "1.0.0",
     "gulp-help": "chmontgomery/gulp-help#gulp4",
     "gulp-if": "3.0.0",
