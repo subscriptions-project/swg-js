@@ -203,11 +203,8 @@ export class Dialog {
     // changes.  If closable, clicking the background closes the dialog.  If not
     // closable, clicking the background now prevents you from clicking links
     // on the main page.
-    const enableBackgroundClickExperiment =
-      this.enableBackgroundClickExperiment_;
-
     if (
-      enableBackgroundClickExperiment &&
+      this.enableBackgroundClickExperiment_ &&
       this.closeOnBackgroundClick_ !== undefined
     ) {
       this.graypane_
