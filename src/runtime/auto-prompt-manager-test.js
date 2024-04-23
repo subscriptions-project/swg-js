@@ -40,6 +40,7 @@ import {Storage} from './storage';
 import {XhrFetcher} from './fetcher';
 import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
+import {assert} from '../utils/log';
 
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
@@ -1516,6 +1517,26 @@ describes.realWin('AutoPromptManager', (env) => {
         isFromUserAction: null,
         additionalParameters: null,
       });
+    });
+  });
+
+  [
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
+    },
+  ].forEach(({eventType}) => {
+    it(`should set promptIsFromCtaButton on cta button action: ${eventType}`, async () => {
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+      expect(autoPromptManager.promptIsFromCtaButton_).to.be.true;
     });
   });
 
@@ -3914,6 +3935,15 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
       ).to.equal(true);
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should set promptIsFromCtaButton_ to false when prompt is displayed', async () => {
+      autoPromptManager.promptIsFromCtaButton_ = true;
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(autoPromptManager.promptIsFromCtaButton_).to.be.false;
     });
 
     it('should not show any prompt if there are no audience actions', async () => {

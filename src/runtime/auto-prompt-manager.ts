@@ -155,6 +155,11 @@ const ACTION_TO_IMPRESSION_STORAGE_KEY_MAP = new Map([
   [TYPE_SUBSCRIPTION, ImpressionStorageKeys.SUBSCRIPTION],
 ]);
 
+const ACTON_CTA_BUTTON_CLICK = [
+  AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK,
+  AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
+];
+
 export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
@@ -179,6 +184,7 @@ export class AutoPromptManager {
   private monetizationPromptWasDisplayedAsSoftPaywall_ = false;
   private hasStoredImpression_ = false;
   private hasStoredMiniPromptImpression_ = false;
+  private promptIsFromCtaButton_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private interventionDisplayed_: Intervention | null = null;
   private frequencyCappingByDismissalsEnabled_: boolean = false;
@@ -282,7 +288,7 @@ export class AutoPromptManager {
     if (!article) {
       return;
     }
-
+    console.log('setting exp');
     this.frequencyCappingByDismissalsEnabled_ =
       this.isArticleExperimentEnabled_(
         article,
@@ -376,6 +382,7 @@ export class AutoPromptManager {
         return;
       }
 
+      this.promptIsFromCtaButton_ = false;
       // Add display delay to dismissible prompts.
       const displayDelayMs = isClosable
         ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
@@ -1014,6 +1021,8 @@ export class AutoPromptManager {
    * to display the prompt in the future.
    */
   private async handleClientEvent_(event: ClientEvent): Promise<void> {
+    console.log('event6');
+    console.log(event.eventType);
     if (!event.eventType) {
       return;
     }
@@ -1025,7 +1034,13 @@ export class AutoPromptManager {
     }
 
     // ** Frequency Capping Events **
+    console.log('isenabled:');
+    console.log(this.frequencyCappingLocalStorageEnabled_);
     if (this.frequencyCappingLocalStorageEnabled_) {
+      console.log('here');
+      if (ACTON_CTA_BUTTON_CLICK.find((e) => e === event.eventType)) {
+        this.promptIsFromCtaButton_ = true;
+      }
       if (this.frequencyCappingByDismissalsEnabled_) {
         await this.handleFrequencyCappingLocalStorage_(event.eventType);
       } else {
@@ -1089,7 +1104,10 @@ export class AutoPromptManager {
       return;
     }
 
-    if (monetizationImpressionEvents.includes(analyticsEvent)) {
+    if (
+      !this.promptIsFromCtaButton_ &&
+      monetizationImpressionEvents.includes(analyticsEvent)
+    ) {
       if (this.hasStoredMiniPromptImpression_) {
         return;
       }
@@ -1290,8 +1308,12 @@ export class AutoPromptManager {
   async storeEvent(event: AnalyticsEvent): Promise<void> {
     let action;
     if (IMPRESSION_EVENTS_TO_ACTION_MAP.has(event)) {
-      action = IMPRESSION_EVENTS_TO_ACTION_MAP.get(event);
-      this.storeImpression(action!);
+      // b/333536312: Only store impression if prompt was not triggered via cta
+      // click.
+      if (!this.promptIsFromCtaButton_) {
+        action = IMPRESSION_EVENTS_TO_ACTION_MAP.get(event);
+        this.storeImpression(action!);
+      }
     } else if (DISMISSAL_EVENTS_TO_ACTION_MAP.has(event)) {
       action = DISMISSAL_EVENTS_TO_ACTION_MAP.get(event);
       this.storeDismissal(action!);
@@ -1436,6 +1458,7 @@ export class AutoPromptManager {
   ): boolean {
     const articleExpFlags =
       this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
+    console.log(articleExpFlags);
     return articleExpFlags.includes(experimentFlag);
   }
 }
