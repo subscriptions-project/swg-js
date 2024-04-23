@@ -1170,6 +1170,60 @@ describes.realWin('AutoPromptManager', (env) => {
 
   [
     {
+      eventType: AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+      action: 'TYPE_CONTRIBUTION',
+    },
+    {
+      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+      action: 'TYPE_CONTRIBUTION',
+    },
+    {
+      eventType: AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
+      action: 'TYPE_SUBSCRIPTION',
+    },
+    {eventType: AnalyticsEvent.IMPRESSION_OFFERS, action: 'TYPE_SUBSCRIPTION'},
+  ].forEach(({eventType, action}) => {
+    it(`for autoprompt eventType=${eventType} and promptIsFromCta_ = true, should not set frequency cap impressions via local storage for action=${action}`, async () => {
+      autoPromptManager.frequencyCappingByDismissalsEnabled_ = true;
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      autoPromptManager.promptIsFromCtaButton_ = true;
+      autoPromptManager.isClosable_ = true;
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .never();
+      storageMock
+        .expects('set')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .never();
+      // Legacy storage operations
+      // TODO(justinchou): once deprecated, join with other impression tests.
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.IMPRESSIONS, /* useLocalStorage */ true)
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.IMPRESSIONS,
+          CURRENT_TIME.toString(),
+          /* useLocalStorage */ true
+        )
+        .resolves()
+        .once();
+
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+  });
+
+  [
+    {
       eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
       action: 'TYPE_NEWSLETTER_SIGNUP',
     },
@@ -1516,6 +1570,26 @@ describes.realWin('AutoPromptManager', (env) => {
         isFromUserAction: null,
         additionalParameters: null,
       });
+    });
+  });
+
+  [
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK,
+    },
+    {
+      eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
+    },
+  ].forEach(({eventType}) => {
+    it(`should set promptIsFromCtaButton on cta button action: ${eventType}`, async () => {
+      autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
+      await eventManagerCallback({
+        eventType,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+      expect(autoPromptManager.promptIsFromCtaButton_).to.be.true;
     });
   });
 
@@ -3914,6 +3988,15 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptManager.monetizationPromptWasDisplayedAsSoftPaywall_
       ).to.equal(true);
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should set promptIsFromCtaButton_ to false when prompt is displayed', async () => {
+      autoPromptManager.promptIsFromCtaButton_ = true;
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(autoPromptManager.promptIsFromCtaButton_).to.be.false;
     });
 
     it('should not show any prompt if there are no audience actions', async () => {
