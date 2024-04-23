@@ -40,7 +40,6 @@ import {Storage} from './storage';
 import {XhrFetcher} from './fetcher';
 import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
-import {assert} from '../utils/log';
 
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
