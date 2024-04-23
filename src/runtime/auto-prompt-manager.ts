@@ -288,19 +288,16 @@ export class AutoPromptManager {
     if (!article) {
       return;
     }
-    console.log('setting exp');
     this.frequencyCappingByDismissalsEnabled_ =
       this.isArticleExperimentEnabled_(
         article,
         ArticleExperimentFlags.FREQUENCY_CAPPING_BY_DISMISSALS
       );
-
     this.frequencyCappingLocalStorageEnabled_ =
       this.isArticleExperimentEnabled_(
         article,
         ArticleExperimentFlags.FREQUENCY_CAPPING_LOCAL_STORAGE
       );
-
     this.promptFrequencyCappingEnabled_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.PROMPT_FREQUENCY_CAPPING_EXPERIMENT
@@ -1021,8 +1018,6 @@ export class AutoPromptManager {
    * to display the prompt in the future.
    */
   private async handleClientEvent_(event: ClientEvent): Promise<void> {
-    console.log('event6');
-    console.log(event.eventType);
     if (!event.eventType) {
       return;
     }
@@ -1034,10 +1029,7 @@ export class AutoPromptManager {
     }
 
     // ** Frequency Capping Events **
-    console.log('isenabled:');
-    console.log(this.frequencyCappingLocalStorageEnabled_);
     if (this.frequencyCappingLocalStorageEnabled_) {
-      console.log('here');
       if (ACTON_CTA_BUTTON_CLICK.find((e) => e === event.eventType)) {
         this.promptIsFromCtaButton_ = true;
       }
@@ -1458,7 +1450,6 @@ export class AutoPromptManager {
   ): boolean {
     const articleExpFlags =
       this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    console.log(articleExpFlags);
     return articleExpFlags.includes(experimentFlag);
   }
 }
