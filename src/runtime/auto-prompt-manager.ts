@@ -53,8 +53,6 @@ const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 const SECOND_IN_MILLIS = 1000;
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
-const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
-  'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
 const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -62,11 +60,6 @@ const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_OFFERS,
   AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
 ];
-
-// TODO(justinchou@): Add survey data transfer failure
-const COMPLETED_ACTION_TO_STORAGE_KEY_MAP = new Map([
-  [AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER, StorageKeys.SURVEY_COMPLETED],
-]);
 
 const DISMISSAL_EVENTS_TO_ACTION_MAP = new Map([
   [AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE, TYPE_CONTRIBUTION],
@@ -289,7 +282,6 @@ export class AutoPromptManager {
           configurationId: potentialAction.configurationId,
           autoPromptType,
           isClosable,
-          preference: potentialAction.preference,
         })
       : undefined;
 
@@ -505,13 +497,11 @@ export class AutoPromptManager {
     configurationId,
     autoPromptType,
     isClosable,
-    preference,
   }: {
     actionType: string;
     configurationId?: string;
     autoPromptType?: AutoPromptType;
     isClosable?: boolean;
-    preference?: string;
   }): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
@@ -520,7 +510,6 @@ export class AutoPromptManager {
               action: actionType,
               configurationId,
               autoPromptType,
-              onCancel: this.storeLastDismissal_.bind(this),
               isClosable,
               monetizationFunction: this.getLargeMonetizationPromptFn_(
                 autoPromptType,
@@ -528,20 +517,10 @@ export class AutoPromptManager {
                 /* shouldAnimateFade */ false
               ),
             })
-          : actionType === TYPE_NEWSLETTER_SIGNUP &&
-            preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
-          ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType,
-              configurationId,
-              autoPromptType,
-              onCancel: this.storeLastDismissal_.bind(this),
-              isClosable,
-            })
           : new AudienceActionIframeFlow(this.deps_, {
               action: actionType,
               configurationId,
               autoPromptType,
-              onCancel: () => this.storeLastDismissal_(),
               isClosable,
             });
       this.setLastAudienceActionFlow(audienceActionFlow);
@@ -640,12 +619,6 @@ export class AutoPromptManager {
       return;
     }
 
-    if (COMPLETED_ACTION_TO_STORAGE_KEY_MAP.has(event.eventType)) {
-      return this.storage_.storeEvent(
-        COMPLETED_ACTION_TO_STORAGE_KEY_MAP.get(event.eventType)!
-      );
-    }
-
     // ** Frequency Capping Events **
     if (ACTON_CTA_BUTTON_CLICK.find((e) => e === event.eventType)) {
       this.promptIsFromCtaButton_ = true;
@@ -688,27 +661,6 @@ export class AutoPromptManager {
     }
 
     this.storeEvent(analyticsEvent);
-  }
-
-  /**
-   * Adds the current prompt displayed to the array of all dismissed prompts.
-   */
-  private async storeLastDismissal_(): Promise<void> {
-    if (!this.interventionDisplayed_) {
-      return;
-    }
-
-    const value = await this.storage_.get(
-      StorageKeys.DISMISSED_PROMPTS,
-      /* useLocalStorage */ true
-    );
-    this.storage_.set(
-      StorageKeys.DISMISSED_PROMPTS,
-      value
-        ? value + ',' + this.interventionDisplayed_.type
-        : this.interventionDisplayed_.type,
-      /* useLocalStorage */ true
-    );
   }
 
   /**
@@ -875,8 +827,8 @@ export class AutoPromptManager {
       }
       // Do not show survey if there is a previous completion record.
       // Client side eligibility is required to handle identity transitions
-      // after sign-in flow. TODO(justinchou): update survey completion check
-      // to persist even after 2 weeks (check survey specific timestamps).
+      // after sign-in flow. TODO(332759781): update survey completion check
+      // to persist even after 2 weeks.
       return !(timestamps[TYPE_REWARDED_SURVEY]?.completions || []).length;
     }
     return true;
