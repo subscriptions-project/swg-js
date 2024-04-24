@@ -129,7 +129,6 @@ export class AutoPromptManager {
   private hasStoredMiniPromptImpression_ = false;
   private promptIsFromCtaButton_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
-  private interventionDisplayed_: Intervention | null = null;
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
 
@@ -827,7 +826,7 @@ export class AutoPromptManager {
       }
       // Do not show survey if there is a previous completion record.
       // Client side eligibility is required to handle identity transitions
-      // after sign-in flow. TODO(332759781): update survey completion check
+      // after sign-in flow. TODO(b/332759781): update survey completion check
       // to persist even after 2 weeks.
       return !(timestamps[TYPE_REWARDED_SURVEY]?.completions || []).length;
     }
@@ -852,19 +851,5 @@ export class AutoPromptManager {
 
   private isValidFrequencyCapDuration_(duration: Duration | undefined) {
     return !!duration?.seconds || !!duration?.nano;
-  }
-
-  /**
-   * Checks if provided ExperimentFlag is enabled within article experiment
-   * config.
-   */
-  // eslint-disable-next-line no-unused-vars
-  private isArticleExperimentEnabled_(
-    article: Article,
-    experimentFlag: string
-  ): boolean {
-    const articleExpFlags =
-      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    return articleExpFlags.includes(experimentFlag);
   }
 }

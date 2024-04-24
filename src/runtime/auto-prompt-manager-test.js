@@ -24,11 +24,7 @@ import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {
-  Constants,
-  ImpressionStorageKeys,
-  StorageKeys,
-} from '../utils/constants';
+import {Constants, StorageKeys} from '../utils/constants';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {ExperimentFlags} from './experiment-flags';
