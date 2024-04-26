@@ -53,6 +53,8 @@ const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 const SECOND_IN_MILLIS = 1000;
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
+const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
+  'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
 const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -258,11 +260,9 @@ export class AutoPromptManager {
     // TODO(b/303489420): cleanup passing of autoPromptManager params.
     this.isClosable_ = isClosable;
 
-    // ** New Triggering Flow - Prompt Frequency Cap Experiment **
-    // Guarded by experiment flag and presence of FrequencyCapConfig. Frequency
-    // cap flow utilizes config and impressions to determine next action.
-    // Metered flow strictly follows prompt order, with subscription last.
-    // Display delay is applied to all dismissible prompts.
+    // Frequency cap flow utilizes config and timestamps to determine next
+    // action. Metered flow strictly follows prompt order. Display delay is
+    // applied to all dismissible prompts.
     const frequencyCapConfig =
       clientConfig.autoPromptConfig?.frequencyCapConfig;
     const potentialAction = await this.getPotentialAction_({
@@ -281,6 +281,7 @@ export class AutoPromptManager {
           configurationId: potentialAction.configurationId,
           autoPromptType,
           isClosable,
+          preference: potentialAction.preference,
         })
       : undefined;
 
@@ -496,11 +497,13 @@ export class AutoPromptManager {
     configurationId,
     autoPromptType,
     isClosable,
+    preference,
   }: {
     actionType: string;
     configurationId?: string;
     autoPromptType?: AutoPromptType;
     isClosable?: boolean;
+    preference?: string;
   }): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
@@ -515,6 +518,14 @@ export class AutoPromptManager {
                 !!isClosable,
                 /* shouldAnimateFade */ false
               ),
+            })
+          : actionType === TYPE_NEWSLETTER_SIGNUP &&
+            preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
+          ? new AudienceActionLocalFlow(this.deps_, {
+              action: actionType,
+              configurationId,
+              autoPromptType,
+              isClosable,
             })
           : new AudienceActionIframeFlow(this.deps_, {
               action: actionType,
