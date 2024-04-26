@@ -187,13 +187,14 @@ export class AutoPromptManager {
     // Manual override of display rules, mainly for demo purposes. Requires
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
-      this.showPrompt_(
+      const promptFn = this.getMonetizationPromptFn_(
         this.getPromptTypeToDisplay_(params.autoPromptType),
         this.getLargeMonetizationPromptFn_(
           params.autoPromptType,
           params.isClosable ?? !this.isSubscription_(params.autoPromptType)
         )
       );
+      promptFn();
       return;
     }
 
@@ -269,7 +270,6 @@ export class AutoPromptManager {
       article,
       frequencyCapConfig,
     });
-
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
       ? this.getMonetizationPromptFn_(
           autoPromptType,
@@ -295,6 +295,7 @@ export class AutoPromptManager {
       ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
           ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS
       : 0;
+    console.log(displayDelayMs);
     this.deps_.win().setTimeout(promptFn, displayDelayMs);
     return;
   }
@@ -441,36 +442,6 @@ export class AutoPromptManager {
   }
 
   /**
-   * Returns a function that will call the mini prompt api with an eligible
-   * autoprompt type.
-   */
-  private getMonetizationPromptFn_(
-    autoPromptType: AutoPromptType,
-    largeMonetizationPromptFn: (() => void) | undefined
-  ): () => void {
-    return () => {
-      if (!largeMonetizationPromptFn) {
-        return;
-      }
-
-      if (
-        autoPromptType === AutoPromptType.SUBSCRIPTION ||
-        autoPromptType === AutoPromptType.CONTRIBUTION
-      ) {
-        this.miniPromptAPI_.create({
-          autoPromptType,
-          clickCallback: largeMonetizationPromptFn,
-        });
-      } else if (
-        autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
-      ) {
-        largeMonetizationPromptFn();
-      }
-    };
-  }
-
-  /**
    * Returns a function to show the appropriate monetization prompt,
    * or undefined if the type of prompt cannot be determined.
    */
@@ -549,25 +520,27 @@ export class AutoPromptManager {
   /**
    * Shows the prompt based on the type specified.
    */
-  private showPrompt_(
+  private getMonetizationPromptFn_(
     autoPromptType?: AutoPromptType,
     displayLargePromptFn?: () => void
-  ): void {
-    if (
-      autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      autoPromptType === AutoPromptType.CONTRIBUTION
-    ) {
-      this.miniPromptAPI_.create({
-        autoPromptType,
-        clickCallback: displayLargePromptFn,
-      });
-    } else if (
-      (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-        autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
-      displayLargePromptFn
-    ) {
-      displayLargePromptFn();
-    }
+  ): () => void {
+    return () => {
+      if (
+        autoPromptType === AutoPromptType.SUBSCRIPTION ||
+        autoPromptType === AutoPromptType.CONTRIBUTION
+      ) {
+        this.miniPromptAPI_.create({
+          autoPromptType,
+          clickCallback: displayLargePromptFn,
+        });
+      } else if (
+        (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
+        displayLargePromptFn
+      ) {
+        displayLargePromptFn();
+      }
+    };
   }
 
   /**

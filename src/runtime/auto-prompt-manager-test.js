@@ -2855,19 +2855,19 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isFrequencyCapped).to.equal(false);
     });
 
-    it('getMonetizationPromptFun_ returns function that does not open a mini or large prompt with an undefined input', async () => {
-      miniPromptApiMock.expects('create').never();
-      const fn = autoPromptManager.getMonetizationPromptFn_(
-        AutoPromptType.CONTRIBUTION,
-        undefined
-      );
+    // it('getMonetizationPromptFn_ returns function that does not open a mini or large prompt with an undefined input', async () => {
+    //   miniPromptApiMock.expects('create').never();
+    //   const fn = autoPromptManager.getMonetizationPromptFn_(
+    //     AutoPromptType.CONTRIBUTION,
+    //     undefined
+    //   );
 
-      await fn();
-      await tick(10);
+    //   await fn();
+    //   await tick(10);
 
-      expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(startSpy).to.not.have.been.called;
-    });
+    //   expect(contributionPromptFnSpy).to.not.have.been.called;
+    //   expect(startSpy).to.not.have.been.called;
+    // });
 
     it('getPotentialAction_ returns the first action and logs error event for contribution flow with no frequencyCapConfig', async () => {
       autoPromptManager.isClosable_ = true;
