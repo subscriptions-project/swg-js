@@ -295,7 +295,6 @@ export class AutoPromptManager {
       ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
           ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS
       : 0;
-    console.log(displayDelayMs);
     this.deps_.win().setTimeout(promptFn, displayDelayMs);
     return;
   }
