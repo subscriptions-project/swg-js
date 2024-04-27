@@ -252,7 +252,6 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
     this.autoPromptType_ = autoPromptType;
-    console.log(autoPromptType);
 
     // Default isClosable to what is set in the page config.
     // Otherwise, the prompt is blocking for publications with a
@@ -559,8 +558,6 @@ export class AutoPromptManager {
       this.doc_.getWin(),
       ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
     );
-    console.log(disableDesktopMiniprompt);
-    console.log(this.getInnerWidth_);
     const isWideDesktop = this.getInnerWidth_() > 480;
 
     if (disableDesktopMiniprompt && isWideDesktop) {
