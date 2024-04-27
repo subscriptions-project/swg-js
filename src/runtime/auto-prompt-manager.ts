@@ -252,6 +252,7 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
     this.autoPromptType_ = autoPromptType;
+    console.log(autoPromptType);
 
     // Default isClosable to what is set in the page config.
     // Otherwise, the prompt is blocking for publications with a
@@ -558,7 +559,9 @@ export class AutoPromptManager {
       this.doc_.getWin(),
       ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
     );
-    const isWideDesktop = this.doc_.getWin()./* OK */ innerWidth > 480;
+    console.log(disableDesktopMiniprompt);
+    console.log(this.getInnerWidth_);
+    const isWideDesktop = this.getInnerWidth_() > 480;
 
     if (disableDesktopMiniprompt && isWideDesktop) {
       if (promptType === AutoPromptType.SUBSCRIPTION) {
@@ -769,6 +772,9 @@ export class AutoPromptManager {
     }
   }
 
+  private getInnerWidth_(): number {
+    return this.doc_.getWin()./* OK */ innerWidth;
+  }
   /**
    * Computes if the frequency cap is met from the timestamps of previous
    * provided by using the maximum/most recent timestamp.

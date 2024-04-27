@@ -675,6 +675,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     let audienceActivityEventListenerMock;
     let entitlementsStub;
     let miniPromptApiMock;
+    let autoPromptManagerMock;
 
     beforeEach(() => {
       entitlementsStub = sandbox.stub(
@@ -703,6 +704,9 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       sandbox.stub(MiniPromptApi.prototype, 'init');
       miniPromptApiMock = sandbox.mock(
         configuredBasicRuntime.autoPromptManager_.miniPromptAPI_
+      );
+      autoPromptManagerMock = sandbox.mock(
+        configuredBasicRuntime.autoPromptManager_
       );
     });
 
@@ -803,6 +807,38 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
+    it('should configure subscription auto prompts to show offers for paygated content when disable desktop miniprompt experiment is enabled', async () => {
+      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+      autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+        })
+        .atLeast(1);
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves({uiPredicates});
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: false,
+          shouldAnimateFade: true,
+        })
+        .once();
+
+      await configuredBasicRuntime.setupAndShowAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+      });
+    });
+
     it('should configure subscription auto prompts to show offers for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
 
@@ -853,6 +889,38 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         .expects('getClientConfig')
         .resolves({uiPredicates});
       miniPromptApiMock.expects('create').once();
+
+      await configuredBasicRuntime.setupAndShowAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+    });
+
+    it('should configure contribution auto prompts to show contribution options for paygated content when disable desktop miniprompt experiment is enabled', async () => {
+      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+      autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+        })
+        .atLeast(1);
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves({uiPredicates});
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: true,
+          shouldAnimateFade: true,
+        })
+        .once();
 
       await configuredBasicRuntime.setupAndShowAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
