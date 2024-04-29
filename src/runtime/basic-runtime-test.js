@@ -34,7 +34,6 @@ import {ClientTheme} from '../api/subscriptions';
 import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
-import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {MockActivityPort} from '../../test/mock-activity-port';
@@ -46,11 +45,7 @@ import {UiPredicates} from '../model/client-config';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
-import {
-  isExperimentOn,
-  setExperiment,
-  setExperimentsStringForTesting,
-} from './experiments';
+import {setExperimentsStringForTesting} from './experiments';
 import {tick} from '../../test/tick';
 
 describes.realWin('installBasicRuntime', (env) => {

@@ -105,7 +105,7 @@ describes.realWin('AudienceActivityEventListener', (env) => {
     expect(eventsLoggedToService.length).to.equal(0);
   });
 
-  it('should not log an event that is not classified as an audience activ
+  it('should not log an event that is not classified as an audience activity event', async () => {
     audienceActivityEventListener.start();
     storageMock.expects('get').never();
 
