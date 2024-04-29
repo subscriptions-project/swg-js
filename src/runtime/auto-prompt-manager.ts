@@ -35,7 +35,6 @@ import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
-import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
@@ -43,7 +42,6 @@ import {PageConfig} from '../model/page-config';
 import {Storage, pruneTimestamps} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
-import {isExperimentOn} from './experiments';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
