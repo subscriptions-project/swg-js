@@ -61,20 +61,7 @@ describes.realWin('AudienceActivityEventListener', (env) => {
     sandbox.restore();
   });
 
-  it('should not log audience activity events if experiment is off', async () => {
-    // This triggers an event.
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-
-    expect(eventsLoggedToService.length).to.equal(0);
-  });
-
-  it('should log audience activity events if experiment is turned on', async () => {
-    setExperimentsStringForTesting(ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY);
+  it('should log audience activity events', async () => {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
@@ -100,7 +87,6 @@ describes.realWin('AudienceActivityEventListener', (env) => {
   });
 
   it('bails if SUT is unavailable', async () => {
-    setExperimentsStringForTesting(ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY);
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
@@ -119,8 +105,7 @@ describes.realWin('AudienceActivityEventListener', (env) => {
     expect(eventsLoggedToService.length).to.equal(0);
   });
 
-  it('should not log an event that is not classified as an audience activity event', async () => {
-    setExperimentsStringForTesting(ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY);
+  it('should not log an event that is not classified as an audience activ
     audienceActivityEventListener.start();
     storageMock.expects('get').never();
 
