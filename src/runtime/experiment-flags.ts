@@ -25,12 +25,6 @@ export enum ExperimentFlags {
    * Experiment flag for logging audience activity.
    */
   LOGGING_AUDIENCE_ACTIVITY = 'logging-audience-activity',
-
-  /**
-   * Experiment flag for disabling the miniprompt icon on desktop screens wider
-   * than 480px.
-   */
-  DISABLE_DESKTOP_MINIPROMPT = 'disable-desktop-miniprompt',
 }
 
 /**

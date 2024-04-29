@@ -543,24 +543,16 @@ export class AutoPromptManager {
   }
 
   /**
-   * Returns which type of prompt to display based on the type specified,
-   * the viewport width, and whether the disableDesktopMiniprompt experiment
-   * is enabled.
-   *
-   * If the disableDesktopMiniprompt experiment is enabled and the desktop is
-   * wider than 480px then the large prompt type will be substituted for the mini
-   * prompt. The original promptType will be returned as-is in all other cases.
+   * Returns which type of prompt to display based on the type specified and
+   * the viewport width. If the desktop is wider than 480px, then the large
+   * prompt type will be substituted for the miniprompt. The original
+   * promptType will be returned as-is in all other cases.
    */
   private getPromptTypeToDisplay_(
     promptType?: AutoPromptType
   ): AutoPromptType | undefined {
-    const disableDesktopMiniprompt = isExperimentOn(
-      this.doc_.getWin(),
-      ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
-    );
     const isWideDesktop = this.getInnerWidth_() > 480;
-
-    if (disableDesktopMiniprompt && isWideDesktop) {
+    if (isWideDesktop) {
       if (promptType === AutoPromptType.SUBSCRIPTION) {
         this.logDisableMinipromptEvent_(promptType);
         return AutoPromptType.SUBSCRIPTION_LARGE;

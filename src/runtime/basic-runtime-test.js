@@ -807,8 +807,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure subscription auto prompts to show offers for paygated content when disable desktop miniprompt experiment is enabled', async () => {
-      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    it('should configure subscription auto prompts to show offers for paygated content when the desktop viewport is large', async () => {
       autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       entitlementsManagerMock
@@ -895,8 +894,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure contribution auto prompts to show contribution options for paygated content when disable desktop miniprompt experiment is enabled', async () => {
-      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    it('should configure contribution auto prompts to show contribution options for paygated content when the desktop viewport is large', async () => {
       autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       entitlementsManagerMock
