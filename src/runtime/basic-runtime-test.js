@@ -870,6 +870,38 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should configure contribution miniprompts to show contribution options for paygated content', async () => {
+    it('should configure subscription auto prompts to show offers for paygated content', async () => {
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+        })
+        .atLeast(1);
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves({uiPredicates});
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: false,
+          shouldAnimateFade: true,
+        })
+        .once();
+
+      await configuredBasicRuntime.setupAndShowAutoPrompt({
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+      });
+    });
+
+    it('should configure contribution miniprompts to show contribution options for paygated content', async () => {
       sandbox.stub(pageConfig, 'isLocked').returns(true);
 
       entitlementsManagerMock
