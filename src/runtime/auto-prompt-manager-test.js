@@ -163,551 +163,553 @@ describes.realWin('AutoPromptManager', (env) => {
     expect(eventManagerCallback).to.not.be.null;
   });
 
-  it('should ignore undefined events', async () => {
-    autoPromptManager.isClosable_ = true;
-    storageMock.expects('get').never();
-    storageMock.expects('set').never();
-
-    await eventManagerCallback({
-      eventType: undefined,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  it('should not store event timestamps for a non frequency capping event', async () => {
-    autoPromptManager.isClosable_ = true;
-    storageMock.expects('get').never();
-    storageMock.expects('set').never();
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.ACTION_TWG_CREATOR_BENEFIT_CLICK,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  it('should ignore irrelevant events', async () => {
-    autoPromptManager.isClosable_ = true;
-    storageMock.expects('get').never();
-    storageMock.expects('set').never();
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.IMPRESSION_AD,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  it(`should properly prune and fill all local storage Timestamps`, async () => {
-    autoPromptManager.isClosable_ = true;
-
-    expectFrequencyCappingTimestamps(storageMock, {
-      'TYPE_CONTRIBUTION': {impressions: [CURRENT_TIME]},
-      'TYPE_NEWSLETTER_SIGNUP': {
-        impressions: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1],
-        dismissals: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1],
-      },
-      // Unsupported case where action is in local storage with no timestamps
-      'TYPE_REWARDED_SURVEY': {},
-      'TYPE_REWARDED_AD': {
-        impressions: [
-          CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1,
-          CURRENT_TIME - TWO_WEEKS_IN_MILLIS,
-        ],
-        completions: [CURRENT_TIME],
-      },
-    });
-    const timestamps = await autoPromptManager.getTimestamps();
-    expect(JSON.stringify(timestamps)).to.equal(
-      JSON.stringify({
-        'TYPE_CONTRIBUTION': {
-          impressions: [CURRENT_TIME],
-          dismissals: [],
-          completions: [],
-        },
-        'TYPE_NEWSLETTER_SIGNUP': {
-          impressions: [],
-          dismissals: [],
-          completions: [],
-        },
-        'TYPE_REWARDED_SURVEY': {
-          impressions: [],
-          dismissals: [],
-          completions: [],
-        },
-        'TYPE_REWARDED_AD': {
-          impressions: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS],
-          dismissals: [],
-          completions: [CURRENT_TIME],
-        },
-      })
-    );
-  });
-
-  // Impression Events
-  [
-    {eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS},
-    {eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN},
-    {eventType: AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN},
-    {eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN},
-    {eventType: AnalyticsEvent.IMPRESSION_SURVEY},
-    {eventType: AnalyticsEvent.IMPRESSION_REWARDED_AD},
-    {eventType: AnalyticsEvent.IMPRESSION_OFFERS},
-  ].forEach(({eventType}) => {
-    it(`should not store impression timestamps for event ${eventType} for nondismissible prompts`, async () => {
-      autoPromptManager.isClosable_ = false;
+  describe('LocalStorage timestamps via Client Event handler', () => {
+    it('should ignore undefined events', async () => {
+      autoPromptManager.isClosable_ = true;
       storageMock.expects('get').never();
       storageMock.expects('set').never();
 
       await eventManagerCallback({
-        eventType,
+        eventType: undefined,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
       });
     });
-  });
 
-  [
-    {
-      eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
-      action: 'TYPE_CONTRIBUTION',
-    },
-    {
-      eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
-      action: 'TYPE_NEWSLETTER_SIGNUP',
-    },
-    {
-      eventType: AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN,
-      action: 'TYPE_NEWSLETTER_SIGNUP',
-    },
-    {
-      eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
-      action: 'TYPE_REGISTRATION_WALL',
-    },
-    {
-      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
-      action: 'TYPE_REWARDED_SURVEY',
-    },
-    {
-      eventType: AnalyticsEvent.IMPRESSION_REWARDED_AD,
-      action: 'TYPE_REWARDED_AD',
-    },
-    {
-      eventType: AnalyticsEvent.IMPRESSION_OFFERS,
-      action: 'TYPE_SUBSCRIPTION',
-    },
-  ].forEach(({eventType, action}) => {
-    it(`for eventType=${eventType}, should set impression timestamps for action=${action}`, async () => {
+    it('should not store event timestamps for a non frequency capping event', async () => {
       autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        [action]: {impressions: [CURRENT_TIME]},
-      });
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
 
       await eventManagerCallback({
-        eventType,
+        eventType: AnalyticsEvent.ACTION_TWG_CREATOR_BENEFIT_CLICK,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
       });
     });
-  });
 
-  it(`should set impression timestamps to existing localstorage`, async () => {
-    autoPromptManager.isClosable_ = true;
-    expectFrequencyCappingTimestamps(
-      storageMock,
-      {},
-      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}}
-    );
+    it('should ignore irrelevant events', async () => {
+      autoPromptManager.isClosable_ = true;
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
 
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_AD,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
     });
-  });
 
-  it(`should add impression event to existing localstorage with impression timestamps`, async () => {
-    autoPromptManager.isClosable_ = true;
-    expectFrequencyCappingTimestamps(
-      storageMock,
-      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
-      {
-        'TYPE_REWARDED_SURVEY': {
-          impressions: [CURRENT_TIME, CURRENT_TIME],
+    it(`should properly prune and fill all local storage Timestamps`, async () => {
+      autoPromptManager.isClosable_ = true;
+
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {impressions: [CURRENT_TIME]},
+        'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1],
+          dismissals: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1],
         },
-      }
-    );
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  it(`should set impression timestamps for existing local storage timestamp but no impressions`, async () => {
-    autoPromptManager.isClosable_ = true;
-    expectFrequencyCappingTimestamps(
-      storageMock,
-      {'TYPE_REWARDED_SURVEY': {dismissals: [CURRENT_TIME]}},
-      {
-        'TYPE_REWARDED_SURVEY': {
-          dismissals: [CURRENT_TIME],
-          impressions: [CURRENT_TIME],
+        // Unsupported case where action is in local storage with no timestamps
+        'TYPE_REWARDED_SURVEY': {},
+        'TYPE_REWARDED_AD': {
+          impressions: [
+            CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1,
+            CURRENT_TIME - TWO_WEEKS_IN_MILLIS,
+          ],
+          completions: [CURRENT_TIME],
         },
-      }
-    );
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.IMPRESSION_SURVEY,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  it(`should set all event timestamps for a given prompt on storing impressions`, async () => {
-    autoPromptManager.isClosable_ = true;
-    storageMock
-      .expects('get')
-      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
-      .resolves('')
-      .once();
-    storageMock
-      .expects('set')
-      .withExactArgs(
-        StorageKeys.TIMESTAMPS,
+      });
+      const timestamps = await autoPromptManager.getTimestamps();
+      expect(JSON.stringify(timestamps)).to.equal(
         JSON.stringify({
-          'TYPE_REWARDED_SURVEY': {
+          'TYPE_CONTRIBUTION': {
             impressions: [CURRENT_TIME],
             dismissals: [],
             completions: [],
           },
-        }),
-        /* useLocalStorage */ true
-      )
-      .resolves(null)
-      .once();
-
-    await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
-  });
-
-  // Dismissal Events
-  [
-    {eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED},
-    {eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE},
-    {eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE},
-    {eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE},
-    {eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED},
-    {eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE},
-    {eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED},
-  ].forEach(({eventType}) => {
-    it(`should not store dismissal timestamps for event ${eventType} for nondismissible prompts`, async () => {
-      autoPromptManager.isClosable_ = false;
-      storageMock.expects('get').never();
-      storageMock.expects('set').never();
-
-      await eventManagerCallback({
-        eventType,
-        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-  });
-
-  [
-    {
-      eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
-      action: 'TYPE_CONTRIBUTION',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE,
-      action: 'TYPE_NEWSLETTER_SIGNUP',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE,
-      action: 'TYPE_NEWSLETTER_SIGNUP',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE,
-      action: 'TYPE_REGISTRATION_WALL',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
-      action: 'TYPE_REWARDED_SURVEY',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
-      action: 'TYPE_REWARDED_AD',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
-      action: 'TYPE_SUBSCRIPTION',
-    },
-  ].forEach(({eventType, action}) => {
-    it(`for eventType=${eventType}, should set frequency cap dismissals via local storage for action=${action}`, async () => {
-      autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        [action]: {dismissals: [CURRENT_TIME]},
-      });
-
-      await eventManagerCallback({
-        eventType,
-        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-  });
-
-  it(`should add frequency cap dismissals to existing local storage timestamps`, async () => {
-    autoPromptManager.isClosable_ = true;
-    expectFrequencyCappingTimestamps(
-      storageMock,
-      {'TYPE_REWARDED_SURVEY': {dismissals: [CURRENT_TIME]}},
-      {
-        'TYPE_REWARDED_SURVEY': {
-          dismissals: [CURRENT_TIME, CURRENT_TIME],
-        },
-      }
-    );
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  it(`should add frequency cap dismissals to existing local storage timestamp but no dismissals`, async () => {
-    autoPromptManager.isClosable_ = true;
-    expectFrequencyCappingTimestamps(
-      storageMock,
-      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
-      {
-        'TYPE_REWARDED_SURVEY': {
-          impressions: [CURRENT_TIME],
-          dismissals: [CURRENT_TIME],
-        },
-      }
-    );
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  it(`should set all event timestamps for a given prompt on storing dismissals`, async () => {
-    autoPromptManager.isClosable_ = true;
-    storageMock
-      .expects('get')
-      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
-      .resolves('')
-      .once();
-    storageMock
-      .expects('set')
-      .withExactArgs(
-        StorageKeys.TIMESTAMPS,
-        JSON.stringify({
-          'TYPE_REWARDED_SURVEY': {
+          'TYPE_NEWSLETTER_SIGNUP': {
             impressions: [],
-            dismissals: [CURRENT_TIME],
+            dismissals: [],
             completions: [],
           },
-        }),
-        /* useLocalStorage */ true
-      )
-      .resolves(null)
-      .once();
-
-    await autoPromptManager.storeDismissal('TYPE_REWARDED_SURVEY');
-  });
-
-  // Completion Events
-  [
-    {eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE},
-    {eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK},
-    {eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT},
-    {eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK},
-    {eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK},
-    {eventType: AnalyticsEvent.ACTION_REWARDED_AD_VIEW},
-    {eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE},
-  ].forEach(({eventType}) => {
-    it(`should not store completion timestamps for event ${eventType} for nondismissible prompts`, async () => {
-      autoPromptManager.isClosable_ = false;
-      storageMock.expects('get').never();
-      storageMock.expects('set').never();
-
-      await eventManagerCallback({
-        eventType,
-        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-  });
-
-  [
-    {
-      eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
-      action: 'TYPE_CONTRIBUTION',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
-      action: 'TYPE_NEWSLETTER_SIGNUP',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT,
-      action: 'TYPE_NEWSLETTER_SIGNUP',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
-      action: 'TYPE_REGISTRATION_WALL',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
-      action: 'TYPE_REWARDED_SURVEY',
-    },
-    {
-      eventType: AnalyticsEvent.ACTION_REWARDED_AD_VIEW,
-      action: 'TYPE_REWARDED_AD',
-    },
-    {
-      eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
-      action: 'TYPE_SUBSCRIPTION',
-    },
-  ].forEach(({eventType, action}) => {
-    it(`for eventType=${eventType}, should set frequency cap completions via local storage for action=${action}`, async () => {
-      autoPromptManager.isClosable_ = true;
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        [action]: {completions: [CURRENT_TIME]},
-      });
-
-      await eventManagerCallback({
-        eventType,
-        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-  });
-
-  it(`should add frequency cap completions to existing local storage timestamps`, async () => {
-    autoPromptManager.isClosable_ = true;
-    expectFrequencyCappingTimestamps(
-      storageMock,
-      {'TYPE_REWARDED_SURVEY': {completions: [CURRENT_TIME]}},
-      {
-        'TYPE_REWARDED_SURVEY': {
-          completions: [CURRENT_TIME, CURRENT_TIME],
-        },
-      }
-    );
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  it(`should add frequency cap completions to existing local storage timestamps but no completions`, async () => {
-    autoPromptManager.isClosable_ = true;
-    expectFrequencyCappingTimestamps(
-      storageMock,
-      {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
-      {
-        'TYPE_REWARDED_SURVEY': {
-          impressions: [CURRENT_TIME],
-          completions: [CURRENT_TIME],
-        },
-      }
-    );
-
-    await eventManagerCallback({
-      eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
-      eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-      isFromUserAction: null,
-      additionalParameters: null,
-    });
-  });
-
-  [
-    {
-      eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      action: 'TYPE_CONTRIBUTION',
-    },
-    {
-      eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
-      autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-      action: 'TYPE_CONTRIBUTION',
-    },
-    {
-      eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-      action: 'TYPE_SUBSCRIPTION',
-    },
-    {
-      eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
-      autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-      action: 'TYPE_SUBSCRIPTION',
-    },
-  ].forEach(({eventType, autoPromptType, action}) => {
-    it(`for generic eventType=${eventType}, should set frequency cap completions via local storage for autoPromptType=${autoPromptType}`, async () => {
-      autoPromptManager.isClosable_ = true;
-      autoPromptManager.autoPromptType_ = autoPromptType;
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        [action]: {completions: [CURRENT_TIME]},
-      });
-
-      await eventManagerCallback({
-        eventType,
-        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-        isFromUserAction: null,
-        additionalParameters: null,
-      });
-    });
-  });
-
-  it(`should set all event timestamps for a given prompt on storing completions`, async () => {
-    autoPromptManager.isClosable_ = true;
-    storageMock
-      .expects('get')
-      .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
-      .resolves('')
-      .once();
-    storageMock
-      .expects('set')
-      .withExactArgs(
-        StorageKeys.TIMESTAMPS,
-        JSON.stringify({
           'TYPE_REWARDED_SURVEY': {
             impressions: [],
             dismissals: [],
+            completions: [],
+          },
+          'TYPE_REWARDED_AD': {
+            impressions: [CURRENT_TIME - TWO_WEEKS_IN_MILLIS],
+            dismissals: [],
             completions: [CURRENT_TIME],
           },
-        }),
-        /* useLocalStorage */ true
-      )
-      .resolves(null)
-      .once();
+        })
+      );
+    });
 
-    await autoPromptManager.storeCompletion('TYPE_REWARDED_SURVEY');
+    // Impression Events
+    [
+      {eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS},
+      {eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN},
+      {eventType: AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN},
+      {eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN},
+      {eventType: AnalyticsEvent.IMPRESSION_SURVEY},
+      {eventType: AnalyticsEvent.IMPRESSION_REWARDED_AD},
+      {eventType: AnalyticsEvent.IMPRESSION_OFFERS},
+    ].forEach(({eventType}) => {
+      it(`should not store impression timestamps for event ${eventType} for nondismissible prompts`, async () => {
+        autoPromptManager.isClosable_ = false;
+        storageMock.expects('get').never();
+        storageMock.expects('set').never();
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+
+    [
+      {
+        eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+        action: 'TYPE_CONTRIBUTION',
+      },
+      {
+        eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+      },
+      {
+        eventType: AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN,
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+      },
+      {
+        eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+        action: 'TYPE_REGISTRATION_WALL',
+      },
+      {
+        eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+        action: 'TYPE_REWARDED_SURVEY',
+      },
+      {
+        eventType: AnalyticsEvent.IMPRESSION_REWARDED_AD,
+        action: 'TYPE_REWARDED_AD',
+      },
+      {
+        eventType: AnalyticsEvent.IMPRESSION_OFFERS,
+        action: 'TYPE_SUBSCRIPTION',
+      },
+    ].forEach(({eventType, action}) => {
+      it(`for eventType=${eventType}, should set impression timestamps for action=${action}`, async () => {
+        autoPromptManager.isClosable_ = true;
+        expectFrequencyCappingTimestamps(storageMock, '', {
+          [action]: {impressions: [CURRENT_TIME]},
+        });
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+
+    it(`should set impression timestamps to existing localstorage`, async () => {
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}}
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should add impression event to existing localstorage with impression timestamps`, async () => {
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+        {
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [CURRENT_TIME, CURRENT_TIME],
+          },
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should set impression timestamps for existing local storage timestamp but no impressions`, async () => {
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {'TYPE_REWARDED_SURVEY': {dismissals: [CURRENT_TIME]}},
+        {
+          'TYPE_REWARDED_SURVEY': {
+            dismissals: [CURRENT_TIME],
+            impressions: [CURRENT_TIME],
+          },
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_SURVEY,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should set all event timestamps for a given prompt on storing impressions`, async () => {
+      autoPromptManager.isClosable_ = true;
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .resolves('')
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.TIMESTAMPS,
+          JSON.stringify({
+            'TYPE_REWARDED_SURVEY': {
+              impressions: [CURRENT_TIME],
+              dismissals: [],
+              completions: [],
+            },
+          }),
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
+    });
+
+    // Dismissal Events
+    [
+      {eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED},
+      {eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE},
+      {eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE},
+      {eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE},
+      {eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED},
+      {eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE},
+      {eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED},
+    ].forEach(({eventType}) => {
+      it(`should not store dismissal timestamps for event ${eventType} for nondismissible prompts`, async () => {
+        autoPromptManager.isClosable_ = false;
+        storageMock.expects('get').never();
+        storageMock.expects('set').never();
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+
+    [
+      {
+        eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+        action: 'TYPE_CONTRIBUTION',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE,
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE,
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE,
+        action: 'TYPE_REGISTRATION_WALL',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
+        action: 'TYPE_REWARDED_SURVEY',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
+        action: 'TYPE_REWARDED_AD',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+        action: 'TYPE_SUBSCRIPTION',
+      },
+    ].forEach(({eventType, action}) => {
+      it(`for eventType=${eventType}, should set dismissals via local storage for action=${action}`, async () => {
+        autoPromptManager.isClosable_ = true;
+        expectFrequencyCappingTimestamps(storageMock, '', {
+          [action]: {dismissals: [CURRENT_TIME]},
+        });
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+
+    it(`should add dismissals to existing local storage timestamps`, async () => {
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {'TYPE_REWARDED_SURVEY': {dismissals: [CURRENT_TIME]}},
+        {
+          'TYPE_REWARDED_SURVEY': {
+            dismissals: [CURRENT_TIME, CURRENT_TIME],
+          },
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should add dismissals to existing local storage timestamp but no dismissals`, async () => {
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+        {
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [CURRENT_TIME],
+            dismissals: [CURRENT_TIME],
+          },
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should set all event timestamps for a given prompt on storing dismissals`, async () => {
+      autoPromptManager.isClosable_ = true;
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .resolves('')
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.TIMESTAMPS,
+          JSON.stringify({
+            'TYPE_REWARDED_SURVEY': {
+              impressions: [],
+              dismissals: [CURRENT_TIME],
+              completions: [],
+            },
+          }),
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.storeDismissal('TYPE_REWARDED_SURVEY');
+    });
+
+    // Completion Events
+    [
+      {eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE},
+      {eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK},
+      {eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT},
+      {eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK},
+      {eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK},
+      {eventType: AnalyticsEvent.ACTION_REWARDED_AD_VIEW},
+      {eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE},
+    ].forEach(({eventType}) => {
+      it(`should not store completion timestamps for event ${eventType} for nondismissible prompts`, async () => {
+        autoPromptManager.isClosable_ = false;
+        storageMock.expects('get').never();
+        storageMock.expects('set').never();
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+
+    [
+      {
+        eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
+        action: 'TYPE_CONTRIBUTION',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT,
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
+        action: 'TYPE_REGISTRATION_WALL',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+        action: 'TYPE_REWARDED_SURVEY',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_REWARDED_AD_VIEW,
+        action: 'TYPE_REWARDED_AD',
+      },
+      {
+        eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+        action: 'TYPE_SUBSCRIPTION',
+      },
+    ].forEach(({eventType, action}) => {
+      it(`for eventType=${eventType}, should set completions via local storage for action=${action}`, async () => {
+        autoPromptManager.isClosable_ = true;
+        expectFrequencyCappingTimestamps(storageMock, '', {
+          [action]: {completions: [CURRENT_TIME]},
+        });
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+
+    it(`should add completions to existing local storage timestamps`, async () => {
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {'TYPE_REWARDED_SURVEY': {completions: [CURRENT_TIME]}},
+        {
+          'TYPE_REWARDED_SURVEY': {
+            completions: [CURRENT_TIME, CURRENT_TIME],
+          },
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should add completions to existing local storage timestamps but no completions`, async () => {
+      autoPromptManager.isClosable_ = true;
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {'TYPE_REWARDED_SURVEY': {impressions: [CURRENT_TIME]}},
+        {
+          'TYPE_REWARDED_SURVEY': {
+            impressions: [CURRENT_TIME],
+            completions: [CURRENT_TIME],
+          },
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    [
+      {
+        eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        action: 'TYPE_CONTRIBUTION',
+      },
+      {
+        eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        action: 'TYPE_CONTRIBUTION',
+      },
+      {
+        eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        action: 'TYPE_SUBSCRIPTION',
+      },
+      {
+        eventType: AnalyticsEvent.EVENT_PAYMENT_FAILED,
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        action: 'TYPE_SUBSCRIPTION',
+      },
+    ].forEach(({eventType, autoPromptType, action}) => {
+      it(`for generic eventType=${eventType}, should set completions via local storage for autoPromptType=${autoPromptType}`, async () => {
+        autoPromptManager.isClosable_ = true;
+        autoPromptManager.autoPromptType_ = autoPromptType;
+        expectFrequencyCappingTimestamps(storageMock, '', {
+          [action]: {completions: [CURRENT_TIME]},
+        });
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+
+    it(`should set all event timestamps for a given prompt on storing completions`, async () => {
+      autoPromptManager.isClosable_ = true;
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .resolves('')
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.TIMESTAMPS,
+          JSON.stringify({
+            'TYPE_REWARDED_SURVEY': {
+              impressions: [],
+              dismissals: [],
+              completions: [CURRENT_TIME],
+            },
+          }),
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.storeCompletion('TYPE_REWARDED_SURVEY');
+    });
   });
 
   describe('Miniprompt', () => {
