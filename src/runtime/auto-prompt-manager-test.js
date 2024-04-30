@@ -1112,20 +1112,22 @@ describes.realWin('AutoPromptManager', (env) => {
         });
       });
     });
-    // Dismissal Events
+
     [
-      {eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED},
-      {eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE},
-      {eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE},
-      {eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE},
-      {eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED},
-      {eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE},
-      {eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED},
-    ].forEach(({eventType}) => {
-      it(`should not store dismissal timestamps for miniprompt event ${eventType} for nondismissible prompts`, async () => {
-        autoPromptManager.isClosable_ = false;
-        storageMock.expects('get').never();
-        storageMock.expects('set').never();
+      {
+        eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+        action: 'TYPE_CONTRIBUTION',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+        action: 'TYPE_SUBSCRIPTION',
+      },
+    ].forEach(({eventType, action}) => {
+      it(`for miniprompt eventType=${eventType}, should set dismissal timestamps for action=${action}`, async () => {
+        autoPromptManager.isClosable_ = true;
+        expectFrequencyCappingTimestamps(storageMock, '', {
+          [action]: {dismissals: [CURRENT_TIME]},
+        });
 
         await eventManagerCallback({
           eventType,
@@ -1135,99 +1137,6 @@ describes.realWin('AutoPromptManager', (env) => {
         });
       });
     });
-
-  [
-    {
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-    },
-    {
-      autoPromptType: AutoPromptType.SUBSCRIPTION,
-    },
-  ].forEach(({autoPromptType}) => {
-    it(`should not display any monetization prompt if the article returns no actions for autoPromptType: ${autoPromptType}`, async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-      const entitlements = new Entitlements();
-      sandbox.stub(entitlements, 'enablesThis').returns(false);
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .resolves(entitlements)
-        .once();
-      entitlementsManagerMock
-        .expects('getArticle')
-        .resolves({
-          audienceActions: {
-            actions: [
-              // No action is eligible
-            ],
-            engineId: '123',
-          },
-        })
-        .once();
-
-      const autoPromptConfig = new AutoPromptConfig({});
-      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
-      const clientConfig = new ClientConfig({
-        autoPromptConfig,
-        useUpdatedOfferFlows: true,
-        uiPredicates,
-      });
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .resolves(clientConfig)
-        .once();
-
-      miniPromptApiMock.expects('create').never();
-
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType,
-        alwaysShow: false,
-      });
-      await tick(10);
-
-      expect(startSpy).to.not.have.been.called;
-      expect(actionFlowSpy).to.not.have.been.called;
-      expect(contributionPromptFnSpy).to.not.be.called;
-      expect(subscriptionPromptFnSpy).to.not.be.called;
-    });
-  });
-
-  it('should display the contribution mini prompt if the user has no entitlements and UI predicate is true', async () => {
-    const entitlements = new Entitlements();
-    entitlementsManagerMock
-      .expects('getEntitlements')
-      .resolves(entitlements)
-      .once();
-    entitlementsManagerMock
-      .expects('getArticle')
-      .resolves({
-        audienceActions: {
-          actions: [CONTRIBUTION_INTERVENTION],
-          engineId: '123',
-        },
-      })
-      .once();
-
-    const autoPromptConfig = new AutoPromptConfig({});
-    const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
-    const clientConfig = new ClientConfig({
-      autoPromptConfig,
-      useUpdatedOfferFlows: true,
-      uiPredicates,
-    });
-    clientConfigManagerMock
-      .expects('getClientConfig')
-      .resolves(clientConfig)
-      .once();
-    miniPromptApiMock.expects('create').once();
-
-    await autoPromptManager.showAutoPrompt({
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      alwaysShow: false,
-    });
-    await tick(10);
-
-    expect(contributionPromptFnSpy).to.not.be.called;
-  });
 
     it('should log events when a large prompt overrides the miniprompt', async () => {
       win./*OK*/ innerWidth = 500;
@@ -1260,14 +1169,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: true,
       });
       await tick(10);
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.CONTRIBUTION,
-        alwaysShow: true,
-      });
-      await tick(10);
 
-      expect(contributionPromptFnSpy).to.be.calledOnce;
-    });
       expect(contributionPromptFnSpy).to.be.calledOnce;
     });
 
@@ -1280,14 +1182,7 @@ describes.realWin('AutoPromptManager', (env) => {
         alwaysShow: true,
       });
       await tick(10);
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.SUBSCRIPTION,
-        alwaysShow: true,
-      });
-      await tick(10);
 
-      expect(subscriptionPromptFnSpy).to.be.calledOnce;
-    });
       expect(subscriptionPromptFnSpy).to.be.calledOnce;
     });
 
@@ -1304,10 +1199,6 @@ describes.realWin('AutoPromptManager', (env) => {
       };
       miniPromptApiMock.expects('create').once();
 
-      await autoPromptManager.showAutoPrompt({
-        autoPromptType: AutoPromptType.CONTRIBUTION,
-        alwaysShow: true,
-      });
       await tick(10);
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -1315,29 +1206,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       await tick(10);
 
-      logEventSpy.should.not.have.been.calledWith(expectedEvent);
-      expect(contributionPromptFnSpy).to.not.be.called;
-    });
-  });
-
-  describe('Call to Action (CTA) Button', () => {
-    [
-      {
-        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_OFFERS_CLICK,
-      },
-      {
-        eventType: AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
-      },
-    ].forEach(({eventType}) => {
-      it(`should set promptIsFromCtaButton on cta button action: ${eventType}`, async () => {
-        autoPromptManager.frequencyCappingLocalStorageEnabled_ = true;
-        await eventManagerCallback({
-          eventType,
-          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
-          isFromUserAction: null,
-          additionalParameters: null,
-        });
-        expect(autoPromptManager.promptIsFromCtaButton_).to.be.true;
       logEventSpy.should.not.have.been.calledWith(expectedEvent);
       expect(contributionPromptFnSpy).to.not.be.called;
     });
