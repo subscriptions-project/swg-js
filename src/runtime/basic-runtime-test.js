@@ -46,11 +46,7 @@ import {UiPredicates} from '../model/client-config';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
-import {
-  isExperimentOn,
-  setExperiment,
-  setExperimentsStringForTesting,
-} from './experiments';
+import {setExperiment, setExperimentsStringForTesting} from './experiments';
 import {tick} from '../../test/tick';
 
 describes.realWin('installBasicRuntime', (env) => {
@@ -1259,17 +1255,8 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       );
     });
 
-    it('should set up Audience Activity event listener and listen to events on startup when told to', async () => {
-      setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, true);
-      expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
-        .be.true;
+    it('should set up Audience Activity event listener and listen to events on startup', async () => {
       audienceActivityEventListenerMock.expects('start').once();
-    });
-
-    it('should not set up Audience Activity event listener when the experiment is not turned on', async () => {
-      setExperiment(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY, false);
-      expect(isExperimentOn(win, ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY)).to
-        .be.false;
     });
 
     it('should enable METERED_BY_GOOGLE on the entitlements manager if the page is locked', () => {
