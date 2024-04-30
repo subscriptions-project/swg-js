@@ -34,16 +34,6 @@ const Constants = {
 
 const StorageKeys = {
   /**
-   * Local storage key for autoprompt dismissal timestamps.
-   */
-  DISMISSALS: 'autopromptdismiss',
-
-  /**
-   * Local storage key for dismissed prompts.
-   */
-  DISMISSED_PROMPTS: 'dismissedprompts',
-
-  /**
    * Local storage key for cacheable entitlements.
    */
   ENTITLEMENTS: 'ents',
@@ -53,11 +43,6 @@ const StorageKeys = {
    * 'values' as defined by the PPS GPT API.
    */
   PPS_TAXONOMIES: 'ppstaxonomies',
-
-  /**
-   * Local storage key for autoprompt impression timestamps.
-   */
-  IMPRESSIONS: 'autopromptimp',
 
   /**
    * Local storage key for whether credential isReadyToPay.
@@ -84,40 +69,10 @@ const StorageKeys = {
    */
   TOAST: 'toast',
 
-  // Prompt Frequency storage keys
   /**
-   * Local storage key for prompt impression timestamps.
+   * Local storage key for frequency capping timestamps.
    */
-  PF_IMPRESSIONS: 'imp',
-
-  /**
-   * Local storage key for prompt dismissal timestamps.
-   */
-  PF_DISMISSALS: 'dms',
-
-  /**
-   * Local storage key for prompt completion timestamps.
-   */
-  PF_COMPLETIONS: 'cpt',
-
   TIMESTAMPS: 'tsp',
 };
 
-/**
- * Local storage keys for intervention impressions.
- */
-const ImpressionStorageKeys = {
-  CONTRIBUTION: 'imp_contribution',
-
-  NEWSLETTER_SIGNUP: 'imp_newsletter',
-
-  REGISTRATION_WALL: 'imp_regwall',
-
-  REWARDED_AD: 'imp_ad',
-
-  REWARDED_SURVEY: 'imp_survey',
-
-  SUBSCRIPTION: 'imp_subscription',
-};
-
-export {Constants, ImpressionStorageKeys, StorageKeys};
+export {Constants, StorageKeys};
