@@ -36,7 +36,6 @@ import {DialogManager} from '../components/dialog-manager';
 import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
-import {ExperimentFlags} from './experiment-flags';
 import {Fetcher, XhrFetcher} from './fetcher';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
@@ -50,7 +49,6 @@ import {Toast} from '../ui/toast';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {assert} from '../utils/log';
 import {feArgs, feOrigin, feUrl} from './services';
-import {isExperimentOn} from './experiments';
 import {msg} from '../utils/i18n';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
@@ -376,18 +374,11 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     );
 
     // Start listening to Audience Activity events.
-    if (
-      isExperimentOn(
-        this.doc_.getWin(),
-        ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY
-      )
-    ) {
-      this.audienceActivityEventListener_ = new AudienceActivityEventListener(
-        this,
-        this.fetcher_
-      );
-      this.audienceActivityEventListener_.start();
-    }
+    this.audienceActivityEventListener_ = new AudienceActivityEventListener(
+      this,
+      this.fetcher_
+    );
+    this.audienceActivityEventListener_.start();
 
     this.autoPromptManager_ = new AutoPromptManager(
       this,
