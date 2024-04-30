@@ -46,11 +46,7 @@ import {UiPredicates} from '../model/client-config';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
-import {
-  isExperimentOn,
-  setExperiment,
-  setExperimentsStringForTesting,
-} from './experiments';
+import {setExperiment, setExperimentsStringForTesting} from './experiments';
 import {tick} from '../../test/tick';
 
 describes.realWin('installBasicRuntime', (env) => {

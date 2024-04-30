@@ -61,7 +61,7 @@ describes.realWin('AudienceActivityEventListener', (env) => {
     sandbox.restore();
   });
 
-  it('should log audience activity events if experiment is turned on', async () => {
+  it('should log audience activity events', async () => {
     storageMock
       .expects('get')
       .withExactArgs(Constants.USER_TOKEN, true)
