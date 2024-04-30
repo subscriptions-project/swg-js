@@ -146,7 +146,6 @@ describes.realWin('BasicRuntime', (env) => {
     doc = new GlobalDoc(win);
     configuredRuntimeSpy = sandbox.spy(runtime, 'ConfiguredRuntime');
     basicRuntime = new BasicRuntime(win);
-    setExperimentsStringForTesting('');
   });
 
   describe('initialization', () => {
