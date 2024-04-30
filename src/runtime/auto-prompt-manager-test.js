@@ -1199,7 +1199,6 @@ describes.realWin('AutoPromptManager', (env) => {
       };
       miniPromptApiMock.expects('create').once();
 
-      await tick(10);
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: true,
