@@ -376,18 +376,11 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     );
 
     // Start listening to Audience Activity events.
-    if (
-      isExperimentOn(
-        this.doc_.getWin(),
-        ExperimentFlags.LOGGING_AUDIENCE_ACTIVITY
-      )
-    ) {
-      this.audienceActivityEventListener_ = new AudienceActivityEventListener(
-        this,
-        this.fetcher_
-      );
-      this.audienceActivityEventListener_.start();
-    }
+    this.audienceActivityEventListener_ = new AudienceActivityEventListener(
+      this,
+      this.fetcher_
+    );
+    this.audienceActivityEventListener_.start();
 
     this.autoPromptManager_ = new AutoPromptManager(
       this,
