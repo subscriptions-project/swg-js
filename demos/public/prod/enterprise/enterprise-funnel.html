@@ -49,13 +49,14 @@
       function addResultRow(result) {
         const table = document.getElementById("resultTable");
         const row = document.createElement('tr');
-        const {configurationId, actionCompleted, alreadyCompleted, email, name} = result;
         const html = `
-          <td scope="col">${configurationId}</td>
-          <td scope="col">${actionCompleted}</td>
-          <td scope="col">${alreadyCompleted}</td>
-          <td scope="col">${email}</td>
-          <td scope="col">${name}</td>
+          <td scope="col">${result.configurationId}</td>
+          <td scope="col">${result.actionCompleted}</td>
+          <td scope="col">${result.alreadyCompleted}</td>
+          <td scope="col">${result.email}</td>
+          <td scope="col">${result.displayName}</td>
+          <td scope="col">${result.givenName}</td>
+          <td scope="col">${result.familyName}</td>
         `;
         row.innerHTML = html;
         table.appendChild(row);
@@ -112,7 +113,9 @@
               <th scope="col">actionCompleted</th>
               <th scope="col">alreadyCompleted</th>
               <th scope="col">email</th>
-              <th scope="col">name</th>
+              <th scope="col">displayName</th>
+              <th scope="col">givenName</th>
+              <th scope="col">familyName</th>
             </tr>
           </thead>
           <tbody id="resultTable">

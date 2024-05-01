@@ -18,7 +18,7 @@ import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
 
 export interface InterventionComplete {
-    configurationI?: string;
+    configurationId?: string;
     actionCompleted?: boolean;
     alreadyCompleted?: boolean;
     email?: string;

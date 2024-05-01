@@ -49,6 +49,7 @@ import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {warn} from '../utils/log';
+import {InterventionComplete} from '../api/interventions';
 
 export interface AudienceActionFlow {
   start: () => void;
@@ -61,7 +62,7 @@ export interface AudienceActionIframeParams {
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
   onResult?: (result: {}) => Promise<boolean> | boolean;
-  onComplete?: (result: {}) => Promise<void>;
+  onComplete?: (result: InterventionComplete) => Promise<void>;
   isClosable?: boolean;
 }
 
@@ -190,10 +191,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     if (onComplete) {
       onComplete({
         configurationId,
-        actionCompleted: response.getActionCompleted(),
-        alreadyCompleted: response.getActionCompleted(),
-        email: response.getUserEmail(),
-        name: 'TEST_NAME',
+        actionCompleted: !!response.getActionCompleted(),
+        alreadyCompleted: !!response.getActionCompleted(),
+        email: response.getUserEmail() ?? '',
+        displayName: 'DISPLAY_NAME',
+        givenName: 'GIVEN_NAME',
+        familyName: 'FAMILY_NAME',
       });
     } else {
       if (response.getActionCompleted()) {
