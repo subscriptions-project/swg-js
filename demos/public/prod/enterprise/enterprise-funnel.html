@@ -6,45 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Funnel for Enterprise Demo</title>
     <style>
-      table {
-        border-collapse: collapse;
-        border: 2px solid rgb(140 140 140);
+      body {
         font-family: sans-serif;
-        font-size: 0.8rem;
-        letter-spacing: 1px;
       }
 
-      caption {
-        caption-side: bottom;
-        padding: 10px;
-        font-weight: bold;
-      }
-
-      thead,
-      tfoot {
-        background-color: rgb(228 240 245);
-      }
-
-      th,
-      td {
-        border: 1px solid rgb(160 160 160);
-        padding: 8px 10px;
-      }
-
-      td:last-of-type {
+      h1 {
         text-align: center;
       }
-
-      tbody > tr:nth-of-type(even) {
-        background-color: rgb(237 238 242);
+      
+      table {
+        border-collapse: collapse;
       }
 
-      tfoot th {
-        text-align: right;
+      thead {
+        background-color: rgb(165, 223, 177);
       }
 
-      tfoot td {
-        font-weight: bold;
+      th, td {
+        padding: 10px;
       }
     </style>
     <script type="application/ld+json">
@@ -63,16 +42,20 @@
     <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
 
     <script>
+      function clearLocalStorage() {
+        localStorage.removeItem("subscribe.google.com:USER_TOKEN");
+      }
+
       function addResultRow(result) {
         const table = document.getElementById("resultTable");
         const row = document.createElement('tr');
         const {actionCompleted, alreadyCompleted, email, name} = result.data;
         const html = `
-          <th scope="col">${result.configurationId}</th>
-          <th scope="col">${actionCompleted}</th>
-          <th scope="col">${alreadyCompleted}</th>
-          <th scope="col">${email}</th>
-          <th scope="col">${name}</th>
+          <td scope="col">${result.configurationId}</td>
+          <td scope="col">${actionCompleted}</td>
+          <td scope="col">${alreadyCompleted}</td>
+          <td scope="col">${email}</td>
+          <td scope="col">${name}</td>
         `;
         row.innerHTML = html;
         table.appendChild(row);
@@ -82,9 +65,9 @@
         const table = document.getElementById("interventionTable");
         const row = document.createElement('tr');
         const html = `
-          <th scope="col"><button>Show</button></th>
-          <th scope="col">${intervention.type}</th>
-          <th scope="col">${intervention.configurationId}</th>
+          <td scope="col"><button>Show</button></td>
+          <td scope="col">${intervention.type}</td>
+          <td scope="col">${intervention.configurationId}</td>
         `;
         row.innerHTML = html;
         const button = row.getElementsByTagName('button')[0];
@@ -98,8 +81,6 @@
       }
 
       (self.SWG = self.SWG || []).push(async subscriptions => {
-        // subscriptions.init("CAowtIuHAQ:openaccess");
-        // subscriptions.start();
         const availableInterventions = await subscriptions.getAvailableInterventions();
         availableInterventions.forEach(addInterventionRow);
       });
@@ -109,11 +90,10 @@
   <body>
     <div class="content">
       <article>
-        <h2>Funnel for Enterprise Demo</h2>
+        <h1>Funnel for Enterprise Demo</h1>
+        <button onclick="clearLocalStorage()">Clear local storage</button>
+        <h2>Available Interventions</h2>
         <table>
-          <caption>
-            Available Interventions
-          </caption>
           <thead>
             <tr>
               <th scope="col">Activate</th>
@@ -124,11 +104,8 @@
           <tbody id="interventionTable">
           </tbody>
         </table>
-
+        <h2>Interventions Results</h2>
         <table>
-          <caption>
-            onResult
-          </caption>
           <thead>
             <tr>
               <th scope="col">ID</th>
