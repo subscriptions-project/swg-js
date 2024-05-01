@@ -5,7 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Funnel for Enterprise Demo</title>
-
     <style>
       table {
         border-collapse: collapse;
@@ -48,7 +47,20 @@
         font-weight: bold;
       }
     </style>
-    <script async subscriptions-control="manual" type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
+    <script type="application/ld+json">
+      {
+        "@context": "http://schema.org",
+        "@type": "NewsArticle",
+        "isAccessibleForFree": false,
+        "isPartOf": {
+          "@type": ["CreativeWork", "Product"],
+          "name" : "Funnel for Enterprise Demo",
+          "productID": "CAowtIuHAQ:openaccess"
+        }
+      }
+    </script>
+
+    <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
 
     <script>
       function addResultRow(result) {
@@ -84,9 +96,10 @@
         }
         table.appendChild(row);
       }
+
       (self.SWG = self.SWG || []).push(async subscriptions => {
-        subscriptions.init("CAowtIuHAQ:openaccess");
-        subscriptions.start();
+        // subscriptions.init("CAowtIuHAQ:openaccess");
+        // subscriptions.start();
         const availableInterventions = await subscriptions.getAvailableInterventions();
         availableInterventions.forEach(addInterventionRow);
       });
