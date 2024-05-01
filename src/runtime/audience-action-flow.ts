@@ -179,18 +179,31 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse
   ): void {
+    const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
-    if (response.getActionCompleted()) {
-      this.showSignedInToast_(response.getUserEmail() ?? '');
-    } else if (response.getAlreadyCompleted()) {
-      this.showAlreadyOptedInToast_();
+    if (onResult) {
+      onResult({
+        configurationId,
+        data: {
+          actionCompleted: response.getActionCompleted(),
+          alreadyCompleted: response.getActionCompleted(),
+          email: response.getUserEmail(),
+          name: 'TEST_NAME',
+        },
+      });
     } else {
-      this.showFailedOptedInToast_();
+      if (response.getActionCompleted()) {
+        this.showSignedInToast_(response.getUserEmail() ?? '');
+      } else if (response.getAlreadyCompleted()) {
+        this.showAlreadyOptedInToast_();
+      } else {
+        this.showFailedOptedInToast_();
+      }
     }
     const now = Date.now().toString();
     this.deps_

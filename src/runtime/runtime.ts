@@ -900,10 +900,8 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   }
 
   start(): Promise<void> | void {
-    console.log('2', this.pageConfig_.getProductId(), this.pageConfig_.isLocked());
     // No need to run entitlements without a product or for an unlocked page.
     if (!this.pageConfig_.getProductId()) {
-      console.log('3');
       return Promise.resolve();
     }
     this.getEntitlements();
