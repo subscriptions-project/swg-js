@@ -17,16 +17,29 @@
 import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
 
+export interface InterventionComplete {
+    configurationI?: string;
+    actionCompleted?: boolean;
+    alreadyCompleted?: boolean;
+    email?: string;
+    displayName?: string;
+    givenName?: string;
+    familyName?: string;
+}
+
 export interface ShowInterventionParams {
     /** Determine whether the view is closable. */
     isClosable?: boolean;
 
     /**
-     * Callback to get the intervention result and decide if it completes.
-     * Takes either a normal or async function and returns `true` if the
-     * intervention should be marked complete.
+     * TODO: mhkawano - come up with new doc
      */
     onResult?: (result: {}) => Promise<boolean> | boolean;
+
+    /**
+     * TODO: mhkawano - come up with new doc
+     */
+    onComplete?: (result: InterventionComplete) => Promise<void>;
 }
   
 export interface Intervention {
@@ -51,10 +64,11 @@ export class AvailableIntervention implements Intervention {
      */
     show(params: ShowInterventionParams): Promise<void> {
         const flow = new AudienceActionIframeFlow(this.deps_, {
-        isClosable: params.isClosable,
-        action: this.type,
-        configurationId: this.configurationId,
-        onResult: params.onResult,
+            isClosable: params.isClosable,
+            action: this.type,
+            configurationId: this.configurationId,
+            onResult: params.onResult,
+            onComplete: params.onComplete,
         });
         return flow.start();
     }

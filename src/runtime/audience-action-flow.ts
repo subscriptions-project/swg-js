@@ -61,6 +61,7 @@ export interface AudienceActionIframeParams {
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
   onResult?: (result: {}) => Promise<boolean> | boolean;
+  onComplete?: (result: {}) => Promise<void>;
   isClosable?: boolean;
 }
 
@@ -179,22 +180,20 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse
   ): void {
-    const {onResult, configurationId} = this.params_;
+    const {onComplete, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
-    if (onResult) {
-      onResult({
+    if (onComplete) {
+      onComplete({
         configurationId,
-        data: {
-          actionCompleted: response.getActionCompleted(),
-          alreadyCompleted: response.getActionCompleted(),
-          email: response.getUserEmail(),
-          name: 'TEST_NAME',
-        },
+        actionCompleted: response.getActionCompleted(),
+        alreadyCompleted: response.getActionCompleted(),
+        email: response.getUserEmail(),
+        name: 'TEST_NAME',
       });
     } else {
       if (response.getActionCompleted()) {

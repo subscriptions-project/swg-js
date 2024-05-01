@@ -49,9 +49,9 @@
       function addResultRow(result) {
         const table = document.getElementById("resultTable");
         const row = document.createElement('tr');
-        const {actionCompleted, alreadyCompleted, email, name} = result.data;
+        const {configurationId, actionCompleted, alreadyCompleted, email, name} = result;
         const html = `
-          <td scope="col">${result.configurationId}</td>
+          <td scope="col">${configurationId}</td>
           <td scope="col">${actionCompleted}</td>
           <td scope="col">${alreadyCompleted}</td>
           <td scope="col">${email}</td>
@@ -74,7 +74,7 @@
         button.onclick = () => {
           intervention.show({
             isClosable: 'true',
-            onResult: addResultRow
+            onComplete: addResultRow
           });
         }
         table.appendChild(row);
