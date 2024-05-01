@@ -24,6 +24,9 @@ import {LoggerApi} from './logger-api';
 import {Offer} from './offer';
 import {PropensityApi} from './propensity-api';
 import {SubscribeResponse} from './subscribe-response';
+import {
+  AvailableIntervention,
+} from '../api/interventions';
 
 export interface Subscriptions {
   /**
@@ -290,6 +293,13 @@ export interface Subscriptions {
    * Sets the publisherProvidedId.
    */
   setPublisherProvidedId(publisherProvidedId: string): Promise<void> | void;
+
+
+  /**
+   * Returns a list of available interventions. If there are no interventions available
+   * an empty array is returned. If the article does not exist, null is returned.
+   */
+  getAvailableInterventions(): Promise<AvailableIntervention[] | null>;
 }
 
 export enum ShowcaseEvent {

@@ -25,7 +25,6 @@ import {
   Timestamp,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
-import {AudienceActionIframeFlow} from './audience-action-flow';
 import {ClientConfig} from '../model/client-config';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {
@@ -41,6 +40,10 @@ import {
   GOOGLE_METERING_SOURCE,
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
+import {
+  Intervention,
+  AvailableIntervention,
+} from '../api/interventions';
 import {Fetcher} from './fetcher';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
@@ -59,49 +62,6 @@ import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
-
-export interface ShowInterventionParams {
-  /** Determine whether the view is closable. */
-  isClosable?: boolean;
-
-  /**
-   * Callback to get the intervention result and decide if it completes.
-   * Takes either a normal or async function and returns `true` if the
-   * intervention should be marked complete.
-   */
-  onResult?: (result: {}) => Promise<boolean> | boolean;
-}
-
-export interface Intervention {
-  readonly type: string;
-  readonly configurationId?: string;
-  readonly preference?: string;
-}
-
-export class AvailableIntervention implements Intervention {
-  readonly type: string;
-  readonly configurationId?: string;
-  readonly preference?: string;
-
-  constructor(original: Intervention, private readonly deps_: Deps) {
-    this.type = original.type;
-    this.configurationId = original.configurationId;
-    this.preference = original.preference;
-  }
-
-  /**
-   * Starts the intervention flow.
-   */
-  show(params: ShowInterventionParams): Promise<void> {
-    const flow = new AudienceActionIframeFlow(this.deps_, {
-      isClosable: params.isClosable,
-      action: this.type,
-      configurationId: this.configurationId,
-      onResult: params.onResult,
-    });
-    return flow.start();
-  }
-}
 
 /**
  * Article response object.

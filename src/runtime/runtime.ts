@@ -104,6 +104,7 @@ import {queryStringHasFreshGaaParams} from './extended-access';
 import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
+import { AvailableIntervention } from '../api/interventions';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
@@ -588,6 +589,11 @@ export class Runtime implements SubscriptionsInterface {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
   }
+
+  async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
+    const runtime = await this.configured_(true);
+    return runtime.getAvailableInterventions();
+  }
 }
 
 export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
@@ -894,8 +900,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   }
 
   start(): Promise<void> | void {
+    console.log('2', this.pageConfig_.getProductId(), this.pageConfig_.isLocked());
     // No need to run entitlements without a product or for an unlocked page.
-    if (!this.pageConfig_.getProductId() || !this.pageConfig_.isLocked()) {
+    if (!this.pageConfig_.getProductId()) {
+      console.log('3');
       return Promise.resolve();
     }
     this.getEntitlements();
@@ -1238,6 +1246,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     await this.documentParsed_;
     return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
   }
+
+  async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
+    return this.entitlementsManager().getAvailableInterventions();
+  }
 }
 
 function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
@@ -1287,5 +1299,6 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
   };
 }

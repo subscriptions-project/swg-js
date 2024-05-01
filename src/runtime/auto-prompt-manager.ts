@@ -18,8 +18,10 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {
   Article,
   EntitlementsManager,
-  Intervention,
 } from './entitlements-manager';
+import {
+  Intervention
+} from '../api/interventions';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,

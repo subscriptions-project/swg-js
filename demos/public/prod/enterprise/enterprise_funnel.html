@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Funnel for Enterprise Demo</title>
+
+    <style>
+      table {
+        border-collapse: collapse;
+        border: 2px solid rgb(140 140 140);
+        font-family: sans-serif;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+      }
+
+      caption {
+        caption-side: bottom;
+        padding: 10px;
+        font-weight: bold;
+      }
+
+      thead,
+      tfoot {
+        background-color: rgb(228 240 245);
+      }
+
+      th,
+      td {
+        border: 1px solid rgb(160 160 160);
+        padding: 8px 10px;
+      }
+
+      td:last-of-type {
+        text-align: center;
+      }
+
+      tbody > tr:nth-of-type(even) {
+        background-color: rgb(237 238 242);
+      }
+
+      tfoot th {
+        text-align: right;
+      }
+
+      tfoot td {
+        font-weight: bold;
+      }
+    </style>
+    <script async subscriptions-control="manual" type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
+
+    <script>
+      function addResultRow(result) {
+        const table = document.getElementById("resultTable");
+        const row = document.createElement('tr');
+        const html = `
+          <th scope="col">foo</th>
+          <th scope="col">bar</th>
+          <th scope="col">baz</th>
+        `;
+        row.innerHTML = html;
+        table.appendChild(row);
+      }
+
+      function addInterventionRow(intervention) {
+        const table = document.getElementById("interventionTable");
+        const row = document.createElement('tr');
+        const html = `
+          <th scope="col"><button>Show</button></th>
+          <th scope="col">${intervention.type}</th>
+          <th scope="col">${intervention.configurationId}</th>
+        `;
+        row.innerHTML = html;
+        const button = row.getElementsByTagName('button')[0];
+        button.onclick = () => {
+          intervention.show({
+            isClosable: 'true',
+            onResult: addResultRow
+          });
+        }
+        table.appendChild(row);
+      }
+      (self.SWG = self.SWG || []).push(async subscriptions => {
+        subscriptions.init("CAowtIuHAQ:openaccess");
+        subscriptions.start();
+        const availableInterventions = await subscriptions.getAvailableInterventions();
+        availableInterventions.forEach(addInterventionRow);
+      });
+    </script>
+  </head>
+
+  <body>
+    <div class="content">
+      <article>
+        <h2>Funnel for Enterprise Demo</h2>
+        <table>
+          <caption>
+            Available Interventions
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Activate</th>
+              <th scope="col">Type</th>
+              <th scope="col">ID</th>
+            </tr>
+          </thead>
+          <tbody id="interventionTable">
+          </tbody>
+        </table>
+
+        <table>
+          <caption>
+            onResult
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">name</th>
+              <th scope="col">email</th>
+            </tr>
+          </thead>
+          <tbody id="resultTable">
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </body>
+</html>
