@@ -34,7 +34,6 @@ import {ClientTheme} from '../api/subscriptions';
 import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
-import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {MockActivityPort} from '../../test/mock-activity-port';
@@ -46,7 +45,6 @@ import {UiPredicates} from '../model/client-config';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
-import {setExperiment, setExperimentsStringForTesting} from './experiments';
 import {tick} from '../../test/tick';
 
 describes.realWin('installBasicRuntime', (env) => {
@@ -148,7 +146,6 @@ describes.realWin('BasicRuntime', (env) => {
     doc = new GlobalDoc(win);
     configuredRuntimeSpy = sandbox.spy(runtime, 'ConfiguredRuntime');
     basicRuntime = new BasicRuntime(win);
-    setExperimentsStringForTesting('');
   });
 
   describe('initialization', () => {
@@ -803,8 +800,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure subscription auto prompts to show offers for paygated content when disable desktop miniprompt experiment is enabled', async () => {
-      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    it('should configure subscription auto prompts to show offers for paygated content when the desktop viewport is large', async () => {
       autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       entitlementsManagerMock
@@ -891,8 +887,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure contribution auto prompts to show contribution options for paygated content when disable desktop miniprompt experiment is enabled', async () => {
-      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
+    it('should configure contribution auto prompts to show contribution options for paygated content when the desktop viewport is large', async () => {
       autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       entitlementsManagerMock

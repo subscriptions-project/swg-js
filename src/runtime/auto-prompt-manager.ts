@@ -35,7 +35,6 @@ import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
-import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
@@ -43,7 +42,6 @@ import {PageConfig} from '../model/page-config';
 import {Storage, pruneTimestamps} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
-import {isExperimentOn} from './experiments';
 
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
 const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
@@ -543,24 +541,16 @@ export class AutoPromptManager {
   }
 
   /**
-   * Returns which type of prompt to display based on the type specified,
-   * the viewport width, and whether the disableDesktopMiniprompt experiment
-   * is enabled.
-   *
-   * If the disableDesktopMiniprompt experiment is enabled and the desktop is
-   * wider than 480px then the large prompt type will be substituted for the mini
-   * prompt. The original promptType will be returned as-is in all other cases.
+   * Returns which type of prompt to display based on the type specified and
+   * the viewport width. If the desktop is wider than 480px, then the large
+   * prompt type will be substituted for the miniprompt. The original
+   * promptType will be returned as-is in all other cases.
    */
   private getPromptTypeToDisplay_(
     promptType?: AutoPromptType
   ): AutoPromptType | undefined {
-    const disableDesktopMiniprompt = isExperimentOn(
-      this.doc_.getWin(),
-      ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
-    );
     const isWideDesktop = this.getInnerWidth_() > 480;
-
-    if (disableDesktopMiniprompt && isWideDesktop) {
+    if (isWideDesktop) {
       if (promptType === AutoPromptType.SUBSCRIPTION) {
         this.logDisableMinipromptEvent_(promptType);
         return AutoPromptType.SUBSCRIPTION_LARGE;
