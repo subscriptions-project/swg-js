@@ -185,13 +185,11 @@ export class AutoPromptManager {
     // Manual override of display rules, mainly for demo purposes. Requires
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
-      const promptFn = this.getMonetizationPromptFn_(
-        this.getPromptTypeToDisplay_(params.autoPromptType),
-        this.getLargeMonetizationPromptFn_(
-          params.autoPromptType,
-          params.isClosable ?? !this.isSubscription_(params.autoPromptType)
-        )
+      this.autoPromptType_ = this.getPromptTypeToDisplay_(
+        params.autoPromptType
       );
+      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
+      const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
     }
@@ -245,19 +243,15 @@ export class AutoPromptManager {
 
     // Article response is honored over code snippet in case of conflict, such
     // as when publisher changes revenue model but does not update snippet.
-    const autoPromptType = this.getAutoPromptType_(
+    this.autoPromptType_ = this.getAutoPromptType_(
       article.audienceActions?.actions,
       params.autoPromptType
     )!;
-    this.autoPromptType_ = autoPromptType;
 
     // Default isClosable to what is set in the page config.
     // Otherwise, the prompt is blocking for publications with a
     // subscription revenue model, while all others can be dismissed.
-    const isClosable =
-      params.isClosable ?? !this.isSubscription_(autoPromptType);
-    // TODO(b/303489420): cleanup passing of autoPromptManager params.
-    this.isClosable_ = isClosable;
+    this.isClosable_ = params.isClosable ?? !this.isSubscription_();
 
     // Frequency cap flow utilizes config and timestamps to determine next
     // action. Metered flow strictly follows prompt order. Display delay is
@@ -269,16 +263,11 @@ export class AutoPromptManager {
       frequencyCapConfig,
     });
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
-      ? this.getMonetizationPromptFn_(
-          autoPromptType,
-          this.getLargeMonetizationPromptFn_(autoPromptType, isClosable)
-        )
+      ? this.getMonetizationPromptFn_()
       : potentialAction
       ? this.getAudienceActionPromptFn_({
           actionType: potentialAction.type,
           configurationId: potentialAction.configurationId,
-          autoPromptType,
-          isClosable,
           preference: potentialAction.preference,
         })
       : undefined;
@@ -289,7 +278,7 @@ export class AutoPromptManager {
 
     this.promptIsFromCtaButton_ = false;
     // Add display delay to dismissible prompts.
-    const displayDelayMs = isClosable
+    const displayDelayMs = this.isClosable_
       ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
           ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS
       : 0;
@@ -297,17 +286,17 @@ export class AutoPromptManager {
     return;
   }
 
-  private isSubscription_(autoPromptType: AutoPromptType | undefined): boolean {
+  private isSubscription_(): boolean {
     return (
-      autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+      this.autoPromptType_ === AutoPromptType.SUBSCRIPTION ||
+      this.autoPromptType_ === AutoPromptType.SUBSCRIPTION_LARGE
     );
   }
 
-  private isContribution_(autoPromptType: AutoPromptType | undefined): boolean {
+  private isContribution_(): boolean {
     return (
-      autoPromptType === AutoPromptType.CONTRIBUTION ||
-      autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+      this.autoPromptType_ === AutoPromptType.CONTRIBUTION ||
+      this.autoPromptType_ === AutoPromptType.CONTRIBUTION_LARGE
     );
   }
 
@@ -443,16 +432,17 @@ export class AutoPromptManager {
    * or undefined if the type of prompt cannot be determined.
    */
   private getLargeMonetizationPromptFn_(
-    autoPromptType: AutoPromptType | undefined,
-    isClosable: boolean,
     shouldAnimateFade: boolean = true
   ): (() => void) | undefined {
-    const options: OffersRequest = {isClosable, shouldAnimateFade};
-    if (this.isSubscription_(autoPromptType)) {
+    const options: OffersRequest = {
+      isClosable: !!this.isClosable_,
+      shouldAnimateFade,
+    };
+    if (this.isSubscription_()) {
       return () => {
         this.configuredRuntime_.showOffers(options);
       };
-    } else if (this.isContribution_(autoPromptType)) {
+    } else if (this.isContribution_()) {
       return () => {
         this.configuredRuntime_.showContributionOptions(options);
       };
@@ -463,14 +453,10 @@ export class AutoPromptManager {
   private getAudienceActionPromptFn_({
     actionType,
     configurationId,
-    autoPromptType,
-    isClosable,
     preference,
   }: {
     actionType: string;
     configurationId?: string;
-    autoPromptType?: AutoPromptType;
-    isClosable?: boolean;
     preference?: string;
   }): () => void {
     return () => {
@@ -479,11 +465,9 @@ export class AutoPromptManager {
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType,
               configurationId,
-              autoPromptType,
-              isClosable,
+              autoPromptType: this.autoPromptType_,
+              isClosable: this.isClosable_,
               monetizationFunction: this.getLargeMonetizationPromptFn_(
-                autoPromptType,
-                !!isClosable,
                 /* shouldAnimateFade */ false
               ),
             })
@@ -492,14 +476,14 @@ export class AutoPromptManager {
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType,
               configurationId,
-              autoPromptType,
-              isClosable,
+              autoPromptType: this.autoPromptType_,
+              isClosable: this.isClosable_,
             })
           : new AudienceActionIframeFlow(this.deps_, {
               action: actionType,
               configurationId,
-              autoPromptType,
-              isClosable,
+              autoPromptType: this.autoPromptType_,
+              isClosable: this.isClosable_,
             });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
@@ -517,22 +501,20 @@ export class AutoPromptManager {
   /**
    * Shows the prompt based on the type specified.
    */
-  private getMonetizationPromptFn_(
-    autoPromptType?: AutoPromptType,
-    displayLargePromptFn?: () => void
-  ): () => void {
+  private getMonetizationPromptFn_(): () => void {
+    const displayLargePromptFn = this.getLargeMonetizationPromptFn_();
     return () => {
       if (
-        autoPromptType === AutoPromptType.SUBSCRIPTION ||
-        autoPromptType === AutoPromptType.CONTRIBUTION
+        this.autoPromptType_ === AutoPromptType.SUBSCRIPTION ||
+        this.autoPromptType_ === AutoPromptType.CONTRIBUTION
       ) {
         this.miniPromptAPI_.create({
-          autoPromptType,
+          autoPromptType: this.autoPromptType_,
           clickCallback: displayLargePromptFn,
         });
       } else if (
-        (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
+        (this.autoPromptType_ === AutoPromptType.SUBSCRIPTION_LARGE ||
+          this.autoPromptType_ === AutoPromptType.CONTRIBUTION_LARGE) &&
         displayLargePromptFn
       ) {
         displayLargePromptFn();
@@ -749,10 +731,10 @@ export class AutoPromptManager {
       action = COMPLETION_EVENTS_TO_ACTION_MAP.get(event);
       this.storeCompletion(action!);
     } else if (GENERIC_COMPLETION_EVENTS.includes(event)) {
-      if (this.isContribution_(this.autoPromptType_)) {
+      if (this.isContribution_()) {
         this.storeCompletion(TYPE_CONTRIBUTION);
       }
-      if (this.isSubscription_(this.autoPromptType_)) {
+      if (this.isSubscription_()) {
         this.storeCompletion(TYPE_SUBSCRIPTION);
       }
       // TODO(justinchou@) handle failure modes for event EVENT_PAYMENT_FAILED
