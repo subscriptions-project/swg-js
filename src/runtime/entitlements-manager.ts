@@ -25,6 +25,7 @@ import {
   Timestamp,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
+import {AvailableIntervention, Intervention} from '../api/interventions';
 import {ClientConfig} from '../model/client-config';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {
@@ -40,10 +41,6 @@ import {
   GOOGLE_METERING_SOURCE,
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
-import {
-  Intervention,
-  AvailableIntervention,
-} from '../api/interventions';
 import {Fetcher} from './fetcher';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';

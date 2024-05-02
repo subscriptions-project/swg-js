@@ -18,58 +18,58 @@ import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
 
 export interface InterventionComplete {
-    configurationId?: string;
-    actionCompleted?: boolean;
-    alreadyCompleted?: boolean;
-    email?: string;
-    displayName?: string;
-    givenName?: string;
-    familyName?: string;
+  configurationId?: string;
+  actionCompleted?: boolean;
+  alreadyCompleted?: boolean;
+  email?: string;
+  displayName?: string;
+  givenName?: string;
+  familyName?: string;
 }
 
 export interface ShowInterventionParams {
-    /** Determine whether the view is closable. */
-    isClosable?: boolean;
+  /** Determine whether the view is closable. */
+  isClosable?: boolean;
 
-    /**
-     * TODO: mhkawano - come up with new doc
-     */
-    onResult?: (result: {}) => Promise<boolean> | boolean;
+  /**
+   * TODO: mhkawano - come up with new doc
+   */
+  onResult?: (result: {}) => Promise<boolean> | boolean;
 
-    /**
-     * TODO: mhkawano - come up with new doc
-     */
-    onComplete?: (result: InterventionComplete) => Promise<void>;
+  /**
+   * TODO: mhkawano - come up with new doc
+   */
+  onComplete?: (result: InterventionComplete) => Promise<void>;
 }
-  
+
 export interface Intervention {
-    readonly type: string;
-    readonly configurationId?: string;
-    readonly preference?: string;
+  readonly type: string;
+  readonly configurationId?: string;
+  readonly preference?: string;
 }
 
 export class AvailableIntervention implements Intervention {
-    readonly type: string;
-    readonly configurationId?: string;
-    readonly preference?: string;
+  readonly type: string;
+  readonly configurationId?: string;
+  readonly preference?: string;
 
-    constructor(original: Intervention, private readonly deps_: Deps) {
-        this.type = original.type;
-        this.configurationId = original.configurationId;
-        this.preference = original.preference;
-    }
+  constructor(original: Intervention, private readonly deps_: Deps) {
+    this.type = original.type;
+    this.configurationId = original.configurationId;
+    this.preference = original.preference;
+  }
 
-    /**
-     * Starts the intervention flow.
-     */
-    show(params: ShowInterventionParams): Promise<void> {
-        const flow = new AudienceActionIframeFlow(this.deps_, {
-            isClosable: params.isClosable,
-            action: this.type,
-            configurationId: this.configurationId,
-            onResult: params.onResult,
-            onComplete: params.onComplete,
-        });
-        return flow.start();
-    }
+  /**
+   * Starts the intervention flow.
+   */
+  show(params: ShowInterventionParams): Promise<void> {
+    const flow = new AudienceActionIframeFlow(this.deps_, {
+      isClosable: params.isClosable,
+      action: this.type,
+      configurationId: this.configurationId,
+      onResult: params.onResult,
+      onComplete: params.onComplete,
+    });
+    return flow.start();
+  }
 }

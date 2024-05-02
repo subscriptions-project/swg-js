@@ -41,6 +41,7 @@ import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {InterventionComplete} from '../api/interventions';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
@@ -49,7 +50,6 @@ import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {warn} from '../utils/log';
-import {InterventionComplete} from '../api/interventions';
 
 export interface AudienceActionFlow {
   start: () => void;

@@ -39,6 +39,7 @@ import {
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ArticleExperimentFlags} from './experiment-flags';
+import {AvailableIntervention} from '../api/interventions';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
@@ -104,7 +105,6 @@ import {queryStringHasFreshGaaParams} from './extended-access';
 import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
-import { AvailableIntervention } from '../api/interventions';
 
 const RUNTIME_PROP = 'SWG';
 const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE

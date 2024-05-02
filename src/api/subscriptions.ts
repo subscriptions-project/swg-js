@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AvailableIntervention} from '../api/interventions';
 import {ClientEventManagerApi} from './client-event-manager-api';
 import {
   DeferredAccountCreationRequest,
@@ -24,9 +25,6 @@ import {LoggerApi} from './logger-api';
 import {Offer} from './offer';
 import {PropensityApi} from './propensity-api';
 import {SubscribeResponse} from './subscribe-response';
-import {
-  AvailableIntervention,
-} from '../api/interventions';
 
 export interface Subscriptions {
   /**
@@ -293,7 +291,6 @@ export interface Subscriptions {
    * Sets the publisherProvidedId.
    */
   setPublisherProvidedId(publisherProvidedId: string): Promise<void> | void;
-
 
   /**
    * Returns a list of available interventions. If there are no interventions available
