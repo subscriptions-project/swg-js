@@ -197,6 +197,7 @@ describes.realWin('GaaMetering', () => {
     subscriptionsMock = {
       triggerLoginRequest: sandbox.fake(),
       init: sandbox.fake(),
+      configure: sandbox.fake(),
       setOnLoginRequest: sandbox.fake(),
       setOnNativeSubscribeRequest: sandbox.fake(),
       setOnEntitlementsResponse: sandbox.fake(),
@@ -1234,6 +1235,117 @@ describes.realWin('GaaMetering', () => {
       });
 
       expect(subscriptionsMock.init).to.not.be.called;
+    });
+
+    it('Should run the subscription.configure method if a configuration is present', async () => {
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        shouldInitializeSwG: true,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {},
+        unlockArticle: () => {},
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+        swgInitConfig: {test: true},
+      });
+
+      expect(subscriptionsMock.configure).to.be.called;
+    });
+
+    it('Should not run the subscription.configure method if a configuration is absent', async () => {
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        shouldInitializeSwG: false,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {},
+        unlockArticle: () => {},
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+      });
+
+      expect(subscriptionsMock.configure).to.not.be.called;
+    });
+
+    it('Should not run the subscription.configure method when swgInitConfig is present and shouldInitializeSwG is false', async () => {
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        shouldInitializeSwG: false,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {},
+        unlockArticle: () => {},
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+        swgInitConfig: {test: true},
+      });
+
+      expect(subscriptionsMock.configure).to.not.be.called;
+    });
+
+    it('Should pass the configuration object to the SwG initializer', async () => {
+      QueryStringUtils.getQueryString.returns(
+        '?gaa_at=gaa&gaa_n=n0nc3&gaa_sig=s1gn4tur3&gaa_ts=99999999'
+      );
+      self.document.referrer = 'https://www.google.com';
+      GaaMetering.init({
+        shouldInitializeSwG: true,
+        googleApiClientId: GOOGLE_API_CLIENT_ID,
+        allowedReferrers: [
+          'example.com',
+          'test.com',
+          'localhost',
+          'google.com',
+        ],
+        userState: {},
+        unlockArticle: () => {},
+        showPaywall: () => {},
+        handleLogin: () => {},
+        handleSwGEntitlement: () => {},
+        registerUserPromise: new Promise(() => {}),
+        handleLoginPromise: new Promise(() => {}),
+        publisherEntitlementPromise: new Promise(() => {}),
+        swgInitConfig: {test: true},
+      });
+
+      expect(subscriptionsMock.configure).to.calledWith({test: true});
     });
 
     it('succeeds for a subscriber', async () => {
