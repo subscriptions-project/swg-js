@@ -16,15 +16,18 @@
 
 import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
+import {SurveyDataTransferRequest} from '../proto/api_messages';
 
-export interface InterventionComplete {
-  configurationId?: string;
-  actionCompleted?: boolean;
-  alreadyCompleted?: boolean;
+export interface OptInResult {
   email?: string;
   displayName?: string;
   givenName?: string;
   familyName?: string;
+}
+
+export interface InterventionResult {
+  configurationId?: string;
+  data: OptInResult | SurveyDataTransferRequest;
 }
 
 export interface ShowInterventionParams {
@@ -34,12 +37,7 @@ export interface ShowInterventionParams {
   /**
    * TODO: mhkawano - come up with new doc
    */
-  onResult?: (result: {}) => Promise<boolean> | boolean;
-
-  /**
-   * TODO: mhkawano - come up with new doc
-   */
-  onComplete?: (result: InterventionComplete) => Promise<void>;
+  onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
 }
 
 export interface Intervention {
@@ -68,7 +66,6 @@ export class AvailableIntervention implements Intervention {
       action: this.type,
       configurationId: this.configurationId,
       onResult: params.onResult,
-      onComplete: params.onComplete,
     });
     return flow.start();
   }

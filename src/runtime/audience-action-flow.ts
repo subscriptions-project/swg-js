@@ -41,7 +41,7 @@ import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {InterventionComplete} from '../api/interventions';
+import {InterventionResult} from '../api/interventions';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
@@ -52,7 +52,7 @@ import {parseUrl} from '../utils/url';
 import {warn} from '../utils/log';
 
 export interface AudienceActionFlow {
-  start: () => void;
+  start: () => Promise<void>;
   showNoEntitlementFoundToast: () => void;
 }
 
@@ -61,8 +61,7 @@ export interface AudienceActionIframeParams {
   configurationId?: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
-  onResult?: (result: {}) => Promise<boolean> | boolean;
-  onComplete?: (result: InterventionComplete) => Promise<void>;
+  onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
   isClosable?: boolean;
 }
 
@@ -181,22 +180,22 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse
   ): void {
-    const {onComplete, configurationId} = this.params_;
+    const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
-    if (onComplete) {
-      onComplete({
-        configurationId,
-        actionCompleted: !!response.getActionCompleted(),
-        alreadyCompleted: !!response.getActionCompleted(),
-        email: response.getUserEmail() ?? '',
-        displayName: 'DISPLAY_NAME',
-        givenName: 'GIVEN_NAME',
-        familyName: 'FAMILY_NAME',
+    if (this.params_.action !== TYPE_REWARDED_SURVEY && onResult) {
+      onResult({
+        configurationId: configurationId ?? '',
+        data: {
+          email: response.getUserEmail() ?? '',
+          displayName: 'DISPLAY_NAME',
+          givenName: 'GIVEN_NAME',
+          familyName: 'FAMILY_NAME',
+        }
       });
     } else {
       if (response.getActionCompleted()) {
@@ -348,7 +347,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const {onResult} = this.params_;
     if (onResult) {
       try {
-        return await onResult(request);
+        return await onResult({
+          configurationId: this.params_.configurationId,
+          data: request
+        });
       } catch (e) {
         warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
         return false;
