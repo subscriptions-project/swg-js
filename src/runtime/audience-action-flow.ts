@@ -187,7 +187,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     if (userToken) {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
-    if (this.params_.action !== TYPE_REWARDED_SURVEY && onResult) {
+    if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
         configurationId: configurationId || '',
         data: {
@@ -195,16 +195,16 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           displayName: response.getDisplayName() || '',
           givenName: response.getGivenName() || '',
           familyName: response.getFamilyName() || '',
-        }
+        },
       });
+    }
+
+    if (response.getActionCompleted()) {
+      this.showSignedInToast_(response.getUserEmail() ?? '');
+    } else if (response.getAlreadyCompleted()) {
+      this.showAlreadyOptedInToast_();
     } else {
-      if (response.getActionCompleted()) {
-        this.showSignedInToast_(response.getUserEmail() ?? '');
-      } else if (response.getAlreadyCompleted()) {
-        this.showAlreadyOptedInToast_();
-      } else {
-        this.showFailedOptedInToast_();
-      }
+      this.showFailedOptedInToast_();
     }
     const now = Date.now().toString();
     this.deps_
@@ -240,6 +240,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         customText,
       })
     ).open();
+  }
+
+  private isOptIn(action: string): boolean {
+    return action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL; 
   }
 
   private showAlreadyOptedInToast_(): void {
@@ -349,7 +353,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       try {
         return await onResult({
           configurationId: this.params_.configurationId || '',
-          data: request
+          data: request,
         });
       } catch (e) {
         warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);

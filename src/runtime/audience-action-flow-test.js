@@ -80,6 +80,12 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_2,
 ]);
 
+const TEST_SURVEYONRESULTCONFIGID = 'survey onsResult config id'
+const TEST_SURVEYONRESULTRESPONSE = {
+  configurationId: TEST_SURVEYONRESULTCONFIGID,
+  data: TEST_SURVEYDATATRANSFERREQUEST,
+}
+
 const TEST_SURVEYANSWER_EMPTY = new SurveyAnswer();
 const TEST_SURVEYQUESTION_EMPTY = new SurveyQuestion();
 TEST_SURVEYQUESTION_EMPTY.setSurveyAnswersList([TEST_SURVEYANSWER_EMPTY]);
@@ -105,6 +111,24 @@ TEST_SURVEYQUESTION_3.setSurveyAnswersList([TEST_SURVEYANSWER_3]);
 const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES =
   new SurveyDataTransferRequest();
 TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
+
+const TEST_OPTINCONFIGID = 'optin onResult config id';
+const TEST_EMAIL = 'test email';
+const TEST_DISPLAY_NAME = 'test display name';
+const TEST_GIVEN_NAME= 'test given name';
+const TEST_FAMILY_NAME = 'test family name';
+
+const TEST_OPTINRESULT = {
+  email: TEST_EMAIL,
+  displayName: TEST_DISPLAY_NAME,
+  givenName: TEST_GIVEN_NAME,
+  familyName: TEST_FAMILY_NAME,
+}
+
+const TEST_OPTINONRESULT = {
+  configurationId: TEST_OPTINCONFIGID,
+  data: TEST_OPTINRESULT,
+}
 
 describes.realWin('AudienceActionIframeFlow', (env) => {
   let win;
@@ -641,6 +665,50 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     expect(toastOpenStub).not.to.be.called;
   });
 
+  it(`handles CompleteAudienceActionResponse for OptIn with onResult`, async () => {
+    const onResultMock = sandbox
+      .mock()
+      .withExactArgs(TEST_OPTINONRESULT)
+      .resolves(true)
+      .once();
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+      configurationId: TEST_OPTINCONFIGID,
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      onResult: onResultMock,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
+    const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setAlreadyCompleted(false);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail(TEST_EMAIL);
+    completeAudienceActionResponse.setDisplayName(TEST_DISPLAY_NAME);
+    completeAudienceActionResponse.setGivenName(TEST_GIVEN_NAME);
+    completeAudienceActionResponse.setFamilyName(TEST_FAMILY_NAME);
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).to.be.called;
+    onResultMock.verify();    
+  });
+
   it('should trigger login flow for a registered user', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
@@ -914,13 +982,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it(`handles a SurveyDataTransferRequest with successful onResult logging`, async () => {
     const onResultMock = sandbox
       .mock()
-      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
+      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
       .resolves(true)
       .once();
 
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
+      configurationId: TEST_SURVEYONRESULTCONFIGID,
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
       onResult: onResultMock,
@@ -962,13 +1030,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it(`handles a SurveyDataTransferRequest with failed onResult logging`, async () => {
     const onResultMock = sandbox
       .mock()
-      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
+      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
       .resolves(false)
       .once();
 
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
+      configurationId: TEST_SURVEYONRESULTCONFIGID,
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
       onResult: onResultMock,
@@ -1013,13 +1081,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it(`handles a SurveyDataTransferRequest with onResult logging exception`, async () => {
     const onResultMock = sandbox
       .mock()
-      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
+      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
       .throws(new Error('Test Callback Exception'))
       .once();
 
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
+      configurationId: TEST_SURVEYONRESULTCONFIGID,
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
       onResult: onResultMock,
@@ -1067,13 +1135,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it(`handles a SurveyDataTransferRequest with onResult logging rejection`, async () => {
     const onResultMock = sandbox
       .mock()
-      .withExactArgs(TEST_SURVEYDATATRANSFERREQUEST)
+      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
       .rejects(new Error('Test Callback Exception'))
       .once();
 
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
+      configurationId: TEST_SURVEYONRESULTCONFIGID,
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
       onResult: onResultMock,

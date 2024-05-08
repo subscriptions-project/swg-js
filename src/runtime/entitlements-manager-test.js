@@ -16,6 +16,7 @@
 
 import * as audienceActionFlow from './audience-action-flow';
 import {ActivityPorts} from '../components/activities';
+import {AvailableIntervention} from '../api/interventions';
 import {
   AnalyticsContext,
   AnalyticsEvent,
@@ -28,7 +29,6 @@ import {
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {
-  AvailableIntervention,
   EntitlementsManager,
 } from './entitlements-manager';
 import {Callbacks} from './callbacks';
