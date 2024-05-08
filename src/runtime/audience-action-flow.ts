@@ -65,6 +65,7 @@ export interface AudienceActionIframeParams {
   isClosable?: boolean;
 }
 
+// TODO: mhkawano - replace these consts in the project with these
 // Action types returned by the article endpoint
 export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
@@ -189,12 +190,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     }
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
-        configurationId: configurationId || '',
+        configurationId,
         data: {
-          email: response.getUserEmail() || '',
-          displayName: response.getDisplayName() || '',
-          givenName: response.getGivenName() || '',
-          familyName: response.getFamilyName() || '',
+          email: response.getUserEmail(),
+          displayName: response.getDisplayName(),
+          givenName: response.getGivenName(),
+          familyName: response.getFamilyName(),
         },
       });
     }
@@ -354,7 +355,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     if (onResult) {
       try {
         return await onResult({
-          configurationId: this.params_.configurationId || '',
+          configurationId: this.params_.configurationId,
           data: request,
         });
       } catch (e) {

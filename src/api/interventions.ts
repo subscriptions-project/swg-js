@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2024 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,32 @@ import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
 import {SurveyDataTransferRequest} from '../proto/api_messages';
 
+/**
+ * Opt-in data passed to the AvailableIntervention.show callback for an opt-in
+ * intervention.
+ */
 export interface OptInResult {
-  email?: string;
-  displayName?: string;
-  givenName?: string;
-  familyName?: string;
+  // Email of the opted-in user, ex. john.johnson@gmail.com
+  email: string | null;
+  // Display name of the opted-in user, ex. John Johnson
+  displayName?: string | null;
+  // Given name of the opted-in user, ex. John
+  givenName?: string | null;
+  // Family name of the opted-in user, ex. Johnson
+  familyName?: string | null;
 }
 
+/**
+ * Result of an intervention passed to the AvailableIntervention.show callback.
+ */
 export interface InterventionResult {
   configurationId?: string;
   data: OptInResult | SurveyDataTransferRequest;
 }
 
+/**
+ * Params passed to the AvailableIntervention.show method.
+ */
 export interface ShowInterventionParams {
   /** Determine whether the view is closable. */
   isClosable?: boolean;
@@ -41,14 +55,36 @@ export interface ShowInterventionParams {
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
 }
 
+// TODO: mhkawano - replace consts in the project with this enum
+/**
+ * Intervention types that can be returned from the article endpoint.
+ */
+export enum InterventionType {
+  TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL',
+  TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP',
+  TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY',
+  TYPE_REWARDED_AD = 'TYPE_REWARDED_AD',
+  TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION',
+  TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION',
+}
+
+/**
+ * Intervention returned from the article endpoint. Interventions are configured
+ * in the Publisher Center, and are used to display a prompt.
+ */
 export interface Intervention {
-  readonly type: string;
+  // Indicates what type of intervention this is.
+  readonly type: InterventionType;
+  // ID used to fetch the configuration for the intervention. IDs are found in
+  // the Publisher Center.
   readonly configurationId?: string;
+  // Indicates if the intervention should be Google provided, or publisher
+  // provided.
   readonly preference?: string;
 }
 
 export class AvailableIntervention implements Intervention {
-  readonly type: string;
+  readonly type: InterventionType;
   readonly configurationId?: string;
   readonly preference?: string;
 
