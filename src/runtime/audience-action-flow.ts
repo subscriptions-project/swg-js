@@ -243,7 +243,9 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   private isOptIn(action: string): boolean {
-    return action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL; 
+    return (
+      action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL
+    );
   }
 
   private showAlreadyOptedInToast_(): void {

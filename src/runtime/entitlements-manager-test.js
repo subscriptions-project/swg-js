@@ -16,7 +16,6 @@
 
 import * as audienceActionFlow from './audience-action-flow';
 import {ActivityPorts} from '../components/activities';
-import {AvailableIntervention} from '../api/interventions';
 import {
   AnalyticsContext,
   AnalyticsEvent,
@@ -28,9 +27,7 @@ import {
   EventParams,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
-import {
-  EntitlementsManager,
-} from './entitlements-manager';
+import {AvailableIntervention} from '../api/interventions';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -42,6 +39,7 @@ import {
   GOOGLE_METERING_SOURCE,
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
+import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 import {MeterClientTypes} from '../api/metering';
 import {MockDeps} from '../../test/mock-deps';

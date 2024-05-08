@@ -80,11 +80,11 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_2,
 ]);
 
-const TEST_SURVEYONRESULTCONFIGID = 'survey onsResult config id'
+const TEST_SURVEYONRESULTCONFIGID = 'survey onsResult config id';
 const TEST_SURVEYONRESULTRESPONSE = {
   configurationId: TEST_SURVEYONRESULTCONFIGID,
   data: TEST_SURVEYDATATRANSFERREQUEST,
-}
+};
 
 const TEST_SURVEYANSWER_EMPTY = new SurveyAnswer();
 const TEST_SURVEYQUESTION_EMPTY = new SurveyQuestion();
@@ -115,7 +115,7 @@ TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
 const TEST_OPTINCONFIGID = 'optin onResult config id';
 const TEST_EMAIL = 'test email';
 const TEST_DISPLAY_NAME = 'test display name';
-const TEST_GIVEN_NAME= 'test given name';
+const TEST_GIVEN_NAME = 'test given name';
 const TEST_FAMILY_NAME = 'test family name';
 
 const TEST_OPTINRESULT = {
@@ -123,12 +123,12 @@ const TEST_OPTINRESULT = {
   displayName: TEST_DISPLAY_NAME,
   givenName: TEST_GIVEN_NAME,
   familyName: TEST_FAMILY_NAME,
-}
+};
 
 const TEST_OPTINONRESULT = {
   configurationId: TEST_OPTINCONFIGID,
   data: TEST_OPTINRESULT,
-}
+};
 
 describes.realWin('AudienceActionIframeFlow', (env) => {
   let win;
@@ -706,7 +706,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.verify();
     storageMock.verify();
     expect(toastOpenStub).to.be.called;
-    onResultMock.verify();    
+    onResultMock.verify();
   });
 
   it('should trigger login flow for a registered user', async () => {
