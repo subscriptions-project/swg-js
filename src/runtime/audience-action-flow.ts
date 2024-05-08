@@ -189,12 +189,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     }
     if (this.params_.action !== TYPE_REWARDED_SURVEY && onResult) {
       onResult({
-        configurationId: configurationId ?? '',
+        configurationId: configurationId || '',
         data: {
-          email: response.getUserEmail() ?? '',
-          displayName: 'DISPLAY_NAME',
-          givenName: 'GIVEN_NAME',
-          familyName: 'FAMILY_NAME',
+          email: response.getUserEmail() || '',
+          displayName: response.getDisplayName() || '',
+          givenName: response.getGivenName() || '',
+          familyName: response.getFamilyName() || '',
         }
       });
     } else {
@@ -348,7 +348,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     if (onResult) {
       try {
         return await onResult({
-          configurationId: this.params_.configurationId,
+          configurationId: this.params_.configurationId || '',
           data: request
         });
       } catch (e) {

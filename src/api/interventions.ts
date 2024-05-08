@@ -35,7 +35,8 @@ export interface ShowInterventionParams {
   isClosable?: boolean;
 
   /**
-   * TODO: mhkawano - come up with new doc
+   * Callback to get the result data from the intervention. Return a boolean
+   * indicating if the data was recorded successfully.
    */
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
 }

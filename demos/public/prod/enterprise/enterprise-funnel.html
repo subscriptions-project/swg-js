@@ -51,12 +51,10 @@
         const row = document.createElement('tr');
         const html = `
           <td scope="col">${result.configurationId}</td>
-          <td scope="col">${result.actionCompleted}</td>
-          <td scope="col">${result.alreadyCompleted}</td>
-          <td scope="col">${result.email}</td>
-          <td scope="col">${result.displayName}</td>
-          <td scope="col">${result.givenName}</td>
-          <td scope="col">${result.familyName}</td>
+          <td scope="col">${result.data.email}</td>
+          <td scope="col">${result.data.displayName}</td>
+          <td scope="col">${result.data.givenName}</td>
+          <td scope="col">${result.data.familyName}</td>
         `;
         row.innerHTML = html;
         table.appendChild(row);
@@ -75,7 +73,7 @@
         button.onclick = () => {
           intervention.show({
             isClosable: 'true',
-            onComplete: addResultRow
+            onResult: addResultRow
           });
         }
         table.appendChild(row);
@@ -110,8 +108,6 @@
           <thead>
             <tr>
               <th scope="col">ID</th>
-              <th scope="col">actionCompleted</th>
-              <th scope="col">alreadyCompleted</th>
               <th scope="col">email</th>
               <th scope="col">displayName</th>
               <th scope="col">givenName</th>
