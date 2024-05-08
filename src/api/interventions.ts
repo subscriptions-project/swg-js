@@ -26,11 +26,11 @@ export interface OptInResult {
   // Email of the opted-in user, ex. john.johnson@gmail.com
   email: string | null;
   // Display name of the opted-in user, ex. John Johnson
-  displayName?: string | null;
+  displayName: string | null;
   // Given name of the opted-in user, ex. John
-  givenName?: string | null;
+  givenName: string | null;
   // Family name of the opted-in user, ex. Johnson
-  familyName?: string | null;
+  familyName: string | null;
 }
 
 /**
