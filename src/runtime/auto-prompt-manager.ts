@@ -15,11 +15,7 @@
  */
 
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {
-  Article,
-  EntitlementsManager,
-  Intervention,
-} from './entitlements-manager';
+import {Article, EntitlementsManager} from './entitlements-manager';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
@@ -36,7 +32,8 @@ import {Doc} from '../model/doc';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {InterventionType} from '../api/interventions';
+import {Intervention} from './intervention';
+import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';

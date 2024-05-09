@@ -35,7 +35,7 @@ import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {EntitlementsManager} from './entitlements-manager';
-import {InterventionType} from '../api/interventions';
+import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
@@ -50,10 +50,9 @@ import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 import {setStyle} from '../utils/style';
 
-export type AudienceActionLocalIntervention = Extract<
-  InterventionType,
-  InterventionType.TYPE_REWARDED_AD | InterventionType.TYPE_NEWSLETTER_SIGNUP
->;
+export type AudienceActionLocalIntervention =
+  | InterventionType.TYPE_REWARDED_AD
+  | InterventionType.TYPE_NEWSLETTER_SIGNUP;
 
 export interface AudienceActionLocalParams {
   action: AudienceActionLocalIntervention;

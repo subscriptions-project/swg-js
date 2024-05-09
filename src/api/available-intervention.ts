@@ -16,7 +16,8 @@
 
 import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
-import {Intervention} from '../runtime/entitlements-manager';
+import {Intervention} from '../runtime/intervention';
+import {InterventionType} from './intervention-type';
 import {SurveyDataTransferRequest} from '../proto/api_messages';
 
 /**
@@ -54,18 +55,6 @@ export interface ShowInterventionParams {
   // Callback to get the result data from the intervention. Return a boolean
   // indicating if the data was recorded successfully.
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
-}
-
-/**
- * Intervention types that can be returned from the article endpoint.
- */
-export enum InterventionType {
-  TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL',
-  TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP',
-  TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY',
-  TYPE_REWARDED_AD = 'TYPE_REWARDED_AD',
-  TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION',
-  TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION',
 }
 
 export class AvailableIntervention {

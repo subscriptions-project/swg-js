@@ -41,7 +41,8 @@ import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {InterventionResult, InterventionType} from '../api/interventions';
+import {InterventionResult} from '../api/available-intervention';
+import {InterventionType} from '../api/intervention-type';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
@@ -56,12 +57,10 @@ export interface AudienceActionFlow {
   showNoEntitlementFoundToast: () => void;
 }
 
-export type AudienceActionIframeIntervention = Extract<
-  InterventionType,
+export type AudienceActionIframeIntervention =
   | InterventionType.TYPE_REGISTRATION_WALL
   | InterventionType.TYPE_NEWSLETTER_SIGNUP
-  | InterventionType.TYPE_REWARDED_SURVEY
->;
+  | InterventionType.TYPE_REWARDED_SURVEY;
 
 export interface AudienceActionIframeParams {
   action: AudienceActionIframeIntervention;
