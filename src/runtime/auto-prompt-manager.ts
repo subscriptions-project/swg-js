@@ -517,45 +517,48 @@ export class AutoPromptManager {
     };
   }
 
-  private chooseAudienceActionFlow(opt: {
+  private chooseAudienceActionFlow({
+    action,
+    configurationId,
+    preference,
+  }: {
     action: InterventionType;
     configurationId?: string;
-    autoPromptType?: AutoPromptType;
-    isClosable?: boolean;
     preference?: string;
   }): AudienceActionFlow {
-    if (opt.action === InterventionType.TYPE_REWARDED_AD) {
+    if (action === InterventionType.TYPE_REWARDED_AD) {
       return new AudienceActionLocalFlow(this.deps_, {
-        action: opt.action,
-        configurationId: opt.configurationId,
-        autoPromptType: opt.autoPromptType,
-        isClosable: opt.isClosable,
+        action,
+        configurationId,
+        autoPromptType: this.autoPromptType_,
+        isClosable: this.isClosable_,
         monetizationFunction: this.getLargeMonetizationPromptFn_(
-          opt.autoPromptType,
-          !!opt.isClosable,
           /* shouldAnimateFade */ false
         ),
+        calledManually: false,
       });
     } else if (
-      opt.action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
-      opt.preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
+      action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
+      preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
     ) {
       return new AudienceActionLocalFlow(this.deps_, {
-        action: opt.action,
-        configurationId: opt.configurationId,
-        autoPromptType: opt.autoPromptType,
-        isClosable: opt.isClosable,
+        action,
+        configurationId,
+        autoPromptType: this.autoPromptType_,
+        isClosable: this.isClosable_,
+        calledManually: false,
       });
     } else if (
-      opt.action === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
-      opt.action === InterventionType.TYPE_REGISTRATION_WALL ||
-      opt.action === InterventionType.TYPE_REWARDED_SURVEY
+      action === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      action === InterventionType.TYPE_REGISTRATION_WALL ||
+      action === InterventionType.TYPE_REWARDED_SURVEY
     ) {
       return new AudienceActionIframeFlow(this.deps_, {
-        action: opt.action,
-        configurationId: opt.configurationId,
-        autoPromptType: opt.autoPromptType,
-        isClosable: opt.isClosable,
+        action,
+        configurationId,
+        autoPromptType: this.autoPromptType_,
+        isClosable: this.isClosable_,
+        calledManually: false,
       });
     }
     throw Error();

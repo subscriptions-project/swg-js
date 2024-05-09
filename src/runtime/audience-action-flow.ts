@@ -73,12 +73,11 @@ export interface AudienceActionIframeParams {
   calledManually: boolean;
 }
 
-const actionToIframeMapping: Record<AudienceActionIframeIntervention, string> =
-  {
-    [InterventionType.TYPE_REGISTRATION_WALL]: '/regwalliframe',
-    [InterventionType.TYPE_NEWSLETTER_SIGNUP]: '/newsletteriframe',
-    [InterventionType.TYPE_REWARDED_SURVEY]: '/surveyiframe',
-  };
+const ACTION_TO_IFRAME: Record<AudienceActionIframeIntervention, string> = {
+  [InterventionType.TYPE_REGISTRATION_WALL]: '/regwalliframe',
+  [InterventionType.TYPE_NEWSLETTER_SIGNUP]: '/newsletteriframe',
+  [InterventionType.TYPE_REWARDED_SURVEY]: '/surveyiframe',
+};
 
 const autopromptTypeToProductTypeMapping: {
   [key in AutoPromptType]?: ProductType;
@@ -132,7 +131,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.activityIframeView_ = new ActivityIframeView(
       deps_.win(),
       deps_.activities(),
-      feUrl(actionToIframeMapping[params_.action], iframeParams),
+      feUrl(ACTION_TO_IFRAME[params_.action], iframeParams),
       feArgs({
         'supportsEventManager': true,
         'productType': this.productType_,
