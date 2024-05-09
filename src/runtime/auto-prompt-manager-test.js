@@ -1604,6 +1604,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -1637,6 +1638,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -1678,6 +1680,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -1728,6 +1731,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -1788,6 +1792,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -1821,6 +1826,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'newsletter_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -1872,6 +1878,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'newsletter_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -1934,6 +1941,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'newsletter_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -2006,6 +2014,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'newsletter_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -2332,6 +2341,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: false,
+        calledFromAPI: false,
       });
     });
 
@@ -2386,6 +2396,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'regwall_config_id',
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
 
@@ -2466,6 +2477,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
     });
   });
@@ -2691,6 +2703,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: false,
         monetizationFunction: sandbox.match.any,
+        calledFromAPI: false,
       });
       expect(startLocalSpy).to.have.been.calledOnce;
       expect(startSpy).to.not.have.been.called;
@@ -2719,6 +2732,7 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'newsletter_config_id',
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
+        calledFromAPI: false,
       });
       expect(startLocalSpy).to.have.been.calledOnce;
       expect(startSpy).to.not.have.been.called;

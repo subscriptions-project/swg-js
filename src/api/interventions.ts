@@ -91,6 +91,7 @@ export class AvailableIntervention {
       action: this.intervention.type,
       configurationId: this.intervention.configurationId,
       onResult: params.onResult,
+      calledFromAPI: true,
     });
     return flow.start();
   }
