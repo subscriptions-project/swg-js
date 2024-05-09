@@ -70,6 +70,7 @@ export interface AudienceActionIframeParams {
   autoPromptType?: AutoPromptType;
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
   isClosable?: boolean;
+  calledManually: boolean;
 }
 
 const actionToIframeMapping: Record<AudienceActionIframeIntervention, string> =
@@ -123,6 +124,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       'origin': parseUrl(deps_.win().location.href).origin,
       'configurationId': this.params_.configurationId || '',
       'isClosable': (!!params_.isClosable).toString(),
+      'calledManually': params_.calledManually.toString(),
     };
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();

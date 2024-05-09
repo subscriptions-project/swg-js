@@ -123,10 +123,17 @@ export class GaaMetering {
     // Provide an option to bypass SwG init for 3P integrations.
     const shouldInitializeSwG = params.shouldInitializeSwG ?? true;
 
+    // Provide an option to manually configure SwG during initialization.
+    const swgInitConfig = params.swgInitConfig ?? undefined;
+
     const paywallType = GaaMetering.determinePaywallType(params);
 
     callSwg(async (subscriptions) => {
       if (shouldInitializeSwG) {
+        if (swgInitConfig !== undefined) {
+          subscriptions.configure(swgInitConfig);
+        }
+
         subscriptions.init(productId);
       }
 

@@ -63,6 +63,7 @@ export interface AudienceActionLocalParams {
   onResult?: (result: {}) => Promise<boolean> | boolean;
   isClosable?: boolean;
   monetizationFunction?: () => void;
+  calledManually: boolean;
 }
 
 interface AudienceActionConfig {

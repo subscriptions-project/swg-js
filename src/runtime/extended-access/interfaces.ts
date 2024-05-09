@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Config} from '../../api/subscriptions';
 import {GrantReasonType, PaywallType} from './constants';
 
 /**
@@ -106,6 +107,7 @@ export interface InitParamsDef {
   rawJwt: boolean | null;
   userState: UserState;
   shouldInitializeSwG?: boolean;
+  swgInitConfig?: Config;
 }
 
 /** User's current metering state. */

@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['basic'],
-  /*
+
   'Show button': (browser) => {
     const basic = browser.page.basic();
     basic
@@ -33,5 +33,4 @@ module.exports = {
       .checkPayment()
       .end();
   },
-*/
 };

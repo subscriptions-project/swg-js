@@ -35,7 +35,6 @@ import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
-import {ExperimentFlags} from './experiment-flags';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {InterventionType} from '../api/interventions';
 import {MiniPromptApi} from './mini-prompt-api';
@@ -44,7 +43,6 @@ import {PageConfig} from '../model/page-config';
 import {Storage, pruneTimestamps} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
-import {isExperimentOn} from './experiments';
 
 const SECOND_IN_MILLIS = 1000;
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
@@ -236,13 +234,11 @@ export class AutoPromptManager {
     // Manual override of display rules, mainly for demo purposes. Requires
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
-      const promptFn = this.getMonetizationPromptFn_(
-        this.getPromptTypeToDisplay_(params.autoPromptType),
-        this.getLargeMonetizationPromptFn_(
-          params.autoPromptType,
-          params.isClosable ?? !this.isSubscription_(params.autoPromptType)
-        )
+      this.autoPromptType_ = this.getPromptTypeToDisplay_(
+        params.autoPromptType
       );
+      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
+      const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
     }
@@ -296,19 +292,15 @@ export class AutoPromptManager {
 
     // Article response is honored over code snippet in case of conflict, such
     // as when publisher changes revenue model but does not update snippet.
-    const autoPromptType = this.getAutoPromptType_(
+    this.autoPromptType_ = this.getAutoPromptType_(
       article.audienceActions?.actions,
       params.autoPromptType
     )!;
-    this.autoPromptType_ = autoPromptType;
 
     // Default isClosable to what is set in the page config.
     // Otherwise, the prompt is blocking for publications with a
     // subscription revenue model, while all others can be dismissed.
-    const isClosable =
-      params.isClosable ?? !this.isSubscription_(autoPromptType);
-    // TODO(b/303489420): cleanup passing of autoPromptManager params.
-    this.isClosable_ = isClosable;
+    this.isClosable_ = params.isClosable ?? !this.isSubscription_();
 
     // Frequency cap flow utilizes config and timestamps to determine next
     // action. Metered flow strictly follows prompt order. Display delay is
@@ -320,16 +312,11 @@ export class AutoPromptManager {
       frequencyCapConfig,
     });
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
-      ? this.getMonetizationPromptFn_(
-          autoPromptType,
-          this.getLargeMonetizationPromptFn_(autoPromptType, isClosable)
-        )
+      ? this.getMonetizationPromptFn_()
       : potentialAction
       ? this.getAudienceActionPromptFn_({
           action: potentialAction.type,
           configurationId: potentialAction.configurationId,
-          autoPromptType,
-          isClosable,
           preference: potentialAction.preference,
         })
       : undefined;
@@ -340,7 +327,7 @@ export class AutoPromptManager {
 
     this.promptIsFromCtaButton_ = false;
     // Add display delay to dismissible prompts.
-    const displayDelayMs = isClosable
+    const displayDelayMs = this.isClosable_
       ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
           ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS
       : 0;
@@ -348,17 +335,17 @@ export class AutoPromptManager {
     return;
   }
 
-  private isSubscription_(autoPromptType: AutoPromptType | undefined): boolean {
+  private isSubscription_(): boolean {
     return (
-      autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE
+      this.autoPromptType_ === AutoPromptType.SUBSCRIPTION ||
+      this.autoPromptType_ === AutoPromptType.SUBSCRIPTION_LARGE
     );
   }
 
-  private isContribution_(autoPromptType: AutoPromptType | undefined): boolean {
+  private isContribution_(): boolean {
     return (
-      autoPromptType === AutoPromptType.CONTRIBUTION ||
-      autoPromptType === AutoPromptType.CONTRIBUTION_LARGE
+      this.autoPromptType_ === AutoPromptType.CONTRIBUTION ||
+      this.autoPromptType_ === AutoPromptType.CONTRIBUTION_LARGE
     );
   }
 
@@ -500,16 +487,17 @@ export class AutoPromptManager {
    * or undefined if the type of prompt cannot be determined.
    */
   private getLargeMonetizationPromptFn_(
-    autoPromptType: AutoPromptType | undefined,
-    isClosable: boolean,
     shouldAnimateFade: boolean = true
   ): (() => void) | undefined {
-    const options: OffersRequest = {isClosable, shouldAnimateFade};
-    if (this.isSubscription_(autoPromptType)) {
+    const options: OffersRequest = {
+      isClosable: !!this.isClosable_,
+      shouldAnimateFade,
+    };
+    if (this.isSubscription_()) {
       return () => {
         this.configuredRuntime_.showOffers(options);
       };
-    } else if (this.isContribution_(autoPromptType)) {
+    } else if (this.isContribution_()) {
       return () => {
         this.configuredRuntime_.showContributionOptions(options);
       };
@@ -520,8 +508,6 @@ export class AutoPromptManager {
   private getAudienceActionPromptFn_(opt: {
     action: InterventionType;
     configurationId?: string;
-    autoPromptType?: AutoPromptType;
-    isClosable?: boolean;
     preference?: string;
   }): () => void {
     return () => {
@@ -586,22 +572,20 @@ export class AutoPromptManager {
   /**
    * Shows the prompt based on the type specified.
    */
-  private getMonetizationPromptFn_(
-    autoPromptType?: AutoPromptType,
-    displayLargePromptFn?: () => void
-  ): () => void {
+  private getMonetizationPromptFn_(): () => void {
+    const displayLargePromptFn = this.getLargeMonetizationPromptFn_();
     return () => {
       if (
-        autoPromptType === AutoPromptType.SUBSCRIPTION ||
-        autoPromptType === AutoPromptType.CONTRIBUTION
+        this.autoPromptType_ === AutoPromptType.SUBSCRIPTION ||
+        this.autoPromptType_ === AutoPromptType.CONTRIBUTION
       ) {
         this.miniPromptAPI_.create({
-          autoPromptType,
+          autoPromptType: this.autoPromptType_,
           clickCallback: displayLargePromptFn,
         });
       } else if (
-        (autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-          autoPromptType === AutoPromptType.CONTRIBUTION_LARGE) &&
+        (this.autoPromptType_ === AutoPromptType.SUBSCRIPTION_LARGE ||
+          this.autoPromptType_ === AutoPromptType.CONTRIBUTION_LARGE) &&
         displayLargePromptFn
       ) {
         displayLargePromptFn();
@@ -610,24 +594,16 @@ export class AutoPromptManager {
   }
 
   /**
-   * Returns which type of prompt to display based on the type specified,
-   * the viewport width, and whether the disableDesktopMiniprompt experiment
-   * is enabled.
-   *
-   * If the disableDesktopMiniprompt experiment is enabled and the desktop is
-   * wider than 480px then the large prompt type will be substituted for the mini
-   * prompt. The original promptType will be returned as-is in all other cases.
+   * Returns which type of prompt to display based on the type specified and
+   * the viewport width. If the desktop is wider than 480px, then the large
+   * prompt type will be substituted for the miniprompt. The original
+   * promptType will be returned as-is in all other cases.
    */
   private getPromptTypeToDisplay_(
     promptType?: AutoPromptType
   ): AutoPromptType | undefined {
-    const disableDesktopMiniprompt = isExperimentOn(
-      this.doc_.getWin(),
-      ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT
-    );
     const isWideDesktop = this.getInnerWidth_() > 480;
-
-    if (disableDesktopMiniprompt && isWideDesktop) {
+    if (isWideDesktop) {
       if (promptType === AutoPromptType.SUBSCRIPTION) {
         this.logDisableMinipromptEvent_(promptType);
         return AutoPromptType.SUBSCRIPTION_LARGE;
@@ -826,10 +802,10 @@ export class AutoPromptManager {
       action = COMPLETION_EVENTS_TO_ACTION_MAP.get(event);
       this.storeCompletion(action!);
     } else if (GENERIC_COMPLETION_EVENTS.includes(event)) {
-      if (this.isContribution_(this.autoPromptType_)) {
+      if (this.isContribution_()) {
         this.storeCompletion(InterventionType.TYPE_CONTRIBUTION);
       }
-      if (this.isSubscription_(this.autoPromptType_)) {
+      if (this.isSubscription_()) {
         this.storeCompletion(InterventionType.TYPE_SUBSCRIPTION);
       }
       // TODO(justinchou@) handle failure modes for event EVENT_PAYMENT_FAILED

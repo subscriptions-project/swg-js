@@ -16,7 +16,7 @@
 
 module.exports = {
   '@tags': ['smart'],
-  /*
+
   'Show Smart Button': (browser) => {
     const smartButton = browser.page.smartButton();
     smartButton
@@ -52,5 +52,4 @@ module.exports = {
       })
       .end();
   },
-*/
 };

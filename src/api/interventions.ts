@@ -95,7 +95,8 @@ export class AvailableIntervention {
         action: this.intervention.type,
         configurationId: this.intervention.configurationId,
         onResult: params.onResult,
-      });
+        calledManually: true,
+    });
       return flow.start();
     }
     return;

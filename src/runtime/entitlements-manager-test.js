@@ -2984,6 +2984,7 @@ describes.realWin('EntitlementsManager', (env) => {
         action: 'TEST_ACTION',
         configurationId: 'TEST_CONFIGURATION_ID',
         onResult: undefined,
+        calledManually: true,
       });
       expect(startSpy).to.have.been.calledOnce;
     });
