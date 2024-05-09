@@ -25,7 +25,7 @@ import {
   Timestamp,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
-import {AudienceActionIframeFlow} from './audience-action-flow';
+import {AvailableIntervention, InterventionType} from '../api/interventions';
 import {ClientConfig} from '../model/client-config';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {
@@ -60,47 +60,19 @@ import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
 
-export interface ShowInterventionParams {
-  /** Determine whether the view is closable. */
-  isClosable?: boolean;
-
-  /**
-   * Callback to get the intervention result and decide if it completes.
-   * Takes either a normal or async function and returns `true` if the
-   * intervention should be marked complete.
-   */
-  onResult?: (result: {}) => Promise<boolean> | boolean;
-}
-
+/**
+ * Intervention returned from the article endpoint. Interventions are configured
+ * in the Publisher Center, and are used to display a prompt.
+ */
 export interface Intervention {
-  readonly type: string;
+  // Indicates what type of intervention this is.
+  readonly type: InterventionType;
+  // ID used to fetch the configuration for the intervention. IDs are found in
+  // the Publisher Center.
   readonly configurationId?: string;
+  // Indicates if the intervention should be Google provided, or publisher
+  // provided.
   readonly preference?: string;
-}
-
-export class AvailableIntervention implements Intervention {
-  readonly type: string;
-  readonly configurationId?: string;
-  readonly preference?: string;
-
-  constructor(original: Intervention, private readonly deps_: Deps) {
-    this.type = original.type;
-    this.configurationId = original.configurationId;
-    this.preference = original.preference;
-  }
-
-  /**
-   * Starts the intervention flow.
-   */
-  show(params: ShowInterventionParams): Promise<void> {
-    const flow = new AudienceActionIframeFlow(this.deps_, {
-      isClosable: params.isClosable,
-      action: this.type,
-      configurationId: this.configurationId,
-      onResult: params.onResult,
-    });
-    return flow.start();
-  }
 }
 
 /**

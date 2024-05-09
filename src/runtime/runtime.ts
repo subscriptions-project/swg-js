@@ -39,6 +39,7 @@ import {
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ArticleExperimentFlags} from './experiment-flags';
+import {AvailableIntervention} from '../api/interventions';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
@@ -587,6 +588,11 @@ export class Runtime implements SubscriptionsInterface {
   ): Promise<LinkSubscriptionResult> {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
+  }
+
+  async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
+    const runtime = await this.configured_(true);
+    return runtime.getAvailableInterventions();
   }
 }
 
@@ -1238,6 +1244,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     await this.documentParsed_;
     return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
   }
+
+  async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
+    return this.entitlementsManager().getAvailableInterventions();
+  }
 }
 
 function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
@@ -1287,5 +1297,6 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
   };
 }

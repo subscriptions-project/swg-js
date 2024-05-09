@@ -832,6 +832,9 @@ export class CompleteAudienceActionResponse implements Message {
   private actionCompleted_: boolean | null;
   private userEmail_: string | null;
   private alreadyCompleted_: boolean | null;
+  private displayName_: string | null;
+  private givenName_: string | null;
+  private familyName_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -846,6 +849,15 @@ export class CompleteAudienceActionResponse implements Message {
 
     this.alreadyCompleted_ =
       data[3 + base] == null ? null : (data[3 + base] as boolean);
+
+    this.displayName_ =
+      data[4 + base] == null ? null : (data[4 + base] as string);
+
+    this.givenName_ =
+      data[5 + base] == null ? null : (data[5 + base] as string);
+
+    this.familyName_ =
+      data[6 + base] == null ? null : (data[6 + base] as string);
   }
 
   getSwgUserToken(): string | null {
@@ -880,12 +892,39 @@ export class CompleteAudienceActionResponse implements Message {
     this.alreadyCompleted_ = value;
   }
 
+  getDisplayName(): string | null {
+    return this.displayName_;
+  }
+
+  setDisplayName(value: string): void {
+    this.displayName_ = value;
+  }
+
+  getGivenName(): string | null {
+    return this.givenName_;
+  }
+
+  setGivenName(value: string): void {
+    this.givenName_ = value;
+  }
+
+  getFamilyName(): string | null {
+    return this.familyName_;
+  }
+
+  setFamilyName(value: string): void {
+    this.familyName_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.swgUserToken_, // field 1 - swg_user_token
       this.actionCompleted_, // field 2 - action_completed
       this.userEmail_, // field 3 - user_email
       this.alreadyCompleted_, // field 4 - already_completed
+      this.displayName_, // field 5 - display_name
+      this.givenName_, // field 6 - given_name
+      this.familyName_, // field 7 - family_name
     ];
     if (includeLabel) {
       arr.unshift(this.label());

@@ -41,6 +41,7 @@ import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {InterventionResult} from '../api/interventions';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
@@ -51,7 +52,7 @@ import {parseUrl} from '../utils/url';
 import {warn} from '../utils/log';
 
 export interface AudienceActionFlow {
-  start: () => void;
+  start: () => Promise<void>;
   showNoEntitlementFoundToast: () => void;
 }
 
@@ -60,10 +61,11 @@ export interface AudienceActionIframeParams {
   configurationId?: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
-  onResult?: (result: {}) => Promise<boolean> | boolean;
+  onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
   isClosable?: boolean;
 }
 
+// TODO: mhkawano - replace these consts in the project with these
 // Action types returned by the article endpoint
 export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
@@ -179,12 +181,25 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse
   ): void {
+    const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
       this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
     }
+    if (this.isOptIn(this.params_.action) && onResult) {
+      onResult({
+        configurationId,
+        data: {
+          email: response.getUserEmail(),
+          displayName: response.getDisplayName(),
+          givenName: response.getGivenName(),
+          familyName: response.getFamilyName(),
+        },
+      });
+    }
+
     if (response.getActionCompleted()) {
       this.showSignedInToast_(response.getUserEmail() ?? '');
     } else if (response.getAlreadyCompleted()) {
@@ -226,6 +241,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         customText,
       })
     ).open();
+  }
+
+  private isOptIn(action: string): boolean {
+    return (
+      action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL
+    );
   }
 
   private showAlreadyOptedInToast_(): void {
@@ -333,7 +354,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const {onResult} = this.params_;
     if (onResult) {
       try {
-        return await onResult(request);
+        return await onResult({
+          configurationId: this.params_.configurationId,
+          data: request,
+        });
       } catch (e) {
         warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
         return false;

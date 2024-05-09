@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AvailableIntervention} from '../api/interventions';
 import {ClientEventManagerApi} from './client-event-manager-api';
 import {
   DeferredAccountCreationRequest,
@@ -290,6 +291,12 @@ export interface Subscriptions {
    * Sets the publisherProvidedId.
    */
   setPublisherProvidedId(publisherProvidedId: string): Promise<void> | void;
+
+  /**
+   * Returns a list of available interventions. If there are no interventions available
+   * an empty array is returned. If the article does not exist, null is returned.
+   */
+  getAvailableInterventions(): Promise<AvailableIntervention[] | null>;
 }
 
 export enum ShowcaseEvent {

@@ -831,6 +831,18 @@ describes.realWin('Runtime', (env) => {
       expect(result).to.deep.equal(mockResult);
     });
 
+    it('delegates getAvailableInterventions', async () => {
+      const mockResult = [];
+      configuredRuntimeMock
+        .expects('getAvailableInterventions')
+        .once()
+        .resolves(mockResult);
+
+      const result = await runtime.getAvailableInterventions();
+
+      expect(result).to.deep.equal(mockResult);
+    });
+
     it('should directly call "attachButton"', () => {
       const options = {};
       const callback = () => {};
@@ -2325,6 +2337,21 @@ subscribe() method'
         const result = await runtime.linkSubscription(request);
 
         expect(start).to.be.calledOnceWith(request);
+        expect(result).to.deep.equal(mockResult);
+      });
+    });
+
+    describe('getAvailableInterventions', () => {
+      it('starts getAvailableInterventions', async () => {
+        const mockResult = [];
+        entitlementsManagerMock
+          .expects('getAvailableInterventions')
+          .withExactArgs()
+          .resolves(mockResult)
+          .once();
+
+        const result = await runtime.getAvailableInterventions();
+
         expect(result).to.deep.equal(mockResult);
       });
     });

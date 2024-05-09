@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Funnel for Enterprise Demo</title>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+
+      h1 {
+        text-align: center;
+      }
+      
+      table {
+        border-collapse: collapse;
+      }
+
+      thead {
+        background-color: rgb(165, 223, 177);
+      }
+
+      th, td {
+        padding: 10px;
+      }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "http://schema.org",
+        "@type": "NewsArticle",
+        "isAccessibleForFree": false,
+        "isPartOf": {
+          "@type": ["CreativeWork", "Product"],
+          "name" : "Funnel for Enterprise Demo",
+          "productID": "CAowtIuHAQ:openaccess"
+        }
+      }
+    </script>
+
+    <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
+
+    <script>
+      function clearLocalStorage() {
+        localStorage.removeItem("subscribe.google.com:USER_TOKEN");
+      }
+
+      function addResultRow(result) {
+        const table = document.getElementById("resultTable");
+        const row = document.createElement('tr');
+        const html = `
+          <td scope="col">${result.configurationId}</td>
+          <td scope="col">${result.data.email}</td>
+          <td scope="col">${result.data.displayName}</td>
+          <td scope="col">${result.data.givenName}</td>
+          <td scope="col">${result.data.familyName}</td>
+        `;
+        row.innerHTML = html;
+        table.appendChild(row);
+      }
+
+      function addInterventionRow(intervention) {
+        const table = document.getElementById("interventionTable");
+        const row = document.createElement('tr');
+        const html = `
+          <td scope="col"><button>Show</button></td>
+          <td scope="col">${intervention.type}</td>
+          <td scope="col">${intervention.configurationId}</td>
+        `;
+        row.innerHTML = html;
+        const button = row.getElementsByTagName('button')[0];
+        button.onclick = () => {
+          intervention.show({
+            isClosable: 'true',
+            onResult: addResultRow
+          });
+        }
+        table.appendChild(row);
+      }
+
+      (self.SWG = self.SWG || []).push(async subscriptions => {
+        const availableInterventions = await subscriptions.getAvailableInterventions();
+        availableInterventions.forEach(addInterventionRow);
+      });
+    </script>
+  </head>
+
+  <body>
+    <div class="content">
+      <article>
+        <h1>Funnel for Enterprise Demo</h1>
+        <button onclick="clearLocalStorage()">Clear local storage</button>
+        <h2>Available Interventions</h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Activate</th>
+              <th scope="col">Type</th>
+              <th scope="col">ID</th>
+            </tr>
+          </thead>
+          <tbody id="interventionTable">
+          </tbody>
+        </table>
+        <h2>Interventions Results</h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">email</th>
+              <th scope="col">displayName</th>
+              <th scope="col">givenName</th>
+              <th scope="col">familyName</th>
+            </tr>
+          </thead>
+          <tbody id="resultTable">
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </body>
+</html>
