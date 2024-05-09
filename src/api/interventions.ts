@@ -16,6 +16,7 @@
 
 import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
+import {Intervention} from '../runtime/entitlements-manager';
 import {SurveyDataTransferRequest} from '../proto/api_messages';
 
 /**
@@ -37,7 +38,9 @@ export interface OptInResult {
  * Result of an intervention passed to the AvailableIntervention.show callback.
  */
 export interface InterventionResult {
+  // Configuration id of the intervention
   configurationId?: string;
+  // Data returned from the intervention
   data: OptInResult | SurveyDataTransferRequest;
 }
 
@@ -45,13 +48,11 @@ export interface InterventionResult {
  * Params passed to the AvailableIntervention.show method.
  */
 export interface ShowInterventionParams {
-  /** Determine whether the view is closable. */
+  // Determine whether the view is closable.
   isClosable?: boolean;
 
-  /**
-   * Callback to get the result data from the intervention. Return a boolean
-   * indicating if the data was recorded successfully.
-   */
+  // Callback to get the result data from the intervention. Return a boolean
+  // indicating if the data was recorded successfully.
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
 }
 
@@ -68,30 +69,17 @@ export enum InterventionType {
   TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION',
 }
 
-/**
- * Intervention returned from the article endpoint. Interventions are configured
- * in the Publisher Center, and are used to display a prompt.
- */
-export interface Intervention {
-  // Indicates what type of intervention this is.
+export class AvailableIntervention {
   readonly type: InterventionType;
-  // ID used to fetch the configuration for the intervention. IDs are found in
-  // the Publisher Center.
-  readonly configurationId?: string;
-  // Indicates if the intervention should be Google provided, or publisher
-  // provided.
-  readonly preference?: string;
-}
 
-export class AvailableIntervention implements Intervention {
-  readonly type: InterventionType;
   readonly configurationId?: string;
-  readonly preference?: string;
+
+  private readonly intervention: Intervention;
 
   constructor(original: Intervention, private readonly deps_: Deps) {
+    this.intervention = original;
     this.type = original.type;
     this.configurationId = original.configurationId;
-    this.preference = original.preference;
   }
 
   /**
@@ -100,8 +88,8 @@ export class AvailableIntervention implements Intervention {
   show(params: ShowInterventionParams): Promise<void> {
     const flow = new AudienceActionIframeFlow(this.deps_, {
       isClosable: params.isClosable,
-      action: this.type,
-      configurationId: this.configurationId,
+      action: this.intervention.type,
+      configurationId: this.intervention.configurationId,
       onResult: params.onResult,
     });
     return flow.start();
