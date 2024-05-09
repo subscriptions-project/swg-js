@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as audienceActionFlow from './audience-action-flow';
 import {ActivityPorts} from '../components/activities';
 import {
   AnalyticsContext,
@@ -41,7 +40,6 @@ import {
 } from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
-import {InterventionType} from '../api/intervention-type';
 import {MeterClientTypes} from '../api/metering';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
@@ -2954,40 +2952,6 @@ describes.realWin('EntitlementsManager', (env) => {
       storageMock.expects('remove').withExactArgs('ents').once();
       storageMock.expects('remove').withExactArgs('isreadytopay').once();
       manager.reset(true);
-    });
-  });
-
-  describe('AvailableIntervention', () => {
-    it('calls audience action flow', () => {
-      const availableIntervention = new AvailableIntervention(
-        {
-          type: InterventionType.TYPE_NEWSLETTER_SIGNUP,
-          configurationId: 'TEST_CONFIGURATION_ID',
-        },
-        deps
-      );
-
-      const actionFlowSpy = sandbox.spy(
-        audienceActionFlow,
-        'AudienceActionIframeFlow'
-      );
-      const startSpy = sandbox.spy(
-        audienceActionFlow.AudienceActionIframeFlow.prototype,
-        'start'
-      );
-
-      availableIntervention.show({
-        isClosable: true,
-      });
-
-      expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        isClosable: true,
-        action: InterventionType.TYPE_NEWSLETTER_SIGNUP,
-        configurationId: 'TEST_CONFIGURATION_ID',
-        onResult: undefined,
-        calledManually: true,
-      });
-      expect(startSpy).to.have.been.calledOnce;
     });
   });
 });

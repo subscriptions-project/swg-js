@@ -167,6 +167,12 @@ interface ActionTimestamps {
   completions: number[];
 }
 
+type NonMonetizationIntervention =
+  | InterventionType.TYPE_NEWSLETTER_SIGNUP
+  | InterventionType.TYPE_REGISTRATION_WALL
+  | InterventionType.TYPE_REWARDED_SURVEY
+  | InterventionType.TYPE_REWARDED_AD;
+
 /**
  * Manages the display of subscription/contribution prompts automatically
  * displayed to the user.
@@ -312,7 +318,7 @@ export class AutoPromptManager {
       ? this.getMonetizationPromptFn_()
       : potentialAction
       ? this.getAudienceActionPromptFn_({
-          action: potentialAction.type,
+          action: potentialAction.type as NonMonetizationIntervention,
           configurationId: potentialAction.configurationId,
           preference: potentialAction.preference,
         })
@@ -503,7 +509,7 @@ export class AutoPromptManager {
   }
 
   private getAudienceActionPromptFn_(opt: {
-    action: InterventionType;
+    action: NonMonetizationIntervention;
     configurationId?: string;
     preference?: string;
   }): () => void {
@@ -519,7 +525,7 @@ export class AutoPromptManager {
     configurationId,
     preference,
   }: {
-    action: InterventionType;
+    action: NonMonetizationIntervention;
     configurationId?: string;
     preference?: string;
   }): AudienceActionFlow {
@@ -545,20 +551,14 @@ export class AutoPromptManager {
         isClosable: this.isClosable_,
         calledManually: false,
       });
-    } else if (
-      action === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
-      action === InterventionType.TYPE_REGISTRATION_WALL ||
-      action === InterventionType.TYPE_REWARDED_SURVEY
-    ) {
-      return new AudienceActionIframeFlow(this.deps_, {
-        action,
-        configurationId,
-        autoPromptType: this.autoPromptType_,
-        isClosable: this.isClosable_,
-        calledManually: false,
-      });
     }
-    throw Error();
+    return new AudienceActionIframeFlow(this.deps_, {
+      action,
+      configurationId,
+      autoPromptType: this.autoPromptType_,
+      isClosable: this.isClosable_,
+      calledManually: false,
+    });
   }
 
   setLastAudienceActionFlow(flow: AudienceActionFlow): void {

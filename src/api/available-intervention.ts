@@ -62,23 +62,19 @@ export class AvailableIntervention {
 
   readonly configurationId?: string;
 
-  private readonly intervention: Intervention;
-
-  constructor(original: Intervention, private readonly deps_: Deps) {
-    this.intervention = original;
-    this.type = original.type;
-    this.configurationId = original.configurationId;
+  constructor(
+    private readonly intervention: Intervention,
+    private readonly deps_: Deps
+  ) {
+    this.type = intervention.type;
+    this.configurationId = intervention.configurationId;
   }
 
   /**
    * Starts the intervention flow.
    */
   async show(params: ShowInterventionParams): Promise<void> {
-    if (
-      this.intervention.type === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
-      this.intervention.type === InterventionType.TYPE_REGISTRATION_WALL ||
-      this.intervention.type === InterventionType.TYPE_REWARDED_SURVEY
-    ) {
+    if (this.intervention.type === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
       const flow = new AudienceActionIframeFlow(this.deps_, {
         isClosable: params.isClosable,
         action: this.intervention.type,
@@ -88,6 +84,6 @@ export class AvailableIntervention {
       });
       return flow.start();
     }
-    return;
+    throw Error(`Can't show ${this.type}`);
   }
 }
