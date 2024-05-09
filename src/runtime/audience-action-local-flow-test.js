@@ -98,7 +98,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       onCancel: sandbox.spy(),
       isClosable: true,
       onResult: sandbox.spy(),
-      calledFromAPI: false,
+      calledManually: false,
     };
   });
 
