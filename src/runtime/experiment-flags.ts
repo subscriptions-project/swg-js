@@ -20,13 +20,7 @@
  * IMPORTANT: All flags should also be added to the e2e test configuration in
  * nightwatch.conf.js.
  */
-export enum ExperimentFlags {
-  /**
-   * Experiment flag for disabling the miniprompt icon on desktop screens wider
-   * than 480px.
-   */
-  DISABLE_DESKTOP_MINIPROMPT = 'disable-desktop-miniprompt',
-}
+export enum ExperimentFlags {}
 
 /**
  * Experiment flags within article experiment config.

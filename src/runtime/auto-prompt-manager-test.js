@@ -26,7 +26,6 @@ import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
-import {ExperimentFlags} from './experiment-flags';
 import {GlobalDoc} from '../model/doc';
 import {MiniPromptApi} from './mini-prompt-api';
 import {MockDeps} from '../../test/mock-deps';
@@ -34,7 +33,6 @@ import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {XhrFetcher} from './fetcher';
-import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
@@ -1142,7 +1140,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('should log events when a large prompt overrides the miniprompt', async () => {
       win./*OK*/ innerWidth = 500;
-      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
       const expectedEvent = {
         eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
         eventOriginator: EventOriginator.SWG_CLIENT,
@@ -1163,9 +1160,8 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(logEventSpy).to.be.calledOnceWith(expectedEvent);
     });
 
-    it('should replace the contribution miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
+    it('should replace the contribution miniprompt with a large prompt if viewport is wider than 480px', async () => {
       win./*OK*/ innerWidth = 500;
-      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
       miniPromptApiMock.expects('create').never();
 
       await autoPromptManager.showAutoPrompt({
@@ -1177,9 +1173,8 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(contributionPromptFnSpy).to.be.calledOnce;
     });
 
-    it('should replace the subscription miniprompt with a large prompt if DISABLE_DESKTOP_MINIPROMPT is enabled and viewport is wider than 480px', async () => {
+    it('should replace the subscription miniprompt with a large prompt if viewport is wider than 480px', async () => {
       win./*OK*/ innerWidth = 500;
-      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
       miniPromptApiMock.expects('create').never();
 
       await autoPromptManager.showAutoPrompt({
@@ -1191,9 +1186,8 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(subscriptionPromptFnSpy).to.be.calledOnce;
     });
 
-    it('should not replace the miniprompt with a large prompt when DISABLE_DESKTOP_MINIPROMPT is enabled but the viewport is narrower than 480px', async () => {
+    it('should not replace the miniprompt with a large prompt when the viewport is narrower than 480px', async () => {
       win./*OK*/ innerWidth = 450;
-      setExperiment(win, ExperimentFlags.DISABLE_DESKTOP_MINIPROMPT, true);
       const expectedEvent = {
         eventType: AnalyticsEvent.EVENT_DISABLE_MINIPROMPT_DESKTOP,
         eventOriginator: EventOriginator.SWG_CLIENT,
