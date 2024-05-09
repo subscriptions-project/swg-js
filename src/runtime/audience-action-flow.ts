@@ -41,7 +41,7 @@ import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {InterventionResult} from '../api/interventions';
+import {InterventionResult, InterventionType} from '../api/interventions';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
@@ -56,8 +56,15 @@ export interface AudienceActionFlow {
   showNoEntitlementFoundToast: () => void;
 }
 
+export type AudienceActionIframeIntervention = Extract<
+  InterventionType,
+  | InterventionType.TYPE_REGISTRATION_WALL
+  | InterventionType.TYPE_NEWSLETTER_SIGNUP
+  | InterventionType.TYPE_REWARDED_SURVEY
+>;
+
 export interface AudienceActionIframeParams {
-  action: string;
+  action: AudienceActionIframeIntervention;
   configurationId?: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
@@ -65,18 +72,12 @@ export interface AudienceActionIframeParams {
   isClosable?: boolean;
 }
 
-// TODO: mhkawano - replace these consts in the project with these
-// Action types returned by the article endpoint
-export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
-export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
-export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
-export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
-
-const actionToIframeMapping: {[key: string]: string} = {
-  TYPE_REGISTRATION_WALL: '/regwalliframe',
-  TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
-  TYPE_REWARDED_SURVEY: '/surveyiframe',
-};
+const actionToIframeMapping: Record<AudienceActionIframeIntervention, string> =
+  {
+    [InterventionType.TYPE_REGISTRATION_WALL]: '/regwalliframe',
+    [InterventionType.TYPE_NEWSLETTER_SIGNUP]: '/newsletteriframe',
+    [InterventionType.TYPE_REWARDED_SURVEY]: '/surveyiframe',
+  };
 
 const autopromptTypeToProductTypeMapping: {
   [key in AutoPromptType]?: ProductType;
@@ -218,13 +219,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
+      case InterventionType.TYPE_REGISTRATION_WALL:
         customText = msg(
           SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED_LANG_MAP,
           lang
         )!.replace(placeholderPatternForEmail, userEmail);
         break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
+      case InterventionType.TYPE_NEWSLETTER_SIGNUP:
         customText = msg(
           SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_LANG_MAP,
           lang
@@ -243,22 +244,23 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     ).open();
   }
 
-  private isOptIn(action: string): boolean {
+  private isOptIn(action: InterventionType): boolean {
     return (
-      action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL
+      action === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      action === InterventionType.TYPE_REGISTRATION_WALL
     );
   }
 
   private showAlreadyOptedInToast_(): void {
     let urlParams;
     switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
+      case InterventionType.TYPE_REGISTRATION_WALL:
         // Show 'Signed in as abc@gmail.com' toast on the pub page.
         urlParams = {
           flavor: 'basic',
         };
         break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
+      case InterventionType.TYPE_NEWSLETTER_SIGNUP:
         const lang = this.clientConfigManager_.getLanguage();
         const customText = msg(
           SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
@@ -280,13 +282,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
+      case InterventionType.TYPE_REGISTRATION_WALL:
         customText = msg(
           SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED_LANG_MAP,
           lang
         )!;
         break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
+      case InterventionType.TYPE_NEWSLETTER_SIGNUP:
         customText = msg(
           SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED_LANG_MAP,
           lang

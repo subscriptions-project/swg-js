@@ -15,11 +15,7 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
-import {
-  AudienceActionFlow,
-  TYPE_NEWSLETTER_SIGNUP,
-  TYPE_REWARDED_AD,
-} from './audience-action-flow';
+import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   BACK_TO_HOME_HTML,
@@ -39,6 +35,7 @@ import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {EntitlementsManager} from './entitlements-manager';
+import {InterventionType} from '../api/interventions';
 import {Message} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
@@ -53,8 +50,13 @@ import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 import {setStyle} from '../utils/style';
 
+export type AudienceActionLocalIntervention = Extract<
+  InterventionType,
+  InterventionType.TYPE_REWARDED_AD | InterventionType.TYPE_NEWSLETTER_SIGNUP
+>;
+
 export interface AudienceActionLocalParams {
-  action: string;
+  action: AudienceActionLocalIntervention;
   configurationId?: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
@@ -223,9 +225,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async initPrompt_() {
-    if (this.params_.action === TYPE_REWARDED_AD) {
+    if (this.params_.action === InterventionType.TYPE_REWARDED_AD) {
       await this.initRewardedAdWall_();
-    } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
+    } else if (
+      this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP
+    ) {
       await this.initNewsletterSignup_();
     } else {
       this.params_.onCancel?.();
@@ -779,9 +783,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   close() {
-    if (this.params_.action === TYPE_REWARDED_AD) {
+    if (this.params_.action === InterventionType.TYPE_REWARDED_AD) {
       this.closeRewardedAdWall_();
-    } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
+    } else if (
+      this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP
+    ) {
       this.closeOptInPrompt_();
     }
   }

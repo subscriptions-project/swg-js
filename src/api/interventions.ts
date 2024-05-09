@@ -56,7 +56,6 @@ export interface ShowInterventionParams {
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
 }
 
-// TODO: mhkawano - replace consts in the project with this enum
 /**
  * Intervention types that can be returned from the article endpoint.
  */
@@ -85,13 +84,20 @@ export class AvailableIntervention {
   /**
    * Starts the intervention flow.
    */
-  show(params: ShowInterventionParams): Promise<void> {
-    const flow = new AudienceActionIframeFlow(this.deps_, {
-      isClosable: params.isClosable,
-      action: this.intervention.type,
-      configurationId: this.intervention.configurationId,
-      onResult: params.onResult,
-    });
-    return flow.start();
+  async show(params: ShowInterventionParams): Promise<void> {
+    if (
+      this.intervention.type === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      this.intervention.type === InterventionType.TYPE_REGISTRATION_WALL ||
+      this.intervention.type === InterventionType.TYPE_REWARDED_SURVEY
+    ) {
+      const flow = new AudienceActionIframeFlow(this.deps_, {
+        isClosable: params.isClosable,
+        action: this.intervention.type,
+        configurationId: this.intervention.configurationId,
+        onResult: params.onResult,
+      });
+      return flow.start();
+    }
+    return;
   }
 }
