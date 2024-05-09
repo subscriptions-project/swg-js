@@ -471,7 +471,7 @@ export class AutoPromptManager {
               monetizationFunction: this.getLargeMonetizationPromptFn_(
                 /* shouldAnimateFade */ false
               ),
-              calledFromAPI: false,
+              calledManually: false,
             })
           : actionType === TYPE_NEWSLETTER_SIGNUP &&
             preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
@@ -480,14 +480,14 @@ export class AutoPromptManager {
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
-              calledFromAPI: false,
+              calledManually: false,
             })
           : new AudienceActionIframeFlow(this.deps_, {
               action: actionType,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
-              calledFromAPI: false,
+              calledManually: false,
             });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
