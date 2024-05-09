@@ -103,6 +103,7 @@ export class AvailableIntervention implements Intervention {
       action: this.type,
       configurationId: this.configurationId,
       onResult: params.onResult,
+      calledFromAPI: true,
     });
     return flow.start();
   }

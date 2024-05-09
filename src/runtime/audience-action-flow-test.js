@@ -227,6 +227,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         configurationId,
         onCancel: onCancelSpy,
         autoPromptType: AutoPromptType.SUBSCRIPTION,
+        calledFromAPI: false,
       });
       activitiesMock
         .expects('openIframe')
@@ -236,7 +237,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
             WINDOW_LOCATION_DOMAIN
           )}&configurationId=${
             configurationId === undefined ? '' : configurationId
-          }&isClosable=false`,
+          }&isClosable=false&calledFromAPI=false`,
           {
             _client: 'SwG 0.0.0',
             productType: ProductType.SUBSCRIPTION,
@@ -262,6 +263,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock
       .expects('openIframe')
@@ -269,7 +271,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=configId&isClosable=false&hl=pt-BR`,
+        )}&configurationId=configId&isClosable=false&calledFromAPI=false&hl=pt-BR`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
@@ -290,6 +292,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     sandbox
@@ -310,6 +313,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -354,6 +358,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -398,6 +403,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -440,6 +446,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -485,6 +492,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -528,6 +536,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -573,6 +582,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -605,6 +615,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -638,6 +649,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -677,6 +689,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       onResult: onResultMock,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
@@ -716,6 +729,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -735,6 +749,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -759,6 +774,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -848,6 +864,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
     eventManagerMock
@@ -897,6 +914,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -992,6 +1010,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
       onResult: onResultMock,
+      calledFromAPI: false,
     });
 
     activitiesMock.expects('openIframe').resolves(port);
@@ -1040,6 +1059,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
       onResult: onResultMock,
+      calledFromAPI: false,
     });
 
     activitiesMock.expects('openIframe').resolves(port);
@@ -1091,6 +1111,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
       onResult: onResultMock,
+      calledFromAPI: false,
     });
 
     activitiesMock.expects('openIframe').resolves(port);
@@ -1145,6 +1166,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
       onResult: onResultMock,
+      calledFromAPI: false,
     });
 
     activitiesMock.expects('openIframe').resolves(port);
@@ -1217,6 +1239,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
+      calledFromAPI: false,
     });
 
     activitiesMock.expects('openIframe').resolves(port);
@@ -1250,6 +1273,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -1283,6 +1307,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -1328,6 +1353,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -1351,6 +1377,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.CONTRIBUTION,
+      calledFromAPI: false,
     });
     activitiesMock.expects('openIframe').resolves(port);
 
@@ -1394,6 +1421,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     dialogManagerMock
       .expects('openView')
@@ -1413,6 +1441,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledFromAPI: false,
     });
     dialogManagerMock
       .expects('openView')
@@ -1435,6 +1464,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       isClosable: false,
+      calledFromAPI: false,
     });
     dialogManagerMock
       .expects('openView')
@@ -1457,6 +1487,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       isClosable: true,
+      calledFromAPI: false,
     });
     dialogManagerMock
       .expects('openView')
@@ -1480,6 +1511,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       isClosable: true,
+      calledFromAPI: false,
     });
     activitiesMock
       .expects('openIframe')
@@ -1487,7 +1519,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/surveyiframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=&isClosable=true`,
+        )}&configurationId=&isClosable=true&calledFromAPI=false`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,

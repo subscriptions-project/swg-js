@@ -1185,6 +1185,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
           configurationId: 'configId',
           fallback: undefined,
           autoPromptType: AutoPromptType.CONTRIBUTION,
+          calledFromAPI: false,
         }
       );
       const autoPromptManagerMock = sandbox.mock(

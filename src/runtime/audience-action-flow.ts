@@ -63,6 +63,7 @@ export interface AudienceActionIframeParams {
   autoPromptType?: AutoPromptType;
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
   isClosable?: boolean;
+  calledFromAPI: boolean;
 }
 
 // TODO: mhkawano - replace these consts in the project with these
@@ -122,6 +123,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       'origin': parseUrl(deps_.win().location.href).origin,
       'configurationId': this.params_.configurationId || '',
       'isClosable': (!!params_.isClosable).toString(),
+      'calledFromAPI': params_.calledFromAPI.toString(),
     };
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();

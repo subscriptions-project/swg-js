@@ -500,6 +500,7 @@ export class AutoPromptManager {
               configurationId,
               autoPromptType,
               isClosable,
+              calledFromAPI: false,
             });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
