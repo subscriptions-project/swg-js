@@ -52,6 +52,7 @@ import {parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 import {setStyle} from '../utils/style';
+import {warn} from '../utils/log';
 
 export interface AudienceActionLocalParams {
   action: string;
@@ -466,6 +467,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED
       );
+      warn('Rewarded ad slot could not be filled');
       this.bailoutPrompt_();
     }
   }
