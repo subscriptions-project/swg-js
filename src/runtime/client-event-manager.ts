@@ -25,7 +25,7 @@ import {
   ClientEventParams,
   FilterResult,
 } from '../api/client-event-manager-api';
-import {isBoolean, isEnumValue, isFunction, isObject} from '../utils/types';
+import {isBoolean, isEnumValue, isFunction, isObject, isString} from '../utils/types';
 import {log} from '../utils/log';
 
 /**
@@ -71,6 +71,12 @@ function validateEvent(event: ClientEvent) {
   if (event.isFromUserAction != null && !isBoolean(event.isFromUserAction)) {
     throw new Error(
       createEventErrorMessage('isFromUserAction', event.isFromUserAction)
+    );
+  }
+
+  if (event.configurationId != null && !isString(event.configurationId)) {
+    throw new Error(
+      createEventErrorMessage('configurationId', event.configurationId)
     );
   }
 }

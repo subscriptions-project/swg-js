@@ -286,6 +286,9 @@ export class AnalyticsService {
     const meta = new AnalyticsEventMeta();
     meta.setEventOriginator(event.eventOriginator);
     meta.setIsFromUserAction(!!event.isFromUserAction);
+    if (event.configurationId) {
+      meta.setConfigurationId(event.configurationId);
+    }
     // Update the request's timestamp.
     this.context_.setClientTimestamp(toTimestamp(event.timestamp!));
     const loadEventStartDelay = this.getLoadEventStartDelay_();

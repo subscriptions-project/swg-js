@@ -343,6 +343,7 @@ describe('AnalyticsEventMeta', () => {
     const /** !AnalyticsEventMeta  */ analyticseventmeta1 = new AnalyticsEventMeta();
     analyticseventmeta1.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
     analyticseventmeta1.setIsFromUserAction(false);
+    analyticseventmeta1.setConfigurationId('');
 
     let analyticseventmetaDeserialized;
 
@@ -358,6 +359,8 @@ describe('AnalyticsEventMeta', () => {
         analyticseventmeta1.getEventOriginator());
     expect(analyticseventmetaDeserialized.getIsFromUserAction()).to.deep.equal(
         analyticseventmeta1.getIsFromUserAction());
+    expect(analyticseventmetaDeserialized.getConfigurationId()).to.deep.equal(
+        analyticseventmeta1.getConfigurationId());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -371,6 +374,8 @@ describe('AnalyticsEventMeta', () => {
         analyticseventmeta1.getEventOriginator());
     expect(analyticseventmetaDeserialized.getIsFromUserAction()).to.deep.equal(
         analyticseventmeta1.getIsFromUserAction());
+    expect(analyticseventmetaDeserialized.getConfigurationId()).to.deep.equal(
+        analyticseventmeta1.getConfigurationId());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -383,6 +388,8 @@ describe('AnalyticsEventMeta', () => {
         analyticseventmeta1.getEventOriginator());
     expect(analyticseventmetaDeserialized.getIsFromUserAction()).to.deep.equal(
         analyticseventmeta1.getIsFromUserAction());
+    expect(analyticseventmetaDeserialized.getConfigurationId()).to.deep.equal(
+        analyticseventmeta1.getConfigurationId());
   });
 });
 
@@ -425,6 +432,7 @@ describe('AnalyticsRequest', () => {
     const /** !AnalyticsEventMeta  */ analyticseventmeta1 = new AnalyticsEventMeta();
     analyticseventmeta1.setEventOriginator(EventOriginator.UNKNOWN_CLIENT);
     analyticseventmeta1.setIsFromUserAction(false);
+    analyticseventmeta1.setConfigurationId('');
     analyticsrequest1.setMeta(analyticseventmeta1);
     const /** !EventParams  */ eventparams1 = new EventParams();
     eventparams1.setSmartboxMessage('');

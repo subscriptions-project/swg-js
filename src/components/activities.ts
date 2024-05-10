@@ -147,6 +147,7 @@ export class ActivityIframePort implements ActivityPortDef {
           eventOriginator: EventOriginator.SWG_SERVER,
           isFromUserAction: request.getMeta()?.getIsFromUserAction(),
           additionalParameters: request.getParams(),
+          configurationId: request.getMeta()?.getConfigurationId(),
         });
       });
     }

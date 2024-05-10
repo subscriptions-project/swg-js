@@ -92,13 +92,14 @@ export class GoogleAnalyticsEventListener {
     if (!gaEvent) {
       return;
     }
-
+    // ???????
     const analyticsParams: GoogleAnalyticsParameters =
       eventParams?.googleAnalyticsParameters || {};
     gaEvent = {
       ...gaEvent,
       eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
       eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
+
     };
 
     // TODO(b/234825847): Remove this once universal analytics is deprecated in 2023.
