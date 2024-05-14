@@ -25,7 +25,7 @@ import {
   Timestamp,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
-import {AvailableIntervention, InterventionType} from '../api/interventions';
+import {AvailableIntervention} from '../api/available-intervention';
 import {ClientConfig} from '../model/client-config';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {
@@ -42,6 +42,7 @@ import {
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
 import {Fetcher} from './fetcher';
+import {Intervention} from './intervention';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
@@ -59,21 +60,6 @@ import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
-
-/**
- * Intervention returned from the article endpoint. Interventions are configured
- * in the Publisher Center, and are used to display a prompt.
- */
-export interface Intervention {
-  // Indicates what type of intervention this is.
-  readonly type: InterventionType;
-  // ID used to fetch the configuration for the intervention. IDs are found in
-  // the Publisher Center.
-  readonly configurationId?: string;
-  // Indicates if the intervention should be Google provided, or publisher
-  // provided.
-  readonly preference?: string;
-}
 
 /**
  * Article response object.
