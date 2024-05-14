@@ -41,7 +41,7 @@ import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {InterventionResult} from '../api/interventions';
+import {InterventionResult} from '../api/available-intervention';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
