@@ -16,7 +16,8 @@
 
 import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
-import {Intervention} from '../runtime/entitlements-manager';
+import {Intervention} from '../runtime/intervention';
+import {InterventionType} from './intervention-type';
 import {SurveyDataTransferRequest} from '../proto/api_messages';
 
 /**
@@ -56,43 +57,33 @@ export interface ShowInterventionParams {
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
 }
 
-// TODO: mhkawano - replace consts in the project with this enum
-/**
- * Intervention types that can be returned from the article endpoint.
- */
-export enum InterventionType {
-  TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL',
-  TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP',
-  TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY',
-  TYPE_REWARDED_AD = 'TYPE_REWARDED_AD',
-  TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION',
-  TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION',
-}
-
 export class AvailableIntervention {
   readonly type: InterventionType;
 
   readonly configurationId?: string;
 
-  private readonly intervention: Intervention;
-
-  constructor(original: Intervention, private readonly deps_: Deps) {
-    this.intervention = original;
-    this.type = original.type;
-    this.configurationId = original.configurationId;
+  constructor(
+    private readonly intervention: Intervention,
+    private readonly deps_: Deps
+  ) {
+    this.type = intervention.type;
+    this.configurationId = intervention.configurationId;
   }
 
   /**
    * Starts the intervention flow.
    */
-  show(params: ShowInterventionParams): Promise<void> {
-    const flow = new AudienceActionIframeFlow(this.deps_, {
-      isClosable: params.isClosable,
-      action: this.intervention.type,
-      configurationId: this.intervention.configurationId,
-      onResult: params.onResult,
-      calledManually: true,
-    });
-    return flow.start();
+  async show(params: ShowInterventionParams): Promise<void> {
+    if (this.intervention.type === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
+      const flow = new AudienceActionIframeFlow(this.deps_, {
+        isClosable: params.isClosable,
+        action: this.intervention.type,
+        configurationId: this.intervention.configurationId,
+        onResult: params.onResult,
+        calledManually: true,
+      });
+      return flow.start();
+    }
+    throw Error(`Can't show ${this.type}`);
   }
 }

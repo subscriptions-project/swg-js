@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AvailableIntervention} from '../api/interventions';
+import {AvailableIntervention} from './available-intervention';
 import {ClientEventManagerApi} from './client-event-manager-api';
 import {
   DeferredAccountCreationRequest,
