@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as audienceActionFlow from './audience-action-flow';
 import {ActivityPorts} from '../components/activities';
 import {
   AnalyticsContext,
@@ -2952,6 +2953,40 @@ describes.realWin('EntitlementsManager', (env) => {
       storageMock.expects('remove').withExactArgs('ents').once();
       storageMock.expects('remove').withExactArgs('isreadytopay').once();
       manager.reset(true);
+    });
+  });
+
+  describe('AvailableIntervention', () => {
+    it('calls audience action flow', () => {
+      const availableIntervention = new AvailableIntervention(
+        {
+          type: 'TEST_ACTION',
+          configurationId: 'TEST_CONFIGURATION_ID',
+        },
+        deps
+      );
+
+      const actionFlowSpy = sandbox.spy(
+        audienceActionFlow,
+        'AudienceActionIframeFlow'
+      );
+      const startSpy = sandbox.spy(
+        audienceActionFlow.AudienceActionIframeFlow.prototype,
+        'start'
+      );
+
+      availableIntervention.show({
+        isClosable: true,
+      });
+
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        isClosable: true,
+        action: 'TEST_ACTION',
+        configurationId: 'TEST_CONFIGURATION_ID',
+        onResult: undefined,
+        calledManually: true,
+      });
+      expect(startSpy).to.have.been.calledOnce;
     });
   });
 });
