@@ -143,9 +143,9 @@ export class OffersFlow {
   ): Promise<ActivityIframeView | null> {
     const clientConfig = await this.clientConfigPromise_!;
     const paySwgVersion = clientConfig.paySwgVersion;
-    const argsObj : {[key: string ]: string} = {};
-    Object.assign(argsObj,args);
-    if(paySwgVersion && paySwgVersion == '2'){
+    const argsObj: {[key: string]: string} = {};
+    Object.assign(argsObj, args);
+    if (paySwgVersion && paySwgVersion == '2') {
       argsObj['catalogSourceOverride'] = 'PAY_CES';
     }
 
