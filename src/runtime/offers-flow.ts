@@ -145,7 +145,7 @@ export class OffersFlow {
     const paySwgVersion = clientConfig.paySwgVersion;
     const argsObj: {[key: string]: string} = {};
     Object.assign(argsObj, args);
-    if (paySwgVersion && paySwgVersion == '2') {
+    if (paySwgVersion == '2') {
       argsObj['catalogSourceOverride'] = 'PAY_CES';
     }
 
