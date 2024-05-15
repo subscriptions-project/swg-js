@@ -142,12 +142,18 @@ export class OffersFlow {
     args: OffersRequest
   ): Promise<ActivityIframeView | null> {
     const clientConfig = await this.clientConfigPromise_!;
+    const paySwgVersion = clientConfig.paySwgVersion;
+    let argsObj:{[key: string]: string} = {};
+    Object.assign(argsObj,args);
+    if(paySwgVersion && paySwgVersion == "2"){
+      argsObj['catalogSourceOverride'] = 'PAY_CES';
+    }
 
     return new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       this.getUrl_(clientConfig, this.deps_.pageConfig()),
-      args as {[key: string]: string},
+      argsObj as {[key: string]: string},
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
       /* shouldAnimateFade */ this.shouldAnimateFade_
