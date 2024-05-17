@@ -832,6 +832,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
         additionalParameters: null,
+        configurationId: null,
       },
       undefined,
       undefined
@@ -875,6 +876,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: false,
           additionalParameters: null,
+          configurationId: null,
         },
         undefined,
         undefined
@@ -972,6 +974,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
         additionalParameters: null,
+        configurationId: null,
       },
       undefined,
       undefined
@@ -1021,6 +1024,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
         additionalParameters: null,
+        configurationId: null,
       },
       undefined,
       undefined
@@ -1072,6 +1076,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: false,
           additionalParameters: null,
+          configurationId: null,
         },
         undefined,
         undefined
@@ -1124,6 +1129,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: false,
           additionalParameters: null,
+          configurationId: null,
         },
         undefined,
         undefined
@@ -1179,6 +1185,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: false,
           additionalParameters: null,
+          configurationId: null,
         },
         undefined,
         undefined
@@ -1250,6 +1257,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
         additionalParameters: null,
+        configurationId: null,
       },
       undefined,
       undefined

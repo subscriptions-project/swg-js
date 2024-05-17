@@ -363,9 +363,11 @@ export class AlreadySubscribedResponse implements Message {
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.subscriberOrMember_ = data[base] == null ? null : (data[base] as boolean);
+    this.subscriberOrMember_ =
+      data[base] == null ? null : (data[base] as boolean);
 
-    this.linkRequested_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
+    this.linkRequested_ =
+      data[1 + base] == null ? null : (data[1 + base] as boolean);
   }
 
   getSubscriberOrMember(): boolean | null {
@@ -426,23 +428,30 @@ export class AnalyticsContext implements Message {
 
     this.embedderOrigin_ = data[base] == null ? null : (data[base] as string);
 
-    this.transactionId_ = data[1 + base] == null ? null : (data[1 + base] as string);
+    this.transactionId_ =
+      data[1 + base] == null ? null : (data[1 + base] as string);
 
-    this.referringOrigin_ = data[2 + base] == null ? null : (data[2 + base] as string);
+    this.referringOrigin_ =
+      data[2 + base] == null ? null : (data[2 + base] as string);
 
-    this.utmSource_ = data[3 + base] == null ? null : (data[3 + base] as string);
+    this.utmSource_ =
+      data[3 + base] == null ? null : (data[3 + base] as string);
 
-    this.utmCampaign_ = data[4 + base] == null ? null : (data[4 + base] as string);
+    this.utmCampaign_ =
+      data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.utmMedium_ = data[5 + base] == null ? null : (data[5 + base] as string);
+    this.utmMedium_ =
+      data[5 + base] == null ? null : (data[5 + base] as string);
 
     this.sku_ = data[6 + base] == null ? null : (data[6 + base] as string);
 
-    this.readyToPay_ = data[7 + base] == null ? null : (data[7 + base] as boolean);
+    this.readyToPay_ =
+      data[7 + base] == null ? null : (data[7 + base] as boolean);
 
-    this.label_ = data[8 + base] as string[] || [];
+    this.label_ = (data[8 + base] as string[]) || [];
 
-    this.clientVersion_ = data[9 + base] == null ? null : (data[9 + base] as string);
+    this.clientVersion_ =
+      data[9 + base] == null ? null : (data[9 + base] as string);
 
     this.url_ = data[10 + base] == null ? null : (data[10 + base] as string);
 
@@ -451,9 +460,11 @@ export class AnalyticsContext implements Message {
         ? null
         : new Timestamp(data[11 + base] as unknown[], includesLabel);
 
-    this.readerSurfaceType_ = data[12 + base] == null ? null : (data[12 + base] as ReaderSurfaceType);
+    this.readerSurfaceType_ =
+      data[12 + base] == null ? null : (data[12 + base] as ReaderSurfaceType);
 
-    this.integrationVersion_ = data[13 + base] == null ? null : (data[13 + base] as string);
+    this.integrationVersion_ =
+      data[13 + base] == null ? null : (data[13 + base] as string);
 
     this.pageLoadBeginTimestamp_ =
       data[14 + base] == null
@@ -470,7 +481,8 @@ export class AnalyticsContext implements Message {
         ? null
         : new Timestamp(data[16 + base] as unknown[], includesLabel);
 
-    this.isLockedContent_ = data[17 + base] == null ? null : (data[17 + base] as boolean);
+    this.isLockedContent_ =
+      data[17 + base] == null ? null : (data[17 + base] as boolean);
   }
 
   getEmbedderOrigin(): string | null {
@@ -633,9 +645,15 @@ export class AnalyticsContext implements Message {
       this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
       this.readerSurfaceType_, // field 13 - reader_surface_type
       this.integrationVersion_, // field 14 - integration_version
-      this.pageLoadBeginTimestamp_ ? this.pageLoadBeginTimestamp_.toArray(includeLabel) : [], // field 15 - page_load_begin_timestamp
-      this.loadEventStartDelay_ ? this.loadEventStartDelay_.toArray(includeLabel) : [], // field 16 - load_event_start_delay
-      this.runtimeCreationTimestamp_ ? this.runtimeCreationTimestamp_.toArray(includeLabel) : [], // field 17 - runtime_creation_timestamp
+      this.pageLoadBeginTimestamp_
+        ? this.pageLoadBeginTimestamp_.toArray(includeLabel)
+        : [], // field 15 - page_load_begin_timestamp
+      this.loadEventStartDelay_
+        ? this.loadEventStartDelay_.toArray(includeLabel)
+        : [], // field 16 - load_event_start_delay
+      this.runtimeCreationTimestamp_
+        ? this.runtimeCreationTimestamp_.toArray(includeLabel)
+        : [], // field 17 - runtime_creation_timestamp
       this.isLockedContent_, // field 18 - is_locked_content
     ];
     if (includeLabel) {
@@ -658,11 +676,14 @@ export class AnalyticsEventMeta implements Message {
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.eventOriginator_ = data[base] == null ? null : (data[base] as EventOriginator);
+    this.eventOriginator_ =
+      data[base] == null ? null : (data[base] as EventOriginator);
 
-    this.isFromUserAction_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
+    this.isFromUserAction_ =
+      data[1 + base] == null ? null : (data[1 + base] as boolean);
 
-    this.configurationId_ = data[2 + base] == null ? null : (data[2 + base] as string);
+    this.configurationId_ =
+      data[2 + base] == null ? null : (data[2 + base] as string);
   }
 
   getEventOriginator(): EventOriginator | null {
@@ -721,7 +742,8 @@ export class AnalyticsRequest implements Message {
         ? null
         : new AnalyticsContext(data[base] as unknown[], includesLabel);
 
-    this.event_ = data[1 + base] == null ? null : (data[1 + base] as AnalyticsEvent);
+    this.event_ =
+      data[1 + base] == null ? null : (data[1 + base] as AnalyticsEvent);
 
     this.meta_ =
       data[2 + base] == null
@@ -832,17 +854,23 @@ export class CompleteAudienceActionResponse implements Message {
 
     this.swgUserToken_ = data[base] == null ? null : (data[base] as string);
 
-    this.actionCompleted_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
+    this.actionCompleted_ =
+      data[1 + base] == null ? null : (data[1 + base] as boolean);
 
-    this.userEmail_ = data[2 + base] == null ? null : (data[2 + base] as string);
+    this.userEmail_ =
+      data[2 + base] == null ? null : (data[2 + base] as string);
 
-    this.alreadyCompleted_ = data[3 + base] == null ? null : (data[3 + base] as boolean);
+    this.alreadyCompleted_ =
+      data[3 + base] == null ? null : (data[3 + base] as boolean);
 
-    this.displayName_ = data[4 + base] == null ? null : (data[4 + base] as string);
+    this.displayName_ =
+      data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.givenName_ = data[5 + base] == null ? null : (data[5 + base] as string);
+    this.givenName_ =
+      data[5 + base] == null ? null : (data[5 + base] as string);
 
-    this.familyName_ = data[6 + base] == null ? null : (data[6 + base] as string);
+    this.familyName_ =
+      data[6 + base] == null ? null : (data[6 + base] as string);
   }
 
   getSwgUserToken(): string | null {
@@ -1035,13 +1063,16 @@ export class EntitlementsRequest implements Message {
         ? null
         : new Timestamp(data[1 + base] as unknown[], includesLabel);
 
-    this.entitlementSource_ = data[2 + base] == null ? null : (data[2 + base] as EntitlementSource);
+    this.entitlementSource_ =
+      data[2 + base] == null ? null : (data[2 + base] as EntitlementSource);
 
-    this.entitlementResult_ = data[3 + base] == null ? null : (data[3 + base] as EntitlementResult);
+    this.entitlementResult_ =
+      data[3 + base] == null ? null : (data[3 + base] as EntitlementResult);
 
     this.token_ = data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.isUserRegistered_ = data[5 + base] == null ? null : (data[5 + base] as boolean);
+    this.isUserRegistered_ =
+      data[5 + base] == null ? null : (data[5 + base] as boolean);
 
     this.subscriptionTimestamp_ =
       data[6 + base] == null
@@ -1113,7 +1144,9 @@ export class EntitlementsRequest implements Message {
       this.entitlementResult_, // field 4 - entitlement_result
       this.token_, // field 5 - token
       this.isUserRegistered_, // field 6 - is_user_registered
-      this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 7 - subscription_timestamp
+      this.subscriptionTimestamp_
+        ? this.subscriptionTimestamp_.toArray(includeLabel)
+        : [], // field 7 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1136,7 +1169,8 @@ export class EntitlementsResponse implements Message {
 
     this.jwt_ = data[base] == null ? null : (data[base] as string);
 
-    this.swgUserToken_ = data[1 + base] == null ? null : (data[1 + base] as string);
+    this.swgUserToken_ =
+      data[1 + base] == null ? null : (data[1 + base] as string);
   }
 
   getJwt(): string | null {
@@ -1187,17 +1221,22 @@ export class EventParams implements Message {
 
     this.smartboxMessage_ = data[base] == null ? null : (data[base] as string);
 
-    this.gpayTransactionId_ = data[1 + base] == null ? null : (data[1 + base] as string);
+    this.gpayTransactionId_ =
+      data[1 + base] == null ? null : (data[1 + base] as string);
 
-    this.hadLogged_ = data[2 + base] == null ? null : (data[2 + base] as boolean);
+    this.hadLogged_ =
+      data[2 + base] == null ? null : (data[2 + base] as boolean);
 
     this.sku_ = data[3 + base] == null ? null : (data[3 + base] as string);
 
-    this.oldTransactionId_ = data[4 + base] == null ? null : (data[4 + base] as string);
+    this.oldTransactionId_ =
+      data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.isUserRegistered_ = data[5 + base] == null ? null : (data[5 + base] as boolean);
+    this.isUserRegistered_ =
+      data[5 + base] == null ? null : (data[5 + base] as boolean);
 
-    this.subscriptionFlow_ = data[6 + base] == null ? null : (data[6 + base] as string);
+    this.subscriptionFlow_ =
+      data[6 + base] == null ? null : (data[6 + base] as string);
 
     this.subscriptionTimestamp_ =
       data[7 + base] == null
@@ -1278,7 +1317,9 @@ export class EventParams implements Message {
       this.oldTransactionId_, // field 5 - old_transaction_id
       this.isUserRegistered_, // field 6 - is_user_registered
       this.subscriptionFlow_, // field 7 - subscription_flow
-      this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 8 - subscription_timestamp
+      this.subscriptionTimestamp_
+        ? this.subscriptionTimestamp_.toArray(includeLabel)
+        : [], // field 8 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1467,15 +1508,20 @@ export class SkuSelectedResponse implements Message {
 
     this.oneTime_ = data[2 + base] == null ? null : (data[2 + base] as boolean);
 
-    this.playOffer_ = data[3 + base] == null ? null : (data[3 + base] as string);
+    this.playOffer_ =
+      data[3 + base] == null ? null : (data[3 + base] as string);
 
-    this.oldPlayOffer_ = data[4 + base] == null ? null : (data[4 + base] as string);
+    this.oldPlayOffer_ =
+      data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.customMessage_ = data[5 + base] == null ? null : (data[5 + base] as string);
+    this.customMessage_ =
+      data[5 + base] == null ? null : (data[5 + base] as string);
 
-    this.anonymous_ = data[6 + base] == null ? null : (data[6 + base] as boolean);
+    this.anonymous_ =
+      data[6 + base] == null ? null : (data[6 + base] as boolean);
 
-    this.sharingPolicyEnabled_ = data[7 + base] == null ? null : (data[7 + base] as boolean);
+    this.sharingPolicyEnabled_ =
+      data[7 + base] == null ? null : (data[7 + base] as boolean);
   }
 
   getSku(): string | null {
@@ -1638,7 +1684,8 @@ export class SubscriptionLinkingCompleteResponse implements Message {
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.publisherProvidedId_ = data[base] == null ? null : (data[base] as string);
+    this.publisherProvidedId_ =
+      data[base] == null ? null : (data[base] as string);
 
     this.success_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
   }
@@ -1682,7 +1729,8 @@ export class SubscriptionLinkingResponse implements Message {
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.publisherProvidedId_ = data[base] == null ? null : (data[base] as string);
+    this.publisherProvidedId_ =
+      data[base] == null ? null : (data[base] as string);
   }
 
   getPublisherProvidedId(): string | null {
@@ -1720,9 +1768,11 @@ export class SurveyAnswer implements Message {
 
     this.answerId_ = data[base] == null ? null : (data[base] as number);
 
-    this.answerText_ = data[1 + base] == null ? null : (data[1 + base] as string);
+    this.answerText_ =
+      data[1 + base] == null ? null : (data[1 + base] as string);
 
-    this.answerCategory_ = data[2 + base] == null ? null : (data[2 + base] as string);
+    this.answerCategory_ =
+      data[2 + base] == null ? null : (data[2 + base] as string);
 
     this.ppsValue_ = data[3 + base] == null ? null : (data[3 + base] as string);
   }
@@ -1785,9 +1835,12 @@ export class SurveyDataTransferRequest implements Message {
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.surveyQuestions_ = (data[base] as unknown[][] || []).map(item => new SurveyQuestion(item, includesLabel));
+    this.surveyQuestions_ = ((data[base] as unknown[][]) || []).map(
+      (item) => new SurveyQuestion(item, includesLabel)
+    );
 
-    this.storePpsInLocalStorage_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
+    this.storePpsInLocalStorage_ =
+      data[1 + base] == null ? null : (data[1 + base] as boolean);
   }
 
   getSurveyQuestionsList(): SurveyQuestion[] | null {
@@ -1808,7 +1861,9 @@ export class SurveyDataTransferRequest implements Message {
 
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
-      this.surveyQuestions_ ? this.surveyQuestions_.map(item => item.toArray(includeLabel)) : [], // field 1 - survey_questions
+      this.surveyQuestions_
+        ? this.surveyQuestions_.map((item) => item.toArray(includeLabel))
+        : [], // field 1 - survey_questions
       this.storePpsInLocalStorage_, // field 2 - store_pps_in_local_storage
     ];
     if (includeLabel) {
@@ -1867,11 +1922,15 @@ export class SurveyQuestion implements Message {
 
     this.questionId_ = data[base] == null ? null : (data[base] as number);
 
-    this.questionText_ = data[1 + base] == null ? null : (data[1 + base] as string);
+    this.questionText_ =
+      data[1 + base] == null ? null : (data[1 + base] as string);
 
-    this.questionCategory_ = data[2 + base] == null ? null : (data[2 + base] as string);
+    this.questionCategory_ =
+      data[2 + base] == null ? null : (data[2 + base] as string);
 
-    this.surveyAnswers_ = (data[3 + base] as unknown[][] || []).map(item => new SurveyAnswer(item, includesLabel));
+    this.surveyAnswers_ = ((data[3 + base] as unknown[][]) || []).map(
+      (item) => new SurveyAnswer(item, includesLabel)
+    );
   }
 
   getQuestionId(): number | null {
@@ -1911,7 +1970,9 @@ export class SurveyQuestion implements Message {
       this.questionId_, // field 1 - question_id
       this.questionText_, // field 2 - question_text
       this.questionCategory_, // field 3 - question_category
-      this.surveyAnswers_ ? this.surveyAnswers_.map(item => item.toArray(includeLabel)) : [], // field 4 - survey_answers
+      this.surveyAnswers_
+        ? this.surveyAnswers_.map((item) => item.toArray(includeLabel))
+        : [], // field 4 - survey_answers
     ];
     if (includeLabel) {
       arr.unshift(this.label());

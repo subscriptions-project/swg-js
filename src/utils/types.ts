@@ -42,10 +42,3 @@ export function isFunction(value: unknown): boolean {
 export function isBoolean(value: unknown): boolean {
   return typeof value === 'boolean';
 }
-
-/**
- * True if the value is a string
- */
-export function isString(value: unknown): boolean {
-  return typeof value === 'string';
-}

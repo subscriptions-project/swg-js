@@ -21,7 +21,11 @@ import {
   ActivityPort as WebActivityPort,
   ActivityPorts as WebActivityPorts,
 } from 'web-activities/activity-ports';
-import {AnalyticsEvent, AnalyticsRequest} from '../proto/api_messages';
+import {
+  AnalyticsEvent,
+  AnalyticsEventMeta,
+  AnalyticsRequest,
+} from '../proto/api_messages';
 import {AnalyticsService} from '../runtime/analytics-service';
 import {ClientEventManager} from '../runtime/client-event-manager';
 import {Dialog} from '../components/dialog';
@@ -31,6 +35,7 @@ import {tick} from '../../test/tick';
 
 const publicationId = 'PUB_ID';
 const TOKEN = 'abc';
+const CONFIGURATION_ID = 'CONFIGURATION_ID';
 
 describes.realWin('Activity Components', (env) => {
   let win, iframe, url, dialog, doc, deps, pageConfig, analytics, activityPorts;
@@ -337,6 +342,9 @@ describes.realWin('Activity Components', (env) => {
 
       analyticsRequest = new AnalyticsRequest();
       analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
+      const meta = new AnalyticsEventMeta();
+      meta.setConfigurationId(CONFIGURATION_ID);
+      analyticsRequest.setMeta(meta);
       serializedRequest = analyticsRequest.toArray();
       activityIframePort = new ActivityIframePort(iframe, url, deps);
     });
@@ -421,6 +429,7 @@ describes.realWin('Activity Components', (env) => {
     it('should test new messaging APIs and auto register logging', async () => {
       let payload;
       let event = null;
+      let configurationId = null;
       sandbox
         .stub(WebActivityIframePort.prototype, 'message')
         .callsFake((args) => {
@@ -428,6 +437,7 @@ describes.realWin('Activity Components', (env) => {
         });
       sandbox.stub(deps.eventManager(), 'logEvent').callsFake((clientEvent) => {
         event = clientEvent.eventType;
+        configurationId = clientEvent.configurationId;
       });
       activityIframePort.execute(analyticsRequest);
       expect(payload).to.deep.equal({'REQUEST': serializedRequest});
@@ -438,6 +448,7 @@ describes.realWin('Activity Components', (env) => {
 
       handler({'RESPONSE': serializedRequest});
       expect(event).to.equal(AnalyticsEvent.UNKNOWN);
+      expect(configurationId).to.equal(CONFIGURATION_ID);
     });
 
     it('should support on APIs and register logging', async () => {
@@ -446,11 +457,14 @@ describes.realWin('Activity Components', (env) => {
       expect(handler).to.not.be.null;
 
       let event;
+      let configurationId = null;
       sandbox.stub(deps.eventManager(), 'logEvent').callsFake((clientEvent) => {
         event = clientEvent.eventType;
+        configurationId = clientEvent.configurationId;
       });
       handler({'RESPONSE': serializedRequest});
       expect(event).to.equal(AnalyticsEvent.UNKNOWN);
+      expect(configurationId).to.equal(CONFIGURATION_ID);
     });
 
     it('should complain about multiple listeners', async () => {

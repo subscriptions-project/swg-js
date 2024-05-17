@@ -92,14 +92,12 @@ export class GoogleAnalyticsEventListener {
     if (!gaEvent) {
       return;
     }
-    // ???????
     const analyticsParams: GoogleAnalyticsParameters =
       eventParams?.googleAnalyticsParameters || {};
     gaEvent = {
       ...gaEvent,
       eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
       eventLabel: analyticsParams.event_label || gaEvent.eventLabel,
-
     };
 
     // TODO(b/234825847): Remove this once universal analytics is deprecated in 2023.
@@ -112,6 +110,7 @@ export class GoogleAnalyticsEventListener {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
         'non_interaction': gaEvent.nonInteraction,
+        'configurationId': event.configurationId || '',
         ...analyticsParams,
       };
       gtag!('event', gaEvent.eventAction, gtagEvent);
@@ -124,6 +123,7 @@ export class GoogleAnalyticsEventListener {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
         'non_interaction': gaEvent.nonInteraction,
+        'configurationId': event.configurationId || '',
         ...analyticsParams,
       });
     }

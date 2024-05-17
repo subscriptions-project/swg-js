@@ -515,6 +515,7 @@ describes.realWin('GoogleAnalyticsEventListener', (env) => {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
         'non_interaction': gaEvent.nonInteraction,
+        'configurationId': '',
       })
       .once();
   }

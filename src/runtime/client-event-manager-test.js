@@ -343,6 +343,7 @@ describes.sandboxed('EventManager', () => {
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: false,
           additionalParameters: null,
+          configurationId: null,
         });
       });
 
@@ -358,6 +359,7 @@ describes.sandboxed('EventManager', () => {
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction,
             additionalParameters: null,
+            configurationId: null,
           });
         }
       });
@@ -375,6 +377,27 @@ describes.sandboxed('EventManager', () => {
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: null,
             additionalParameters,
+            configurationId: null,
+          });
+        }
+      });
+
+      it('should respect configurationId', () => {
+        const possibleValues = [null, 'config_id'];
+        for (const configurationId of possibleValues) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            null,
+            null,
+            null,
+            configurationId
+          );
+          expect(event).to.deep.equal({
+            eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: null,
+            additionalParameters: null,
+            configurationId,
           });
         }
       });
