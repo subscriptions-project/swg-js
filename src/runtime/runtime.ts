@@ -39,7 +39,7 @@ import {
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
 import {ArticleExperimentFlags} from './experiment-flags';
-import {AvailableIntervention} from '../api/interventions';
+import {AvailableIntervention} from '../api/available-intervention';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';

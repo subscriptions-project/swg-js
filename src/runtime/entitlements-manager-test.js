@@ -27,7 +27,7 @@ import {
   EventParams,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
-import {AvailableIntervention} from '../api/interventions';
+import {AvailableIntervention} from '../api/available-intervention';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -2960,7 +2960,7 @@ describes.realWin('EntitlementsManager', (env) => {
     it('calls audience action flow', () => {
       const availableIntervention = new AvailableIntervention(
         {
-          type: 'TEST_ACTION',
+          type: 'TYPE_NEWSLETTER_SIGNUP',
           configurationId: 'TEST_CONFIGURATION_ID',
         },
         deps
@@ -2981,7 +2981,7 @@ describes.realWin('EntitlementsManager', (env) => {
 
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         isClosable: true,
-        action: 'TEST_ACTION',
+        action: 'TYPE_NEWSLETTER_SIGNUP',
         configurationId: 'TEST_CONFIGURATION_ID',
         onResult: undefined,
         calledManually: true,
