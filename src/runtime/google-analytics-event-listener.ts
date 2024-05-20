@@ -92,7 +92,7 @@ export class GoogleAnalyticsEventListener {
     if (!gaEvent) {
       return;
     }
-    
+
     const analyticsParams: GoogleAnalyticsParameters =
       eventParams?.googleAnalyticsParameters || {};
     gaEvent = {
