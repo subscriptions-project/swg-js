@@ -671,6 +671,7 @@ export class AnalyticsContext implements Message {
 export class AnalyticsEventMeta implements Message {
   private eventOriginator_: EventOriginator | null;
   private isFromUserAction_: boolean | null;
+  private configurationId_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -680,6 +681,9 @@ export class AnalyticsEventMeta implements Message {
 
     this.isFromUserAction_ =
       data[1 + base] == null ? null : (data[1 + base] as boolean);
+
+    this.configurationId_ =
+      data[2 + base] == null ? null : (data[2 + base] as string);
   }
 
   getEventOriginator(): EventOriginator | null {
@@ -698,10 +702,19 @@ export class AnalyticsEventMeta implements Message {
     this.isFromUserAction_ = value;
   }
 
+  getConfigurationId(): string | null {
+    return this.configurationId_;
+  }
+
+  setConfigurationId(value: string): void {
+    this.configurationId_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.eventOriginator_, // field 1 - event_originator
       this.isFromUserAction_, // field 2 - is_from_user_action
+      this.configurationId_, // field 3 - configuration_id
     ];
     if (includeLabel) {
       arr.unshift(this.label());

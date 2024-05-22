@@ -356,6 +356,7 @@ describes.realWin('Runtime', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: false,
         additionalParameters: null,
+        configurationId: null,
       });
       expect(logger).to.be.instanceOf(Logger);
     });

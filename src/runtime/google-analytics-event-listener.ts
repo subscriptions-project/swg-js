@@ -123,6 +123,7 @@ export class GoogleAnalyticsEventListener {
         'event_category': gaEvent.eventCategory,
         'event_label': gaEvent.eventLabel,
         'non_interaction': gaEvent.nonInteraction,
+        'configurationId': event.configurationId || '',
         ...analyticsParams,
       });
     }

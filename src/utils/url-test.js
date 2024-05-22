@@ -272,7 +272,7 @@ describe('serializeProtoMessageForUrl', () => {
       ['Duration', 100, 0],
       false,
     ];
-    const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true];
+    const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true, null];
     const eventParamsArray = [
       'EventParams',
       'smartbox',

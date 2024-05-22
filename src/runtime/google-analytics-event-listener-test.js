@@ -247,6 +247,7 @@ describes.realWin('GoogleAnalyticsEventListener', (env) => {
       'survey_answer_category': 'TEST CATEGORY',
       'event_label': 'TEST LABEL',
       'non_interaction': gaEvent.nonInteraction,
+      'configurationId': '',
     });
     winMock.verify();
   });

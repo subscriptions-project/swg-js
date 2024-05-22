@@ -38,6 +38,8 @@ export interface ClientEvent {
   additionalParameters?: {} | null;
   /** Optional. When the event happened. */
   timestamp?: number;
+  /** Optional. ID of the associated action configuration. */
+  configurationId?: string | null;
 }
 
 export interface ClientEventManagerApi {

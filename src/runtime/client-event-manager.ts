@@ -163,7 +163,8 @@ export class ClientEventManager implements ClientEventManagerApi {
     eventType: AnalyticsEvent,
     isFromUserAction: boolean | null = false,
     eventParams: EventParams | null = null,
-    eventTime?: number
+    eventTime?: number,
+    configurationId: string | null = null
   ) {
     this.logEvent(
       {
@@ -171,6 +172,7 @@ export class ClientEventManager implements ClientEventManagerApi {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction,
         additionalParameters: eventParams,
+        configurationId,
       },
       undefined,
       eventTime
