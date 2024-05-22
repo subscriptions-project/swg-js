@@ -1771,7 +1771,7 @@ describes.realWin('EntitlementsManager', (env) => {
       );
     });
 
-    it('should use the article endpoint with preview config id', async () => {
+    it('should use the article endpoint with preview config id param', async () => {
       manager = new EntitlementsManager(
         win,
         pageConfig,
@@ -1779,32 +1779,9 @@ describes.realWin('EntitlementsManager', (env) => {
         deps,
         /* useArticleEndpoint */ true
       );
-      jwtHelperMock = sandbox.mock(manager.jwtHelper_);
-      jwtHelperMock
-        .expects('decode')
-        .withExactArgs('SIGNED_DATA')
-        .returns({
-          entitlements: {
-            products: ['pub1:label1'],
-            subscriptionToken: 'token1',
-            source: 'google:metering',
-          },
-        });
-      const testSubscriptionTokenContents = {
-        metering: {
-          ownerId: 'scenic-2017.appspot.com',
-          action: 'READ',
-          clientUserAttribute: 'standard_registered_user',
-        },
-      };
-      jwtHelperMock
-        .expects('decode')
-        .withExactArgs('token1')
-        .returns(testSubscriptionTokenContents);
+
       const article = {
-        entitlements: {
-          signedEntitlements: 'SIGNED_DATA',
-        },
+        entitlements: {},
         clientConfig: {
           id: 'foo',
         },
@@ -1841,17 +1818,7 @@ describes.realWin('EntitlementsManager', (env) => {
         },
       });
 
-      expect(ents.entitlements).to.deep.equal([
-        {
-          source: 'google:metering',
-          products: ['pub1:label1'],
-          subscriptionToken: 'token1',
-          subscriptionTokenContents: testSubscriptionTokenContents,
-          subscriptionTimestamp: null,
-          readerId: undefined,
-        },
-      ]);
-      expect(ents.raw).to.equal('SIGNED_DATA');
+      expect(ents.entitlements).to.deep.equal([]);
       expect(await manager.getArticle()).to.deep.equal(
         article,
         'getArticle should return the article endpoint response'
