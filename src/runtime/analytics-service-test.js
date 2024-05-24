@@ -246,6 +246,7 @@ describes.realWin('AnalyticsService', (env) => {
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
+        configurationId: 'configurationId',
       });
       expect(analyticsService.lastAction).to.not.be.null;
       await analyticsService.lastAction;
@@ -258,7 +259,7 @@ describes.realWin('AnalyticsService', (env) => {
       expect(request2.getEvent()).to.equal(AnalyticsEvent.IMPRESSION_PAYWALL);
       expect(meta.getEventOriginator()).to.equal(EventOriginator.SWG_CLIENT);
       expect(meta.getIsFromUserAction()).to.be.true;
-      expect(meta.getConfigurationId()).to.be.null;
+      expect(meta.getConfigurationId()).to.equal('configurationId');
 
       // It should have a working logging promise
       const p = analyticsService.getLoggingPromise();
