@@ -902,6 +902,46 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(contributionPromptFnSpy).to.not.be.called;
     });
 
+    it('skip entitlement check when preview enabled', async () => {
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(true);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          audienceActions: {
+            actions: [
+              CONTRIBUTION_INTERVENTION,
+              SURVEY_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['onsite_preview_enabled'],
+          },
+          previewEnabled: true,
+        })
+        .once();
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ false);
+      const clientConfig = new ClientConfig({uiPredicates});
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      miniPromptApiMock.expects('create').once();
+
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+      });
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+    });
+
     [
       {
         autoPromptType: AutoPromptType.CONTRIBUTION,
@@ -1482,6 +1522,58 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('should show the first prompt if there are no stored impressions', async () => {
       expectFrequencyCappingTimestamps(storageMock);
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should not show prompt if canDisplayAutoPrompt is false', async () => {
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ false);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('skip canDisplayAutoPrompt and frequency capping check when preview enabled', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              CONTRIBUTION_INTERVENTION,
+              SURVEY_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['onsite_preview_enabled'],
+          },
+          previewEnabled: true,
+        })
+        .once();
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ false);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
 
       await autoPromptManager.showAutoPrompt({});
       await tick(20);
