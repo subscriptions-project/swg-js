@@ -16,6 +16,7 @@
 
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {Article, EntitlementsManager} from './entitlements-manager';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
@@ -129,6 +130,7 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
+  private onsitePreviewEnabled_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -214,6 +216,11 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
+    const articleExpFlags =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
+    this.onsitePreviewEnabled_ = articleExpFlags.includes(
+      ArticleExperimentFlags.ONSITE_PREVIEW_ENABLED
+    );
   }
 
   /**
@@ -230,12 +237,20 @@ export class AutoPromptManager {
       return;
     }
 
-    if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
+    const shouldRenderOnsitePreview =
+      article.previewEnabled && this.onsitePreviewEnabled_;
+
+    // If onsite preview should be rendered, canDisplayAutoPrompt will be ignored.
+    if (
+      !shouldRenderOnsitePreview &&
+      !clientConfig.uiPredicates?.canDisplayAutoPrompt
+    ) {
       return;
     }
 
+    // If onsite preview should be rendered, entitlements will be ignored.
     const hasValidEntitlements = entitlements.enablesThis();
-    if (hasValidEntitlements) {
+    if (!shouldRenderOnsitePreview && hasValidEntitlements) {
       return;
     }
 
@@ -259,6 +274,7 @@ export class AutoPromptManager {
     const potentialAction = await this.getPotentialAction_({
       article,
       frequencyCapConfig,
+      shouldRenderOnsitePreview,
     });
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
       ? this.getMonetizationPromptFn_()
@@ -337,13 +353,21 @@ export class AutoPromptManager {
   private async getPotentialAction_({
     article,
     frequencyCapConfig,
+    shouldRenderOnsitePreview,
   }: {
     article: Article;
     frequencyCapConfig: FrequencyCapConfig | undefined;
+    shouldRenderOnsitePreview: boolean;
   }): Promise<Intervention | void> {
     let actions = article.audienceActions?.actions;
     if (!actions || actions.length === 0) {
       return;
+    }
+
+    // Bypass frequency capping check and survey check if we should render preview.
+    // And for now we only render one prompt at a time.
+    if (shouldRenderOnsitePreview) {
+      return actions[0];
     }
 
     const actionsTimestamps = await this.getTimestamps();
