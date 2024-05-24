@@ -768,6 +768,8 @@ export class EntitlementsManager {
 
     url = addDevModeParamsToUrl(this.win_.location, url);
 
+    url = addPreviewConfigIdToUrl(this.win_.location, url);
+
     // Add encryption param.
     if (params?.encryption) {
       url = addQueryParam(url, 'crypt', params.encryption.encryptedDocumentKey);
@@ -967,6 +969,19 @@ function addDevModeParamsToUrl(location: Location, url: string): string {
     return url;
   }
   return addQueryParam(url, 'devEnt', devModeScenario);
+}
+
+/**
+ * Parses preview config id params from the given hash fragment and adds it
+ * to the given URL.
+ */
+function addPreviewConfigIdToUrl(location: Location, url: string): string {
+  const hashParams = parseQueryString(location.hash);
+  const previewConfigIdRequested = hashParams['rrmPromptRequested'];
+  if (previewConfigIdRequested === undefined) {
+    return url;
+  }
+  return addQueryParam(url, 'previewConfigId', previewConfigIdRequested);
 }
 
 /**
