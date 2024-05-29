@@ -2344,6 +2344,10 @@ subscribe() method'
 
     describe('getAvailableInterventions', () => {
       it('starts getAvailableInterventions', async () => {
+        entitlementsManagerMock
+          .expects('getEntitlements')
+          .resolves({clone: () => null})
+          .once();
         const mockResult = [];
         entitlementsManagerMock
           .expects('getAvailableInterventions')
