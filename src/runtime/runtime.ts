@@ -1246,6 +1246,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   }
 
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
+    await this.getEntitlements();
     return this.entitlementsManager().getAvailableInterventions();
   }
 }
