@@ -240,17 +240,12 @@ export class AutoPromptManager {
     const shouldRenderOnsitePreview =
       article.previewEnabled && this.onsitePreviewEnabled_;
 
-    // If onsite preview should be rendered, canDisplayAutoPrompt will be ignored.
-    if (
-      !shouldRenderOnsitePreview &&
-      !clientConfig.uiPredicates?.canDisplayAutoPrompt
-    ) {
-      return;
-    }
+    const shouldSkipAutoPrompt =
+      !clientConfig.uiPredicates?.canDisplayAutoPrompt ||
+      entitlements.enablesThis();
 
-    // If onsite preview should be rendered, entitlements will be ignored.
-    const hasValidEntitlements = entitlements.enablesThis();
-    if (!shouldRenderOnsitePreview && hasValidEntitlements) {
+    // If onsite preview should be rendered, uiPredicates & entitlements will be ignored.
+    if (!shouldRenderOnsitePreview && shouldSkipAutoPrompt) {
       return;
     }
 
