@@ -946,9 +946,7 @@ export class EntitlementsManager {
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
     const article = await this.getArticle();
     if (!article) {
-      warn(
-        '[swg.js:getAvailableInterventions] Article is null. Make sure you have enabled it in the client ready callback with: `subscriptions.configure({enableArticleEndpoint: true})`'
-      );
+      warn('[swg.js:getAvailableInterventions] Article is null.');
       return null;
     }
     return (
