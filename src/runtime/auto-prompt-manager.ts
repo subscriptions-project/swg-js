@@ -205,7 +205,14 @@ export class AutoPromptManager {
 
     this.setArticleExperimentFlags_(article);
 
-    this.showAutoPrompt_(clientConfig, entitlements, article, params);
+    const shouldRenderOnsitePreview =
+      article && article.previewEnabled && this.onsitePreviewEnabled_;
+
+    if (shouldRenderOnsitePreview) {
+      this.showPreviewAutoPrompt_(article, params);
+    } else {
+      this.showAutoPrompt_(clientConfig, entitlements, article, params);
+    }
   }
 
   /**
@@ -224,6 +231,53 @@ export class AutoPromptManager {
   }
 
   /**
+   * Displays the appropriate auto prompt for onsite preview.
+   */
+  private async showPreviewAutoPrompt_(
+    article: Article | null,
+    params: ShowAutoPromptParams
+  ): Promise<void> {
+    if (!article) {
+      return;
+    }
+    const actions = article.audienceActions?.actions;
+    if (!actions || actions.length === 0) {
+      return;
+    }
+    // Article response is honored over code snippet in case of conflict, such
+    // as when publisher changes revenue model but does not update snippet.
+    this.autoPromptType_ = this.getAutoPromptType_(
+      article.audienceActions?.actions,
+      params.autoPromptType
+    )!;
+
+    // Default isClosable to what is set in the page config.
+    // Otherwise, the prompt is blocking for publications with a
+    // subscription revenue model, while all others can be dismissed.
+    this.isClosable_ = params.isClosable ?? !this.isSubscription_();
+
+    const potentialAction = actions[0];
+
+    const promptFn = this.isMonetizationAction_(potentialAction?.type)
+      ? this.getMonetizationPromptFn_()
+      : potentialAction
+      ? this.getAudienceActionPromptFn_({
+          actionType: potentialAction.type,
+          configurationId: potentialAction.configurationId,
+          preference: potentialAction.preference,
+        })
+      : undefined;
+
+    if (!promptFn) {
+      return;
+    }
+
+    const displayDelayMs = 0;
+    this.deps_.win().setTimeout(promptFn, displayDelayMs);
+    return;
+  }
+
+  /**
    * Displays the appropriate auto prompt, depending on the fetched prompt
    * configuration, entitlement state, and options specified in params.
    */
@@ -237,15 +291,12 @@ export class AutoPromptManager {
       return;
     }
 
-    const shouldRenderOnsitePreview =
-      article.previewEnabled && this.onsitePreviewEnabled_;
+    if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
+      return;
+    }
 
-    const shouldSkipAutoPrompt =
-      !clientConfig.uiPredicates?.canDisplayAutoPrompt ||
-      entitlements.enablesThis();
-
-    // If onsite preview should be rendered, uiPredicates & entitlements will be ignored.
-    if (!shouldRenderOnsitePreview && shouldSkipAutoPrompt) {
+    const hasValidEntitlements = entitlements.enablesThis();
+    if (hasValidEntitlements) {
       return;
     }
 
@@ -269,7 +320,6 @@ export class AutoPromptManager {
     const potentialAction = await this.getPotentialAction_({
       article,
       frequencyCapConfig,
-      shouldRenderOnsitePreview,
     });
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
       ? this.getMonetizationPromptFn_()
@@ -348,21 +398,13 @@ export class AutoPromptManager {
   private async getPotentialAction_({
     article,
     frequencyCapConfig,
-    shouldRenderOnsitePreview,
   }: {
     article: Article;
     frequencyCapConfig: FrequencyCapConfig | undefined;
-    shouldRenderOnsitePreview: boolean;
   }): Promise<Intervention | void> {
     let actions = article.audienceActions?.actions;
     if (!actions || actions.length === 0) {
       return;
-    }
-
-    // Bypass frequency capping check and survey check if we should render preview.
-    // And for now we only render one prompt at a time.
-    if (shouldRenderOnsitePreview) {
-      return actions[0];
     }
 
     const actionsTimestamps = await this.getTimestamps();
