@@ -263,6 +263,7 @@ export class AutoPromptManager {
           preference: potentialAction.preference,
         });
 
+    // Set delay for preview prompt to be 0 at first, and change if we need to.
     const displayDelayMs = 0;
     this.deps_.win().setTimeout(promptFn, displayDelayMs);
     return;
