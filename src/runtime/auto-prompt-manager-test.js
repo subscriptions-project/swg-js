@@ -1576,11 +1576,7 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [
-              CONTRIBUTION_INTERVENTION,
-              SURVEY_INTERVENTION,
-              NEWSLETTER_INTERVENTION,
-            ],
+            actions: [SURVEY_INTERVENTION, NEWSLETTER_INTERVENTION],
             engineId: '123',
           },
           experimentConfig: {
@@ -1602,7 +1598,15 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({});
       await tick(20);
 
-      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+      });
     });
 
     it('should show the first prompt if the frequency cap is not met', async () => {
