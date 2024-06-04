@@ -234,12 +234,9 @@ export class AutoPromptManager {
    * Displays the appropriate auto prompt for onsite preview.
    */
   private async showPreviewAutoPrompt_(
-    article: Article | null,
+    article: Article,
     params: ShowAutoPromptParams
   ): Promise<void> {
-    if (!article) {
-      return;
-    }
     const actions = article.audienceActions?.actions;
     if (!actions || actions.length === 0) {
       return;
@@ -260,17 +257,11 @@ export class AutoPromptManager {
 
     const promptFn = this.isMonetizationAction_(potentialAction?.type)
       ? this.getMonetizationPromptFn_()
-      : potentialAction
-      ? this.getAudienceActionPromptFn_({
+      : this.getAudienceActionPromptFn_({
           actionType: potentialAction.type,
           configurationId: potentialAction.configurationId,
           preference: potentialAction.preference,
-        })
-      : undefined;
-
-    if (!promptFn) {
-      return;
-    }
+        });
 
     const displayDelayMs = 0;
     this.deps_.win().setTimeout(promptFn, displayDelayMs);

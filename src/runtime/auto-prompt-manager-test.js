@@ -1548,6 +1548,30 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
+    it('should not show any prompt if preview enabled but no audience actions', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['onsite_preview_enabled'],
+          },
+          previewEnabled: true,
+        })
+        .once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
     it('skip canDisplayAutoPrompt and frequency capping check when preview enabled', async () => {
       getArticleExpectation
         .resolves({
