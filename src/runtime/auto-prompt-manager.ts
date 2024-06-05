@@ -253,19 +253,12 @@ export class AutoPromptManager {
     // subscription revenue model, while all others can be dismissed.
     this.isClosable_ = params.isClosable ?? !this.isSubscription_();
 
-    const potentialAction = actions[0];
+    const previewAction = actions[0];
 
-    const promptFn = this.isMonetizationAction_(potentialAction?.type)
-      ? this.getMonetizationPromptFn_()
-      : this.getAudienceActionPromptFn_({
-          actionType: potentialAction.type,
-          configurationId: potentialAction.configurationId,
-          preference: potentialAction.preference,
-        });
+    const promptFn = this.getAutoPromptFunction_(previewAction);
 
-    // Set delay for preview prompt to be 0 at first, and change if we need to.
-    const displayDelayMs = 0;
-    this.deps_.win().setTimeout(promptFn, displayDelayMs);
+    // Directly invoke preview prompt at first, we can add delay later on if needed.
+    promptFn();
     return;
   }
 
@@ -313,14 +306,8 @@ export class AutoPromptManager {
       article,
       frequencyCapConfig,
     });
-    const promptFn = this.isMonetizationAction_(potentialAction?.type)
-      ? this.getMonetizationPromptFn_()
-      : potentialAction
-      ? this.getAudienceActionPromptFn_({
-          actionType: potentialAction.type,
-          configurationId: potentialAction.configurationId,
-          preference: potentialAction.preference,
-        })
+    const promptFn = potentialAction
+      ? this.getAutoPromptFunction_(potentialAction)
       : undefined;
 
     if (!promptFn) {
@@ -863,5 +850,15 @@ export class AutoPromptManager {
 
   private isValidFrequencyCapDuration_(duration: Duration | undefined) {
     return !!duration?.seconds || !!duration?.nano;
+  }
+
+  private getAutoPromptFunction_(action: Intervention) {
+    return this.isMonetizationAction_(action.type)
+      ? this.getMonetizationPromptFn_()
+      : this.getAudienceActionPromptFn_({
+          actionType: action.type,
+          configurationId: action.configurationId,
+          preference: action.preference,
+        });
   }
 }
