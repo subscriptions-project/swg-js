@@ -16,6 +16,7 @@
 
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {Article, EntitlementsManager} from './entitlements-manager';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
@@ -129,6 +130,7 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
+  private onsitePreviewEnabled_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -203,7 +205,14 @@ export class AutoPromptManager {
 
     this.setArticleExperimentFlags_(article);
 
-    this.showAutoPrompt_(clientConfig, entitlements, article, params);
+    const shouldRenderOnsitePreview =
+      article && article.previewEnabled && this.onsitePreviewEnabled_;
+
+    if (shouldRenderOnsitePreview) {
+      this.showPreviewAutoPrompt_(article, params);
+    } else {
+      this.showAutoPrompt_(clientConfig, entitlements, article, params);
+    }
   }
 
   /**
@@ -214,6 +223,43 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
+    const articleExpFlags =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
+    this.onsitePreviewEnabled_ = articleExpFlags.includes(
+      ArticleExperimentFlags.ONSITE_PREVIEW_ENABLED
+    );
+  }
+
+  /**
+   * Displays the appropriate auto prompt for onsite preview.
+   */
+  private async showPreviewAutoPrompt_(
+    article: Article,
+    params: ShowAutoPromptParams
+  ): Promise<void> {
+    const actions = article.audienceActions?.actions;
+    if (!actions || actions.length === 0) {
+      return;
+    }
+    // Article response is honored over code snippet in case of conflict, such
+    // as when publisher changes revenue model but does not update snippet.
+    this.autoPromptType_ = this.getAutoPromptType_(
+      article.audienceActions?.actions,
+      params.autoPromptType
+    )!;
+
+    // Default isClosable to what is set in the page config.
+    // Otherwise, the prompt is blocking for publications with a
+    // subscription revenue model, while all others can be dismissed.
+    this.isClosable_ = params.isClosable ?? !this.isSubscription_();
+
+    const previewAction = actions[0];
+
+    const promptFn = this.getAutoPromptFunction_(previewAction);
+
+    // Directly invoke preview prompt at first, we can add delay later on if needed.
+    promptFn();
+    return;
   }
 
   /**
@@ -260,14 +306,8 @@ export class AutoPromptManager {
       article,
       frequencyCapConfig,
     });
-    const promptFn = this.isMonetizationAction_(potentialAction?.type)
-      ? this.getMonetizationPromptFn_()
-      : potentialAction
-      ? this.getAudienceActionPromptFn_({
-          actionType: potentialAction.type,
-          configurationId: potentialAction.configurationId,
-          preference: potentialAction.preference,
-        })
+    const promptFn = potentialAction
+      ? this.getAutoPromptFunction_(potentialAction)
       : undefined;
 
     if (!promptFn) {
@@ -810,5 +850,15 @@ export class AutoPromptManager {
 
   private isValidFrequencyCapDuration_(duration: Duration | undefined) {
     return !!duration?.seconds || !!duration?.nano;
+  }
+
+  private getAutoPromptFunction_(action: Intervention) {
+    return this.isMonetizationAction_(action.type)
+      ? this.getMonetizationPromptFn_()
+      : this.getAudienceActionPromptFn_({
+          actionType: action.type,
+          configurationId: action.configurationId,
+          preference: action.preference,
+        });
   }
 }
