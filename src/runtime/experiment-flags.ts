@@ -49,4 +49,9 @@ export enum ArticleExperimentFlags {
    * closable popups.
    */
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
+
+  /**
+   * Experiment flag to enable onsite preview.
+   */
+  ONSITE_PREVIEW_ENABLED = 'onsite_preview_enabled',
 }

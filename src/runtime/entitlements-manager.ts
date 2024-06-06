@@ -74,6 +74,7 @@ export interface Article {
   experimentConfig: {
     experimentFlags: string[];
   };
+  previewEnabled: boolean;
 }
 
 export class EntitlementsManager {
