@@ -392,6 +392,16 @@ describes.realWin('Runtime', (env) => {
         .getClientConfig();
       expect(clientConfig.paySwgVersion).to.eq('123');
     });
+
+    it('sould set ClientOptions based on root element language', async () => {
+      win.document.documentElement.lang = 'pt-br';
+
+      runtime.init('pub2');
+      const configuredRuntime = await runtime.configured_(true);
+      const lang = await configuredRuntime.clientConfigManager().getLanguage();
+
+      expect(lang).to.eq('pt-br');
+    });
   });
 
   describe('configured', () => {
