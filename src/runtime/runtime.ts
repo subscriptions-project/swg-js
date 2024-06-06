@@ -98,6 +98,7 @@ import {
   toTimestamp,
 } from '../utils/date-utils';
 import {debugLog} from '../utils/log';
+import {getLanguageCodeFromElement} from '../utils/i18n';
 import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isSecure} from '../utils/url';
@@ -252,7 +253,10 @@ export class Runtime implements SubscriptionsInterface {
         useArticleEndpoint: this.config_.useArticleEndpoint || false,
       },
       this.config_,
-      undefined,
+      {
+        lang: getLanguageCodeFromElement(this.doc_.getRootElement()),
+        forceLangInIframes: true,
+      },
       this.creationTimestamp_
     );
     this.configuredRuntimeResolver_!(configuredRuntime);
@@ -639,6 +643,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     clientOptions?: {
       lang?: string;
       theme?: ClientTheme;
+      forceLangInIframes?: boolean;
     },
     private readonly creationTimestamp_ = 0
   ) {
