@@ -227,6 +227,48 @@ describes.realWin('BasicRuntime', (env) => {
       });
     });
 
+    it('should not force lang if not set', async () => {
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          disableButton: false,
+          theme: ClientTheme.DARK,
+        },
+      });
+
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        disableButton: false,
+        forceLangInIframes: false,
+        lang: '',
+        theme: ClientTheme.DARK,
+      });
+    });
+
+    it('should not force lang if not set', async () => {
+      win.document.documentElement.lang = 'pt-br';
+
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          disableButton: false,
+          theme: ClientTheme.DARK,
+        },
+      });
+
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        disableButton: false,
+        forceLangInIframes: true,
+        lang: 'pt-br',
+        theme: ClientTheme.DARK,
+      });
+    });
+
     it('should allow caller to disable default metering handler', async () => {
       basicRuntime.init({
         type: 'NewsArticle',
