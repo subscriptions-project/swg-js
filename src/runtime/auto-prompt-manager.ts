@@ -131,6 +131,7 @@ export class AutoPromptManager {
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
   private onsitePreviewEnabled_: boolean = false;
+  private shouldRenderOnsitePreview_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -205,11 +206,11 @@ export class AutoPromptManager {
 
     this.setArticleExperimentFlags_(article);
 
-    const shouldRenderOnsitePreview =
-      article && article.previewEnabled && this.onsitePreviewEnabled_;
+    this.shouldRenderOnsitePreview_ =
+      !!article && article.previewEnabled && this.onsitePreviewEnabled_;
 
-    if (shouldRenderOnsitePreview) {
-      this.showPreviewAutoPrompt_(article, params);
+    if (this.shouldRenderOnsitePreview_) {
+      this.showPreviewAutoPrompt_(article!, params);
     } else {
       this.showAutoPrompt_(clientConfig, entitlements, article, params);
     }
@@ -509,6 +510,7 @@ export class AutoPromptManager {
                 /* shouldAnimateFade */ false
               ),
               calledManually: false,
+              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             })
           : actionType === TYPE_NEWSLETTER_SIGNUP &&
             preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
@@ -518,6 +520,7 @@ export class AutoPromptManager {
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
               calledManually: false,
+              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             })
           : new AudienceActionIframeFlow(this.deps_, {
               action: actionType,

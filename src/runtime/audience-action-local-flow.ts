@@ -63,6 +63,7 @@ export interface AudienceActionLocalParams {
   isClosable?: boolean;
   monetizationFunction?: () => void;
   calledManually: boolean;
+  shouldRenderPreview?: boolean;
 }
 
 interface AudienceActionConfig {
@@ -652,6 +653,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       // TODO: mhkawano - configurationId should not be optional
       ['configurationId', this.params_.configurationId!],
       ['origin', parseUrl(this.deps_.win().location.href).origin],
+      ['previewEnabled', (!!this.params_.shouldRenderPreview).toString()],
     ];
 
     const url = this.buildEndpointUrl_('getactionconfigurationui', queryParams);
@@ -659,6 +661,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async complete_() {
+    if (!!this.params_.shouldRenderPreview) {
+      return;
+    }
     const swgUserToken = await this.deps_
       .storage()
       .get(Constants.USER_TOKEN, true);

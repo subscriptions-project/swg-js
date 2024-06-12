@@ -2857,6 +2857,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: false,
         monetizationFunction: sandbox.match.any,
         calledManually: false,
+        shouldRenderPreview: false,
       });
       expect(startLocalSpy).to.have.been.calledOnce;
       expect(startSpy).to.not.have.been.called;
@@ -2886,6 +2887,41 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
+      });
+      expect(startLocalSpy).to.have.been.calledOnce;
+      expect(startSpy).to.not.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
+    });
+
+    it('is calls local flow with preview enabled', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              NEWSLETTER_INTERVENTION_PUBLISHER_PROMPT,
+              CONTRIBUTION_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['onsite_preview_enabled'],
+          },
+          previewEnabled: true,
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({});
+
+      await tick(7);
+
+      expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        configurationId: 'newsletter_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: true,
       });
       expect(startLocalSpy).to.have.been.calledOnce;
       expect(startSpy).to.not.have.been.called;
