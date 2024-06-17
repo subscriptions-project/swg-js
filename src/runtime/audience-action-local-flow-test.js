@@ -286,7 +286,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=false'
         );
 
         const subscribeButton = wrapper.shadowRoot.querySelector(
@@ -325,7 +325,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=false'
         );
 
         const contributeButton = wrapper.shadowRoot.querySelector(
@@ -365,7 +365,32 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=false'
+        );
+
+        const subscribeButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(subscribeButton).to.be.null;
+
+        const signinButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-sign-in-button'
+        );
+        expect(signinButton).to.be.null;
+      });
+
+      it('renders premonetization with preview enabled', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: undefined,
+          shouldRenderPreview: true,
+        };
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=true'
         );
 
         const subscribeButton = wrapper.shadowRoot.querySelector(
@@ -913,7 +938,25 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc'
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc&previewEnabled=false'
+        );
+
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot).to.not.be.null;
+        expect(shadowRoot.innerHTML).contains('newsletter_code_snippet');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
+        );
+      });
+
+      it('renders with preview enabled', async () => {
+        const state = await renderNewsletterPrompt(
+          {...NEWSLETTER_PARAMS, shouldRenderPreview: true},
+          NEWSLETTER_CONFIG
+        );
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc&previewEnabled=true'
         );
 
         const shadowRoot = state.wrapper.shadowRoot;
@@ -1140,6 +1183,33 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(entitlementsManager.clear).to.be.called;
         await tick();
         expect(entitlementsManager.getEntitlements).to.be.called;
+      });
+
+      it('submit event doesn not trigger completion event when preview enabled', async () => {
+        const state = await renderNewsletterPrompt(
+          {...NEWSLETTER_PARAMS, shouldRenderPreview: true},
+          NEWSLETTER_CONFIG
+        );
+
+        const form = state.wrapper.shadowRoot.querySelector('form');
+        expect(form).to.not.be.null;
+        expect(form.innerHTML).contains('newsletter_code_snippet');
+        form.dispatchEvent(new SubmitEvent('submit'));
+        await tick(3);
+
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
+        );
+        // Only fetch event was getActionConfigurationUI to retrieve config.
+        expect(env.win.fetch).to.be.calledOnce;
+        expect(env.win.fetch).not.to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=newsletter_config_id&audienceActionType=TYPE_NEWSLETTER_SIGNUP'
+        );
+        await tick();
+        // entitlementsManager will not be called either.
+        expect(entitlementsManager.clear).not.to.be.called;
+        await tick();
+        expect(entitlementsManager.getEntitlements).not.to.be.called;
       });
 
       it('submit event removes prompt', async () => {
