@@ -528,6 +528,7 @@ export class AutoPromptManager {
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
               calledManually: false,
+              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();

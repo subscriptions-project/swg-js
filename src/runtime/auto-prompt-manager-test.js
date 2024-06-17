@@ -1606,6 +1606,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: true,
       });
     });
 
@@ -1728,6 +1729,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -1763,6 +1765,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -1806,6 +1809,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -1859,6 +1863,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -1922,6 +1927,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -1957,6 +1963,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -2011,6 +2018,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -2076,6 +2084,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -2151,6 +2160,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -2491,6 +2501,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: false,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -2548,6 +2559,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
@@ -2630,6 +2642,7 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
+        shouldRenderPreview: false,
       });
     });
   });
