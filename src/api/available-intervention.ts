@@ -74,7 +74,10 @@ export class AvailableIntervention {
    * Starts the intervention flow.
    */
   async show(params: ShowInterventionParams): Promise<void> {
-    if (this.intervention.type === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
+    if (
+      this.intervention.type == InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      this.intervention.type == InterventionType.TYPE_REWARDED_SURVEY
+    ) {
       const flow = new AudienceActionIframeFlow(this.deps_, {
         isClosable: params.isClosable,
         action: this.intervention.type,
