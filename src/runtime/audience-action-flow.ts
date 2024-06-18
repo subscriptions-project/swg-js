@@ -49,6 +49,7 @@ import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
+import {setImportantStyles} from '../utils/style';
 import {warn} from '../utils/log';
 
 export interface AudienceActionFlow {
@@ -64,6 +65,7 @@ export interface AudienceActionIframeParams {
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
   isClosable?: boolean;
   calledManually: boolean;
+  shouldRenderPreview?: boolean;
 }
 
 // TODO: mhkawano - replace these consts in the project with these
@@ -124,6 +126,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       'configurationId': this.params_.configurationId || '',
       'isClosable': (!!params_.isClosable).toString(),
       'calledManually': params_.calledManually.toString(),
+      'previewEnabled': (!!params_.shouldRenderPreview).toString(),
     };
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();
@@ -139,6 +142,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       }),
       /* shouldFadeBody */ true
     );
+    // Disables interaction with prompt if rendering for preview.
+    if (!!params_.shouldRenderPreview) {
+      setImportantStyles(this.activityIframeView_.getElement(), {
+        'pointer-events': 'none',
+      });
+    }
   }
 
   /**
