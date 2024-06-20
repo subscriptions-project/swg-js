@@ -43,6 +43,7 @@ import {
 } from '../api/entitlements';
 import {Fetcher} from './fetcher';
 import {Intervention} from './intervention';
+import {InterventionType} from '../api/intervention-type';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
@@ -60,6 +61,12 @@ import {toTimestamp} from '../utils/date-utils';
 import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
+
+// Interventions not in this list will be filtered from getAvailableInterventions
+const ENABLED_INTERVENTIONS = new Set([
+  InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  InterventionType.TYPE_REWARDED_SURVEY,
+]);
 
 /**
  * Article response object.
@@ -950,9 +957,9 @@ export class EntitlementsManager {
       return null;
     }
     return (
-      article.audienceActions?.actions?.map(
-        (action) => new AvailableIntervention(action, this.deps_)
-      ) || []
+      article.audienceActions?.actions
+        ?.filter((action) => ENABLED_INTERVENTIONS.has(action.type))
+        .map((action) => new AvailableIntervention(action, this.deps_)) || []
     );
   }
 }

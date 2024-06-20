@@ -2052,7 +2052,7 @@ describes.realWin('EntitlementsManager', (env) => {
         audienceActions: {
           actions: [
             {
-              type: 'TEST_ACTION',
+              type: 'TYPE_NEWSLETTER_SIGNUP',
               configurationId: 'TEST_CONFIGURATION_ID',
               preference: 'PREFERENCE_GOOGLE_PROVIDED_PROMPT',
             },
@@ -2064,7 +2064,7 @@ describes.realWin('EntitlementsManager', (env) => {
         [
           new AvailableIntervention(
             {
-              type: 'TEST_ACTION',
+              type: 'TYPE_NEWSLETTER_SIGNUP',
               configurationId: 'TEST_CONFIGURATION_ID',
               preference: 'PREFERENCE_GOOGLE_PROVIDED_PROMPT',
             },
@@ -2087,7 +2087,7 @@ describes.realWin('EntitlementsManager', (env) => {
         audienceActions: {
           actions: [
             {
-              type: 'TEST_ACTION',
+              type: 'TYPE_NEWSLETTER_SIGNUP',
               configurationId: 'TEST_CONFIGURATION_ID',
             },
           ],
@@ -2098,12 +2098,39 @@ describes.realWin('EntitlementsManager', (env) => {
         [
           new AvailableIntervention(
             {
-              type: 'TEST_ACTION',
+              type: 'TYPE_NEWSLETTER_SIGNUP',
               configurationId: 'TEST_CONFIGURATION_ID',
             },
             deps
           ),
         ],
+        'getAvailableInterventions should return correct action'
+      );
+    });
+
+    it('should filter intervention not enabled', async () => {
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      const article = {
+        audienceActions: {
+          actions: [
+            {
+              type: 'TYPE_ACTION',
+              configurationId: 'TEST_CONFIGURATION_ID',
+              preference: 'PREFERENCE_GOOGLE_PROVIDED_PROMPT',
+            },
+          ],
+        },
+      };
+      sandbox.stub(manager, 'getArticle').resolves(article);
+
+      expect(await manager.getAvailableInterventions()).to.deep.equal(
+        [],
         'getAvailableInterventions should return correct action'
       );
     });
