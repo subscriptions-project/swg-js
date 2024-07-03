@@ -778,6 +778,8 @@ export class EntitlementsManager {
 
     url = addPreviewConfigIdToUrl(this.win_.location, url);
 
+    url = addPreviewKeyToUrl(this.win_.location, url);
+
     // Add encryption param.
     if (params?.encryption) {
       url = addQueryParam(url, 'crypt', params.encryption.encryptedDocumentKey);
@@ -988,6 +990,19 @@ function addPreviewConfigIdToUrl(location: Location, url: string): string {
     return url;
   }
   return addQueryParam(url, 'previewConfigId', previewConfigIdRequested);
+}
+
+/**
+ * Parses preview security key params from the given hash fragment and adds it
+ * to the given URL.
+ */
+function addPreviewKeyToUrl(location: Location, url: string): string {
+  const hashParams = parseQueryString(location.hash);
+  const previewKeyRequested = hashParams['rrmPreviewKey'];
+  if (previewKeyRequested === undefined) {
+    return url;
+  }
+  return addQueryParam(url, 'previewKey', previewKeyRequested);
 }
 
 /**
