@@ -85,6 +85,7 @@ const REWARDED_AD_PROMPT = css`
     overflow: auto;
     outline: none;
     font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
+    width: 100%;
   }
 
   @media (min-width: 450px) {
