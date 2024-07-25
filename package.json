@@ -111,7 +111,7 @@
   "optionalDependencies": {
     "@nightwatch/vrt": "^3.0.0",
     "@rollup/plugin-commonjs": "25.0.8",
-    "@rollup/plugin-replace": "5.0.5",
+    "@rollup/plugin-replace": "5.0.7",
     "@storybook/addon-actions": "7.6.19",
     "@storybook/addon-essentials": "7.6.19",
     "@storybook/addon-links": "7.6.19",
