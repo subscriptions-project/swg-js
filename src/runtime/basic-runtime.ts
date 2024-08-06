@@ -230,8 +230,9 @@ export class BasicRuntime implements BasicSubscriptions {
       isPartOfProductId,
     });
 
-    this.clientOptions_ = Object.assign({}, clientOptions, {
-      forceLangInIframes: true,
+    const lang = this.doc_.getRootElement().lang;
+    this.clientOptions_ = Object.assign({lang}, clientOptions, {
+      forceLangInIframes: !!lang || !!clientOptions?.lang,
     });
 
     let isClosable = isAccessibleForFree;
