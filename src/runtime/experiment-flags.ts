@@ -54,9 +54,4 @@ export enum ArticleExperimentFlags {
    * Experiment flag to enable onsite preview.
    */
   ONSITE_PREVIEW_ENABLED = 'onsite_preview_enabled',
-
-  /**
-   * Experiment flag to enable the content type article param.
-   */
-  CONTENT_TYPE_ARTICLE_PARAM_ENABLED = 'content_type_article_param_enabled'
 }
