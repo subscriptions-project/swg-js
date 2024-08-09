@@ -437,6 +437,20 @@ describes.realWin('EntitlementsManager', (env) => {
       });
     });
 
+    it('adds content_type to query params when experiment is enabled', async () => {
+      it('should log error messages from entitlements server', async () => {
+        fetcherMock
+          .expects('fetch')
+          .withExactArgs(
+            'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements',
+            {
+              method: 'GET',
+              headers: {'Accept': 'text/plain, application/json'},
+              credentials: 'include',
+            }
+          )
+    })
+
     it('should accept encrypted document key', async () => {
       fetcherMock
         .expects('fetch')

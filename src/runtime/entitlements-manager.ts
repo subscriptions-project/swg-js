@@ -41,6 +41,7 @@ import {
   GOOGLE_METERING_SOURCE,
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {Fetcher} from './fetcher';
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
@@ -823,6 +824,18 @@ export class EntitlementsManager {
     if (this.useArticleEndpoint_) {
       url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
     }
+    const experimentFlags = await this.getExperimentConfigFlags();
+    if (
+      experimentFlags.includes(
+        ArticleExperimentFlags.CONTENT_TYPE_ARTICLE_PARAM_ENABLED
+      )
+    ) {
+      url = addQueryParam(
+        url,
+        'content_type',
+        getContentTypeParam(this.pageConfig_.isLocked())
+      );
+    }
     const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
     let encodableParams: GetEntitlementsParamsInternalDef | undefined = this
@@ -1018,4 +1031,11 @@ function irtpStringToBoolean(value: string | null): boolean | undefined {
     default:
       return undefined;
   }
+}
+
+/**
+ * Returns ContentType Enum string from isLocked page config status.
+ */
+function getContentTypeParam(isLocked: boolean) {
+  return isLocked ? 'CLOSED' : 'OPEN';
 }
