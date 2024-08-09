@@ -437,19 +437,6 @@ describes.realWin('EntitlementsManager', (env) => {
       });
     });
 
-    it('adds content_type to query params when experiment is enabled', async () => {
-      fetcherMock
-        .expects('fetch')
-        .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/entitlements',
-          {
-            method: 'GET',
-            headers: {'Accept': 'text/plain, application/json'},
-            credentials: 'include',
-          }
-        );
-    });
-
     it('should accept encrypted document key', async () => {
       fetcherMock
         .expects('fetch')
@@ -1745,7 +1732,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1784,6 +1771,77 @@ describes.realWin('EntitlementsManager', (env) => {
       );
     });
 
+    it('should pass OPEN contentType for unlocked content to the article endpoint', async () => {
+      pageConfig = new PageConfig('pub1:label1', false);
+      manager = new EntitlementsManager(
+        win,
+        pageConfig,
+        fetcher,
+        deps,
+        /* useArticleEndpoint */ true
+      );
+      jwtHelperMock = sandbox.mock(manager.jwtHelper_);
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('SIGNED_DATA')
+        .returns({
+          entitlements: {
+            products: ['pub1:label1'],
+            subscriptionToken: 'token1',
+            source: 'google:metering',
+          },
+        });
+      const testSubscriptionTokenContents = {
+        metering: {
+          ownerId: 'scenic-2017.appspot.com',
+          action: 'READ',
+          clientUserAttribute: 'standard_registered_user',
+        },
+      };
+      jwtHelperMock
+        .expects('decode')
+        .withExactArgs('token1')
+        .returns(testSubscriptionTokenContents);
+      const article = {
+        entitlements: {
+          signedEntitlements: 'SIGNED_DATA',
+        },
+        clientConfig: {
+          id: 'foo',
+        },
+      };
+      const encodedParams = base64UrlEncodeFromBytes(
+        utf8EncodeSync(
+          `{"metering":{"clientTypes":[1],"owner":"pub1","resource":{"hashedCanonicalUrl":"${HASHED_CANONICAL_URL}"},"state":{"id":"u1","attributes":[]},"token":"token"}}`
+        )
+      );
+      fetcherMock
+        .expects('fetch')
+        .withExactArgs(
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=false&contentType=OPEN&encodedEntitlementsParams=${encodedParams}`,
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve(JSON.stringify(article)),
+          })
+        );
+      expectGetSwgUserTokenToBeCalled();
+
+      await manager.getEntitlements({
+        metering: {
+          state: {
+            id: 'u1',
+          },
+        },
+      });
+      await manager.getArticle();
+    });
+
     it('should use the article endpoint with preview config id param', async () => {
       manager = new EntitlementsManager(
         win,
@@ -1809,7 +1867,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&locked=true&encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1864,7 +1922,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&previewKey=${previewKey}&locked=true&encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&previewKey=${previewKey}&locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},

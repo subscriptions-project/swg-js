@@ -41,7 +41,6 @@ import {
   GOOGLE_METERING_SOURCE,
   PRIVILEGED_SOURCE,
 } from '../api/entitlements';
-import {ArticleExperimentFlags} from './experiment-flags';
 import {Fetcher} from './fetcher';
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
@@ -823,16 +822,9 @@ export class EntitlementsManager {
     // Add locked param.
     if (this.useArticleEndpoint_) {
       url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
-    }
-    const experimentFlags = await this.getExperimentConfigFlags();
-    if (
-      experimentFlags.includes(
-        ArticleExperimentFlags.CONTENT_TYPE_ARTICLE_PARAM_ENABLED
-      )
-    ) {
       url = addQueryParam(
         url,
-        'content_type',
+        'contentType',
         getContentTypeParam(this.pageConfig_.isLocked())
       );
     }
