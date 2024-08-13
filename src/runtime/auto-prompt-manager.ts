@@ -40,6 +40,7 @@ import {PageConfig} from '../model/page-config';
 import {Storage, pruneTimestamps} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
+import {InterventionType} from '../api/intervention-type';
 
 // TODO: mhkawano - replace these consts with api/interventions:InterventionType
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
@@ -502,7 +503,7 @@ export class AutoPromptManager {
       const audienceActionFlow: AudienceActionFlow =
         actionType === TYPE_REWARDED_AD
           ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType,
+              action: actionType as InterventionType,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
@@ -515,7 +516,7 @@ export class AutoPromptManager {
           : actionType === TYPE_NEWSLETTER_SIGNUP &&
             preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType,
+              action: actionType as InterventionType,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
