@@ -37,7 +37,7 @@
         "isPartOf": {
           "@type": ["CreativeWork", "Product"],
           "name" : "Funnel for Enterprise Demo",
-          "productID": "CAowtIuHAQ:openaccess"
+          "productID": "CAowuv3XCw:openaccess"
         }
       }
     </script>
@@ -74,9 +74,12 @@
         row.innerHTML = html;
         const button = row.getElementsByTagName('button')[0];
         button.onclick = () => {
+          const isClosable = document.getElementById("isClosable").checked;
+          const suppressToast = document.getElementById("suppressToast").checked;
           intervention.show({
-            isClosable: 'true',
-            onResult: addResultRow
+            isClosable,
+            onResult: addResultRow,
+            suppressToast,
           });
         }
         table.appendChild(row);
@@ -105,6 +108,13 @@
   <body>
     <h1>Funnel for Enterprise Demo</h1>
     <button onclick="clearLocalStorage()">Clear local storage</button>
+    <input type="checkbox" id="isClosable" name="scales" checked />
+      <label for="isClosable">isClosable</label>
+    </input>
+    <input type="checkbox" id="suppressToast" name="scales" checked />
+      <label for="suppressToast">suppressToast</label>
+    </input>
+  </div>
     <article>
       <table>
         <caption>Available Interventions</caption>

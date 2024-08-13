@@ -722,6 +722,43 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     onResultMock.verify();
   });
 
+  it(`suppresses toasts`, async () => {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+      suppressToast: true,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
+
+    const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setAlreadyCompleted(true);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).not.to.be.called;
+  });
+
   it('should trigger login flow for a registered user', async () => {
     const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {

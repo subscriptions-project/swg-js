@@ -41,6 +41,7 @@ describes.realWin('AvailableIntervention', (env) => {
 
     await availableIntervention.show({
       isClosable: true,
+      suppressToast: true,
     });
 
     expect(actionFlowStub).to.have.been.calledWith(deps, {
@@ -49,6 +50,7 @@ describes.realWin('AvailableIntervention', (env) => {
       configurationId: 'TEST_CONFIGURATION_ID',
       onResult: undefined,
       calledManually: true,
+      suppressToast: true,
     });
     expect(startStub).to.have.been.calledOnce;
   });
