@@ -3113,6 +3113,7 @@ describes.realWin('EntitlementsManager', (env) => {
 
       availableIntervention.show({
         isClosable: true,
+        suppressToast: true,
       });
 
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -3121,6 +3122,7 @@ describes.realWin('EntitlementsManager', (env) => {
         configurationId: 'TEST_CONFIGURATION_ID',
         onResult: undefined,
         calledManually: true,
+        suppressToast: true,
       });
       expect(startSpy).to.have.been.calledOnce;
     });
