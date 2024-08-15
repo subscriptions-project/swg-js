@@ -63,6 +63,9 @@ export interface ShowInterventionParams {
   // Callback to get the result data from the intervention. Return a boolean
   // indicating if the data was recorded successfully.
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
+
+  // Suppresses the completion toasts of the intervention
+  suppressToast?: boolean;
 }
 
 export class AvailableIntervention {
@@ -92,6 +95,7 @@ export class AvailableIntervention {
         configurationId: this.intervention.configurationId,
         onResult: params.onResult,
         calledManually: true,
+        suppressToast: params.suppressToast,
       }).start();
     } else if (this.intervention.type == InterventionType.TYPE_REWARDED_AD) {
       return new AudienceActionLocalFlow(this.deps_, {

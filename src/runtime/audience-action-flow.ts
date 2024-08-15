@@ -66,6 +66,7 @@ export interface AudienceActionIframeParams {
   isClosable?: boolean;
   calledManually: boolean;
   shouldRenderPreview?: boolean;
+  suppressToast?: boolean;
 }
 
 // TODO: mhkawano - replace these consts in the project with these
@@ -211,12 +212,14 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       });
     }
 
-    if (response.getActionCompleted()) {
-      this.showSignedInToast_(response.getUserEmail() ?? '');
-    } else if (response.getAlreadyCompleted()) {
-      this.showAlreadyOptedInToast_();
-    } else {
-      this.showFailedOptedInToast_();
+    if (!this.params_.suppressToast) {
+      if (response.getActionCompleted()) {
+        this.showSignedInToast_(response.getUserEmail() ?? '');
+      } else if (response.getAlreadyCompleted()) {
+        this.showAlreadyOptedInToast_();
+      } else {
+        this.showFailedOptedInToast_();
+      }
     }
     const now = Date.now().toString();
     this.deps_
