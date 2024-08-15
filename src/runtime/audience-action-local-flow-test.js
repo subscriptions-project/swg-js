@@ -664,7 +664,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const wrapper = await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         const prompt = wrapper.shadowRoot.querySelector('.rewarded-ad-prompt');
         expect(prompt).to.not.be.null;
@@ -704,7 +709,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
@@ -727,7 +737,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
@@ -746,7 +761,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         const closeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
@@ -760,13 +780,42 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(updatedWrapper).to.be.null;
       });
 
+      it('calls onResult', async () => {
+        await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
+
+        await callReadyAndReturnWrapper();
+
+        expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
+
+        expect(DEFAULT_PARAMS.onResult).to.be.calledOnce.calledWithExactly({
+          configurationId: DEFAULT_PARAMS.configurationId,
+          data: {
+            rendered: true,
+            rewardGranted: true,
+            reward: 1,
+            type: 'type',
+          },
+        });
+      });
+
       it('closes on thanks automatically', async () => {
         await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
 
         await callReadyAndReturnWrapper();
 
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 10));
 

@@ -34,13 +34,13 @@ import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {Intervention} from './intervention';
+import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage, pruneTimestamps} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
-import {InterventionType} from '../api/intervention-type';
 
 // TODO: mhkawano - replace these consts with api/interventions:InterventionType
 const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
