@@ -90,10 +90,10 @@ export class AvailableIntervention {
       this.intervention.type == InterventionType.TYPE_REWARDED_SURVEY
     ) {
       return new AudienceActionIframeFlow(this.deps_, {
-        isClosable: params.isClosable,
         action: this.intervention.type,
         configurationId: this.intervention.configurationId,
         onResult: params.onResult,
+        isClosable: params.isClosable,
         calledManually: true,
         suppressToast: params.suppressToast,
       }).start();

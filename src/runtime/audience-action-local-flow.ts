@@ -217,7 +217,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
     this.params_.onCancel?.();
     this.params_.monetizationFunction?.();
-    this.rewardedResult(false, false);
+    this.triggerRewardedAdOnResultCallback(
+      /* rendered */ false,
+      /* rewardGranted */ false
+    );
   }
 
   private renderLoadingView_() {
@@ -561,7 +564,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
       /* isFromUserAction */ true
     );
-    this.rewardedResult(true, false);
+    this.triggerRewardedAdOnResultCallback(
+      /* rendered */ true,
+      /* rewardGranted */ false
+    );
   }
 
   private async rewardedSlotGranted_(
@@ -593,9 +599,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
     this.focusRewardedAds_();
-    this.rewardedResult(
-      true,
-      true,
+    this.triggerRewardedAdOnResultCallback(
+      /* rendered */ true,
+      /* rewardGranted */ true,
       event?.payload?.amount,
       event?.payload?.type
     );
@@ -611,7 +617,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
       /* isFromUserAction */ true
     );
-    this.rewardedResult(true, false);
+    this.triggerRewardedAdOnResultCallback(
+      /* rendered */ true,
+      /* rewardGranted */ false
+    );
   }
 
   private supportRewardedAdWall_() {
@@ -809,7 +818,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private rewardedResult(
+  private triggerRewardedAdOnResultCallback(
     rendered: boolean,
     rewardGranted: boolean,
     reward?: number,
