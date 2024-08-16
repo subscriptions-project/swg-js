@@ -15,11 +15,7 @@
  */
 
 import {AnalyticsEvent} from '../proto/api_messages';
-import {
-  AudienceActionFlow,
-  TYPE_NEWSLETTER_SIGNUP,
-  TYPE_REWARDED_AD,
-} from './audience-action-flow';
+import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   BACK_TO_HOME_HTML,
@@ -39,6 +35,8 @@ import {ClientEventManager} from './client-event-manager';
 import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {EntitlementsManager} from './entitlements-manager';
+import {InterventionResult} from '../api/available-intervention';
+import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
@@ -55,11 +53,11 @@ import {setStyle} from '../utils/style';
 import {warn} from '../utils/log';
 
 export interface AudienceActionLocalParams {
-  action: string;
+  action: InterventionType;
   configurationId?: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
-  onResult?: (result: {}) => Promise<boolean> | boolean;
+  onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
   isClosable?: boolean;
   monetizationFunction?: () => void;
   calledManually: boolean;
@@ -219,6 +217,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
     this.params_.onCancel?.();
     this.params_.monetizationFunction?.();
+    this.triggerRewardedAdOnResultCallback(
+      /* rendered */ false,
+      /* rewardGranted */ false
+    );
   }
 
   private renderLoadingView_() {
@@ -226,9 +228,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private async initPrompt_() {
-    if (this.params_.action === TYPE_REWARDED_AD) {
+    if (this.params_.action === InterventionType.TYPE_REWARDED_AD) {
       await this.initRewardedAdWall_();
-    } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
+    } else if (
+      this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP
+    ) {
       await this.initNewsletterSignup_();
     } else {
       this.params_.onCancel?.();
@@ -503,18 +507,20 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const support = this.isContribution()
       ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
       : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
-    const supportHtml = isPremonetization
-      ? ''
-      : REWARDED_AD_SUPPORT_HTML.replace('$SUPPORT_MESSAGE$', support);
+    const supportHtml =
+      isPremonetization || this.params_.calledManually
+        ? ''
+        : REWARDED_AD_SUPPORT_HTML.replace('$SUPPORT_MESSAGE$', support);
 
-    const signinHtml = isPremonetization
-      ? ''
-      : REWARDED_AD_SIGN_IN_HTML.replace(
-          '$SIGN_IN_MESSAGE$',
-          this.isContribution()
-            ? msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!
-            : msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!
-        );
+    const signinHtml =
+      isPremonetization || this.params_.calledManually
+        ? ''
+        : REWARDED_AD_SIGN_IN_HTML.replace(
+            '$SIGN_IN_MESSAGE$',
+            this.isContribution()
+              ? msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!
+              : msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!
+          );
 
     this.prompt_./*OK*/ innerHTML = REWARDED_AD_HTML.replace(
       '$TITLE$',
@@ -558,9 +564,15 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
       /* isFromUserAction */ true
     );
+    this.triggerRewardedAdOnResultCallback(
+      /* rendered */ true,
+      /* rewardGranted */ false
+    );
   }
 
-  private async rewardedSlotGranted_() {
+  private async rewardedSlotGranted_(
+    event: googletag.events.RewardedSlotGrantedEvent
+  ) {
     const language = this.clientConfigManager_.getLanguage();
     const closeButtonDescription = msg(
       SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
@@ -587,6 +599,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
     this.focusRewardedAds_();
+    this.triggerRewardedAdOnResultCallback(
+      /* rendered */ true,
+      /* rewardGranted */ true,
+      event?.payload?.amount,
+      event?.payload?.type
+    );
     await this.complete_();
   }
 
@@ -598,6 +616,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
       /* isFromUserAction */ true
+    );
+    this.triggerRewardedAdOnResultCallback(
+      /* rendered */ true,
+      /* rewardGranted */ false
     );
   }
 
@@ -787,10 +809,29 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   close() {
-    if (this.params_.action === TYPE_REWARDED_AD) {
+    if (this.params_.action === InterventionType.TYPE_REWARDED_AD) {
       this.closeRewardedAdWall_();
-    } else if (this.params_.action === TYPE_NEWSLETTER_SIGNUP) {
+    } else if (
+      this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP
+    ) {
       this.closeOptInPrompt_();
     }
+  }
+
+  private triggerRewardedAdOnResultCallback(
+    rendered: boolean,
+    rewardGranted: boolean,
+    reward?: number,
+    type?: string
+  ) {
+    this.params_.onResult?.({
+      configurationId: this.params_.configurationId,
+      data: {
+        rendered,
+        rewardGranted,
+        reward,
+        type,
+      },
+    });
   }
 }
