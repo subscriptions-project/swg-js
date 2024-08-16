@@ -823,6 +823,11 @@ export class EntitlementsManager {
     // Add locked param.
     if (this.useArticleEndpoint_) {
       url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
+      url = addQueryParam(
+        url,
+        'contentType',
+        getContentTypeParam(this.pageConfig_.isLocked())
+      );
     }
     const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
@@ -1019,4 +1024,11 @@ function irtpStringToBoolean(value: string | null): boolean | undefined {
     default:
       return undefined;
   }
+}
+
+/**
+ * Returns ContentType Enum string from isLocked page config status.
+ */
+function getContentTypeParam(isLocked: boolean) {
+  return isLocked ? 'CLOSED' : 'OPEN';
 }
