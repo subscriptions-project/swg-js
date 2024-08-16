@@ -15,6 +15,7 @@
  */
 
 import * as audienceActionFlow from '../runtime/audience-action-flow';
+import * as audienceActionLocalFlow from '../runtime/audience-action-local-flow';
 import {AvailableIntervention} from './available-intervention';
 import {InterventionType} from './intervention-type';
 import {MockDeps} from '../../test/mock-deps';
@@ -51,6 +52,33 @@ describes.realWin('AvailableIntervention', (env) => {
       onResult: undefined,
       calledManually: true,
       suppressToast: true,
+    });
+    expect(startStub).to.have.been.calledOnce;
+  });
+
+  it('calls audience action local flow', async () => {
+    const startStub = sandbox.stub();
+    const actionFlowStub = sandbox
+      .stub(audienceActionLocalFlow, 'AudienceActionLocalFlow')
+      .returns({start: startStub});
+
+    const availableIntervention = new AvailableIntervention({
+        type: InterventionType.TYPE_REWARDED_AD,
+        configurationId: 'TEST_CONFIGURATION_ID',
+      },
+      deps
+    );
+
+    await availableIntervention.show({
+      isClosable: true,
+    });
+
+    expect(actionFlowStub).to.have.been.calledWith(deps, {
+      isClosable: true,
+      action: InterventionType.TYPE_REWARDED_AD,
+      configurationId: 'TEST_CONFIGURATION_ID',
+      onResult: undefined,
+      calledManually: true,
     });
     expect(startStub).to.have.been.calledOnce;
   });

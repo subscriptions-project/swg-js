@@ -15,6 +15,7 @@
  */
 
 import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
+import {AudienceActionLocalFlow} from '../runtime/audience-action-local-flow';
 import {Deps} from '../runtime/deps';
 import {Intervention} from '../runtime/intervention';
 import {InterventionType} from './intervention-type';
@@ -35,6 +36,13 @@ export interface OptInResult {
   familyName: string | null;
 }
 
+export interface RewardedAdResult {
+  rendered: boolean;
+  rewardGranted: boolean;
+  reward?: number;
+  type?: string;
+}
+
 /**
  * Result of an intervention passed to the AvailableIntervention.show callback.
  */
@@ -42,7 +50,7 @@ export interface InterventionResult {
   // Configuration id of the intervention
   configurationId?: string;
   // Data returned from the intervention
-  data: OptInResult | SurveyDataTransferRequest;
+  data: OptInResult | SurveyDataTransferRequest | RewardedAdResult;
 }
 
 /**
@@ -81,15 +89,22 @@ export class AvailableIntervention {
       this.intervention.type == InterventionType.TYPE_NEWSLETTER_SIGNUP ||
       this.intervention.type == InterventionType.TYPE_REWARDED_SURVEY
     ) {
-      const flow = new AudienceActionIframeFlow(this.deps_, {
-        isClosable: params.isClosable,
+      return new AudienceActionIframeFlow(this.deps_, {
         action: this.intervention.type,
         configurationId: this.intervention.configurationId,
         onResult: params.onResult,
+        isClosable: params.isClosable,
         calledManually: true,
         suppressToast: params.suppressToast,
-      });
-      return flow.start();
+      }).start();
+    } else if (this.intervention.type == InterventionType.TYPE_REWARDED_AD) {
+      return new AudienceActionLocalFlow(this.deps_, {
+        action: this.intervention.type,
+        configurationId: this.intervention.configurationId,
+        onResult: params.onResult,
+        isClosable: params.isClosable,
+        calledManually: true,
+      }).start();
     }
     throw Error(`Can't show ${this.type}`);
   }

@@ -66,6 +66,7 @@ const SERVICE_ID = 'subscribe.google.com';
 const ENABLED_INTERVENTIONS = new Set([
   InterventionType.TYPE_NEWSLETTER_SIGNUP,
   InterventionType.TYPE_REWARDED_SURVEY,
+  InterventionType.TYPE_REWARDED_AD,
 ]);
 
 /**

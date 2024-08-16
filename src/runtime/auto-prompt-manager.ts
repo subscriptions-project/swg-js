@@ -34,6 +34,7 @@ import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {Intervention} from './intervention';
+import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
@@ -502,7 +503,7 @@ export class AutoPromptManager {
       const audienceActionFlow: AudienceActionFlow =
         actionType === TYPE_REWARDED_AD
           ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType,
+              action: actionType as InterventionType,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
@@ -515,7 +516,7 @@ export class AutoPromptManager {
           : actionType === TYPE_NEWSLETTER_SIGNUP &&
             preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType,
+              action: actionType as InterventionType,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
