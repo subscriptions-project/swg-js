@@ -133,6 +133,7 @@ export class AutoPromptManager {
   private autoPromptType_: AutoPromptType | undefined;
   private onsitePreviewEnabled_: boolean = false;
   private shouldRenderOnsitePreview_: boolean = false;
+  private actionOrchestrationExperiment_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -225,10 +226,13 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    const articleExpFlags =
-      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    this.onsitePreviewEnabled_ = articleExpFlags.includes(
+    this.onsitePreviewEnabled_ = this.isArticleExperimentEnabled_(
+      article,
       ArticleExperimentFlags.ONSITE_PREVIEW_ENABLED
+    );
+    this.actionOrchestrationExperiment_ = this.isArticleExperimentEnabled_(
+      article,
+      ArticleExperimentFlags.ACTION_ORCHESTRATION_EXPERIMENT
     );
   }
 
@@ -865,5 +869,18 @@ export class AutoPromptManager {
           configurationId: action.configurationId,
           preference: action.preference,
         });
+  }
+
+  /**
+   * Checks if provided ExperimentFlag is enabled within article experiment
+   * config.
+   */
+  private isArticleExperimentEnabled_(
+    article: Article,
+    experimentFlag: string
+  ): boolean {
+    const articleExpFlags =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
+    return articleExpFlags.includes(experimentFlag);
   }
 }

@@ -79,6 +79,22 @@ export interface Article {
     actions?: Intervention[];
     engineId?: string;
   };
+  actionOrchestration?: {
+    interventionFunnel: {
+      id: string;
+      globalFrequencyCap: {};
+      prompts: Array<{
+        configId: string;
+        type: InterventionType;
+        promptFrequencyCap: {};
+        closability: Closability;
+        repeatability: {
+          type: RepeatabilityType;
+          count: number;
+        };
+      }>;
+    };
+  };
   experimentConfig: {
     experimentFlags: string[];
   };
