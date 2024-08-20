@@ -243,6 +243,7 @@ export class BasicRuntime implements BasicSubscriptions {
       autoPromptType,
       alwaysShow,
       isClosable,
+      isUnlockedContent: isAccessibleForFree ?? isOpenAccess,
     });
     this.setOnLoginRequest();
     this.processEntitlements();
@@ -271,6 +272,7 @@ export class BasicRuntime implements BasicSubscriptions {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
     isClosable?: boolean;
+    isUnlockedContent?: boolean;
   }): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setupAndShowAutoPrompt(options);
@@ -580,6 +582,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
     isClosable?: boolean;
+    isUnlockedContent?: boolean;
   }): Promise<void> {
     return this.autoPromptManager_.showAutoPrompt(options);
   }

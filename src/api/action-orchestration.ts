@@ -20,20 +20,22 @@ export interface ActionOrchestration {
 
 interface InterventionFunnel {
   id: string;
-  globalFrequencyCap: {};
-  prompts: Array<{
-    configId: string;
-    type: FrequencyCapConfig;
-    promptFrequencyCap: {};
-    closability: Closability;
-    repeatability: {
-      type: RepeatabilityType;
-      count: number;
-    };
-  }>;
+  globalFrequencyCap: FrequencyCapConfig;
+  prompts: Array<InterventionOrchestration>;
 }
 
-enum Closability {
+export interface InterventionOrchestration {
+  configId: string;
+  type: FrequencyCapConfig;
+  promptFrequencyCap: FrequencyCapConfig;
+  closability: Closability;
+  repeatability: {
+    type: RepeatabilityType;
+    count: number;
+  };
+}
+
+export enum Closability {
   UNSPECIFIED = 'UNSPECIFIED',
   DISMISSIBLE = 'DISMISSIBLE',
   BLOCKING = 'BLOCKING',
@@ -46,15 +48,15 @@ enum RepeatabilityType {
 }
 
 interface FrequencyCapConfig {
-  duration: Duration;
+  duration: SwgDuration;
 }
 
-interface Duration {
-  unit: DurationUnit;
+interface SwgDuration {
+  unit: SwgDurationUnit;
   count: number;
 }
 
-enum DurationUnit {
+enum SwgDurationUnit {
   UNSPECIFIED_UNIT = 'UNSPECIFIED_UNIT',
   SECOND = 'SECOND',
   MINUTE = 'MINUTE',
