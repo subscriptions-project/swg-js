@@ -95,10 +95,14 @@
         button.onclick = () => {
           const isClosable = document.getElementById("isClosable").checked;
           const suppressToast = document.getElementById("suppressToast").checked;
+          const altActionSucess = document.getElementById("altActionSucess").checked;
+          const signInSucess = document.getElementById("signInSucess").checked;
           intervention.show({
             isClosable,
             onResult: (result) => addResultRow(intervention.type, result),
             suppressToast,
+            onAlternateAction: () => altActionSucess,
+            onSignIn: () => signInSucess,
           });
         }
         table.appendChild(row);
@@ -132,6 +136,12 @@
     </input>
     <input type="checkbox" id="suppressToast" name="scales" checked />
       <label for="suppressToast">suppressToast</label>
+    </input>
+    <input type="checkbox" id="altActionSucess" name="scales" checked />
+      <label for="altActionSucess">altActionSucess</label>
+    </input>
+    <input type="checkbox" id="signInSucess" name="scales" checked />
+      <label for="signInSucess">signInSucess</label>
     </input>
   </div>
     <article>
