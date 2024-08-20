@@ -72,8 +72,14 @@ export interface ShowInterventionParams {
   // indicating if the data was recorded successfully.
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
 
-  // Suppresses the completion toasts of the intervention
+  // Suppresses the completion toasts of the intervention.
   suppressToast?: boolean;
+
+  // Callback for clicking clicking on an alternate action. Closes the prompt when called.
+  onAlternateAction?: () => Promise<boolean> | boolean;
+
+  // Callback for signing in. Closes the prompt when called.
+  onSignIn?: () => Promise<boolean> | boolean;
 }
 
 export class AvailableIntervention {
@@ -112,6 +118,8 @@ export class AvailableIntervention {
         onResult: params.onResult,
         isClosable: params.isClosable,
         calledManually: true,
+        onAlternateAction: params.onAlternateAction,
+        onSignIn: params.onSignIn,
       }).start();
     }
     throw Error(`Can't show ${this.type}`);

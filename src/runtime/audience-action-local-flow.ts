@@ -19,7 +19,6 @@ import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   BACK_TO_HOME_HTML,
-  CONTRIBUTION_ICON,
   ERROR_HTML,
   LOADING_HTML,
   OPT_IN_CLOSE_BUTTON_HTML,
@@ -28,7 +27,6 @@ import {
   REWARDED_AD_SIGN_IN_HTML,
   REWARDED_AD_SUPPORT_HTML,
   REWARDED_AD_THANKS_HTML,
-  SUBSCRIPTION_ICON,
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -62,6 +60,8 @@ export interface AudienceActionLocalParams {
   monetizationFunction?: () => void;
   calledManually: boolean;
   shouldRenderPreview?: boolean;
+  onAlternateAction?: () =>  Promise<boolean> | boolean;
+  onSignIn?: () =>  Promise<boolean> | boolean;
 }
 
 interface AudienceActionConfig {
@@ -498,7 +498,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const closeHtml = this.getCloseButtonOrEmptyHtml_(
       REWARDED_AD_CLOSE_BUTTON_HTML
     );
-    const icon = this.isSubscription() ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = htmlEscape(
       config.rewardedAdParameters!.customMessage!
@@ -508,12 +507,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
       : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
     const supportHtml =
-      isPremonetization || this.params_.calledManually
+      !this.params_.onAlternateAction && isPremonetization
         ? ''
         : REWARDED_AD_SUPPORT_HTML.replace('$SUPPORT_MESSAGE$', support);
 
     const signinHtml =
-      isPremonetization || this.params_.calledManually
+      !this.params_.calledManually && isPremonetization
         ? ''
         : REWARDED_AD_SIGN_IN_HTML.replace(
             '$SIGN_IN_MESSAGE$',
@@ -528,7 +527,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     )
       .replace('$BACK_TO_HOME_BUTTON$', backToHomeHtml)
       .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
-      .replace('$ICON$', icon)
       .replace('$MESSAGE$', message)
       .replace('$VIEW_AN_AD$', viewad)
       .replace('$SUPPORT_BUTTON$', supportHtml)
@@ -623,18 +621,27 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     );
   }
 
-  private supportRewardedAdWall_() {
+  private async supportRewardedAdWall_() {
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT,
+      /* isFromUserAction */ true
+    );
+    if (!!this.params_.onAlternateAction) {
+      setImportantStyles(this.wrapper_, {'visibility': 'hidden'});
+      const success = await this.params_.onAlternateAction();
+      if (!success) {
+        setImportantStyles(this.wrapper_, {'visibility': 'visible'});
+        return;
+      }
+    } else {
+      this.params_.monetizationFunction!();
+    }
     if (this.params_.isClosable) {
       this.params_.onCancel?.();
     }
     this.unlock_();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
-    this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT,
-      /* isFromUserAction */ true
-    );
-    this.params_.monetizationFunction!();
   }
 
   private viewRewardedAdWall_() {
@@ -649,12 +656,20 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.makeRewardedVisible_!();
   }
 
-  private signinRewardedAdWall_() {
-    this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
+  private async signinRewardedAdWall_() {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_SIGN_IN,
       /* isFromUserAction */ true
     );
+    if (!!this.params_.onSignIn) {
+      setImportantStyles(this.wrapper_, {'visibility': 'hidden'});
+      const success = await this.params_.onSignIn();
+      if (!success) {
+        setImportantStyles(this.wrapper_, {'visibility': 'visible'});
+      }
+    } else {
+      this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
+    }
   }
 
   private buildEndpointUrl_(endpoint: string, queryParams: string[][]): string {
