@@ -36,10 +36,18 @@ export interface OptInResult {
   familyName: string | null;
 }
 
+/**
+ * Completion data passed to the AvailableIntervention.show callback for a the
+ * rewarded ad intervention.
+ */
 export interface RewardedAdResult {
+  // Did the prompt successfully render?
   rendered: boolean;
+  // Was a reward granted?
   rewardGranted: boolean;
+  // The publisher defined reward amount granted to the reader
   reward?: number;
+  // The publisher defined reward type granted to the reader
   type?: string;
 }
 
