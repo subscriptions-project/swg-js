@@ -22,14 +22,17 @@ import {
   AudienceActionIframeFlow,
 } from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
-import {AutoPromptType} from '../api/basic-subscriptions';
+import {AutoPromptType, ContentType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {
   Closability,
+  InterventionFunnel,
   InterventionOrchestration,
+  SwgDuration,
+  SwgDurationUnit,
 } from '../api/action-orchestration';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
@@ -113,7 +116,7 @@ export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
   isClosable?: boolean;
-  isUnlockedContent?: boolean;
+  contentType: ContentType;
 }
 
 interface ActionsTimestamps {
@@ -298,10 +301,20 @@ export class AutoPromptManager {
 
     let potentialAction;
     if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
-      potentialAction = await this.getInterventionFromTargetedFunnel(
+      const nextIntervention = await this.getTargetedInterventionOrchestration(
         clientConfig,
-        article
+        article,
+        params.contentType
       );
+
+      if (!!nextIntervention) {
+        // Fallback to content type for unspecified?
+        this.isClosable_ =
+          nextIntervention?.closability === Closability.BLOCKING;
+        potentialAction = article.audienceActions?.actions?.find(
+          (action) => action.configurationId === nextIntervention.configId
+        );
+      }
     } else {
       // Article response is honored over code snippet in case of conflict, such
       // as when publisher changes revenue model but does not update snippet.
@@ -485,10 +498,11 @@ export class AutoPromptManager {
     return potentialAction;
   }
 
-  private async getInterventionFromTargetedFunnel(
+  private async getTargetedInterventionOrchestration(
     clientConfig: ClientConfig,
-    article: Article
-  ): Promise<Intervention | void> {
+    article: Article,
+    contentType: ContentType
+  ): Promise<InterventionOrchestration | void> {
     let eligibleActions = article.audienceActions?.actions;
     let targetedInterventions =
       article.actionOrchestration?.interventionFunnel?.prompts;
@@ -502,9 +516,9 @@ export class AutoPromptManager {
     }
 
     // Complete client-side eligibility checks for actions.
-    const interventionTimestamps = await this.getTimestamps();
+    const actionsTimestamps = await this.getTimestamps();
     eligibleActions = eligibleActions.filter((action) =>
-      this.checkActionEligibility_(action.type, interventionTimestamps!)
+      this.checkActionEligibility_(action.type, actionsTimestamps!)
     );
     if (eligibleActions.length === 0) {
       return;
@@ -520,14 +534,31 @@ export class AutoPromptManager {
       return;
     }
 
+    if (contentType === ContentType.CLOSED) {
+      return targetedInterventions[0];
+    }
+
+    // Only other supported ContentType is OPEN.
     let nextIntervention: InterventionOrchestration | undefined = undefined;
+    // Check Default FrequencyCapConfig is valid.
+    if (
+      !this.isValidFrequencyCap_(
+        clientConfig.autoPromptConfig?.frequencyCapConfig
+      )
+    ) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
+      );
+      return targetedInterventions[0];
+    }
+
     for (const intervention of targetedInterventions) {
-      const frequencyCapDuration = this.getFrequencyCapDuration_(
-        clientConfig,
+      const frequencyCapDuration = this.getPromptFrequencyCapDuration_(
+        clientConfig.autoPromptConfig?.frequencyCapConfig!,
         intervention
       );
       if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
-        const actionTimestamps = interventionTimestamps![intervention.configId];
+        const actionTimestamps = actionsTimestamps![intervention.type];
         const timestamps = [
           ...(actionTimestamps?.dismissals || []),
           ...(actionTimestamps?.completions || []),
@@ -547,12 +578,14 @@ export class AutoPromptManager {
       return;
     }
 
-    const globalFrequencyCapDuration =
-      this.getGlobalFrequencyCapDuration_(article);
+    const globalFrequencyCapDuration = this.getGlobalFrequencyCapDuration_(
+      clientConfig.autoPromptConfig?.frequencyCapConfig!,
+      article.actionOrchestration?.interventionFunnel!
+    );
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
-        Object.entries(interventionTimestamps!)
+        Object.entries(actionsTimestamps!)
           .filter(([config, _]) => config !== nextIntervention!.configId)
           .map(([_, timestamps]) => timestamps.impressions)
       );
@@ -566,10 +599,7 @@ export class AutoPromptManager {
       }
     }
 
-    this.isClosable_ = nextIntervention?.closability === Closability.BLOCKING; // Fallback to content type for unspecified?
-    return eligibleActions.find(
-      (action) => action.configurationId === nextIntervention.configId
-    );
+    return nextIntervention;
   }
 
   /**
@@ -943,10 +973,57 @@ export class AutoPromptManager {
     return Math.floor(nano / Math.pow(10, 6));
   }
 
-  private getFrequencyCapDuration_(
-    clientConfig: ClientConfig,
+  private getPromptFrequencyCapDuration_(
+    frequencyCapConfig: FrequencyCapConfig,
     interventionOrchestration: InterventionOrchestration
-  ): Duration {}
+  ): Duration | undefined {
+    const swgDuration = interventionOrchestration.promptFrequencyCap?.duration;
+
+    if (!swgDuration) {
+      this.eventManager_.logSwgEvent(
+        AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND
+      );
+      return frequencyCapConfig.anyPromptFrequencyCap?.frequencyCapDuration;
+    }
+    return this.convertSwgDurationToSeconds_(swgDuration);
+  }
+
+  private getGlobalFrequencyCapDuration_(
+    frequencyCapConfig: FrequencyCapConfig,
+    interventionFunnel: InterventionFunnel
+  ): Duration | undefined {
+    const swgDuration = interventionFunnel.globalFrequencyCap?.duration;
+    return swgDuration
+      ? this.convertSwgDurationToSeconds_(swgDuration)
+      : frequencyCapConfig.globalFrequencyCap!.frequencyCapDuration;
+  }
+
+  private convertSwgDurationToSeconds_(
+    swgDuration: SwgDuration
+  ): Duration | undefined {
+    const invalidUnits = [
+      SwgDurationUnit.SECOND,
+      SwgDurationUnit.MONTH,
+      SwgDurationUnit.YEAR,
+    ];
+    if (invalidUnits.includes(swgDuration.unit)) {
+      // TODO: Log error
+      return;
+    }
+    switch (swgDuration.unit) {
+      case SwgDurationUnit.MINUTE:
+        return new Duration(60 * swgDuration.count, 0);
+      case SwgDurationUnit.HOUR:
+        return new Duration(3600 * swgDuration.count, 0);
+      case SwgDurationUnit.DAY:
+        return new Duration(86400 * swgDuration.count, 0);
+      case SwgDurationUnit.WEEK:
+        return new Duration(604800 * swgDuration.count, 0);
+      default:
+        // TODO: log error
+        return;
+    }
+  }
 
   private isValidFrequencyCap_(
     frequencyCapConfig: FrequencyCapConfig | undefined

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+import {InterventionType} from './intervention-type';
+
 export interface ActionOrchestration {
   interventionFunnel: InterventionFunnel;
 }
 
-interface InterventionFunnel {
+export interface InterventionFunnel {
   id: string;
   globalFrequencyCap: FrequencyCapConfig;
   prompts: Array<InterventionOrchestration>;
@@ -26,7 +28,7 @@ interface InterventionFunnel {
 
 export interface InterventionOrchestration {
   configId: string;
-  type: FrequencyCapConfig;
+  type: InterventionType;
   promptFrequencyCap: FrequencyCapConfig;
   closability: Closability;
   repeatability: {
@@ -51,12 +53,12 @@ interface FrequencyCapConfig {
   duration: SwgDuration;
 }
 
-interface SwgDuration {
+export interface SwgDuration {
   unit: SwgDurationUnit;
   count: number;
 }
 
-enum SwgDurationUnit {
+export enum SwgDurationUnit {
   UNSPECIFIED_UNIT = 'UNSPECIFIED_UNIT',
   SECOND = 'SECOND',
   MINUTE = 'MINUTE',
