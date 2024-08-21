@@ -60,8 +60,8 @@ export interface AudienceActionLocalParams {
   monetizationFunction?: () => void;
   calledManually: boolean;
   shouldRenderPreview?: boolean;
-  onAlternateAction?: () =>  Promise<boolean> | boolean;
-  onSignIn?: () =>  Promise<boolean> | boolean;
+  onAlternateAction?: () => void;
+  onSignIn?: () =>  void;
 }
 
 interface AudienceActionConfig {
@@ -511,7 +511,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         : REWARDED_AD_SUPPORT_HTML.replace('$SUPPORT_MESSAGE$', support);
 
     const signinHtml =
-      !this.params_.calledManually && isPremonetization
+      !this.params_.onSignIn && isPremonetization
         ? ''
         : REWARDED_AD_SIGN_IN_HTML.replace(
             '$SIGN_IN_MESSAGE$',
@@ -624,27 +624,22 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     );
   }
 
-  private async supportRewardedAdWall_() {
+  private supportRewardedAdWall_() {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT,
       /* isFromUserAction */ true
     );
-    if (!!this.params_.onAlternateAction) {
-      setImportantStyles(this.wrapper_, {'visibility': 'hidden'});
-      const success = await this.params_.onAlternateAction();
-      if (!success) {
-        setImportantStyles(this.wrapper_, {'visibility': 'visible'});
-        return;
-      }
-    } else {
-      this.params_.monetizationFunction!();
-    }
     if (this.params_.isClosable) {
       this.params_.onCancel?.();
     }
     this.unlock_();
     const googletag = this.deps_.win().googletag;
     googletag.destroySlots([this.rewardedSlot_!]);
+    if (!!this.params_.onAlternateAction) {
+      this.params_.onAlternateAction();
+    } else {
+      this.params_.monetizationFunction!();
+    }
   }
 
   private viewRewardedAdWall_() {
@@ -659,17 +654,19 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.makeRewardedVisible_!();
   }
 
-  private async signinRewardedAdWall_() {
+  private signinRewardedAdWall_() {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_SIGN_IN,
       /* isFromUserAction */ true
     );
     if (!!this.params_.onSignIn) {
-      setImportantStyles(this.wrapper_, {'visibility': 'hidden'});
-      const success = await this.params_.onSignIn();
-      if (!success) {
-        setImportantStyles(this.wrapper_, {'visibility': 'visible'});
+      this.params_.onSignIn();
+      if (this.params_.isClosable) {
+        this.params_.onCancel?.();
       }
+      this.unlock_();
+      const googletag = this.deps_.win().googletag;
+      googletag.destroySlots([this.rewardedSlot_!]);
     } else {
       this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
