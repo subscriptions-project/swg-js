@@ -41,6 +41,8 @@
     <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
 
     <script>
+      let swg;
+
       function clearLocalStorage() {
         localStorage.removeItem("subscribe.google.com:USER_TOKEN");
       }
@@ -95,13 +97,16 @@
         button.onclick = () => {
           const isClosable = document.getElementById("isClosable").checked;
           const suppressToast = document.getElementById("suppressToast").checked;
-          const altActionSucess = document.getElementById("altActionSucess").checked;
-          const signInSucess = document.getElementById("signInSucess").checked;
           intervention.show({
             isClosable,
             onResult: (result) => addResultRow(intervention.type, result),
             suppressToast,
-            onAlternateAction: () => altActionSucess,
+            onAlternateAction: () => {
+              swg.showContributionOptions({
+                isClosable: true,
+                shouldAnimateFade: false 
+              });
+            },
             onSignIn: () => signInSucess,
           });
         }
@@ -120,6 +125,7 @@
       }
 
       (self.SWG = self.SWG || []).push(async subscriptions => {
+        swg = subscriptions;
         const eventManager = await subscriptions.getEventManager();
         eventManager.registerEventListener(logHandler);
         const availableInterventions = await subscriptions.getAvailableInterventions();
@@ -136,12 +142,6 @@
     </input>
     <input type="checkbox" id="suppressToast" name="scales" checked />
       <label for="suppressToast">suppressToast</label>
-    </input>
-    <input type="checkbox" id="altActionSucess" name="scales" checked />
-      <label for="altActionSucess">altActionSucess</label>
-    </input>
-    <input type="checkbox" id="signInSucess" name="scales" checked />
-      <label for="signInSucess">signInSucess</label>
     </input>
   </div>
     <article>

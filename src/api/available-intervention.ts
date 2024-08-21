@@ -76,10 +76,10 @@ export interface ShowInterventionParams {
   suppressToast?: boolean;
 
   // Callback for clicking clicking on an alternate action. Closes the prompt when called.
-  onAlternateAction?: () => Promise<boolean> | boolean;
+  onAlternateAction?: () => void;
 
   // Callback for signing in. Closes the prompt when called.
-  onSignIn?: () => Promise<boolean> | boolean;
+  onSignIn?: () => void;
 }
 
 export class AvailableIntervention {
