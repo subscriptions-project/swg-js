@@ -17,7 +17,7 @@
 import * as audienceActionFlow from './audience-action-flow';
 import * as audienceActionLocalFlow from './audience-action-local-flow';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {AutoPromptConfig} from '../model/auto-prompt-config';
+import {AutoPromptConfig, Duration} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig, UiPredicates} from '../model/client-config';
@@ -2648,6 +2648,31 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Helper Functions', () => {
+    [
+      {unit: 'MINUTE', count: 10, seconds: 600},
+      {unit: 'HOUR', count: 5, seconds: 18000},
+      {unit: 'DAY', count: 3, seconds: 259200},
+      {unit: 'WEEK', count: 2, seconds: 1209600},
+    ].forEach(({unit, count, seconds}) => {
+      it('convertSwgDurationToSeconds_ should compute the correct Duration', async () => {
+        const swgDuration = {unit, count};
+        const result =
+          autoPromptManager.convertSwgDurationToSeconds_(swgDuration);
+
+        expect(result.seconds).to.equal(seconds);
+      });
+    });
+
+    [{unit: 'SECOND'}, {unit: 'MONTH'}, {unit: 'YEAR'}].forEach(({unit}) => {
+      it('convertSwgDurationToSeconds_ return undefined for invalid SwgDurationUnits.', async () => {
+        const swgDuration = {unit, count: 10};
+        const result =
+          autoPromptManager.convertSwgDurationToSeconds_(swgDuration);
+
+        expect(result).to.equal(undefined);
+      });
+    });
+
     [
       '12345',
       'this is a string',

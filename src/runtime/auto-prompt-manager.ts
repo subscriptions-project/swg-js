@@ -199,7 +199,10 @@ export class AutoPromptManager {
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
-      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
+      this.isClosable_ = this.actionOrchestrationExperiment_
+        ? params.contentType === ContentType.OPEN
+        : params.isClosable ?? !this.isSubscription_();
+
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
