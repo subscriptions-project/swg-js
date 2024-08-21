@@ -350,29 +350,31 @@ describes.realWin('BasicRuntime', (env) => {
         isClosable: undefined,
         contentType: 'CLOSED',
       },
-    ].forEach(({isAccessibleForFree, isPartOfProductId, isClosable}) => {
-      it(`shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
-        const setupAndShowAutoPromptStub = sandbox.stub(
-          basicRuntime,
-          'setupAndShowAutoPrompt'
-        );
+    ].forEach(
+      ({isAccessibleForFree, isPartOfProductId, isClosable, contentType}) => {
+        it(`shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
+          const setupAndShowAutoPromptStub = sandbox.stub(
+            basicRuntime,
+            'setupAndShowAutoPrompt'
+          );
 
-        basicRuntime.init({
-          type: 'NewsArticle',
-          isAccessibleForFree,
-          isPartOfType: ['Product'],
-          isPartOfProductId,
-          autoPromptType: 'none',
-        });
+          basicRuntime.init({
+            type: 'NewsArticle',
+            isAccessibleForFree,
+            isPartOfType: ['Product'],
+            isPartOfProductId,
+            autoPromptType: 'none',
+          });
 
-        expect(setupAndShowAutoPromptStub).to.have.been.calledWith({
-          autoPromptType: 'none',
-          alwaysShow: false,
-          isClosable,
-          contentType,
+          expect(setupAndShowAutoPromptStub).to.have.been.calledWith({
+            autoPromptType: 'none',
+            alwaysShow: false,
+            isClosable,
+            contentType,
+          });
         });
-      });
-    });
+      }
+    );
   });
 
   describe('configured', () => {
