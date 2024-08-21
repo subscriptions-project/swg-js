@@ -318,31 +318,37 @@ describes.realWin('BasicRuntime', (env) => {
         isAccessibleForFree: true,
         isPartOfProductId: 'publication:openaccess',
         isClosable: true,
+        contentType: 'OPEN',
       },
       {
         isAccessibleForFree: true,
         isPartOfProductId: 'publication:notopen',
         isClosable: true,
+        contentType: 'OPEN',
       },
       {
         isAccessibleForFree: false,
         isPartOfProductId: 'publication:openaccess',
         isClosable: false,
+        contentType: 'CLOSED',
       },
       {
         isAccessibleForFree: false,
         isPartOfProductId: 'publication:notopen',
         isClosable: false,
+        contentType: 'CLOSED',
       },
       {
         isAccessibleForFree: undefined,
         isPartOfProductId: 'publication:openaccess',
         isClosable: true,
+        contentType: 'OPEN',
       },
       {
         isAccessibleForFree: undefined,
         isPartOfProductId: 'publication:notopen',
         isClosable: undefined,
+        contentType: 'CLOSED',
       },
     ].forEach(({isAccessibleForFree, isPartOfProductId, isClosable}) => {
       it(`shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
@@ -363,6 +369,7 @@ describes.realWin('BasicRuntime', (env) => {
           autoPromptType: 'none',
           alwaysShow: false,
           isClosable,
+          contentType,
         });
       });
     });
