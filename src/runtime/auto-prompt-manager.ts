@@ -301,6 +301,7 @@ export class AutoPromptManager {
 
     let potentialAction;
     if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
+      // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
       const nextIntervention = await this.getTargetedInterventionOrchestration(
         clientConfig,
         article,
@@ -316,6 +317,7 @@ export class AutoPromptManager {
         );
       }
     } else {
+      // Legacy Frequency Capping flow.
       // Article response is honored over code snippet in case of conflict, such
       // as when publisher changes revenue model but does not update snippet.
       this.autoPromptType_ = this.getAutoPromptType_(
