@@ -299,6 +299,13 @@ export class AutoPromptManager {
       return;
     }
 
+    // Article response is honored over code snippet in case of conflict, such
+    // as when publisher changes revenue model but does not update snippet.
+    this.autoPromptType_ = this.getAutoPromptType_(
+      article.audienceActions?.actions,
+      params.autoPromptType
+    )!;
+
     let potentialAction;
     if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
       // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
@@ -318,12 +325,6 @@ export class AutoPromptManager {
       }
     } else {
       // Legacy Frequency Capping flow.
-      // Article response is honored over code snippet in case of conflict, such
-      // as when publisher changes revenue model but does not update snippet.
-      this.autoPromptType_ = this.getAutoPromptType_(
-        article.audienceActions?.actions,
-        params.autoPromptType
-      )!;
 
       // Default isClosable to what is set in the page config.
       // Otherwise, the prompt is blocking for publications with a
