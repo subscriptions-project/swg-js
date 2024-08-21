@@ -17,7 +17,7 @@
 import * as audienceActionFlow from './audience-action-flow';
 import * as audienceActionLocalFlow from './audience-action-local-flow';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {AutoPromptConfig, Duration} from '../model/auto-prompt-config';
+import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig, UiPredicates} from '../model/client-config';
