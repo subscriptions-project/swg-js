@@ -19,7 +19,6 @@ import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   BACK_TO_HOME_HTML,
-  CONTRIBUTION_ICON,
   ERROR_HTML,
   LOADING_HTML,
   OPT_IN_CLOSE_BUTTON_HTML,
@@ -28,7 +27,6 @@ import {
   REWARDED_AD_SIGN_IN_HTML,
   REWARDED_AD_SUPPORT_HTML,
   REWARDED_AD_THANKS_HTML,
-  SUBSCRIPTION_ICON,
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -498,7 +496,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const closeHtml = this.getCloseButtonOrEmptyHtml_(
       REWARDED_AD_CLOSE_BUTTON_HTML
     );
-    const icon = this.isSubscription() ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = htmlEscape(
       config.rewardedAdParameters!.customMessage!
@@ -528,7 +525,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     )
       .replace('$BACK_TO_HOME_BUTTON$', backToHomeHtml)
       .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
-      .replace('$ICON$', icon)
       .replace('$MESSAGE$', message)
       .replace('$VIEW_AN_AD$', viewad)
       .replace('$SUPPORT_BUTTON$', supportHtml)

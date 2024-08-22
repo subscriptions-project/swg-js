@@ -21,12 +21,6 @@ import {GOOGLE_LOGO_IMAGE_DATA} from '../utils/assets';
 const html = String.raw;
 const css = String.raw;
 
-export const SUBSCRIPTION_ICON =
-  'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg';
-
-export const CONTRIBUTION_ICON =
-  'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/volunteer_activism/default/40px.svg';
-
 const SLIDE_UP_ANIMATION = css`
   @keyframes slideUp {
     from {
@@ -336,14 +330,6 @@ const REWARDED_AD_CSS = css`
     line-break: auto;
   }
 
-  .rewarded-ad-icon {
-    margin: 8px auto 0px auto;
-    height: 40px;
-    width: 40px;
-    background: #1a73e8;
-    -webkit-mask: url($ICON$) center/contain no-repeat;
-  }
-
   .rewarded-ad-message {
     margin-top: 8px;
     padding: 0px 11px 0px 11px;
@@ -465,7 +451,6 @@ export const REWARDED_AD_HTML = html`
         <div class="rewarded-ad-title" id="title-id">$TITLE$</div>
         $REWARDED_AD_CLOSE_BUTTON_HTML$
       </div>
-      <div class="rewarded-ad-icon"></div>
       <div class="rewarded-ad-message" id="message-id">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
         <button class="rewarded-ad-view-ad-button rewarded-ad-cta-button">
@@ -505,18 +490,6 @@ const REWARDED_AD_THANKS_CSS = css`
     grid-template-rows: 56px 26px 14px 1fr 34px;
   }
 
-  .rewarded-ad-thanks-icon {
-    margin: auto;
-    height: 64px;
-    width: 64px;
-    background: #1a73e8;
-    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/rewarded_ads/default/48px.svg)
-      center/contain no-repeat;
-    grid-column: 2;
-    grid-row: 1 / 2;
-    margin-top: 20px;
-  }
-
   .rewarded-ad-thanks-message {
     font-size: 22px; // 1.375rem;
     font-weight: 400;
@@ -541,7 +514,6 @@ export const REWARDED_AD_THANKS_HTML = html`
     aria-modal="true"
   >
     <div class="rewarded-ad-thanks-container">
-      <div class="rewarded-ad-thanks-icon"></div>
       <div class="rewarded-ad-thanks-message" id="thanks-id">
         $THANKS_FOR_VIEWING_THIS_AD$
       </div>
