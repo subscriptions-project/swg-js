@@ -2750,7 +2750,12 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    [{unit: 'SECOND'}, {unit: 'MONTH'}, {unit: 'YEAR'}].forEach(({unit}) => {
+    [
+      {unit: 'SECOND'},
+      {unit: 'MONTH'},
+      {unit: 'YEAR'},
+      {unit: 'UNSPECIFIED'},
+    ].forEach(({unit}) => {
       it('convertSwgDurationToSeconds_ return undefined for invalid SwgDurationUnits.', async () => {
         const swgDuration = {unit, count: 10};
         const result =
