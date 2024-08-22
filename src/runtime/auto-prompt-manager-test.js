@@ -98,7 +98,11 @@ describes.realWin('AutoPromptManager', (env) => {
     deps = new MockDeps();
 
     sandbox.useFakeTimers(CURRENT_TIME);
-    win = Object.assign({}, env.win, {gtag: () => {}, ga: () => {}});
+    win = Object.assign({}, env.win, {
+      gtag: () => {},
+      ga: () => {},
+      dataLayer: {push: () => {}},
+    });
     win.setTimeout = (callback) => callback();
     winMock = sandbox.mock(win);
     sandbox.stub(deps, 'win').returns(win);
@@ -1432,7 +1436,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should not show any prompt if there are no eligible audience actions', async () => {
-      setWinWithAnalytics(/* gtag */ false, /* ga */ false);
+      setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ false);
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -1932,7 +1936,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the third prompt if the frequency cap for contributions is met and survey analytics is not configured', async () => {
-      setWinWithAnalytics(/* gtag */ false, /* ga */ false);
+      setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ false);
       expectFrequencyCappingTimestamps(storageMock, {
         'TYPE_CONTRIBUTION': {
           impressions: [
@@ -2647,7 +2651,90 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  describe('Flexible Prompt Architecture', () => {
+    let autoPromptConfig;
+    let getArticleExpectation;
+    let getClientConfigExpectation;
+    const globalFrequencyCapDurationSeconds = 120;
+    const anyPromptFrequencyCapDurationSeconds = 600;
+
+    beforeEach(() => {
+      autoPromptConfig = new AutoPromptConfig({
+        globalFrequencyCapDurationSeconds,
+        anyPromptFrequencyCapDurationSeconds,
+      });
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation =
+        clientConfigManagerMock.expects('getClientConfig');
+      getClientConfigExpectation.resolves(clientConfig).once();
+      const entitlements = new Entitlements();
+      sandbox.stub(entitlements, 'enablesThis').returns(false);
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              CONTRIBUTION_INTERVENTION,
+              SURVEY_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          actionOrchestration: {},
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+    });
+  });
+
   describe('Helper Functions', () => {
+    it('Survey is eligible when gTag logging is eligible', async () => {
+      setWinWithAnalytics(/* gtag */ true, /* ga */ false, /* gtm */ false);
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        'TYPE_REWARDED_SURVEY',
+        []
+      );
+      expect(isEligible).to.be.true;
+    });
+
+    it('Survey is eligible when GA logging is eligible', async () => {
+      setWinWithAnalytics(/* gtag */ false, /* ga */ true, /* gtm */ false);
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        'TYPE_REWARDED_SURVEY',
+        []
+      );
+      expect(isEligible).to.be.true;
+    });
+
+    it('Survey is eligible when GTM logging is eligible', async () => {
+      setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ true);
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        'TYPE_REWARDED_SURVEY',
+        []
+      );
+      expect(isEligible).to.be.true;
+    });
+
+    it('Survey is not eligible when no Analytics logging is eligible', async () => {
+      setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ false);
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        'TYPE_REWARDED_SURVEY',
+        []
+      );
+      expect(isEligible).to.be.false;
+    });
+
     [
       {unit: 'MINUTE', count: 10, seconds: 600},
       {unit: 'HOUR', count: 5, seconds: 18000},
@@ -2967,13 +3054,16 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  function setWinWithAnalytics(gtag, ga) {
+  function setWinWithAnalytics(gtag, ga, gtm) {
     const winWithAnalytics = Object.assign({}, win);
     if (!gtag) {
       delete winWithAnalytics.gtag;
     }
     if (!ga) {
       delete winWithAnalytics.ga;
+    }
+    if (!gtm) {
+      delete winWithAnalytics.dataLayer;
     }
     autoPromptManager.deps_.win.restore();
     sandbox.stub(autoPromptManager.deps_, 'win').returns(winWithAnalytics);
