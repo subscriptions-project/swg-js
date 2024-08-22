@@ -486,7 +486,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(prompt).to.be.null;
 
         const backToHome = wrapper.shadowRoot.querySelector(
-          '.back-to-home-container'
+          '.exit-container'
         );
         expect(backToHome).not.to.be.null;
       });

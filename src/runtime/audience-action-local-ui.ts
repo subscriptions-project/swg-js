@@ -32,13 +32,15 @@ const SLIDE_UP_ANIMATION = css`
   }
 `;
 
-const BACK_TO_HOME_CSS = css`
-  .back-to-home-container {
+const EXIT_CSS = css`
+  .exit-container {
     width: 100%;
     display: flex;
     flex-direction: row-reverse;
   }
+`;
 
+const BACK_TO_HOME_CSS = css`
   .back-to-home-button {
     border-radius: 4px;
     text-decoration: none;
@@ -56,11 +58,9 @@ const BACK_TO_HOME_CSS = css`
 `;
 
 export const BACK_TO_HOME_HTML = html`
-  <div class="back-to-home-container">
-    <a class="back-to-home-button" href="$BACK_TO_HOME_LINK$"
-      >$BACK_TO_HOME_TEXT$</a
-    >
-  </div>
+  <a class="back-to-home-button" href="$BACK_TO_HOME_LINK$">
+    $BACK_TO_HOME_TEXT$
+  </a>
 `;
 
 const REWARDED_AD_PROMPT = css`
@@ -127,7 +127,7 @@ const REWARDED_AD_CLOSE_BUTTON_CSS = css`
   }
 `;
 
-export const REWARDED_AD_CLOSE_BUTTON_HTML = html`<button
+export const REWARDED_AD_CLOSE_BUTTON_HTML = html` <button
   aria-label="$CLOSE_BUTTON_DESCRIPTION$"
   class="rewarded-ad-close-button"
 >
@@ -307,6 +307,7 @@ const REWARDED_AD_CSS = css`
   ${REWARDED_AD_CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
   ${BACK_TO_HOME_CSS}
+  ${EXIT_CSS}
 
   .rewarded-ad-container {
     margin: 0px;
@@ -319,7 +320,6 @@ const REWARDED_AD_CSS = css`
   }
 
   .rewarded-ad-title {
-    margin-top: 20px;
     font-size: 28px; //1.75rem;
     line-height: 36px; // 2.25rem;
     font-weight: 400;
@@ -446,10 +446,9 @@ export const REWARDED_AD_HTML = html`
     aria-modal="true"
   >
     <div class="rewarded-ad-container">
-      $BACK_TO_HOME_BUTTON$
+      <div class="exit-container">$EXIT$</div>
       <div class="rewarded-ad-header">
         <div class="rewarded-ad-title" id="title-id">$TITLE$</div>
-        $REWARDED_AD_CLOSE_BUTTON_HTML$
       </div>
       <div class="rewarded-ad-message" id="message-id">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
@@ -478,16 +477,10 @@ const REWARDED_AD_THANKS_CSS = css`
   ${DEFAULT_BUTTON}
   ${REWARDED_AD_CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
+  ${EXIT_CSS}
 
   .rewarded-ad-prompt {
     width: 100%;
-  }
-
-  .rewarded-ad-thanks-container {
-    height: 100%;
-    display: grid !important;
-    grid-template-columns: 56px 1fr 56px;
-    grid-template-rows: 56px 26px 14px 1fr 34px;
   }
 
   .rewarded-ad-thanks-message {
@@ -497,8 +490,7 @@ const REWARDED_AD_THANKS_CSS = css`
     letter-spacing: 0px;
     text-align: center;
     color: #202124;
-    grid-column: 1 / 4;
-    grid-row: 4;
+    margin-block-end: 48px; // 3rem;
   }
 `;
 
@@ -513,12 +505,9 @@ export const REWARDED_AD_THANKS_HTML = html`
     aria-labelledby="thanks-id"
     aria-modal="true"
   >
-    <div class="rewarded-ad-thanks-container">
-      <div class="rewarded-ad-thanks-message" id="thanks-id">
-        $THANKS_FOR_VIEWING_THIS_AD$
-      </div>
-      ${REWARDED_AD_CLOSE_BUTTON_HTML}
-      <div></div>
+    <div class="exit-container">${REWARDED_AD_CLOSE_BUTTON_HTML}</div>
+    <div class="rewarded-ad-thanks-message" id="thanks-id">
+      $THANKS_FOR_VIEWING_THIS_AD$
     </div>
   </div>
 `;

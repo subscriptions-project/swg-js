@@ -492,8 +492,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     // verified existance in initRewardedAdWall_
     const publication = htmlEscape(config.publication!.name!).toString();
-    const backToHomeHtml = this.getBackToHomeOrEmptyHTML_();
-    const closeHtml = this.getCloseButtonOrEmptyHtml_(
+    const closeButtonHtml = this.getCloseButtonOrEmptyHtml_(
       REWARDED_AD_CLOSE_BUTTON_HTML
     );
     // verified existance in initRewardedAdWall_
@@ -523,8 +522,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       '$TITLE$',
       publication
     )
-      .replace('$BACK_TO_HOME_BUTTON$', backToHomeHtml)
-      .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
+      .replace('$EXIT$', closeButtonHtml)
       .replace('$MESSAGE$', message)
       .replace('$VIEW_AN_AD$', viewad)
       .replace('$SUPPORT_BUTTON$', supportHtml)
@@ -758,9 +756,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     await this.initPrompt_();
   }
 
-  private getBackToHomeOrEmptyHTML_(): string {
+  private getCloseButtonOrEmptyHtml_(html: string) {
+    const language = this.clientConfigManager_.getLanguage();
     if (!this.params_.isClosable) {
-      const language = this.clientConfigManager_.getLanguage();
+      if (this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
+        return '';
+      }
       const backToHomeText = msg(
         SWG_I18N_STRINGS['BACK_TO_HOMEPAGE'],
         language
@@ -773,20 +774,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         parseUrl(this.deps_.win().location.href).origin
       );
     } else {
-      return '';
+      const closeButtonDescription = msg(
+        SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
+        language
+      )!;
+      return html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription);
     }
-  }
-
-  private getCloseButtonOrEmptyHtml_(html: string) {
-    if (!this.params_.isClosable) {
-      return '';
-    }
-    const language = this.clientConfigManager_.getLanguage();
-    const closeButtonDescription = msg(
-      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
-      language
-    )!;
-    return html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription);
   }
 
   showNoEntitlementFoundToast() {
