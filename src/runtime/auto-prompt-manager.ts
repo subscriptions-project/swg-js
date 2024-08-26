@@ -199,9 +199,8 @@ export class AutoPromptManager {
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
-      this.isClosable_ = this.actionOrchestrationExperiment_
-        ? params.contentType === ContentType.OPEN
-        : params.isClosable ?? !this.isSubscription_();
+      // TODO(justinchou): Update to use contentType from params after launch.
+      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
 
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
@@ -319,9 +318,17 @@ export class AutoPromptManager {
       );
 
       if (!!nextIntervention) {
-        // Fallback to content type for unspecified?
-        this.isClosable_ =
-          nextIntervention?.closability === Closability.BLOCKING;
+        switch (nextIntervention?.closability) {
+          case Closability.BLOCKING:
+            this.isClosable_ = false;
+            break;
+          case Closability.DISMISSIBLE:
+            this.isClosable_ = true;
+            break;
+          default:
+            this.isClosable_ =
+              params.contentType === ContentType.CLOSED ? false : true;
+        }
         potentialAction = article.audienceActions?.actions?.find(
           (action) => action.configurationId === nextIntervention.configId
         );
@@ -509,7 +516,7 @@ export class AutoPromptManager {
     article: Article,
     contentType: ContentType
   ): Promise<InterventionOrchestration | void> {
-    let eligibleActions = article.audienceActions?.actions;
+    const eligibleActions = article.audienceActions?.actions;
     let targetedInterventions =
       article.actionOrchestration?.interventionFunnel?.prompts;
     if (
@@ -523,8 +530,12 @@ export class AutoPromptManager {
 
     // Complete client-side eligibility checks for actions.
     const actionsTimestamps = await this.getTimestamps();
-    eligibleActions = eligibleActions.filter((action) =>
-      this.checkActionEligibility_(action.type, actionsTimestamps!)
+    const eligibleActionIds = new Set(
+      eligibleActions
+        .filter((action) =>
+          this.checkActionEligibility_(action.type, actionsTimestamps!)
+        )
+        .map((action) => action.configurationId)
     );
     if (eligibleActions.length === 0) {
       return;
@@ -532,9 +543,7 @@ export class AutoPromptManager {
 
     // Filter the funnel of interventions by eligibility.
     targetedInterventions = targetedInterventions.filter((intervention) =>
-      eligibleActions
-        .map((action) => action.configurationId)
-        .includes(intervention.configId)
+      eligibleActionIds.has(intervention.configId)
     );
     if (targetedInterventions.length === 0) {
       return;
@@ -558,18 +567,22 @@ export class AutoPromptManager {
       return targetedInterventions[0];
     }
 
+    // b/325512849: Evaluate prompt frequency cap before global frequency cap.
+    // This disambiguates the scenarios where a reader meets the cap when the
+    // reader is only eligible for 1 prompt vs. when the publisher only has 1
+    // prompt configured.
     for (const intervention of targetedInterventions) {
-      const frequencyCapDuration = this.getPromptFrequencyCapDuration_(
+      const promptFrequencyCapDuration = this.getPromptFrequencyCapDuration_(
         clientConfig.autoPromptConfig?.frequencyCapConfig!,
         intervention
       );
-      if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
+      if (this.isValidFrequencyCapDuration_(promptFrequencyCapDuration)) {
         const actionTimestamps = actionsTimestamps![intervention.type];
         const timestamps = [
           ...(actionTimestamps?.dismissals || []),
           ...(actionTimestamps?.completions || []),
         ];
-        if (this.isFrequencyCapped_(frequencyCapDuration!, timestamps)) {
+        if (this.isFrequencyCapped_(promptFrequencyCapDuration!, timestamps)) {
           this.eventManager_.logSwgEvent(
             AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
           );
@@ -983,52 +996,26 @@ export class AutoPromptManager {
     frequencyCapConfig: FrequencyCapConfig,
     interventionOrchestration: InterventionOrchestration
   ): Duration | undefined {
-    const swgDuration = interventionOrchestration.promptFrequencyCap?.duration;
+    const duration =
+      interventionOrchestration.promptFrequencyCap?.secondsDuration;
 
-    if (!swgDuration) {
+    if (!duration) {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND
       );
       return frequencyCapConfig.anyPromptFrequencyCap?.frequencyCapDuration;
     }
-    return this.convertSwgDurationToSeconds_(swgDuration);
+    return duration;
   }
 
   private getGlobalFrequencyCapDuration_(
     frequencyCapConfig: FrequencyCapConfig,
     interventionFunnel: InterventionFunnel
   ): Duration | undefined {
-    const swgDuration = interventionFunnel.globalFrequencyCap?.duration;
-    return swgDuration
-      ? this.convertSwgDurationToSeconds_(swgDuration)
+    const duration = interventionFunnel.globalFrequencyCap?.secondsDuration;
+    return duration
+      ? duration
       : frequencyCapConfig.globalFrequencyCap!.frequencyCapDuration;
-  }
-
-  private convertSwgDurationToSeconds_(
-    swgDuration: SwgDuration
-  ): Duration | undefined {
-    const invalidUnits = [
-      SwgDurationUnit.SECOND,
-      SwgDurationUnit.MONTH,
-      SwgDurationUnit.YEAR,
-    ];
-    if (invalidUnits.includes(swgDuration.unit)) {
-      // TODO: Log error
-      return;
-    }
-    switch (swgDuration.unit) {
-      case SwgDurationUnit.MINUTE:
-        return new Duration(60 * swgDuration.count, 0);
-      case SwgDurationUnit.HOUR:
-        return new Duration(3600 * swgDuration.count, 0);
-      case SwgDurationUnit.DAY:
-        return new Duration(86400 * swgDuration.count, 0);
-      case SwgDurationUnit.WEEK:
-        return new Duration(604800 * swgDuration.count, 0);
-      default:
-        // TODO: log error
-        return;
-    }
   }
 
   private isValidFrequencyCap_(
