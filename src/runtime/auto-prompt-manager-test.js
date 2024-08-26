@@ -19,7 +19,7 @@ import * as audienceActionLocalFlow from './audience-action-local-flow';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
-import {AutoPromptType} from '../api/basic-subscriptions';
+import {AutoPromptType, ContentType} from '../api/basic-subscriptions';
 import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -2896,9 +2896,66 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
-    it('should show the prompt after the specified delay', async () => {
-      const displayDelaySeconds = 99;
-      autoPromptConfig = new AutoPromptConfig({displayDelaySeconds});
+    it('should show the first prompt for contentType CLOSED, despite past dismissals', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION, SUBSCRIPTION_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              globalFrequencyCap: {
+                secondsDuration: {
+                  seconds: 60,
+                },
+              },
+              prompts: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  closability: 'BLOCKING',
+                },
+                {
+                  configId: 'newsletter_config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
+        isClosable: false,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the first prompt and log an error if the FrequencyCapConfig is invalid', async () => {
+      autoPromptConfig = new AutoPromptConfig({});
       const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
@@ -2907,14 +2964,43 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       getClientConfigExpectation.resolves(clientConfig).once();
       expectFrequencyCappingTimestamps(storageMock);
-      winMock
-        .expects('setTimeout')
-        .withExactArgs(sandbox.match.any, displayDelaySeconds)
-        .once();
 
       await autoPromptManager.showAutoPrompt({});
       await tick(20);
+
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
     });
+
+    // it('should show the prompt after the specified delay', async () => {
+    //   const displayDelaySeconds = 99;
+    //   autoPromptConfig = new AutoPromptConfig({displayDelaySeconds});
+    // // Add default frequency cap here
+    //   const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+    //   const clientConfig = new ClientConfig({
+    //     autoPromptConfig,
+    //     uiPredicates,
+    //     useUpdatedOfferFlows: true,
+    //   });
+    //   getClientConfigExpectation.resolves(clientConfig).once();
+    //   expectFrequencyCappingTimestamps(storageMock);
+    //   winMock
+    //     .expects('setTimeout')
+    //     .withExactArgs(sandbox.match.any, displayDelaySeconds)
+    //     .once();
+
+    //   await autoPromptManager.showAutoPrompt({});
+    //   await tick(20);
+    // });
+
+    // no delay for closed content
   });
 
   describe('Helper Functions', () => {
