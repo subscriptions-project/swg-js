@@ -309,6 +309,7 @@ export class AutoPromptManager {
     let potentialAction;
     if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
       // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
+      console.log('starting new flow');
       const nextIntervention = await this.getTargetedInterventionOrchestration_(
         clientConfig,
         article,
@@ -520,9 +521,11 @@ export class AutoPromptManager {
     if (!eligibleActions?.length || !targetedInterventions?.length) {
       return;
     }
+    console.log('actions provided');
 
     // Complete client-side eligibility checks for actions.
     const actionsTimestamps = await this.getTimestamps();
+    console.log('fetched timestamps');
     const eligibleActionIds = new Set(
       eligibleActions
         .filter((action) =>
@@ -531,6 +534,7 @@ export class AutoPromptManager {
         .map((action) => action.configurationId)
     );
     if (eligibleActions.length === 0) {
+      console.log('no eligible actions after check');
       return;
     }
 
@@ -539,13 +543,16 @@ export class AutoPromptManager {
       eligibleActionIds.has(intervention.configId)
     );
     if (targetedInterventions.length === 0) {
+      console.log('no action orchestrations match actions');
       return;
     }
 
     if (contentType === ContentType.CLOSED) {
+      console.log('contentType is closed');
       return targetedInterventions[0];
     }
 
+    console.log('continuing with open content');
     // Only other supported ContentType is OPEN.
     let nextIntervention: InterventionOrchestration | undefined = undefined;
     // Check Default FrequencyCapConfig is valid.

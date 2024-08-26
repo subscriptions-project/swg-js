@@ -2695,31 +2695,33 @@ describes.realWin('AutoPromptManager', (env) => {
             engineId: '123',
           },
           actionOrchestration: {
-            globalFrequencyCap: {
-              secondsDuration: {
-                seconds: 60,
+            interventionFunnel: {
+              globalFrequencyCap: {
+                secondsDuration: {
+                  seconds: 60,
+                },
               },
+              prompts: [
+                {
+                  configId: 'contribution_config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                },
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                },
+                {
+                  configId: 'newsletter_config_id',
+                  type: 'TYPE_NEWSLETTER_SIGNUP',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                },
+              ],
             },
-            prompts: [
-              {
-                configId: 'contribution_config_id',
-                type: 'TYPE_CONTRIBUTION',
-                promptFrequencyCap,
-                closability: 'DISMISSIBLE',
-              },
-              {
-                configId: 'survey_config_id',
-                type: 'TYPE_REWARDED_SURVEY',
-                promptFrequencyCap,
-                closability: 'DISMISSIBLE',
-              },
-              {
-                configId: 'newsletter_config_id',
-                type: 'TYPE_NEWSLETTER_SIGNUP',
-                promptFrequencyCap,
-                closability: 'DISMISSIBLE',
-              },
-            ],
           },
           experimentConfig: {
             experimentFlags: ['action_orchestration_experiment'],
@@ -2767,14 +2769,16 @@ describes.realWin('AutoPromptManager', (env) => {
             engineId: '123',
           },
           actionOrchestration: {
-            prompts: [
-              {
-                configId: 'contribution_config_id',
-                type: 'TYPE_CONTRIBUTION',
-                promptFrequencyCap,
-                closability: 'DISMISSIBLE',
-              },
-            ],
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'contribution_config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
           },
           experimentConfig: {
             experimentFlags: ['action_orchestration_experiment'],
@@ -2787,7 +2791,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({});
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
     });
 
@@ -2799,7 +2802,9 @@ describes.realWin('AutoPromptManager', (env) => {
             engineId: '123',
           },
           actionOrchestration: {
-            prompts: [],
+            interventionFunnel: {
+              prompts: [],
+            },
           },
           experimentConfig: {
             experimentFlags: ['action_orchestration_experiment'],
@@ -2812,7 +2817,44 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({});
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
-      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('should not show any prompt if none are eligible', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME],
+          completions: [CURRENT_TIME],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(actionFlowSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
     });
   });
