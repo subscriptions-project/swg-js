@@ -2820,7 +2820,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
-    it('should not show any prompt if none are eligible', async () => {
+    it('should not show any prompt if no actions are eligible', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -2856,6 +2856,64 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(actionFlowSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
+    });
+
+    it('should not show any prompt if no intervention orchestrations are eligible', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [CONTRIBUTION_INTERVENTION, SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME],
+          completions: [CURRENT_TIME],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('should show the prompt after the specified delay', async () => {
+      const displayDelaySeconds = 99;
+      autoPromptConfig = new AutoPromptConfig({displayDelaySeconds});
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
+      expectFrequencyCappingTimestamps(storageMock);
+      winMock
+        .expects('setTimeout')
+        .withExactArgs(sandbox.match.any, displayDelaySeconds)
+        .once();
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
     });
   });
 

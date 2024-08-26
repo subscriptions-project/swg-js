@@ -533,7 +533,7 @@ export class AutoPromptManager {
         )
         .map((action) => action.configurationId)
     );
-    if (eligibleActions.length === 0) {
+    if (eligibleActionIds.size === 0) {
       console.log('no eligible actions after check');
       return;
     }
