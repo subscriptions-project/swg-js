@@ -517,12 +517,7 @@ export class AutoPromptManager {
     const eligibleActions = article.audienceActions?.actions;
     let targetedInterventions =
       article.actionOrchestration?.interventionFunnel?.prompts;
-    if (
-      !eligibleActions ||
-      eligibleActions.length === 0 ||
-      !targetedInterventions ||
-      targetedInterventions.length === 0
-    ) {
+    if (!eligibleActions?.length || !targetedInterventions?.length) {
       return;
     }
 

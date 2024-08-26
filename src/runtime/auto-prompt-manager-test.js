@@ -2790,6 +2790,31 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
     });
+
+    it('should not show any prompt if there are interventions in actionOrchestration', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [CONTRIBUTION_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            prompts: [],
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({});
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
   });
 
   describe('Helper Functions', () => {
