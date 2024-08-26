@@ -2778,6 +2778,25 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(getPotentialActionSpy).to.have.been.calledOnce;
     });
 
+    it('should not show prompt if canDisplayAutoPrompt is false', async () => {
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ false);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
     it('should not show any prompt if there are no audience actions', async () => {
       getArticleExpectation
         .resolves({
@@ -2913,6 +2932,67 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
+    it('should not show any prompt if preview enabled but no audience actions', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['onsite_preview_enabled'],
+          },
+          previewEnabled: true,
+        })
+        .once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('skip canDisplayAutoPrompt and frequency capping check when preview enabled', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION, NEWSLETTER_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['onsite_preview_enabled'],
+          },
+          previewEnabled: true,
+        })
+        .once();
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ false);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: true,
+      });
+    });
+
     it('should show the first prompt for contentType CLOSED, despite past dismissals', async () => {
       getArticleExpectation
         .resolves({
@@ -2994,6 +3074,15 @@ describes.realWin('AutoPromptManager', (env) => {
         timestamp: sandbox.match.number,
         configurationId: null,
       });
+    });
+
+    it('should show the first prompt if there are no stored impressions', async () => {
+      expectFrequencyCappingTimestamps(storageMock);
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
 
     it('should show the first prompt if the frequency cap is not met', async () => {
@@ -4105,28 +4194,40 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    // it('should show the prompt after the specified delay', async () => {
-    //   const displayDelaySeconds = 99;
-    //   autoPromptConfig = new AutoPromptConfig({displayDelaySeconds});
-    // // Add default frequency cap here
-    //   const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
-    //   const clientConfig = new ClientConfig({
-    //     autoPromptConfig,
-    //     uiPredicates,
-    //     useUpdatedOfferFlows: true,
-    //   });
-    //   getClientConfigExpectation.resolves(clientConfig).once();
-    //   expectFrequencyCappingTimestamps(storageMock);
-    //   winMock
-    //     .expects('setTimeout')
-    //     .withExactArgs(sandbox.match.any, displayDelaySeconds)
-    //     .once();
+    it('should show the prompt after the specified delay for OPEN contentType', async () => {
+      const displayDelaySeconds = 99;
+      autoPromptConfig = new AutoPromptConfig({displayDelaySeconds});
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
+      winMock
+        .expects('setTimeout')
+        .withExactArgs(sandbox.match.any, displayDelaySeconds)
+        .once();
 
-    //   await autoPromptManager.showAutoPrompt({});
-    //   await tick(20);
-    // });
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+    });
 
-    // no delay for closed content
+    it('should show the prompt with no delay for CLOSED contentType', async () => {
+      const displayDelaySeconds = 99;
+      autoPromptConfig = new AutoPromptConfig({displayDelaySeconds});
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
+      winMock.expects('setTimeout').never();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+      await tick(20);
+    });
   });
 
   describe('Helper Functions', () => {
