@@ -1436,7 +1436,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should not show any prompt if there are no eligible audience actions', async () => {
-      setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ false);
+      setWinWithAnalytics({setupGtag: false, setupGa: false, setupGtm: false});
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -1936,7 +1936,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should show the third prompt if the frequency cap for contributions is met and survey analytics is not configured', async () => {
-      setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ false);
+      setWinWithAnalytics({setupGtag: false, setupGa: false, setupGtm: false});
       expectFrequencyCappingTimestamps(storageMock, {
         'TYPE_CONTRIBUTION': {
           impressions: [
@@ -2700,7 +2700,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
   describe('Helper Functions', () => {
     it('Survey is eligible when gTag logging is eligible', async () => {
-      setWinWithAnalytics(/* gtag */ true, /* ga */ false, /* gtm */ false);
+      setWinWithAnalytics({setupGtam: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
         'TYPE_REWARDED_SURVEY',
         {}
@@ -2709,7 +2709,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('Survey is eligible when GA logging is eligible', async () => {
-      setWinWithAnalytics(/* gtag */ false, /* ga */ true, /* gtm */ false);
+      setWinWithAnalytics({setupGa: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
         'TYPE_REWARDED_SURVEY',
         {}
@@ -2718,7 +2718,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('Survey is eligible when GTM logging is eligible', async () => {
-      setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ true);
+      setWinWithAnalytics({setupGtm: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
         'TYPE_REWARDED_SURVEY',
         {}
@@ -2727,7 +2727,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('Survey is not eligible when no Analytics logging is eligible', async () => {
-      setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ false);
+      setWinWithAnalytics({setupGtag: false, setupGa: false, setupGtm: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
         'TYPE_REWARDED_SURVEY',
         {}
@@ -3079,15 +3079,19 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  function setWinWithAnalytics(gtag, ga, gtm) {
+  function setWinWithAnalytics({
+    setupGtag = true,
+    setupGa = true,
+    setupGtm = true,
+  }) {
     const winWithAnalytics = Object.assign({}, win);
-    if (!gtag) {
+    if (!setupGtag) {
       delete winWithAnalytics.gtag;
     }
-    if (!ga) {
+    if (!setupGa) {
       delete winWithAnalytics.ga;
     }
-    if (!gtm) {
+    if (!setupGtm) {
       delete winWithAnalytics.dataLayer;
     }
     autoPromptManager.deps_.win.restore();
