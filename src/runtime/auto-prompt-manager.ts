@@ -31,8 +31,6 @@ import {
   Closability,
   InterventionFunnel,
   InterventionOrchestration,
-  SwgDuration,
-  SwgDurationUnit,
 } from '../api/action-orchestration';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
