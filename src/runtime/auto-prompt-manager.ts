@@ -309,7 +309,6 @@ export class AutoPromptManager {
     let potentialAction;
     if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
       // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
-      console.log('starting new flow');
       const nextIntervention = await this.getTargetedInterventionOrchestration_(
         clientConfig,
         article,
@@ -328,9 +327,6 @@ export class AutoPromptManager {
             this.isClosable_ =
               params.contentType === ContentType.CLOSED ? false : true;
         }
-        console.log(
-          `setting isclosable: ${nextIntervention.closability} ${this.isClosable_}`
-        );
         potentialAction = article.audienceActions?.actions?.find(
           (action) => action.configurationId === nextIntervention.configId
         );
@@ -524,11 +520,9 @@ export class AutoPromptManager {
     if (!eligibleActions?.length || !targetedInterventions?.length) {
       return;
     }
-    console.log('actions provided');
 
     // Complete client-side eligibility checks for actions.
     const actionsTimestamps = await this.getTimestamps();
-    console.log('fetched timestamps');
     const eligibleActionIds = new Set(
       eligibleActions
         .filter((action) =>
@@ -537,7 +531,6 @@ export class AutoPromptManager {
         .map((action) => action.configurationId)
     );
     if (eligibleActionIds.size === 0) {
-      console.log('no eligible actions after check');
       return;
     }
 
@@ -546,16 +539,13 @@ export class AutoPromptManager {
       eligibleActionIds.has(intervention.configId)
     );
     if (targetedInterventions.length === 0) {
-      console.log('no action orchestrations match actions');
       return;
     }
 
     if (contentType === ContentType.CLOSED) {
-      console.log('contentType is closed');
       return targetedInterventions[0];
     }
 
-    console.log('continuing with open content');
     // Only other supported ContentType is OPEN.
     let nextIntervention: InterventionOrchestration | undefined = undefined;
     // Check Default FrequencyCapConfig is valid.
@@ -564,7 +554,6 @@ export class AutoPromptManager {
         clientConfig.autoPromptConfig?.frequencyCapConfig
       )
     ) {
-      console.log('freq cap is invalid');
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
       );
@@ -576,20 +565,17 @@ export class AutoPromptManager {
     // reader is only eligible for 1 prompt vs. when the publisher only has 1
     // prompt configured.
     for (const intervention of targetedInterventions) {
-      console.log(`checking intervnetion: ${intervention.type}`);
       const promptFrequencyCapDuration = this.getPromptFrequencyCapDuration_(
         clientConfig.autoPromptConfig?.frequencyCapConfig!,
         intervention
       );
       if (this.isValidFrequencyCapDuration_(promptFrequencyCapDuration)) {
-        console.log('valid prompt frequency cap');
         const actionTimestamps = actionsTimestamps![intervention.type];
         const timestamps = [
           ...(actionTimestamps?.dismissals || []),
           ...(actionTimestamps?.completions || []),
         ];
         if (this.isFrequencyCapped_(promptFrequencyCapDuration!, timestamps)) {
-          console.log('is prompt frequency capped, show nothing');
           this.eventManager_.logSwgEvent(
             AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
           );
@@ -601,17 +587,14 @@ export class AutoPromptManager {
     }
 
     if (!nextIntervention) {
-      console.log('no internvention found');
       return;
     }
 
-    console.log('checking global freq cap');
     const globalFrequencyCapDuration = this.getGlobalFrequencyCapDuration_(
       clientConfig.autoPromptConfig?.frequencyCapConfig!,
       article.actionOrchestration?.interventionFunnel!
     );
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
-      console.log('valid global frequency cap');
       const globalTimestamps = Array.prototype.concat.apply(
         [],
         Object.entries(actionsTimestamps!)
@@ -621,14 +604,12 @@ export class AutoPromptManager {
       if (
         this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
       ) {
-        console.log('is global frequency capped, show nothing');
         this.eventManager_.logSwgEvent(
           AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
         );
         return;
       }
     }
-    console.log(`show action: ${nextIntervention.type}`);
     return nextIntervention;
   }
 
