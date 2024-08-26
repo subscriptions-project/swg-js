@@ -309,7 +309,7 @@ export class AutoPromptManager {
     let potentialAction;
     if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
       // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
-      const nextIntervention = await this.getTargetedInterventionOrchestration(
+      const nextIntervention = await this.getTargetedInterventionOrchestration_(
         clientConfig,
         article,
         params.contentType
@@ -509,7 +509,7 @@ export class AutoPromptManager {
     return potentialAction;
   }
 
-  private async getTargetedInterventionOrchestration(
+  private async getTargetedInterventionOrchestration_(
     clientConfig: ClientConfig,
     article: Article,
     contentType: ContentType

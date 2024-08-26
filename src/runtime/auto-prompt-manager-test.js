@@ -2657,6 +2657,11 @@ describes.realWin('AutoPromptManager', (env) => {
     let getClientConfigExpectation;
     const globalFrequencyCapDurationSeconds = 120;
     const anyPromptFrequencyCapDurationSeconds = 600;
+    const promptFrequencyCap = {
+      secondsDuration: {
+        seconds: 300,
+      },
+    };
 
     beforeEach(() => {
       autoPromptConfig = new AutoPromptConfig({
@@ -2689,12 +2694,101 @@ describes.realWin('AutoPromptManager', (env) => {
             ],
             engineId: '123',
           },
-          actionOrchestration: {},
+          actionOrchestration: {
+            globalFrequencyCap: {
+              secondsDuration: {
+                seconds: 60,
+              },
+            },
+            prompts: [
+              {
+                configId: 'contribution_config_id',
+                type: 'TYPE_CONTRIBUTION',
+                promptFrequencyCap,
+                closability: 'DISMISSIBLE',
+              },
+              {
+                configId: 'survey_config_id',
+                type: 'TYPE_REWARDED_SURVEY',
+                promptFrequencyCap,
+                closability: 'DISMISSIBLE',
+              },
+              {
+                configId: 'newsletter_config_id',
+                type: 'TYPE_NEWSLETTER_SIGNUP',
+                promptFrequencyCap,
+                closability: 'DISMISSIBLE',
+              },
+            ],
+          },
           experimentConfig: {
             experimentFlags: ['action_orchestration_experiment'],
           },
         })
         .once();
+    });
+
+    it('should execute the legacy flow if the article response does not contain actionOrchestration', async () => {
+      const targetedInterventionSpy = sandbox.spy(
+        autoPromptManager,
+        'getTargetedInterventionOrchestration_'
+      );
+      const getPotentialActionSpy = sandbox.spy(
+        autoPromptManager,
+        'getPotentialAction_'
+      );
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              CONTRIBUTION_INTERVENTION,
+              SURVEY_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({});
+
+      expect(targetedInterventionSpy).to.not.have.been.called;
+      expect(getPotentialActionSpy).to.have.been.calledOnce;
+    });
+
+    it('should not show any prompt if there are no audience actions', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            prompts: [
+              {
+                configId: 'contribution_config_id',
+                type: 'TYPE_CONTRIBUTION',
+                promptFrequencyCap,
+                closability: 'DISMISSIBLE',
+              },
+            ],
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({});
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(subscriptionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
     });
   });
 
