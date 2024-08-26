@@ -976,12 +976,12 @@ export class AutoPromptManager {
     const lastImpression = Math.max(...timestamps);
     const durationInMs =
       (frequencyCapDuration.seconds || 0) * SECOND_IN_MILLIS +
-      this.nanoToMiliseconds_(frequencyCapDuration.nano || 0);
+      this.nanoToMiliseconds_(frequencyCapDuration.nanos || 0);
     return Date.now() - lastImpression < durationInMs;
   }
 
-  private nanoToMiliseconds_(nano: number): number {
-    return Math.floor(nano / Math.pow(10, 6));
+  private nanoToMiliseconds_(nanos: number): number {
+    return Math.floor(nanos / Math.pow(10, 6));
   }
 
   private getPromptFrequencyCapDuration_(
@@ -1027,7 +1027,7 @@ export class AutoPromptManager {
   }
 
   private isValidFrequencyCapDuration_(duration: Duration | undefined) {
-    return !!duration?.seconds || !!duration?.nano;
+    return !!duration?.seconds || !!duration?.nanos;
   }
 
   private getAutoPromptFunction_(action: Intervention) {
