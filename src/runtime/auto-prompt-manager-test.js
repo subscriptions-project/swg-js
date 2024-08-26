@@ -2655,8 +2655,13 @@ describes.realWin('AutoPromptManager', (env) => {
     let autoPromptConfig;
     let getArticleExpectation;
     let getClientConfigExpectation;
-    const globalFrequencyCapDurationSeconds = 120;
+    const globalFrequencyCapDurationSeconds = 100;
     const anyPromptFrequencyCapDurationSeconds = 600;
+    const funnelGlobalFrequencyCapDurationSeconds = 120;
+    const contributionFrequencyCapDurationSeconds = 10800;
+    const surveyFrequencyCapDurationSeconds = 7200;
+    const newsletterFrequencyCapDurationSeconds = 3600;
+
     const promptFrequencyCap = {
       secondsDuration: {
         seconds: 300,
@@ -2698,26 +2703,38 @@ describes.realWin('AutoPromptManager', (env) => {
             interventionFunnel: {
               globalFrequencyCap: {
                 secondsDuration: {
-                  seconds: 60,
+                  seconds: funnelGlobalFrequencyCapDurationSeconds,
                 },
               },
               prompts: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
-                  promptFrequencyCap,
+                  promptFrequencyCap: {
+                    secondsDuration: {
+                      seconds: contributionFrequencyCapDurationSeconds,
+                    },
+                  },
                   closability: 'DISMISSIBLE',
                 },
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
-                  promptFrequencyCap,
+                  promptFrequencyCap: {
+                    secondsDuration: {
+                      seconds: surveyFrequencyCapDurationSeconds,
+                    },
+                  },
                   closability: 'DISMISSIBLE',
                 },
                 {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
-                  promptFrequencyCap,
+                  promptFrequencyCap: {
+                    secondsDuration: {
+                      seconds: newsletterFrequencyCapDurationSeconds,
+                    },
+                  },
                   closability: 'DISMISSIBLE',
                 },
               ],
@@ -2965,7 +2982,7 @@ describes.realWin('AutoPromptManager', (env) => {
       getClientConfigExpectation.resolves(clientConfig).once();
       expectFrequencyCappingTimestamps(storageMock);
 
-      await autoPromptManager.showAutoPrompt({});
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
       await tick(20);
 
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
@@ -2976,6 +2993,740 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+      });
+    });
+
+    it('should show the first prompt if the frequency cap is not met', async () => {
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should show the first prompt if the first prompt was abandoned', async () => {
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should show the first prompt and log an error if the timestamps parsed from localstorage is invalid', async () => {
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          notImpressions: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+    });
+
+    it('should show the first prompt if frequency cap has passed', async () => {
+      const contributionTimestamps =
+        CURRENT_TIME -
+        (contributionFrequencyCapDurationSeconds + 1) * SECOND_IN_MS;
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.have.been.calledOnce;
+    });
+
+    it('should show the second prompt if the frequency cap for contributions is met', async () => {
+      const contributionTimestamps =
+        CURRENT_TIME -
+        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the second prompt if the frequency cap for contributions is met via completions', async () => {
+      // Note, a contribution completion completes the funnel, but should be
+      // treated the same as dismissals in terms of prompt frequency.
+      const contributionTimestamps =
+        CURRENT_TIME -
+        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          completions: [contributionTimestamps],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(25);
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the second prompt if the global frequency cap is undefined and prompt frequency cap for contributions is met', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              CONTRIBUTION_INTERVENTION,
+              SURVEY_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'contribution_config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  promptFrequencyCap: {
+                    secondsDuration: {
+                      seconds: contributionFrequencyCapDurationSeconds,
+                    },
+                  },
+                  closability: 'DISMISSIBLE',
+                },
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  promptFrequencyCap: {
+                    secondsDuration: {
+                      seconds: surveyFrequencyCapDurationSeconds,
+                    },
+                  },
+                  closability: 'DISMISSIBLE',
+                },
+                {
+                  configId: 'newsletter_config_id',
+                  type: 'TYPE_NEWSLETTER_SIGNUP',
+                  promptFrequencyCap: {
+                    secondsDuration: {
+                      seconds: newsletterFrequencyCapDurationSeconds,
+                    },
+                  },
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+
+      const contributionTimestamps =
+        CURRENT_TIME -
+        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the second prompt if the frequency cap for contributions is undefined and the default anyPromptFrequencyCap is met', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              CONTRIBUTION_INTERVENTION,
+              SURVEY_INTERVENTION,
+              NEWSLETTER_INTERVENTION,
+            ],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'contribution_config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'DISMISSIBLE',
+                },
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  promptFrequencyCap: {
+                    secondsDuration: {
+                      seconds: surveyFrequencyCapDurationSeconds,
+                    },
+                  },
+                  closability: 'DISMISSIBLE',
+                },
+                {
+                  configId: 'newsletter_config_id',
+                  type: 'TYPE_NEWSLETTER_SIGNUP',
+                  promptFrequencyCap: {
+                    secondsDuration: {
+                      seconds: newsletterFrequencyCapDurationSeconds,
+                    },
+                  },
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(25);
+
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the second prompt if the second prompt frequency has passed', async () => {
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(25);
+
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the third prompt if the frequency cap for contributions is met and survey analytics is not configured', async () => {
+      setWinWithAnalytics({setupGtag: false, setupGa: false, setupGtm: false});
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        configurationId: 'newsletter_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the third prompt if the frequency caps for contributions and surveys are met', async () => {
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(30);
+
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        configurationId: 'newsletter_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the third prompt if the frequency caps for contributions and surveys are undefined and the default anyPromptFrequencyCap is met', async () => {
+      autoPromptConfig = new AutoPromptConfig({
+        globalFrequencyCapDurationSeconds,
+        anyPromptFrequencyCapDurationSeconds,
+      });
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      getClientConfigExpectation.resolves(clientConfig).once();
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(30);
+
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        configurationId: 'newsletter_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show the third prompt if the third prompt frequency has passed', async () => {
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [
+            CURRENT_TIME -
+              (newsletterFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (newsletterFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
+          ],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(30);
+
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(logEventSpy).to.be.calledWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        configurationId: 'newsletter_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show a dismissible prompt with Closability DISMISSIBLE', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show a blocking prompt with Closability BLOCKING', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: false,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show a dismissible prompt with unset Closability on OPEN contentType', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show a blocking prompt with unset Closability on CLOSED contentType', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: false,
+        calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
