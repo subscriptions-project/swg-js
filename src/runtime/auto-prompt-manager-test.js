@@ -2703,7 +2703,7 @@ describes.realWin('AutoPromptManager', (env) => {
       setWinWithAnalytics(/* gtag */ true, /* ga */ false, /* gtm */ false);
       const isEligible = autoPromptManager.checkActionEligibility_(
         'TYPE_REWARDED_SURVEY',
-        []
+        {}
       );
       expect(isEligible).to.be.true;
     });
@@ -2712,7 +2712,7 @@ describes.realWin('AutoPromptManager', (env) => {
       setWinWithAnalytics(/* gtag */ false, /* ga */ true, /* gtm */ false);
       const isEligible = autoPromptManager.checkActionEligibility_(
         'TYPE_REWARDED_SURVEY',
-        []
+        {}
       );
       expect(isEligible).to.be.true;
     });
@@ -2721,7 +2721,7 @@ describes.realWin('AutoPromptManager', (env) => {
       setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ true);
       const isEligible = autoPromptManager.checkActionEligibility_(
         'TYPE_REWARDED_SURVEY',
-        []
+        {}
       );
       expect(isEligible).to.be.true;
     });
@@ -2730,7 +2730,21 @@ describes.realWin('AutoPromptManager', (env) => {
       setWinWithAnalytics(/* gtag */ false, /* ga */ false, /* gtm */ false);
       const isEligible = autoPromptManager.checkActionEligibility_(
         'TYPE_REWARDED_SURVEY',
-        []
+        {}
+      );
+      expect(isEligible).to.be.false;
+    });
+
+    it('Survey is not eligible when there are previous completions', async () => {
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        'TYPE_REWARDED_SURVEY',
+        {
+          'TYPE_REWARDED_SURVEY': {
+            'impressions': [],
+            'dismissals': [],
+            'completions': [123456789],
+          },
+        }
       );
       expect(isEligible).to.be.false;
     });
@@ -2809,6 +2823,42 @@ describes.realWin('AutoPromptManager', (env) => {
         const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
         expect(isValid).to.be.false;
       });
+    });
+
+    it('getPromptFrequencyCapDuration_ should return valid intervention config', async () => {
+      const expectedDuration = {seconds: 600};
+      const result = autoPromptManager.getPromptFrequencyCapDuration_(
+        {},
+        {promptFrequencyCap: {secondsDuration: expectedDuration}}
+      );
+      expect(result).to.equal(expectedDuration);
+    });
+
+    it('getPromptFrequencyCapDuration_ should return default anyPromptFrequencyCap for invalid intervention config', async () => {
+      const expectedDuration = {seconds: 600};
+      const result = autoPromptManager.getPromptFrequencyCapDuration_(
+        {anyPromptFrequencyCap: {frequencyCapDuration: expectedDuration}},
+        {}
+      );
+      expect(result).to.equal(expectedDuration);
+    });
+
+    it('getGlobalFrequencyCapDuration_ should return valid intervention config', async () => {
+      const expectedDuration = {seconds: 60};
+      const result = autoPromptManager.getGlobalFrequencyCapDuration_(
+        {},
+        {globalFrequencyCap: {secondsDuration: expectedDuration}}
+      );
+      expect(result).to.equal(expectedDuration);
+    });
+
+    it('getGlobalFrequencyCapDuration_ should return defualt globalFrequencyCap for invalid intervention config', () => {
+      const expectedDuration = {seconds: 600};
+      const result = autoPromptManager.getGlobalFrequencyCapDuration_(
+        {globalFrequencyCap: {frequencyCapDuration: expectedDuration}},
+        {}
+      );
+      expect(result).to.equal(expectedDuration);
     });
 
     it('isFrequencyCapped_ should return false for empty impressions', async () => {
