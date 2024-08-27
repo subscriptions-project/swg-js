@@ -4048,6 +4048,74 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.not.have.been.called;
     });
 
+    it('should show a dismissible prompt for CLOSED contentType', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
+    it('should show a subscription intervention', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SUBSCRIPTION_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              prompts: [
+                {
+                  configId: 'subscription_config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+      await tick(20);
+
+      expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
+    });
+
     it('should show a dismissible prompt with Closability DISMISSIBLE', async () => {
       getArticleExpectation
         .resolves({
@@ -4071,6 +4139,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+
       await autoPromptManager.showAutoPrompt({});
       await tick(20);
 
@@ -4108,6 +4177,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+
       await autoPromptManager.showAutoPrompt({});
       await tick(20);
 
@@ -4144,6 +4214,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
       await tick(20);
 
@@ -4180,6 +4251,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
       await tick(20);
 
