@@ -2663,7 +2663,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const newsletterFrequencyCapDurationSeconds = 3600;
 
     const promptFrequencyCap = {
-      secondsDuration: {
+      duration: {
         seconds: 300,
       },
     };
@@ -2702,16 +2702,16 @@ describes.realWin('AutoPromptManager', (env) => {
           actionOrchestration: {
             interventionFunnel: {
               globalFrequencyCap: {
-                secondsDuration: {
+                duration: {
                   seconds: funnelGlobalFrequencyCapDurationSeconds,
                 },
               },
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: contributionFrequencyCapDurationSeconds,
                     },
                   },
@@ -2721,7 +2721,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: surveyFrequencyCapDurationSeconds,
                     },
                   },
@@ -2731,7 +2731,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: newsletterFrequencyCapDurationSeconds,
                     },
                   },
@@ -2806,7 +2806,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
@@ -2839,7 +2839,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [],
+              interventions: [],
             },
           },
           experimentConfig: {
@@ -2865,7 +2865,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -2903,7 +2903,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -3003,11 +3003,11 @@ describes.realWin('AutoPromptManager', (env) => {
           actionOrchestration: {
             interventionFunnel: {
               globalFrequencyCap: {
-                secondsDuration: {
+                duration: {
                   seconds: 60,
                 },
               },
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -3247,12 +3247,12 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: contributionFrequencyCapDurationSeconds,
                     },
                   },
@@ -3262,7 +3262,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: surveyFrequencyCapDurationSeconds,
                     },
                   },
@@ -3272,7 +3272,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: newsletterFrequencyCapDurationSeconds,
                     },
                   },
@@ -3332,7 +3332,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
@@ -3342,7 +3342,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: surveyFrequencyCapDurationSeconds,
                     },
                   },
@@ -3352,7 +3352,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: newsletterFrequencyCapDurationSeconds,
                     },
                   },
@@ -3728,17 +3728,17 @@ describes.realWin('AutoPromptManager', (env) => {
           actionOrchestration: {
             interventionFunnel: {
               globalFrequencyCap: {
-                secondsDuration: {
+                duration: {
                   nanos:
                     funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_NANO,
                 },
               },
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: contributionFrequencyCapDurationSeconds,
                     },
                   },
@@ -3748,7 +3748,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: surveyFrequencyCapDurationSeconds,
                     },
                   },
@@ -3758,7 +3758,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: newsletterFrequencyCapDurationSeconds,
                     },
                   },
@@ -3955,11 +3955,11 @@ describes.realWin('AutoPromptManager', (env) => {
           actionOrchestration: {
             interventionFunnel: {
               globalFrequencyCap: {
-                secondsDuration: {
+                duration: {
                   seconds: funnelGlobalFrequencyCapDurationSeconds,
                 },
               },
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
@@ -4057,7 +4057,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4095,7 +4095,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'subscription_config_id',
                   type: 'TYPE_SUBSCRIPTION',
@@ -4125,7 +4125,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4163,7 +4163,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4201,7 +4201,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4238,7 +4238,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4433,7 +4433,7 @@ describes.realWin('AutoPromptManager', (env) => {
       const expectedDuration = {seconds: 600};
       const result = autoPromptManager.getPromptFrequencyCapDuration_(
         {},
-        {promptFrequencyCap: {secondsDuration: expectedDuration}}
+        {promptFrequencyCap: {duration: expectedDuration}}
       );
       expect(result).to.equal(expectedDuration);
     });
@@ -4451,7 +4451,7 @@ describes.realWin('AutoPromptManager', (env) => {
       const expectedDuration = {seconds: 60};
       const result = autoPromptManager.getGlobalFrequencyCapDuration_(
         {},
-        {globalFrequencyCap: {secondsDuration: expectedDuration}}
+        {globalFrequencyCap: {duration: expectedDuration}}
       );
       expect(result).to.equal(expectedDuration);
     });

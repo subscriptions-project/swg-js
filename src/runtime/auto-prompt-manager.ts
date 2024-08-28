@@ -516,7 +516,7 @@ export class AutoPromptManager {
   ): Promise<InterventionOrchestration | void> {
     const eligibleActions = article.audienceActions?.actions;
     let targetedInterventions =
-      article.actionOrchestration?.interventionFunnel?.prompts;
+      article.actionOrchestration?.interventionFunnel?.interventions;
     if (!eligibleActions?.length || !targetedInterventions?.length) {
       return;
     }
@@ -988,8 +988,7 @@ export class AutoPromptManager {
     frequencyCapConfig: FrequencyCapConfig,
     interventionOrchestration: InterventionOrchestration
   ): Duration | undefined {
-    const duration =
-      interventionOrchestration.promptFrequencyCap?.secondsDuration;
+    const duration = interventionOrchestration.promptFrequencyCap?.duration;
 
     if (!duration) {
       this.eventManager_.logSwgEvent(
@@ -1004,7 +1003,7 @@ export class AutoPromptManager {
     frequencyCapConfig: FrequencyCapConfig,
     interventionFunnel: InterventionFunnel
   ): Duration | undefined {
-    const duration = interventionFunnel.globalFrequencyCap?.secondsDuration;
+    const duration = interventionFunnel.globalFrequencyCap?.duration;
     return duration
       ? duration
       : frequencyCapConfig.globalFrequencyCap!.frequencyCapDuration;
