@@ -22,16 +22,11 @@ import {
   AudienceActionIframeFlow,
 } from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
-import {AutoPromptType, ContentType} from '../api/basic-subscriptions';
+import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
-import {
-  Closability,
-  InterventionFunnel,
-  InterventionOrchestration,
-} from '../api/action-orchestration';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
@@ -114,7 +109,6 @@ export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
   isClosable?: boolean;
-  contentType: ContentType;
 }
 
 interface ActionsTimestamps {
@@ -139,7 +133,6 @@ export class AutoPromptManager {
   private autoPromptType_: AutoPromptType | undefined;
   private onsitePreviewEnabled_: boolean = false;
   private shouldRenderOnsitePreview_: boolean = false;
-  private actionOrchestrationExperiment_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -197,9 +190,7 @@ export class AutoPromptManager {
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
-      // TODO(justinchou): Update to use contentType from params after launch.
       this.isClosable_ = params.isClosable ?? !this.isSubscription_();
-
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
@@ -234,13 +225,10 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    this.onsitePreviewEnabled_ = this.isArticleExperimentEnabled_(
-      article,
+    const articleExpFlags =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
+    this.onsitePreviewEnabled_ = articleExpFlags.includes(
       ArticleExperimentFlags.ONSITE_PREVIEW_ENABLED
-    );
-    this.actionOrchestrationExperiment_ = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.ACTION_ORCHESTRATION_EXPERIMENT
     );
   }
 
@@ -306,50 +294,20 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
 
-    let potentialAction;
-    if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
-      // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
-      const nextIntervention = await this.getTargetedInterventionOrchestration_(
-        clientConfig,
-        article,
-        params.contentType
-      );
+    // Default isClosable to what is set in the page config.
+    // Otherwise, the prompt is blocking for publications with a
+    // subscription revenue model, while all others can be dismissed.
+    this.isClosable_ = params.isClosable ?? !this.isSubscription_();
 
-      if (!!nextIntervention) {
-        switch (nextIntervention?.closability) {
-          case Closability.BLOCKING:
-            this.isClosable_ = false;
-            break;
-          case Closability.DISMISSIBLE:
-            this.isClosable_ = true;
-            break;
-          default:
-            this.isClosable_ =
-              params.contentType === ContentType.CLOSED ? false : true;
-        }
-        potentialAction = article.audienceActions?.actions?.find(
-          (action) => action.configurationId === nextIntervention.configId
-        );
-      }
-    } else {
-      // Legacy Frequency Capping flow.
-
-      // Default isClosable to what is set in the page config.
-      // Otherwise, the prompt is blocking for publications with a
-      // subscription revenue model, while all others can be dismissed.
-      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
-
-      // Frequency cap flow utilizes config and timestamps to determine next
-      // action. Metered flow strictly follows prompt order. Display delay is
-      // applied to all dismissible prompts.
-      const frequencyCapConfig =
-        clientConfig.autoPromptConfig?.frequencyCapConfig;
-      potentialAction = await this.getPotentialAction_({
-        article,
-        frequencyCapConfig,
-      });
-    }
-
+    // Frequency cap flow utilizes config and timestamps to determine next
+    // action. Metered flow strictly follows prompt order. Display delay is
+    // applied to all dismissible prompts.
+    const frequencyCapConfig =
+      clientConfig.autoPromptConfig?.frequencyCapConfig;
+    const potentialAction = await this.getPotentialAction_({
+      article,
+      frequencyCapConfig,
+    });
     const promptFn = potentialAction
       ? this.getAutoPromptFunction_(potentialAction)
       : undefined;
@@ -507,110 +465,6 @@ export class AutoPromptManager {
       }
     }
     return potentialAction;
-  }
-
-  private async getTargetedInterventionOrchestration_(
-    clientConfig: ClientConfig,
-    article: Article,
-    contentType: ContentType
-  ): Promise<InterventionOrchestration | void> {
-    const eligibleActions = article.audienceActions?.actions;
-    let targetedInterventions =
-      article.actionOrchestration?.interventionFunnel?.prompts;
-    if (!eligibleActions?.length || !targetedInterventions?.length) {
-      return;
-    }
-
-    // Complete client-side eligibility checks for actions.
-    const actionsTimestamps = await this.getTimestamps();
-    const eligibleActionIds = new Set(
-      eligibleActions
-        .filter((action) =>
-          this.checkActionEligibility_(action.type, actionsTimestamps!)
-        )
-        .map((action) => action.configurationId)
-    );
-    if (eligibleActionIds.size === 0) {
-      return;
-    }
-
-    // Filter the funnel of interventions by eligibility.
-    targetedInterventions = targetedInterventions.filter((intervention) =>
-      eligibleActionIds.has(intervention.configId)
-    );
-    if (targetedInterventions.length === 0) {
-      return;
-    }
-
-    if (contentType === ContentType.CLOSED) {
-      return targetedInterventions[0];
-    }
-
-    // Only other supported ContentType is OPEN.
-    let nextIntervention: InterventionOrchestration | undefined = undefined;
-    // Check Default FrequencyCapConfig is valid.
-    if (
-      !this.isValidFrequencyCap_(
-        clientConfig.autoPromptConfig?.frequencyCapConfig
-      )
-    ) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
-      );
-      return targetedInterventions[0];
-    }
-
-    // b/325512849: Evaluate prompt frequency cap before global frequency cap.
-    // This disambiguates the scenarios where a reader meets the cap when the
-    // reader is only eligible for 1 prompt vs. when the publisher only has 1
-    // prompt configured.
-    for (const intervention of targetedInterventions) {
-      const promptFrequencyCapDuration = this.getPromptFrequencyCapDuration_(
-        clientConfig.autoPromptConfig?.frequencyCapConfig!,
-        intervention
-      );
-      if (this.isValidFrequencyCapDuration_(promptFrequencyCapDuration)) {
-        const actionTimestamps = actionsTimestamps![intervention.type];
-        const timestamps = [
-          ...(actionTimestamps?.dismissals || []),
-          ...(actionTimestamps?.completions || []),
-        ];
-        if (this.isFrequencyCapped_(promptFrequencyCapDuration!, timestamps)) {
-          this.eventManager_.logSwgEvent(
-            AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
-          );
-          continue;
-        }
-      }
-      nextIntervention = intervention;
-      break;
-    }
-
-    if (!nextIntervention) {
-      return;
-    }
-
-    const globalFrequencyCapDuration = this.getGlobalFrequencyCapDuration_(
-      clientConfig.autoPromptConfig?.frequencyCapConfig!,
-      article.actionOrchestration?.interventionFunnel!
-    );
-    if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
-      const globalTimestamps = Array.prototype.concat.apply(
-        [],
-        Object.entries(actionsTimestamps!)
-          .filter(([config, _]) => config !== nextIntervention!.configId)
-          .map(([_, timestamps]) => timestamps.impressions)
-      );
-      if (
-        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
-      ) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
-        );
-        return;
-      }
-    }
-    return nextIntervention;
   }
 
   /**
@@ -936,6 +790,28 @@ export class AutoPromptManager {
   private getInnerWidth_(): number {
     return this.doc_.getWin()./* OK */ innerWidth;
   }
+  /**
+   * Computes if the frequency cap is met from the timestamps of previous
+   * provided by using the maximum/most recent timestamp.
+   */
+  private isFrequencyCapped_(
+    frequencyCapDuration: Duration,
+    timestamps: number[]
+  ): boolean {
+    if (timestamps.length === 0) {
+      return false;
+    }
+
+    const lastImpression = Math.max(...timestamps);
+    const durationInMs =
+      (frequencyCapDuration.seconds || 0) * SECOND_IN_MILLIS +
+      this.nanoToMiliseconds_(frequencyCapDuration.nano || 0);
+    return Date.now() - lastImpression < durationInMs;
+  }
+
+  private nanoToMiliseconds_(nano: number): number {
+    return Math.floor(nano / Math.pow(10, 6));
+  }
 
   /**
    * Checks AudienceAction eligbility, used to filter potential actions.
@@ -961,55 +837,6 @@ export class AutoPromptManager {
     return true;
   }
 
-  /**
-   * Computes if the frequency cap is met from the timestamps of previous
-   * provided by using the maximum/most recent timestamp.
-   */
-  private isFrequencyCapped_(
-    frequencyCapDuration: Duration,
-    timestamps: number[]
-  ): boolean {
-    if (timestamps.length === 0) {
-      return false;
-    }
-
-    const lastImpression = Math.max(...timestamps);
-    const durationInMs =
-      (frequencyCapDuration.seconds || 0) * SECOND_IN_MILLIS +
-      this.nanoToMiliseconds_(frequencyCapDuration.nanos || 0);
-    return Date.now() - lastImpression < durationInMs;
-  }
-
-  private nanoToMiliseconds_(nanos: number): number {
-    return Math.floor(nanos / Math.pow(10, 6));
-  }
-
-  private getPromptFrequencyCapDuration_(
-    frequencyCapConfig: FrequencyCapConfig,
-    interventionOrchestration: InterventionOrchestration
-  ): Duration | undefined {
-    const duration =
-      interventionOrchestration.promptFrequencyCap?.secondsDuration;
-
-    if (!duration) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND
-      );
-      return frequencyCapConfig.anyPromptFrequencyCap?.frequencyCapDuration;
-    }
-    return duration;
-  }
-
-  private getGlobalFrequencyCapDuration_(
-    frequencyCapConfig: FrequencyCapConfig,
-    interventionFunnel: InterventionFunnel
-  ): Duration | undefined {
-    const duration = interventionFunnel.globalFrequencyCap?.secondsDuration;
-    return duration
-      ? duration
-      : frequencyCapConfig.globalFrequencyCap!.frequencyCapDuration;
-  }
-
   private isValidFrequencyCap_(
     frequencyCapConfig: FrequencyCapConfig | undefined
   ) {
@@ -1027,7 +854,7 @@ export class AutoPromptManager {
   }
 
   private isValidFrequencyCapDuration_(duration: Duration | undefined) {
-    return !!duration?.seconds || !!duration?.nanos;
+    return !!duration?.seconds || !!duration?.nano;
   }
 
   private getAutoPromptFunction_(action: Intervention) {
@@ -1038,18 +865,5 @@ export class AutoPromptManager {
           configurationId: action.configurationId,
           preference: action.preference,
         });
-  }
-
-  /**
-   * Checks if provided ExperimentFlag is enabled within article experiment
-   * config.
-   */
-  private isArticleExperimentEnabled_(
-    article: Article,
-    experimentFlag: string
-  ): boolean {
-    const articleExpFlags =
-      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    return articleExpFlags.includes(experimentFlag);
   }
 }
