@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActionOrchestration} from '../api/action-orchestration';
 import {
   AnalyticsEvent,
   EntitlementJwt,
@@ -34,6 +35,7 @@ import {
   GetEntitlementsParamsInternalDef,
 } from '../api/subscriptions';
 import {Constants, StorageKeys} from '../utils/constants';
+import {ContentType} from '../api/basic-subscriptions';
 import {Deps} from './deps';
 import {
   Entitlement,
@@ -79,6 +81,7 @@ export interface Article {
     actions?: Intervention[];
     engineId?: string;
   };
+  actionOrchestration?: ActionOrchestration;
   experimentConfig: {
     experimentFlags: string[];
   };
@@ -826,7 +829,7 @@ export class EntitlementsManager {
       url = addQueryParam(
         url,
         'contentType',
-        getContentTypeParam(this.pageConfig_.isLocked())
+        getContentTypeParamString(this.pageConfig_.isLocked())
       );
     }
     const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
@@ -1029,6 +1032,6 @@ function irtpStringToBoolean(value: string | null): boolean | undefined {
 /**
  * Returns ContentType Enum string from isLocked page config status.
  */
-function getContentTypeParam(isLocked: boolean) {
-  return isLocked ? 'CLOSED' : 'OPEN';
+function getContentTypeParamString(isLocked: boolean): string {
+  return isLocked ? ContentType.CLOSED.toString() : ContentType.OPEN.toString();
 }

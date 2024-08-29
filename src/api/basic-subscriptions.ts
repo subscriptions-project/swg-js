@@ -99,6 +99,15 @@ export enum AutoPromptType {
 }
 
 /**
+ * The types of supported publication content type. Should be maintained with:
+ * google3/java/com/google/subscribewithgoogle/audienceactions/proto/audience_member_flow_service.proto.
+ */
+export enum ContentType {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+}
+
+/**
  * Options for configuring all client UI.
  */
 export interface ClientOptions {
