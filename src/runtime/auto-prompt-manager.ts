@@ -473,6 +473,7 @@ export class AutoPromptManager {
           ...(actionTimestamps?.dismissals || []),
           ...(actionTimestamps?.completions || []),
         ];
+        // dummy comment
         if (this.isFrequencyCapped_(frequencyCapDuration!, timestamps)) {
           this.eventManager_.logSwgEvent(
             AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
