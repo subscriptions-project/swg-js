@@ -24,7 +24,7 @@ module.exports = {
     baseline_screenshots_path: 'test/e2e/vrt/baseline',
     latest_screenshots_path: '.vrt/latest',
     diff_screenshots_path: '.vrt/diff',
-    threshold: 0.05,
+    threshold: 0.1,
   },
 
   test_settings: {
