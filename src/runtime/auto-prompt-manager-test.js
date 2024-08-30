@@ -2661,7 +2661,6 @@ describes.realWin('AutoPromptManager', (env) => {
     const contributionFrequencyCapDurationSeconds = 10800;
     const surveyFrequencyCapDurationSeconds = 7200;
     const newsletterFrequencyCapDurationSeconds = 3600;
-
     const promptFrequencyCap = {
       duration: {
         seconds: 300,
@@ -2856,7 +2855,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
-    it('should not show any prompt if no actions are eligible', async () => {
+    it('should not show any prompt if only survey is configured and survey is not eligible due to analytics setup', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -2886,6 +2885,49 @@ describes.realWin('AutoPromptManager', (env) => {
           completions: [CURRENT_TIME],
         },
       });
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('should not show any prompt if only BYOCTA is configured and BYOCTA is not eligible due to repeatability', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: 'TYPE_BYO_CTA',
+                configurationId: 'rewarded_ad_config_id',
+                numberOfCompletions: 3,
+              },
+            ],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_BYO_CTA',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                  repeatability: {
+                    type: 'FINITE',
+                    count: 3,
+                  },
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {});
 
       await autoPromptManager.showAutoPrompt({});
       await tick(20);
@@ -2990,6 +3032,55 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: true,
+      });
+    });
+
+    it('should show an infinitely repeatable intervention, despite past completions', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: 'TYPE_BYO_CTA',
+                configurationId: 'byocta_config_id',
+                numberOfCompletions: 10,
+              },
+            ],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'byocta_config_id',
+                  type: 'TYPE_BYO_CTA',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                  repeatability: {
+                    type: 'INFINITE',
+                  },
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {});
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_BYO_CTA',
+        configurationId: 'byocta_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
       });
     });
 
