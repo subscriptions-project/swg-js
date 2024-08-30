@@ -2750,7 +2750,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('should execute the legacy flow if the article response does not contain actionOrchestration', async () => {
       const targetedInterventionSpy = sandbox.spy(
         autoPromptManager,
-        'getTargetedInterventionOrchestration_'
+        'getInterventionOrchestration_'
       );
       const getPotentialActionSpy = sandbox.spy(
         autoPromptManager,
@@ -4306,7 +4306,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Survey is eligible when gTag logging is eligible', async () => {
       setWinWithAnalytics({setupGtam: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
       expect(isEligible).to.be.true;
@@ -4315,7 +4315,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Survey is eligible when GA logging is eligible', async () => {
       setWinWithAnalytics({setupGa: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
       expect(isEligible).to.be.true;
@@ -4324,7 +4324,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Survey is eligible when GTM logging is eligible', async () => {
       setWinWithAnalytics({setupGtm: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
       expect(isEligible).to.be.true;
@@ -4333,7 +4333,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Survey is not eligible when no Analytics logging is eligible', async () => {
       setWinWithAnalytics({setupGtag: false, setupGa: false, setupGtm: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
       expect(isEligible).to.be.false;
@@ -4341,7 +4341,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('Survey is not eligible when there are previous completions', async () => {
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {
           'TYPE_REWARDED_SURVEY': {
             'impressions': [],
@@ -4351,6 +4351,83 @@ describes.realWin('AutoPromptManager', (env) => {
         }
       );
       expect(isEligible).to.be.false;
+    });
+
+    it('Orchestration is not eligible when action is not eligible', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {configId: 'not_eligible_id'},
+        new Set(),
+        {}
+      );
+      expect(isEligible).to.be.false;
+    });
+
+    it('Repeatable Orchestration with unspecified repeatability is not eligible with completion', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'UNSPECIFIED'},
+        },
+        new Set(['action_id']),
+        {
+          audienceActions: {
+            actions: [{configurationId: 'action_id', numberOfCompletions: 1}],
+          },
+        }
+      );
+      expect(isEligible).to.be.false;
+    });
+
+    it('Repeatable Orchestration with finite repeatability is not eligible with completions above the limit', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'FINITE', count: 5},
+        },
+        new Set(['action_id']),
+        {
+          audienceActions: {
+            actions: [{configurationId: 'action_id', numberOfCompletions: 5}],
+          },
+        }
+      );
+      expect(isEligible).to.be.false;
+    });
+
+    it('Repeatable Orchestration with finite repeatability is eligible with completions below the limit', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'FINITE', count: 5},
+        },
+        new Set(['action_id']),
+        {
+          audienceActions: {
+            actions: [{configurationId: 'action_id', numberOfCompletions: 2}],
+          },
+        }
+      );
+      expect(isEligible).to.be.true;
+    });
+
+    it('Repeatable Orchestration with infinite repeatability is eligible with completions', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'INFINITE'},
+        },
+        new Set(['action_id']),
+        {
+          audienceActions: {
+            actions: [{configurationId: 'action_id', numberOfCompletions: 1}],
+          },
+        }
+      );
+      expect(isEligible).to.be.true;
     });
 
     [

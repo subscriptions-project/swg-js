@@ -31,6 +31,7 @@ import {
   Closability,
   InterventionFunnel,
   InterventionOrchestration,
+  RepeatabilityType,
 } from '../api/action-orchestration';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
@@ -54,6 +55,10 @@ const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
+const REPEATABLE_INTERVENTION_TYPES = [
+  InterventionType.TYPE_REWARDED_AD,
+  InterventionType.TYPE_BYO_CTA,
+];
 const SECOND_IN_MILLIS = 1000;
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
@@ -309,14 +314,14 @@ export class AutoPromptManager {
     let potentialAction;
     if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
       // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
-      const nextIntervention = await this.getTargetedInterventionOrchestration_(
+      const nextOrchestration = await this.getInterventionOrchestration_(
         clientConfig,
         article,
         params.contentType
       );
 
-      if (!!nextIntervention) {
-        switch (nextIntervention?.closability) {
+      if (!!nextOrchestration) {
+        switch (nextOrchestration?.closability) {
           case Closability.BLOCKING:
             this.isClosable_ = false;
             break;
@@ -328,7 +333,7 @@ export class AutoPromptManager {
               params.contentType === ContentType.CLOSED ? false : true;
         }
         potentialAction = article.audienceActions?.actions?.find(
-          (action) => action.configurationId === nextIntervention.configId
+          (action) => action.configurationId === nextOrchestration.configId
         );
       }
     } else {
@@ -432,7 +437,7 @@ export class AutoPromptManager {
 
     const actionsTimestamps = await this.getTimestamps();
     actions = actions.filter((action) =>
-      this.checkActionEligibility_(action.type, actionsTimestamps!)
+      this.checkActionEligibility_(action, actionsTimestamps!)
     );
 
     if (actions.length === 0) {
@@ -509,15 +514,15 @@ export class AutoPromptManager {
     return potentialAction;
   }
 
-  private async getTargetedInterventionOrchestration_(
+  private async getInterventionOrchestration_(
     clientConfig: ClientConfig,
     article: Article,
     contentType: ContentType
   ): Promise<InterventionOrchestration | void> {
     const eligibleActions = article.audienceActions?.actions;
-    let targetedInterventions =
+    let interventionOrchestration =
       article.actionOrchestration?.interventionFunnel?.interventions;
-    if (!eligibleActions?.length || !targetedInterventions?.length) {
+    if (!eligibleActions?.length || !interventionOrchestration?.length) {
       return;
     }
 
@@ -526,7 +531,7 @@ export class AutoPromptManager {
     const eligibleActionIds = new Set(
       eligibleActions
         .filter((action) =>
-          this.checkActionEligibility_(action.type, actionsTimestamps!)
+          this.checkActionEligibility_(action, actionsTimestamps!)
         )
         .map((action) => action.configurationId)
     );
@@ -535,19 +540,24 @@ export class AutoPromptManager {
     }
 
     // Filter the funnel of interventions by eligibility.
-    targetedInterventions = targetedInterventions.filter((intervention) =>
-      eligibleActionIds.has(intervention.configId)
+    interventionOrchestration = interventionOrchestration.filter(
+      (intervention) =>
+        this.checkOrchestrationEligibility_(
+          intervention,
+          eligibleActionIds,
+          article
+        )
     );
-    if (targetedInterventions.length === 0) {
+    if (interventionOrchestration.length === 0) {
       return;
     }
 
     if (contentType === ContentType.CLOSED) {
-      return targetedInterventions[0];
+      return interventionOrchestration[0];
     }
 
     // Only other supported ContentType is OPEN.
-    let nextIntervention: InterventionOrchestration | undefined = undefined;
+    let nextOrchestration: InterventionOrchestration | undefined = undefined;
     // Check Default FrequencyCapConfig is valid.
     if (
       !this.isValidFrequencyCap_(
@@ -557,20 +567,20 @@ export class AutoPromptManager {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
       );
-      return targetedInterventions[0];
+      return interventionOrchestration[0];
     }
 
     // b/325512849: Evaluate prompt frequency cap before global frequency cap.
     // This disambiguates the scenarios where a reader meets the cap when the
     // reader is only eligible for 1 prompt vs. when the publisher only has 1
     // prompt configured.
-    for (const intervention of targetedInterventions) {
+    for (const orchestration of interventionOrchestration) {
       const promptFrequencyCapDuration = this.getPromptFrequencyCapDuration_(
         clientConfig.autoPromptConfig?.frequencyCapConfig!,
-        intervention
+        orchestration
       );
       if (this.isValidFrequencyCapDuration_(promptFrequencyCapDuration)) {
-        const actionTimestamps = actionsTimestamps![intervention.type];
+        const actionTimestamps = actionsTimestamps![orchestration.type];
         const timestamps = [
           ...(actionTimestamps?.dismissals || []),
           ...(actionTimestamps?.completions || []),
@@ -582,11 +592,11 @@ export class AutoPromptManager {
           continue;
         }
       }
-      nextIntervention = intervention;
+      nextOrchestration = orchestration;
       break;
     }
 
-    if (!nextIntervention) {
+    if (!nextOrchestration) {
       return;
     }
 
@@ -598,7 +608,7 @@ export class AutoPromptManager {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
         Object.entries(actionsTimestamps!)
-          .filter(([config, _]) => config !== nextIntervention!.configId)
+          .filter(([config, _]) => config !== nextOrchestration!.configId)
           .map(([_, timestamps]) => timestamps.impressions)
       );
       if (
@@ -610,7 +620,7 @@ export class AutoPromptManager {
         return;
       }
     }
-    return nextIntervention;
+    return nextOrchestration;
   }
 
   /**
@@ -941,10 +951,10 @@ export class AutoPromptManager {
    * Checks AudienceAction eligbility, used to filter potential actions.
    */
   private checkActionEligibility_(
-    actionType: string,
+    action: Intervention,
     timestamps: ActionsTimestamps
   ): boolean {
-    if (actionType === TYPE_REWARDED_SURVEY) {
+    if (action.type === TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
@@ -957,6 +967,37 @@ export class AutoPromptManager {
       // after sign-in flow. TODO(b/332759781): update survey completion check
       // to persist even after 2 weeks.
       return !(timestamps[TYPE_REWARDED_SURVEY]?.completions || []).length;
+    }
+    return true;
+  }
+
+  /**
+   * Checks Intervention eligibility, used to filter interventions in a given
+   * funnel.
+   */
+  private checkOrchestrationEligibility_(
+    orchestration: InterventionOrchestration,
+    eligibleActionIds: Set<string | undefined>,
+    article: Article
+  ): boolean {
+    if (!eligibleActionIds.has(orchestration.configId)) {
+      return false;
+    }
+    if (
+      this.isRepeatableIntervention_(orchestration.type) &&
+      orchestration.repeatability.type != RepeatabilityType.INFINITE
+    ) {
+      const numberOfCompletions =
+        article.audienceActions?.actions?.find(
+          (action) => action.configurationId === orchestration.configId
+        )!.numberOfCompletions || 0; // TODO(justinchou): handle no completions
+      const maximumNumberOfCompletions =
+        RepeatabilityType.UNSPECIFIED === orchestration.repeatability.type
+          ? 1
+          : orchestration.repeatability.count; // TODO(justinchou) how to handle bad numbers, default to 1?
+      if (numberOfCompletions >= maximumNumberOfCompletions) {
+        return false;
+      }
     }
     return true;
   }
@@ -1037,6 +1078,10 @@ export class AutoPromptManager {
           configurationId: action.configurationId,
           preference: action.preference,
         });
+  }
+
+  private isRepeatableIntervention_(interventionType: InterventionType) {
+    return REPEATABLE_INTERVENTION_TYPES.includes(interventionType);
   }
 
   /**
