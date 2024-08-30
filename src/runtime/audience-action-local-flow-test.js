@@ -158,6 +158,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           addEventListener: (event, handler) => {
             eventListeners[event] = handler;
           },
+          removeEventListener: sandbox.spy(),
           refresh: sandbox.spy(),
         };
         readyEventArg = {
@@ -188,8 +189,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const flow = new AudienceActionLocalFlow(
           runtime,
           params,
-          /* gptTimeoutMs_= */ 5,
-          /* thanksTimeoutMs_= */ 5
+          /* gptTimeoutMs_= */ 1,
+          /* thanksTimeoutMs_= */ 1
         );
 
         await startRewardedAdFlow(flow);
@@ -254,6 +255,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         ).to.be.calledOnce.calledWithExactly();
       }
 
+      function didCleanUpGoogletag() {
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
+      }
+
       it('clicking on locked greypane closes', async () => {
         const params = {
           ...DEFAULT_PARAMS,
@@ -297,12 +305,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await subscribeButton.click();
         await tick();
 
+        didCleanUpGoogletag();
         expect(
           params.monetizationFunction
         ).to.be.calledOnce.calledWithExactly();
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.IMPRESSION_REWARDED_AD
         );
@@ -336,13 +342,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await contributeButton.click();
         await tick();
 
+        didCleanUpGoogletag();
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
         expect(
           params.monetizationFunction
         ).to.be.calledOnce.calledWithExactly();
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.IMPRESSION_REWARDED_AD
         );
@@ -457,14 +461,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await closeButton.click();
         await tick();
 
+        didCleanUpGoogletag();
         expect(env.win.document.body.style.overflow).to.equal('');
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );
         expect(updatedWrapper).to.be.null;
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_REWARDED_AD_CLOSE
@@ -532,6 +534,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
 
         await didBailout(DEFAULT_PARAMS);
       });
@@ -552,6 +555,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
 
         expect(params.onCancel).to.be.called;
 
@@ -571,6 +575,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
 
         await didBailout(DEFAULT_PARAMS);
       });
@@ -588,11 +593,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED
         );
 
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
-
         await didBailout(DEFAULT_PARAMS);
+
+        didCleanUpGoogletag();
       });
 
       it('fails to render with gpt.js detection shortcut', async () => {
@@ -614,6 +617,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
 
         await didBailout(DEFAULT_PARAMS);
       });
@@ -650,9 +654,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
         );
 
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
 
         await didBailout(DEFAULT_PARAMS);
       });
@@ -673,9 +675,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(prompt).to.not.be.null;
         expect(prompt.innerHTML).contains('Thanks for viewing this ad');
 
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
@@ -840,9 +840,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.audience-action-local-wrapper'
         );
         expect(updatedWrapper).to.be.null;
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD
@@ -865,9 +863,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.audience-action-local-wrapper'
         );
         expect(updatedWrapper).to.not.be.null;
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD
         );
@@ -908,9 +904,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.audience-action-local-wrapper'
         );
         expect(updatedWrapper).to.be.null;
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
       });
 
       it('tab focus trap works', async () => {

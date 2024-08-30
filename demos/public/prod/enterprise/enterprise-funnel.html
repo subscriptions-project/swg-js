@@ -97,16 +97,14 @@
         button.onclick = () => {
           const isClosable = document.getElementById("isClosable").checked;
           const suppressToast = document.getElementById("suppressToast").checked;
+          const onAlternateAction = document.getElementById("onAlternateAction").checked;
+          const onSignIn = document.getElementById("onSignIn").checked;
           intervention.show({
             isClosable,
             onResult: (result) => addResultRow(intervention.type, result),
             suppressToast,
-            onAlternateAction: () => {
-              swg.showContributionOptions({
-                isClosable: true,
-                shouldAnimateFade: false 
-              });
-            },
+            onAlternateAction: onAlternateAction ? () => alert('buy flow launched') : null,
+            onSignIn: onSignIn ? () => alert('sign in flow launched') : null,
           });
         }
         table.appendChild(row);
@@ -141,6 +139,12 @@
     </input>
     <input type="checkbox" id="suppressToast" name="scales" checked />
       <label for="suppressToast">suppressToast</label>
+    </input>
+    <input type="checkbox" id="onAlternateAction" name="scales" checked />
+      <label for="onAlternateAction">onAlternateAction</label>
+    </input>
+    <input type="checkbox" id="onSignIn" name="scales" checked />
+      <label for="onSignIn">onSignIn</label>
     </input>
   </div>
     <article>
