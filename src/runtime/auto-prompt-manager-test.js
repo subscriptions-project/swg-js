@@ -3410,6 +3410,42 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
+    it('should show the second prompt if the prompt frequency cap for contributions is met, despite recent impressions for the second prompt', async () => {
+      const contributionTimestamps =
+        CURRENT_TIME -
+        (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME - 1],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
     it('should show the second prompt if the frequency cap for contributions is undefined and the default anyPromptFrequencyCap is met', async () => {
       getArticleExpectation
         .resolves({
@@ -4595,6 +4631,59 @@ describes.realWin('AutoPromptManager', (env) => {
         const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
         expect(isValid).to.be.false;
       });
+    });
+
+    it('getTimestampsForPromptFrequency_ should return dismissals and completions timestamps for DISMISSIBLE closability', async () => {
+      const actionsTimestamps = {
+        'TYPE_CONTRIBUTION': {
+          'impressions': ['c_i1', 'c_i2', 'c_i3'],
+          'dismissals': ['c_d1', 'c_d2', 'c_d3'],
+          'completions': ['c_c1', 'c_c2', 'c_c3'],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          'impressions': ['s_i1', 's_i2', 's_i3'],
+          'dismissals': ['s_d1', 's_d2', 's_d3'],
+          'completions': ['s_c1', 's_c2', 's_c3'],
+        },
+      };
+
+      const timestamps = autoPromptManager.getTimestampsForPromptFrequency_(
+        actionsTimestamps,
+        {'type': 'TYPE_REWARDED_SURVEY', closability: 'DISMISSIBLE'}
+      );
+
+      expect(timestamps.length).to.equal(6);
+      expect(timestamps[0]).to.equal('s_d1');
+      expect(timestamps[1]).to.equal('s_d2');
+      expect(timestamps[2]).to.equal('s_d3');
+      expect(timestamps[3]).to.equal('s_c1');
+      expect(timestamps[4]).to.equal('s_d2');
+      expect(timestamps[5]).to.equal('s_d3');
+    });
+
+    it('getTimestampsForPromptFrequency_ should return completions timestamps for BLOCKING closability', async () => {
+      const actionsTimestamps = {
+        'TYPE_CONTRIBUTION': {
+          'impressions': ['c_i1', 'c_i2', 'c_i3'],
+          'dismissals': ['c_d1', 'c_d2', 'c_d3'],
+          'completions': ['c_c1', 'c_c2', 'c_c3'],
+        },
+        'TYPE_REWARDED_SURVEY': {
+          'impressions': ['s_i1', 's_i2', 's_i3'],
+          'dismissals': ['s_d1', 's_d2', 's_d3'],
+          'completions': ['s_c1', 's_c2', 's_c3'],
+        },
+      };
+
+      const timestamps = autoPromptManager.getTimestampsForPromptFrequency_(
+        actionsTimestamps,
+        {'type': 'TYPE_REWARDED_SURVEY', closability: 'BLOCKING'}
+      );
+
+      expect(timestamps.length).to.equal(3);
+      expect(timestamps[0]).to.equal('s_c1');
+      expect(timestamps[1]).to.equal('s_c2');
+      expect(timestamps[2]).to.equal('s_c3');
     });
 
     it('getPromptFrequencyCapDuration_ should return valid intervention config', async () => {
