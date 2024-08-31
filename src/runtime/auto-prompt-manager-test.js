@@ -4657,8 +4657,8 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(timestamps[1]).to.equal('s_d2');
       expect(timestamps[2]).to.equal('s_d3');
       expect(timestamps[3]).to.equal('s_c1');
-      expect(timestamps[4]).to.equal('s_d2');
-      expect(timestamps[5]).to.equal('s_d3');
+      expect(timestamps[4]).to.equal('s_c2');
+      expect(timestamps[5]).to.equal('s_c3');
     });
 
     it('getTimestampsForPromptFrequency_ should return completions timestamps for BLOCKING closability', async () => {
