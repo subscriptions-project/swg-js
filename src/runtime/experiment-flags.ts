@@ -34,11 +34,6 @@ export enum ArticleExperimentFlags {
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 
   /**
-   * Experiment flag to enable onsite preview.
-   */
-  ONSITE_PREVIEW_ENABLED = 'onsite_preview_enabled',
-
-  /**
    * [FPA M0.5] Experiment flag to enable the new autoPromptManager flow to use
    * actionOrchestration from the article response as the source of the
    * targeted intervention funnel.
