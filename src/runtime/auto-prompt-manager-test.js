@@ -924,9 +924,6 @@ describes.realWin('AutoPromptManager', (env) => {
             ],
             engineId: '123',
           },
-          experimentConfig: {
-            experimentFlags: ['onsite_preview_enabled'],
-          },
           previewEnabled: true,
         })
         .once();
@@ -1559,9 +1556,6 @@ describes.realWin('AutoPromptManager', (env) => {
             actions: [],
             engineId: '123',
           },
-          experimentConfig: {
-            experimentFlags: ['onsite_preview_enabled'],
-          },
           previewEnabled: true,
         })
         .once();
@@ -1580,11 +1574,8 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [SURVEY_INTERVENTION, NEWSLETTER_INTERVENTION],
+            actions: [SURVEY_INTERVENTION],
             engineId: '123',
-          },
-          experimentConfig: {
-            experimentFlags: ['onsite_preview_enabled'],
           },
           previewEnabled: true,
         })
@@ -1609,6 +1600,56 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: undefined,
         isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: true,
+      });
+    });
+
+    it('preview should show a dismissble prompt when isClosable', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          previewEnabled: true,
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({isClosable: true});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: true,
+      });
+    });
+
+    it('preview should show a blocking prompt when not isClosable', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          previewEnabled: true,
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({isClosable: false});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: false,
         calledManually: false,
         shouldRenderPreview: true,
       });
@@ -2940,7 +2981,7 @@ describes.realWin('AutoPromptManager', (env) => {
             engineId: '123',
           },
           experimentConfig: {
-            experimentFlags: ['onsite_preview_enabled'],
+            experimentFlags: ['action_orchestration_experiment'],
           },
           previewEnabled: true,
         })
@@ -2960,11 +3001,11 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [SURVEY_INTERVENTION, NEWSLETTER_INTERVENTION],
+            actions: [SURVEY_INTERVENTION],
             engineId: '123',
           },
           experimentConfig: {
-            experimentFlags: ['onsite_preview_enabled'],
+            experimentFlags: ['action_orchestration_experiment'],
           },
           previewEnabled: true,
         })
@@ -2979,7 +3020,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock.expects('get').never();
       storageMock.expects('set').never();
 
-      await autoPromptManager.showAutoPrompt({});
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
       await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;
@@ -2988,6 +3029,63 @@ describes.realWin('AutoPromptManager', (env) => {
         configurationId: 'survey_config_id',
         autoPromptType: undefined,
         isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: true,
+      });
+    });
+
+    it('preview should show a dismissble prompt when ContentType OPEN', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+          previewEnabled: true,
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: true,
+      });
+    });
+
+    it('preview should show a blocking prompt when ContentType CLOSED', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+
+          previewEnabled: true,
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: false,
         calledManually: false,
         shouldRenderPreview: true,
       });
@@ -4657,9 +4755,6 @@ describes.realWin('AutoPromptManager', (env) => {
               CONTRIBUTION_INTERVENTION,
             ],
             engineId: '123',
-          },
-          experimentConfig: {
-            experimentFlags: ['onsite_preview_enabled'],
           },
           previewEnabled: true,
         })
