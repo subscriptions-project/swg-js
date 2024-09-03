@@ -261,7 +261,7 @@ export class AutoPromptManager {
     // For FPA M0.5 - default to the contentType.
     // TODO(b/364344782): Determine closability for FPA M1+.
     this.isClosable_ = this.actionOrchestrationExperiment_
-      ? params.contentType === ContentType.OPEN
+      ? params.contentType != ContentType.CLOSED
       : params.isClosable ?? !this.isSubscription_();
 
     const previewAction = actions[0];
@@ -321,8 +321,7 @@ export class AutoPromptManager {
             this.isClosable_ = true;
             break;
           default:
-            this.isClosable_ =
-              params.contentType === ContentType.CLOSED ? false : true;
+            this.isClosable_ = params.contentType != ContentType.CLOSED;
         }
         potentialAction = article.audienceActions?.actions?.find(
           (action) => action.configurationId === nextIntervention.configId
