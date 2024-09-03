@@ -256,13 +256,13 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
 
-    // Default isClosable to what is set in the page config.
-    // Otherwise, the prompt is blocking for publications with a
-    // subscription revenue model, while all others can be dismissed.
+    // Default isClosable to what is set in the page config and fallback to
+    // if the prompt to preview is a subscription prompt.
+    // For FPA M0.5 - default to the contentType.
     // TODO(b/364344782): Determine closability for FPA M1+.
     this.isClosable_ = this.actionOrchestrationExperiment_
       ? params.contentType === ContentType.OPEN
-      : params.isClosable ?? true;
+      : params.isClosable ?? !this.isSubscription_();
 
     const previewAction = actions[0];
 
