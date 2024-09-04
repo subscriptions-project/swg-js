@@ -917,11 +917,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .expects('getArticle')
         .resolves({
           audienceActions: {
-            actions: [
-              CONTRIBUTION_INTERVENTION,
-              SURVEY_INTERVENTION,
-              NEWSLETTER_INTERVENTION,
-            ],
+            actions: [CONTRIBUTION_INTERVENTION],
             engineId: '123',
           },
           previewEnabled: true,
@@ -1590,7 +1586,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock.expects('get').never();
       storageMock.expects('set').never();
 
-      await autoPromptManager.showAutoPrompt({});
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
       await tick(20);
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
@@ -1616,7 +1612,7 @@ describes.realWin('AutoPromptManager', (env) => {
         })
         .once();
 
-      await autoPromptManager.showAutoPrompt({isClosable: true});
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
       await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;
@@ -1641,7 +1637,7 @@ describes.realWin('AutoPromptManager', (env) => {
         })
         .once();
 
-      await autoPromptManager.showAutoPrompt({isClosable: false});
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
       await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;

@@ -196,9 +196,7 @@ export class AutoPromptManager {
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
-      // TODO(justinchou): Update to use contentType from params after launch.
-      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
-
+      this.isClosable_ = params.contentType != ContentType.CLOSED;
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
@@ -256,13 +254,9 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
 
-    // Default isClosable to what is set in the page config and fallback to
-    // if the prompt to preview is a subscription prompt.
     // For FPA M0.5 - default to the contentType.
     // TODO(b/364344782): Determine closability for FPA M1+.
-    this.isClosable_ = this.actionOrchestrationExperiment_
-      ? params.contentType != ContentType.CLOSED
-      : params.isClosable ?? !this.isSubscription_();
+    this.isClosable_ = params.contentType != ContentType.CLOSED;
 
     const previewAction = actions[0];
 
