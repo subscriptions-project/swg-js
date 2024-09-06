@@ -14,4 +14,4 @@ else
     npx gulp e2e || ((status++))
 fi
 
-exit 0
+exit $status
