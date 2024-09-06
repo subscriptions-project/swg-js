@@ -38,7 +38,7 @@ module.exports = {
         enabled: true, // if you want to keep screenshots
         on_failure: true,
         on_error: true,
-        path: './e2e/screenshots', // save screenshots here
+        path: '.vrt/screenshots', // save screenshots here
       },
 
       desiredCapabilities: {
