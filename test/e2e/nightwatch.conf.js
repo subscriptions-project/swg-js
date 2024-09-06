@@ -25,6 +25,7 @@ module.exports = {
     latest_screenshots_path: '.vrt/latest',
     diff_screenshots_path: '.vrt/diff',
     threshold: 0.005,
+    updateScreenshots: true
   },
 
   test_settings: {
@@ -32,6 +33,13 @@ module.exports = {
       launch_url: 'http://localhost:8000',
       custom_commands_path: 'test/e2e/commands',
       skip_testcases_on_fail: false,
+
+      screenshots: {
+        enabled: true, // if you want to keep screenshots
+        on_failure: true,
+        on_error: true,
+        path: './e2e/screenshots', // save screenshots here
+      },
 
       desiredCapabilities: {
         browserName: 'chrome',
