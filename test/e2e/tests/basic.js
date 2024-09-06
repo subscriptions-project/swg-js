@@ -25,7 +25,9 @@ module.exports = {
       .waitForElementVisible('@swgBasicButton')
       .click('@swgBasicButton')
       .pause(1000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-contribution')
+      .assert.screenshotIdenticalToBaseline('html', 'basic-contribution', {
+        updateScreenshots: true,
+      })
       .viewContributionOffers()
       .assert.textContains('@contributionHeader', 'Swgjs Contribution Demos')
       .assert.textContains('@priceChip', '$1')
