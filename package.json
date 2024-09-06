@@ -109,7 +109,7 @@
     "watchify": "4.0.0"
   },
   "optionalDependencies": {
-    "@nightwatch/vrt": "^3.5.2",
+    "@nightwatch/vrt": "3.0.0",
     "@rollup/plugin-commonjs": "25.0.8",
     "@rollup/plugin-replace": "5.0.7",
     "@storybook/addon-actions": "7.6.19",
