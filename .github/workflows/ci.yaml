@@ -74,8 +74,8 @@ jobs:
         with:
           name: vrt-report
           path: |
-            .vrt
-            vrt-report
+            .vrt/**/*.png
+            vrt-report/index.html
 
   binaries:
     runs-on: ubuntu-latest
