@@ -58,7 +58,7 @@ jobs:
         with:
           name: failures
           path: |
-            tests_output/*png
+            tests_output/**/*png
 
       - name: Upload VRT report
         uses: actions/upload-artifact@v4

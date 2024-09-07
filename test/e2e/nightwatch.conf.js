@@ -60,7 +60,7 @@ module.exports = {
       screenshots: {
         enabled: true,
         on_failure: true,
-        path: 'tests_output/**/*png',
+        path: 'tests_output',
       },
     },
     all_experiments_enabled: {
