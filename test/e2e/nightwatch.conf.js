@@ -56,6 +56,12 @@ module.exports = {
           retry_attempts: 3,
         },
       },
+
+      screenshots: {
+        enabled: true,
+        on_failure: true,
+        path: 'tests_output/**/*png',
+      },
     },
     all_experiments_enabled: {
       globals: {

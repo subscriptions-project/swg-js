@@ -53,6 +53,13 @@ jobs:
       - name: Experiment
         run: ls .. -a
 
+      - name: Upload failure screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: failures
+          path: |
+            tests_output/*png
+
       - name: Upload VRT report
         uses: actions/upload-artifact@v4
         with:
