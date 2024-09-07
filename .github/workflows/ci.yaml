@@ -48,7 +48,10 @@ jobs:
         run: ls tests_output
 
       - name: Experiment
-        run: ls .vrt
+        run: ls .
+
+      - name: Experiment
+        run: ls ..
 
       - name: Upload VRT report
         uses: actions/upload-artifact@v4
