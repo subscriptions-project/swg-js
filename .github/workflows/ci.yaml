@@ -49,8 +49,8 @@ jobs:
         with:
           name: vrt-report
           path: |
-            .vrt
-            vrt-report
+            .vrt/diff/chrome_linux/basic/basic-contribution.png
+            .vrt/latest/chrome_linux/basic/basic-contribution.png
 
   e2e-with-all-experiments-enabled:
     runs-on: ubuntu-latest
@@ -74,8 +74,8 @@ jobs:
         with:
           name: vrt-report
           path: |
-            .vrt/**/*.png
-            vrt-report/index.html
+            .vrt/diff/chrome_linux/basic/basic-contribution.png
+            .vrt/latest/chrome_linux/basic/basic-contribution.png
 
   binaries:
     runs-on: ubuntu-latest
