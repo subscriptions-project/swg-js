@@ -55,10 +55,6 @@ const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
-const REPEATABLE_INTERVENTION_TYPES = [
-  InterventionType.TYPE_REWARDED_AD,
-  InterventionType.TYPE_BYO_CTA,
-];
 const SECOND_IN_MILLIS = 1000;
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
@@ -983,18 +979,15 @@ export class AutoPromptManager {
     if (!eligibleActionIds.has(orchestration.configId)) {
       return false;
     }
-    if (
-      this.isRepeatableIntervention_(orchestration.type) &&
-      orchestration.repeatability.type != RepeatabilityType.INFINITE
-    ) {
+    if (orchestration.repeatability.type != RepeatabilityType.INFINITE) {
       const numberOfCompletions =
         article.audienceActions?.actions?.find(
           (action) => action.configurationId === orchestration.configId
-        )!.numberOfCompletions || 0; // TODO(justinchou): handle no completions
+        )!.numberOfCompletions || 0;
       const maximumNumberOfCompletions =
         RepeatabilityType.UNSPECIFIED === orchestration.repeatability.type
           ? 1
-          : orchestration.repeatability.count; // TODO(justinchou) how to handle bad numbers, default to 1?
+          : orchestration.repeatability.count; // TODO(justinchou) handle bad number of completions.
       if (numberOfCompletions >= maximumNumberOfCompletions) {
         return false;
       }
@@ -1078,10 +1071,6 @@ export class AutoPromptManager {
           configurationId: action.configurationId,
           preference: action.preference,
         });
-  }
-
-  private isRepeatableIntervention_(interventionType: InterventionType) {
-    return REPEATABLE_INTERVENTION_TYPES.includes(interventionType);
   }
 
   /**

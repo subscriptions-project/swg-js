@@ -2893,7 +2893,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
-    it('should not show any prompt if only BYOCTA is configured and BYOCTA is not eligible due to repeatability', async () => {
+    it('should not show any prompt if only repeatable BYOCTA is configured and BYOCTA is not eligible due to exceeding maximum repeatability', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
