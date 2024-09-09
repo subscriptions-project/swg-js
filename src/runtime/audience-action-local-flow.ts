@@ -816,9 +816,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private cleanUpGoogletag() {
     const googletag = this.deps_.win().googletag;
     if (this.rewardedSlot_) {
-      googletag.destroySlots?.([this.rewardedSlot_!]);
+      googletag?.destroySlots?.([this.rewardedSlot_!]);
     }
-    const pubads = googletag.pubads?.();
+    const pubads = googletag?.pubads?.();
     pubads?.removeEventListener?.(
       'rewardedSlotReady',
       this.rewardedSlotReadyHandler
