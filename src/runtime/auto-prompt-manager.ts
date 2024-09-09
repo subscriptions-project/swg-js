@@ -55,10 +55,6 @@ const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
-const REPEATABLE_INTERVENTION_TYPES = [
-  InterventionType.TYPE_REWARDED_AD,
-  InterventionType.TYPE_BYO_CTA,
-];
 const SECOND_IN_MILLIS = 1000;
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
@@ -142,7 +138,6 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
-  private onsitePreviewEnabled_: boolean = false;
   private shouldRenderOnsitePreview_: boolean = false;
   private actionOrchestrationExperiment_: boolean = false;
 
@@ -202,9 +197,7 @@ export class AutoPromptManager {
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
-      // TODO(justinchou): Update to use contentType from params after launch.
-      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
-
+      this.isClosable_ = params.contentType != ContentType.CLOSED;
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
@@ -221,8 +214,7 @@ export class AutoPromptManager {
 
     this.setArticleExperimentFlags_(article);
 
-    this.shouldRenderOnsitePreview_ =
-      !!article && article.previewEnabled && this.onsitePreviewEnabled_;
+    this.shouldRenderOnsitePreview_ = !!article?.previewEnabled;
 
     if (this.shouldRenderOnsitePreview_) {
       this.showPreviewAutoPrompt_(article!, params);
@@ -239,10 +231,6 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    this.onsitePreviewEnabled_ = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.ONSITE_PREVIEW_ENABLED
-    );
     this.actionOrchestrationExperiment_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.ACTION_ORCHESTRATION_EXPERIMENT
@@ -267,10 +255,9 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
 
-    // Default isClosable to what is set in the page config.
-    // Otherwise, the prompt is blocking for publications with a
-    // subscription revenue model, while all others can be dismissed.
-    this.isClosable_ = params.isClosable ?? !this.isSubscription_();
+    // For FPA M0.5 - default to the contentType.
+    // TODO(b/364344782): Determine closability for FPA M1+.
+    this.isClosable_ = params.contentType != ContentType.CLOSED;
 
     const previewAction = actions[0];
 
@@ -329,8 +316,7 @@ export class AutoPromptManager {
             this.isClosable_ = true;
             break;
           default:
-            this.isClosable_ =
-              params.contentType === ContentType.CLOSED ? false : true;
+            this.isClosable_ = params.contentType != ContentType.CLOSED;
         }
         potentialAction = article.audienceActions?.actions?.find(
           (action) => action.configurationId === nextOrchestration.configId
@@ -540,12 +526,18 @@ export class AutoPromptManager {
     }
 
     // Filter the funnel of interventions by eligibility.
+    const numberOfCompletionsMap = new Map(
+      article.audienceActions!.actions!.map((action) => [
+        action.configurationId!,
+        action.numberOfCompletions ?? 0,
+      ])
+    );
     interventionOrchestration = interventionOrchestration.filter(
       (intervention) =>
         this.checkOrchestrationEligibility_(
           intervention,
           eligibleActionIds,
-          article
+          numberOfCompletionsMap
         )
     );
     if (interventionOrchestration.length === 0) {
@@ -607,6 +599,7 @@ export class AutoPromptManager {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
         Object.entries(actionsTimestamps!)
+          .filter(([config, _]) => config !== nextOrchestration!.configId)
           .filter(([type, _]) => type !== nextOrchestration!.type)
           .map(([_, timestamps]) => timestamps.impressions)
       );
@@ -990,24 +983,24 @@ export class AutoPromptManager {
   private checkOrchestrationEligibility_(
     orchestration: InterventionOrchestration,
     eligibleActionIds: Set<string | undefined>,
-    article: Article
+    numberOfCompletionsMap: Map<string, number>
   ): boolean {
     if (!eligibleActionIds.has(orchestration.configId)) {
       return false;
     }
     if (
-      this.isRepeatableIntervention_(orchestration.type) &&
+      !!orchestration.repeatability &&
       orchestration.repeatability.type != RepeatabilityType.INFINITE
     ) {
-      const numberOfCompletions =
-        article.audienceActions?.actions?.find(
-          (action) => action.configurationId === orchestration.configId
-        )!.numberOfCompletions || 0; // TODO(justinchou): handle no completions
       const maximumNumberOfCompletions =
+        !orchestration.repeatability.type ||
         RepeatabilityType.UNSPECIFIED === orchestration.repeatability.type
           ? 1
-          : orchestration.repeatability.count; // TODO(justinchou) how to handle bad numbers, default to 1?
-      if (numberOfCompletions >= maximumNumberOfCompletions) {
+          : orchestration.repeatability.count; // TODO(justinchou) handle bad number of completions.
+      if (
+        numberOfCompletionsMap.get(orchestration.configId)! >=
+        maximumNumberOfCompletions
+      ) {
         return false;
       }
     }
@@ -1090,10 +1083,6 @@ export class AutoPromptManager {
           configurationId: action.configurationId,
           preference: action.preference,
         });
-  }
-
-  private isRepeatableIntervention_(interventionType: InterventionType) {
-    return REPEATABLE_INTERVENTION_TYPES.includes(interventionType);
   }
 
   /**
