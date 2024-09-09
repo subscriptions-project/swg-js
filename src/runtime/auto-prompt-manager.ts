@@ -536,12 +536,18 @@ export class AutoPromptManager {
     }
 
     // Filter the funnel of interventions by eligibility.
+    const numberOfCompletionsMap = new Map(
+      article.audienceActions!.actions!.map((action) => [
+        action.configurationId!,
+        action.numberOfCompletions ?? 0,
+      ])
+    );
     interventionOrchestration = interventionOrchestration.filter(
       (intervention) =>
         this.checkOrchestrationEligibility_(
           intervention,
           eligibleActionIds,
-          article
+          numberOfCompletionsMap
         )
     );
     if (interventionOrchestration.length === 0) {
@@ -974,7 +980,7 @@ export class AutoPromptManager {
   private checkOrchestrationEligibility_(
     orchestration: InterventionOrchestration,
     eligibleActionIds: Set<string | undefined>,
-    article: Article
+    numberOfCompletionsMap: Map<string, number>
   ): boolean {
     if (!eligibleActionIds.has(orchestration.configId)) {
       return false;
@@ -983,16 +989,15 @@ export class AutoPromptManager {
       !!orchestration.repeatability &&
       orchestration.repeatability.type != RepeatabilityType.INFINITE
     ) {
-      const numberOfCompletions =
-        article.audienceActions!.actions!.find(
-          (action) => action.configurationId === orchestration.configId
-        )!.numberOfCompletions || 0;
       const maximumNumberOfCompletions =
         !orchestration.repeatability.type ||
         RepeatabilityType.UNSPECIFIED === orchestration.repeatability.type
           ? 1
           : orchestration.repeatability.count; // TODO(justinchou) handle bad number of completions.
-      if (numberOfCompletions >= maximumNumberOfCompletions) {
+      if (
+        numberOfCompletionsMap.get(orchestration.configId)! >=
+        maximumNumberOfCompletions
+      ) {
         return false;
       }
     }
