@@ -44,7 +44,7 @@ export enum Closability {
   BLOCKING = 'BLOCKING',
 }
 
-enum RepeatabilityType {
+export enum RepeatabilityType {
   UNSPECIFIED = 'UNSPECIFIED',
   FINITE = 'FINITE',
   INFINITE = 'INFINITE',
