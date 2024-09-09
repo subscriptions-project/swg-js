@@ -2698,9 +2698,8 @@ describes.realWin('AutoPromptManager', (env) => {
     const contributionFrequencyCapDurationSeconds = 10800;
     const surveyFrequencyCapDurationSeconds = 7200;
     const newsletterFrequencyCapDurationSeconds = 3600;
-
     const promptFrequencyCap = {
-      secondsDuration: {
+      duration: {
         seconds: 300,
       },
     };
@@ -2739,16 +2738,16 @@ describes.realWin('AutoPromptManager', (env) => {
           actionOrchestration: {
             interventionFunnel: {
               globalFrequencyCap: {
-                secondsDuration: {
+                duration: {
                   seconds: funnelGlobalFrequencyCapDurationSeconds,
                 },
               },
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: contributionFrequencyCapDurationSeconds,
                     },
                   },
@@ -2758,7 +2757,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: surveyFrequencyCapDurationSeconds,
                     },
                   },
@@ -2768,7 +2767,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: newsletterFrequencyCapDurationSeconds,
                     },
                   },
@@ -2787,7 +2786,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('should execute the legacy flow if the article response does not contain actionOrchestration', async () => {
       const targetedInterventionSpy = sandbox.spy(
         autoPromptManager,
-        'getTargetedInterventionOrchestration_'
+        'getInterventionOrchestration_'
       );
       const getPotentialActionSpy = sandbox.spy(
         autoPromptManager,
@@ -2843,7 +2842,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
@@ -2876,7 +2875,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [],
+              interventions: [],
             },
           },
           experimentConfig: {
@@ -2893,7 +2892,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
-    it('should not show any prompt if no actions are eligible', async () => {
+    it('should not show any prompt if only survey is configured and survey is not eligible due to analytics setup', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -2902,7 +2901,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -2931,6 +2930,49 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
+    it('should not show any prompt if only repeatable BYOCTA is configured and BYOCTA is not eligible due to exceeding maximum repeatability', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: 'TYPE_BYO_CTA',
+                configurationId: 'rewarded_ad_config_id',
+                numberOfCompletions: 3,
+              },
+            ],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_BYO_CTA',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                  repeatability: {
+                    type: 'FINITE',
+                    count: 3,
+                  },
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {});
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(actionFlowSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
     it('should not show any prompt if no intervention orchestrations are eligible', async () => {
       getArticleExpectation
         .resolves({
@@ -2940,7 +2982,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -3030,6 +3072,55 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
+    it('should show an infinitely repeatable intervention, despite past completions', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: 'TYPE_BYO_CTA',
+                configurationId: 'byocta_config_id',
+                numberOfCompletions: 10,
+              },
+            ],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'byocta_config_id',
+                  type: 'TYPE_BYO_CTA',
+                  promptFrequencyCap,
+                  closability: 'DISMISSIBLE',
+                  repeatability: {
+                    type: 'INFINITE',
+                  },
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {});
+
+      await autoPromptManager.showAutoPrompt({});
+      await tick(20);
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_BYO_CTA',
+        configurationId: 'byocta_config_id',
+        autoPromptType: undefined,
+        isClosable: true,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
+    });
+
     it('preview should show a dismissble prompt when ContentType OPEN', async () => {
       getArticleExpectation
         .resolves({
@@ -3097,11 +3188,11 @@ describes.realWin('AutoPromptManager', (env) => {
           actionOrchestration: {
             interventionFunnel: {
               globalFrequencyCap: {
-                secondsDuration: {
+                duration: {
                   seconds: 60,
                 },
               },
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -3341,12 +3432,12 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: contributionFrequencyCapDurationSeconds,
                     },
                   },
@@ -3356,7 +3447,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: surveyFrequencyCapDurationSeconds,
                     },
                   },
@@ -3366,7 +3457,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: newsletterFrequencyCapDurationSeconds,
                     },
                   },
@@ -3426,7 +3517,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
@@ -3436,7 +3527,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: surveyFrequencyCapDurationSeconds,
                     },
                   },
@@ -3446,7 +3537,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: newsletterFrequencyCapDurationSeconds,
                     },
                   },
@@ -3822,17 +3913,17 @@ describes.realWin('AutoPromptManager', (env) => {
           actionOrchestration: {
             interventionFunnel: {
               globalFrequencyCap: {
-                secondsDuration: {
+                duration: {
                   nanos:
                     funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_NANO,
                 },
               },
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: contributionFrequencyCapDurationSeconds,
                     },
                   },
@@ -3842,7 +3933,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: surveyFrequencyCapDurationSeconds,
                     },
                   },
@@ -3852,7 +3943,7 @@ describes.realWin('AutoPromptManager', (env) => {
                   configId: 'newsletter_config_id',
                   type: 'TYPE_NEWSLETTER_SIGNUP',
                   promptFrequencyCap: {
-                    secondsDuration: {
+                    duration: {
                       seconds: newsletterFrequencyCapDurationSeconds,
                     },
                   },
@@ -4049,11 +4140,11 @@ describes.realWin('AutoPromptManager', (env) => {
           actionOrchestration: {
             interventionFunnel: {
               globalFrequencyCap: {
-                secondsDuration: {
+                duration: {
                   seconds: funnelGlobalFrequencyCapDurationSeconds,
                 },
               },
-              prompts: [
+              interventions: [
                 {
                   configId: 'contribution_config_id',
                   type: 'TYPE_CONTRIBUTION',
@@ -4151,7 +4242,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4189,7 +4280,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'subscription_config_id',
                   type: 'TYPE_SUBSCRIPTION',
@@ -4219,7 +4310,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4257,7 +4348,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4295,7 +4386,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4332,7 +4423,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
           actionOrchestration: {
             interventionFunnel: {
-              prompts: [
+              interventions: [
                 {
                   configId: 'survey_config_id',
                   type: 'TYPE_REWARDED_SURVEY',
@@ -4400,7 +4491,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Survey is eligible when gTag logging is eligible', async () => {
       setWinWithAnalytics({setupGtam: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
       expect(isEligible).to.be.true;
@@ -4409,7 +4500,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Survey is eligible when GA logging is eligible', async () => {
       setWinWithAnalytics({setupGa: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
       expect(isEligible).to.be.true;
@@ -4418,7 +4509,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Survey is eligible when GTM logging is eligible', async () => {
       setWinWithAnalytics({setupGtm: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
       expect(isEligible).to.be.true;
@@ -4427,7 +4518,7 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Survey is not eligible when no Analytics logging is eligible', async () => {
       setWinWithAnalytics({setupGtag: false, setupGa: false, setupGtm: false});
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
       expect(isEligible).to.be.false;
@@ -4435,7 +4526,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('Survey is not eligible when there are previous completions', async () => {
       const isEligible = autoPromptManager.checkActionEligibility_(
-        'TYPE_REWARDED_SURVEY',
+        {type: 'TYPE_REWARDED_SURVEY'},
         {
           'TYPE_REWARDED_SURVEY': {
             'impressions': [],
@@ -4445,6 +4536,67 @@ describes.realWin('AutoPromptManager', (env) => {
         }
       );
       expect(isEligible).to.be.false;
+    });
+
+    it('Orchestration is not eligible when action is not eligible', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {configId: 'not_eligible_id'},
+        new Set(),
+        {}
+      );
+      expect(isEligible).to.be.false;
+    });
+
+    it('Repeatable Orchestration with unspecified repeatability is not eligible with completion', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'UNSPECIFIED'},
+        },
+        new Set(['action_id']),
+        new Map([['action_id', 1]])
+      );
+      expect(isEligible).to.be.false;
+    });
+
+    it('Repeatable Orchestration with finite repeatability is not eligible with completions above the limit', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'FINITE', count: 5},
+        },
+        new Set(['action_id']),
+        new Map([['action_id', 5]])
+      );
+      expect(isEligible).to.be.false;
+    });
+
+    it('Repeatable Orchestration with finite repeatability is eligible with completions below the limit', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'FINITE', count: 5},
+        },
+        new Set(['action_id']),
+        new Map([['action_id', 2]])
+      );
+      expect(isEligible).to.be.true;
+    });
+
+    it('Repeatable Orchestration with infinite repeatability is eligible with completions', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'INFINITE'},
+        },
+        new Set(['action_id']),
+        new Map([['action_id', 1]])
+      );
+      expect(isEligible).to.be.true;
     });
 
     [
@@ -4527,7 +4679,7 @@ describes.realWin('AutoPromptManager', (env) => {
       const expectedDuration = {seconds: 600};
       const result = autoPromptManager.getPromptFrequencyCapDuration_(
         {},
-        {promptFrequencyCap: {secondsDuration: expectedDuration}}
+        {promptFrequencyCap: {duration: expectedDuration}}
       );
       expect(result).to.equal(expectedDuration);
     });
@@ -4545,7 +4697,7 @@ describes.realWin('AutoPromptManager', (env) => {
       const expectedDuration = {seconds: 60};
       const result = autoPromptManager.getGlobalFrequencyCapDuration_(
         {},
-        {globalFrequencyCap: {secondsDuration: expectedDuration}}
+        {globalFrequencyCap: {duration: expectedDuration}}
       );
       expect(result).to.equal(expectedDuration);
     });

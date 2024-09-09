@@ -24,7 +24,7 @@ export interface ActionOrchestration {
 export interface InterventionFunnel {
   id: string;
   globalFrequencyCap: FrequencyCapConfig;
-  prompts: Array<InterventionOrchestration>;
+  interventions: Array<InterventionOrchestration>;
 }
 
 export interface InterventionOrchestration {
@@ -44,29 +44,12 @@ export enum Closability {
   BLOCKING = 'BLOCKING',
 }
 
-enum RepeatabilityType {
+export enum RepeatabilityType {
   UNSPECIFIED = 'UNSPECIFIED',
   FINITE = 'FINITE',
   INFINITE = 'INFINITE',
 }
 
 interface FrequencyCapConfig {
-  duration?: SwgDuration;
-  secondsDuration?: Duration;
-}
-
-export interface SwgDuration {
-  unit: SwgDurationUnit;
-  count: number;
-}
-
-export enum SwgDurationUnit {
-  UNSPECIFIED_UNIT = 'UNSPECIFIED_UNIT',
-  SECOND = 'SECOND',
-  MINUTE = 'MINUTE',
-  HOUR = 'HOUR',
-  DAY = 'DAY',
-  WEEK = 'WEEK',
-  MONTH = 'MONTH',
-  YEAR = 'YEAR',
+  duration?: Duration;
 }
