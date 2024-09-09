@@ -19,7 +19,6 @@ import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   BACK_TO_HOME_HTML,
-  CONTRIBUTION_ICON,
   ERROR_HTML,
   LOADING_HTML,
   OPT_IN_CLOSE_BUTTON_HTML,
@@ -28,7 +27,6 @@ import {
   REWARDED_AD_SIGN_IN_HTML,
   REWARDED_AD_SUPPORT_HTML,
   REWARDED_AD_THANKS_HTML,
-  SUBSCRIPTION_ICON,
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -494,11 +492,9 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     // verified existance in initRewardedAdWall_
     const publication = htmlEscape(config.publication!.name!).toString();
-    const backToHomeHtml = this.getBackToHomeOrEmptyHTML_();
-    const closeHtml = this.getCloseButtonOrEmptyHtml_(
+    const closeButtonHtml = this.getCloseButtonOrEmptyHtml_(
       REWARDED_AD_CLOSE_BUTTON_HTML
     );
-    const icon = this.isSubscription() ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = htmlEscape(
       config.rewardedAdParameters!.customMessage!
@@ -526,9 +522,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       '$TITLE$',
       publication
     )
-      .replace('$BACK_TO_HOME_BUTTON$', backToHomeHtml)
-      .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
-      .replace('$ICON$', icon)
+      .replace('$EXIT$', closeButtonHtml)
       .replace('$MESSAGE$', message)
       .replace('$VIEW_AN_AD$', viewad)
       .replace('$SUPPORT_BUTTON$', supportHtml)
@@ -762,9 +756,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     await this.initPrompt_();
   }
 
-  private getBackToHomeOrEmptyHTML_(): string {
+  private getCloseButtonOrEmptyHtml_(html: string) {
+    const language = this.clientConfigManager_.getLanguage();
     if (!this.params_.isClosable) {
-      const language = this.clientConfigManager_.getLanguage();
+      if (this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
+        return '';
+      }
       const backToHomeText = msg(
         SWG_I18N_STRINGS['BACK_TO_HOMEPAGE'],
         language
@@ -777,20 +774,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         parseUrl(this.deps_.win().location.href).origin
       );
     } else {
-      return '';
+      const closeButtonDescription = msg(
+        SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
+        language
+      )!;
+      return html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription);
     }
-  }
-
-  private getCloseButtonOrEmptyHtml_(html: string) {
-    if (!this.params_.isClosable) {
-      return '';
-    }
-    const language = this.clientConfigManager_.getLanguage();
-    const closeButtonDescription = msg(
-      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
-      language
-    )!;
-    return html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription);
   }
 
   showNoEntitlementFoundToast() {
