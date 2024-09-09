@@ -138,7 +138,6 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
-  private onsitePreviewEnabled_: boolean = false;
   private shouldRenderOnsitePreview_: boolean = false;
   private actionOrchestrationExperiment_: boolean = false;
 
@@ -198,9 +197,7 @@ export class AutoPromptManager {
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
-      // TODO(justinchou): Update to use contentType from params after launch.
-      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
-
+      this.isClosable_ = params.contentType != ContentType.CLOSED;
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
@@ -217,8 +214,7 @@ export class AutoPromptManager {
 
     this.setArticleExperimentFlags_(article);
 
-    this.shouldRenderOnsitePreview_ =
-      !!article && article.previewEnabled && this.onsitePreviewEnabled_;
+    this.shouldRenderOnsitePreview_ = !!article?.previewEnabled;
 
     if (this.shouldRenderOnsitePreview_) {
       this.showPreviewAutoPrompt_(article!, params);
@@ -235,10 +231,6 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    this.onsitePreviewEnabled_ = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.ONSITE_PREVIEW_ENABLED
-    );
     this.actionOrchestrationExperiment_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.ACTION_ORCHESTRATION_EXPERIMENT
@@ -263,10 +255,9 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
 
-    // Default isClosable to what is set in the page config.
-    // Otherwise, the prompt is blocking for publications with a
-    // subscription revenue model, while all others can be dismissed.
-    this.isClosable_ = params.isClosable ?? !this.isSubscription_();
+    // For FPA M0.5 - default to the contentType.
+    // TODO(b/364344782): Determine closability for FPA M1+.
+    this.isClosable_ = params.contentType != ContentType.CLOSED;
 
     const previewAction = actions[0];
 
@@ -325,8 +316,7 @@ export class AutoPromptManager {
             this.isClosable_ = true;
             break;
           default:
-            this.isClosable_ =
-              params.contentType === ContentType.CLOSED ? false : true;
+            this.isClosable_ = params.contentType != ContentType.CLOSED;
         }
         potentialAction = article.audienceActions?.actions?.find(
           (action) => action.configurationId === nextOrchestration.configId
