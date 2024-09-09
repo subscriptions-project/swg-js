@@ -599,7 +599,6 @@ export class AutoPromptManager {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
         Object.entries(actionsTimestamps!)
-          .filter(([config, _]) => config !== nextOrchestration!.configId)
           .filter(([type, _]) => type !== nextOrchestration!.type)
           .map(([_, timestamps]) => timestamps.impressions)
       );
