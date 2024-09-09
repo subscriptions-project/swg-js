@@ -4461,11 +4461,7 @@ describes.realWin('AutoPromptManager', (env) => {
           repeatability: {type: 'UNSPECIFIED'},
         },
         new Set(['action_id']),
-        {
-          audienceActions: {
-            actions: [{configurationId: 'action_id', numberOfCompletions: 1}],
-          },
-        }
+        new Map([['action_id', 1]])
       );
       expect(isEligible).to.be.false;
     });
@@ -4478,11 +4474,7 @@ describes.realWin('AutoPromptManager', (env) => {
           repeatability: {type: 'FINITE', count: 5},
         },
         new Set(['action_id']),
-        {
-          audienceActions: {
-            actions: [{configurationId: 'action_id', numberOfCompletions: 5}],
-          },
-        }
+        new Map([['action_id', 5]])
       );
       expect(isEligible).to.be.false;
     });
@@ -4495,11 +4487,7 @@ describes.realWin('AutoPromptManager', (env) => {
           repeatability: {type: 'FINITE', count: 5},
         },
         new Set(['action_id']),
-        {
-          audienceActions: {
-            actions: [{configurationId: 'action_id', numberOfCompletions: 2}],
-          },
-        }
+        new Map([['action_id', 2]])
       );
       expect(isEligible).to.be.true;
     });
@@ -4512,11 +4500,7 @@ describes.realWin('AutoPromptManager', (env) => {
           repeatability: {type: 'INFINITE'},
         },
         new Set(['action_id']),
-        {
-          audienceActions: {
-            actions: [{configurationId: 'action_id', numberOfCompletions: 1}],
-          },
-        }
+        new Map([['action_id', 1]])
       );
       expect(isEligible).to.be.true;
     });
