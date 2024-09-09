@@ -408,6 +408,41 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(signinButton).to.be.null;
       });
 
+      it('renders enterprise', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: undefined,
+          calledManually: true,
+          onAlternateAction: sandbox.spy(),
+          onSignIn: sandbox.spy(),
+        };
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=false'
+        );
+
+        const subscribeButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(subscribeButton).to.not.be.null;
+        expect(subscribeButton.innerHTML).contains('Subscribe');
+        await subscribeButton.click();
+
+        const signinButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-sign-in-button'
+        );
+        expect(signinButton).to.not.be.null;
+        expect(signinButton.innerHTML).contains('Already a subscriber?');
+        await signinButton.click();
+
+        await tick();
+
+        expect(params.onAlternateAction).to.be.calledOnce;
+        expect(params.onSignIn).to.be.calledOnce;
+      });
       it('escapes bad input', async () => {
         const BAD_CONFIG = `
           {
