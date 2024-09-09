@@ -3107,7 +3107,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
       expectFrequencyCappingTimestamps(storageMock, {});
 
-      await autoPromptManager.showAutoPrompt({});
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
       await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;
