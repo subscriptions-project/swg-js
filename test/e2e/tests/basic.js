@@ -24,7 +24,7 @@ module.exports = {
       .waitForElementPresent('@swgBasicButton', 'Found button')
       .waitForElementVisible('@swgBasicButton')
       .click('@swgBasicButton')
-      .pause(1000)
+      .pause(3000)
       .assert.screenshotIdenticalToBaseline('html', 'basic-contribution')
       .viewContributionOffers()
       .assert.textContains('@contributionHeader', 'Swgjs Contribution Demos')
