@@ -979,12 +979,16 @@ export class AutoPromptManager {
     if (!eligibleActionIds.has(orchestration.configId)) {
       return false;
     }
-    if (orchestration.repeatability.type != RepeatabilityType.INFINITE) {
+    if (
+      !!orchestration.repeatability &&
+      orchestration.repeatability.type != RepeatabilityType.INFINITE
+    ) {
       const numberOfCompletions =
-        article.audienceActions?.actions?.find(
+        article.audienceActions!.actions!.find(
           (action) => action.configurationId === orchestration.configId
         )!.numberOfCompletions || 0;
       const maximumNumberOfCompletions =
+        !orchestration.repeatability.type ||
         RepeatabilityType.UNSPECIFIED === orchestration.repeatability.type
           ? 1
           : orchestration.repeatability.count; // TODO(justinchou) handle bad number of completions.
