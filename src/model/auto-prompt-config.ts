@@ -165,6 +165,6 @@ export class AnyPromptFrequencyCap {
 export class Duration {
   constructor(
     public readonly seconds?: number,
-    public readonly nano?: number
+    public readonly nanos?: number
   ) {}
 }

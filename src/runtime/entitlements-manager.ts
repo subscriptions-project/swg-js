@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActionOrchestration} from '../api/action-orchestration';
 import {
   AnalyticsEvent,
   EntitlementJwt,
@@ -34,6 +35,7 @@ import {
   GetEntitlementsParamsInternalDef,
 } from '../api/subscriptions';
 import {Constants, StorageKeys} from '../utils/constants';
+import {ContentType} from '../api/basic-subscriptions';
 import {Deps} from './deps';
 import {
   Entitlement,
@@ -66,6 +68,7 @@ const SERVICE_ID = 'subscribe.google.com';
 const ENABLED_INTERVENTIONS = new Set([
   InterventionType.TYPE_NEWSLETTER_SIGNUP,
   InterventionType.TYPE_REWARDED_SURVEY,
+  InterventionType.TYPE_REWARDED_AD,
 ]);
 
 /**
@@ -78,6 +81,7 @@ export interface Article {
     actions?: Intervention[];
     engineId?: string;
   };
+  actionOrchestration?: ActionOrchestration;
   experimentConfig: {
     experimentFlags: string[];
   };
@@ -822,6 +826,11 @@ export class EntitlementsManager {
     // Add locked param.
     if (this.useArticleEndpoint_) {
       url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
+      url = addQueryParam(
+        url,
+        'contentType',
+        getContentTypeParamString(this.pageConfig_.isLocked())
+      );
     }
     const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
@@ -1018,4 +1027,11 @@ function irtpStringToBoolean(value: string | null): boolean | undefined {
     default:
       return undefined;
   }
+}
+
+/**
+ * Returns ContentType Enum string from isLocked page config status.
+ */
+function getContentTypeParamString(isLocked: boolean): string {
+  return isLocked ? ContentType.CLOSED.toString() : ContentType.OPEN.toString();
 }
