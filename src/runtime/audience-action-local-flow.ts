@@ -19,7 +19,6 @@ import {AudienceActionFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {
   BACK_TO_HOME_HTML,
-  CONTRIBUTION_ICON,
   ERROR_HTML,
   LOADING_HTML,
   OPT_IN_CLOSE_BUTTON_HTML,
@@ -28,7 +27,6 @@ import {
   REWARDED_AD_SIGN_IN_HTML,
   REWARDED_AD_SUPPORT_HTML,
   REWARDED_AD_THANKS_HTML,
-  SUBSCRIPTION_ICON,
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -62,6 +60,8 @@ export interface AudienceActionLocalParams {
   monetizationFunction?: () => void;
   calledManually: boolean;
   shouldRenderPreview?: boolean;
+  onAlternateAction?: () => void;
+  onSignIn?: () => void;
 }
 
 interface AudienceActionConfig {
@@ -112,6 +112,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private rewardedAdTimeout_?: NodeJS.Timeout;
   // Used for focus trap.
   private bottomSentinal_!: HTMLElement;
+  private config?: AudienceActionConfig;
+  // Rewarded ad callback handlers.
+  private readonly rewardedSlotReadyHandler;
+  private readonly rewardedSlotClosedHandler;
+  private readonly rewardedSlotGrantedHandler;
+  private readonly slotRenderEndedHandler;
 
   constructor(
     private readonly deps_: Deps,
@@ -132,6 +138,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.eventManager_ = deps_.eventManager();
 
     this.entitlementsManager_ = deps_.entitlementsManager();
+
+    this.rewardedSlotReadyHandler = this.rewardedSlotReady_.bind(this);
+    this.rewardedSlotClosedHandler = this.rewardedSlotClosed_.bind(this);
+    this.rewardedSlotGrantedHandler = this.rewardedSlotGranted_.bind(this);
+    this.slotRenderEndedHandler = this.slotRenderEnded_.bind(this);
   }
 
   private createWrapper_(): HTMLElement {
@@ -211,10 +222,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
       );
     }
-    if (this.rewardedSlot_) {
-      const googletag = this.deps_.win().googletag;
-      googletag.destroySlots([this.rewardedSlot_!]);
-    }
+    this.cleanUpGoogletag();
     this.params_.onCancel?.();
     this.params_.monetizationFunction?.();
     this.triggerRewardedAdOnResultCallback(
@@ -403,11 +411,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       this.bailoutPrompt_();
       return;
     }
+    this.config = config;
     // Setup callback for googletag init.
     const googletag = this.deps_.win().googletag;
-    googletag.cmd.push(() => {
-      this.initRewardedAdSlot_(config);
-    });
+    googletag.cmd.push(this.initRewardedAdSlot_.bind(this));
     // There is no good method of checking that gpt.js is working correctly.
     // This timeout allows us to sanity check and error out if things are not
     // working correctly.
@@ -419,11 +426,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }, this.gptTimeoutMs_);
   }
 
-  private initRewardedAdSlot_(config: AudienceActionConfig) {
+  private initRewardedAdSlot_() {
     const googletag = this.deps_.win().googletag;
 
     this.rewardedSlot_ = googletag.defineOutOfPageSlot(
-      config.rewardedAdParameters!.adunit!,
+      this.config!.rewardedAdParameters!.adunit!,
       googletag.enums.OutOfPageFormat.REWARDED
     );
 
@@ -437,26 +444,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.rewardedSlot_.addService(googletag.pubads());
     googletag
       .pubads()
-      .addEventListener(
-        'rewardedSlotReady',
-        (event: googletag.events.RewardedSlotReadyEvent) =>
-          this.rewardedSlotReady_(event, config!)
-      );
+      .addEventListener('rewardedSlotReady', this.rewardedSlotReadyHandler);
     googletag
       .pubads()
-      .addEventListener(
-        'rewardedSlotClosed',
-        this.rewardedSlotClosed_.bind(this)
-      );
+      .addEventListener('rewardedSlotClosed', this.rewardedSlotClosedHandler);
     googletag
       .pubads()
-      .addEventListener(
-        'rewardedSlotGranted',
-        this.rewardedSlotGranted_.bind(this)
-      );
+      .addEventListener('rewardedSlotGranted', this.rewardedSlotGrantedHandler);
     googletag
       .pubads()
-      .addEventListener('slotRenderEnded', this.slotRenderEnded_.bind(this));
+      .addEventListener('slotRenderEnded', this.slotRenderEndedHandler);
     googletag.enableServices();
     googletag.display(this.rewardedSlot_);
     googletag.pubads().refresh([this.rewardedSlot_]);
@@ -482,8 +479,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
    * the buttons.
    */
   private rewardedSlotReady_(
-    rewardedAd: googletag.events.RewardedSlotReadyEvent,
-    config: AudienceActionConfig
+    rewardedAd: googletag.events.RewardedSlotReadyEvent
   ) {
     clearTimeout(this.rewardedAdTimeout_);
     this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
@@ -493,42 +489,41 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const language = this.clientConfigManager_.getLanguage();
 
     // verified existance in initRewardedAdWall_
-    const publication = htmlEscape(config.publication!.name!).toString();
-    const backToHomeHtml = this.getBackToHomeOrEmptyHTML_();
-    const closeHtml = this.getCloseButtonOrEmptyHtml_(
+    const publication = htmlEscape(this.config!.publication!.name!).toString();
+    const closeButtonHtml = this.getCloseButtonOrEmptyHtml_(
       REWARDED_AD_CLOSE_BUTTON_HTML
     );
-    const icon = this.isSubscription() ? SUBSCRIPTION_ICON : CONTRIBUTION_ICON;
     // verified existance in initRewardedAdWall_
     const message = htmlEscape(
-      config.rewardedAdParameters!.customMessage!
+      this.config!.rewardedAdParameters!.customMessage!
     ).toString();
     const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
-    const support = this.isContribution()
-      ? msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!
-      : msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!;
+
+    const support =
+      this.isSubscription() || !!this.params_.onSignIn
+        ? msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!
+        : msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!;
+
     const supportHtml =
-      isPremonetization || this.params_.calledManually
+      !this.params_.onAlternateAction && isPremonetization
         ? ''
         : REWARDED_AD_SUPPORT_HTML.replace('$SUPPORT_MESSAGE$', support);
 
+    const signin =
+      this.isSubscription() || !!this.params_.onSignIn
+        ? msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!
+        : msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!;
+
     const signinHtml =
-      isPremonetization || this.params_.calledManually
+      !this.params_.onSignIn && isPremonetization
         ? ''
-        : REWARDED_AD_SIGN_IN_HTML.replace(
-            '$SIGN_IN_MESSAGE$',
-            this.isContribution()
-              ? msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!
-              : msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!
-          );
+        : REWARDED_AD_SIGN_IN_HTML.replace('$SIGN_IN_MESSAGE$', signin);
 
     this.prompt_./*OK*/ innerHTML = REWARDED_AD_HTML.replace(
       '$TITLE$',
       publication
     )
-      .replace('$BACK_TO_HOME_BUTTON$', backToHomeHtml)
-      .replace('$REWARDED_AD_CLOSE_BUTTON_HTML$', closeHtml)
-      .replace('$ICON$', icon)
+      .replace('$EXIT$', closeButtonHtml)
       .replace('$MESSAGE$', message)
       .replace('$VIEW_AN_AD$', viewad)
       .replace('$SUPPORT_BUTTON$', supportHtml)
@@ -554,8 +549,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private rewardedSlotClosed_() {
-    const googletag = this.deps_.win().googletag;
-    googletag.destroySlots([this.rewardedSlot_]);
+    this.cleanUpGoogletag();
     if (this.params_.isClosable) {
       this.unlock_();
       this.params_.onCancel?.();
@@ -595,8 +589,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       clearTimeout(timeout);
       this.unlock_();
     });
-    const googletag = this.deps_.win().googletag;
-    googletag.destroySlots([this.rewardedSlot_!]);
+    this.cleanUpGoogletag();
     this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
     this.focusRewardedAds_();
     this.triggerRewardedAdOnResultCallback(
@@ -609,9 +602,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private closeRewardedAdWall_() {
+    this.cleanUpGoogletag();
     this.unlock_();
-    const googletag = this.deps_.win().googletag;
-    googletag.destroySlots([this.rewardedSlot_!]);
     this.params_.onCancel?.();
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
@@ -624,17 +616,18 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private supportRewardedAdWall_() {
-    if (this.params_.isClosable) {
-      this.params_.onCancel?.();
-    }
-    this.unlock_();
-    const googletag = this.deps_.win().googletag;
-    googletag.destroySlots([this.rewardedSlot_!]);
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT,
       /* isFromUserAction */ true
     );
-    this.params_.monetizationFunction!();
+    this.params_.onCancel?.();
+    this.unlock_();
+    this.cleanUpGoogletag();
+    if (!!this.params_.onAlternateAction) {
+      this.params_.onAlternateAction();
+    } else {
+      this.params_.monetizationFunction!();
+    }
   }
 
   private viewRewardedAdWall_() {
@@ -650,11 +643,18 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   private signinRewardedAdWall_() {
-    this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_REWARDED_AD_SIGN_IN,
       /* isFromUserAction */ true
     );
+    if (!!this.params_.onSignIn) {
+      this.params_.onCancel?.();
+      this.unlock_();
+      this.cleanUpGoogletag();
+      this.params_.onSignIn();
+    } else {
+      this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
+    }
   }
 
   private buildEndpointUrl_(endpoint: string, queryParams: string[][]): string {
@@ -762,9 +762,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     await this.initPrompt_();
   }
 
-  private getBackToHomeOrEmptyHTML_(): string {
+  private getCloseButtonOrEmptyHtml_(html: string) {
+    const language = this.clientConfigManager_.getLanguage();
     if (!this.params_.isClosable) {
-      const language = this.clientConfigManager_.getLanguage();
+      if (this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
+        return '';
+      }
       const backToHomeText = msg(
         SWG_I18N_STRINGS['BACK_TO_HOMEPAGE'],
         language
@@ -777,20 +780,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
         parseUrl(this.deps_.win().location.href).origin
       );
     } else {
-      return '';
+      const closeButtonDescription = msg(
+        SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
+        language
+      )!;
+      return html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription);
     }
-  }
-
-  private getCloseButtonOrEmptyHtml_(html: string) {
-    if (!this.params_.isClosable) {
-      return '';
-    }
-    const language = this.clientConfigManager_.getLanguage();
-    const closeButtonDescription = msg(
-      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
-      language
-    )!;
-    return html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription);
   }
 
   showNoEntitlementFoundToast() {
@@ -816,6 +811,30 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     ) {
       this.closeOptInPrompt_();
     }
+  }
+
+  private cleanUpGoogletag() {
+    const googletag = this.deps_.win().googletag;
+    if (this.rewardedSlot_) {
+      googletag?.destroySlots?.([this.rewardedSlot_!]);
+    }
+    const pubads = googletag?.pubads?.();
+    pubads?.removeEventListener?.(
+      'rewardedSlotReady',
+      this.rewardedSlotReadyHandler
+    );
+    pubads?.removeEventListener?.(
+      'rewardedSlotClosed',
+      this.rewardedSlotClosedHandler
+    );
+    pubads?.removeEventListener?.(
+      'rewardedSlotGranted',
+      this.rewardedSlotGrantedHandler
+    );
+    pubads?.removeEventListener?.(
+      'slotRenderEnded',
+      this.slotRenderEndedHandler
+    );
   }
 
   private triggerRewardedAdOnResultCallback(
