@@ -115,8 +115,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private config?: AudienceActionConfig;
   // Rewarded ad callback handlers.
   private readonly rewardedSlotReadyHandler;
-  private readonly rewardedSlotClosedHanlder;
-  private readonly rewardedSlotGrantedHanlder;
+  private readonly rewardedSlotClosedHandler;
+  private readonly rewardedSlotGrantedHandler;
   private readonly slotRenderEndedHandler;
 
   constructor(
@@ -140,8 +140,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.entitlementsManager_ = deps_.entitlementsManager();
 
     this.rewardedSlotReadyHandler = this.rewardedSlotReady_.bind(this);
-    this.rewardedSlotClosedHanlder = this.rewardedSlotClosed_.bind(this);
-    this.rewardedSlotGrantedHanlder = this.rewardedSlotGranted_.bind(this);
+    this.rewardedSlotClosedHandler = this.rewardedSlotClosed_.bind(this);
+    this.rewardedSlotGrantedHandler = this.rewardedSlotGranted_.bind(this);
     this.slotRenderEndedHandler = this.slotRenderEnded_.bind(this);
   }
 
@@ -447,10 +447,10 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       .addEventListener('rewardedSlotReady', this.rewardedSlotReadyHandler);
     googletag
       .pubads()
-      .addEventListener('rewardedSlotClosed', this.rewardedSlotClosedHanlder);
+      .addEventListener('rewardedSlotClosed', this.rewardedSlotClosedHandler);
     googletag
       .pubads()
-      .addEventListener('rewardedSlotGranted', this.rewardedSlotGrantedHanlder);
+      .addEventListener('rewardedSlotGranted', this.rewardedSlotGrantedHandler);
     googletag
       .pubads()
       .addEventListener('slotRenderEnded', this.slotRenderEndedHandler);
@@ -825,11 +825,11 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     );
     pubads?.removeEventListener?.(
       'rewardedSlotClosed',
-      this.rewardedSlotClosedHanlder
+      this.rewardedSlotClosedHandler
     );
     pubads?.removeEventListener?.(
       'rewardedSlotGranted',
-      this.rewardedSlotGrantedHanlder
+      this.rewardedSlotGrantedHandler
     );
     pubads?.removeEventListener?.(
       'slotRenderEnded',
