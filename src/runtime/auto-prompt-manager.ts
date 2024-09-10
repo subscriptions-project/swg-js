@@ -572,11 +572,10 @@ export class AutoPromptManager {
         orchestration
       );
       if (this.isValidFrequencyCapDuration_(promptFrequencyCapDuration)) {
-        const actionTimestamps = actionsTimestamps![orchestration.type];
-        const timestamps = [
-          ...(actionTimestamps?.dismissals || []),
-          ...(actionTimestamps?.completions || []),
-        ];
+        const timestamps = this.getTimestampsForPromptFrequency_(
+          actionsTimestamps,
+          orchestration
+        );
         if (this.isFrequencyCapped_(promptFrequencyCapDuration!, timestamps)) {
           this.eventManager_.logSwgEvent(
             AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
@@ -600,7 +599,7 @@ export class AutoPromptManager {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
         Object.entries(actionsTimestamps!)
-          .filter(([config, _]) => config !== nextOrchestration!.configId)
+          .filter(([type, _]) => type !== nextOrchestration!.type)
           .map(([_, timestamps]) => timestamps.impressions)
       );
       if (
@@ -850,6 +849,19 @@ export class AutoPromptManager {
       },
       {}
     );
+  }
+
+  private getTimestampsForPromptFrequency_(
+    timestamps: ActionsTimestamps,
+    orchestration: InterventionOrchestration
+  ) {
+    const actionTimestamps = timestamps[orchestration.type];
+    return orchestration.closability === Closability.BLOCKING
+      ? actionTimestamps?.completions || []
+      : [
+          ...(actionTimestamps?.dismissals || []),
+          ...(actionTimestamps?.completions || []),
+        ];
   }
 
   isValidActionsTimestamps_(timestamps: ActionsTimestamps) {
