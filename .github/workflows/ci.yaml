@@ -45,6 +45,7 @@ jobs:
         run: . ./build_and_run_e2e.sh
 
       - name: Upload VRT report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vrt-report
@@ -70,6 +71,7 @@ jobs:
         run: . ./build_and_run_e2e.sh all_experiments_enabled
 
       - name: Upload VRT report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vrt-report
