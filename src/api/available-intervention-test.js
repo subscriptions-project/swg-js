@@ -57,6 +57,9 @@ describes.realWin('AvailableIntervention', (env) => {
   });
 
   it('calls audience action local flow', async () => {
+    const onResultHanlder = () => {};
+    const alternateActionHandler = () => {};
+    const signInHandler = () => {};
     const startStub = sandbox.stub();
     const actionFlowStub = sandbox
       .stub(audienceActionLocalFlow, 'AudienceActionLocalFlow')
@@ -71,14 +74,19 @@ describes.realWin('AvailableIntervention', (env) => {
 
     await availableIntervention.show({
       isClosable: true,
+      onResult: onResultHanlder,
+      onAlternateAction: alternateActionHandler,
+      onSignIn: signInHandler,
     });
 
     expect(actionFlowStub).to.have.been.calledWith(deps, {
       isClosable: true,
       action: InterventionType.TYPE_REWARDED_AD,
       configurationId: 'TEST_CONFIGURATION_ID',
-      onResult: undefined,
+      onResult: onResultHanlder,
       calledManually: true,
+      onAlternateAction: alternateActionHandler,
+      onSignIn: signInHandler,
     });
     expect(startStub).to.have.been.calledOnce;
   });
