@@ -23,6 +23,7 @@ import {
   AutoPromptType,
   BasicSubscriptions,
   ClientOptions,
+  ContentType,
 } from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
@@ -244,6 +245,7 @@ export class BasicRuntime implements BasicSubscriptions {
       autoPromptType,
       alwaysShow,
       isClosable,
+      contentType: this.getContentType_(isAccessibleForFree ?? isOpenAccess),
     });
     this.setOnLoginRequest();
     this.processEntitlements();
@@ -272,6 +274,7 @@ export class BasicRuntime implements BasicSubscriptions {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
     isClosable?: boolean;
+    contentType: ContentType;
   }): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.setupAndShowAutoPrompt(options);
@@ -302,6 +305,13 @@ export class BasicRuntime implements BasicSubscriptions {
    */
   isOpenAccessProductId_(productId: string): boolean {
     return productId.endsWith(':openaccess');
+  }
+
+  /**
+   * Returns ContentType Enum string from isLocked page config status.
+   */
+  getContentType_(isOpenAccess: boolean): ContentType {
+    return isOpenAccess ? ContentType.OPEN : ContentType.CLOSED;
   }
 }
 
@@ -581,6 +591,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     autoPromptType?: AutoPromptType;
     alwaysShow?: boolean;
     isClosable?: boolean;
+    contentType: ContentType;
   }): Promise<void> {
     return this.autoPromptManager_.showAutoPrompt(options);
   }

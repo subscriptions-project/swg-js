@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActionOrchestration} from '../api/action-orchestration';
 import {
   AnalyticsEvent,
   EntitlementJwt,
@@ -34,6 +35,7 @@ import {
   GetEntitlementsParamsInternalDef,
 } from '../api/subscriptions';
 import {Constants, StorageKeys} from '../utils/constants';
+import {ContentType} from '../api/basic-subscriptions';
 import {Deps} from './deps';
 import {
   Entitlement,
@@ -43,6 +45,7 @@ import {
 } from '../api/entitlements';
 import {Fetcher} from './fetcher';
 import {Intervention} from './intervention';
+import {InterventionType} from '../api/intervention-type';
 import {JwtHelper} from '../utils/jwt';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
@@ -61,6 +64,13 @@ import {warn} from '../utils/log';
 
 const SERVICE_ID = 'subscribe.google.com';
 
+// Interventions not in this list will be filtered from getAvailableInterventions
+const ENABLED_INTERVENTIONS = new Set([
+  InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  InterventionType.TYPE_REWARDED_SURVEY,
+  InterventionType.TYPE_REWARDED_AD,
+]);
+
 /**
  * Article response object.
  */
@@ -71,6 +81,7 @@ export interface Article {
     actions?: Intervention[];
     engineId?: string;
   };
+  actionOrchestration?: ActionOrchestration;
   experimentConfig: {
     experimentFlags: string[];
   };
@@ -771,6 +782,8 @@ export class EntitlementsManager {
 
     url = addPreviewConfigIdToUrl(this.win_.location, url);
 
+    url = addPreviewKeyToUrl(this.win_.location, url);
+
     // Add encryption param.
     if (params?.encryption) {
       url = addQueryParam(url, 'crypt', params.encryption.encryptedDocumentKey);
@@ -813,6 +826,11 @@ export class EntitlementsManager {
     // Add locked param.
     if (this.useArticleEndpoint_) {
       url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
+      url = addQueryParam(
+        url,
+        'contentType',
+        getContentTypeParamString(this.pageConfig_.isLocked())
+      );
     }
     const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
@@ -950,9 +968,9 @@ export class EntitlementsManager {
       return null;
     }
     return (
-      article.audienceActions?.actions?.map(
-        (action) => new AvailableIntervention(action, this.deps_)
-      ) || []
+      article.audienceActions?.actions
+        ?.filter((action) => ENABLED_INTERVENTIONS.has(action.type))
+        .map((action) => new AvailableIntervention(action, this.deps_)) || []
     );
   }
 }
@@ -984,6 +1002,19 @@ function addPreviewConfigIdToUrl(location: Location, url: string): string {
 }
 
 /**
+ * Parses preview security key params from the given hash fragment and adds it
+ * to the given URL.
+ */
+function addPreviewKeyToUrl(location: Location, url: string): string {
+  const hashParams = parseQueryString(location.hash);
+  const previewKeyRequested = hashParams['rrmPreviewKey'];
+  if (previewKeyRequested === undefined) {
+    return url;
+  }
+  return addQueryParam(url, 'previewKey', previewKeyRequested);
+}
+
+/**
  * Convert String value of isReadyToPay
  * (from JSON or Cache) to a boolean value.
  */
@@ -996,4 +1027,11 @@ function irtpStringToBoolean(value: string | null): boolean | undefined {
     default:
       return undefined;
   }
+}
+
+/**
+ * Returns ContentType Enum string from isLocked page config status.
+ */
+function getContentTypeParamString(isLocked: boolean): string {
+  return isLocked ? ContentType.CLOSED.toString() : ContentType.OPEN.toString();
 }

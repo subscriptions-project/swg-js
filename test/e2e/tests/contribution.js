@@ -23,7 +23,7 @@ module.exports = {
       .navigate()
       .waitForElementPresent('@swgDialog', 'Found SwG dialog')
       .waitForElementVisible('@swgDialog')
-      .pause(1000)
+      .pause(3000)
       .assert.screenshotIdenticalToBaseline('body', 'classic-contribution')
       .viewContributionOptions()
       .assert.textContains('@header', 'Contribute with your Google Account')

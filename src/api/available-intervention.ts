@@ -15,6 +15,7 @@
  */
 
 import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
+import {AudienceActionLocalFlow} from '../runtime/audience-action-local-flow';
 import {Deps} from '../runtime/deps';
 import {Intervention} from '../runtime/intervention';
 import {InterventionType} from './intervention-type';
@@ -36,13 +37,28 @@ export interface OptInResult {
 }
 
 /**
+ * Completion data passed to the AvailableIntervention.show callback for a the
+ * rewarded ad intervention.
+ */
+export interface RewardedAdResult {
+  // Did the prompt successfully render?
+  rendered: boolean;
+  // Was a reward granted?
+  rewardGranted: boolean;
+  // The publisher defined reward amount granted to the reader
+  reward?: number;
+  // The publisher defined reward type granted to the reader
+  type?: string;
+}
+
+/**
  * Result of an intervention passed to the AvailableIntervention.show callback.
  */
 export interface InterventionResult {
   // Configuration id of the intervention
   configurationId?: string;
   // Data returned from the intervention
-  data: OptInResult | SurveyDataTransferRequest;
+  data: OptInResult | SurveyDataTransferRequest | RewardedAdResult;
 }
 
 /**
@@ -55,6 +71,15 @@ export interface ShowInterventionParams {
   // Callback to get the result data from the intervention. Return a boolean
   // indicating if the data was recorded successfully.
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
+
+  // Suppresses the completion toasts of the intervention.
+  suppressToast?: boolean;
+
+  // Callback for clicking clicking on an alternate action. Closes the prompt when called.
+  onAlternateAction?: () => void;
+
+  // Callback for signing in. Closes the prompt when called.
+  onSignIn?: () => void;
 }
 
 export class AvailableIntervention {
@@ -74,15 +99,28 @@ export class AvailableIntervention {
    * Starts the intervention flow.
    */
   async show(params: ShowInterventionParams): Promise<void> {
-    if (this.intervention.type === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
-      const flow = new AudienceActionIframeFlow(this.deps_, {
-        isClosable: params.isClosable,
+    if (
+      this.intervention.type == InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      this.intervention.type == InterventionType.TYPE_REWARDED_SURVEY
+    ) {
+      return new AudienceActionIframeFlow(this.deps_, {
         action: this.intervention.type,
         configurationId: this.intervention.configurationId,
         onResult: params.onResult,
+        isClosable: params.isClosable,
         calledManually: true,
-      });
-      return flow.start();
+        suppressToast: params.suppressToast,
+      }).start();
+    } else if (this.intervention.type == InterventionType.TYPE_REWARDED_AD) {
+      return new AudienceActionLocalFlow(this.deps_, {
+        action: this.intervention.type,
+        configurationId: this.intervention.configurationId,
+        onResult: params.onResult,
+        isClosable: params.isClosable,
+        calledManually: true,
+        onAlternateAction: params.onAlternateAction,
+        onSignIn: params.onSignIn,
+      }).start();
     }
     throw Error(`Can't show ${this.type}`);
   }

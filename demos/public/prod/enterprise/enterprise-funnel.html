@@ -11,12 +11,6 @@
         text-align: center;
       }
 
-      article {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-      }
-
       table {
         border-collapse: collapse;
       }
@@ -37,28 +31,55 @@
         "isPartOf": {
           "@type": ["CreativeWork", "Product"],
           "name" : "Funnel for Enterprise Demo",
-          "productID": "CAowtIuHAQ:openaccess"
+          "productID": "CAowuv3XCw:openaccess"
         }
       }
     </script>
 
     <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
 
+    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
+
     <script>
+      let swg;
+
       function clearLocalStorage() {
         localStorage.removeItem("subscribe.google.com:USER_TOKEN");
       }
 
-      function addResultRow(result) {
+      function addResultRow(type, result) {
         const table = document.getElementById("resultTable");
         const row = document.createElement('tr');
-        const html = `
-          <td scope="col">${result.configurationId}</td>
-          <td scope="col">${result.data.email}</td>
-          <td scope="col">${result.data.displayName}</td>
-          <td scope="col">${result.data.givenName}</td>
-          <td scope="col">${result.data.familyName}</td>
-        `;
+        let html;
+        if (type == 'TYPE_NEWSLETTER_SIGNUP') {
+          html = `
+            <td scope="col">${result.configurationId}</td>
+            <td scope="col">${type}</td>
+            <td scope="col">${result.data.email}</td>
+            <td scope="col">${result.data.displayName}</td>
+            <td scope="col">${result.data.givenName}</td>
+            <td scope="col">${result.data.familyName}</td>
+          `;
+        } else if (type == 'TYPE_REWARDED_AD') {
+          html = `
+            <td scope="col">${result.configurationId}</td>
+            <td scope="col">${type}</td>
+            <td scope="col">${result.data.rendered}</td>
+            <td scope="col">${result.data.rewardGranted}</td>
+            <td scope="col">${result.data.reward}</td>
+            <td scope="col">${result.data.type}</td>
+          `;
+        } else if (type == 'TYPE_REWARDED_SURVEY') {
+          html = `
+            <td scope="col">${result.configurationId}</td>
+            <td scope="col">${type}</td>
+          `;
+        } else {
+          html = `
+            <td scope="col">${result.configurationId}</td>
+            <td scope="col">${type}</td>
+          `;
+        }
         row.innerHTML = html;
         table.appendChild(row);
       }
@@ -74,9 +95,16 @@
         row.innerHTML = html;
         const button = row.getElementsByTagName('button')[0];
         button.onclick = () => {
+          const isClosable = document.getElementById("isClosable").checked;
+          const suppressToast = document.getElementById("suppressToast").checked;
+          const onAlternateAction = document.getElementById("onAlternateAction").checked;
+          const onSignIn = document.getElementById("onSignIn").checked;
           intervention.show({
-            isClosable: 'true',
-            onResult: addResultRow
+            isClosable,
+            onResult: (result) => addResultRow(intervention.type, result),
+            suppressToast,
+            onAlternateAction: onAlternateAction ? () => alert('buy flow launched') : null,
+            onSignIn: onSignIn ? () => alert('sign in flow launched') : null,
           });
         }
         table.appendChild(row);
@@ -94,6 +122,7 @@
       }
 
       (self.SWG = self.SWG || []).push(async subscriptions => {
+        swg = subscriptions;
         const eventManager = await subscriptions.getEventManager();
         eventManager.registerEventListener(logHandler);
         const availableInterventions = await subscriptions.getAvailableInterventions();
@@ -105,6 +134,19 @@
   <body>
     <h1>Funnel for Enterprise Demo</h1>
     <button onclick="clearLocalStorage()">Clear local storage</button>
+    <input type="checkbox" id="isClosable" name="scales" checked />
+      <label for="isClosable">isClosable</label>
+    </input>
+    <input type="checkbox" id="suppressToast" name="scales" checked />
+      <label for="suppressToast">suppressToast</label>
+    </input>
+    <input type="checkbox" id="onAlternateAction" name="scales" checked />
+      <label for="onAlternateAction">onAlternateAction</label>
+    </input>
+    <input type="checkbox" id="onSignIn" name="scales" checked />
+      <label for="onSignIn">onSignIn</label>
+    </input>
+  </div>
     <article>
       <table>
         <caption>Available Interventions</caption>
@@ -119,14 +161,11 @@
         </tbody>
       </table>
       <table>
-        <caption>Interventions Results</caption>
+        <caption>Intervention Results</caption>
         <thead>
           <tr>
             <th scope="col">ID</th>
-            <th scope="col">email</th>
-            <th scope="col">displayName</th>
-            <th scope="col">givenName</th>
-            <th scope="col">familyName</th>
+            <th scope="col">Type</th>
           </tr>
         </thead>
         <tbody id="resultTable">
@@ -136,8 +175,8 @@
         <caption>Logs</caption>
         <thead>
           <tr>
-            <th scope="col">type</th>
-            <th scope="col">configurationId</th>
+            <th scope="col">Type</th>
+            <th scope="col">ID</th>
           </tr>
         </thead>
         <tbody id="logTable">

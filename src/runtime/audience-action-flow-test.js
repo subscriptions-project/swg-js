@@ -237,7 +237,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
             WINDOW_LOCATION_DOMAIN
           )}&configurationId=${
             configurationId === undefined ? '' : configurationId
-          }&isClosable=false&calledManually=false`,
+          }&isClosable=false&calledManually=false&previewEnabled=false`,
           {
             _client: 'SwG 0.0.0',
             productType: ProductType.SUBSCRIPTION,
@@ -271,7 +271,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=configId&isClosable=false&calledManually=false&hl=pt-BR`,
+        )}&configurationId=configId&isClosable=false&calledManually=false&previewEnabled=false&hl=pt-BR`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
@@ -720,6 +720,43 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     storageMock.verify();
     expect(toastOpenStub).to.be.called;
     onResultMock.verify();
+  });
+
+  it(`suppresses toasts`, async () => {
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_NEWSLETTER_SIGNUP',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+      suppressToast: true,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
+
+    const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(false);
+    completeAudienceActionResponse.setAlreadyCompleted(true);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    messageCallback(completeAudienceActionResponse);
+
+    entitlementsManagerMock.verify();
+    storageMock.verify();
+    expect(toastOpenStub).not.to.be.called;
   });
 
   it('should trigger login flow for a registered user', async () => {
@@ -1527,7 +1564,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/surveyiframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=&isClosable=true&calledManually=false`,
+        )}&configurationId=&isClosable=true&calledManually=false&previewEnabled=false`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
@@ -1540,6 +1577,43 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     await audienceActionFlow.start();
 
     activitiesMock.verify();
+    expect(onCancelSpy).to.not.be.called;
+  });
+
+  it(`opens an AudienceActionIframeFlow and passes shouldRenderPreview in query param`, async () => {
+    sandbox.stub(runtime.storage(), 'get').resolves(null);
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REWARDED_SURVEY',
+      configurationId: undefined,
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      isClosable: true,
+      calledManually: false,
+      shouldRenderPreview: true,
+    });
+    const activityIframeViewMock = sandbox.mock(
+      audienceActionFlow.activityIframeView_
+    );
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        `https://news.google.com/swg/ui/v1/surveyiframe?_=_&origin=${encodeURIComponent(
+          WINDOW_LOCATION_DOMAIN
+        )}&configurationId=&isClosable=true&calledManually=false&previewEnabled=true`,
+        {
+          _client: 'SwG 0.0.0',
+          productType: ProductType.SUBSCRIPTION,
+          supportsEventManager: true,
+          windowHeight: WINDOW_INNER_HEIGHT,
+        }
+      )
+      .resolves(port);
+
+    await audienceActionFlow.start();
+
+    activitiesMock.verify();
+    activityIframeViewMock.expects('getElement').once();
     expect(onCancelSpy).to.not.be.called;
   });
 });

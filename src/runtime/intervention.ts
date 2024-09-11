@@ -29,4 +29,8 @@ export interface Intervention {
   // Indicates if the intervention should be Google provided, or publisher
   // provided.
   readonly preference?: string;
+  // Flexible Prompt Architecture - number of completions used only for
+  // repeatable actions (Rewarded Ads, BYO-CTA) to determine action eligibility
+  // based on funnel-level configured repeatability.
+  readonly numberOfCompletions?: number;
 }

@@ -158,6 +158,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           addEventListener: (event, handler) => {
             eventListeners[event] = handler;
           },
+          removeEventListener: sandbox.spy(),
           refresh: sandbox.spy(),
         };
         readyEventArg = {
@@ -188,8 +189,8 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const flow = new AudienceActionLocalFlow(
           runtime,
           params,
-          /* gptTimeoutMs_= */ 5,
-          /* thanksTimeoutMs_= */ 5
+          /* gptTimeoutMs_= */ 1,
+          /* thanksTimeoutMs_= */ 1
         );
 
         await startRewardedAdFlow(flow);
@@ -254,6 +255,13 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         ).to.be.calledOnce.calledWithExactly();
       }
 
+      function didCleanUpGoogletag() {
+        expect(
+          env.win.googletag.destroySlots
+        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
+      }
+
       it('clicking on locked greypane closes', async () => {
         const params = {
           ...DEFAULT_PARAMS,
@@ -286,7 +294,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=false'
         );
 
         const subscribeButton = wrapper.shadowRoot.querySelector(
@@ -297,12 +305,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await subscribeButton.click();
         await tick();
 
+        didCleanUpGoogletag();
         expect(
           params.monetizationFunction
         ).to.be.calledOnce.calledWithExactly();
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.IMPRESSION_REWARDED_AD
         );
@@ -325,7 +331,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=false'
         );
 
         const contributeButton = wrapper.shadowRoot.querySelector(
@@ -336,13 +342,11 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await contributeButton.click();
         await tick();
 
+        didCleanUpGoogletag();
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
         expect(
           params.monetizationFunction
         ).to.be.calledOnce.calledWithExactly();
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.IMPRESSION_REWARDED_AD
         );
@@ -365,7 +369,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc'
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=false'
         );
 
         const subscribeButton = wrapper.shadowRoot.querySelector(
@@ -379,6 +383,66 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(signinButton).to.be.null;
       });
 
+      it('renders premonetization with preview enabled', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: undefined,
+          shouldRenderPreview: true,
+        };
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=true'
+        );
+
+        const subscribeButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(subscribeButton).to.be.null;
+
+        const signinButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-sign-in-button'
+        );
+        expect(signinButton).to.be.null;
+      });
+
+      it('renders enterprise', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: undefined,
+          calledManually: true,
+          onAlternateAction: sandbox.spy(),
+          onSignIn: sandbox.spy(),
+        };
+        await renderAndAssertRewardedAd(params, DEFAULT_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=false'
+        );
+
+        const subscribeButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(subscribeButton).to.not.be.null;
+        expect(subscribeButton.innerHTML).contains('Subscribe');
+        await subscribeButton.click();
+
+        const signinButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-sign-in-button'
+        );
+        expect(signinButton).to.not.be.null;
+        expect(signinButton.innerHTML).contains('Already a subscriber?');
+        await signinButton.click();
+
+        await tick();
+
+        expect(params.onAlternateAction).to.be.calledOnce;
+        expect(params.onSignIn).to.be.calledOnce;
+      });
       it('escapes bad input', async () => {
         const BAD_CONFIG = `
           {
@@ -432,14 +496,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         await closeButton.click();
         await tick();
 
+        didCleanUpGoogletag();
         expect(env.win.document.body.style.overflow).to.equal('');
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );
         expect(updatedWrapper).to.be.null;
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_REWARDED_AD_CLOSE
@@ -460,9 +522,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         expect(prompt).to.be.null;
 
-        const backToHome = wrapper.shadowRoot.querySelector(
-          '.back-to-home-container'
-        );
+        const backToHome = wrapper.shadowRoot.querySelector('.exit-container');
         expect(backToHome).not.to.be.null;
       });
 
@@ -509,6 +569,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
 
         await didBailout(DEFAULT_PARAMS);
       });
@@ -529,6 +590,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
 
         expect(params.onCancel).to.be.called;
 
@@ -548,6 +610,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
 
         await didBailout(DEFAULT_PARAMS);
       });
@@ -565,11 +628,9 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED
         );
 
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
-
         await didBailout(DEFAULT_PARAMS);
+
+        didCleanUpGoogletag();
       });
 
       it('fails to render with gpt.js detection shortcut', async () => {
@@ -591,6 +652,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.googletag.destroySlots).to.not.be.called;
+        expect(pubadsobj.removeEventListener).to.have.callCount(4);
 
         await didBailout(DEFAULT_PARAMS);
       });
@@ -627,9 +689,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
         );
 
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
 
         await didBailout(DEFAULT_PARAMS);
       });
@@ -639,15 +699,18 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         const wrapper = await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         const prompt = wrapper.shadowRoot.querySelector('.rewarded-ad-prompt');
         expect(prompt).to.not.be.null;
         expect(prompt.innerHTML).contains('Thanks for viewing this ad');
 
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
@@ -679,7 +742,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
@@ -702,7 +770,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
 
         await callReadyAndReturnWrapper();
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         expect(env.win.fetch).to.be.calledWith(
           'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=xyz&audienceActionType=TYPE_REWARDED_AD'
@@ -721,7 +794,12 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         const wrapper = await callReadyAndReturnWrapper();
 
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         const closeButton = wrapper.shadowRoot.querySelector(
           '.rewarded-ad-close-button'
@@ -735,13 +813,42 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(updatedWrapper).to.be.null;
       });
 
+      it('calls onResult', async () => {
+        await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
+
+        await callReadyAndReturnWrapper();
+
+        expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
+
+        expect(DEFAULT_PARAMS.onResult).to.be.calledOnce.calledWithExactly({
+          configurationId: DEFAULT_PARAMS.configurationId,
+          data: {
+            rendered: true,
+            rewardGranted: true,
+            reward: 1,
+            type: 'type',
+          },
+        });
+      });
+
       it('closes on thanks automatically', async () => {
         await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
 
         await callReadyAndReturnWrapper();
 
         expect(eventListeners['rewardedSlotGranted']).to.not.be.null;
-        await eventListeners['rewardedSlotGranted']();
+        await eventListeners['rewardedSlotGranted']({
+          payload: {
+            amount: 1,
+            type: 'type',
+          },
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -768,9 +875,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.audience-action-local-wrapper'
         );
         expect(updatedWrapper).to.be.null;
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
         expect(params.onCancel).to.be.calledOnce.calledWithExactly();
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD
@@ -793,9 +898,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.audience-action-local-wrapper'
         );
         expect(updatedWrapper).to.not.be.null;
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
         expect(eventManager.logSwgEvent).to.be.calledWith(
           AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD
         );
@@ -836,9 +939,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
           '.audience-action-local-wrapper'
         );
         expect(updatedWrapper).to.be.null;
-        expect(
-          env.win.googletag.destroySlots
-        ).to.be.calledOnce.calledWithExactly([rewardedSlot]);
+        didCleanUpGoogletag();
       });
 
       it('tab focus trap works', async () => {
@@ -913,7 +1014,25 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
 
         expect(env.win.fetch).to.be.calledWith(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc'
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc&previewEnabled=false'
+        );
+
+        const shadowRoot = state.wrapper.shadowRoot;
+        expect(shadowRoot).to.not.be.null;
+        expect(shadowRoot.innerHTML).contains('newsletter_code_snippet');
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN
+        );
+      });
+
+      it('renders with preview enabled', async () => {
+        const state = await renderNewsletterPrompt(
+          {...NEWSLETTER_PARAMS, shouldRenderPreview: true},
+          NEWSLETTER_CONFIG
+        );
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=newsletter_config_id&origin=about%3Asrcdoc&previewEnabled=true'
         );
 
         const shadowRoot = state.wrapper.shadowRoot;
@@ -1140,6 +1259,33 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(entitlementsManager.clear).to.be.called;
         await tick();
         expect(entitlementsManager.getEntitlements).to.be.called;
+      });
+
+      it('submit event doesn not trigger completion event when preview enabled', async () => {
+        const state = await renderNewsletterPrompt(
+          {...NEWSLETTER_PARAMS, shouldRenderPreview: true},
+          NEWSLETTER_CONFIG
+        );
+
+        const form = state.wrapper.shadowRoot.querySelector('form');
+        expect(form).to.not.be.null;
+        expect(form.innerHTML).contains('newsletter_code_snippet');
+        form.dispatchEvent(new SubmitEvent('submit'));
+        await tick(3);
+
+        expect(eventManager.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT
+        );
+        // Only fetch event was getActionConfigurationUI to retrieve config.
+        expect(env.win.fetch).to.be.calledOnce;
+        expect(env.win.fetch).not.to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=newsletter_config_id&audienceActionType=TYPE_NEWSLETTER_SIGNUP'
+        );
+        await tick();
+        // entitlementsManager will not be called either.
+        expect(entitlementsManager.clear).not.to.be.called;
+        await tick();
+        expect(entitlementsManager.getEntitlements).not.to.be.called;
       });
 
       it('submit event removes prompt', async () => {

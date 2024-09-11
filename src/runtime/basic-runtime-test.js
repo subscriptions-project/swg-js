@@ -360,54 +360,63 @@ describes.realWin('BasicRuntime', (env) => {
         isAccessibleForFree: true,
         isPartOfProductId: 'publication:openaccess',
         isClosable: true,
+        contentType: 'OPEN',
       },
       {
         isAccessibleForFree: true,
         isPartOfProductId: 'publication:notopen',
         isClosable: true,
+        contentType: 'OPEN',
       },
       {
         isAccessibleForFree: false,
         isPartOfProductId: 'publication:openaccess',
         isClosable: false,
+        contentType: 'CLOSED',
       },
       {
         isAccessibleForFree: false,
         isPartOfProductId: 'publication:notopen',
         isClosable: false,
+        contentType: 'CLOSED',
       },
       {
         isAccessibleForFree: undefined,
         isPartOfProductId: 'publication:openaccess',
         isClosable: true,
+        contentType: 'OPEN',
       },
       {
         isAccessibleForFree: undefined,
         isPartOfProductId: 'publication:notopen',
         isClosable: undefined,
+        contentType: 'CLOSED',
       },
-    ].forEach(({isAccessibleForFree, isPartOfProductId, isClosable}) => {
-      it(`shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
-        const setupAndShowAutoPromptStub = sandbox.stub(
-          basicRuntime,
-          'setupAndShowAutoPrompt'
-        );
+    ].forEach(
+      ({isAccessibleForFree, isPartOfProductId, isClosable, contentType}) => {
+        it(`shows autoPrompt with isClosable=${isClosable} when isAccessibleForFree=${isAccessibleForFree} and isPartOfProductId=${isPartOfProductId}`, async () => {
+          const setupAndShowAutoPromptStub = sandbox.stub(
+            basicRuntime,
+            'setupAndShowAutoPrompt'
+          );
 
-        basicRuntime.init({
-          type: 'NewsArticle',
-          isAccessibleForFree,
-          isPartOfType: ['Product'],
-          isPartOfProductId,
-          autoPromptType: 'none',
-        });
+          basicRuntime.init({
+            type: 'NewsArticle',
+            isAccessibleForFree,
+            isPartOfType: ['Product'],
+            isPartOfProductId,
+            autoPromptType: 'none',
+          });
 
-        expect(setupAndShowAutoPromptStub).to.have.been.calledWith({
-          autoPromptType: 'none',
-          alwaysShow: false,
-          isClosable,
+          expect(setupAndShowAutoPromptStub).to.have.been.calledWith({
+            autoPromptType: 'none',
+            alwaysShow: false,
+            isClosable,
+            contentType,
+          });
         });
-      });
-    });
+      }
+    );
   });
 
   describe('configured', () => {

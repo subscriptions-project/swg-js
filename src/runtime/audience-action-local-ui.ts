@@ -21,12 +21,6 @@ import {GOOGLE_LOGO_IMAGE_DATA} from '../utils/assets';
 const html = String.raw;
 const css = String.raw;
 
-export const SUBSCRIPTION_ICON =
-  'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/lock_open/default/40px.svg';
-
-export const CONTRIBUTION_ICON =
-  'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/volunteer_activism/default/40px.svg';
-
 const SLIDE_UP_ANIMATION = css`
   @keyframes slideUp {
     from {
@@ -38,13 +32,15 @@ const SLIDE_UP_ANIMATION = css`
   }
 `;
 
-const BACK_TO_HOME_CSS = css`
-  .back-to-home-container {
+const EXIT_CSS = css`
+  .exit-container {
     width: 100%;
     display: flex;
     flex-direction: row-reverse;
   }
+`;
 
+const BACK_TO_HOME_CSS = css`
   .back-to-home-button {
     border-radius: 4px;
     text-decoration: none;
@@ -62,11 +58,9 @@ const BACK_TO_HOME_CSS = css`
 `;
 
 export const BACK_TO_HOME_HTML = html`
-  <div class="back-to-home-container">
-    <a class="back-to-home-button" href="$BACK_TO_HOME_LINK$"
-      >$BACK_TO_HOME_TEXT$</a
-    >
-  </div>
+  <a class="back-to-home-button" href="$BACK_TO_HOME_LINK$">
+    $BACK_TO_HOME_TEXT$
+  </a>
 `;
 
 const REWARDED_AD_PROMPT = css`
@@ -85,6 +79,7 @@ const REWARDED_AD_PROMPT = css`
     overflow: auto;
     outline: none;
     font-family: 'Google Sans', 'Roboto-Regular', sans-serif, arial;
+    width: 100%;
   }
 
   @media (min-width: 450px) {
@@ -132,7 +127,7 @@ const REWARDED_AD_CLOSE_BUTTON_CSS = css`
   }
 `;
 
-export const REWARDED_AD_CLOSE_BUTTON_HTML = html`<button
+export const REWARDED_AD_CLOSE_BUTTON_HTML = html` <button
   aria-label="$CLOSE_BUTTON_DESCRIPTION$"
   class="rewarded-ad-close-button"
 >
@@ -312,6 +307,7 @@ const REWARDED_AD_CSS = css`
   ${REWARDED_AD_CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
   ${BACK_TO_HOME_CSS}
+  ${EXIT_CSS}
 
   .rewarded-ad-container {
     margin: 0px;
@@ -324,7 +320,6 @@ const REWARDED_AD_CSS = css`
   }
 
   .rewarded-ad-title {
-    margin-top: 20px;
     font-size: 28px; //1.75rem;
     line-height: 36px; // 2.25rem;
     font-weight: 400;
@@ -333,14 +328,6 @@ const REWARDED_AD_CSS = css`
     grid-column: 2;
     grid-row: 1;
     line-break: auto;
-  }
-
-  .rewarded-ad-icon {
-    margin: 8px auto 0px auto;
-    height: 40px;
-    width: 40px;
-    background: #1a73e8;
-    -webkit-mask: url($ICON$) center/contain no-repeat;
   }
 
   .rewarded-ad-message {
@@ -459,12 +446,10 @@ export const REWARDED_AD_HTML = html`
     aria-modal="true"
   >
     <div class="rewarded-ad-container">
-      $BACK_TO_HOME_BUTTON$
+      <div class="exit-container">$EXIT$</div>
       <div class="rewarded-ad-header">
         <div class="rewarded-ad-title" id="title-id">$TITLE$</div>
-        $REWARDED_AD_CLOSE_BUTTON_HTML$
       </div>
-      <div class="rewarded-ad-icon"></div>
       <div class="rewarded-ad-message" id="message-id">$MESSAGE$</div>
       <div class="rewarded-ad-cta">
         <button class="rewarded-ad-view-ad-button rewarded-ad-cta-button">
@@ -492,28 +477,10 @@ const REWARDED_AD_THANKS_CSS = css`
   ${DEFAULT_BUTTON}
   ${REWARDED_AD_CLOSE_BUTTON_CSS}
   ${REWARDED_AD_PROMPT}
+  ${EXIT_CSS}
 
   .rewarded-ad-prompt {
     width: 100%;
-  }
-
-  .rewarded-ad-thanks-container {
-    height: 100%;
-    display: grid !important;
-    grid-template-columns: 56px 1fr 56px;
-    grid-template-rows: 56px 26px 14px 1fr 34px;
-  }
-
-  .rewarded-ad-thanks-icon {
-    margin: auto;
-    height: 64px;
-    width: 64px;
-    background: #1a73e8;
-    -webkit-mask: url(https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/rewarded_ads/default/48px.svg)
-      center/contain no-repeat;
-    grid-column: 2;
-    grid-row: 1 / 2;
-    margin-top: 20px;
   }
 
   .rewarded-ad-thanks-message {
@@ -523,8 +490,7 @@ const REWARDED_AD_THANKS_CSS = css`
     letter-spacing: 0px;
     text-align: center;
     color: #202124;
-    grid-column: 1 / 4;
-    grid-row: 4;
+    margin-block-end: 48px; // 3rem;
   }
 `;
 
@@ -539,13 +505,9 @@ export const REWARDED_AD_THANKS_HTML = html`
     aria-labelledby="thanks-id"
     aria-modal="true"
   >
-    <div class="rewarded-ad-thanks-container">
-      <div class="rewarded-ad-thanks-icon"></div>
-      <div class="rewarded-ad-thanks-message" id="thanks-id">
-        $THANKS_FOR_VIEWING_THIS_AD$
-      </div>
-      ${REWARDED_AD_CLOSE_BUTTON_HTML}
-      <div></div>
+    <div class="exit-container">${REWARDED_AD_CLOSE_BUTTON_HTML}</div>
+    <div class="rewarded-ad-thanks-message" id="thanks-id">
+      $THANKS_FOR_VIEWING_THIS_AD$
     </div>
   </div>
 `;
