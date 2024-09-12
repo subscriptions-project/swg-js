@@ -500,7 +500,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
 
     const support =
-      this.isSubscription() || !!this.params_.onSignIn
+      this.isSubscription() || !!this.params_.onAlternateAction
         ? msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!
         : msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!;
 
