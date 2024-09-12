@@ -50,7 +50,6 @@ jobs:
         with:
           name: vrt-report
           path: |
-            .vrt
             vrt-report
 
   e2e-with-all-experiments-enabled:
@@ -76,7 +75,6 @@ jobs:
         with:
           name: vrt-report
           path: |
-            .vrt
             vrt-report
 
   binaries:
