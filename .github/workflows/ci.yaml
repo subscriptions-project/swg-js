@@ -44,13 +44,12 @@ jobs:
       - name: E2E Tests
         run: . ./build_and_run_e2e.sh
 
-      - name: Upload VRT report
+      - name: Upload e2e VRT report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vrt-report
-          path: |
-            .vrt
-            vrt-report
+          path: vrt-report
 
   e2e-with-all-experiments-enabled:
     runs-on: ubuntu-latest
@@ -69,13 +68,12 @@ jobs:
       - name: E2E Tests with all experiments enabled
         run: . ./build_and_run_e2e.sh all_experiments_enabled
 
-      - name: Upload VRT report
+      - name: Upload e2e with all experiments VRT report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vrt-report
-          path: |
-            .vrt
-            vrt-report
+          name: all-experiments-vrt-report
+          path: vrt-report
 
   binaries:
     runs-on: ubuntu-latest
