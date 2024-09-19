@@ -199,6 +199,7 @@ describe('AnalyticsContext', () => {
     timestamp3.setNanos(0);
     analyticscontext1.setRuntimeCreationTimestamp(timestamp3);
     analyticscontext1.setIsLockedContent(false);
+    analyticscontext1.setUrlFromMarkup('');
 
     let analyticscontextDeserialized;
 
@@ -246,6 +247,8 @@ describe('AnalyticsContext', () => {
         analyticscontext1.getRuntimeCreationTimestamp());
     expect(analyticscontextDeserialized.getIsLockedContent()).to.deep.equal(
         analyticscontext1.getIsLockedContent());
+    expect(analyticscontextDeserialized.getUrlFromMarkup()).to.deep.equal(
+        analyticscontext1.getUrlFromMarkup());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -291,6 +294,8 @@ describe('AnalyticsContext', () => {
         analyticscontext1.getRuntimeCreationTimestamp());
     expect(analyticscontextDeserialized.getIsLockedContent()).to.deep.equal(
         analyticscontext1.getIsLockedContent());
+    expect(analyticscontextDeserialized.getUrlFromMarkup()).to.deep.equal(
+        analyticscontext1.getUrlFromMarkup());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -335,6 +340,8 @@ describe('AnalyticsContext', () => {
         analyticscontext1.getRuntimeCreationTimestamp());
     expect(analyticscontextDeserialized.getIsLockedContent()).to.deep.equal(
         analyticscontext1.getIsLockedContent());
+    expect(analyticscontextDeserialized.getUrlFromMarkup()).to.deep.equal(
+        analyticscontext1.getUrlFromMarkup());
   });
 });
 
@@ -427,6 +434,7 @@ describe('AnalyticsRequest', () => {
     timestamp3.setNanos(0);
     analyticscontext1.setRuntimeCreationTimestamp(timestamp3);
     analyticscontext1.setIsLockedContent(false);
+    analyticscontext1.setUrlFromMarkup('');
     analyticsrequest1.setContext(analyticscontext1);
     analyticsrequest1.setEvent(AnalyticsEvent.UNKNOWN);
     const /** !AnalyticsEventMeta  */ analyticseventmeta1 = new AnalyticsEventMeta();
