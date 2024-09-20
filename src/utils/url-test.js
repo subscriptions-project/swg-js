@@ -271,7 +271,7 @@ describe('serializeProtoMessageForUrl', () => {
       ['Timestamp', 22222, 0],
       ['Duration', 100, 0],
       false,
-      'baseUrl',
+      null,
     ];
     const analyticsEventMetaArray = ['AnalyticsEventMeta', 1, true, null];
     const eventParamsArray = [
