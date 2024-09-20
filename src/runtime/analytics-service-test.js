@@ -444,6 +444,7 @@ describes.realWin('AnalyticsService', (env) => {
       expect(context.getReferringOrigin()).to.equal(
         'https://scenic-2017.appspot.com'
       );
+      expect(context.getUrlFromMarkup()).to.equal(URL);
       expect(analyticsService.getSku()).to.equal('basic');
       const labels = context.getLabelList();
       expect(labels.length).to.equal(1);

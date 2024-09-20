@@ -97,6 +97,10 @@ export enum AnalyticsEvent {
   IMPRESSION_REWARDED_AD = 49,
   IMPRESSION_BYOP_NEWSLETTER_OPT_IN = 50,
   IMPRESSION_REWARDED_AD_ERROR = 51,
+  IMPRESSION_HOSTED_PAGE_SUBSCRIPTION_OFFERS = 52,
+  IMPRESSION_HOSTED_PAGE_CONTRIBUTION_OFFERS = 53,
+  IMPRESSION_HOSTED_PAGE_SUBSCRIPTION_OFFERS_ERROR = 54,
+  IMPRESSION_HOSTED_PAGE_CONTRIBUTION_OFFERS_ERROR = 55,
   ACTION_SUBSCRIBE = 1000,
   ACTION_PAYMENT_COMPLETE = 1001,
   ACTION_ACCOUNT_CREATED = 1002,
@@ -247,6 +251,8 @@ export enum AnalyticsEvent {
   EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR = 3047,
   EVENT_SUBSCRIPTION_PAYMENT_COMPLETE = 3050,
   EVENT_CONTRIBUTION_PAYMENT_COMPLETE = 3051,
+  EVENT_HOSTED_PAGE_SUBSCRIPTION_PAYMENT_COMPLETE = 3054,
+  EVENT_HOSTED_PAGE_CONTRIBUTION_PAYMENT_COMPLETE = 3055,
   EVENT_SUBSCRIPTION_STATE = 4000,
 }
 
@@ -422,6 +428,7 @@ export class AnalyticsContext implements Message {
   private loadEventStartDelay_: Duration | null;
   private runtimeCreationTimestamp_: Timestamp | null;
   private isLockedContent_: boolean | null;
+  private urlFromMarkup_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -483,6 +490,9 @@ export class AnalyticsContext implements Message {
 
     this.isLockedContent_ =
       data[17 + base] == null ? null : (data[17 + base] as boolean);
+
+    this.urlFromMarkup_ =
+      data[18 + base] == null ? null : (data[18 + base] as string);
   }
 
   getEmbedderOrigin(): string | null {
@@ -629,6 +639,14 @@ export class AnalyticsContext implements Message {
     this.isLockedContent_ = value;
   }
 
+  getUrlFromMarkup(): string | null {
+    return this.urlFromMarkup_;
+  }
+
+  setUrlFromMarkup(value: string): void {
+    this.urlFromMarkup_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.embedderOrigin_, // field 1 - embedder_origin
@@ -655,6 +673,7 @@ export class AnalyticsContext implements Message {
         ? this.runtimeCreationTimestamp_.toArray(includeLabel)
         : [], // field 17 - runtime_creation_timestamp
       this.isLockedContent_, // field 18 - is_locked_content
+      this.urlFromMarkup_, // field 19 - url_from_markup
     ];
     if (includeLabel) {
       arr.unshift(this.label());

@@ -209,6 +209,7 @@ export class AnalyticsService {
     context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
     context.setUrl(getCanonicalUrl(this.doc_));
     context.setIsLockedContent(this.deps_.pageConfig().isLocked());
+    context.setUrlFromMarkup(getCanonicalUrl(this.doc_));
 
     const utmParams = parseQueryString(this.getQueryString_());
     const campaign = utmParams['utm_campaign'];
