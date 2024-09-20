@@ -145,17 +145,23 @@ export function serializeProtoMessageForUrl(message: Message): string {
   return JSON.stringify(message.toArray(false));
 }
 
+export function getCanonicalTag(doc: Doc): string | undefined {
+  const rootNode = doc.getRootNode();
+  const canonicalTag = rootNode.querySelector(
+    "link[rel='canonical']"
+  ) as HTMLLinkElement;
+  return canonicalTag?.href;
+}
+
 /**
  * Returns the canonical URL from the canonical tag. If the canonical tag is
  * not present, treat the doc URL itself as canonical.
  */
 export function getCanonicalUrl(doc: Doc): string {
   const rootNode = doc.getRootNode();
-  const canonicalTag = rootNode.querySelector(
-    "link[rel='canonical']"
-  ) as HTMLLinkElement;
   return (
-    canonicalTag?.href || rootNode.location.origin + rootNode.location.pathname
+    getCanonicalTag(doc) ||
+    rootNode.location.origin + rootNode.location.pathname
   );
 }
 
