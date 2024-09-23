@@ -32,7 +32,7 @@ import {Doc} from '../model/doc';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
-import {getCanonicalUrl} from '../utils/url';
+import {getCanonicalTag, getCanonicalUrl} from '../utils/url';
 import {getOnExperiments} from './experiments';
 import {getSwgTransactionId} from '../utils/string';
 import {log} from '../utils/log';
@@ -209,7 +209,9 @@ export class AnalyticsService {
     context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
     context.setUrl(getCanonicalUrl(this.doc_));
     context.setIsLockedContent(this.deps_.pageConfig().isLocked());
-    context.setUrlFromMarkup(getCanonicalUrl(this.doc_));
+
+    // Default to empty, this is for investigative purposes only
+    context.setUrlFromMarkup(getCanonicalTag(this.doc_) || '');
 
     const utmParams = parseQueryString(this.getQueryString_());
     const campaign = utmParams['utm_campaign'];
