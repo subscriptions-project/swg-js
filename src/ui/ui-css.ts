@@ -167,7 +167,7 @@ export const DIALOG_CSS = css`
 
     [dir='rtl'] .swg-dialog,
     [dir='rtl'] .swg-toast {
-      margin-inline-start: calc(100vw - 100vw / 2 -240px) !important;
+      margin-inline-start: calc(100vw - 100vw / 2 - 240px) !important;
     }
   }
 
