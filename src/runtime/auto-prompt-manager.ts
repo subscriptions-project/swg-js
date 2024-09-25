@@ -138,6 +138,7 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
+  private contentType_: ContentType | undefined;
   private shouldRenderOnsitePreview_: boolean = false;
   private actionOrchestrationExperiment_: boolean = false;
 
@@ -191,13 +192,15 @@ export class AutoPromptManager {
       return;
     }
 
+    this.contentType_ = params.contentType;
+
     // Manual override of display rules, mainly for demo purposes. Requires
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
-      this.isClosable_ = params.contentType != ContentType.CLOSED;
+      this.isClosable_ = this.contentType_ != ContentType.CLOSED;
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
@@ -257,7 +260,7 @@ export class AutoPromptManager {
 
     // For FPA M0.5 - default to the contentType.
     // TODO(b/364344782): Determine closability for FPA M1+.
-    this.isClosable_ = params.contentType != ContentType.CLOSED;
+    this.isClosable_ = this.contentType_ != ContentType.CLOSED;
 
     const previewAction = actions[0];
 
@@ -303,8 +306,7 @@ export class AutoPromptManager {
       // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
       const nextOrchestration = await this.getInterventionOrchestration_(
         clientConfig,
-        article,
-        params.contentType
+        article
       );
 
       if (!!nextOrchestration) {
@@ -316,7 +318,7 @@ export class AutoPromptManager {
             this.isClosable_ = true;
             break;
           default:
-            this.isClosable_ = params.contentType != ContentType.CLOSED;
+            this.isClosable_ = this.contentType_ != ContentType.CLOSED;
         }
         potentialAction = article.audienceActions?.actions?.find(
           (action) => action.configurationId === nextOrchestration.configId
@@ -502,8 +504,7 @@ export class AutoPromptManager {
 
   private async getInterventionOrchestration_(
     clientConfig: ClientConfig,
-    article: Article,
-    contentType: ContentType
+    article: Article
   ): Promise<InterventionOrchestration | void> {
     const eligibleActions = article.audienceActions?.actions;
     let interventionOrchestration =
@@ -544,7 +545,7 @@ export class AutoPromptManager {
       return;
     }
 
-    if (contentType === ContentType.CLOSED) {
+    if (this.contentType_ === ContentType.CLOSED) {
       return interventionOrchestration[0];
     }
 
@@ -599,8 +600,13 @@ export class AutoPromptManager {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
         Object.entries(actionsTimestamps!)
-          .filter(([type, _]) => type !== nextOrchestration!.type)
-          .map(([_, timestamps]) => timestamps.impressions)
+          // .filter(([type, _]) => type !== nextOrchestration!.type)
+          // .map(([_, timestamps]) => timestamps.impressions)
+          .map(([type, timestamps]) =>
+            type === nextOrchestration!.type
+              ? timestamps.completions // Completed repeatable actions count towards global frequency
+              : timestamps.impressions
+          )
       );
       if (
         this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
@@ -782,8 +788,17 @@ export class AutoPromptManager {
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
-    if (!this.isClosable_) {
-      return;
+    // For FPA M0.5, do not log frequency capping event for closed contentType. Blocking
+    // interventions on Open content will still log impression & completion timestamps
+    // (but not dismissal) // q: completing on blocking prompt repeatable, does it count toward freq cap?
+    if (this.actionOrchestrationExperiment_) {
+      if (this.contentType_ === ContentType.CLOSED) {
+        return;
+      }
+    } else {
+      if (!this.isClosable_) {
+        return;
+      }
     }
 
     if (
