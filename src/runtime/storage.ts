@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {PageConfig} from '../model/page-config';
 import {ExperimentFlags} from './experiment-flags';
+import {PageConfig} from '../model/page-config';
 import {isExperimentOn} from './experiments';
 
 const PREFIX = 'subscribe.google.com';
@@ -45,15 +45,21 @@ export class Storage {
     const oldKey = this.getStorageKey(key);
     // The new version of storage key with publication identifier.
     const newKey = this.getStorageKeyWithPublicationId(key);
-    
-    const valueWithPublicationIdentifier = await this.getInternal_(newKey, useLocalStorage);
+
+    const valueWithPublicationIdentifier = await this.getInternal_(
+      newKey,
+      useLocalStorage
+    );
     if (valueWithPublicationIdentifier !== null) {
       return valueWithPublicationIdentifier;
     }
     return this.getInternal_(oldKey, useLocalStorage);
   }
 
-  getInternal_(storageKey: string, useLocalStorage = false): Promise<string | null> {    
+  getInternal_(
+    storageKey: string,
+    useLocalStorage = false
+  ): Promise<string | null> {
     if (!this.values_[storageKey]) {
       this.values_[storageKey] = new Promise((resolve) => {
         const storage = useLocalStorage
@@ -74,13 +80,22 @@ export class Storage {
     return this.values_[storageKey];
   }
 
-  async set(key: string, value: string, useLocalStorage = false): Promise<void> {
+  async set(
+    key: string,
+    value: string,
+    useLocalStorage = false
+  ): Promise<void> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
     const oldKey = this.getStorageKey(key);
     // The new version of storage key with publication identifier.
     const newKey = this.getStorageKeyWithPublicationId(key);
-    if (isExperimentOn(this.win_, ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY)) {
+    if (
+      isExperimentOn(
+        this.win_,
+        ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
+      )
+    ) {
       // Remove value stored in the old key for transition from control to experiment treatment.
       await this.removeInternal_(oldKey, useLocalStorage);
       return this.setInternal_(newKey, value, useLocalStorage);
@@ -89,10 +104,13 @@ export class Storage {
       await this.removeInternal_(newKey, useLocalStorage);
       return this.setInternal_(oldKey, value, useLocalStorage);
     }
-    
   }
 
-  setInternal_(storageKey: string, value: string, useLocalStorage = false): Promise<void> {
+  setInternal_(
+    storageKey: string,
+    value: string,
+    useLocalStorage = false
+  ): Promise<void> {
     this.values_[storageKey] = Promise.resolve(value);
     return new Promise((resolve) => {
       const storage = useLocalStorage
@@ -115,7 +133,12 @@ export class Storage {
     const oldKey = this.getStorageKey(key);
     // The new version of storage key with publication identifier.
     const newKey = this.getStorageKeyWithPublicationId(key);
-    if (isExperimentOn(this.win_, ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY)) {
+    if (
+      isExperimentOn(
+        this.win_,
+        ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
+      )
+    ) {
       return this.removeInternal_(newKey, useLocalStorage);
     }
     return this.removeInternal_(oldKey, useLocalStorage);
@@ -221,7 +244,7 @@ export class Storage {
   getStorageKeyWithPublicationId(key: string): string {
     const publicationId = this.pageConfig_.getPublicationId();
     return PREFIX + ':' + key + ':' + publicationId;
-  }  
+  }
 }
 
 /**
@@ -244,4 +267,3 @@ export function pruneTimestamps(
   }
   return timestamps.slice(sliceIndex);
 }
-

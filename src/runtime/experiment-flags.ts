@@ -21,7 +21,6 @@
  * nightwatch.conf.js.
  */
 export enum ExperimentFlags {
-
   /**
    * Experiment flag for enabling publication_id suffix to browser storage key.
    */
