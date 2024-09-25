@@ -39,12 +39,6 @@ const StorageKeys = {
   ENTITLEMENTS: 'ents',
 
   /**
-   * Local storage key for IAB Audience Taxonomy values. It must take on the
-   * 'values' as defined by the PPS GPT API.
-   */
-  PPS_TAXONOMIES: 'ppstaxonomies',
-
-  /**
    * Local storage key for whether credential isReadyToPay.
    */
   IS_READY_TO_PAY: 'isreadytopay',
@@ -75,4 +69,13 @@ const StorageKeys = {
   TIMESTAMPS: 'tsp',
 };
 
-export {Constants, StorageKeys};
+const StorageKeysWithoutPublicationIdSuffix = {
+  /**
+   * Local storage key for IAB Audience Taxonomy values. It must take on the
+   * 'values' as defined by the PPS GPT API.
+   * In order to maintain legacy code snippet that's provided to publishers without publicationId suffix, the stroage key should remain as "subscribe.google.com:ppstaxonomies".
+   */
+  PPS_TAXONOMIES: 'ppstaxonomies',
+};
+
+export {Constants, StorageKeys, StorageKeysWithoutPublicationIdSuffix};

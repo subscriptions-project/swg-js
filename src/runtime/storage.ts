@@ -16,6 +16,7 @@
 
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
+import {StorageKeysWithoutPublicationIdSuffix} from '../utils/constants';
 import {isExperimentOn} from './experiments';
 
 const PREFIX = 'subscribe.google.com';
@@ -42,18 +43,16 @@ export class Storage {
   async get(key: string, useLocalStorage = false): Promise<string | null> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKey(key);
+    const oldKey = this.getStorageKeyWithoutPublicationId(key);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyWithPublicationId(key);
+    const newKey = this.getStorageKeyMaybeWithPublicationId(key);
 
-    const valueWithPublicationIdentifier = await this.getInternal_(
-      newKey,
-      useLocalStorage
-    );
-    if (valueWithPublicationIdentifier !== null) {
-      return valueWithPublicationIdentifier;
+    const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
+    if (valueWithNewKey !== null) {
+      return valueWithNewKey;
+    } else {
+      return this.getInternal_(oldKey, useLocalStorage);
     }
-    return this.getInternal_(oldKey, useLocalStorage);
   }
 
   getInternal_(
@@ -87,10 +86,13 @@ export class Storage {
   ): Promise<void> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKey(key);
+    const oldKey = this.getStorageKeyWithoutPublicationId(key);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyWithPublicationId(key);
+    const newKey = this.getStorageKeyMaybeWithPublicationId(key);
+    const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
+
     if (
+      valueWithNewKey !== null ||
       isExperimentOn(
         this.win_,
         ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
@@ -100,8 +102,6 @@ export class Storage {
       await this.removeInternal_(oldKey, useLocalStorage);
       return this.setInternal_(newKey, value, useLocalStorage);
     } else {
-      // Remove value stored in the new key for transition from experiment to control treatment.
-      await this.removeInternal_(newKey, useLocalStorage);
       return this.setInternal_(oldKey, value, useLocalStorage);
     }
   }
@@ -127,13 +127,16 @@ export class Storage {
     });
   }
 
-  remove(key: string, useLocalStorage = false): Promise<void> {
+  async remove(key: string, useLocalStorage = false): Promise<void> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKey(key);
+    const oldKey = this.getStorageKeyWithoutPublicationId(key);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyWithPublicationId(key);
+    const newKey = this.getStorageKeyMaybeWithPublicationId(key);
+    const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
+
     if (
+      valueWithNewKey !== null ||
       isExperimentOn(
         this.win_,
         ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
@@ -234,14 +237,17 @@ export class Storage {
    * It will be deprecated in favor of getStorageKeyWithPublicationId which partition key storage by publication id.
    * See more details in go/sut-pub-id-validation-1-pager.
    */
-  getStorageKey(key: string): string {
+  getStorageKeyWithoutPublicationId(key: string): string {
     return PREFIX + ':' + key;
   }
 
   /**
    * Returns a storage key with a swg prefix and a publication_id suffix.
    */
-  getStorageKeyWithPublicationId(key: string): string {
+  getStorageKeyMaybeWithPublicationId(key: string): string {
+    if (Object.values(StorageKeysWithoutPublicationIdSuffix).includes(key)) {
+      return this.getStorageKeyWithoutPublicationId(key);
+    }
     const publicationId = this.pageConfig_.getPublicationId();
     return PREFIX + ':' + key + ':' + publicationId;
   }
