@@ -20,7 +20,12 @@
  * IMPORTANT: All flags should also be added to the e2e test configuration in
  * nightwatch.conf.js.
  */
-export enum ExperimentFlags {}
+export enum ExperimentFlags {
+  /**
+   * Experiment flag for enabling publication_id suffix to browser storage key.
+   */
+  ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY = 'enable-pub-id-suffix-for-storage-key',
+}
 
 /**
  * Experiment flags within article experiment config.
