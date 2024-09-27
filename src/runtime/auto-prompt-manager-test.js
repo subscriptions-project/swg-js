@@ -712,6 +712,45 @@ describes.realWin('AutoPromptManager', (env) => {
 
       await autoPromptManager.storeCompletion('TYPE_REWARDED_SURVEY');
     });
+
+    [
+      {eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS},
+      {eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN},
+      {eventType: AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN},
+      {eventType: AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN},
+      {eventType: AnalyticsEvent.IMPRESSION_SURVEY},
+      {eventType: AnalyticsEvent.IMPRESSION_REWARDED_AD},
+      {eventType: AnalyticsEvent.IMPRESSION_OFFERS},
+      {eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED},
+      {eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE},
+      {eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE},
+      {eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE},
+      {eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED},
+      {eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE},
+      {eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED},
+      {eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE},
+      {eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK},
+      {eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT},
+      {eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK},
+      {eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK},
+      {eventType: AnalyticsEvent.ACTION_REWARDED_AD_VIEW},
+      {eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE},
+    ].forEach(({eventType}) => {
+      it(`with actionOrhcestrationExperiment enabled, should not store impression timestamps for event ${eventType} for Closed contentType`, async () => {
+        autoPromptManager.actionOrchestrationExperiment_ = true;
+        autoPromptManager.contentType_ = ContentType.CLOSED;
+        autoPromptManager.isClosable_ = true;
+        storageMock.expects('get').never();
+        storageMock.expects('set').never();
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
   });
 
   describe('Miniprompt', () => {
@@ -1128,13 +1167,14 @@ describes.realWin('AutoPromptManager', (env) => {
 
     // Dismissal Events
     [
-      {eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED},
-      {eventType: AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE},
-      {eventType: AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE},
-      {eventType: AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE},
-      {eventType: AnalyticsEvent.ACTION_SURVEY_CLOSED},
-      {eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE},
-      {eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED},
+      {
+        eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+        action: 'TYPE_CONTRIBUTION',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+        action: 'TYPE_SUBSCRIPTION',
+      },
     ].forEach(({eventType}) => {
       it(`should not store dismissal timestamps for miniprompt event ${eventType} for nondismissible prompts`, async () => {
         autoPromptManager.isClosable_ = false;
@@ -1165,6 +1205,32 @@ describes.realWin('AutoPromptManager', (env) => {
         expectFrequencyCappingTimestamps(storageMock, '', {
           [action]: {dismissals: [CURRENT_TIME]},
         });
+
+        await eventManagerCallback({
+          eventType,
+          eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+          isFromUserAction: null,
+          additionalParameters: null,
+        });
+      });
+    });
+
+    [
+      {eventType: AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT},
+      {eventType: AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT},
+      {
+        eventType: AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+      },
+    ].forEach(({eventType}) => {
+      it(`with actionOrhcestrationExperiment enabled, should not store impression timestamps for event ${eventType} for Closed contentType`, async () => {
+        autoPromptManager.actionOrchestrationExperiment_ = true;
+        autoPromptManager.contentType_ = ContentType.CLOSED;
+        autoPromptManager.isClosable_ = true;
+        storageMock.expects('get').never();
+        storageMock.expects('set').never();
 
         await eventManagerCallback({
           eventType,
@@ -3119,6 +3185,59 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
       });
+    });
+
+    it('should not show a repeatable intervention due to past completion within the global frequency cap', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [
+              {
+                type: 'TYPE_BYO_CTA',
+                configurationId: 'byocta_config_id',
+                numberOfCompletions: 10,
+              },
+            ],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              globalFrequencyCap: {
+                duration: {
+                  seconds: 500,
+                },
+              },
+              interventions: [
+                {
+                  configId: 'byocta_config_id',
+                  type: 'TYPE_BYO_CTA',
+                  duration: {
+                    seconds: 100,
+                  },
+                  closability: 'DISMISSIBLE',
+                  repeatability: {
+                    type: 'INFINITE',
+                  },
+                },
+              ],
+            },
+          },
+          experimentConfig: {
+            experimentFlags: ['action_orchestration_experiment'],
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock, {
+        'TYPE_BYO_CTA': {
+          completions: [CURRENT_TIME - 200],
+        },
+      });
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(startSpy).to.not.have.been.called;
+      expect(actionFlowSpy).to.not.have.been.called;
     });
 
     it('preview should show a dismissble prompt when ContentType OPEN', async () => {
