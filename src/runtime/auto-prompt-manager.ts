@@ -787,7 +787,7 @@ export class AutoPromptManager {
   ): Promise<void> {
     // For FPA M0.5, do not log frequency capping event for closed contentType. Blocking
     // interventions on Open content will still log impression & completion timestamps
-    // (but not dismissal) // q: completing on blocking prompt repeatable, does it count toward freq cap?
+    // (but not dismissal).
     if (this.actionOrchestrationExperiment_) {
       if (this.contentType_ === ContentType.CLOSED) {
         return;
