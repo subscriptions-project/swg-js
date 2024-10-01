@@ -301,6 +301,10 @@ describes.realWin('AutoPromptManager', (env) => {
         action: 'TYPE_REWARDED_AD',
       },
       {
+        eventType: AnalyticsEvent.IMPRESSION_BYO_CTA,
+        action: 'TYPE_BYO_CTA',
+      },
+      {
         eventType: AnalyticsEvent.IMPRESSION_OFFERS,
         action: 'TYPE_SUBSCRIPTION',
       },
@@ -453,6 +457,10 @@ describes.realWin('AutoPromptManager', (env) => {
         action: 'TYPE_REWARDED_AD',
       },
       {
+        eventType: AnalyticsEvent.ACTION_BYO_CTA_CLOSE,
+        action: 'TYPE_BYO_CTA',
+      },
+      {
         eventType: AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
         action: 'TYPE_SUBSCRIPTION',
       },
@@ -587,6 +595,10 @@ describes.realWin('AutoPromptManager', (env) => {
       {
         eventType: AnalyticsEvent.ACTION_REWARDED_AD_VIEW,
         action: 'TYPE_REWARDED_AD',
+      },
+      {
+        eventType: AnalyticsEvent.ACTION_BYO_CTA_BUTTON_CLICK,
+        action: 'TYPE_BYO_CTA',
       },
       {
         eventType: AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
@@ -3003,7 +3015,7 @@ describes.realWin('AutoPromptManager', (env) => {
             actions: [
               {
                 type: 'TYPE_BYO_CTA',
-                configurationId: 'rewarded_ad_config_id',
+                configurationId: 'byocta_config_id',
                 numberOfCompletions: 3,
               },
             ],
@@ -3013,7 +3025,7 @@ describes.realWin('AutoPromptManager', (env) => {
             interventionFunnel: {
               interventions: [
                 {
-                  configId: 'survey_config_id',
+                  configId: 'byocta_config_id',
                   type: 'TYPE_BYO_CTA',
                   promptFrequencyCap,
                   closability: 'DISMISSIBLE',
