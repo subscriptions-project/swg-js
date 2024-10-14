@@ -40,12 +40,12 @@ export class Storage {
     this.values_ = {};
   }
 
-  async get(key: string, useLocalStorage = false): Promise<string | null> {
+  async get(baseKey: string, useLocalStorage = false): Promise<string | null> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKeyWithoutPublicationId(key);
+    const oldKey = this.getStorageKeyWithoutPublicationId(baseKey);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyMaybeWithPublicationId(key);
+    const newKey = this.getStorageKeyMaybeWithPublicationId(baseKey);
 
     const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
     if (valueWithNewKey !== null) {
@@ -56,17 +56,17 @@ export class Storage {
   }
 
   getInternal_(
-    storageKey: string,
+    finalKey: string,
     useLocalStorage = false
   ): Promise<string | null> {
-    if (!this.values_[storageKey]) {
-      this.values_[storageKey] = new Promise((resolve) => {
+    if (!this.values_[finalKey]) {
+      this.values_[finalKey] = new Promise((resolve) => {
         const storage = useLocalStorage
           ? this.win_.localStorage
           : this.win_.sessionStorage;
         if (storage) {
           try {
-            resolve(storage.getItem(storageKey));
+            resolve(storage.getItem(finalKey));
           } catch (e) {
             // Ignore error.
             resolve(null);
@@ -76,19 +76,19 @@ export class Storage {
         }
       });
     }
-    return this.values_[storageKey];
+    return this.values_[finalKey];
   }
 
   async set(
-    key: string,
+    baseKey: string,
     value: string,
     useLocalStorage = false
   ): Promise<void> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKeyWithoutPublicationId(key);
+    const oldKey = this.getStorageKeyWithoutPublicationId(baseKey);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyMaybeWithPublicationId(key);
+    const newKey = this.getStorageKeyMaybeWithPublicationId(baseKey);
     const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
 
     if (
@@ -107,18 +107,18 @@ export class Storage {
   }
 
   setInternal_(
-    storageKey: string,
+    finalKey: string,
     value: string,
     useLocalStorage = false
   ): Promise<void> {
-    this.values_[storageKey] = Promise.resolve(value);
+    this.values_[finalKey] = Promise.resolve(value);
     return new Promise((resolve) => {
       const storage = useLocalStorage
         ? this.win_.localStorage
         : this.win_.sessionStorage;
       if (storage) {
         try {
-          storage.setItem(storageKey, value);
+          storage.setItem(finalKey, value);
         } catch (e) {
           // Ignore error.
         }
@@ -127,12 +127,12 @@ export class Storage {
     });
   }
 
-  async remove(key: string, useLocalStorage = false): Promise<void> {
+  async remove(baseKey: string, useLocalStorage = false): Promise<void> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKeyWithoutPublicationId(key);
+    const oldKey = this.getStorageKeyWithoutPublicationId(baseKey);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyMaybeWithPublicationId(key);
+    const newKey = this.getStorageKeyMaybeWithPublicationId(baseKey);
     const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
 
     if (
@@ -147,15 +147,15 @@ export class Storage {
     return this.removeInternal_(oldKey, useLocalStorage);
   }
 
-  removeInternal_(storageKey: string, useLocalStorage = false): Promise<void> {
-    delete this.values_[storageKey];
+  removeInternal_(finalKey: string, useLocalStorage = false): Promise<void> {
+    delete this.values_[finalKey];
     return new Promise((resolve) => {
       const storage = useLocalStorage
         ? this.win_.localStorage
         : this.win_.sessionStorage;
       if (storage) {
         try {
-          storage.removeItem(storageKey);
+          storage.removeItem(finalKey);
         } catch (e) {
           // Ignore error.
         }
