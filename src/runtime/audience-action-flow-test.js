@@ -219,6 +219,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       action: 'TYPE_REWARDED_SURVEY',
       path: 'surveyiframe',
     },
+    {
+      action: 'TYPE_BYO_CTA',
+      configurationId: 'byo_cta_config',
+      path: 'byoctaiframe',
+    },
   ].forEach(({action, configurationId, path}) => {
     it(`opens an AudienceActionIframeFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').resolves(null);

@@ -79,11 +79,13 @@ export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
+export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 
 const actionToIframeMapping: {[key: string]: string} = {
   TYPE_REGISTRATION_WALL: '/regwalliframe',
   TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
   TYPE_REWARDED_SURVEY: '/surveyiframe',
+  TYPE_BYO_CTA: '/byoctaiframe',
 };
 
 const autopromptTypeToProductTypeMapping: {
@@ -148,7 +150,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       /* shouldFadeBody */ true
     );
     // Disables interaction with prompt if rendering for preview.
-    if (!!params_.shouldRenderPreview) {
+    if (!!params_.shouldRenderPreview && params_.action !== TYPE_BYO_CTA) {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });

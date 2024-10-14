@@ -55,6 +55,7 @@ const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
+const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 const SECOND_IN_MILLIS = 1000;
 const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
@@ -75,6 +76,7 @@ const DISMISSAL_EVENTS_TO_ACTION_MAP = new Map([
   [AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE, TYPE_REGISTRATION_WALL],
   [AnalyticsEvent.ACTION_SURVEY_CLOSED, TYPE_REWARDED_SURVEY],
   [AnalyticsEvent.ACTION_REWARDED_AD_CLOSE, TYPE_REWARDED_AD],
+  [AnalyticsEvent.ACTION_BYO_CTA_CLOSE, TYPE_BYO_CTA],
   [AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE, TYPE_SUBSCRIPTION],
   [AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED, TYPE_SUBSCRIPTION],
 ]);
@@ -89,6 +91,7 @@ const COMPLETION_EVENTS_TO_ACTION_MAP = new Map([
   [AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK, TYPE_REGISTRATION_WALL],
   [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK, TYPE_REWARDED_SURVEY],
   [AnalyticsEvent.ACTION_REWARDED_AD_VIEW, TYPE_REWARDED_AD],
+  [AnalyticsEvent.ACTION_BYO_CTA_BUTTON_CLICK, TYPE_BYO_CTA],
   [AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE, TYPE_SUBSCRIPTION],
 ]);
 
@@ -100,6 +103,7 @@ const IMPRESSION_EVENTS_TO_ACTION_MAP = new Map([
   [AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN, TYPE_REGISTRATION_WALL],
   [AnalyticsEvent.IMPRESSION_SURVEY, TYPE_REWARDED_SURVEY],
   [AnalyticsEvent.IMPRESSION_REWARDED_AD, TYPE_REWARDED_AD],
+  [AnalyticsEvent.IMPRESSION_BYO_CTA, TYPE_BYO_CTA],
   [AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT, TYPE_SUBSCRIPTION],
   [AnalyticsEvent.IMPRESSION_OFFERS, TYPE_SUBSCRIPTION],
 ]);
@@ -138,6 +142,7 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
+  private contentType_: ContentType | undefined;
   private shouldRenderOnsitePreview_: boolean = false;
   private actionOrchestrationExperiment_: boolean = false;
 
@@ -191,13 +196,15 @@ export class AutoPromptManager {
       return;
     }
 
+    this.contentType_ = params.contentType;
+
     // Manual override of display rules, mainly for demo purposes. Requires
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
-      this.isClosable_ = params.contentType != ContentType.CLOSED;
+      this.isClosable_ = this.contentType_ != ContentType.CLOSED;
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
@@ -257,7 +264,7 @@ export class AutoPromptManager {
 
     // For FPA M0.5 - default to the contentType.
     // TODO(b/364344782): Determine closability for FPA M1+.
-    this.isClosable_ = params.contentType != ContentType.CLOSED;
+    this.isClosable_ = this.contentType_ != ContentType.CLOSED;
 
     const previewAction = actions[0];
 
@@ -303,8 +310,7 @@ export class AutoPromptManager {
       // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
       const nextOrchestration = await this.getInterventionOrchestration_(
         clientConfig,
-        article,
-        params.contentType
+        article
       );
 
       if (!!nextOrchestration) {
@@ -316,7 +322,7 @@ export class AutoPromptManager {
             this.isClosable_ = true;
             break;
           default:
-            this.isClosable_ = params.contentType != ContentType.CLOSED;
+            this.isClosable_ = this.contentType_ != ContentType.CLOSED;
         }
         potentialAction = article.audienceActions?.actions?.find(
           (action) => action.configurationId === nextOrchestration.configId
@@ -502,8 +508,7 @@ export class AutoPromptManager {
 
   private async getInterventionOrchestration_(
     clientConfig: ClientConfig,
-    article: Article,
-    contentType: ContentType
+    article: Article
   ): Promise<InterventionOrchestration | void> {
     const eligibleActions = article.audienceActions?.actions;
     let interventionOrchestration =
@@ -544,7 +549,7 @@ export class AutoPromptManager {
       return;
     }
 
-    if (contentType === ContentType.CLOSED) {
+    if (this.contentType_ === ContentType.CLOSED) {
       return interventionOrchestration[0];
     }
 
@@ -598,9 +603,11 @@ export class AutoPromptManager {
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
-        Object.entries(actionsTimestamps!)
-          .filter(([type, _]) => type !== nextOrchestration!.type)
-          .map(([_, timestamps]) => timestamps.impressions)
+        Object.entries(actionsTimestamps!).map(([type, timestamps]) =>
+          type === nextOrchestration!.type
+            ? timestamps.completions // Completed repeatable actions count towards global frequency
+            : timestamps.impressions
+        )
       );
       if (
         this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
@@ -782,8 +789,17 @@ export class AutoPromptManager {
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
-    if (!this.isClosable_) {
-      return;
+    // For FPA M0.5, do not log frequency capping event for closed contentType. Blocking
+    // interventions on Open content will still log impression & completion timestamps
+    // (but not dismissal).
+    if (this.actionOrchestrationExperiment_) {
+      if (this.contentType_ === ContentType.CLOSED) {
+        return;
+      }
+    } else {
+      if (!this.isClosable_) {
+        return;
+      }
     }
 
     if (
