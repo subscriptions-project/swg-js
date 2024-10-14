@@ -233,23 +233,23 @@ export class Storage {
   }
 
   /**
-   * Returns a storage key with a swg prefix.
-   * It will be deprecated in favor of getStorageKeyWithPublicationId which partition key storage by publication id.
+   * Returns a storage key with a swg prefix but without a publication_id suffix.
+   * It should be replaced with getStorageKeyWithPublicationId unless intended.
    * See more details in go/sut-pub-id-validation-1-pager.
    */
-  getStorageKeyWithoutPublicationId(key: string): string {
-    return PREFIX + ':' + key;
+  getStorageKeyWithoutPublicationId(baseKey: string): string {
+    return PREFIX + ':' + baseKey;
   }
 
   /**
    * Returns a storage key with a swg prefix and a publication_id suffix.
    */
-  getStorageKeyMaybeWithPublicationId(key: string): string {
-    if (Object.values(StorageKeysWithoutPublicationIdSuffix).includes(key)) {
-      return this.getStorageKeyWithoutPublicationId(key);
+  getStorageKeyMaybeWithPublicationId(baseKey: string): string {
+    if (Object.values(StorageKeysWithoutPublicationIdSuffix).includes(baseKey)) {
+      return this.getStorageKeyWithoutPublicationId(baseKey);
     }
     const publicationId = this.pageConfig_.getPublicationId();
-    return PREFIX + ':' + key + ':' + publicationId;
+    return PREFIX + ':' + baseKey + ':' + publicationId;
   }
 }
 
