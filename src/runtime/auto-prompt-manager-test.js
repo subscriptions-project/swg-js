@@ -120,7 +120,7 @@ describes.realWin('AutoPromptManager', (env) => {
       .callsFake((callback) => (eventManagerCallback = callback));
     logEventSpy = sandbox.spy(eventManager, 'logEvent');
 
-    const storage = new Storage(win);
+    const storage = new Storage(win, pageConfig);
     storageMock = sandbox.mock(storage);
     sandbox.stub(deps, 'storage').returns(storage);
 

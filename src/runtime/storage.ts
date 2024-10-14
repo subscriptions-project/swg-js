@@ -245,7 +245,9 @@ export class Storage {
    * Returns a storage key with a swg prefix and a publication_id suffix.
    */
   getStorageKeyMaybeWithPublicationId(baseKey: string): string {
-    if (Object.values(StorageKeysWithoutPublicationIdSuffix).includes(baseKey)) {
+    if (
+      Object.values(StorageKeysWithoutPublicationIdSuffix).includes(baseKey)
+    ) {
       return this.getStorageKeyWithoutPublicationId(baseKey);
     }
     const publicationId = this.pageConfig_.getPublicationId();

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 
 class WebStorageStub {
@@ -27,6 +28,8 @@ describes.realWin('Storage', (env) => {
   let sessionStorageMock;
   let localStorageMock;
   let storage;
+  let pageConfig;
+  const productId = 'pubId:label1';
 
   beforeEach(() => {
     win = env.win;
@@ -36,7 +39,9 @@ describes.realWin('Storage', (env) => {
     const localStorage = new WebStorageStub();
     localStorageMock = sandbox.mock(localStorage);
     Object.defineProperty(win, 'localStorage', {value: localStorage});
-    storage = new Storage(win);
+    pageConfig = new PageConfig(productId);
+
+    storage = new Storage(win, pageConfig);
   });
 
   describe('Session storage', () => {
@@ -51,124 +56,136 @@ describes.realWin('Storage', (env) => {
       sessionStorageMock.verify();
     });
 
-    it('should return fresh value from the storage', async () => {
-      sessionStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns('one')
-        .once();
+    describe('if not available', () => {
+      it('get should return null', async () => {
+        Object.defineProperty(win, 'sessionStorage', {value: null});
+        sessionStorageMock.expects('getItem').never();
+        expect(await storage.get('baseKey')).to.be.null;
+      });
 
-      expect(await storage.get('a')).to.equal('one');
+      it('set should store the value in the instance variable', async () => {
+        sessionStorageMock.expects('getItem').never();
+        sessionStorageMock.expects('setItem').never();
+        Object.defineProperty(win, 'sessionStorage', {value: null});
+        storage.set('baseKey', 'one');
+
+        expect(await storage.get('baseKey')).to.equal('one');
+      });
+
+      it('remove should remove the value from the instance variable', async () => {
+        sessionStorageMock.expects('getItem').never();
+        sessionStorageMock.expects('removeItem').never();
+        Object.defineProperty(win, 'sessionStorage', {value: null});
+        storage.set('baseKey', 'one');
+        storage.remove('baseKey');
+
+        expect(await storage.get('baseKey')).to.be.null;
+      });
     });
 
-    it('should return null value if not in the storage', async () => {
-      sessionStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
+    describe('no value in new key', () => {
+      beforeEach(() => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
+      });
 
-      expect(await storage.get('a')).to.be.null;
-    });
+      it('should return fresh value from the storage', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns('one')
+          .once();
 
-    it('should return cached value from the storage', async () => {
-      sessionStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns('one')
-        .once(); // Only executed once.
+        expect(await storage.get('baseKey')).to.equal('one');
+      });
 
-      expect(await storage.get('a')).to.equal('one');
-      expect(await storage.get('a')).to.equal('one');
-    });
+      it('should return null value if not in the storage', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
 
-    it('should return null if storage is not available', async () => {
-      Object.defineProperty(win, 'sessionStorage', {value: null});
-      sessionStorageMock.expects('getItem').never();
-      expect(await storage.get('a')).to.be.null;
-    });
+        expect(await storage.get('baseKey')).to.be.null;
+      });
 
-    it('should return null value if storage fails', async () => {
-      sessionStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .throws(new Error('intentional'))
-        .once();
+      it('should return cached value from the storage', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns('one')
+          .once(); // Only executed once.
 
-      expect(await storage.get('a')).to.be.null;
-    });
+        expect(await storage.get('baseKey')).to.equal('one');
+        expect(await storage.get('baseKey')).to.equal('one');
+      });
 
-    it('should set a value', async () => {
-      sessionStorageMock
-        .expects('setItem')
-        .withExactArgs('subscribe.google.com:a', 'one')
-        .once();
-      storage.set('a', 'one');
+      it('should set a value', async () => {
+        sessionStorageMock
+          .expects('setItem')
+          .withExactArgs('subscribe.google.com:baseKey', 'one')
+          .once();
+        storage.set('baseKey', 'one');
 
-      expect(await storage.get('a')).to.equal('one');
-    });
+        expect(await storage.get('baseKey')).to.equal('one');
+      });
 
-    it('should set a value with no storage', async () => {
-      sessionStorageMock.expects('getItem').never();
-      sessionStorageMock.expects('setItem').never();
-      Object.defineProperty(win, 'sessionStorage', {value: null});
-      storage.set('a', 'one');
+      it('should set a value with failing storage', async () => {
+        sessionStorageMock
+          .expects('setItem')
+          .withExactArgs('subscribe.google.com:baseKey', 'one')
+          .throws(new Error('intentional'))
+          .once();
+        storage.set('baseKey', 'one');
 
-      expect(await storage.get('a')).to.equal('one');
-    });
+        expect(await storage.get('baseKey')).to.equal('one');
+      });
 
-    it('should set a value with failing storage', async () => {
-      sessionStorageMock
-        .expects('setItem')
-        .withExactArgs('subscribe.google.com:a', 'one')
-        .throws(new Error('intentional'))
-        .once();
-      storage.set('a', 'one');
+      it('should remove a value', async () => {
+        storage.set('baseKey', 'one');
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
+        sessionStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .once();
+        storage.remove('baseKey');
 
-      expect(await storage.get('a')).to.equal('one');
-    });
+        expect(await storage.get('baseKey')).to.be.null;
+      });
 
-    it('should remove a value', async () => {
-      storage.set('a', 'one');
-      sessionStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
-      sessionStorageMock
-        .expects('removeItem')
-        .withExactArgs('subscribe.google.com:a')
-        .once();
-      storage.remove('a');
+      it('should return null value if storage fails', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .throws(new Error('intentional'))
+          .once();
 
-      expect(await storage.get('a')).to.be.null;
-    });
+        expect(await storage.get('baseKey')).to.be.null;
+      });
 
-    it('should remove a value with no storage', async () => {
-      sessionStorageMock.expects('getItem').never();
-      sessionStorageMock.expects('removeItem').never();
-      Object.defineProperty(win, 'sessionStorage', {value: null});
-      storage.set('a', 'one');
-      storage.remove('a');
+      it('should remove a value with failing storage', async () => {
+        sessionStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .throws(new Error('intentional'))
+          .once();
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
+        storage.set('baseKey', 'one');
+        storage.remove('baseKey');
 
-      expect(await storage.get('a')).to.be.null;
-    });
-
-    it('should remove a value with failing storage', async () => {
-      sessionStorageMock
-        .expects('removeItem')
-        .withExactArgs('subscribe.google.com:a')
-        .throws(new Error('intentional'))
-        .once();
-      sessionStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
-      storage.set('a', 'one');
-      storage.remove('a');
-
-      expect(await storage.get('a')).to.be.null;
+        expect(await storage.get('baseKey')).to.be.null;
+      });
     });
   });
 
@@ -184,137 +201,154 @@ describes.realWin('Storage', (env) => {
       localStorageMock.verify();
     });
 
-    it('should return fresh value from the storage', async () => {
-      localStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns('one')
-        .once();
+    describe('if not available', () => {
+      it('get should return null', async () => {
+        Object.defineProperty(win, 'localStorage', {value: null});
+        localStorageMock.expects('getItem').never();
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
-        'one'
-      );
+      it('set should store the value in the instance variable', async () => {
+        localStorageMock.expects('getItem').never();
+        localStorageMock.expects('setItem').never();
+        Object.defineProperty(win, 'localStorage', {value: null});
+        storage.set('baseKey', 'one', /* useLocalStorage */ true);
+
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('one');
+      });
+
+      it('remove should remove the value from the instance variable', async () => {
+        localStorageMock.expects('getItem').never();
+        localStorageMock.expects('removeItem').never();
+        Object.defineProperty(win, 'localStorage', {value: null});
+        storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        storage.remove('baseKey', /* useLocalStorage */ true);
+
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
     });
 
-    it('should return null value if not in the storage', async () => {
-      localStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
+    describe('no value in new key', () => {
+      beforeEach(() => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
-    });
+      it('should return fresh value from the storage', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns('one')
+          .once();
 
-    it('should return cached value from the storage', async () => {
-      localStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns('one')
-        .once(); // Only executed once.
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('one');
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
-        'one'
-      );
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
-        'one'
-      );
-    });
+      it('should return null value if not in the storage', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
 
-    it('should return null if storage is not available', async () => {
-      Object.defineProperty(win, 'localStorage', {value: null});
-      localStorageMock.expects('getItem').never();
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
-    });
+      it('should return cached value from the storage', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns('one')
+          .once(); // Only executed once.
 
-    it('should return null value if storage fails', async () => {
-      localStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .throws(new Error('intentional'))
-        .once();
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('one');
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('one');
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
-    });
+      it('should return null value if storage fails', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .throws(new Error('intentional'))
+          .once();
 
-    it('should set a value', async () => {
-      localStorageMock
-        .expects('setItem')
-        .withExactArgs('subscribe.google.com:a', 'one')
-        .once();
-      storage.set('a', 'one', /* useLocalStorage */ true);
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
-        'one'
-      );
-    });
+      it('should set a value', async () => {
+        localStorageMock
+          .expects('setItem')
+          .withExactArgs('subscribe.google.com:baseKey', 'one')
+          .once();
+        storage.set('baseKey', 'one', /* useLocalStorage */ true);
 
-    it('should set a value with no storage', async () => {
-      localStorageMock.expects('getItem').never();
-      localStorageMock.expects('setItem').never();
-      Object.defineProperty(win, 'localStorage', {value: null});
-      storage.set('a', 'one', /* useLocalStorage */ true);
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('one');
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
-        'one'
-      );
-    });
+      it('should set a value with failing storage', async () => {
+        localStorageMock
+          .expects('setItem')
+          .withExactArgs('subscribe.google.com:baseKey', 'one')
+          .throws(new Error('intentional'))
+          .once();
+        storage.set('baseKey', 'one', /* useLocalStorage */ true);
 
-    it('should set a value with failing storage', async () => {
-      localStorageMock
-        .expects('setItem')
-        .withExactArgs('subscribe.google.com:a', 'one')
-        .throws(new Error('intentional'))
-        .once();
-      storage.set('a', 'one', /* useLocalStorage */ true);
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('one');
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.equal(
-        'one'
-      );
-    });
+      it('should remove a value', async () => {
+        storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
+        localStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .once();
+        storage.remove('baseKey', /* useLocalStorage */ true);
 
-    it('should remove a value', async () => {
-      storage.set('a', 'one', /* useLocalStorage */ true);
-      localStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
-      localStorageMock
-        .expects('removeItem')
-        .withExactArgs('subscribe.google.com:a')
-        .once();
-      storage.remove('a', /* useLocalStorage */ true);
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
 
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
-    });
+      it('should remove a value with failing storage', async () => {
+        localStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .throws(new Error('intentional'))
+          .once();
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
+        storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        storage.remove('baseKey', /* useLocalStorage */ true);
 
-    it('should remove a value with no storage', async () => {
-      localStorageMock.expects('getItem').never();
-      localStorageMock.expects('removeItem').never();
-      Object.defineProperty(win, 'localStorage', {value: null});
-      storage.set('a', 'one', /* useLocalStorage */ true);
-      storage.remove('a', /* useLocalStorage */ true);
-
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
-    });
-
-    it('should remove a value with failing storage', async () => {
-      localStorageMock
-        .expects('removeItem')
-        .withExactArgs('subscribe.google.com:a')
-        .throws(new Error('intentional'))
-        .once();
-      localStorageMock
-        .expects('getItem')
-        .withExactArgs('subscribe.google.com:a')
-        .returns(null)
-        .once();
-      storage.set('a', 'one', /* useLocalStorage */ true);
-      storage.remove('a', /* useLocalStorage */ true);
-
-      expect(await storage.get('a', /* useLocalStorage */ true)).to.be.null;
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
     });
   });
 });
