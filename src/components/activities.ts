@@ -22,7 +22,7 @@ import {
 } from '../proto/api_messages';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
 
-import {Constants} from '../utils/constants';
+import {StorageKeys} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
 
 import {
@@ -273,7 +273,7 @@ export class ActivityPorts {
 
     const swgUserToken = await this.deps_
       .storage()
-      .get(Constants.USER_TOKEN, /* useLocalStorage= */ true);
+      .get(StorageKeys.USER_TOKEN, /* useLocalStorage= */ true);
 
     const queryParams = new URL(url).searchParams;
     if (swgUserToken && !queryParams.has('sut')) {

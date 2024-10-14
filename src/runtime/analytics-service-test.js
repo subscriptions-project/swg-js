@@ -24,8 +24,8 @@ import {
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
+import {StorageKeys} from '../utils/constants';
 import {feUrl} from './services';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from './experiments';
@@ -195,7 +195,7 @@ describes.realWin('AnalyticsService', (env) => {
       analyticsService.setReadyForLogging();
       storageMock
         .expects('get')
-        .withExactArgs(Constants.USER_TOKEN)
+        .withExactArgs(StorageKeys.USER_TOKEN)
         .resolves('swgUserToken')
         .once();
       analyticsService.start();

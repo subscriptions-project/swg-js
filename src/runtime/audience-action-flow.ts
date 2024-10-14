@@ -202,7 +202,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
-      this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
+      this.deps_.storage().set(StorageKeys.USER_TOKEN, userToken, true);
     }
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
@@ -228,7 +228,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const now = Date.now().toString();
     this.deps_
       .storage()
-      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
   }
 

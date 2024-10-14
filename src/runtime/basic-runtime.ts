@@ -31,7 +31,6 @@ import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc, resolveDoc} from '../model/doc';
@@ -45,6 +44,7 @@ import {PageConfigWriter} from '../model/page-config-writer';
 import {PayClient} from './pay-client';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
+import {StorageKeys} from '../utils/constants';
 import {SubscribeResponse} from '../api/subscribe-response';
 import {Toast} from '../ui/toast';
 import {acceptPortResultData} from '../utils/activity-utils';
@@ -536,7 +536,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       this.entitlementsManager().pushNextEntitlements(jwt);
       const userToken = response['usertoken'];
       if (userToken) {
-        this.storage().set(Constants.USER_TOKEN, userToken, true);
+        this.storage().set(StorageKeys.USER_TOKEN, userToken, true);
       }
 
       // Show 'Signed in as abc@gmail.com' toast on the pub page.
