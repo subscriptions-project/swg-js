@@ -24,7 +24,10 @@ module.exports = {
       .pause(3000)
       .assert.screenshotIdenticalToBaseline('html', 'enterprise-contribution')
       .viewContributionOffers()
-      .assert.textContains('@contributionHeader', 'Enterprise Contribution E2E Test Pub')
+      .assert.textContains(
+        '@contributionHeader',
+        'Enterprise Contribution E2E Test Pub'
+      )
       .assert.textContains('@priceChip', '$10')
       .contribute()
       .checkPayment()
