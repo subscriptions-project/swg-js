@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
+import {setExperimentsStringForTesting} from '../runtime/experiments';
 
 class WebStorageStub {
   getItem(unusedKey) {}
@@ -42,6 +44,7 @@ describes.realWin('Storage', (env) => {
     pageConfig = new PageConfig(productId);
 
     storage = new Storage(win, pageConfig);
+    setExperimentsStringForTesting('');
   });
 
   describe('Session storage', () => {
@@ -67,7 +70,7 @@ describes.realWin('Storage', (env) => {
         sessionStorageMock.expects('getItem').never();
         sessionStorageMock.expects('setItem').never();
         Object.defineProperty(win, 'sessionStorage', {value: null});
-        storage.set('baseKey', 'one');
+        await storage.set('baseKey', 'one');
 
         expect(await storage.get('baseKey')).to.equal('one');
       });
@@ -76,14 +79,14 @@ describes.realWin('Storage', (env) => {
         sessionStorageMock.expects('getItem').never();
         sessionStorageMock.expects('removeItem').never();
         Object.defineProperty(win, 'sessionStorage', {value: null});
-        storage.set('baseKey', 'one');
-        storage.remove('baseKey');
+        await storage.set('baseKey', 'one');
+        await storage.remove('baseKey');
 
         expect(await storage.get('baseKey')).to.be.null;
       });
     });
 
-    describe('no value in new key', () => {
+    describe('no value for new key', () => {
       beforeEach(() => {
         sessionStorageMock
           .expects('getItem')
@@ -128,7 +131,7 @@ describes.realWin('Storage', (env) => {
           .expects('setItem')
           .withExactArgs('subscribe.google.com:baseKey', 'one')
           .once();
-        storage.set('baseKey', 'one');
+        await storage.set('baseKey', 'one');
 
         expect(await storage.get('baseKey')).to.equal('one');
       });
@@ -139,13 +142,13 @@ describes.realWin('Storage', (env) => {
           .withExactArgs('subscribe.google.com:baseKey', 'one')
           .throws(new Error('intentional'))
           .once();
-        storage.set('baseKey', 'one');
+        await storage.set('baseKey', 'one');
 
         expect(await storage.get('baseKey')).to.equal('one');
       });
 
       it('should remove a value', async () => {
-        storage.set('baseKey', 'one');
+        await storage.set('baseKey', 'one');
         sessionStorageMock
           .expects('getItem')
           .withExactArgs('subscribe.google.com:baseKey')
@@ -155,7 +158,7 @@ describes.realWin('Storage', (env) => {
           .expects('removeItem')
           .withExactArgs('subscribe.google.com:baseKey')
           .once();
-        storage.remove('baseKey');
+        await storage.remove('baseKey');
 
         expect(await storage.get('baseKey')).to.be.null;
       });
@@ -181,8 +184,162 @@ describes.realWin('Storage', (env) => {
           .withExactArgs('subscribe.google.com:baseKey')
           .returns(null)
           .once();
-        storage.set('baseKey', 'one');
-        storage.remove('baseKey');
+        await storage.set('baseKey', 'one');
+        await storage.remove('baseKey');
+
+        expect(await storage.get('baseKey')).to.be.null;
+      });
+    });
+
+    describe('with value present for new key', () => {
+      beforeEach(() => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns('originalValue_newKey')
+          .once();
+      });
+
+      it('should return value using new key', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+
+        expect(await storage.get('baseKey')).to.equal('originalValue_newKey');
+      });
+
+      it('should return cached value from the storage', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+
+        expect(await storage.get('baseKey')).to.equal('originalValue_newKey');
+        expect(await storage.get('baseKey')).to.equal('originalValue_newKey');
+      });
+
+      it('should set a value using new key', async () => {
+        // Old key should no longer be used to access storage.
+        sessionStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+        sessionStorageMock
+          .expects('setItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+
+        // Internal implementation of storage.set should clear storage value with old key if present.
+        sessionStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .once();
+        sessionStorageMock
+          .expects('setItem')
+          .withExactArgs(
+            'subscribe.google.com:baseKey:pubId',
+            'newValue_newKey'
+          )
+          .once();
+
+        await storage.set('baseKey', 'newValue_newKey');
+
+        expect(await storage.get('baseKey')).to.equal('newValue_newKey');
+      });
+
+      it('should remove a value using new key', async () => {
+        sessionStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .once();
+
+        await storage.remove('baseKey');
+
+        sessionStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
+        sessionStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
+
+        expect(await storage.get('baseKey')).to.be.null;
+      });
+    });
+
+    describe('no value for new key but experiment enabled', () => {
+      beforeEach(() => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
+        setExperimentsStringForTesting(
+          ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
+        );
+      });
+
+      it('should return null value if not in the storage', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
+
+        expect(await storage.get('baseKey')).to.be.null;
+      });
+
+      it('should set a value using new key', async () => {
+        // Old key should no longer be used to access storage.
+        sessionStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+        sessionStorageMock
+          .expects('setItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+
+        // Internal implementation of storage.set should clear storage value with old key if present.
+        sessionStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .once();
+        sessionStorageMock
+          .expects('setItem')
+          .withExactArgs(
+            'subscribe.google.com:baseKey:pubId',
+            'newValue_newKey'
+          )
+          .once();
+
+        await storage.set('baseKey', 'newValue_newKey');
+
+        expect(await storage.get('baseKey')).to.equal('newValue_newKey');
+      });
+
+      it('should remove a value using new key', async () => {
+        sessionStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .once();
+
+        await storage.remove('baseKey');
+
+        sessionStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
+        sessionStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
 
         expect(await storage.get('baseKey')).to.be.null;
       });
@@ -213,7 +370,7 @@ describes.realWin('Storage', (env) => {
         localStorageMock.expects('getItem').never();
         localStorageMock.expects('setItem').never();
         Object.defineProperty(win, 'localStorage', {value: null});
-        storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        await storage.set('baseKey', 'one', /* useLocalStorage */ true);
 
         expect(
           await storage.get('baseKey', /* useLocalStorage */ true)
@@ -224,15 +381,15 @@ describes.realWin('Storage', (env) => {
         localStorageMock.expects('getItem').never();
         localStorageMock.expects('removeItem').never();
         Object.defineProperty(win, 'localStorage', {value: null});
-        storage.set('baseKey', 'one', /* useLocalStorage */ true);
-        storage.remove('baseKey', /* useLocalStorage */ true);
+        await storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        await storage.remove('baseKey', /* useLocalStorage */ true);
 
         expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
           .null;
       });
     });
 
-    describe('no value in new key', () => {
+    describe('no value for new key', () => {
       beforeEach(() => {
         localStorageMock
           .expects('getItem')
@@ -295,7 +452,7 @@ describes.realWin('Storage', (env) => {
           .expects('setItem')
           .withExactArgs('subscribe.google.com:baseKey', 'one')
           .once();
-        storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        await storage.set('baseKey', 'one', /* useLocalStorage */ true);
 
         expect(
           await storage.get('baseKey', /* useLocalStorage */ true)
@@ -308,7 +465,7 @@ describes.realWin('Storage', (env) => {
           .withExactArgs('subscribe.google.com:baseKey', 'one')
           .throws(new Error('intentional'))
           .once();
-        storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        await storage.set('baseKey', 'one', /* useLocalStorage */ true);
 
         expect(
           await storage.get('baseKey', /* useLocalStorage */ true)
@@ -316,7 +473,7 @@ describes.realWin('Storage', (env) => {
       });
 
       it('should remove a value', async () => {
-        storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        await storage.set('baseKey', 'one', /* useLocalStorage */ true);
         localStorageMock
           .expects('getItem')
           .withExactArgs('subscribe.google.com:baseKey')
@@ -326,7 +483,7 @@ describes.realWin('Storage', (env) => {
           .expects('removeItem')
           .withExactArgs('subscribe.google.com:baseKey')
           .once();
-        storage.remove('baseKey', /* useLocalStorage */ true);
+        await storage.remove('baseKey', /* useLocalStorage */ true);
 
         expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
           .null;
@@ -343,8 +500,183 @@ describes.realWin('Storage', (env) => {
           .withExactArgs('subscribe.google.com:baseKey')
           .returns(null)
           .once();
-        storage.set('baseKey', 'one', /* useLocalStorage */ true);
-        storage.remove('baseKey', /* useLocalStorage */ true);
+        await storage.set('baseKey', 'one', /* useLocalStorage */ true);
+        await storage.remove('baseKey', /* useLocalStorage */ true);
+
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
+    });
+
+    describe('with value present for new key', () => {
+      beforeEach(() => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns('originalValue_newKey')
+          .once();
+      });
+
+      it('should return value using new key', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('originalValue_newKey');
+      });
+
+      it('should return cached value from the storage', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('originalValue_newKey');
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('originalValue_newKey');
+      });
+
+      it('should set a value using new key', async () => {
+        // Old key should no longer be used to access storage.
+        localStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+        localStorageMock
+          .expects('setItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+
+        // Internal implementation of storage.set should clear storage value with old key if present.
+        localStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .once();
+        localStorageMock
+          .expects('setItem')
+          .withExactArgs(
+            'subscribe.google.com:baseKey:pubId',
+            'newValue_newKey'
+          )
+          .once();
+
+        await storage.set(
+          'baseKey',
+          'newValue_newKey',
+          /* useLocalStorage */ true
+        );
+
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('newValue_newKey');
+      });
+
+      it('should remove a value using new key', async () => {
+        localStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .once();
+
+        await storage.remove('baseKey', /* useLocalStorage */ true);
+
+        localStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
+        localStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
+
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
+    });
+
+    describe('no value for new key but experiment enabled', () => {
+      beforeEach(() => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
+        setExperimentsStringForTesting(
+          ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
+        );
+      });
+
+      it('should return null value if not in the storage', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
+
+        expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
+          .null;
+      });
+
+      it('should set a value using new key', async () => {
+        // Old key should no longer be used to access storage.
+        localStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+        localStorageMock
+          .expects('setItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .never();
+
+        // Internal implementation of storage.set should clear storage value with old key if present.
+        localStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey')
+          .once();
+        localStorageMock
+          .expects('setItem')
+          .withExactArgs(
+            'subscribe.google.com:baseKey:pubId',
+            'newValue_newKey'
+          )
+          .once();
+
+        await storage.set(
+          'baseKey',
+          'newValue_newKey',
+          /* useLocalStorage */ true
+        );
+
+        expect(
+          await storage.get('baseKey', /* useLocalStorage */ true)
+        ).to.equal('newValue_newKey');
+      });
+
+      it('should remove a value using new key', async () => {
+        localStorageMock
+          .expects('removeItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .once();
+
+        await storage.remove('baseKey', /* useLocalStorage */ true);
+
+        localStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
+        localStorageMock
+          .expects('getItem')
+          .withArgs('subscribe.google.com:baseKey')
+          .returns(null)
+          .once();
 
         expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
           .null;
