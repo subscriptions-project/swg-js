@@ -24,7 +24,10 @@ module.exports = {
       .pause(3000)
       .assert.screenshotIdenticalToBaseline('html', 'enterprise-subscription')
       .viewSubscriptionOffers()
-      .assert.textContains('@subscriptionHeader', 'RRM:E Subscriptions Demo')
+      .assert.textContains(
+        '@subscriptionHeader',
+        'Enterprise Subscription E2E Test Pub'
+      )
       .subscribe()
       .checkPayment()
       .end();

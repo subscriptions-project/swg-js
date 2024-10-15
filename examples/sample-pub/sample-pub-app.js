@@ -67,13 +67,13 @@ const MAX_METER = 3;
  */
 const CONFIGS = {
   'rrme-subscriptions-prod': {
-    publicationId: 'CAow5rTUCw',
+    publicationId: 'CAowo5_ZCw',
   },
   'rrme-subscriptions-qual': {
     publicationId: 'CAowwuyEAQ',
   },
   'rrme-contributions-prod': {
-    publicationId: 'CAowtrTUCw',
+    publicationId: 'CAowpJ_ZCw',
   },
   'rrme-contributions-qual': {
     publicationId: 'CAow-Jp5',
