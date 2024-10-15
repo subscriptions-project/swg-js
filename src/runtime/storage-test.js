@@ -17,6 +17,7 @@
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
 import {Storage, pruneTimestamps} from './storage';
+import {StorageKeysWithoutPublicationIdSuffix} from '../utils/constants';
 import {setExperimentsStringForTesting} from '../runtime/experiments';
 
 class WebStorageStub {
@@ -273,17 +274,17 @@ describes.realWin('Storage', (env) => {
 
     describe('no value for new key but experiment enabled', () => {
       beforeEach(() => {
-        sessionStorageMock
-          .expects('getItem')
-          .withExactArgs('subscribe.google.com:baseKey:pubId')
-          .returns(null)
-          .once();
         setExperimentsStringForTesting(
           ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
         );
       });
 
       it('should return null value if not in the storage', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
         sessionStorageMock
           .expects('getItem')
           .withExactArgs('subscribe.google.com:baseKey')
@@ -294,6 +295,11 @@ describes.realWin('Storage', (env) => {
       });
 
       it('should set a value using new key', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
         // Old key should no longer be used to access storage.
         sessionStorageMock
           .expects('getItem')
@@ -342,6 +348,28 @@ describes.realWin('Storage', (env) => {
           .once();
 
         expect(await storage.get('baseKey')).to.be.null;
+      });
+
+      it('should use old key if the baseKey belongs to StorageKeysWithoutPublicationIdSuffix', async () => {
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs(
+            `subscribe.google.com:${StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES}`
+          )
+          .returns(null)
+          .once();
+        sessionStorageMock
+          .expects('getItem')
+          .withExactArgs(
+            `subscribe.google.com:${StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES}:pubId`
+          )
+          .never();
+
+        expect(
+          await storage.get(
+            StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES
+          )
+        ).to.be.null;
       });
     });
   });
@@ -603,17 +631,17 @@ describes.realWin('Storage', (env) => {
 
     describe('no value for new key but experiment enabled', () => {
       beforeEach(() => {
-        localStorageMock
-          .expects('getItem')
-          .withExactArgs('subscribe.google.com:baseKey:pubId')
-          .returns(null)
-          .once();
         setExperimentsStringForTesting(
           ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
         );
       });
 
       it('should return null value if not in the storage', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
         localStorageMock
           .expects('getItem')
           .withExactArgs('subscribe.google.com:baseKey')
@@ -625,6 +653,11 @@ describes.realWin('Storage', (env) => {
       });
 
       it('should set a value using new key', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs('subscribe.google.com:baseKey:pubId')
+          .returns(null)
+          .once();
         // Old key should no longer be used to access storage.
         localStorageMock
           .expects('getItem')
@@ -680,6 +713,29 @@ describes.realWin('Storage', (env) => {
 
         expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
           .null;
+      });
+
+      it('should use old key if the baseKey belongs to StorageKeysWithoutPublicationIdSuffix', async () => {
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs(
+            `subscribe.google.com:${StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES}`
+          )
+          .returns(null)
+          .once();
+        localStorageMock
+          .expects('getItem')
+          .withExactArgs(
+            `subscribe.google.com:${StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES}:pubId`
+          )
+          .never();
+
+        expect(
+          await storage.get(
+            StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES,
+            /* useLocalStorage */ true
+          )
+        ).to.be.null;
       });
     });
   });

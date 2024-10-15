@@ -55,7 +55,7 @@ export class Storage {
 
   private getInternal_(
     finalKey: string,
-    useLocalStorage = false
+    useLocalStorage: boolean
   ): Promise<string | null> {
     if (!this.values_[finalKey]) {
       this.values_[finalKey] = new Promise((resolve) => {
@@ -107,7 +107,7 @@ export class Storage {
   private setInternal_(
     finalKey: string,
     value: string,
-    useLocalStorage = false
+    useLocalStorage: boolean
   ): Promise<void> {
     this.values_[finalKey] = Promise.resolve(value);
     return new Promise((resolve) => {
@@ -147,7 +147,7 @@ export class Storage {
 
   private removeInternal_(
     finalKey: string,
-    useLocalStorage = false
+    useLocalStorage: boolean
   ): Promise<void> {
     delete this.values_[finalKey];
     return new Promise((resolve) => {
