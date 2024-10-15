@@ -55,7 +55,7 @@ export class Storage {
     }
   }
 
-  getInternal_(
+  private getInternal_(
     finalKey: string,
     useLocalStorage = false
   ): Promise<string | null> {
@@ -106,7 +106,7 @@ export class Storage {
     }
   }
 
-  setInternal_(
+  private setInternal_(
     finalKey: string,
     value: string,
     useLocalStorage = false
@@ -147,7 +147,10 @@ export class Storage {
     return this.removeInternal_(oldKey, useLocalStorage);
   }
 
-  removeInternal_(finalKey: string, useLocalStorage = false): Promise<void> {
+  private removeInternal_(
+    finalKey: string,
+    useLocalStorage = false
+  ): Promise<void> {
     delete this.values_[finalKey];
     return new Promise((resolve) => {
       const storage = useLocalStorage
@@ -237,14 +240,14 @@ export class Storage {
    * It should be replaced with getStorageKeyWithPublicationId unless intended.
    * See more details in go/sut-pub-id-validation-1-pager.
    */
-  getStorageKeyWithoutPublicationId(baseKey: string): string {
+  private getStorageKeyWithoutPublicationId(baseKey: string): string {
     return PREFIX + ':' + baseKey;
   }
 
   /**
    * Returns a storage key with a swg prefix and a publication_id suffix.
    */
-  getStorageKeyMaybeWithPublicationId(baseKey: string): string {
+  private getStorageKeyMaybeWithPublicationId(baseKey: string): string {
     if (
       Object.values(StorageKeysWithoutPublicationIdSuffix).includes(baseKey)
     ) {
