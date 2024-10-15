@@ -350,7 +350,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
           /* isFromUserAction */ false
         );
-      this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     const isPpsEligible = request.getStorePpsInLocalStorage();

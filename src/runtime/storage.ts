@@ -20,9 +20,7 @@ import {StorageKeysWithoutPublicationIdSuffix} from '../utils/constants';
 import {isExperimentOn} from './experiments';
 
 const PREFIX = 'subscribe.google.com';
-const STORAGE_DELIMITER = ',';
 const WEEK_IN_MILLIS = 604800000;
-const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 
 /**
  * This class is responsible for the storage of data in session storage. If
@@ -43,9 +41,9 @@ export class Storage {
   async get(baseKey: string, useLocalStorage = false): Promise<string | null> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKeyWithoutPublicationId(baseKey);
+    const oldKey = this.getStorageKeyWithoutPublicationId_(baseKey);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyMaybeWithPublicationId(baseKey);
+    const newKey = this.getStorageKeyMaybeWithPublicationId_(baseKey);
 
     const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
     if (valueWithNewKey !== null) {
@@ -86,9 +84,9 @@ export class Storage {
   ): Promise<void> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKeyWithoutPublicationId(baseKey);
+    const oldKey = this.getStorageKeyWithoutPublicationId_(baseKey);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyMaybeWithPublicationId(baseKey);
+    const newKey = this.getStorageKeyMaybeWithPublicationId_(baseKey);
     const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
 
     if (
@@ -130,9 +128,9 @@ export class Storage {
   async remove(baseKey: string, useLocalStorage = false): Promise<void> {
     // The old version of storage key without publication identifier.
     // To be deprecaed in favor of the new version of key.
-    const oldKey = this.getStorageKeyWithoutPublicationId(baseKey);
+    const oldKey = this.getStorageKeyWithoutPublicationId_(baseKey);
     // The new version of storage key with publication identifier.
-    const newKey = this.getStorageKeyMaybeWithPublicationId(baseKey);
+    const newKey = this.getStorageKeyMaybeWithPublicationId_(baseKey);
     const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
 
     if (
@@ -168,90 +166,22 @@ export class Storage {
   }
 
   /**
-   * Stores the current timestamp to local storage, under the storageKey provided.
-   * Removes timestamps older than a week in the process. To be deprecated in
-   * favor of new storeFrequencyCappingEvent with new frequency capping flow.
-   */
-  async storeEvent(storageKey: string): Promise<void> {
-    const timestamps = await this.getEvent(storageKey);
-    timestamps.push(Date.now());
-    const valueToStore = this.serializeTimestamps_(timestamps);
-    this.set(storageKey, valueToStore, /* useLocalStorage */ true);
-  }
-
-  /**
-   * Retrieves timestamps from local storage, under the storageKey provided.
-   * Filters out timestamps older than a week. To be deprecated in favor of new
-   * getFrequencyCappingEvent with new frequency capping flow.
-   */
-  async getEvent(storageKey: string): Promise<number[]> {
-    const value = await this.get(storageKey, /* useLocalStorage */ true);
-    return pruneTimestamps(this.deserializeTimestamps_(value));
-  }
-  /**
-   * Stores the current timestamp to local storage, under the storageKey
-   * provided for the frequency capping flow. To replace the legacy storeEvent
-   * fn when the legacy triggering flow is deprecated. Prunes timestamps
-   * older than two weeks in the process.
-   */
-  async storeFrequencyCappingEvent(storageKey: string): Promise<void> {
-    const timestamps = await this.getFrequencyCappingEvent(storageKey);
-    timestamps.push(Date.now());
-    const valueToStore = this.serializeTimestamps_(timestamps);
-    this.set(storageKey, valueToStore, /* useLocalStorage */ true);
-  }
-
-  /**
-   * Retrieves timestamps from local storage, under the storageKey provided
-   * for the frequency capping flow. To replace the legacy getEvent fn when the
-   * legacy triggering flow is deprecated. Prunes timestamps older than two
-   * weeks. Based on product requirement for maximum freqency cap support.
-   */
-  async getFrequencyCappingEvent(storageKey: string): Promise<number[]> {
-    const value = await this.get(storageKey, /* useLocalStorage */ true);
-    return pruneTimestamps(
-      this.deserializeTimestamps_(value),
-      TWO_WEEKS_IN_MILLIS
-    );
-  }
-
-  /**
-   * Converts a stored series of timestamps to an array of numbers.
-   */
-  deserializeTimestamps_(value: string | null): number[] {
-    if (value === null) {
-      return [];
-    }
-    return value
-      .split(STORAGE_DELIMITER)
-      .map((dateStr) => parseInt(dateStr, 10));
-  }
-
-  /**
-   * Converts an array of numbers to a concatenated string of timestamps for
-   * storage.
-   */
-  serializeTimestamps_(timestamps: number[]): string {
-    return timestamps.join(STORAGE_DELIMITER);
-  }
-
-  /**
    * Returns a storage key with a swg prefix but without a publication_id suffix.
    * It should be replaced with getStorageKeyWithPublicationId unless intended.
    * See more details in go/sut-pub-id-validation-1-pager.
    */
-  private getStorageKeyWithoutPublicationId(baseKey: string): string {
+  private getStorageKeyWithoutPublicationId_(baseKey: string): string {
     return PREFIX + ':' + baseKey;
   }
 
   /**
    * Returns a storage key with a swg prefix and a publication_id suffix.
    */
-  private getStorageKeyMaybeWithPublicationId(baseKey: string): string {
+  private getStorageKeyMaybeWithPublicationId_(baseKey: string): string {
     if (
       Object.values(StorageKeysWithoutPublicationIdSuffix).includes(baseKey)
     ) {
-      return this.getStorageKeyWithoutPublicationId(baseKey);
+      return this.getStorageKeyWithoutPublicationId_(baseKey);
     }
     const publicationId = this.pageConfig_.getPublicationId();
     return PREFIX + ':' + baseKey + ':' + publicationId;
