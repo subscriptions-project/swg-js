@@ -16,7 +16,7 @@
 
 import {ExperimentFlags} from './experiment-flags';
 import {PageConfig} from '../model/page-config';
-import {Storage} from './storage';
+import {Storage, pruneTimestamps} from './storage';
 import {setExperimentsStringForTesting} from '../runtime/experiments';
 
 class WebStorageStub {
@@ -681,6 +681,27 @@ describes.realWin('Storage', (env) => {
         expect(await storage.get('baseKey', /* useLocalStorage */ true)).to.be
           .null;
       });
+    });
+  });
+
+  describe('pruneTimestamps', () => {
+    beforeEach(() => {
+      sandbox.stub(Date, 'now').returns(3500);
+    });
+
+    function arraysAreEqual(arr1, arr2) {
+      if (arr1.length !== arr2.length) {
+        return false;
+      }
+      return arr1.every((value, index) => value === arr2[index]);
+    }
+
+    it('should prune timestamps', async () => {
+      const result = pruneTimestamps(
+        [1000, 2000, 3000, 4000],
+        /* timestampLifespan= */ 1000
+      );
+      expect(arraysAreEqual(result, [3000, 4000])).to.be.true;
     });
   });
 });
