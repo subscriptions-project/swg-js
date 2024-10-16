@@ -344,9 +344,7 @@ export class EntitlementsManager {
       message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
     }
 
-    let url = `/publication/'${encodeURIComponent(
-      this.publicationId_
-    )}/article`;
+    let url = `/publication/${encodeURIComponent(this.publicationId_)}/article`;
     url = addDevModeParamsToUrl(this.win_.location, url);
 
     // Set encoded params, once.
@@ -766,9 +764,7 @@ export class EntitlementsManager {
       /*useLocalStorage=*/ false
     );
 
-    let url = `/publication/'${encodeURIComponent(
-      this.publicationId_
-    )}/article`;
+    let url = `/publication/${encodeURIComponent(this.publicationId_)}/article`;
 
     url = addDevModeParamsToUrl(this.win_.location, url);
 
@@ -935,7 +931,7 @@ export class EntitlementsManager {
       .logSwgEvent(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
     const json = await this.fetcher_.fetchCredentialedJson(url);
     this.article_ = json as Article;
-    const response = this.article_['entitlements'] as Entitlements;
+    const response = this.article_['entitlements'] || {};
 
     // Log errors.
     const errorMessages = (json as {errorMessages?: string[]})['errorMessages'];

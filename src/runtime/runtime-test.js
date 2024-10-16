@@ -1040,13 +1040,13 @@ describes.realWin('ConfiguredRuntime', (env) => {
     );
     runtime = new ConfiguredRuntime(win, config);
 
-    expect(entitlementsManagerSpy.getCall(0).args[5]).to.be.false;
+    expect(entitlementsManagerSpy.getCall(0).args[4]).to.be.false;
 
     runtime = new ConfiguredRuntime(win, config, {
       enableDefaultMeteringHandler: true,
     });
 
-    expect(entitlementsManagerSpy.getCall(1).args[5]).to.be.true;
+    expect(entitlementsManagerSpy.getCall(1).args[4]).to.be.true;
   });
 
   describe('while configuring', () => {
