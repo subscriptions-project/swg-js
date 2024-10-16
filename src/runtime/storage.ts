@@ -40,7 +40,7 @@ export class Storage {
 
   async get(baseKey: string, useLocalStorage = false): Promise<string | null> {
     // The old version of storage key without publication identifier.
-    // To be deprecaed in favor of the new version of key.
+    // To be deprecated in favor of the new version of key.
     const oldKey = this.getStorageKeyWithoutPublicationId_(baseKey);
     // The new version of storage key with publication identifier.
     const newKey = this.getStorageKeyMaybeWithPublicationId_(baseKey);
@@ -83,12 +83,14 @@ export class Storage {
     useLocalStorage = false
   ): Promise<void> {
     // The old version of storage key without publication identifier.
-    // To be deprecaed in favor of the new version of key.
+    // To be deprecated in favor of the new version of key.
     const oldKey = this.getStorageKeyWithoutPublicationId_(baseKey);
     // The new version of storage key with publication identifier.
     const newKey = this.getStorageKeyMaybeWithPublicationId_(baseKey);
     const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
 
+    // If a value for the new key already exists, we use the new key even if the
+    // experiment is deactivated in the current session.
     if (
       valueWithNewKey !== null ||
       isExperimentOn(
@@ -96,7 +98,8 @@ export class Storage {
         ExperimentFlags.ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY
       )
     ) {
-      // Remove value stored in the old key for transition from control to experiment treatment.
+      // Remove value stored in the old key for transition from control to
+      // experiment treatment.
       await this.removeInternal_(oldKey, useLocalStorage);
       return this.setInternal_(newKey, value, useLocalStorage);
     } else {
@@ -127,12 +130,14 @@ export class Storage {
 
   async remove(baseKey: string, useLocalStorage = false): Promise<void> {
     // The old version of storage key without publication identifier.
-    // To be deprecaed in favor of the new version of key.
+    // To be deprecated in favor of the new version of key.
     const oldKey = this.getStorageKeyWithoutPublicationId_(baseKey);
     // The new version of storage key with publication identifier.
     const newKey = this.getStorageKeyMaybeWithPublicationId_(baseKey);
     const valueWithNewKey = await this.getInternal_(newKey, useLocalStorage);
 
+    // If a value for the new key already exists, we use the new key even if the
+    // experiment is deactivated in the current session.
     if (
       valueWithNewKey !== null ||
       isExperimentOn(
