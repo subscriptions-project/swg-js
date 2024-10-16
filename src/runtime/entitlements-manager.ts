@@ -34,7 +34,6 @@ import {
   GetEntitlementsParamsExternalDef,
   GetEntitlementsParamsInternalDef,
 } from '../api/subscriptions';
-import {Constants, StorageKeys} from '../utils/constants';
 import {ContentType} from '../api/basic-subscriptions';
 import {Deps} from './deps';
 import {
@@ -51,6 +50,7 @@ import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
+import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
@@ -372,7 +372,7 @@ export class EntitlementsManager {
     }
 
     // Get swgUserToken from local storage
-    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
+    const swgUserToken = await this.storage_.get(StorageKeys.USER_TOKEN, true);
     if (swgUserToken) {
       url = addQueryParam(url, 'sut', swgUserToken);
     }
@@ -565,7 +565,7 @@ export class EntitlementsManager {
    */
   private saveSwgUserToken_(swgUserToken?: string | null): void {
     if (swgUserToken) {
-      this.storage_.set(Constants.USER_TOKEN, swgUserToken, true);
+      this.storage_.set(StorageKeys.USER_TOKEN, swgUserToken, true);
     }
   }
 
@@ -767,11 +767,11 @@ export class EntitlementsManager {
     params?: GetEntitlementsParamsExternalDef
   ): Promise<Entitlements> {
     // Get swgUserToken from local storage
-    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
+    const swgUserToken = await this.storage_.get(StorageKeys.USER_TOKEN, true);
 
     // Get read_time from session storage
     const readTime = await this.storage_.get(
-      Constants.READ_TIME,
+      StorageKeys.READ_TIME,
       /*useLocalStorage=*/ false
     );
 

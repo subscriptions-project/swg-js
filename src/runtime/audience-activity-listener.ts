@@ -20,10 +20,10 @@ import {
 } from '../proto/api_messages';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {Fetcher} from './fetcher';
 import {Storage} from './storage';
+import {StorageKeys} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
 import {serviceUrl} from './services';
 
@@ -86,7 +86,7 @@ export class AudienceActivityEventListener {
     }
 
     // Bail if SUT is unavailable.
-    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
+    const swgUserToken = await this.storage_.get(StorageKeys.USER_TOKEN, true);
     if (!swgUserToken) {
       return;
     }

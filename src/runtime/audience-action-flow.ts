@@ -36,7 +36,11 @@ import {
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
-import {Constants, StorageKeys} from '../utils/constants';
+import {
+  Constants,
+  StorageKeys,
+  StorageKeysWithoutPublicationIdSuffix,
+} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
@@ -200,7 +204,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
-      this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
+      this.deps_.storage().set(StorageKeys.USER_TOKEN, userToken, true);
     }
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
@@ -226,7 +230,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const now = Date.now().toString();
     this.deps_
       .storage()
-      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
   }
 
@@ -346,7 +350,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
           /* isFromUserAction */ false
         );
-      this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     const isPpsEligible = request.getStorePpsInLocalStorage();
@@ -389,7 +392,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private async storePpsValuesFromSurveyAnswers(
     request: SurveyDataTransferRequest
   ): Promise<void> {
-    const iabAudienceKey = StorageKeys.PPS_TAXONOMIES;
+    const iabAudienceKey = StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES;
     // PPS value field is optional and category may not be populated
     // in accordance to IAB taxonomies.
     const ppsConfigParams = request

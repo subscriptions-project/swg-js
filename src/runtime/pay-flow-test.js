@@ -23,7 +23,6 @@ import {
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ClientConfig} from '../model/client-config';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
 import {Entitlements} from '../api/entitlements';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
@@ -43,6 +42,7 @@ import {
   SubscriptionFlows,
 } from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
+import {StorageKeys} from '../utils/constants';
 import {UserData} from '../api/user-data';
 import {tick} from '../../test/tick';
 
@@ -864,7 +864,9 @@ describes.realWin('PayCompleteFlow', (env) => {
       )
       .resolves(port);
 
-    storageMock.expects('set').withExactArgs(Constants.USER_TOKEN, '123', true);
+    storageMock
+      .expects('set')
+      .withExactArgs(StorageKeys.USER_TOKEN, '123', true);
 
     await flow.start(response);
     await flow.readyPromise_;

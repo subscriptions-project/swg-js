@@ -16,6 +16,14 @@
 
 const Constants = {
   /**
+   * IAB Audience taxonomy version for logging PPS values to localStorage.
+   * Value mapped to googletag.enums.Taxonomy.IAB_AUDIENCE_1_1.
+   */
+  PPS_AUDIENCE_TAXONOMY_KEY: 1,
+};
+
+const StorageKeys = {
+  /**
    * Local storage key for swgUserToken.
    */
   USER_TOKEN: 'USER_TOKEN',
@@ -26,23 +34,9 @@ const Constants = {
   READ_TIME: 'READ_TIME',
 
   /**
-   * IAB Audience taxonomy version for logging PPS values to localStorage.
-   * Value mapped to googletag.enums.Taxonomy.IAB_AUDIENCE_1_1.
-   */
-  PPS_AUDIENCE_TAXONOMY_KEY: 1,
-};
-
-const StorageKeys = {
-  /**
    * Local storage key for cacheable entitlements.
    */
   ENTITLEMENTS: 'ents',
-
-  /**
-   * Local storage key for IAB Audience Taxonomy values. It must take on the
-   * 'values' as defined by the PPS GPT API.
-   */
-  PPS_TAXONOMIES: 'ppstaxonomies',
 
   /**
    * Local storage key for whether credential isReadyToPay.
@@ -75,4 +69,13 @@ const StorageKeys = {
   TIMESTAMPS: 'tsp',
 };
 
-export {Constants, StorageKeys};
+const StorageKeysWithoutPublicationIdSuffix = {
+  /**
+   * Local storage key for IAB Audience Taxonomy values. It must take on the
+   * 'values' as defined by the PPS GPT API.
+   * In order to maintain legacy code snippet that's provided to publishers without publicationId suffix, the stroage key should remain as "subscribe.google.com:ppstaxonomies".
+   */
+  PPS_TAXONOMIES: 'ppstaxonomies',
+};
+
+export {Constants, StorageKeys, StorageKeysWithoutPublicationIdSuffix};

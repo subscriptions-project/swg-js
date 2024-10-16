@@ -32,7 +32,6 @@ import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlements} from '../api/entitlements';
@@ -50,6 +49,7 @@ import {
   WindowOpenMode,
 } from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
+import {StorageKeys} from '../utils/constants';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString} from '../utils/json';
@@ -321,7 +321,7 @@ export class PayCompleteFlow {
       if (response.swgUserToken) {
         this.deps_
           .storage()
-          .set(Constants.USER_TOKEN, response.swgUserToken, true);
+          .set(StorageKeys.USER_TOKEN, response.swgUserToken, true);
       }
     } else {
       args['loginHint'] = response.userData?.email;
@@ -378,7 +378,7 @@ export class PayCompleteFlow {
     const now = Date.now().toString();
     this.deps_
       .storage()
-      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
 
     this.deps_.entitlementsManager().unblockNextNotification();
 

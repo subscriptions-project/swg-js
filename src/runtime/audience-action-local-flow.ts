@@ -30,13 +30,13 @@ import {
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {EntitlementsManager} from './entitlements-manager';
 import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
@@ -688,7 +688,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
     const swgUserToken = await this.deps_
       .storage()
-      .get(Constants.USER_TOKEN, true);
+      .get(StorageKeys.USER_TOKEN, true);
     const queryParams = [
       // TODO: mhkawano - check and error out if swgUserToken is null
       ['sut', swgUserToken!],
@@ -711,12 +711,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       if (response.swgUserToken) {
         await this.deps_
           .storage()
-          .set(Constants.USER_TOKEN, response.swgUserToken, true);
+          .set(StorageKeys.USER_TOKEN, response.swgUserToken, true);
       }
       const now = Date.now().toString();
       await this.deps_
         .storage()
-        .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+        .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
       await this.entitlementsManager_.getEntitlements();
     }
     // TODO: mhkawano - else log error

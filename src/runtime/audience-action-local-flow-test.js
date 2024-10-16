@@ -19,6 +19,7 @@ import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
+import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {tick} from '../../test/tick';
 
@@ -62,6 +63,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
   let runtime;
   let eventManager;
   let entitlementsManager;
+  let storageMock;
   let DEFAULT_PARAMS;
 
   beforeEach(() => {
@@ -75,9 +77,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       /* config= */ undefined,
       /* clientOptions= */ {}
     );
-    env.win.localStorage.getItem = () => 'abc';
-    env.win.localStorage.setItem = sandbox.spy();
-    env.win.sessionStorage.setItem = sandbox.spy();
     eventManager = {
       logSwgEvent: sandbox.spy(),
     };
@@ -89,6 +88,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       parseArticleExperimentConfigFlags: (_) => articleExperimentFlags,
     };
     runtime.entitlementsManager = () => entitlementsManager;
+    storageMock = sandbox.mock(runtime.storage());
 
     DEFAULT_PARAMS = {
       action: 'TYPE_REWARDED_AD',
@@ -100,6 +100,10 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       onResult: sandbox.spy(),
       calledManually: false,
     };
+  });
+
+  afterEach(() => {
+    storageMock.verify();
   });
 
   describe('start', () => {
@@ -695,6 +699,14 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('renders thanks with rewardedSlotGranted', async () => {
+        storageMock
+          .expects('get')
+          .withArgs(StorageKeys.USER_TOKEN)
+          .resolves('abc')
+          .exactly(1);
+        storageMock.expects('set').withArgs(StorageKeys.USER_TOKEN).exactly(1);
+        storageMock.expects('set').withArgs(StorageKeys.READ_TIME).exactly(1);
+
         await renderAndAssertRewardedAd(DEFAULT_PARAMS, DEFAULT_CONFIG);
 
         const wrapper = await callReadyAndReturnWrapper();
@@ -720,16 +732,16 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         expect(entitlementsManager.clear).to.be.called;
         expect(entitlementsManager.getEntitlements).to.be.called;
-        expect(env.win.localStorage.setItem).to.be.calledWith(
-          'subscribe.google.com:USER_TOKEN',
-          'xyz'
-        );
-        expect(env.win.sessionStorage.setItem).to.be.calledWith(
-          'subscribe.google.com:READ_TIME'
-        );
       });
 
       it('does not update entitlements when complete fails', async () => {
+        storageMock
+          .expects('get')
+          .withArgs(StorageKeys.USER_TOKEN)
+          .resolves('abc')
+          .exactly(1);
+        storageMock.expects('set').never();
+
         await renderAndAssertRewardedAd(
           DEFAULT_PARAMS,
           DEFAULT_CONFIG,
@@ -754,11 +766,17 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         expect(entitlementsManager.clear).to.not.be.called;
         expect(entitlementsManager.getEntitlements).to.not.be.called;
-        expect(env.win.localStorage.setItem).to.not.be.called;
-        expect(env.win.sessionStorage.setItem).to.not.be.called;
       });
 
       it('does not update token if non returned', async () => {
+        storageMock
+          .expects('get')
+          .withArgs(StorageKeys.USER_TOKEN)
+          .resolves('abc')
+          .exactly(1);
+        storageMock.expects('set').withArgs(StorageKeys.USER_TOKEN).never();
+        storageMock.expects('set').withArgs(StorageKeys.READ_TIME).exactly(1);
+
         await renderAndAssertRewardedAd(
           DEFAULT_PARAMS,
           DEFAULT_CONFIG,
@@ -782,10 +800,6 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         expect(entitlementsManager.clear).to.be.called;
         expect(entitlementsManager.getEntitlements).to.be.called;
-        expect(env.win.localStorage.setItem).to.not.be.called;
-        expect(env.win.sessionStorage.setItem).to.be.calledWith(
-          'subscribe.google.com:READ_TIME'
-        );
       });
 
       it('closes on thanks', async () => {
@@ -1235,6 +1249,14 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
       });
 
       it('submit event triggers completion event', async () => {
+        storageMock
+          .expects('get')
+          .withArgs(StorageKeys.USER_TOKEN)
+          .resolves('abc')
+          .atLeast(0);
+        storageMock.expects('set').withArgs(StorageKeys.USER_TOKEN).exactly(1);
+        storageMock.expects('set').withArgs(StorageKeys.READ_TIME).exactly(1);
+
         const state = await renderNewsletterPrompt(
           NEWSLETTER_PARAMS,
           NEWSLETTER_CONFIG
