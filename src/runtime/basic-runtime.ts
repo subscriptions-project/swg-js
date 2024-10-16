@@ -332,7 +332,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       configPromise?: Promise<void>;
       enableDefaultMeteringHandler?: boolean;
       enableGoogleAnalytics?: boolean;
-      useArticleEndpoint?: boolean;
     } = {},
     config?: Config,
     clientOptions?: ClientOptions,
@@ -345,7 +344,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     integr.configPromise ||= Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
     integr.enableGoogleAnalytics = true;
-    integr.useArticleEndpoint = true;
 
     this.fetcher_ = integr.fetcher;
 

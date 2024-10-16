@@ -368,21 +368,6 @@ describes.realWin('Runtime', (env) => {
       expect(analytics.readyForLogging_).to.be.true;
     });
 
-    it('sets article endpoint on by default', async () => {
-      runtime = new Runtime(win);
-      const configuredRuntime = await runtime.configured_(true);
-      const entitlementsManager = configuredRuntime.entitlementsManager();
-      expect(entitlementsManager.useArticleEndpoint_).to.be.true;
-    });
-
-    it('sets useArticleEndpoint from config', async () => {
-      runtime.configure({useArticleEndpoint: false});
-      runtime.init('pub2');
-      const configuredRuntime = await runtime.configured_(true);
-      const entitlementsManager = configuredRuntime.entitlementsManager();
-      expect(entitlementsManager.useArticleEndpoint_).to.be.false;
-    });
-
     it('sets paySwgVersion from config', async () => {
       runtime.configure({paySwgVersion: '123'});
       runtime.init('pub2');
@@ -875,9 +860,7 @@ describes.realWin('Runtime', (env) => {
       sandbox
         .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
         .callsFake(() => Promise.resolve(article));
-      runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
-        useArticleEndpoint: true,
-      });
+      runtime = new ConfiguredRuntime(new GlobalDoc(win), config);
 
       await runtime.getEntitlements();
 
@@ -891,9 +874,7 @@ describes.realWin('Runtime', (env) => {
       const xhrFetchStub = sandbox
         .stub(XhrFetcher.prototype, 'fetchCredentialedJson')
         .callsFake(() => Promise.resolve(article));
-      runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
-        useArticleEndpoint: true,
-      });
+      runtime = new ConfiguredRuntime(new GlobalDoc(win), config);
       await runtime.getEntitlements();
       expect(xhrFetchStub).to.be.calledOnce;
     });
@@ -910,7 +891,6 @@ describes.realWin('Runtime', (env) => {
       );
       runtime = new ConfiguredRuntime(new GlobalDoc(win), config, {
         fetcher: otherFetcher,
-        useArticleEndpoint: true,
       });
 
       await runtime.getEntitlements();
@@ -1398,13 +1378,6 @@ describes.realWin('ConfiguredRuntime', (env) => {
           runtime.configure({skipAccountCreationScreen: 'true'});
         expect(mistake).to.throw(
           'skipAccountCreationScreen must be a boolean, type: string'
-        );
-      });
-
-      it('throws on unknown useArticleEndpoint value', () => {
-        const mistake = () => runtime.configure({useArticleEndpoint: 'true'});
-        expect(mistake).to.throw(
-          'useArticleEndpoint must be a boolean, type: string'
         );
       });
 

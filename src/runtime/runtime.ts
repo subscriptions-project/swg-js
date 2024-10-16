@@ -190,7 +190,7 @@ export class Runtime implements SubscriptionsInterface {
 
   private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
-  private readonly config_: Config;
+  private readonly config_: Config = {};
   private readonly configuredRuntimePromise_: Promise<ConfiguredRuntime>;
   private readonly buttonApi_: ButtonApi;
 
@@ -198,10 +198,6 @@ export class Runtime implements SubscriptionsInterface {
     this.creationTimestamp_ = Date.now();
 
     this.doc_ = resolveDoc(win_);
-
-    this.config_ = {
-      useArticleEndpoint: true,
-    };
 
     this.configuredRuntimePromise_ = new Promise((resolve) => {
       this.configuredRuntimeResolver_ = resolve;
@@ -250,7 +246,6 @@ export class Runtime implements SubscriptionsInterface {
       pageConfig,
       /* integr */ {
         configPromise: this.configuredRuntimePromise_.then(),
-        useArticleEndpoint: this.config_.useArticleEndpoint || false,
       },
       this.config_,
       {
@@ -636,7 +631,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           configPromise?: Promise<void>;
           enableGoogleAnalytics?: boolean;
           enableDefaultMeteringHandler?: boolean;
-          useArticleEndpoint?: boolean;
         }
       | undefined,
     config?: Config,
@@ -697,7 +691,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       this.pageConfig_,
       this.fetcher_,
       this, // See note about 'this' above
-      integr.useArticleEndpoint || false,
       integr.enableDefaultMeteringHandler || false
     );
 
@@ -861,12 +854,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
             !(typeof value === 'string' && value != '')
           ) {
             error = 'publisherProvidedId must be a string, value: ' + value;
-          }
-          break;
-        case 'useArticleEndpoint':
-          if (!isBoolean(value)) {
-            error =
-              'useArticleEndpoint must be a boolean, type: ' + typeof value;
           }
           break;
         case 'paySwgVersion':

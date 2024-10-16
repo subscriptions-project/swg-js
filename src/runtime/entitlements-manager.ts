@@ -95,12 +95,11 @@ export class EntitlementsManager {
   private readonly publicationId_: string;
   private readonly storage_: Storage;
 
-  private action_: string;
   private article_: Article | null = null;
   private blockNextNotification_ = false;
   private blockNextToast_ = false;
   private enableMeteredByGoogle_ = false;
-  private encodedParamName_: string;
+
   /**
    * String containing encoded metering parameters currently.
    * We may expand this to contain more information in the future.
@@ -120,18 +119,11 @@ export class EntitlementsManager {
     private readonly pageConfig_: PageConfig,
     private readonly fetcher_: Fetcher,
     private readonly deps_: Deps,
-    private readonly useArticleEndpoint_: boolean,
     private readonly enableDefaultMeteringHandler_: boolean
   ) {
     this.publicationId_ = this.pageConfig_.getPublicationId();
 
     this.jwtHelper_ = new JwtHelper();
-
-    this.encodedParamName_ = useArticleEndpoint_
-      ? 'encodedEntitlementsParams'
-      : 'encodedParams';
-
-    this.action_ = useArticleEndpoint_ ? '/article' : '/entitlements';
 
     this.storage_ = deps_.storage();
 
@@ -352,8 +344,9 @@ export class EntitlementsManager {
       message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
     }
 
-    let url =
-      '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
+    let url = `/publication/'${encodeURIComponent(
+      this.publicationId_
+    )}/article`;
     url = addDevModeParamsToUrl(this.win_.location, url);
 
     // Set encoded params, once.
@@ -376,7 +369,7 @@ export class EntitlementsManager {
     if (swgUserToken) {
       url = addQueryParam(url, 'sut', swgUserToken);
     }
-    url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
+    url = addQueryParam(url, 'encodedEntitlementsParams', this.encodedParams_);
 
     await this.fetcher_.sendPost(serviceUrl(url), message);
   }
@@ -430,9 +423,7 @@ export class EntitlementsManager {
    * will be accessible from here and should resolve a null promise otherwise.
    */
   async getArticle(): Promise<Article | null> {
-    // The base manager only fetches from the entitlements endpoint, which does
-    // not contain an Article.
-    if (!this.useArticleEndpoint_ || !this.responsePromise_) {
+    if (!this.responsePromise_) {
       return null;
     }
 
@@ -775,8 +766,9 @@ export class EntitlementsManager {
       /*useLocalStorage=*/ false
     );
 
-    let url =
-      '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
+    let url = `/publication/'${encodeURIComponent(
+      this.publicationId_
+    )}/article`;
 
     url = addDevModeParamsToUrl(this.win_.location, url);
 
@@ -823,15 +815,13 @@ export class EntitlementsManager {
       }
     }
 
-    // Add locked param.
-    if (this.useArticleEndpoint_) {
-      url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
-      url = addQueryParam(
-        url,
-        'contentType',
-        getContentTypeParamString(this.pageConfig_.isLocked())
-      );
-    }
+    url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
+    url = addQueryParam(
+      url,
+      'contentType',
+      getContentTypeParamString(this.pageConfig_.isLocked())
+    );
+
     const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
     let encodableParams: GetEntitlementsParamsInternalDef | undefined = this
@@ -931,7 +921,11 @@ export class EntitlementsManager {
       this.encodedParams_ = base64UrlEncodeFromBytes(
         utf8EncodeSync(JSON.stringify(encodableParams))
       );
-      url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
+      url = addQueryParam(
+        url,
+        'encodedEntitlementsParams',
+        this.encodedParams_
+      );
     }
     url = serviceUrl(url);
 
@@ -940,11 +934,8 @@ export class EntitlementsManager {
       .eventManager()
       .logSwgEvent(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
     const json = await this.fetcher_.fetchCredentialedJson(url);
-    let response = json as Entitlements;
-    if (this.useArticleEndpoint_) {
-      this.article_ = json as Article;
-      response = this.article_['entitlements'];
-    }
+    this.article_ = json as Article;
+    const response = this.article_['entitlements'] as Entitlements;
 
     // Log errors.
     const errorMessages = (json as {errorMessages?: string[]})['errorMessages'];

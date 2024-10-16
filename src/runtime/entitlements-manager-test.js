@@ -1638,13 +1638,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should be able to fetch experiment flags in the article endpoint if specified', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
       const article = {
         experimentConfig: {
           experimentFlags: ['flag1', 'flag2'],
@@ -1657,13 +1651,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should fetch empty experiment list if no experiment flags specified in article endpoint', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
       const article = {
         experimentConfig: {},
       };
@@ -1673,13 +1661,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should fetch empty experiment list if no experiment config specified in article endpoint', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
       const article = {};
       sandbox.stub(manager, 'getArticle').resolves(article);
       const expFlags = await manager.getExperimentConfigFlags();
@@ -1687,13 +1669,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should use the article endpoint and correct parameters if configured', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
       jwtHelperMock = sandbox.mock(manager.jwtHelper_);
       jwtHelperMock
         .expects('decode')
@@ -1773,13 +1749,7 @@ describes.realWin('EntitlementsManager', (env) => {
 
     it('should pass OPEN contentType for unlocked content to the article endpoint', async () => {
       pageConfig = new PageConfig('pub1:label1', false);
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
       jwtHelperMock = sandbox.mock(manager.jwtHelper_);
       jwtHelperMock
         .expects('decode')
@@ -1843,13 +1813,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should use the article endpoint with preview config id param', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
 
       const article = {
         entitlements: {},
@@ -1897,13 +1861,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should use the article endpoint with preview key param', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
 
       const article = {
         entitlements: {},
@@ -2125,55 +2083,8 @@ describes.realWin('EntitlementsManager', (env) => {
       await manager.getEntitlements();
     });
 
-    it('should return null promise when fetching interventions without article', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ false
-      );
-
-      expect(await manager.getAvailableInterventions()).to.equal(
-        null,
-        'getAvailableInterventions should return null'
-      );
-
-      expect(self.console.warn).to.have.been.calledWithExactly(
-        '[swg.js:getAvailableInterventions] Article is null.'
-      );
-    });
-
-    it('should return empty array promise when fetching interventions without a fully populated article', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ false
-      );
-
-      sandbox.stub(manager, 'getArticle').resolves({});
-      expect(await manager.getAvailableInterventions()).to.deep.equal(
-        [],
-        'getAvailableInterventions should return []'
-      );
-
-      manager.getArticle.resolves({audienceActions: {}});
-      expect(await manager.getAvailableInterventions()).to.deep.equal(
-        [],
-        'getAvailableInterventions should return []'
-      );
-    });
-
     it('should return correct AvailableInterventions', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
       const article = {
         audienceActions: {
           actions: [
@@ -2202,13 +2113,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should return correct AvailableInterventions without prompt preference', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
       const article = {
         audienceActions: {
           actions: [
@@ -2235,13 +2140,7 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     it('should filter intervention not enabled', async () => {
-      manager = new EntitlementsManager(
-        win,
-        pageConfig,
-        fetcher,
-        deps,
-        /* useArticleEndpoint */ true
-      );
+      manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
       const article = {
         audienceActions: {
           actions: [
@@ -2827,39 +2726,6 @@ describes.realWin('EntitlementsManager', (env) => {
             })
           )
           .never();
-
-        const entitlements = await manager.getEntitlements();
-        await manager.entitlementsPostPromise;
-
-        // Verify that the entitlement created should trigger the handler.
-        expect(entitlements.enablesThisWithGoogleMetering()).to.be.true;
-        fetcherMock.verify();
-        jwtHelperMock.verify();
-        storageMock.verify();
-      });
-
-      it('should consume an entitlement if default handler is enabled and is Google meter', async () => {
-        // When enabled, we expect the pingback to occur as part of the getEntitlements process
-        manager = new EntitlementsManager(
-          win,
-          pageConfig,
-          fetcher,
-          deps,
-          /* useArticleEndpoint */ false,
-          /* enableDefaultMeteringHandler */ true
-        );
-        jwtHelperMock = sandbox.mock(manager.jwtHelper_);
-        expectGetIsReadyToPayToBeCalled(null);
-        expectGetSwgUserTokenToBeCalled();
-        expectSignedEntitlementsReturnsGoogleMeter();
-        expectEntitlementPingback({
-          entitlementSource:
-            EntitlementSource.SUBSCRIBE_WITH_GOOGLE_METERING_SERVICE,
-          entitlementResult: EntitlementResult.UNLOCKED_METER,
-          jwtString: 'token1',
-          jwtSource: GOOGLE_METERING_SOURCE,
-          gaaToken: '',
-        });
 
         const entitlements = await manager.getEntitlements();
         await manager.entitlementsPostPromise;
