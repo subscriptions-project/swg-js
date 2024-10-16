@@ -664,7 +664,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
     this.fetcher_ = integr.fetcher || new XhrFetcher(this.win_);
 
-    this.storage_ = new Storage(this.win_);
+    this.storage_ = new Storage(this.win_, this.pageConfig_);
 
     this.callbacks_ = new Callbacks();
 

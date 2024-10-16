@@ -22,7 +22,6 @@ import {
   LinkingInfoResponse,
 } from '../proto/api_messages';
 import {Callbacks} from './callbacks';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
@@ -33,6 +32,7 @@ import {
   SubscriptionFlows,
   WindowOpenMode,
 } from '../api/subscriptions';
+import {StorageKeys} from '../utils/constants';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createCancelError, isCancelError} from '../utils/errors';
 import {feArgs, feOrigin, feUrl} from './services';
@@ -240,7 +240,7 @@ export class LinkCompleteFlow {
       .logSwgEvent(AnalyticsEvent.ACTION_GOOGLE_UPDATED_CLOSE, true);
     const userToken = response['swgUserToken'];
     if (userToken) {
-      this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
+      this.deps_.storage().set(StorageKeys.USER_TOKEN, userToken, true);
     }
     this.callbacks_.triggerLinkComplete();
     this.callbacks_.resetLinkProgress();

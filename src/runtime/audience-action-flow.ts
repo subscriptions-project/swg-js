@@ -36,7 +36,11 @@ import {
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
-import {Constants, StorageKeys} from '../utils/constants';
+import {
+  Constants,
+  StorageKeys,
+  StorageKeysWithoutPublicationIdSuffix,
+} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
@@ -75,11 +79,13 @@ export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
 export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
+export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 
 const actionToIframeMapping: {[key: string]: string} = {
   TYPE_REGISTRATION_WALL: '/regwalliframe',
   TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
   TYPE_REWARDED_SURVEY: '/surveyiframe',
+  TYPE_BYO_CTA: '/byoctaiframe',
 };
 
 const autopromptTypeToProductTypeMapping: {
@@ -144,7 +150,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       /* shouldFadeBody */ true
     );
     // Disables interaction with prompt if rendering for preview.
-    if (!!params_.shouldRenderPreview) {
+    if (!!params_.shouldRenderPreview && params_.action !== TYPE_BYO_CTA) {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });
@@ -198,7 +204,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
-      this.deps_.storage().set(Constants.USER_TOKEN, userToken, true);
+      this.deps_.storage().set(StorageKeys.USER_TOKEN, userToken, true);
     }
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
@@ -224,7 +230,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const now = Date.now().toString();
     this.deps_
       .storage()
-      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
   }
 
@@ -344,7 +350,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
           /* isFromUserAction */ false
         );
-      this.storage_.storeEvent(StorageKeys.SURVEY_DATA_TRANSFER_FAILED);
     }
     const surveyDataTransferResponse = new SurveyDataTransferResponse();
     const isPpsEligible = request.getStorePpsInLocalStorage();
@@ -387,7 +392,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private async storePpsValuesFromSurveyAnswers(
     request: SurveyDataTransferRequest
   ): Promise<void> {
-    const iabAudienceKey = StorageKeys.PPS_TAXONOMIES;
+    const iabAudienceKey = StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES;
     // PPS value field is optional and category may not be populated
     // in accordance to IAB taxonomies.
     const ppsConfigParams = request

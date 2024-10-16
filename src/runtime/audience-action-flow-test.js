@@ -29,7 +29,7 @@ import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
+import {Constants, StorageKeys} from '../utils/constants';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
@@ -219,6 +219,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       action: 'TYPE_REWARDED_SURVEY',
       path: 'surveyiframe',
     },
+    {
+      action: 'TYPE_BYO_CTA',
+      configurationId: 'byo_cta_config',
+      path: 'byoctaiframe',
+    },
   ].forEach(({action, configurationId, path}) => {
     it(`opens an AudienceActionIframeFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').resolves(null);
@@ -320,11 +325,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -365,11 +370,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -410,11 +415,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -453,11 +458,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -499,11 +504,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -543,11 +548,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -589,11 +594,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
@@ -622,11 +627,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
@@ -656,11 +661,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
@@ -696,11 +701,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
@@ -736,11 +741,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
