@@ -387,6 +387,84 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         expect(signinButton).to.be.null;
       });
 
+      it('renders subscription with preview enabled', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: undefined,
+          shouldRenderPreview: true,
+        };
+
+        const SUBSCRIPTION_CONFIG = `{
+          "publication": {
+            "name": "PUBLICATION_NAME",
+            "revenueModel": {
+              "subscriptions": true
+            }
+          },
+          "rewardedAdParameters": {
+            "adunit": "ADUNIT",
+            "customMessage": "CUSTOM_MESSAGE"
+          }
+        }`;
+
+        await renderAndAssertRewardedAd(params, SUBSCRIPTION_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=true'
+        );
+
+        const contributeButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(contributeButton.innerHTML).contains('Subscribe');
+
+        const signinButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-sign-in-button'
+        );
+        expect(signinButton.innerHTML).contains('Already a subscriber?');
+      });
+
+      it('renders contribution with preview enabled', async () => {
+        const params = {
+          ...DEFAULT_PARAMS,
+          autoPromptType: undefined,
+          shouldRenderPreview: true,
+        };
+
+        const CONTRIBUTIONS_CONFIG = `{
+          "publication": {
+            "name": "PUBLICATION_NAME",
+            "revenueModel": {
+              "contributions": true
+            }
+          },
+          "rewardedAdParameters": {
+            "adunit": "ADUNIT",
+            "customMessage": "CUSTOM_MESSAGE"
+          }
+        }`;
+
+        await renderAndAssertRewardedAd(params, CONTRIBUTIONS_CONFIG);
+
+        const wrapper = await callReadyAndReturnWrapper();
+
+        expect(env.win.fetch).to.be.calledWith(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/getactionconfigurationui?publicationId=pub1&configurationId=xyz&origin=about%3Asrcdoc&previewEnabled=true'
+        );
+
+        const subscribeButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-support-button'
+        );
+        expect(subscribeButton.innerHTML).contains('Contribute');
+
+        const signinButton = wrapper.shadowRoot.querySelector(
+          '.rewarded-ad-sign-in-button'
+        );
+        expect(signinButton.innerHTML).contains('Already a contributor?');
+      });
+
       it('renders premonetization with preview enabled', async () => {
         const params = {
           ...DEFAULT_PARAMS,
