@@ -29,6 +29,8 @@ import {serviceUrl} from './services';
 
 const audienceActivityLoggingEvents = new Set<AnalyticsEvent>([
   // Keep sorted
+  AnalyticsEvent.ACTION_BYO_CTA_BUTTON_CLICK,
+  AnalyticsEvent.ACTION_BYO_CTA_CLOSE,
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED,
   AnalyticsEvent.ACTION_NEWSLETTER_ALREADY_OPTED_IN_CLICK,
   AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
@@ -43,6 +45,7 @@ const audienceActivityLoggingEvents = new Set<AnalyticsEvent>([
   AnalyticsEvent.EVENT_NEWSLETTER_OPTED_IN,
   AnalyticsEvent.EVENT_REGWALL_OPTED_IN,
   AnalyticsEvent.EVENT_SURVEY_SUBMITTED,
+  AnalyticsEvent.IMPRESSION_BYO_CTA,
   AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
   AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
   AnalyticsEvent.IMPRESSION_OFFERS,
