@@ -532,10 +532,11 @@ export class AutoPromptManager {
 
     // Filter the funnel of interventions by eligibility.
     const numberOfCompletionsMap = new Map(
-      article.audienceActions!.actions!.map((action) => [
-        action.configurationId!,
-        action.numberOfCompletions ?? 0,
-      ])
+      article
+        .audienceActions!.actions!.filter(
+          (action) => !!action.numberOfCompletions
+        )
+        .map((action) => [action.configurationId!, action.numberOfCompletions!])
     );
     interventionOrchestration = interventionOrchestration.filter(
       (intervention) =>
@@ -1011,11 +1012,21 @@ export class AutoPromptManager {
         !orchestration.repeatability.type ||
         RepeatabilityType.UNSPECIFIED === orchestration.repeatability.type
           ? 1
-          : orchestration.repeatability.count; // TODO(justinchou) handle bad number of completions.
-      if (
-        numberOfCompletionsMap.get(orchestration.configId)! >=
-        maximumNumberOfCompletions
-      ) {
+          : orchestration.repeatability.count;
+      let numberOfCompletions;
+      if (!numberOfCompletionsMap.has(orchestration.configId)) {
+        if (RepeatabilityType.FINITE === orchestration.repeatability.type) {
+          this.eventManager_.logSwgEvent(
+            AnalyticsEvent.EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR
+          );
+        }
+        numberOfCompletions = 0;
+      } else {
+        numberOfCompletions = numberOfCompletionsMap.get(
+          orchestration.configId
+        )!;
+      }
+      if (numberOfCompletions! >= maximumNumberOfCompletions) {
         return false;
       }
     }

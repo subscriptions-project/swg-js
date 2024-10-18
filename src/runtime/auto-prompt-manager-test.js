@@ -5012,6 +5012,29 @@ describes.realWin('AutoPromptManager', (env) => {
       });
       expect(action).to.equal(CONTRIBUTION_INTERVENTION);
     });
+
+    it('checkOrchestrationEligibility_ should log an error if completion count is missing for a repeatable action', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'FINITE', count: 1},
+        },
+        new Set(['action_id']),
+        new Map()
+      );
+
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType:
+          AnalyticsEvent.EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
+      expect(isEligible).to.equal(true);
+    });
   });
 
   describe('AudienceActionLocalFlow', () => {
