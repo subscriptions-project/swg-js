@@ -1014,7 +1014,6 @@ export class AutoPromptManager {
           ? 1
           : orchestration.repeatability.count;
       let numberOfCompletions;
-      // Should log an error if completion count is missing.
       if (!numberOfCompletionsMap.has(orchestration.configId)) {
         if (RepeatabilityType.FINITE === orchestration.repeatability.type) {
           this.eventManager_.logSwgEvent(
