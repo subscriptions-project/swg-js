@@ -219,7 +219,7 @@ export const AnalyticsEventToGoogleAnalyticsEvent: {
   ),
   [AnalyticsEvent.IMPRESSION_BYO_CTA]: createGoogleAnalyticsEvent(
     '',
-    'custom cta modal impressions',
+    'custom cta modal impression',
     '',
     true
   ),
