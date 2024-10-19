@@ -101,7 +101,7 @@ export class AvailableIntervention {
   async show(params: ShowInterventionParams): Promise<void> {
     if (
       this.intervention.type == InterventionType.TYPE_NEWSLETTER_SIGNUP ||
-      this.intervention.type == InterventionType.TYPE_REWARDED_SURVEY || 
+      this.intervention.type == InterventionType.TYPE_REWARDED_SURVEY ||
       this.intervention.type == InterventionType.TYPE_BYO_CTA
     ) {
       return new AudienceActionIframeFlow(this.deps_, {
