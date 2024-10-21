@@ -365,6 +365,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return (
       this.params_.autoPromptType === AutoPromptType.SUBSCRIPTION ||
       this.params_.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+      // Check the revenue model as backup
+      // TODO: b/374764869 - rework how autoPromptType is determined
       (!this.params_.autoPromptType &&
         !!this.config?.publication?.revenueModel?.subscriptions)
     );
@@ -374,6 +376,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     return (
       this.params_.autoPromptType === AutoPromptType.CONTRIBUTION ||
       this.params_.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE ||
+      // Check the revenue model as backup
+      // TODO: b/374764869 - rework how autoPromptType is determined
       (!this.params_.autoPromptType &&
         !!this.config?.publication?.revenueModel?.contributions)
     );
