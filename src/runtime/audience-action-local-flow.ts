@@ -67,6 +67,11 @@ export interface AudienceActionLocalParams {
 interface AudienceActionConfig {
   publication?: {
     name?: string;
+    revenueModel?: {
+      subscriptions?: boolean;
+      contributions?: boolean;
+      premonetization?: boolean;
+    };
   };
   rewardedAdParameters?: {
     adunit?: string;
@@ -356,17 +361,25 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private isSubscription() {
+  private isSubscription(): boolean {
     return (
-      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION ||
-      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION_LARGE
+      this.params_.autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      this.params_.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+      // Check the revenue model as backup
+      // TODO: b/374764869 - rework how autoPromptType is determined
+      (!this.params_.autoPromptType &&
+        !!this.config?.publication?.revenueModel?.subscriptions)
     );
   }
 
-  private isContribution() {
+  private isContribution(): boolean {
     return (
-      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
-      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE
+      this.params_.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      this.params_.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE ||
+      // Check the revenue model as backup
+      // TODO: b/374764869 - rework how autoPromptType is determined
+      (!this.params_.autoPromptType &&
+        !!this.config?.publication?.revenueModel?.contributions)
     );
   }
 
