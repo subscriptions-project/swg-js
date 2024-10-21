@@ -69,6 +69,7 @@ const ENABLED_INTERVENTIONS = new Set([
   InterventionType.TYPE_NEWSLETTER_SIGNUP,
   InterventionType.TYPE_REWARDED_SURVEY,
   InterventionType.TYPE_REWARDED_AD,
+  InterventionType.TYPE_BYO_CTA,
 ]);
 
 /**
