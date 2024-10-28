@@ -306,7 +306,10 @@ export class AutoPromptManager {
     )!;
 
     let potentialAction;
-    if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
+    if (
+      true ||
+      (this.actionOrchestrationExperiment_ && !!article.actionOrchestration)
+    ) {
       // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
       const nextOrchestration = await this.getInterventionOrchestration_(
         clientConfig,
@@ -345,6 +348,7 @@ export class AutoPromptManager {
         article,
         frequencyCapConfig,
       });
+      console.log(potentialAction);
     }
 
     const promptFn = potentialAction
@@ -543,7 +547,8 @@ export class AutoPromptManager {
         this.checkOrchestrationEligibility_(
           intervention,
           eligibleActionIds,
-          numberOfCompletionsMap
+          numberOfCompletionsMap,
+          actionsTimestamps
         )
     );
     if (interventionOrchestration.length === 0) {
@@ -999,7 +1004,8 @@ export class AutoPromptManager {
   private checkOrchestrationEligibility_(
     orchestration: InterventionOrchestration,
     eligibleActionIds: Set<string | undefined>,
-    numberOfCompletionsMap: Map<string, number>
+    numberOfCompletionsMap: Map<string, number>,
+    actionsTimestamps: ActionsTimestamps
   ): boolean {
     if (!eligibleActionIds.has(orchestration.configId)) {
       return false;
