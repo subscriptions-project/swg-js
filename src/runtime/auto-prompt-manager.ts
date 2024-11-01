@@ -1004,18 +1004,15 @@ export class AutoPromptManager {
     if (!eligibleActionIds.has(orchestration.configId)) {
       return false;
     }
-    if (
-      !!orchestration.repeatability &&
-      orchestration.repeatability.type != RepeatabilityType.INFINITE
-    ) {
+
+    if (orchestration.repeatability?.type != RepeatabilityType.INFINITE) {
       const maximumNumberOfCompletions =
-        !orchestration.repeatability.type ||
-        RepeatabilityType.UNSPECIFIED === orchestration.repeatability.type
-          ? 1
-          : orchestration.repeatability.count;
+        RepeatabilityType.FINITE === orchestration.repeatability?.type
+          ? orchestration.repeatability.count || 1
+          : 1;
       let numberOfCompletions;
       if (!numberOfCompletionsMap.has(orchestration.configId)) {
-        if (RepeatabilityType.FINITE === orchestration.repeatability.type) {
+        if (RepeatabilityType.FINITE === orchestration.repeatability?.type) {
           this.eventManager_.logSwgEvent(
             AnalyticsEvent.EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR
           );

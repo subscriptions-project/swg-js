@@ -4753,6 +4753,19 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isEligible).to.be.true;
     });
 
+    it('Orchestration with finite eligibility defaults to 1 eligible completion', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'FINITE'},
+        },
+        new Set(['action_id']),
+        new Map([['action_id', 1]])
+      );
+      expect(isEligible).to.be.false;
+    });
+
     it('Repeatable Orchestration with infinite repeatability is eligible with completions', async () => {
       const isEligible = autoPromptManager.checkOrchestrationEligibility_(
         {
@@ -4764,6 +4777,18 @@ describes.realWin('AutoPromptManager', (env) => {
         new Map([['action_id', 1]])
       );
       expect(isEligible).to.be.true;
+    });
+
+    it('Orchestration with unspecified repeatability is not eligible with completions', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+        },
+        new Set(['action_id']),
+        new Map([['action_id', 1]])
+      );
+      expect(isEligible).to.be.false;
     });
 
     [
