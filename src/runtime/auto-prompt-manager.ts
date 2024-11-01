@@ -1005,7 +1005,7 @@ export class AutoPromptManager {
       return false;
     }
 
-    if (orchestration.repeatability?.type != RepeatabilityType.INFINITE) {
+    if (orchestration.repeatability?.type !== RepeatabilityType.INFINITE) {
       const maximumNumberOfCompletions =
         RepeatabilityType.FINITE === orchestration.repeatability?.type
           ? orchestration.repeatability.count || 1
@@ -1027,6 +1027,7 @@ export class AutoPromptManager {
         return false;
       }
     }
+
     return true;
   }
 
