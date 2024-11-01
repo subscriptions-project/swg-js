@@ -4657,37 +4657,45 @@ describes.realWin('AutoPromptManager', (env) => {
   describe('Helper Functions', () => {
     it('Survey is eligible when gTag logging is eligible', async () => {
       setWinWithAnalytics({setupGtam: false});
+
       const isEligible = autoPromptManager.checkActionEligibility_(
         {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
+
       expect(isEligible).to.be.true;
     });
 
     it('Survey is eligible when GA logging is eligible', async () => {
       setWinWithAnalytics({setupGa: false});
+
       const isEligible = autoPromptManager.checkActionEligibility_(
         {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
+
       expect(isEligible).to.be.true;
     });
 
     it('Survey is eligible when GTM logging is eligible', async () => {
       setWinWithAnalytics({setupGtm: false});
+
       const isEligible = autoPromptManager.checkActionEligibility_(
         {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
+
       expect(isEligible).to.be.true;
     });
 
     it('Survey is not eligible when no Analytics logging is eligible', async () => {
       setWinWithAnalytics({setupGtag: false, setupGa: false, setupGtm: false});
+
       const isEligible = autoPromptManager.checkActionEligibility_(
         {type: 'TYPE_REWARDED_SURVEY'},
         {}
       );
+
       expect(isEligible).to.be.false;
     });
 
@@ -4702,6 +4710,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         }
       );
+
       expect(isEligible).to.be.false;
     });
 
@@ -4711,6 +4720,7 @@ describes.realWin('AutoPromptManager', (env) => {
         new Set(),
         new Map()
       );
+
       expect(isEligible).to.be.false;
     });
 
@@ -4724,6 +4734,7 @@ describes.realWin('AutoPromptManager', (env) => {
         new Set(['action_id']),
         new Map([['action_id', 1]])
       );
+
       expect(isEligible).to.be.false;
     });
 
@@ -4737,6 +4748,7 @@ describes.realWin('AutoPromptManager', (env) => {
         new Set(['action_id']),
         new Map([['action_id', 5]])
       );
+
       expect(isEligible).to.be.false;
     });
 
@@ -4750,7 +4762,22 @@ describes.realWin('AutoPromptManager', (env) => {
         new Set(['action_id']),
         new Map([['action_id', 2]])
       );
+
       expect(isEligible).to.be.true;
+    });
+
+    it('Orchestration with finite eligibility defaults to 1 eligible completion', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+          repeatability: {type: 'FINITE'},
+        },
+        new Set(['action_id']),
+        new Map([['action_id', 1]])
+      );
+
+      expect(isEligible).to.be.false;
     });
 
     it('Repeatable Orchestration with infinite repeatability is eligible with completions', async () => {
@@ -4763,7 +4790,21 @@ describes.realWin('AutoPromptManager', (env) => {
         new Set(['action_id']),
         new Map([['action_id', 1]])
       );
+
       expect(isEligible).to.be.true;
+    });
+
+    it('Orchestration with unspecified repeatability is not eligible with completions', async () => {
+      const isEligible = autoPromptManager.checkOrchestrationEligibility_(
+        {
+          configId: 'action_id',
+          type: 'TYPE_REWARDED_AD',
+        },
+        new Set(['action_id']),
+        new Map([['action_id', 1]])
+      );
+
+      expect(isEligible).to.be.false;
     });
 
     [
@@ -4811,6 +4852,7 @@ describes.realWin('AutoPromptManager', (env) => {
     ].forEach((timestamps) => {
       it('isValidActionsTimestamps_ should return false for invalid timestamps', async () => {
         const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
+
         expect(isValid).to.be.false;
       });
     });
@@ -4838,6 +4880,7 @@ describes.realWin('AutoPromptManager', (env) => {
     ].forEach((timestamps) => {
       it('isValidActionsTimestamps_ should return true for valid timestamps', async () => {
         const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
+
         expect(isValid).to.be.false;
       });
     });
@@ -4897,56 +4940,68 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('getPromptFrequencyCapDuration_ should return valid intervention config', async () => {
       const expectedDuration = {seconds: 600};
+
       const result = autoPromptManager.getPromptFrequencyCapDuration_(
         {},
         {promptFrequencyCap: {duration: expectedDuration}}
       );
+
       expect(result).to.equal(expectedDuration);
     });
 
     it('getPromptFrequencyCapDuration_ should return default anyPromptFrequencyCap for invalid intervention config', async () => {
       const expectedDuration = {seconds: 600};
+
       const result = autoPromptManager.getPromptFrequencyCapDuration_(
         {anyPromptFrequencyCap: {frequencyCapDuration: expectedDuration}},
         {}
       );
+
       expect(result).to.equal(expectedDuration);
     });
 
     it('getGlobalFrequencyCapDuration_ should return valid intervention config', async () => {
       const expectedDuration = {seconds: 60};
+
       const result = autoPromptManager.getGlobalFrequencyCapDuration_(
         {},
         {globalFrequencyCap: {duration: expectedDuration}}
       );
+
       expect(result).to.equal(expectedDuration);
     });
 
     it('getGlobalFrequencyCapDuration_ should return defualt globalFrequencyCap for invalid intervention config', () => {
       const expectedDuration = {seconds: 600};
+
       const result = autoPromptManager.getGlobalFrequencyCapDuration_(
         {globalFrequencyCap: {frequencyCapDuration: expectedDuration}},
         {}
       );
+
       expect(result).to.equal(expectedDuration);
     });
 
     it('isFrequencyCapped_ should return false for empty impressions', async () => {
       const duration = {seconds: 60, nanos: 0};
+
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         []
       );
+
       expect(isFrequencyCapped).to.equal(false);
     });
 
     it('isFrequencyCapped_ should return false for impressions that occurred outside of the cap duration', async () => {
       const duration = {seconds: 60, nanos: 0};
       const impressions = [CURRENT_TIME - 120 * SECOND_IN_MS];
+
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
       );
+
       expect(isFrequencyCapped).to.equal(false);
     });
 
@@ -4956,45 +5011,54 @@ describes.realWin('AutoPromptManager', (env) => {
         CURRENT_TIME - 10 * SECOND_IN_MS,
         CURRENT_TIME - 120 * SECOND_IN_MS,
       ];
+
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
       );
+
       expect(isFrequencyCapped).to.equal(true);
     });
 
     it('isFrequencyCapped_ should return true for impressions that occurred within the cap duration', async () => {
       const duration = {seconds: 60, nanos: 0};
       const impressions = [CURRENT_TIME - 10 * SECOND_IN_MS];
+
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
       );
+
       expect(isFrequencyCapped).to.equal(true);
     });
 
     it('isFrequencyCapped_ should return true if the max impression occurred within the cap duration, including nanos', async () => {
       const duration = {seconds: 60, nanos: 60 * SECOND_IN_NANO};
       const impressions = [CURRENT_TIME - 90 * SECOND_IN_MS];
+
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
       );
+
       expect(isFrequencyCapped).to.equal(true);
     });
 
     it('isFrequencyCapped_ should return false if the max impression occurred within the cap duration, including negative nanos', async () => {
       const duration = {seconds: 120, nanos: -60 * SECOND_IN_NANO};
       const impressions = [CURRENT_TIME - 90 * SECOND_IN_MS];
+
       const isFrequencyCapped = autoPromptManager.isFrequencyCapped_(
         duration,
         impressions
       );
+
       expect(isFrequencyCapped).to.equal(false);
     });
 
     it('getPotentialAction_ returns the first action and logs error event for contribution flow with no frequencyCapConfig', async () => {
       autoPromptManager.isClosable_ = true;
+
       const action = await autoPromptManager.getPotentialAction_({
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         article: {audienceActions: {actions: [CONTRIBUTION_INTERVENTION]}},
@@ -5033,6 +5097,7 @@ describes.realWin('AutoPromptManager', (env) => {
         timestamp: sandbox.match.number,
         configurationId: null,
       });
+
       expect(isEligible).to.equal(true);
     });
   });
