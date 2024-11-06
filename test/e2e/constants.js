@@ -16,8 +16,8 @@
 
 module.exports = {
   google: {
-    domain: 'google.com',
     accountsDomain: 'accounts.google.com',
+    domain: 'google.com',
   },
   setup: {
     url: 'http://localhost:8000/examples/sample-pub/setup',

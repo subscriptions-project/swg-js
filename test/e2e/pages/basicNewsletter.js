@@ -31,10 +31,10 @@ const commands = {
       .switchToFrame('[src*="newsletteriframe"]', 'SwG inner iFrame');
   },
   consentToNewsletter: function () {
-    return this.log('Checking consent checkbox').click('consentCheckbox');
+    return this.log('Checking consent checkbox').click('@consentCheckbox');
   },
   optInAction: function () {
-    return this.log('Clicking opt in button').click('optInButton');
+    return this.log('Clicking opt in button').click('@optInButton');
   },
 };
 
@@ -59,6 +59,9 @@ module.exports = {
     },
     optInButton: {
       selector: '.C2qNIf button',
+    },
+    swgDialog: {
+      selector: '.swg-dialog',
     },
   },
 };
