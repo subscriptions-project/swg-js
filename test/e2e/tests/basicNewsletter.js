@@ -15,11 +15,25 @@
  */
 
 module.exports = {
-  google: {
-    domain: 'google.com',
-    accountsDomain: 'accounts.google.com',
-  },
-  setup: {
-    url: 'http://localhost:8000/examples/sample-pub/setup',
+  '@tags': ['basic'],
+
+  'Show button': (browser) => {
+    const basic = browser.page.basic();
+    basic
+      .navigate()
+      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
+      .waitForElementVisible('@swgDialog')
+      .pause(3000)
+      .assert.screenshotIdenticalToBaseline('html', 'basic-newsletter')
+      .viewNewsletter()
+      .assert.textContains('@newsletterHeader', 'Swgjs Newsletter Demo')
+      .assert.textContains(
+        '@consentMessage',
+        'Please sign up for my newsletter!'
+      )
+      .consentToNewsletter()
+      .optInAction()
+      .checkSignIn()
+      .end();
   },
 };
