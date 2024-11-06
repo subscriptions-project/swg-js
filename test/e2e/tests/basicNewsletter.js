@@ -18,7 +18,7 @@ module.exports = {
   '@tags': ['basic'],
 
   'Show button': (browser) => {
-    const basic = browser.page.basic();
+    const basic = browser.page.basicNewsletter();
     basic
       .navigate()
       .waitForElementPresent('@swgDialog', 'Found SwG dialog')
