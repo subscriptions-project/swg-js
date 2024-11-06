@@ -18,7 +18,7 @@ module.exports = {
   '@tags': ['basic'],
 
   'Show button': (browser) => {
-    const basic = browser.page.basic();
+    const basic = browser.page.basicContribution();
     basic
       .navigate()
       .waitForElementPresent('@swgBasicButton', 'Found button')
