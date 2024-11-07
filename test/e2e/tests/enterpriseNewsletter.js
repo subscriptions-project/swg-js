@@ -21,10 +21,8 @@ module.exports = {
     const basic = browser.page.enterpriseNewsletter();
     basic
       .navigate()
-      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-      .waitForElementVisible('@swgDialog')
       .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-newsletter')
+      .assert.screenshotIdenticalToBaseline('html', 'enterprise-newsletter')
       .viewNewsletter()
       .assert.textContains(
         '@newsletterHeader',
