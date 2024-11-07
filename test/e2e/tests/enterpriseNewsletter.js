@@ -26,11 +26,11 @@ module.exports = {
       .pause(3000)
       .assert.screenshotIdenticalToBaseline('html', 'basic-newsletter')
       .viewNewsletter()
-      .assert.textContains('@newsletterHeader', 'Swgjs Newsletter Demo')
       .assert.textContains(
-        '@consentMessage',
-        'Please sign up for my newsletter!'
+        '@newsletterHeader',
+        'Swgjs Enterprise Newsletter Demo'
       )
+      .assert.textContains('@consentMessage', 'I consent to this newsletter.')
       .consentToNewsletter()
       .optInAction()
       .checkSignIn()
