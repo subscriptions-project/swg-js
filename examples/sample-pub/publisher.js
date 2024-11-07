@@ -412,6 +412,7 @@ function startFlowAuto() {
   if (flow == 'showNewsletterSignup') {
     console.log('starting showNewsletterSignup');
     onEntitlements = (subscriptions) => {
+      subscriptions.showContributionOptions();
       const availableInterventions = subscriptions.getAvailableInterventions();
       availableInterventions.then((interventions) => {
         console.log(interventions);
