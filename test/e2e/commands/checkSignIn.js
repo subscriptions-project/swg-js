@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-module.exports = {
-  google: {
-    accountsDomain: 'accounts.google.com',
-    domain: 'google.com',
-  },
-  setup: {
-    url: 'http://localhost:8000/examples/sample-pub/setup',
-  },
+/**
+ * @fileoverview Switch to Google account sign in window and check that it prompts
+ * the user to sign in.
+ */
+
+const constants = require('../constants');
+
+module.exports.command = function () {
+  return this.pause(2000)
+    .switchToTab('Google account sign in')
+    .assert.urlContains(constants.google.accountsDomain);
 };
