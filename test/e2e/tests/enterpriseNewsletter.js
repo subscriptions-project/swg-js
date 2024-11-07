@@ -26,7 +26,7 @@ module.exports = {
       .viewNewsletter()
       .assert.textContains(
         '@newsletterHeader',
-        'Swgjs Enterprise Newsletter Demo'
+        'Enterprise Contribution E2E Test Pub'
       )
       .assert.textContains('@consentMessage', 'I consent to this newsletter.')
       .consentToNewsletter()

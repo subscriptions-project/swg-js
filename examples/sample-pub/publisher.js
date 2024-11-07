@@ -412,7 +412,7 @@ function startFlowAuto() {
       const availableInterventions = subscriptions.getAvailableInterventions();
       return availableInterventions.then((interventions) => {
         const newsletterIntervention = interventions.find(
-          (intervention) => intervention.type === 'TYPE_NEWSLETTER_SIGNUP'
+          (intervention) => intervention.type == 'TYPE_NEWSLETTER_SIGNUP'
         );
         if (newsletterIntervention) {
           newsletterIntervention.show();
