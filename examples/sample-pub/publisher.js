@@ -142,6 +142,8 @@ function startFlowAuto() {
     return;
   }
 
+  console.log(`flow: ${flow}`);
+
   // Check for valid Google Article Access (GAA) params.
   if (isGaa()) {
     console.log(
@@ -407,7 +409,7 @@ function startFlowAuto() {
     return;
   }
 
-  if (flow === 'showNewsletterSignup') {
+  if (flow == 'showNewsletterSignup') {
     console.log('starting showNewsletterSignup');
     onEntitlements = (subscriptions) => {
       const availableInterventions = subscriptions.getAvailableInterventions();
