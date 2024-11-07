@@ -407,6 +407,24 @@ function startFlowAuto() {
     return;
   }
 
+  if (flow === 'showNewsletterSignup') {
+    onEntitlements = (subscriptions) => {
+      const availableInterventions = subscriptions.getAvailableInterventions();
+      return availableInterventions.then((interventions) => {
+        const newsletterIntervention = interventions.find(
+          (intervention) => intervention.type === 'TYPE_NEWSLETTER_SIGNUP'
+        );
+        if (newsletterIntervention) {
+          newsletterIntervention.show();
+        }
+      });
+    };
+    whenReady((subscriptions) => {
+      subscriptions.start();
+    });
+    return;
+  }
+
   startFlow(flow);
 }
 
