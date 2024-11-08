@@ -142,8 +142,6 @@ function startFlowAuto() {
     return;
   }
 
-  console.log(`flow: ${flow}`);
-
   // Check for valid Google Article Access (GAA) params.
   if (isGaa()) {
     console.log(
