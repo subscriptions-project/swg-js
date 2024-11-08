@@ -21,7 +21,7 @@ module.exports = {
   page_objects_path: 'test/e2e/pages',
   plugins: ['@nightwatch/vrt'],
   '@nightwatch/vrt': {
-    baseline_screenshots_path: 'test/e2e/vrt/baseline',
+    baseline_screenshots_path: 'vrt-report/baseline',
     latest_screenshots_path: 'vrt-report/latest',
     diff_screenshots_path: 'vrt-report/diff',
     threshold: 0.02,
