@@ -412,9 +412,8 @@ function startFlowAuto() {
   if (flow == 'showNewsletterSignup') {
     console.log('starting showNewsletterSignup');
     onEntitlements = (subscriptions) => {
-      subscriptions.showContributionOptions();
-      const availableInterventions = subscriptions.getAvailableInterventions();
-      availableInterventions.then((interventions) => {
+      subscriptions.getAvailableInterventions().then((interventions) => {
+        subscriptions.showContributionOptions();
         console.log(interventions);
         const newsletterIntervention = interventions.find(
           (intervention) => intervention.type == 'TYPE_NEWSLETTER_SIGNUP'
