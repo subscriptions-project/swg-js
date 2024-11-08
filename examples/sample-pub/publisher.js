@@ -413,7 +413,6 @@ function startFlowAuto() {
     console.log('starting showNewsletterSignup');
     onEntitlements = (subscriptions) => {
       subscriptions.getAvailableInterventions().then((interventions) => {
-        subscriptions.showContributionOptions();
         console.log(interventions);
         const newsletterIntervention = interventions.find(
           (intervention) => intervention.type == 'TYPE_NEWSLETTER_SIGNUP'
@@ -422,6 +421,7 @@ function startFlowAuto() {
           console.log('found newsletter');
           newsletterIntervention.show();
         } else {
+          subscriptions.showContributionOptions();
           console.log('showing first');
           interventions[0].show();
         }
