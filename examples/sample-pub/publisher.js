@@ -415,7 +415,7 @@ function startFlowAuto() {
         const newsletterIntervention = interventions.find(
           (intervention) => intervention.type == 'TYPE_NEWSLETTER_SIGNUP'
         );
-        newsletterIntervention.show();
+        newsletterIntervention.show({});
       });
     };
     whenReady((subscriptions) => {
