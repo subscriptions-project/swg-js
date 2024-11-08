@@ -418,10 +418,10 @@ function startFlowAuto() {
           (intervention) => intervention.type == 'TYPE_NEWSLETTER_SIGNUP'
         );
         if (newsletterIntervention) {
+          subscriptions.showContributionOptions();
           console.log('found newsletter');
           newsletterIntervention.show();
         } else {
-          subscriptions.showContributionOptions();
           console.log('showing first');
           interventions[0].show();
         }
