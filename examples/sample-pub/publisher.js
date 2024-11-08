@@ -410,21 +410,12 @@ function startFlowAuto() {
   }
 
   if (flow == 'showNewsletterSignup') {
-    console.log('starting showNewsletterSignup');
     onEntitlements = (subscriptions) => {
       subscriptions.getAvailableInterventions().then((interventions) => {
-        console.log(interventions);
         const newsletterIntervention = interventions.find(
           (intervention) => intervention.type == 'TYPE_NEWSLETTER_SIGNUP'
         );
-        if (newsletterIntervention) {
-          subscriptions.showContributionOptions();
-          console.log('found newsletter');
-          newsletterIntervention.show();
-        } else {
-          console.log('showing first');
-          interventions[0].show();
-        }
+        newsletterIntervention.show();
       });
     };
     whenReady((subscriptions) => {
