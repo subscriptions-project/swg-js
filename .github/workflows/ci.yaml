@@ -44,6 +44,13 @@ jobs:
       - name: E2E Tests
         run: . ./build_and_run_e2e.sh
 
+      - name: Upload e2e VRT baseline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrt-baseline
+          path: test/e2e/vrt/baseline
+
       - name: Upload e2e VRT report
         if: always()
         uses: actions/upload-artifact@v4
@@ -67,6 +74,13 @@ jobs:
 
       - name: E2E Tests with all experiments enabled
         run: . ./build_and_run_e2e.sh all_experiments_enabled
+
+      - name: Upload e2e with all experiments VRT baseline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-experiments-vrt-baseline
+          path: test/e2e/vrt/baseline
 
       - name: Upload e2e with all experiments VRT report
         if: always()
