@@ -30,6 +30,10 @@ module.exports = {
       )
       .assert.textContains('@consentMessage', 'I consent to this newsletter.')
       .consentToNewsletter()
+      .assert.screenshotIdenticalToBaseline(
+        'html',
+        'enterprise-newsletter-with-consent'
+      )
       .optInAction()
       .checkSignIn()
       .end();

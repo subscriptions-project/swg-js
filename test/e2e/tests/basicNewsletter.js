@@ -32,6 +32,10 @@ module.exports = {
         'Please sign up for my newsletter!'
       )
       .consentToNewsletter()
+      .assert.screenshotIdenticalToBaseline(
+        'html',
+        'basic-newsletter-with-consent'
+      )
       .optInAction()
       .checkSignIn()
       .end();
