@@ -58,6 +58,7 @@ function createNavigation() {
     <li><a href="autoprompt-large-free.html">Large Auto Prompt (Free Article)</a></li>
     <li><a href="free-article.html">Free Article</a></li>
     <li><a href="link-subscription.html">Link Subscription</a></li>
+    <li><a href="newsletter.html">Newsletter CTA</a></li>
   </ul>
   `;
 
