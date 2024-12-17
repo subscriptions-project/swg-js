@@ -467,11 +467,11 @@ class PaymentsWebActivityDelegate {
       // http://yaqs/4912322941550592
       return '/ui/pay';
     }
-    const hostingPageBase = this.getBasePath_() + '/ui/pay?swg=true';
-    if (!swgVersion) {
-      return hostingPageBase;
+    let hostingPageBase = this.getBasePath_() + '/ui/pay?swg=true';
+    if (swgVersion) {
+      hostingPageBase = hostingPageBase + '&swgVersion=' + swgVersion;
     }
-    return hostingPageBase + '&swgVersion=' + swgVersion;
+    return hostingPageBase;
   }
 
   /**
