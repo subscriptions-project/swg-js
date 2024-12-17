@@ -2877,9 +2877,6 @@ describes.realWin('AutoPromptManager', (env) => {
             ],
             engineId: '123',
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
 
@@ -2927,9 +2924,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
       storageMock.expects('get').never();
@@ -2952,9 +2946,6 @@ describes.realWin('AutoPromptManager', (env) => {
             interventionFunnel: {
               interventions: [],
             },
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
         })
         .once();
@@ -2985,9 +2976,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 },
               ],
             },
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
         })
         .once();
@@ -3034,9 +3022,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
       expectFrequencyCappingTimestamps(storageMock, {});
@@ -3067,9 +3052,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
       expectFrequencyCappingTimestamps(storageMock, {
@@ -3093,9 +3075,6 @@ describes.realWin('AutoPromptManager', (env) => {
             actions: [],
             engineId: '123',
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
           previewEnabled: true,
         })
         .once();
@@ -3116,9 +3095,6 @@ describes.realWin('AutoPromptManager', (env) => {
           audienceActions: {
             actions: [SURVEY_INTERVENTION],
             engineId: '123',
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
           previewEnabled: true,
         })
@@ -3175,9 +3151,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
       expectFrequencyCappingTimestamps(storageMock, {});
@@ -3231,9 +3204,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
       expectFrequencyCappingTimestamps(storageMock, {
@@ -3255,9 +3225,6 @@ describes.realWin('AutoPromptManager', (env) => {
           audienceActions: {
             actions: [SURVEY_INTERVENTION],
             engineId: '123',
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
           previewEnabled: true,
         })
@@ -3283,9 +3250,6 @@ describes.realWin('AutoPromptManager', (env) => {
           audienceActions: {
             actions: [SURVEY_INTERVENTION],
             engineId: '123',
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
 
           previewEnabled: true,
@@ -3333,9 +3297,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 },
               ],
             },
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
         })
         .once();
@@ -3594,9 +3555,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
 
@@ -3709,9 +3667,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 },
               ],
             },
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
         })
         .once();
@@ -4116,9 +4071,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
       expectFrequencyCappingTimestamps(storageMock, {
@@ -4327,9 +4279,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
       expectFrequencyCappingTimestamps(storageMock, {
@@ -4415,9 +4364,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
 
@@ -4453,9 +4399,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
 
@@ -4482,9 +4425,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 },
               ],
             },
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
         })
         .once();
@@ -4521,9 +4461,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
 
@@ -4558,9 +4495,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
 
@@ -4594,9 +4528,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 },
               ],
             },
-          },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
           },
         })
         .once();
