@@ -2854,9 +2854,6 @@ describes.realWin('AutoPromptManager', (env) => {
               ],
             },
           },
-          experimentConfig: {
-            experimentFlags: ['action_orchestration_experiment'],
-          },
         })
         .once();
     });
