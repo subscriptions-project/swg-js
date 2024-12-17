@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Article, EntitlementsManager} from './entitlements-manager';
 import {EXPERIMENTS} from '../constants';
 import {ErrorUtils} from '../utils/errors';
 import {parseQueryString} from '../utils/url';
@@ -228,4 +229,18 @@ export function getOnExperiments(win: Window): string[] {
     }
   }
   return experiments;
+}
+
+/**
+ * Checks if provided ExperimentFlag is enabled within article experiment
+ * config.
+ */
+export function isArticleExperimentEnabled(
+  entitlementsManager: EntitlementsManager,
+  article: Article,
+  experimentFlag: string
+): boolean {
+  const articleExpFlags =
+    entitlementsManager.parseArticleExperimentConfigFlags(article);
+  return articleExpFlags.includes(experimentFlag);
 }
