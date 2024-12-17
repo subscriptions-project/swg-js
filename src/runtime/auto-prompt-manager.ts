@@ -989,6 +989,7 @@ export class AutoPromptManager {
    * Checks if provided ExperimentFlag is enabled within article experiment
    * config.
    */
+  // tslint:disable:no-unused-variable
   private isArticleExperimentEnabled_(
     article: Article,
     experimentFlag: string
