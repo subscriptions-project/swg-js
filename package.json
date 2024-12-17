@@ -124,7 +124,7 @@
     "hogan-express": "0.5.2",
     "is-running": "2.1.0",
     "jsonwebtoken": "9.0.2",
-    "nightwatch": "2.6.25",
+    "nightwatch": "3.9.0",
     "rollup-plugin-visualizer": "5.12.0",
     "vite": "5.2.14"
   },
