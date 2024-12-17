@@ -984,18 +984,4 @@ export class AutoPromptManager {
           preference: action.preference,
         });
   }
-
-  /**
-   * Checks if provided ExperimentFlag is enabled within article experiment
-   * config.
-   */
-  // tslint:disable:no-unused-variable
-  private isArticleExperimentEnabled_(
-    article: Article,
-    experimentFlag: string
-  ): boolean {
-    const articleExpFlags =
-      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
-    return articleExpFlags.includes(experimentFlag);
-  }
 }
