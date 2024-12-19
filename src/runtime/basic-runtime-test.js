@@ -784,12 +784,21 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredBasicRuntime.jserror();
     });
 
-    it('should configure subscription miniprompts to show offers for paygated content', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-
+    it('should configure blocking subscription miniprompts to show offers', async () => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
@@ -809,12 +818,22 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure subscription auto prompts to show offers for paygated content when the desktop viewport is large', async () => {
+    it('should configure blocking subscription auto prompts to show offers when the desktop viewport is large', async () => {
       autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
@@ -840,12 +859,21 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure subscription auto prompts to show offers for paygated content', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-
+    it('should configure blocking subscription auto prompts to show offers', async () => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
@@ -871,12 +899,21 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure contribution miniprompts to show contribution options for paygated content', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-
+    it('should configure blocking contribution miniprompts to show contribution options', async () => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
@@ -896,12 +933,22 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure contribution auto prompts to show contribution options for paygated content when the desktop viewport is large', async () => {
+    it('should configure contribution auto prompts to show contribution options when the desktop viewport is large', async () => {
       autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
@@ -927,12 +974,21 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-
+    it('should configure contribution auto prompts to show contribution options', async () => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
