@@ -236,6 +236,8 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
+    // Set function isArticleExperimentEnabled_ to suppress unused-var warnings & save for future use.
+    this.isArticleExperimentEnabled_ = this.isArticleExperimentEnabled_;
   }
 
   /**
@@ -983,5 +985,18 @@ export class AutoPromptManager {
           configurationId: action.configurationId,
           preference: action.preference,
         });
+  }
+
+  /**
+   * Checks if provided ExperimentFlag is enabled within article experiment
+   * config.
+   */
+  private isArticleExperimentEnabled_(
+    article: Article,
+    experimentFlag: string
+  ): boolean {
+    const articleExpFlags =
+      this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
+    return articleExpFlags.includes(experimentFlag);
   }
 }
