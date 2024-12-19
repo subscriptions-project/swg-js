@@ -790,6 +790,17 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
