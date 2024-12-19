@@ -227,6 +227,46 @@ describes.realWin('BasicRuntime', (env) => {
       });
     });
 
+    it('should not force lang if not set in html attribute nor code snippet', async () => {
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          disableButton: false,
+          theme: ClientTheme.DARK,
+        },
+      });
+
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        disableButton: false,
+        theme: ClientTheme.DARK,
+      });
+    });
+
+    it('should set lang to html attribute if not set in code snippet', async () => {
+      win.document.documentElement.lang = 'pt-br';
+
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          disableButton: false,
+          theme: ClientTheme.DARK,
+        },
+      });
+
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        disableButton: false,
+        forceLangInIframes: true,
+        lang: 'pt-br',
+        theme: ClientTheme.DARK,
+      });
+    });
+
     it('should allow caller to disable default metering handler', async () => {
       basicRuntime.init({
         type: 'NewsArticle',
