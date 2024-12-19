@@ -1851,7 +1851,7 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [SURVEY_INTERVENTION, SUBSCRIPTION_INTERVENTION],
+            actions: [REGWALL_INTERVENTION, SUBSCRIPTION_INTERVENTION],
             engineId: '123',
           },
           actionOrchestration: {
@@ -1863,8 +1863,8 @@ describes.realWin('AutoPromptManager', (env) => {
               },
               interventions: [
                 {
-                  configId: 'survey_config_id',
-                  type: 'TYPE_REWARDED_SURVEY',
+                  configId: 'regwall_config_id',
+                  type: 'TYPE_REGISTRATION_WALL',
                   closability: 'BLOCKING',
                 },
                 {
@@ -1893,8 +1893,8 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REWARDED_SURVEY',
-        configurationId: 'survey_config_id',
+        action: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: false,
         calledManually: false,
@@ -3614,6 +3614,22 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation = entitlementsManagerMock.expects('getArticle');
       getArticleExpectation
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'rewarded_ad_config_id',
+                  type: 'TYPE_REWARDED_AD',
+                  closability: 'BLOCKING',
+                },
+                {
+                  configId: 'subscription_config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [REWARDED_AD_INTERVENTION, SUBSCRIPTION_INTERVENTION],
             engineId: '123',
@@ -3659,6 +3675,22 @@ describes.realWin('AutoPromptManager', (env) => {
     it('is rendered for BYOP TYPE_NEWSLETTER_SIGNUP', async () => {
       getArticleExpectation
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'newsletter_config_id',
+                  type: 'TYPE_NEWSLETTER_SIGNUP',
+                  closability: 'DISMISSIBLE',
+                },
+                {
+                  configId: 'contribution_config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               NEWSLETTER_INTERVENTION_PUBLISHER_PROMPT,
