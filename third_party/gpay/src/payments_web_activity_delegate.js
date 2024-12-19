@@ -371,7 +371,7 @@ class PaymentsWebActivityDelegate {
     );
     const opener = this.activities.open(
       GPAY_ACTIVITY_REQUEST,
-      this.getHostingPageUrl_(),
+      this.getHostingPageUrl_(this.getSwgVersion_(paymentDataRequest)),
       this.getRenderMode_(paymentDataRequest),
       paymentDataRequest,
       {'width': 600, 'height': 600}
@@ -437,12 +437,28 @@ class PaymentsWebActivityDelegate {
   }
 
   /**
+   * Returns the SwG version.
+   *
+   * @private
+   * @param {!PaymentDataRequest} paymentDataRequest
+   * @return {?string}
+   */
+  getSwgVersion_(paymentDataRequest) {
+    const swgPaymentRequest = paymentDataRequest['swg'];
+    if (!swgPaymentRequest) {
+      return undefined;
+    }
+    return swgPaymentRequest['swgVersion'];
+  }
+
+  /**
    * Returns the hosting page url.
    *
    * @private
+   * @param {?string=} swgVersion SwG version number
    * @return {string} The hosting page url
    */
-  getHostingPageUrl_() {
+  getHostingPageUrl_(swgVersion) {
     // In Tin tests, the hosting page is requested from
     // /testing/buyflow/merchantdemo.html and is accessed relatively since the
     // base path is unknown ahead of time.
@@ -451,7 +467,11 @@ class PaymentsWebActivityDelegate {
       // http://yaqs/4912322941550592
       return '/ui/pay';
     }
-    return this.getBasePath_() + '/ui/pay?swg=true';
+    let hostingPageBase = this.getBasePath_() + '/ui/pay?swg=true';
+    if (swgVersion) {
+      hostingPageBase = hostingPageBase + '&swgVersion=' + swgVersion;
+    }
+    return hostingPageBase;
   }
 
   /**
@@ -459,9 +479,10 @@ class PaymentsWebActivityDelegate {
    *
    * @param {string} environment
    * @param {string} origin
+   * @param {?string=} swgVersion SwG version number
    * @return {string} The iframe url
    */
-  getIframeUrl(environment, origin) {
+  getIframeUrl(environment, origin, swgVersion) {
     // TODO: These should be compile time constants and not dependent
     // on the environment.
     let iframeUrl = `https://pay.google.com/gp/p/ui/pay?origin=${origin}&swg=true`;
@@ -470,6 +491,9 @@ class PaymentsWebActivityDelegate {
       environment == Constants.Environment.PREPROD
     ) {
       iframeUrl = `https://pay'+  (environment == Constants.Environment.PREPROD ? '-preprod' : '')+  '.sandbox.google.com/gp/p/ui/pay?origin=${origin}&swg=true`;
+    }
+    if (swgVersion) {
+      iframeUrl = iframeUrl + '&swgVersion=' + swgVersion;
     }
     return iframeUrl;
   }
@@ -635,7 +659,8 @@ class PaymentsWebActivityDelegate {
     let iframeLoadStartTime;
     const trustedUrl = this.getIframeUrl(
       this.environment_,
-      window.location.origin
+      window.location.origin,
+      this.getSwgVersion_(paymentDataRequest)
     );
     return this.activities
       .openIframe(iframe, trustedUrl, paymentDataRequest)
