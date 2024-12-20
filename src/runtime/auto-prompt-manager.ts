@@ -302,24 +302,41 @@ export class AutoPromptManager {
     )!;
 
     let potentialAction;
-    const nextOrchestration = await this.getInterventionOrchestration_(
-      clientConfig,
-      article
-    );
-    if (!!nextOrchestration) {
-      switch (nextOrchestration?.closability) {
-        case Closability.BLOCKING:
-          this.isClosable_ = false;
-          break;
-        case Closability.DISMISSIBLE:
-          this.isClosable_ = true;
-          break;
-        default:
-          this.isClosable_ = this.contentType_ != ContentType.CLOSED;
-      }
-      potentialAction = article.audienceActions?.actions?.find(
-        (action) => action.configurationId === nextOrchestration.configId
+    if (!!article.actionOrchestration) {
+      const nextOrchestration = await this.getInterventionOrchestration_(
+        clientConfig,
+        article
       );
+      if (!!nextOrchestration) {
+        switch (nextOrchestration?.closability) {
+          case Closability.BLOCKING:
+            this.isClosable_ = false;
+            break;
+          case Closability.DISMISSIBLE:
+            this.isClosable_ = true;
+            break;
+          default:
+            this.isClosable_ = this.contentType_ != ContentType.CLOSED;
+        }
+        potentialAction = article.audienceActions?.actions?.find(
+          (action) => action.configurationId === nextOrchestration.configId
+        );
+      }
+    } else {
+      // Unexpected state where actionOrchestration is not defined.
+      // For closed content, show subsription if it is eligible.
+      if (this.contentType_ === ContentType.CLOSED) {
+        const subscriptionAction = article.audienceActions?.actions?.find(
+          (action) => action.type === InterventionType.TYPE_SUBSCRIPTION
+        );
+        if (subscriptionAction) {
+          this.isClosable_ = false;
+          potentialAction = {
+            type: subscriptionAction.type,
+            configurationId: subscriptionAction.configurationId,
+          };
+        }
+      }
     }
 
     const promptFn = potentialAction

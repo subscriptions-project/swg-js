@@ -1482,6 +1482,61 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
+    it('for open content, should not show CTA if actionOrchestration is absent', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SUBSCRIPTION_INTERVENTION],
+            engineId: '123',
+          },
+        })
+        .once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(20);
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('for closed content, should not show CTA actionOrchestration is absent and subscription is not eligible', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [CONTRIBUTION_INTERVENTION],
+            engineId: '123',
+          },
+        })
+        .once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+
+      expect(contributionPromptFnSpy).to.not.have.been.called;
+      expect(startSpy).to.not.have.been.called;
+    });
+
+    it('for closed content, should show the subscription CTA if actionOrchestration is absent and subscription is eligible', async () => {
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SUBSCRIPTION_INTERVENTION],
+            engineId: '123',
+          },
+        })
+        .once();
+      storageMock.expects('get').never();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+      await tick(20);
+
+      expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
+    });
+
     it('should not show any prompt if there are no audience actions', async () => {
       getArticleExpectation
         .resolves({
@@ -1512,7 +1567,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
-    it('should not show any prompt if there are interventions in actionOrchestration', async () => {
+    it('should not show any prompt if there are no interventions in actionOrchestration', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
