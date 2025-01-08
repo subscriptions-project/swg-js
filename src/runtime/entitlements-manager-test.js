@@ -387,7 +387,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -421,7 +421,7 @@ describes.realWin('EntitlementsManager', (env) => {
             encodeURIComponent(scenario) +
             '&crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED',
+            '&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -446,7 +446,7 @@ describes.realWin('EntitlementsManager', (env) => {
         .withExactArgs(
           'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED',
+            '&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -481,7 +481,7 @@ describes.realWin('EntitlementsManager', (env) => {
             encodeURIComponent(encryptedDocumentKey) +
             '&sut=' +
             encodeURIComponent('abc') +
-            '&locked=true&contentType=CLOSED',
+            '&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -543,7 +543,7 @@ describes.realWin('EntitlementsManager', (env) => {
         .withExactArgs(
           'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED',
+            '&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -601,7 +601,7 @@ describes.realWin('EntitlementsManager', (env) => {
         .withExactArgs(
           'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED',
+            '&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -726,7 +726,7 @@ describes.realWin('EntitlementsManager', (env) => {
         .withExactArgs(
           'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED',
+            '&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -783,7 +783,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -851,7 +851,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1133,7 +1133,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1635,7 +1635,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1663,7 +1663,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=deprecated&locked=true&contentType=CLOSED',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=deprecated&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1753,7 +1753,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1833,7 +1833,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=false&contentType=OPEN&encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=OPEN&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1876,7 +1876,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1925,7 +1925,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&previewKey=${previewKey}&locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&previewKey=${previewKey}&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1959,7 +1959,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${defaultGoogleMeteringEncodedParams}`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED&encodedEntitlementsParams=${defaultGoogleMeteringEncodedParams}`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1984,7 +1984,7 @@ describes.realWin('EntitlementsManager', (env) => {
             encodeURIComponent('abc') +
             '&ppid=' +
             encodeURIComponent('publisherProvidedId') +
-            '&locked=true&contentType=CLOSED',
+            '&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2016,7 +2016,7 @@ describes.realWin('EntitlementsManager', (env) => {
             encodeURIComponent('abc') +
             '&ppid=' +
             encodeURIComponent('publisherProvidedId') +
-            '&locked=true&contentType=CLOSED',
+            '&contentType=CLOSED',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2053,7 +2053,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?interaction_age=2&locked=true&contentType=CLOSED`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?interaction_age=2&contentType=CLOSED`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2083,7 +2083,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2113,7 +2113,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2740,7 +2740,7 @@ describes.realWin('EntitlementsManager', (env) => {
         fetcherMock
           .expects('fetch')
           .withExactArgs(
-            'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED',
+            'https://news.google.com/swg/_/api/v1/publication/pub1/article?contentType=CLOSED',
             {
               method: 'GET',
               headers: {'Accept': 'text/plain, application/json'},
