@@ -568,6 +568,9 @@ export class GaaMetering {
     return true;
   }
 
+  /**
+   * Gets product ID from page config.
+   */
   static getProductIDFromPageConfig_(): string {
     const jsonLdPageConfig = GaaMetering.getProductIDFromJsonLdPageConfig_();
     if (jsonLdPageConfig) {
@@ -581,12 +584,12 @@ export class GaaMetering {
     }
 
     throw new Error(
-      'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
+      'Showcase articles must define a product ID with either JSON-LD or Microdata.'
     );
   }
 
   /**
-   * Gets publisher ID from JSON-LD page config.
+   * Gets product ID from JSON-LD page config.
    */
   private static getProductIDFromJsonLdPageConfig_(): string | void {
     const ldJsonElements = Array.from(
