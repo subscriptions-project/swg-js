@@ -44,4 +44,10 @@ export enum ArticleExperimentFlags {
    * targeted intervention funnel.
    */
   ACTION_ORCHESTRATION_EXPERIMENT = 'action_orchestration_experiment',
+
+  /**
+   * Experiment flag that filters out dismissible monetary CTAs if reader is
+   * ineligible to purchase.
+   */
+  DISMISSIBILITY_CTA_FILTER_EXPERIMENT = 'dismissibility_cta_filter_experiment',
 }

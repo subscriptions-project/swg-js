@@ -4652,6 +4652,122 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
       await tick(20);
     });
+
+    describe('when dismissibility filter experiment enabled', () => {
+      const createArticleWithDismissibilityFilterExperiment = (
+        intervention,
+        closability
+      ) => ({
+        audienceActions: {actions: [intervention], engineId: '123'},
+        actionOrchestration: {
+          interventionFunnel: {
+            interventions: [
+              {
+                configId: intervention.configurationId,
+                type: intervention.type,
+                closability,
+              },
+            ],
+          },
+        },
+        experimentConfig: {
+          experimentFlags: [
+            'action_orchestration_experiment',
+            'dismissibility_cta_filter_experiment',
+          ],
+        },
+      });
+      const readerCannotPurchaseClientConfig = new ClientConfig({
+        autoPromptConfig,
+        uiPredicates: new UiPredicates(
+          /* canDisplayAutoPrompt */ true,
+          /* canDisplayButton */ false,
+          /* purchaseUnavailableRegion */ true
+        ),
+        useUpdatedOfferFlows: true,
+      });
+
+      it('filters out if open content and reader cannot purchase', async () => {
+        getClientConfigExpectation
+          .resolves(readerCannotPurchaseClientConfig)
+          .once();
+        getArticleExpectation
+          .resolves(
+            createArticleWithDismissibilityFilterExperiment(
+              SUBSCRIPTION_INTERVENTION,
+              'BLOCKING'
+            )
+          )
+          .once();
+
+        await autoPromptManager.showAutoPrompt({
+          contentType: ContentType.OPEN,
+        });
+        await tick(20);
+
+        expect(subscriptionPromptFnSpy).not.to.have.been.called;
+      });
+
+      it('filters out if closed content, dismissible, and reader cannot purchase', async () => {
+        getClientConfigExpectation
+          .resolves(readerCannotPurchaseClientConfig)
+          .once();
+        getArticleExpectation
+          .resolves(
+            createArticleWithDismissibilityFilterExperiment(
+              CONTRIBUTION_INTERVENTION,
+              'DISMISSIBLE'
+            )
+          )
+          .once();
+
+        await autoPromptManager.showAutoPrompt({
+          contentType: ContentType.CLOSED,
+        });
+        await tick(20);
+
+        expect(subscriptionPromptFnSpy).not.to.have.been.called;
+      });
+
+      it('shows if closed content and non-dismissible even if reader cannot purchase', async () => {
+        getClientConfigExpectation
+          .resolves(readerCannotPurchaseClientConfig)
+          .once();
+        getArticleExpectation
+          .resolves(
+            createArticleWithDismissibilityFilterExperiment(
+              CONTRIBUTION_INTERVENTION,
+              'UNSPECIFIED'
+            )
+          )
+          .once();
+
+        await autoPromptManager.showAutoPrompt({
+          contentType: ContentType.CLOSED,
+        });
+        await tick(20);
+
+        expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
+      });
+
+      it('shows if reader can purchase', async () => {
+        getArticleExpectation
+          .resolves(
+            createArticleWithDismissibilityFilterExperiment(
+              SUBSCRIPTION_INTERVENTION,
+              'BLOCKING'
+            )
+          )
+          .once();
+
+        await autoPromptManager.showAutoPrompt({
+          contentType: ContentType.OPEN,
+        });
+        await tick(20);
+
+        expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
+      });
+    });
   });
 
   describe('Helper Functions', () => {
