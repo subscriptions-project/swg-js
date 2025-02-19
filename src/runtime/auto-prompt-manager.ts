@@ -1036,7 +1036,7 @@ export class AutoPromptManager {
 
     // Prevent readers from seeing dismissible CTAs they can't interact with.
     const readerCannotPurchase =
-      !!clientConfig.uiPredicates?.purchaseUnavailableRegion &&
+      !!clientConfig?.uiPredicates?.purchaseUnavailableRegion &&
       this.isMonetizationAction_(orchestration.type);
     const isDismissible =
       this.contentType_ !== ContentType.CLOSED ||

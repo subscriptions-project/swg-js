@@ -4726,7 +4726,7 @@ describes.realWin('AutoPromptManager', (env) => {
         });
         await tick(20);
 
-        expect(subscriptionPromptFnSpy).not.to.have.been.called;
+        expect(contributionPromptFnSpy).not.to.have.been.called;
       });
 
       it('shows if closed content and non-dismissible even if reader cannot purchase', async () => {
@@ -4747,7 +4747,7 @@ describes.realWin('AutoPromptManager', (env) => {
         });
         await tick(20);
 
-        expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
+        expect(contributionPromptFnSpy).to.have.been.calledOnce;
       });
 
       it('shows if reader can purchase', async () => {
