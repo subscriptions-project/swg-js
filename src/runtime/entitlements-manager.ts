@@ -812,7 +812,6 @@ export class EntitlementsManager {
       }
     }
 
-    url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
     url = addQueryParam(
       url,
       'contentType',
