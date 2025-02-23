@@ -231,9 +231,16 @@ export class BasicRuntime implements BasicSubscriptions {
       isPartOfProductId,
     });
 
-    this.clientOptions_ = Object.assign({}, clientOptions, {
-      forceLangInIframes: true,
-    });
+    if (!!clientOptions?.lang || !!this.doc_.getRootElement().lang) {
+      this.clientOptions_ = Object.assign({}, clientOptions, {
+        lang: !!clientOptions?.lang
+          ? clientOptions.lang
+          : this.doc_.getRootElement().lang,
+        forceLangInIframes: true,
+      });
+    } else {
+      this.clientOptions_ = Object.assign({}, clientOptions);
+    }
 
     let isClosable = isAccessibleForFree;
     // Only default isClosable to true if product is openaccess, else leave undefined.
