@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+import {
+  AlreadySubscribedResponse,
+  EntitlementsResponse,
+  ToastCloseRequest,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
@@ -25,12 +31,6 @@ import {
 import {MeterClientTypes} from '../api/metering';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
-import {
-  AlreadySubscribedResponse,
-  EntitlementsResponse,
-  ToastCloseRequest,
-  ViewSubscriptionsResponse,
-} from '../proto/api_messages';
 import {getStyle} from '../utils/style';
 import {tick} from '../../test/tick';
 

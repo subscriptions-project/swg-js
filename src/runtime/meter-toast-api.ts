@@ -171,7 +171,6 @@ export class MeterToastApi {
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
-    console.log("alreadysubscribed");
     if (
       !this.deps_.callbacks().hasSubscribeRequestCallback() &&
       !this.deps_.callbacks().hasOffersFlowRequestCallback()
@@ -327,19 +326,19 @@ export class MeterToastApi {
     );
   }
 
-   /**
+  /**
    * Show login dialog after reader click "Already a subscriber?" button.
    */
-   private handleLinkRequest_(response: AlreadySubscribedResponse): void {
+  private handleLinkRequest_(response: AlreadySubscribedResponse): void {
     if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
   }
 
-   /**
+  /**
    * Shows the toast of 'no entitlement found' on activity iFrame view.
    */
-   showNoEntitlementFoundToast(): void {
+  showNoEntitlementFoundToast(): void {
     if (this.activityIframeView_) {
       this.activityIframeView_.execute(new EntitlementsResponse());
     }
