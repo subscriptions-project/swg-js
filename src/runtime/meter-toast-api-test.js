@@ -589,6 +589,7 @@ describes.realWin('MeterToastApi', (env) => {
     response.setSubscriberOrMember(true);
     const messageCallback = messageMap['AlreadySubscribedResponse'];
     messageCallback(response);
+
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
     });
@@ -598,9 +599,7 @@ describes.realWin('MeterToastApi', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     await meterToastApi.start();
-
     const messageStub = sandbox.stub(port, 'execute');
-
     await meterToastApi.showNoEntitlementFoundToast();
 
     expect(messageStub).to.be.calledOnce.calledWith(new EntitlementsResponse());
