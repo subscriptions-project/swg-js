@@ -26,6 +26,8 @@ import {MeterClientTypes} from '../api/metering';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {
+  AlreadySubscribedResponse,
+  EntitlementsResponse,
   ToastCloseRequest,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
@@ -537,12 +539,14 @@ describes.realWin('MeterToastApi', (env) => {
     it(description, async () => {
       clientOptions.lang = lang;
       clientOptions.forceLangInIframes = forceLangInIframes;
-      const iframeArgs = meterToastApi.activityPorts_.addDefaultArguments({
+      const meterToast = new MeterToastApi(runtime);
+      const iframeArgs = meterToast.activityPorts_.addDefaultArguments({
         isClosable: true,
         hasSubscriptionCallback: runtime
           .callbacks()
           .hasSubscribeRequestCallback(),
       });
+
       activitiesMock
         .expects('openIframe')
         .withExactArgs(
@@ -551,7 +555,7 @@ describes.realWin('MeterToastApi', (env) => {
           iframeArgs
         )
         .resolves(port);
-      await meterToastApi.start();
+      await meterToast.start();
     });
   });
 
@@ -574,5 +578,31 @@ describes.realWin('MeterToastApi', (env) => {
     run = new ConfiguredRuntime(Object.assign({}, win, window), pageConfig);
     meterToastApi = new MeterToastApi(run);
     expect(meterToastApi.isMobile_()).to.be.false;
+  });
+
+  it('should trigger login flow for a subscriber', async () => {
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await meterToastApi.start();
+    const response = new AlreadySubscribedResponse();
+    response.setSubscriberOrMember(true);
+    const messageCallback = messageMap['AlreadySubscribedResponse'];
+    messageCallback(response);
+    expect(loginStub).to.be.calledOnce.calledWithExactly({
+      linkRequested: false,
+    });
+  });
+
+  it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await meterToastApi.start();
+
+    const messageStub = sandbox.stub(port, 'execute');
+
+    await meterToastApi.showNoEntitlementFoundToast();
+
+    expect(messageStub).to.be.calledOnce.calledWith(new EntitlementsResponse());
   });
 });
