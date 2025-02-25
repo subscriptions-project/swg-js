@@ -16,15 +16,18 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
+import {
+  AlreadySubscribedResponse,
+  EntitlementsResponse,
+  ToastCloseRequest,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 import {AnalyticsEvent} from '../proto/api_messages';
+import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {MeterClientTypes} from '../api/metering';
 import {SubscriptionFlows} from '../api/subscriptions';
-import {
-  ToastCloseRequest,
-  ViewSubscriptionsResponse,
-} from '../proto/api_messages';
 import {feUrl} from './services';
 import {isCancelError} from '../utils/errors';
 import {parseUrl} from '../utils/url';
@@ -61,6 +64,8 @@ export class MeterToastApi {
   private readonly dialogManager_: DialogManager;
   private readonly meterClientType_: MeterClientTypes;
   private readonly meterClientUserAttribute_: string;
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly activityIframeView_: ActivityIframeView;
   /**
    * Function this class calls when a user dismisses the toast to consume a
    * free read.
@@ -91,17 +96,12 @@ export class MeterToastApi {
     this.meterClientType_ = meterClientType;
 
     this.meterClientUserAttribute_ = meterClientUserAttribute;
-  }
 
-  /**
-   * Shows the user the metering toast.
-   */
-  async start(): Promise<void> {
+    this.clientConfigManager_ = deps_.clientConfigManager();
+
     const additionalArguments = {
       isClosable: true,
-      hasSubscriptionCallback: this.deps_
-        .callbacks()
-        .hasSubscribeRequestCallback(),
+      hasSubscriptionCallback: deps_.callbacks().hasSubscribeRequestCallback(),
     } as {
       isClosable: boolean;
       hasSubscriptionCallback: boolean;
@@ -124,23 +124,27 @@ export class MeterToastApi {
       origin: string;
       hl?: string;
     };
-
-    if (this.deps_.clientConfigManager().shouldForceLangInIframes()) {
-      iframeUrlParams['hl'] = this.deps_.clientConfigManager().getLanguage();
+    if (this.clientConfigManager_.shouldForceLangInIframes()) {
+      iframeUrlParams['hl'] = this.clientConfigManager_.getLanguage();
     }
 
-    const activityIframeView = new ActivityIframeView(
+    this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       feUrl(iframeUrl, iframeUrlParams),
       iframeArgs,
       /* shouldFadeBody */ false
     );
+  }
 
+  /**
+   * Shows the user the metering toast.
+   */
+  async start(): Promise<void> {
     this.sendCloseRequestFunction_ = () => {
       const closeRequest = new ToastCloseRequest();
       closeRequest.setClose(true);
-      activityIframeView.execute(closeRequest);
+      this.activityIframeView_.execute(closeRequest);
       this.removeCloseEventListener();
 
       this.deps_
@@ -159,9 +163,13 @@ export class MeterToastApi {
     this.deps_
       .callbacks()
       .triggerFlowStarted(SubscriptionFlows.SHOW_METER_TOAST);
-    activityIframeView.on(
+    this.activityIframeView_.on(
       ViewSubscriptionsResponse,
       this.startSubscriptionFlow_.bind(this)
+    );
+    this.activityIframeView_.on(
+      AlreadySubscribedResponse,
+      this.handleLinkRequest_.bind(this)
     );
     if (
       !this.deps_.callbacks().hasSubscribeRequestCallback() &&
@@ -177,7 +185,7 @@ export class MeterToastApi {
     }
 
     this.dialogManager_
-      .handleCancellations(activityIframeView)
+      .handleCancellations(this.activityIframeView_)
       .catch((reason) => {
         // Possibly call onConsumeCallback on all dialog cancellations to
         // ensure unexpected dialog closures don't give access without a
@@ -203,7 +211,7 @@ export class MeterToastApi {
     this.setDialogBoxShadow_();
     this.setLoadingViewWidth_();
 
-    await dialog.openView(activityIframeView);
+    await dialog.openView(this.activityIframeView_);
 
     // Allow closing of the iframe with any scroll or click event.
     this.win_.addEventListener('click', this.sendCloseRequestFunction_);
@@ -316,5 +324,23 @@ export class MeterToastApi {
     return !!this.win_.navigator.userAgent.match(
       /Android|iPhone|iPad|iPod|BlackBerry|IEMobile/i
     );
+  }
+
+  /**
+   * Show login dialog after reader click "Already a subscriber?" button.
+   */
+  private handleLinkRequest_(response: AlreadySubscribedResponse): void {
+    if (response.getSubscriberOrMember()) {
+      this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
+    }
+  }
+
+  /**
+   * Shows the toast of 'no entitlement found' on activity iFrame view.
+   */
+  showNoEntitlementFoundToast(): void {
+    if (this.activityIframeView_) {
+      this.activityIframeView_.execute(new EntitlementsResponse());
+    }
   }
 }

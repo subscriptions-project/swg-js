@@ -35,6 +35,8 @@ import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
+import {MeterClientTypes} from '../api/metering';
+import {MeterToastApi} from './meter-toast-api';
 import {MiniPromptApi} from './mini-prompt-api';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {OffersFlow} from './offers-flow';
@@ -1208,6 +1210,39 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         .once();
       await configuredBasicRuntime.entitlementsResponseHandler(port);
       audienceActionFlowMock.verify();
+    });
+
+    it('should handle an empty EntitlementsResponse from meter flow', async () => {
+      const port = new MockActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const meterToastApi = new MeterToastApi(configuredBasicRuntime, {
+        meterClientType: MeterClientTypes.METERED_BY_GOOGLE.valueOf(),
+        meterClientUserAttribute: 'standard_registered_user',
+      });
+      const entitlementsManagerMock = sandbox.mock(
+        configuredBasicRuntime.entitlementsManager()
+      );
+      entitlementsManagerMock
+        .expects('getLastMeterToast')
+        .withExactArgs()
+        .returns(meterToastApi)
+        .once();
+
+      const meterToastApiMock = sandbox.mock(meterToastApi);
+      meterToastApiMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      meterToastApiMock.verify();
     });
 
     it('should handle an empty EntitlementsResponse with no active flow', async () => {
