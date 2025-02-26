@@ -20,7 +20,6 @@ import {StorageKeysWithoutPublicationIdSuffix} from '../utils/constants';
 import {isExperimentOn} from './experiments';
 
 const PREFIX = 'subscribe.google.com';
-const WEEK_IN_MILLIS = 604800000;
 
 /**
  * This class is responsible for the storage of data in session storage. If
@@ -198,7 +197,7 @@ export class Storage {
  */
 export function pruneTimestamps(
   timestamps: number[],
-  timestampLifespan = WEEK_IN_MILLIS
+  timestampLifespan: number
 ): number[] {
   const now = Date.now();
   let sliceIndex = timestamps.length;
