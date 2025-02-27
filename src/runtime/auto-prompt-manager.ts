@@ -57,7 +57,6 @@ const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 const SECOND_IN_MILLIS = 1000;
-const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
@@ -858,15 +857,9 @@ export class AutoPromptManager {
         return {
           ...acc,
           [key]: {
-            impressions: pruneTimestamps(
-              value.impressions,
-              TWO_WEEKS_IN_MILLIS
-            ),
-            dismissals: pruneTimestamps(value.dismissals, TWO_WEEKS_IN_MILLIS),
-            completions: pruneTimestamps(
-              value.completions,
-              TWO_WEEKS_IN_MILLIS
-            ),
+            impressions: pruneTimestamps(value.impressions),
+            dismissals: pruneTimestamps(value.dismissals),
+            completions: pruneTimestamps(value.completions),
           },
         };
       },
