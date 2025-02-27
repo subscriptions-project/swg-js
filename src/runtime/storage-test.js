@@ -741,8 +741,8 @@ describes.realWin('Storage', (env) => {
   });
 
   describe('pruneTimestamps', () => {
+    const NOW = 1234567;
     const ONE_WEEK = 604800000;
-    const NOW = ONE_WEEK * 52;
 
     beforeEach(() => {
       sandbox.stub(Date, 'now').returns(NOW);
@@ -757,7 +757,10 @@ describes.realWin('Storage', (env) => {
 
     it('should prune timestamps older than two weeks', async () => {
       const result = pruneTimestamps([
+        NOW - ONE_WEEK * 5,
+        NOW - ONE_WEEK * 4.5,
         NOW - ONE_WEEK * 4,
+        NOW - ONE_WEEK * 3.5,
         NOW - ONE_WEEK * 3,
         NOW - ONE_WEEK * 2.5,
         // Everything above this line should be pruned.
