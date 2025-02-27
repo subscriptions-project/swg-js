@@ -22,9 +22,7 @@
     "coverage": "gulp unit --coverage --headless",
     "lint": "gulp lint",
     "build": "gulp build",
-    "build-i18n": "node build-system/tasks/build-i18n.js && gulp lint --fix --files='src/i18n/strings.ts'",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-i18n": "node build-system/tasks/build-i18n.js && gulp lint --fix --files='src/i18n/strings.ts'"
   },
   "dependencies": {
     "safevalues": "0.5.2",
@@ -112,12 +110,6 @@
     "@nightwatch/vrt": "^3.0.0",
     "@rollup/plugin-commonjs": "25.0.8",
     "@rollup/plugin-replace": "5.0.7",
-    "@storybook/addon-actions": "7.6.19",
-    "@storybook/addon-essentials": "7.6.19",
-    "@storybook/addon-links": "7.6.19",
-    "@storybook/builder-webpack5": "7.6.19",
-    "@storybook/html": "7.6.19",
-    "@storybook/manager-webpack5": "6.5.16",
     "cheerio": "1.0.0-rc.12",
     "chromedriver": "133.0.0",
     "cookie-parser": "1.4.6",
