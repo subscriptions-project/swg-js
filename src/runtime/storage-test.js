@@ -748,13 +748,6 @@ describes.realWin('Storage', (env) => {
       sandbox.stub(Date, 'now').returns(NOW);
     });
 
-    function arraysAreEqual(arr1, arr2) {
-      if (arr1.length !== arr2.length) {
-        return false;
-      }
-      return arr1.every((value, index) => value === arr2[index]);
-    }
-
     it('should prune timestamps older than two weeks', async () => {
       const result = pruneTimestamps([
         NOW - ONE_WEEK * 5,
