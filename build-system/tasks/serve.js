@@ -15,10 +15,10 @@
  */
 'use strict';
 
-const {green} = require('ansi-colors');
 const args = require('./args');
 const log = require('fancy-log');
 const nodemon = require('nodemon');
+const {green} = require('ansi-colors');
 
 const host = args.host || 'localhost';
 const port = args.port || process.env.PORT || 8000;
