@@ -759,14 +759,14 @@ describes.realWin('Storage', (env) => {
         // Everything above this line should be pruned.
         NOW - ONE_WEEK * 2,
         NOW - ONE_WEEK * 1.5,
-        NOW - ONE_WEEK * 1,
+        NOW - ONE_WEEK,
         NOW,
       ]);
 
       expect(result).to.deep.equal([
         NOW - ONE_WEEK * 2,
         NOW - ONE_WEEK * 1.5,
-        NOW - ONE_WEEK * 1,
+        NOW - ONE_WEEK,
         NOW,
       ]);
     });
