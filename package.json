@@ -110,7 +110,7 @@
     "@nightwatch/vrt": "^3.0.0",
     "@rollup/plugin-commonjs": "25.0.8",
     "@rollup/plugin-replace": "5.0.7",
-    "cheerio": "1.0.0-rc.12",
+    "cheerio": "1.0.0",
     "chromedriver": "133.0.0",
     "cookie-parser": "1.4.6",
     "hogan-express": "0.5.2",
