@@ -18,31 +18,19 @@
 const args = require('./args');
 const log = require('fancy-log');
 const nodemon = require('nodemon');
+const {green} = require('ansi-colors');
 
 const host = args.host || 'localhost';
 const port = args.port || process.env.PORT || 8000;
 const useHttps = args.https != undefined;
 const quiet = args.quiet != undefined;
 const publicationId = args.publicationId || 'scenic-2017.appspot.com';
-const useStorybook = args.storybook === true;
-
-const {green} = require('ansi-colors');
 
 /**
  * Starts a simple http server at the repository root
  */
 function serve(done) {
-  if (useStorybook) {
-    // Load this on-demand to support optional dependencies.
-    const storybook = require('@storybook/html/standalone');
-    storybook({
-      port,
-      mode: 'dev',
-      configDir: './.storybook',
-    });
-  } else {
-    startServer();
-  }
+  startServer();
   done();
 }
 
@@ -83,7 +71,6 @@ serve.flags = {
   'https': '  Use HTTPS server (default: false)',
   'quiet': '  Do not log HTTP requests (default: false)',
   'publicationId': '  Sample publicationId',
-  'storybook': 'Run storybook instead of demo apps',
 };
 
 function getHost() {
