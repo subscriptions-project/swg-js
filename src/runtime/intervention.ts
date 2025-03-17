@@ -33,4 +33,6 @@ export interface Intervention {
   // repeatable actions (Rewarded Ads, BYO-CTA) to determine action eligibility
   // based on funnel-level configured repeatability.
   readonly numberOfCompletions?: number;
+  // Publisher provided name for the action configured in the Publisher Center.
+  readonly name?: string;
 }
