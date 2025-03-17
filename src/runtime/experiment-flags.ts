@@ -37,20 +37,10 @@ export enum ArticleExperimentFlags {
    * closable popups.
    */
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
-<<<<<<< HEAD
-=======
-
-  /**
-   * [FPA M0.5] Experiment flag to enable the new autoPromptManager flow to use
-   * actionOrchestration from the article response as the source of the
-   * targeted intervention funnel.
-   */
-  ACTION_ORCHESTRATION_EXPERIMENT = 'action_orchestration_experiment',
 
   /**
    * Experiment flag that filters out dismissible monetary CTAs if reader is
    * ineligible to purchase.
    */
   DISMISSIBILITY_CTA_FILTER_EXPERIMENT = 'dismissibility_cta_filter_experiment',
->>>>>>> 1f702e72df5b294a42246dcef9755db224cc6678
 }
