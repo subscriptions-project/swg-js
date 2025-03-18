@@ -57,7 +57,6 @@ const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 const SECOND_IN_MILLIS = 1000;
-const TWO_WEEKS_IN_MILLIS = 2 * 604800000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
@@ -145,6 +144,7 @@ export class AutoPromptManager {
   private contentType_: ContentType | undefined;
   private shouldRenderOnsitePreview_: boolean = false;
   private actionOrchestrationExperiment_: boolean = false;
+  private dismissibilityCtaFilterExperiment_: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -241,6 +241,10 @@ export class AutoPromptManager {
     this.actionOrchestrationExperiment_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.ACTION_ORCHESTRATION_EXPERIMENT
+    );
+    this.dismissibilityCtaFilterExperiment_ = this.isArticleExperimentEnabled_(
+      article,
+      ArticleExperimentFlags.DISMISSIBILITY_CTA_FILTER_EXPERIMENT
     );
   }
 
@@ -543,7 +547,8 @@ export class AutoPromptManager {
         this.checkOrchestrationEligibility_(
           intervention,
           eligibleActionIds,
-          numberOfCompletionsMap
+          numberOfCompletionsMap,
+          clientConfig
         )
     );
     if (interventionOrchestration.length === 0) {
@@ -852,15 +857,9 @@ export class AutoPromptManager {
         return {
           ...acc,
           [key]: {
-            impressions: pruneTimestamps(
-              value.impressions,
-              TWO_WEEKS_IN_MILLIS
-            ),
-            dismissals: pruneTimestamps(value.dismissals, TWO_WEEKS_IN_MILLIS),
-            completions: pruneTimestamps(
-              value.completions,
-              TWO_WEEKS_IN_MILLIS
-            ),
+            impressions: pruneTimestamps(value.impressions),
+            dismissals: pruneTimestamps(value.dismissals),
+            completions: pruneTimestamps(value.completions),
           },
         };
       },
@@ -999,33 +998,48 @@ export class AutoPromptManager {
   private checkOrchestrationEligibility_(
     orchestration: InterventionOrchestration,
     eligibleActionIds: Set<string | undefined>,
-    numberOfCompletionsMap: Map<string, number>
+    numberOfCompletionsMap: Map<string, number>,
+    clientConfig: ClientConfig
   ): boolean {
-    if (!eligibleActionIds.has(orchestration.configId)) {
+    const {repeatability, closability, configId} = orchestration;
+    if (!eligibleActionIds.has(configId)) {
       return false;
     }
 
-    if (orchestration.repeatability?.type !== RepeatabilityType.INFINITE) {
+    if (repeatability?.type !== RepeatabilityType.INFINITE) {
       const maximumNumberOfCompletions =
-        RepeatabilityType.FINITE === orchestration.repeatability?.type
-          ? orchestration.repeatability.count || 1
+        RepeatabilityType.FINITE === repeatability?.type
+          ? repeatability.count || 1
           : 1;
       let numberOfCompletions;
-      if (!numberOfCompletionsMap.has(orchestration.configId)) {
-        if (RepeatabilityType.FINITE === orchestration.repeatability?.type) {
+      if (!numberOfCompletionsMap.has(configId)) {
+        if (RepeatabilityType.FINITE === repeatability?.type) {
           this.eventManager_.logSwgEvent(
             AnalyticsEvent.EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR
           );
         }
         numberOfCompletions = 0;
       } else {
-        numberOfCompletions = numberOfCompletionsMap.get(
-          orchestration.configId
-        )!;
+        numberOfCompletions = numberOfCompletionsMap.get(configId)!;
       }
       if (numberOfCompletions! >= maximumNumberOfCompletions) {
         return false;
       }
+    }
+
+    // Prevent readers from seeing dismissible CTAs they can't interact with.
+    const readerCannotPurchase =
+      !!clientConfig?.uiPredicates?.purchaseUnavailableRegion &&
+      this.isMonetizationAction_(orchestration.type);
+    const isDismissible =
+      this.contentType_ !== ContentType.CLOSED ||
+      closability === Closability.DISMISSIBLE;
+    if (
+      this.dismissibilityCtaFilterExperiment_ &&
+      isDismissible &&
+      readerCannotPurchase
+    ) {
+      return false;
     }
 
     return true;

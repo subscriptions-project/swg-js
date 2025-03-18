@@ -1405,7 +1405,7 @@ describes.realWin('AudienceActionLocalFlow', (env) => {
         );
         expect(wrapper.style.opacity).to.equal('0');
 
-        await new Promise((resolve) => setTimeout(resolve, 1001));
+        await new Promise((resolve) => setTimeout(resolve, 1005));
         const updatedWrapper = env.win.document.querySelector(
           '.audience-action-local-wrapper'
         );
