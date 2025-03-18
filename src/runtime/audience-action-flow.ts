@@ -24,7 +24,7 @@
  * 4) Close the prompt that initiated the flow.
  */
 
-import { ActivityIframeView } from '../ui/activity-iframe-view';
+import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
   AnalyticsEvent,
@@ -34,27 +34,27 @@ import {
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
-import { AutoPromptType } from '../api/basic-subscriptions';
-import { ClientConfigManager } from './client-config-manager';
+import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientConfigManager} from './client-config-manager';
 import {
   Constants,
   StorageKeys,
   StorageKeysWithoutPublicationIdSuffix,
 } from '../utils/constants';
-import { Deps } from './deps';
-import { DialogManager } from '../components/dialog-manager';
-import { EntitlementsManager } from './entitlements-manager';
-import { GoogleAnalyticsEventListener } from './google-analytics-event-listener';
-import { InterventionResult } from '../api/available-intervention';
-import { ProductType } from '../api/subscriptions';
-import { SWG_I18N_STRINGS } from '../i18n/swg-strings';
-import { Storage } from './storage';
-import { Toast } from '../ui/toast';
-import { feArgs, feUrl } from './services';
-import { msg } from '../utils/i18n';
-import { parseUrl } from '../utils/url';
-import { setImportantStyles } from '../utils/style';
-import { warn } from '../utils/log';
+import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {EntitlementsManager} from './entitlements-manager';
+import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {InterventionResult} from '../api/available-intervention';
+import {ProductType} from '../api/subscriptions';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {Storage} from './storage';
+import {Toast} from '../ui/toast';
+import {feArgs, feUrl} from './services';
+import {msg} from '../utils/i18n';
+import {parseUrl} from '../utils/url';
+import {setImportantStyles} from '../utils/style';
+import {warn} from '../utils/log';
 
 export interface AudienceActionFlow {
   start: () => Promise<void>;
@@ -81,7 +81,7 @@ export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 
-const actionToIframeMapping: { [key: string]: string } = {
+const actionToIframeMapping: {[key: string]: string} = {
   TYPE_REGISTRATION_WALL: '/regwalliframe',
   TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
   TYPE_REWARDED_SURVEY: '/surveyiframe',
@@ -128,7 +128,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
     this.storage_ = deps_.storage();
 
-    const iframeParams: { [key: string]: string } = {
+    const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(deps_.win().location.href).origin,
       'configurationId': this.params_.configurationId || '',
       'isClosable': (!!params_.isClosable).toString(),
@@ -174,7 +174,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       this.handleLinkRequest_.bind(this)
     );
 
-    const { onCancel } = this.params_;
+    const {onCancel} = this.params_;
     if (onCancel) {
       this.activityIframeView_.onCancel(onCancel);
     }
@@ -199,7 +199,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse
   ): void {
-    const { onResult, configurationId } = this.params_;
+    const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
@@ -328,7 +328,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
   private handleLinkRequest_(response: AlreadySubscribedResponse): void {
     if (response.getSubscriberOrMember()) {
-      this.deps_.callbacks().triggerLoginRequest({ linkRequested: false });
+      this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
   }
 
@@ -370,7 +370,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   ): Promise<boolean> {
     // @TODO(justinchou): execute callback with setOnInterventionComplete
     // then check for success
-    const { onResult } = this.params_;
+    const {onResult} = this.params_;
     if (onResult) {
       try {
         return await onResult({
@@ -421,7 +421,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
     );
     const iabTaxonomy = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: { values: iabTaxonomyValues },
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
     };
 
     await Promise.resolve(
@@ -475,7 +475,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           },
         };
         this.deps_.eventManager().logEvent(event, eventParams);
-      })
+      });
     });
     return true;
   }

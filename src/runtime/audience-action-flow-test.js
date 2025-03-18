@@ -25,16 +25,16 @@ import {
   SurveyDataTransferResponse,
   SurveyQuestion,
 } from '../proto/api_messages';
-import { AudienceActionIframeFlow } from './audience-action-flow';
-import { AutoPromptType } from '../api/basic-subscriptions';
-import { ClientEventManager } from './client-event-manager';
-import { ConfiguredRuntime } from './runtime';
-import { Constants, StorageKeys } from '../utils/constants';
-import { MockActivityPort } from '../../test/mock-activity-port';
-import { PageConfig } from '../model/page-config';
-import { ProductType } from '../api/subscriptions';
-import { Toast } from '../ui/toast';
-import { tick } from '../../test/tick';
+import {AudienceActionIframeFlow} from './audience-action-flow';
+import {AutoPromptType} from '../api/basic-subscriptions';
+import {ClientEventManager} from './client-event-manager';
+import {ConfiguredRuntime} from './runtime';
+import {Constants, StorageKeys} from '../utils/constants';
+import {MockActivityPort} from '../../test/mock-activity-port';
+import {PageConfig} from '../model/page-config';
+import {ProductType} from '../api/subscriptions';
+import {Toast} from '../ui/toast';
+import {tick} from '../../test/tick';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const WINDOW_INNER_HEIGHT = 424242;
@@ -69,7 +69,10 @@ TEST_SURVEYANSWER_2.setPpsValue(TEST_ANSWER_PPS_2);
 const TEST_SURVEYQUESTION_1 = new SurveyQuestion();
 TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_QUESTION_CATEGORY_1);
 TEST_SURVEYQUESTION_1.setQuestionText(TEST_QUESTION_TEXT_1);
-TEST_SURVEYQUESTION_1.setSurveyAnswersList([TEST_SURVEYANSWER_1, TEST_SURVEYANSWER_2]);
+TEST_SURVEYQUESTION_1.setSurveyAnswersList([
+  TEST_SURVEYANSWER_1,
+  TEST_SURVEYANSWER_2,
+]);
 
 const TEST_SURVEYQUESTION_2 = new SurveyQuestion();
 TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
@@ -150,9 +153,9 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     win = Object.assign(
       {},
       {
-        location: { href: WINDOW_LOCATION_DOMAIN + '/page/1' },
+        location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
         document: env.win.document,
-        gtag: () => { },
+        gtag: () => {},
         innerHeight: WINDOW_INNER_HEIGHT,
       }
     );
@@ -174,7 +177,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(runtime, 'eventManager').callsFake(() => eventManager);
     port = new MockActivityPort();
-    port.onResizeRequest = () => { };
+    port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () => Promise.resolve();
     sandbox.stub(port, 'on').callsFake((ctor, cb) => {
@@ -226,7 +229,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       configurationId: 'byo_cta_config',
       path: 'byoctaiframe',
     },
-  ].forEach(({ action, configurationId, path }) => {
+  ].forEach(({action, configurationId, path}) => {
     it(`opens an AudienceActionIframeFlow constructed with params for ${action}`, async () => {
       sandbox.stub(runtime.storage(), 'get').resolves(null);
       const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
@@ -242,7 +245,8 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
           `https://news.google.com/swg/ui/v1/${path}?_=_&origin=${encodeURIComponent(
             WINDOW_LOCATION_DOMAIN
-          )}&configurationId=${configurationId === undefined ? '' : configurationId
+          )}&configurationId=${
+            configurationId === undefined ? '' : configurationId
           }&isClosable=false&calledManually=false&previewEnabled=false`,
           {
             _client: 'SwG 0.0.0',
@@ -974,7 +978,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     const winWithDataLayer = Object.assign({}, win);
     delete winWithDataLayer.gtag;
     winWithDataLayer.dataLayer = {
-      push: () => { },
+      push: () => {},
     };
     runtime.win.restore();
     sandbox.stub(runtime, 'win').returns(winWithDataLayer);
@@ -1378,7 +1382,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: { values: ['1', '2'] },
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
     };
     storageMock
       .expects('set')
@@ -1412,7 +1416,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     const existingIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: { values: ['2', '3', '4'] },
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['2', '3', '4']},
     };
     const newIabTaxonomyMap = {
       [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {
@@ -1482,10 +1486,10 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     activitiesMock.expects('openIframe').resolves(port);
 
     const existingIabTaxonomyMapBadFormat = {
-      'test': { 'values': ['5'] },
+      'test': {'values': ['5']},
     };
     const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: { values: ['1', '2'] },
+      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
     };
 
     storageMock
@@ -1528,7 +1532,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       .withExactArgs(
         sandbox.match.any,
         false,
-        sandbox.match({ shouldDisableBodyScrolling: true })
+        sandbox.match({shouldDisableBodyScrolling: true})
       )
       .once();
     await audienceActionFlow.start();
