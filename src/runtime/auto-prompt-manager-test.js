@@ -1502,6 +1502,7 @@ describes.realWin('AutoPromptManager', (env) => {
       await tick(20);
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
+
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
     });
