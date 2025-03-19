@@ -304,6 +304,8 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
 
+    // TODO(justinchou): refactor so that getting potentialAction is atomic with no
+    // side effects like setting dismissibility.
     let potentialAction;
     if (!!article.actionOrchestration) {
       const nextOrchestration = await this.getInterventionOrchestration_(
