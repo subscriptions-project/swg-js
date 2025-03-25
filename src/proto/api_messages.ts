@@ -874,6 +874,7 @@ export class CompleteAudienceActionResponse implements Message {
   private displayName_: string | null;
   private givenName_: string | null;
   private familyName_: string | null;
+  private termsAndConditionsConsent_: boolean | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -897,6 +898,9 @@ export class CompleteAudienceActionResponse implements Message {
 
     this.familyName_ =
       data[6 + base] == null ? null : (data[6 + base] as string);
+
+    this.termsAndConditionsConsent_ =
+      data[7 + base] == null ? null : (data[7 + base] as boolean);
   }
 
   getSwgUserToken(): string | null {
@@ -955,6 +959,14 @@ export class CompleteAudienceActionResponse implements Message {
     this.familyName_ = value;
   }
 
+  getTermsAndConditionsConsent(): boolean | null {
+    return this.termsAndConditionsConsent_;
+  }
+
+  setTermsAndConditionsConsent(value: boolean): void {
+    this.termsAndConditionsConsent_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.swgUserToken_, // field 1 - swg_user_token
@@ -964,6 +976,7 @@ export class CompleteAudienceActionResponse implements Message {
       this.displayName_, // field 5 - display_name
       this.givenName_, // field 6 - given_name
       this.familyName_, // field 7 - family_name
+      this.termsAndConditionsConsent_, // field 8 - terms_and_conditions_consent
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1241,6 +1254,7 @@ export class EventParams implements Message {
   private isUserRegistered_: boolean | null;
   private subscriptionFlow_: string | null;
   private subscriptionTimestamp_: Timestamp | null;
+  private campaignId_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1268,6 +1282,9 @@ export class EventParams implements Message {
       data[7 + base] == null
         ? null
         : new Timestamp(data[7 + base] as unknown[], includesLabel);
+
+    this.campaignId_ =
+      data[8 + base] == null ? null : (data[8 + base] as string);
   }
 
   getSmartboxMessage(): string | null {
@@ -1334,6 +1351,14 @@ export class EventParams implements Message {
     this.subscriptionTimestamp_ = value;
   }
 
+  getCampaignId(): string | null {
+    return this.campaignId_;
+  }
+
+  setCampaignId(value: string): void {
+    this.campaignId_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1346,6 +1371,7 @@ export class EventParams implements Message {
       this.subscriptionTimestamp_
         ? this.subscriptionTimestamp_.toArray(includeLabel)
         : [], // field 8 - subscription_timestamp
+      this.campaignId_, // field 9 - campaign_id
     ];
     if (includeLabel) {
       arr.unshift(this.label());

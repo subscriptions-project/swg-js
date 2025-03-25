@@ -214,6 +214,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           displayName: response.getDisplayName(),
           givenName: response.getGivenName(),
           familyName: response.getFamilyName(),
+          termsAndConditionsConsent: response.getTermsAndConditionsConsent(),
         },
       });
     }
