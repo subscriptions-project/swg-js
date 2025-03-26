@@ -34,6 +34,8 @@ export interface OptInResult {
   givenName: string | null;
   // Family name of the opted-in user, ex. Johnson
   familyName: string | null;
+  // Whether the user has consented to the terms and conditions. Null is returned if the CTA does not have terms.
+  termsAndConditionsConsent: boolean | null;
 }
 
 /**

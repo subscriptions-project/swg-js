@@ -128,6 +128,7 @@ const TEST_OPTINRESULT = {
   displayName: TEST_DISPLAY_NAME,
   givenName: TEST_GIVEN_NAME,
   familyName: TEST_FAMILY_NAME,
+  termsAndConditionsConsent: true,
 };
 
 const TEST_OPTINONRESULT = {
@@ -723,6 +724,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setDisplayName(TEST_DISPLAY_NAME);
     completeAudienceActionResponse.setGivenName(TEST_GIVEN_NAME);
     completeAudienceActionResponse.setFamilyName(TEST_FAMILY_NAME);
+    completeAudienceActionResponse.setTermsAndConditionsConsent(true);
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
