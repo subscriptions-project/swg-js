@@ -12,6 +12,6 @@
 # limitations under the License.
 
 # [START app_yaml]
-runtime: nodejs20
+runtime: nodejs22
 instance_class: F4_1G
 # [END app_yaml]
