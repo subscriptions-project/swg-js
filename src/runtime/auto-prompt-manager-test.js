@@ -1388,7 +1388,9 @@ describes.realWin('AutoPromptManager', (env) => {
     };
 
     beforeEach(() => {
-      autoPromptConfig = new AutoPromptConfig({});
+      autoPromptConfig = new AutoPromptConfig({
+        anyPromptFrequencyCapDurationSeconds,
+      });
       const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
