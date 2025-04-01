@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {Duration} from '../model/auto-prompt-config';
 import {InterventionType} from './intervention-type';
 
 export interface ActionOrchestration {
@@ -52,4 +51,9 @@ export enum RepeatabilityType {
 
 interface FrequencyCapConfig {
   duration?: Duration;
+}
+
+interface Duration {
+  seconds?: number;
+  nanos?: number;
 }

@@ -188,20 +188,6 @@ export class ClientConfigManager {
         maxImpressionsResultingHideSeconds:
           autoPromptConfigJson.impressionConfig
             ?.maxImpressionsResultingHideSeconds,
-        globalFrequencyCapDurationSeconds:
-          autoPromptConfigJson.frequencyCapConfig?.globalFrequencyCap
-            ?.frequencyCapDuration?.seconds,
-        globalFrequencyCapDurationNano:
-          autoPromptConfigJson.frequencyCapConfig?.globalFrequencyCap
-            ?.frequencyCapDuration?.nano,
-        promptFrequencyCaps:
-          autoPromptConfigJson.frequencyCapConfig?.promptFrequencyCaps,
-        anyPromptFrequencyCapDurationSeconds:
-          autoPromptConfigJson.frequencyCapConfig?.anyPromptFrequencyCap
-            ?.frequencyCapDuration?.seconds,
-        anyPromptFrequencyCapDurationNano:
-          autoPromptConfigJson.frequencyCapConfig?.anyPromptFrequencyCap
-            ?.frequencyCapDuration?.nano,
       });
     }
 
