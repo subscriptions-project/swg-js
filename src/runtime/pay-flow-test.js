@@ -305,6 +305,12 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+      );
     await oneTimeFlow.start();
   });
 
@@ -354,6 +360,12 @@ describes.realWin('PayStartFlow', (env) => {
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
         getEventParams('newSku')
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
       );
     await metadataFlow.start();
   });
@@ -406,6 +418,12 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+      );
     await replaceFlow.start();
   });
 
@@ -454,6 +472,12 @@ describes.realWin('PayStartFlow', (env) => {
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
         getEventParams('newSku2')
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
       );
     await replaceFlowNoProrationMode.start();
   });
