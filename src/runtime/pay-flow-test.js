@@ -202,6 +202,12 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('sku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true
+      );
     await flow.start();
   });
 
