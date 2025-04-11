@@ -52,7 +52,7 @@ module.exports = {
       selector: '.MlG5Jc label',
     },
     newsletterHeader: {
-      selector: '.sJIgh',
+      selector: '.jNru1c',
     },
     optInButton: {
       selector: '.C2qNIf button',
