@@ -129,7 +129,10 @@ export class PayStartFlow {
   /**
    * Starts the payments flow for the given version.
    */
-  private start_(usePayFlow: boolean | undefined, paySwgVersion?: string): void {
+  private start_(
+    usePayFlow: boolean | undefined,
+    paySwgVersion?: string
+  ): void {
     const swgPaymentRequest: SwgPaymentRequest = {
       'skuId': this.subscriptionRequest_['skuId'],
       'publicationId': this.pageConfig_.getPublicationId(),
