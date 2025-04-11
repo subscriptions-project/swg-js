@@ -284,6 +284,7 @@ describe('serializeProtoMessageForUrl', () => {
       true,
       'subscriptions',
       ['Timestamp', 12345, 0],
+      null,
     ];
     const analyticsRequestArray = [
       'AnalyticsRequest',

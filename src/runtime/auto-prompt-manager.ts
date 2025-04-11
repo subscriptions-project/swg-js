@@ -143,7 +143,6 @@ export class AutoPromptManager {
   private autoPromptType_: AutoPromptType | undefined;
   private contentType_: ContentType | undefined;
   private shouldRenderOnsitePreview_: boolean = false;
-  private actionOrchestrationExperiment_: boolean = false;
   private dismissibilityCtaFilterExperiment_: boolean = false;
 
   private readonly doc_: Doc;
@@ -238,10 +237,6 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    this.actionOrchestrationExperiment_ = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.ACTION_ORCHESTRATION_EXPERIMENT
-    );
     this.dismissibilityCtaFilterExperiment_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.DISMISSIBILITY_CTA_FILTER_EXPERIMENT
@@ -309,14 +304,14 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
 
+    // TODO(justinchou): refactor so that getting potentialAction is atomic with no
+    // side effects like setting dismissibility.
     let potentialAction;
-    if (this.actionOrchestrationExperiment_ && !!article.actionOrchestration) {
-      // FPA M0.5 Flow: get next Intervention of the Targeted Funnel.
+    if (!!article.actionOrchestration) {
       const nextOrchestration = await this.getInterventionOrchestration_(
         clientConfig,
         article
       );
-
       if (!!nextOrchestration) {
         switch (nextOrchestration?.closability) {
           case Closability.BLOCKING:
@@ -333,22 +328,20 @@ export class AutoPromptManager {
         );
       }
     } else {
-      // Legacy Frequency Capping flow.
-
-      // Default isClosable to what is set in the page config.
-      // Otherwise, the prompt is blocking for publications with a
-      // subscription revenue model, while all others can be dismissed.
-      this.isClosable_ = params.isClosable ?? !this.isSubscription_();
-
-      // Frequency cap flow utilizes config and timestamps to determine next
-      // action. Metered flow strictly follows prompt order. Display delay is
-      // applied to all dismissible prompts.
-      const frequencyCapConfig =
-        clientConfig.autoPromptConfig?.frequencyCapConfig;
-      potentialAction = await this.getPotentialAction_({
-        article,
-        frequencyCapConfig,
-      });
+      // Unexpected state where actionOrchestration is not defined.
+      // For closed content, show subsription if it is eligible.
+      if (this.contentType_ === ContentType.CLOSED) {
+        const subscriptionAction = article.audienceActions?.actions?.find(
+          (action) => action.type === InterventionType.TYPE_SUBSCRIPTION
+        );
+        if (subscriptionAction) {
+          this.isClosable_ = false;
+          potentialAction = {
+            type: subscriptionAction.type,
+            configurationId: subscriptionAction.configurationId,
+          };
+        }
+      }
     }
 
     const promptFn = potentialAction
@@ -417,97 +410,6 @@ export class AutoPromptManager {
         : AutoPromptType.SUBSCRIPTION_LARGE;
 
     return this.getPromptTypeToDisplay_(snippetAction);
-  }
-
-  private async getPotentialAction_({
-    article,
-    frequencyCapConfig,
-  }: {
-    article: Article;
-    frequencyCapConfig: FrequencyCapConfig | undefined;
-  }): Promise<Intervention | void> {
-    let actions = article.audienceActions?.actions;
-    if (!actions || actions.length === 0) {
-      return;
-    }
-
-    const actionsTimestamps = await this.getTimestamps();
-    actions = actions.filter((action) =>
-      this.checkActionEligibility_(action, actionsTimestamps!)
-    );
-
-    if (actions.length === 0) {
-      return;
-    }
-
-    if (!this.isClosable_) {
-      return actions[0];
-    }
-
-    // If prompt is dismissible, frequencyCapConfig should be valid.
-    if (!this.isValidFrequencyCap_(frequencyCapConfig)) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
-      );
-      return actions[0];
-    }
-
-    // b/325512849: Evaluate prompt frequency cap before global frequency cap.
-    // This disambiguates the scenarios where a reader meets the cap when the
-    // reader is only eligible for 1 prompt vs. when the publisher only has 1
-    // prompt configured.
-    let potentialAction: Intervention | undefined = undefined;
-    for (const action of actions) {
-      let frequencyCapDuration = frequencyCapConfig?.promptFrequencyCaps?.find(
-        (frequencyCap) => frequencyCap.audienceActionType === action.type
-      )?.frequencyCapDuration;
-      if (!frequencyCapDuration) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND
-        );
-        frequencyCapDuration =
-          frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration;
-      }
-      if (this.isValidFrequencyCapDuration_(frequencyCapDuration)) {
-        const actionTimestamps = actionsTimestamps![action.type];
-        const timestamps = [
-          ...(actionTimestamps?.dismissals || []),
-          ...(actionTimestamps?.completions || []),
-        ];
-        if (this.isFrequencyCapped_(frequencyCapDuration!, timestamps)) {
-          this.eventManager_.logSwgEvent(
-            AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
-          );
-          continue;
-        }
-      }
-      potentialAction = action;
-      break;
-    }
-
-    if (!potentialAction) {
-      return;
-    }
-
-    const globalFrequencyCapDuration =
-      frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration;
-    if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
-      const globalTimestamps = Array.prototype.concat.apply(
-        [],
-        Object.entries(actionsTimestamps!)
-          .filter(([action, _]) => action !== potentialAction!.type)
-          .map(([_, timestamps]) => timestamps.impressions)
-      );
-      if (
-        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
-      ) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
-        );
-        return;
-      }
-    }
-    return potentialAction;
   }
 
   private async getInterventionOrchestration_(
@@ -798,14 +700,8 @@ export class AutoPromptManager {
     // For FPA M0.5, do not log frequency capping event for closed contentType. Blocking
     // interventions on Open content will still log impression & completion timestamps
     // (but not dismissal).
-    if (this.actionOrchestrationExperiment_) {
-      if (this.contentType_ === ContentType.CLOSED) {
-        return;
-      }
-    } else {
-      if (!this.isClosable_) {
-        return;
-      }
+    if (this.contentType_ === ContentType.CLOSED) {
+      return;
     }
 
     if (
