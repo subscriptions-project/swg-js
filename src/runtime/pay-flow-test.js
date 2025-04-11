@@ -204,10 +204,7 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
-        true
-      );
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await flow.start();
   });
 
@@ -255,10 +252,7 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
-        true,
-      );
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await contribFlow.start();
   });
 
@@ -307,10 +301,7 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
-        true,
-      );
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await oneTimeFlow.start();
   });
 
@@ -363,10 +354,7 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
-        true,
-      );
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await metadataFlow.start();
   });
 
@@ -420,10 +408,7 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
-        true,
-      );
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await replaceFlow.start();
   });
 
@@ -475,10 +460,7 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(
-        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
-        true,
-      );
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await replaceFlowNoProrationMode.start();
   });
 
