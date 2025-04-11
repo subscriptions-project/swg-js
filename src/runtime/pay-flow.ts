@@ -123,13 +123,13 @@ export class PayStartFlow {
   async start(): Promise<void> {
     // Get the paySwgVersion for buyflow.
     const clientConfig = await this.clientConfigManager_.getClientConfig();
-    this.start_(!clientConfig.useUpdatedOfferFlows, clientConfig.paySwgVersion);
+    this.start_(clientConfig.useUpdatedOfferFlows, clientConfig.paySwgVersion);
   }
 
   /**
    * Starts the payments flow for the given version.
    */
-  private start_(useClassicFlow: boolean, paySwgVersion?: string): void {
+  private start_(usePayFlow: boolean | undefined, paySwgVersion?: string): void {
     const swgPaymentRequest: SwgPaymentRequest = {
       'skuId': this.subscriptionRequest_['skuId'],
       'publicationId': this.pageConfig_.getPublicationId(),
@@ -178,9 +178,9 @@ export class PayStartFlow {
       getEventParams(swgPaymentRequest['skuId'])
     );
     this.eventManager_.logSwgEvent(
-      useClassicFlow
-        ? AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED
-        : AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED,
+      usePayFlow
+        ? AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED
+        : AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
       true
     );
 
