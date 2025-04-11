@@ -424,9 +424,7 @@ describes.realWin('PayStartFlow', (env) => {
     );
     clientConfigManagerMock
       .expects('getClientConfig')
-      .returns(
-        Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true}))
-      );
+      .returns(Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true})));
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', subscriptionRequest)
