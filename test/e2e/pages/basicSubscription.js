@@ -51,7 +51,7 @@ module.exports = {
       selector: '.skWZYc button',
     },
     subscriptionHeader: {
-      selector: '.bNGhnc',
+      selector: '.jNru1c',
     },
   },
 };

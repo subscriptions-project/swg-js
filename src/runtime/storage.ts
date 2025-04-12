@@ -20,7 +20,7 @@ import {StorageKeysWithoutPublicationIdSuffix} from '../utils/constants';
 import {isExperimentOn} from './experiments';
 
 const PREFIX = 'subscribe.google.com';
-const WEEK_IN_MILLIS = 604800000;
+const TWO_WEEKS = 2 * 7 * 24 * 60 * 60 * 1000;
 
 /**
  * This class is responsible for the storage of data in session storage. If
@@ -193,23 +193,20 @@ export class Storage {
   }
 }
 
-/**
- * Filters out values that are older than a week.
- */
-export function pruneTimestamps(
-  timestamps: number[],
-  timestampLifespan = WEEK_IN_MILLIS
-): number[] {
-  const now = Date.now();
-  let sliceIndex = timestamps.length;
-  for (let i = 0; i < timestamps.length; i++) {
-    // The arrays are sorted in time, so if you find a time in the array
-    // that's within the week boundary, we can skip over the remainder because
-    // the rest of the array else should be too.
-    if (now - timestamps[i] <= timestampLifespan) {
-      sliceIndex = i;
+/** Filters out timestamps older than two weeks. */
+export function pruneTimestamps(timestamps: number[]): number[] {
+  const twoWeeksAgo = Date.now() - TWO_WEEKS;
+
+  // Only return fresh timestamps.
+  // The timestamps are sorted in ascending order,
+  // so if you find a fresh timestamp, all the
+  // following timestamps will be fresh too.
+  let i = 0;
+  for (; i < timestamps.length; i++) {
+    const isFresh = timestamps[i] >= twoWeeksAgo;
+    if (isFresh) {
       break;
     }
   }
-  return timestamps.slice(sliceIndex);
+  return timestamps.slice(i);
 }
