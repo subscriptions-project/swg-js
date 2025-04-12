@@ -202,6 +202,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('sku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await flow.start();
   });
 
@@ -247,6 +250,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('sku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await contribFlow.start();
   });
 
@@ -293,6 +299,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await oneTimeFlow.start();
   });
 
@@ -343,6 +352,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await metadataFlow.start();
   });
 
@@ -394,6 +406,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await replaceFlow.start();
   });
 
@@ -407,6 +422,9 @@ describes.realWin('PayStartFlow', (env) => {
       runtime,
       subscriptionRequest
     );
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true})));
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', subscriptionRequest)
@@ -443,6 +461,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku2')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED, true);
     await replaceFlowNoProrationMode.start();
   });
 
