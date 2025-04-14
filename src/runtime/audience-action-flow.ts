@@ -214,6 +214,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           displayName: response.getDisplayName(),
           givenName: response.getGivenName(),
           familyName: response.getFamilyName(),
+          termsAndConditionsConsent: response.getTermsAndConditionsConsent(),
         },
       });
     }
@@ -435,8 +436,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   /*
-   * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
-   * for whether or not logging was successful.
+   * Logs SurveyDataTransferRequest to Google Analytics, which contains payload to surface as dimensions in Google Analytics (GA4, UA, GTM).
+   * Returns whether or not logging was successful.
    */
   private logSurveyDataToGoogleAnalytics(
     request: SurveyDataTransferRequest
@@ -449,33 +450,33 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       return false;
     }
     request.getSurveyQuestionsList()?.map((question) => {
-      const answer = question.getSurveyAnswersList()![0];
       const event = {
         eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
         eventOriginator: EventOriginator.SWG_CLIENT,
         isFromUserAction: true,
         additionalParameters: null,
       };
-
-      const eventParams = {
-        googleAnalyticsParameters: {
-          // Custom dimensions.
-          'survey_question': question.getQuestionText() || '',
-          'survey_question_category': question.getQuestionCategory() || '',
-          'survey_answer': answer.getAnswerText() || '',
-          'survey_answer_category': answer.getAnswerCategory() || '',
-          // GA4 Default dimensions.
-          'content_id': question.getQuestionCategory() || '',
-          'content_group': question.getQuestionText() || '',
-          'content_type': answer.getAnswerText() || '',
-          // UA Default dimensions.
-          // TODO(yeongjinoh): Remove default dimensions once beta publishers
-          // complete migration to GA4.
-          'event_category': question.getQuestionCategory() || '',
-          'event_label': answer.getAnswerText() || '',
-        },
-      };
-      this.deps_.eventManager().logEvent(event, eventParams);
+      question.getSurveyAnswersList()?.map((answer) => {
+        const eventParams = {
+          googleAnalyticsParameters: {
+            // Custom dimensions.
+            'survey_question': question.getQuestionText() || '',
+            'survey_question_category': question.getQuestionCategory() || '',
+            'survey_answer': answer.getAnswerText() || '',
+            'survey_answer_category': answer.getAnswerCategory() || '',
+            // GA4 Default dimensions.
+            'content_id': question.getQuestionCategory() || '',
+            'content_group': question.getQuestionText() || '',
+            'content_type': answer.getAnswerText() || '',
+            // UA Default dimensions.
+            // TODO(yeongjinoh): Remove default dimensions once beta publishers
+            // complete migration to GA4.
+            'event_category': question.getQuestionCategory() || '',
+            'event_label': answer.getAnswerText() || '',
+          },
+        };
+        this.deps_.eventManager().logEvent(event, eventParams);
+      });
     });
     return true;
   }

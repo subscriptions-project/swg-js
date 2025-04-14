@@ -60,15 +60,20 @@ const TEST_SURVEYANSWER_1 = new SurveyAnswer();
 TEST_SURVEYANSWER_1.setAnswerCategory(TEST_ANSWER_CATEGORY_1);
 TEST_SURVEYANSWER_1.setAnswerText(TEST_ANSWER_TEXT_1);
 TEST_SURVEYANSWER_1.setPpsValue(TEST_ANSWER_PPS_1);
-const TEST_SURVEYQUESTION_1 = new SurveyQuestion();
-TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_QUESTION_CATEGORY_1);
-TEST_SURVEYQUESTION_1.setQuestionText(TEST_QUESTION_TEXT_1);
-TEST_SURVEYQUESTION_1.setSurveyAnswersList([TEST_SURVEYANSWER_1]);
 
 const TEST_SURVEYANSWER_2 = new SurveyAnswer();
 TEST_SURVEYANSWER_2.setAnswerCategory(TEST_ANSWER_CATEGORY_2);
 TEST_SURVEYANSWER_2.setAnswerText(TEST_ANSWER_TEXT_2);
 TEST_SURVEYANSWER_2.setPpsValue(TEST_ANSWER_PPS_2);
+
+const TEST_SURVEYQUESTION_1 = new SurveyQuestion();
+TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_QUESTION_CATEGORY_1);
+TEST_SURVEYQUESTION_1.setQuestionText(TEST_QUESTION_TEXT_1);
+TEST_SURVEYQUESTION_1.setSurveyAnswersList([
+  TEST_SURVEYANSWER_1,
+  TEST_SURVEYANSWER_2,
+]);
+
 const TEST_SURVEYQUESTION_2 = new SurveyQuestion();
 TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
 TEST_SURVEYQUESTION_2.setQuestionText(TEST_QUESTION_TEXT_2);
@@ -123,6 +128,7 @@ const TEST_OPTINRESULT = {
   displayName: TEST_DISPLAY_NAME,
   givenName: TEST_GIVEN_NAME,
   familyName: TEST_FAMILY_NAME,
+  termsAndConditionsConsent: true,
 };
 
 const TEST_OPTINONRESULT = {
@@ -718,6 +724,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setDisplayName(TEST_DISPLAY_NAME);
     completeAudienceActionResponse.setGivenName(TEST_GIVEN_NAME);
     completeAudienceActionResponse.setFamilyName(TEST_FAMILY_NAME);
+    completeAudienceActionResponse.setTermsAndConditionsConsent(true);
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
     messageCallback(completeAudienceActionResponse);
 
@@ -840,6 +847,31 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
             'content_id': TEST_QUESTION_CATEGORY_1,
             'content_group': TEST_QUESTION_TEXT_1,
             'content_type': TEST_ANSWER_TEXT_1,
+          },
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+        },
+        {
+          // Rendering response for more than first survey answer choice
+          googleAnalyticsParameters: {
+            'event_category': TEST_QUESTION_CATEGORY_1,
+            'event_label': TEST_ANSWER_TEXT_2,
+            'survey_question': TEST_QUESTION_TEXT_1,
+            'survey_question_category': TEST_QUESTION_CATEGORY_1,
+            'survey_answer': TEST_ANSWER_TEXT_2,
+            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
+            'content_id': TEST_QUESTION_CATEGORY_1,
+            'content_group': TEST_QUESTION_TEXT_1,
+            'content_type': TEST_ANSWER_TEXT_2,
           },
         }
       )
@@ -982,6 +1014,30 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
             'content_id': TEST_QUESTION_CATEGORY_1,
             'content_group': TEST_QUESTION_TEXT_1,
             'content_type': TEST_ANSWER_TEXT_1,
+          },
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logEvent')
+      .withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+        },
+        {
+          googleAnalyticsParameters: {
+            'event_category': TEST_QUESTION_CATEGORY_1,
+            'event_label': TEST_ANSWER_TEXT_2,
+            'survey_question': TEST_QUESTION_TEXT_1,
+            'survey_question_category': TEST_QUESTION_CATEGORY_1,
+            'survey_answer': TEST_ANSWER_TEXT_2,
+            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
+            'content_id': TEST_QUESTION_CATEGORY_1,
+            'content_group': TEST_QUESTION_TEXT_1,
+            'content_type': TEST_ANSWER_TEXT_2,
           },
         }
       )

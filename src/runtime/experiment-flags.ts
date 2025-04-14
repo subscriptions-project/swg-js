@@ -39,13 +39,6 @@ export enum ArticleExperimentFlags {
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 
   /**
-   * [FPA M0.5] Experiment flag to enable the new autoPromptManager flow to use
-   * actionOrchestration from the article response as the source of the
-   * targeted intervention funnel.
-   */
-  ACTION_ORCHESTRATION_EXPERIMENT = 'action_orchestration_experiment',
-
-  /**
    * Experiment flag that filters out dismissible monetary CTAs if reader is
    * ineligible to purchase.
    */
