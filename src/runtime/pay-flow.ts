@@ -243,6 +243,14 @@ export class PayCompleteFlow {
               : SubscriptionFlows.SUBSCRIBE
           )
         );
+
+        const clientConfig = await deps.clientConfigManager().getClientConfig();
+        if (clientConfig.useUpdatedOfferFlows) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE,
+            true
+          );
+        }
         if (response.productType == ProductType.UI_CONTRIBUTION) {
           eventManager.logSwgEvent(
             AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
