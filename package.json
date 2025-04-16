@@ -68,7 +68,7 @@
     "gulp-wrap": "0.15.0",
     "gzip-size": "7.0.0",
     "json-stable-stringify": "1.1.1",
-    "karma": "6.4.3",
+    "karma": "6.4.4",
     "karma-browserify": "8.1.0",
     "karma-chai": "0.1.0",
     "karma-chrome-launcher": "3.2.0",
