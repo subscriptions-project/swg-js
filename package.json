@@ -42,7 +42,7 @@
     "babelify": "10.0.0",
     "body-parser": "1.20.3",
     "browserify": "17.0.1",
-    "chai": "4.4.1",
+    "chai": "4.5.0",
     "chai-as-promised": "7.1.2",
     "cssnano": "7.0.6",
     "del": "7.1.0",
