@@ -32,7 +32,7 @@
     "@babel/core": "7.26.10",
     "@babel/eslint-parser": "7.27.0",
     "@babel/preset-env": "7.26.9",
-    "@types/google-publisher-tag": "1.20240219.0",
+    "@types/google-publisher-tag": "1.20250210.0",
     "@typescript-eslint/eslint-plugin": "6.20.0",
     "@typescript-eslint/parser": "6.20.0",
     "ansi-colors": "4.1.3",
