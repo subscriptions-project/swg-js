@@ -904,6 +904,8 @@ export class AutoPromptManager {
   /**
    * Returns whether the client is executing a demo workflow, not shown to
    * readers. Example: Via Onsite Preview or params.alwaysShow override.
+   * For FCA Phase 1+, this will be used to check when to set Frequency Capping
+   * event timestamps.
    */
   private isInDemoMode_(): boolean {
     return this.isInDevMode_ || this.shouldRenderOnsitePreview_;

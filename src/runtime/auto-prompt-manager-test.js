@@ -163,8 +163,6 @@ describes.realWin('AutoPromptManager', (env) => {
     clientConfigManagerMock.verify();
     storageMock.verify();
     miniPromptApiMock.verify();
-    // isInDemoModeStub.restore();
-    // autoPromptManager.isInDemoMode_.restore();
   });
 
   it('should be listening for events from the events manager', () => {
@@ -689,14 +687,14 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it(`should not set configId keyed dismissal timestamps when in demo mode`, async () => {
+    it(`should not set configId keyed completion timestamps when in demo mode`, async () => {
       autoPromptManager.configId_ = 'config_id';
       isInDemoModeStub.restore();
       isInDemoModeStub = sandbox
         .stub(autoPromptManager, 'isInDemoMode_')
         .returns(true);
       expectFrequencyCappingTimestamps(storageMock, '', {
-        ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
+        ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
       });
 
       await eventManagerCallback({
