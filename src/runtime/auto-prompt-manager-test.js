@@ -86,6 +86,7 @@ describes.realWin('AutoPromptManager', (env) => {
   let clientConfigManagerMock;
   let storageMock;
   let miniPromptApiMock;
+  let isInDemoModeCallback;
   let actionFlowSpy;
   let startSpy;
   let runtime;
@@ -146,6 +147,10 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager = new AutoPromptManager(deps, runtime);
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
+    sandbox
+      .stub(autoPromptManager, 'isInDemoMode_')
+      .callsFake((callback) => (isInDemoModeCallback = callback));
+    // isInDemoModeMock = sandbox.mock(autoPromptManager.isInDemoMode_);
 
     actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionIframeFlow');
     startSpy = sandbox.spy(
@@ -382,6 +387,8 @@ describes.realWin('AutoPromptManager', (env) => {
 
       await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
     });
+
+    // it(`when should add impression timestamps for `)
 
     [
       {
@@ -694,6 +701,15 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Miniprompt', () => {
+    it('should set isInDevMode_ to true if alwaysShow is enabled', async () => {
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: true,
+      });
+
+      expect(autoPromptManager.isInDevMode_).to.be.true;
+    });
+
     it('should display the mini prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
       entitlementsManagerMock.expects('getEntitlements').never();
       clientConfigManagerMock.expects('getAutoPromptConfig').never();
@@ -1371,7 +1387,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  describe('Flexible Prompt Architecture', () => {
+  describe('Flexible CTA Architecture', () => {
     let autoPromptConfig;
     let getArticleExpectation;
     let getClientConfigExpectation;
@@ -3213,6 +3229,33 @@ describes.realWin('AutoPromptManager', (env) => {
       await tick(20);
     });
 
+    it(`should set isInDevMode_ to false`, async () => {
+      // getArticleExpectation
+      //   .resolves({
+      //     audienceActions: {
+      //       actions: [SUBSCRIPTION_INTERVENTION],
+      //       engineId: '123',
+      //     },
+      //     actionOrchestration: {
+      //       interventionFunnel: {
+      //         interventions: [
+      //           {
+      //             configId: 'subscription_config_id',
+      //             type: 'TYPE_SUBSCRIPTION',
+      //             closability: 'BLOCKING',
+      //           },
+      //         ],
+      //       },
+      //     },
+      //   })
+      //   .once();
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(100);
+
+      expect(autoPromptManager.isInDevMode_).to.be.false;
+    });
+
     describe('when dismissibility filter experiment enabled', () => {
       const createArticleWithDismissibilityFilterExperiment = (
         intervention,
@@ -3826,7 +3869,6 @@ describes.realWin('AutoPromptManager', (env) => {
       };
 
       await autoPromptManager.showAutoPrompt({});
-
       await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
@@ -3873,7 +3915,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({});
-
       await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
@@ -3904,7 +3945,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({});
-
       await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
