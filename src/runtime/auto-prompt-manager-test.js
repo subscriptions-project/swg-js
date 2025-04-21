@@ -86,7 +86,7 @@ describes.realWin('AutoPromptManager', (env) => {
   let clientConfigManagerMock;
   let storageMock;
   let miniPromptApiMock;
-  let isInDemoModeCallback;
+  let isInDemoModeStub;
   let actionFlowSpy;
   let startSpy;
   let runtime;
@@ -147,10 +147,9 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager = new AutoPromptManager(deps, runtime);
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
-    sandbox
+    isInDemoModeStub = sandbox
       .stub(autoPromptManager, 'isInDemoMode_')
-      .callsFake((callback) => (isInDemoModeCallback = callback));
-    // isInDemoModeMock = sandbox.mock(autoPromptManager.isInDemoMode_);
+      .returns(undefined);
 
     actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionIframeFlow');
     startSpy = sandbox.spy(
@@ -164,6 +163,8 @@ describes.realWin('AutoPromptManager', (env) => {
     clientConfigManagerMock.verify();
     storageMock.verify();
     miniPromptApiMock.verify();
+    // isInDemoModeStub.restore();
+    // autoPromptManager.isInDemoMode_.restore();
   });
 
   it('should be listening for events from the events manager', () => {
@@ -388,7 +389,42 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
     });
 
-    // it(`when should add impression timestamps for `)
+    it(`should set configId keyed impression timestamps when not in demo mode`, async () => {
+      autoPromptManager.configId_ = 'config_id';
+      isInDemoModeStub.restore();
+      isInDemoModeStub = sandbox
+        .stub(autoPromptManager, 'isInDemoMode_')
+        .returns(false);
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
+        ['config_id']: {impressions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should not set configId keyed impression timestamps when in demo mode`, async () => {
+      autoPromptManager.configId_ = 'config_id';
+      isInDemoModeStub.restore();
+      isInDemoModeStub = sandbox
+        .stub(autoPromptManager, 'isInDemoMode_')
+        .returns(true);
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
 
     [
       {
@@ -506,6 +542,43 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeDismissal('TYPE_REWARDED_SURVEY');
     });
 
+    it(`should set configId keyed dismissal timestamps when not in demo mode`, async () => {
+      autoPromptManager.configId_ = 'config_id';
+      isInDemoModeStub.restore();
+      isInDemoModeStub = sandbox
+        .stub(autoPromptManager, 'isInDemoMode_')
+        .returns(false);
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
+        ['config_id']: {dismissals: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should not set configId keyed dismissal timestamps when in demo mode`, async () => {
+      autoPromptManager.configId_ = 'config_id';
+      isInDemoModeStub.restore();
+      isInDemoModeStub = sandbox
+        .stub(autoPromptManager, 'isInDemoMode_')
+        .returns(true);
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
     // Completion Events
     [
       {
@@ -591,6 +664,43 @@ describes.realWin('AutoPromptManager', (env) => {
 
       await eventManagerCallback({
         eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should set configId keyed completion timestamps when not in demo mode`, async () => {
+      autoPromptManager.configId_ = 'config_id';
+      isInDemoModeStub.restore();
+      isInDemoModeStub = sandbox
+        .stub(autoPromptManager, 'isInDemoMode_')
+        .returns(false);
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
+        ['config_id']: {completions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should not set configId keyed dismissal timestamps when in demo mode`, async () => {
+      autoPromptManager.configId_ = 'config_id';
+      isInDemoModeStub.restore();
+      isInDemoModeStub = sandbox
+        .stub(autoPromptManager, 'isInDemoMode_')
+        .returns(true);
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
@@ -3230,26 +3340,6 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it(`should set isInDevMode_ to false`, async () => {
-      // getArticleExpectation
-      //   .resolves({
-      //     audienceActions: {
-      //       actions: [SUBSCRIPTION_INTERVENTION],
-      //       engineId: '123',
-      //     },
-      //     actionOrchestration: {
-      //       interventionFunnel: {
-      //         interventions: [
-      //           {
-      //             configId: 'subscription_config_id',
-      //             type: 'TYPE_SUBSCRIPTION',
-      //             closability: 'BLOCKING',
-      //           },
-      //         ],
-      //       },
-      //     },
-      //   })
-      //   .once();
-
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
       await tick(100);
 

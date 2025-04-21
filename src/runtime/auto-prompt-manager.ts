@@ -813,7 +813,7 @@ export class AutoPromptManager {
     timestamps[action] = actionTimestamps;
     // FCA Phase 1: Dual write frequency capping events keyed by configid
     // TODO(justinchou): Add error handling and logging for absent configId
-    if (!this.isInDemoMode_ && this.configId_) {
+    if (!this.isInDemoMode_() && this.configId_) {
       const configTimestamps = timestamps[this.configId_] || {
         impressions: [],
         dismissals: [],
@@ -836,7 +836,7 @@ export class AutoPromptManager {
     timestamps[action] = actionTimestamps;
     // FCA Phase 1: Dual write frequency capping events keyed by configid
     // TODO(justinchou): Add error handling and logging for absent configId
-    if (!this.isInDemoMode_ && this.configId_) {
+    if (!this.isInDemoMode_() && this.configId_) {
       const configTimestamps = timestamps[this.configId_] || {
         impressions: [],
         dismissals: [],
@@ -859,7 +859,7 @@ export class AutoPromptManager {
     timestamps[action] = actionTimestamps;
     // FCA Phase 1: Dual write frequency capping events keyed by configid
     // TODO(justinchou): Add error handling and logging for absent configId
-    if (!this.isInDemoMode_ && this.configId_) {
+    if (!this.isInDemoMode_() && this.configId_) {
       const configTimestamps = timestamps[this.configId_] || {
         impressions: [],
         dismissals: [],
