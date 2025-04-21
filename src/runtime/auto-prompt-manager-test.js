@@ -383,6 +383,37 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
     });
 
+    it(`should set configId keyed impression timestamps when not in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = false;
+      autoPromptManager.configId_ = 'config_id';
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
+        ['config_id']: {impressions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should not set configId keyed impression timestamps when in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = true;
+      autoPromptManager.configId_ = 'config_id';
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
     [
       {
         eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
@@ -499,6 +530,37 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeDismissal('TYPE_REWARDED_SURVEY');
     });
 
+    it(`should set configId keyed dismissal timestamps when not in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = false;
+      autoPromptManager.configId_ = 'config_id';
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
+        ['config_id']: {dismissals: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should not set configId keyed dismissal timestamps when in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = true;
+      autoPromptManager.configId_ = 'config_id';
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
     // Completion Events
     [
       {
@@ -584,6 +646,37 @@ describes.realWin('AutoPromptManager', (env) => {
 
       await eventManagerCallback({
         eventType: AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should set configId keyed completion timestamps when not in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = false;
+      autoPromptManager.configId_ = 'config_id';
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
+        ['config_id']: {completions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it(`should not set configId keyed completion timestamps when in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = true;
+      autoPromptManager.configId_ = 'config_id';
+      expectFrequencyCappingTimestamps(storageMock, '', {
+        ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
+      });
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
@@ -694,6 +787,15 @@ describes.realWin('AutoPromptManager', (env) => {
   });
 
   describe('Miniprompt', () => {
+    it('should set isInDevMode_ to true if alwaysShow is enabled', async () => {
+      await autoPromptManager.showAutoPrompt({
+        autoPromptType: AutoPromptType.CONTRIBUTION,
+        alwaysShow: true,
+      });
+
+      expect(autoPromptManager.isInDevMode_).to.be.true;
+    });
+
     it('should display the mini prompt, but not fetch entitlements and client config if alwaysShow is enabled', async () => {
       entitlementsManagerMock.expects('getEntitlements').never();
       clientConfigManagerMock.expects('getAutoPromptConfig').never();
@@ -1371,7 +1473,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
-  describe('Flexible Prompt Architecture', () => {
+  describe('Flexible CTA Architecture', () => {
     let autoPromptConfig;
     let getArticleExpectation;
     let getClientConfigExpectation;
@@ -3213,6 +3315,13 @@ describes.realWin('AutoPromptManager', (env) => {
       await tick(20);
     });
 
+    it(`should set isInDevMode_ to false`, async () => {
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+      await tick(100);
+
+      expect(autoPromptManager.isInDevMode_).to.be.false;
+    });
+
     describe('when dismissibility filter experiment enabled', () => {
       const createArticleWithDismissibilityFilterExperiment = (
         intervention,
@@ -3826,7 +3935,6 @@ describes.realWin('AutoPromptManager', (env) => {
       };
 
       await autoPromptManager.showAutoPrompt({});
-
       await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
@@ -3873,7 +3981,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({});
-
       await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
@@ -3904,7 +4011,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({});
-
       await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
