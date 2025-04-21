@@ -86,7 +86,6 @@ describes.realWin('AutoPromptManager', (env) => {
   let clientConfigManagerMock;
   let storageMock;
   let miniPromptApiMock;
-  let isInDemoModeStub;
   let actionFlowSpy;
   let startSpy;
   let runtime;
@@ -147,9 +146,6 @@ describes.realWin('AutoPromptManager', (env) => {
     autoPromptManager = new AutoPromptManager(deps, runtime);
 
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
-    isInDemoModeStub = sandbox
-      .stub(autoPromptManager, 'isInDemoMode_')
-      .returns(undefined);
 
     actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionIframeFlow');
     startSpy = sandbox.spy(
@@ -387,12 +383,9 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
     });
 
-    it(`should set configId keyed impression timestamps when not in demo mode`, async () => {
+    it(`should set configId keyed impression timestamps when not in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = false;
       autoPromptManager.configId_ = 'config_id';
-      isInDemoModeStub.restore();
-      isInDemoModeStub = sandbox
-        .stub(autoPromptManager, 'isInDemoMode_')
-        .returns(false);
       expectFrequencyCappingTimestamps(storageMock, '', {
         ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
         ['config_id']: {impressions: [CURRENT_TIME]},
@@ -406,12 +399,9 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it(`should not set configId keyed impression timestamps when in demo mode`, async () => {
+    it(`should not set configId keyed impression timestamps when in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = true;
       autoPromptManager.configId_ = 'config_id';
-      isInDemoModeStub.restore();
-      isInDemoModeStub = sandbox
-        .stub(autoPromptManager, 'isInDemoMode_')
-        .returns(true);
       expectFrequencyCappingTimestamps(storageMock, '', {
         ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
       });
@@ -540,12 +530,9 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeDismissal('TYPE_REWARDED_SURVEY');
     });
 
-    it(`should set configId keyed dismissal timestamps when not in demo mode`, async () => {
+    it(`should set configId keyed dismissal timestamps when not in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = false;
       autoPromptManager.configId_ = 'config_id';
-      isInDemoModeStub.restore();
-      isInDemoModeStub = sandbox
-        .stub(autoPromptManager, 'isInDemoMode_')
-        .returns(false);
       expectFrequencyCappingTimestamps(storageMock, '', {
         ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
         ['config_id']: {dismissals: [CURRENT_TIME]},
@@ -559,12 +546,9 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it(`should not set configId keyed dismissal timestamps when in demo mode`, async () => {
+    it(`should not set configId keyed dismissal timestamps when in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = true;
       autoPromptManager.configId_ = 'config_id';
-      isInDemoModeStub.restore();
-      isInDemoModeStub = sandbox
-        .stub(autoPromptManager, 'isInDemoMode_')
-        .returns(true);
       expectFrequencyCappingTimestamps(storageMock, '', {
         ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
       });
@@ -668,12 +652,9 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it(`should set configId keyed completion timestamps when not in demo mode`, async () => {
+    it(`should set configId keyed completion timestamps when not in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = false;
       autoPromptManager.configId_ = 'config_id';
-      isInDemoModeStub.restore();
-      isInDemoModeStub = sandbox
-        .stub(autoPromptManager, 'isInDemoMode_')
-        .returns(false);
       expectFrequencyCappingTimestamps(storageMock, '', {
         ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
         ['config_id']: {completions: [CURRENT_TIME]},
@@ -687,12 +668,9 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it(`should not set configId keyed completion timestamps when in demo mode`, async () => {
+    it(`should not set configId keyed completion timestamps when in dev mode`, async () => {
+      autoPromptManager.isInDevMode_ = true;
       autoPromptManager.configId_ = 'config_id';
-      isInDemoModeStub.restore();
-      isInDemoModeStub = sandbox
-        .stub(autoPromptManager, 'isInDemoMode_')
-        .returns(true);
       expectFrequencyCappingTimestamps(storageMock, '', {
         ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
       });
