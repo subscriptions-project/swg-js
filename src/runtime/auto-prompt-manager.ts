@@ -516,11 +516,16 @@ export class AutoPromptManager {
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
-        Object.entries(actionsTimestamps!).map(([type, timestamps]) =>
-          type === nextOrchestration!.type
-            ? timestamps.completions // Completed repeatable actions count towards global frequency
-            : timestamps.impressions
-        )
+        Object.entries(actionsTimestamps!)
+          // Ignore events keyed by configId before FCA Phase 1 rampup
+          .filter(([key, _]) =>
+            Object.values<string>(InterventionType).includes(key)
+          )
+          .map(([type, timestamps]) =>
+            type === nextOrchestration!.type
+              ? timestamps.completions // Completed repeatable actions count towards global frequency
+              : timestamps.impressions
+          )
       );
       if (
         this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
