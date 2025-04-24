@@ -518,7 +518,7 @@ export class AutoPromptManager {
         [],
         Object.entries(actionsTimestamps!)
           // Ignore events keyed by configId before FCA Phase 1 rampup
-          .filter(([key, _]) => key.substring(0, 5) === 'TYPE_')
+          .filter(([key, _]) => key in InterventionType)
           .map(([type, timestamps]) =>
             type === nextOrchestration!.type
               ? timestamps.completions // Completed repeatable actions count towards global frequency
