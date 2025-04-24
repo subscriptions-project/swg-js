@@ -152,10 +152,6 @@ describes.realWin('AutoPromptManager', (env) => {
       audienceActionFlow.AudienceActionIframeFlow.prototype,
       'start'
     );
-    // startSpy = sandbox.spy(
-    //   audienceActionFlow.AudienceActionIframeFlow.prototype,
-    //   'start'
-    // );
   });
 
   afterEach(() => {
