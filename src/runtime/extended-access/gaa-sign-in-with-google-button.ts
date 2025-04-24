@@ -136,6 +136,7 @@ export class GaaSignInWithGoogleButton {
           client_id: clientId,
           callback: resolve,
           allowed_parent_origin: allowedOrigins,
+          use_fedcm_for_button: true,
           /* eslint-enable google-camelcase/google-camelcase */
         });
         self.google.accounts.id.renderButton(
