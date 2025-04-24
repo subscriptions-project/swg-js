@@ -148,10 +148,14 @@ describes.realWin('AutoPromptManager', (env) => {
     miniPromptApiMock = sandbox.mock(autoPromptManager.miniPromptAPI_);
 
     actionFlowSpy = sandbox.spy(audienceActionFlow, 'AudienceActionIframeFlow');
-    startSpy = sandbox.spy(
+    startSpy = sandbox.stub(
       audienceActionFlow.AudienceActionIframeFlow.prototype,
       'start'
     );
+    // startSpy = sandbox.spy(
+    //   audienceActionFlow.AudienceActionIframeFlow.prototype,
+    //   'start'
+    // );
   });
 
   afterEach(() => {
@@ -841,7 +845,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.NONE,
       });
-      await tick(10);
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
@@ -874,7 +877,6 @@ describes.realWin('AutoPromptManager', (env) => {
       miniPromptApiMock.expects('create').never();
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(10);
 
       expect(contributionPromptFnSpy).to.not.be.called;
       expect(subscriptionPromptFnSpy).to.not.be.called;
@@ -898,7 +900,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      await tick(10);
 
       expect(contributionPromptFnSpy).to.not.be.called;
     });
@@ -921,7 +922,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      await tick(10);
 
       expect(contributionPromptFnSpy).to.not.be.called;
     });
@@ -952,7 +952,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      await tick(10);
 
       expect(contributionPromptFnSpy).to.not.be.called;
     });
@@ -994,7 +993,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.SUBSCRIPTION,
       });
-      await tick(10);
 
       expect(subscriptionPromptFnSpy).to.not.be.called;
     });
@@ -1037,7 +1035,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      await tick(10);
 
       expect(contributionPromptFnSpy).to.not.be.called;
     });
@@ -1070,7 +1067,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
     });
@@ -1115,7 +1111,6 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({
           autoPromptType,
         });
-        await tick(10);
 
         expect(startSpy).to.not.have.been.called;
         expect(actionFlowSpy).to.not.have.been.called;
@@ -1165,7 +1160,6 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.showAutoPrompt({
         autoPromptType: AutoPromptType.CONTRIBUTION,
       });
-      await tick(10);
 
       expect(contributionPromptFnSpy).to.not.be.called;
     });
@@ -1325,7 +1319,6 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: true,
       });
-      await tick(10);
 
       expect(logEventSpy).to.be.calledOnceWith(expectedEvent);
     });
@@ -1338,7 +1331,6 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: true,
       });
-      await tick(10);
 
       expect(contributionPromptFnSpy).to.be.calledOnce;
     });
@@ -1351,7 +1343,6 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.SUBSCRIPTION,
         alwaysShow: true,
       });
-      await tick(10);
 
       expect(subscriptionPromptFnSpy).to.be.calledOnce;
     });
@@ -1373,7 +1364,6 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptType: AutoPromptType.CONTRIBUTION,
         alwaysShow: true,
       });
-      await tick(10);
 
       logEventSpy.should.not.have.been.calledWith(expectedEvent);
       expect(contributionPromptFnSpy).to.not.be.called;
@@ -1586,8 +1576,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock.expects('get').never();
       storageMock.expects('set').never();
 
-      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
+      await autoPromptManager.showAutoPrompt({});
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
@@ -1607,7 +1596,6 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock.expects('set').never();
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -1644,7 +1632,6 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock.expects('set').never();
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
-      await tick(20);
 
       expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
     });
@@ -1735,7 +1722,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(20);
 
       expect(actionFlowSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -1775,7 +1761,6 @@ describes.realWin('AutoPromptManager', (env) => {
       expectFrequencyCappingTimestamps(storageMock, {});
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(20);
 
       expect(actionFlowSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -1814,7 +1799,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(20);
 
       expect(actionFlowSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -1834,7 +1818,6 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock.expects('set').never();
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(subscriptionPromptFnSpy).to.not.have.been.called;
@@ -1861,8 +1844,7 @@ describes.realWin('AutoPromptManager', (env) => {
       storageMock.expects('get').never();
       storageMock.expects('set').never();
 
-      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
+      await autoPromptManager.showAutoPrompt({});
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -1907,8 +1889,7 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
       expectFrequencyCappingTimestamps(storageMock, {});
 
-      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
+      await autoPromptManager.showAutoPrompt({});
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -1967,8 +1948,7 @@ describes.realWin('AutoPromptManager', (env) => {
         },
       });
 
-      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
+      await autoPromptManager.showAutoPrompt({});
 
       expect(startSpy).to.not.have.been.called;
       expect(actionFlowSpy).to.not.have.been.called;
@@ -1986,7 +1966,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2012,7 +1991,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
-      await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2075,7 +2053,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
-      await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2100,7 +2077,6 @@ describes.realWin('AutoPromptManager', (env) => {
       expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
       expect(logEventSpy).to.be.calledOnceWith({
@@ -2117,7 +2093,6 @@ describes.realWin('AutoPromptManager', (env) => {
       expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
@@ -2147,7 +2122,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
@@ -2173,7 +2147,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
@@ -2200,7 +2173,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
       expect(logEventSpy).to.be.calledOnceWith({
@@ -2229,7 +2201,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(contributionPromptFnSpy).to.have.been.calledOnce;
     });
@@ -2250,7 +2221,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(logEventSpy).to.be.calledOnceWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2289,7 +2259,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(25);
 
       expect(logEventSpy).to.be.calledOnceWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2375,7 +2344,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(logEventSpy).to.be.calledOnceWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2418,7 +2386,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(logEventSpy).to.be.calledOnceWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2503,7 +2470,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(25);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND,
@@ -2577,7 +2543,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(25);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2624,7 +2589,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
 
       expect(logEventSpy).to.be.calledOnceWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2690,7 +2654,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(30);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2775,7 +2738,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(30);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2869,7 +2831,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(30);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2929,7 +2890,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(50);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3031,7 +2991,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(50);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3119,7 +3078,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(50);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3215,7 +3173,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(50);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3349,7 +3306,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(20);
 
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3402,7 +3358,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
-      await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -3437,7 +3392,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
-      await tick(20);
 
       expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
     });
@@ -3464,7 +3418,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(500);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -3499,7 +3452,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(500);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -3533,7 +3485,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(500);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -3567,7 +3518,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
-      await tick(20);
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -3580,9 +3530,8 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it('should show the prompt after the specified delay for OPEN contentType', async () => {
-      const displayDelaySeconds = 99;
-      autoPromptConfig = new AutoPromptConfig({displayDelaySeconds});
+    it('should show the prompt after the specified delay for dismissible contentType', async () => {
+      autoPromptConfig = new AutoPromptConfig({displayDelaySeconds: 99});
       const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
@@ -3590,18 +3539,35 @@ describes.realWin('AutoPromptManager', (env) => {
         useUpdatedOfferFlows: true,
       });
       getClientConfigExpectation.resolves(clientConfig).once();
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+        })
+        .once();
       winMock
         .expects('setTimeout')
-        .withExactArgs(sandbox.match.any, displayDelaySeconds)
+        .withExactArgs(sandbox.match.any, 99000)
         .once();
 
-      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(20);
+      await autoPromptManager.showAutoPrompt({});
     });
 
-    it('should show the prompt with no delay for CLOSED contentType', async () => {
-      const displayDelaySeconds = 99;
-      autoPromptConfig = new AutoPromptConfig({displayDelaySeconds});
+    it('should show the prompt with no delay for blocking CTA', async () => {
+      autoPromptConfig = new AutoPromptConfig({displayDelaySeconds: 99});
       const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
         autoPromptConfig,
@@ -3609,15 +3575,32 @@ describes.realWin('AutoPromptManager', (env) => {
         useUpdatedOfferFlows: true,
       });
       getClientConfigExpectation.resolves(clientConfig).once();
-      winMock.expects('setTimeout').never();
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SURVEY_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
+        })
+        .once();
+      winMock.expects('setTimeout').withExactArgs(sandbox.match.any, 0).once();
 
-      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
-      await tick(20);
+      await autoPromptManager.showAutoPrompt({});
     });
 
     it(`should set isInDevMode_ to false`, async () => {
-      await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
-      await tick(100);
+      await autoPromptManager.showAutoPrompt({});
 
       expect(autoPromptManager.isInDevMode_).to.be.false;
     });
@@ -3672,7 +3655,6 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({
           contentType: ContentType.OPEN,
         });
-        await tick(20);
 
         expect(subscriptionPromptFnSpy).not.to.have.been.called;
       });
@@ -3693,7 +3675,6 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({
           contentType: ContentType.CLOSED,
         });
-        await tick(20);
 
         expect(contributionPromptFnSpy).not.to.have.been.called;
       });
@@ -3714,7 +3695,6 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({
           contentType: ContentType.CLOSED,
         });
-        await tick(20);
 
         expect(contributionPromptFnSpy).to.have.been.calledOnce;
       });
@@ -3732,7 +3712,6 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({
           contentType: ContentType.OPEN,
         });
-        await tick(20);
 
         expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
       });
@@ -4235,7 +4214,6 @@ describes.realWin('AutoPromptManager', (env) => {
       };
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
         action: 'TYPE_REWARDED_AD',
@@ -4281,7 +4259,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
         action: 'TYPE_NEWSLETTER_SIGNUP',
@@ -4311,7 +4288,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.showAutoPrompt({});
-      await tick(7);
 
       expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
         action: 'TYPE_NEWSLETTER_SIGNUP',
