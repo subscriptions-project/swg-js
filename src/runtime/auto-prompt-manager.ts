@@ -536,7 +536,6 @@ export class AutoPromptManager {
         return;
       }
     }
-
     return nextOrchestration;
   }
 
