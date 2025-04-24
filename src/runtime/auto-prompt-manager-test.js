@@ -706,10 +706,12 @@ describes.realWin('AutoPromptManager', (env) => {
       },
     ].forEach(({eventType, autoPromptType, action}) => {
       it(`for generic eventType=${eventType}, should set completions via local storage for autoPromptType=${autoPromptType}`, async () => {
+        autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
         autoPromptManager.autoPromptType_ = autoPromptType;
         expectFrequencyCappingTimestamps(storageMock, '', {
           [action]: {completions: [CURRENT_TIME]},
+          'config_id': {completions: [CURRENT_TIME]},
         });
 
         await eventManagerCallback({
@@ -1238,9 +1240,11 @@ describes.realWin('AutoPromptManager', (env) => {
       },
     ].forEach(({eventType, action}) => {
       it(`for miniprompt eventType=${eventType}, should set impression timestamps for action=${action}`, async () => {
+        autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
         expectFrequencyCappingTimestamps(storageMock, '', {
           [action]: {impressions: [CURRENT_TIME]},
+          'config_id': {impressions: [CURRENT_TIME]},
         });
 
         await eventManagerCallback({
@@ -1263,9 +1267,11 @@ describes.realWin('AutoPromptManager', (env) => {
       },
     ].forEach(({eventType, action}) => {
       it(`for miniprompt eventType=${eventType}, should set dismissal timestamps for action=${action}`, async () => {
+        autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
         expectFrequencyCappingTimestamps(storageMock, '', {
           [action]: {dismissals: [CURRENT_TIME]},
+          'config_id': {dismissals: [CURRENT_TIME]},
         });
 
         await eventManagerCallback({
@@ -1432,9 +1438,11 @@ describes.realWin('AutoPromptManager', (env) => {
     ].forEach(({eventType, action}) => {
       it(`for autoprompt eventType=${eventType} and promptIsFromCta_ = true, should set dismissals for action=${action}`, async () => {
         autoPromptManager.promptIsFromCtaButton_ = true;
+        autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
         expectFrequencyCappingTimestamps(storageMock, '', {
           [action]: {dismissals: [CURRENT_TIME]},
+          'config_id': {dismissals: [CURRENT_TIME]},
         });
 
         await eventManagerCallback({
@@ -1458,9 +1466,11 @@ describes.realWin('AutoPromptManager', (env) => {
     ].forEach(({eventType, action}) => {
       it(`for autoprompt eventType=${eventType} and promptIsFromCta_ = true, should set completion for action=${action}`, async () => {
         autoPromptManager.promptIsFromCtaButton_ = true;
+        autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
         expectFrequencyCappingTimestamps(storageMock, '', {
           [action]: {completions: [CURRENT_TIME]},
+          'config_id': {completions: [CURRENT_TIME]},
         });
 
         await eventManagerCallback({
@@ -1718,6 +1728,10 @@ describes.realWin('AutoPromptManager', (env) => {
           impressions: [CURRENT_TIME],
           completions: [CURRENT_TIME],
         },
+        'survey_config_id': {
+          impressions: [CURRENT_TIME],
+          completions: [CURRENT_TIME],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({});
@@ -1790,6 +1804,10 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
       expectFrequencyCappingTimestamps(storageMock, {
         'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME],
+          completions: [CURRENT_TIME],
+        },
+        'survey_config_id': {
           impressions: [CURRENT_TIME],
           completions: [CURRENT_TIME],
         },
@@ -1944,6 +1962,9 @@ describes.realWin('AutoPromptManager', (env) => {
         'TYPE_BYO_CTA': {
           completions: [CURRENT_TIME - 200],
         },
+        'byocta_config_id': {
+          completions: [CURRENT_TIME - 200],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
@@ -2043,6 +2064,14 @@ describes.realWin('AutoPromptManager', (env) => {
             CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
+        'survey_config_id': {
+          impressions: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
@@ -2105,6 +2134,16 @@ describes.realWin('AutoPromptManager', (env) => {
               10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
@@ -2117,6 +2156,16 @@ describes.realWin('AutoPromptManager', (env) => {
       expectFrequencyCappingTimestamps(storageMock, {
         'TYPE_CONTRIBUTION': {
           impressions: [
+            CURRENT_TIME -
+              funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
             CURRENT_TIME -
               funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
@@ -2140,6 +2189,13 @@ describes.realWin('AutoPromptManager', (env) => {
             CURRENT_TIME -
               (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
+        },
+        'contribution_config_id': {
+          notImpressions: [
+            CURRENT_TIME -
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [(CURRENT_TIME - 1) * SECOND_IN_MS],
         },
       });
 
@@ -2166,6 +2222,10 @@ describes.realWin('AutoPromptManager', (env) => {
           impressions: [contributionTimestamps],
           dismissals: [contributionTimestamps],
         },
+        'contribution_config_id': {
+          impressions: [contributionTimestamps],
+          completions: [contributionTimestamps],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
@@ -2180,6 +2240,10 @@ describes.realWin('AutoPromptManager', (env) => {
         (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
       expectFrequencyCappingTimestamps(storageMock, {
         'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
+        'contribution_config_id': {
           impressions: [contributionTimestamps],
           dismissals: [contributionTimestamps],
         },
@@ -2215,6 +2279,10 @@ describes.realWin('AutoPromptManager', (env) => {
         (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
       expectFrequencyCappingTimestamps(storageMock, {
         'TYPE_CONTRIBUTION': {
+          impressions: [contributionTimestamps],
+          completions: [contributionTimestamps],
+        },
+        'contribution_config_id': {
           impressions: [contributionTimestamps],
           completions: [contributionTimestamps],
         },
@@ -2300,6 +2368,10 @@ describes.realWin('AutoPromptManager', (env) => {
           impressions: [contributionTimestamps],
           dismissals: [contributionTimestamps],
         },
+        'contribution_config_id': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
@@ -2334,6 +2406,13 @@ describes.realWin('AutoPromptManager', (env) => {
           dismissals: [contributionTimestamps],
         },
         'TYPE_REWARDED_SURVEY': {
+          impressions: [CURRENT_TIME - 1],
+        },
+        'contribution_config_id': {
+          impressions: [contributionTimestamps],
+          dismissals: [contributionTimestamps],
+        },
+        'survey_config_id': {
           impressions: [CURRENT_TIME - 1],
         },
       });
@@ -2413,6 +2492,14 @@ describes.realWin('AutoPromptManager', (env) => {
             CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME - 2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
@@ -2467,6 +2554,26 @@ describes.realWin('AutoPromptManager', (env) => {
               (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
           ],
         },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'survey_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
@@ -2495,6 +2602,16 @@ describes.realWin('AutoPromptManager', (env) => {
       setWinWithAnalytics({setupGtag: false, setupGa: false, setupGtm: false});
       expectFrequencyCappingTimestamps(storageMock, {
         'TYPE_CONTRIBUTION': {
+          impressions: [
+            CURRENT_TIME -
+              2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'contribution_config_id': {
           impressions: [
             CURRENT_TIME -
               2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -2541,6 +2658,26 @@ describes.realWin('AutoPromptManager', (env) => {
           ],
         },
         'TYPE_REWARDED_SURVEY': {
+          impressions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'survey_config_id': {
           impressions: [
             CURRENT_TIME -
               (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
@@ -2615,6 +2752,26 @@ describes.realWin('AutoPromptManager', (env) => {
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'survey_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
@@ -2679,6 +2836,36 @@ describes.realWin('AutoPromptManager', (env) => {
               (newsletterFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
           ],
         },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'survey_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'newsletter_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (newsletterFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (newsletterFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
@@ -2724,6 +2911,19 @@ describes.realWin('AutoPromptManager', (env) => {
           ],
         },
         'TYPE_REWARDED_AD': {
+          completions: [CURRENT_TIME],
+        },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'rewarded_ad_config_id': {
           completions: [CURRENT_TIME],
         },
       });
@@ -2818,6 +3018,16 @@ describes.realWin('AutoPromptManager', (env) => {
               0.5 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
       });
 
       await autoPromptManager.showAutoPrompt({});
@@ -2867,6 +3077,36 @@ describes.realWin('AutoPromptManager', (env) => {
           ],
         },
         'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'survey_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'newsletter_config_id': {
           impressions: [
             CURRENT_TIME -
               0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -2933,6 +3173,36 @@ describes.realWin('AutoPromptManager', (env) => {
           ],
         },
         'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME -
+              0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME -
+              0.5 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'survey_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+          completions: [
+            CURRENT_TIME -
+              0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
+          ],
+        },
+        'newsletter_config_id': {
           impressions: [
             CURRENT_TIME -
               0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
@@ -3037,6 +3307,36 @@ describes.realWin('AutoPromptManager', (env) => {
           ],
         },
         'TYPE_NEWSLETTER_SIGNUP': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'contribution_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'survey_config_id': {
+          impressions: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+          dismissals: [
+            CURRENT_TIME -
+              (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+          ],
+        },
+        'newsletter_config_id': {
           impressions: [
             CURRENT_TIME -
               (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
