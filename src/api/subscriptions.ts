@@ -601,3 +601,24 @@ export interface LinkSubscriptionResult {
   publisherProvidedId?: string | null;
   success: boolean;
 }
+
+export interface SubscriptionLinkRequest {
+  publicationId: string;
+  publisherProvidedId: string;
+}
+
+export interface LinkSubscriptionsRequest {
+  linkTo: SubscriptionLinkRequest[];
+}
+
+export interface SubscriptionLinkResult {
+  publicationId: string;
+  publisherProvidedId: string;
+  success: boolean;
+}
+
+export interface LinkSubscriptionsResult {
+  anySuccess: boolean;
+  anyFailure: boolean;
+  links: SubscriptionLinkResult[];
+}

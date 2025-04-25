@@ -22,6 +22,9 @@ import {DialogManager} from '../components/dialog-manager';
 import {
   LinkSubscriptionRequest,
   LinkSubscriptionResult,
+  LinkSubscriptionsRequest,
+  LinkSubscriptionsResult,
+  SubscriptionLinkResult,
 } from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {SubscriptionLinkingCompleteResponse} from '../proto/api_messages';
@@ -32,7 +35,7 @@ export class SubscriptionLinkingFlow {
   private readonly win_: Window;
   private readonly pageConfig_: PageConfig;
   private readonly dialogManager_: DialogManager;
-  private completionResolver_: (result: LinkSubscriptionResult) => void =
+  private completionResolver_: (result: LinkSubscriptionsResult) => void =
     () => {};
 
   constructor(private readonly deps_: Deps) {
@@ -48,12 +51,12 @@ export class SubscriptionLinkingFlow {
   /**
    * Starts the subscription linking flow.
    */
-  async start(
-    request: LinkSubscriptionRequest
-  ): Promise<LinkSubscriptionResult> {
-    const {publisherProvidedId} = request;
-    if (!publisherProvidedId) {
-      throw new Error('Missing required field: publisherProvidedId');
+  async startMultipleLinks(
+    request: LinkSubscriptionsRequest
+  ): Promise<LinkSubscriptionsResult> {
+    const {linkTo} = request;
+    if (!linkTo || linkTo.length === 0) {
+      throw new Error('Missing required field: linkTo');
     }
     const publicationId = this.pageConfig_.getPublicationId();
     const args = feArgs({
@@ -64,7 +67,13 @@ export class SubscriptionLinkingFlow {
       this.activityPorts_,
       feUrl('/linksaveiframe', {
         subscriptionLinking: 'true',
-        ppid: publisherProvidedId,
+        linkTo: linkTo
+          .map((link) =>
+            encodeURIComponent(
+              `${link.publicationId},${link.publisherProvidedId}`
+            )
+          )
+          .join('&linkTo='),
       }),
       args,
       /* shouldFadeBody= */ false
@@ -76,8 +85,15 @@ export class SubscriptionLinkingFlow {
       this.deps_.eventManager().logSwgEvent(completionStatus, true);
 
       this.completionResolver_({
-        publisherProvidedId,
-        success: false,
+        anyFailure: true,
+        anySuccess: false,
+        links: linkTo.map((link) => {
+          return {
+            publicationId: link.publicationId,
+            publisherProvidedId: link.publisherProvidedId,
+            success: false,
+          };
+        }),
       });
     });
 
@@ -89,17 +105,29 @@ export class SubscriptionLinkingFlow {
           : AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_FAILED;
 
         this.deps_.eventManager().logSwgEvent(completionStatus);
-
+        const linkResults = response.getLinkResultsList() || [];
         this.completionResolver_({
-          publisherProvidedId: response.getPublisherProvidedId(),
-          success: response.getSuccess() ?? false,
+          anyFailure: !response.getSuccess(),
+          anySuccess:
+            linkResults.filter((linkResult) => linkResult.getSuccess()).length >
+              0 || false,
+          links: linkResults.map((link) => {
+            const val: SubscriptionLinkResult = {
+              publicationId: link.getSwgPublicationId() || '',
+              publisherProvidedId: link.getPublisherProvidedId() || '',
+              success: link.getSuccess() || false,
+            };
+            return val;
+          }),
         });
       }
     );
 
-    const completionPromise = new Promise<LinkSubscriptionResult>((resolve) => {
-      this.completionResolver_ = resolve;
-    });
+    const completionPromise = new Promise<LinkSubscriptionsResult>(
+      (resolve) => {
+        this.completionResolver_ = resolve;
+      }
+    );
     try {
       this.deps_
         .eventManager()
@@ -123,5 +151,26 @@ export class SubscriptionLinkingFlow {
         .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_ERROR);
       throw e;
     }
+  }
+
+  /**
+   * Starts the subscription linking flow.
+   */
+  async start(
+    request: LinkSubscriptionRequest
+  ): Promise<LinkSubscriptionResult> {
+    const {publisherProvidedId} = request;
+    if (!publisherProvidedId) {
+      throw new Error('Missing required field: publisherProvidedId');
+    }
+    const publicationId = this.pageConfig_.getPublicationId();
+    return this.startMultipleLinks({
+      linkTo: [{publicationId, publisherProvidedId}],
+    }).then((result) => {
+      return {
+        success: !result.anyFailure,
+        publisherProvidedId: result.links[0].publisherProvidedId,
+      };
+    });
   }
 }
