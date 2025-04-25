@@ -111,7 +111,7 @@
     "@rollup/plugin-commonjs": "25.0.8",
     "@rollup/plugin-replace": "5.0.7",
     "cheerio": "1.0.0",
-    "chromedriver": "135.0.2",
+    "chromedriver": "135.0.4",
     "cookie-parser": "1.4.7",
     "hogan-express": "0.5.2",
     "is-running": "2.1.0",
