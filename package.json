@@ -25,7 +25,7 @@
     "build-i18n": "node build-system/tasks/build-i18n.js && gulp lint --fix --files='src/i18n/strings.ts'"
   },
   "dependencies": {
-    "safevalues": "0.5.2",
+    "safevalues": "0.7.0",
     "web-activities": "1.24.0"
   },
   "devDependencies": {
