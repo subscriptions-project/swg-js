@@ -200,27 +200,36 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
   });
 
   describe('multiple on SubscriptionLinkingCompleteResponse', () => {
-    it('resolves promise with response data', async () => {
-      dialogManagerMock.expects('openView').once().resolves();
-      const results = [
+    let expectedResults = [
+      new SubscriptionLinkingLinkResult(),
+      new SubscriptionLinkingLinkResult(),
+    ];
+    let expectedResponse = new SubscriptionLinkingCompleteResponse();
+    beforeEach(() => {
+      expectedResults = [
         new SubscriptionLinkingLinkResult(),
         new SubscriptionLinkingLinkResult(),
       ];
-      results[0].setSuccess(true);
-      results[0].setSwgPublicationId(PUBLICATION_ID + '2');
-      results[0].setPublisherProvidedId('def');
-      results[1].setSuccess(true);
-      results[1].setSwgPublicationId(PUBLICATION_ID);
-      results[1].setPublisherProvidedId('abc');
-      const response = new SubscriptionLinkingCompleteResponse();
-      response.setLinkResultsList(results);
-      response.setSuccess(true);
-      response.setPublisherProvidedId('abc');
+      expectedResults[0].setSuccess(true);
+      expectedResults[0].setSwgPublicationId(PUBLICATION_ID);
+      expectedResults[0].setPublisherProvidedId('ppid');
+      expectedResults[1].setSuccess(true);
+      expectedResults[1].setSwgPublicationId(PUBLICATION_ID + '2');
+      expectedResults[1].setPublisherProvidedId('ppid2');
+
+      expectedResponse = new SubscriptionLinkingCompleteResponse();
+      expectedResponse.setLinkResultsList(expectedResults);
+      expectedResponse.setSuccess(true);
+      expectedResponse.setPublisherProvidedId('ppid');
+    });
+
+    it('resolves promise with response data', async () => {
+      dialogManagerMock.expects('openView').once().resolves();
 
       const resultPromise =
         subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST);
-      const handler = messageMap[response.label()];
-      handler(response);
+      const handler = messageMap[expectedResponse.label()];
+      handler(expectedResponse);
 
       const result = await resultPromise;
       expect(result).to.deep.equal({
@@ -228,40 +237,32 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         anySuccess: true,
         links: [
           {
-            publicationId: PUBLICATION_ID + '2',
-            publisherProvidedId: 'def',
+            publicationId: PUBLICATION_ID,
+            publisherProvidedId: 'ppid',
             success: true,
           },
           {
-            publicationId: PUBLICATION_ID,
-            publisherProvidedId: 'abc',
+            publicationId: PUBLICATION_ID + '2',
+            publisherProvidedId: 'ppid2',
             success: true,
           },
         ],
       });
     });
 
-    it('resolves with success=false if missing from response', async () => {
+    it('resolves with success=false on failure', async () => {
       dialogManagerMock.expects('openView').once().resolves();
-      const results = [
-        new SubscriptionLinkingLinkResult(),
-        new SubscriptionLinkingLinkResult(),
-      ];
-      results[0].setSuccess(false);
-      results[0].setSwgPublicationId(PUBLICATION_ID + '2');
-      results[0].setPublisherProvidedId('def');
-      results[1].setSuccess(false);
-      results[1].setSwgPublicationId(PUBLICATION_ID);
-      results[1].setPublisherProvidedId('abc');
-      const response = new SubscriptionLinkingCompleteResponse();
-      response.setPublisherProvidedId('abc');
-      response.setLinkResultsList(results);
-      response.setSuccess(false);
+
+      expectedResults[0].setSuccess(false);
+      // This ensures it defaults null to false.
+      expectedResults[1].setSuccess(null);
+      expectedResponse.setLinkResultsList(expectedResults);
+      expectedResponse.setSuccess(false);
 
       const resultPromise =
         subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST);
-      const handler = messageMap[response.label()];
-      handler(response);
+      const handler = messageMap[expectedResponse.label()];
+      handler(expectedResponse);
 
       const result = await resultPromise;
       expect(result).to.deep.equal({
@@ -269,13 +270,13 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         anySuccess: false,
         links: [
           {
-            publicationId: PUBLICATION_ID + '2',
-            publisherProvidedId: 'def',
+            publicationId: PUBLICATION_ID,
+            publisherProvidedId: 'ppid',
             success: false,
           },
           {
-            publicationId: PUBLICATION_ID,
-            publisherProvidedId: 'abc',
+            publicationId: PUBLICATION_ID + '2',
+            publisherProvidedId: 'ppid2',
             success: false,
           },
         ],
@@ -289,7 +290,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         .rejects(new Error('Dialog error'));
 
       await expect(
-        subscriptionLinkingFlow.start(REQUEST)
+        subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST)
       ).to.eventually.be.rejectedWith('Dialog error');
     });
   });
@@ -297,11 +298,27 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
   it('resolves promise with success=false when cancelled', async () => {
     dialogManagerMock.expects('openView').once().resolves();
 
-    const resultPromise = subscriptionLinkingFlow.start(REQUEST);
+    const resultPromise =
+      subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST);
 
     cancelCallback();
 
     const result = await resultPromise;
-    expect(result).to.deep.equal({publisherProvidedId: 'ppid', success: false});
+    expect(result).to.deep.equal({
+      anySuccess: false,
+      anyFailure: true,
+      links: [
+        {
+          publicationId: PUBLICATION_ID,
+          publisherProvidedId: 'ppid',
+          success: false,
+        },
+        {
+          publicationId: PUBLICATION_ID + '2',
+          publisherProvidedId: 'ppid2',
+          success: false,
+        },
+      ],
+    });
   });
 });

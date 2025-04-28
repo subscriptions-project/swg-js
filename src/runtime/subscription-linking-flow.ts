@@ -109,12 +109,11 @@ export class SubscriptionLinkingFlow {
         this.completionResolver_({
           anyFailure: !response.getSuccess(),
           anySuccess:
-            linkResults.filter((linkResult) => linkResult.getSuccess()).length >
-              0 || false,
+            linkResults.filter((result) => result.getSuccess()).length > 0,
           links: linkResults.map((link) => {
             const val: SubscriptionLinkResult = {
-              publicationId: link.getSwgPublicationId() || '',
-              publisherProvidedId: link.getPublisherProvidedId() || '',
+              publicationId: link.getSwgPublicationId(),
+              publisherProvidedId: link.getPublisherProvidedId(),
               success: link.getSuccess() || false,
             };
             return val;
