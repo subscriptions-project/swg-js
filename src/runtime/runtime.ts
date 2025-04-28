@@ -1309,6 +1309,5 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
-    linkSubscriptions: runtime.linkSubscriptions.bind(runtime),
   };
 }
