@@ -603,8 +603,8 @@ export interface LinkSubscriptionResult {
 }
 
 export interface SubscriptionLinkRequest {
-  publicationId: string;
-  publisherProvidedId: string;
+  publicationId?: string | null;
+  publisherProvidedId?: string | null;
 }
 
 export interface LinkSubscriptionsRequest {
@@ -612,8 +612,8 @@ export interface LinkSubscriptionsRequest {
 }
 
 export interface SubscriptionLinkResult {
-  publicationId: string;
-  publisherProvidedId: string;
+  publicationId?: string | null;
+  publisherProvidedId?: string | null;
   success: boolean;
 }
 
