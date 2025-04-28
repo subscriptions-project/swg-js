@@ -24,6 +24,7 @@
  * 4) Close the prompt that initiated the flow.
  */
 
+import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
@@ -52,7 +53,6 @@ import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
-import {parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {warn} from '../utils/log';
 
@@ -80,13 +80,6 @@ export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
-
-const actionToIframeMapping: {[key: string]: string} = {
-  TYPE_REGISTRATION_WALL: '/regwalliframe',
-  TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
-  TYPE_REWARDED_SURVEY: '/surveyiframe',
-  TYPE_BYO_CTA: '/byoctaiframe',
-};
 
 const autopromptTypeToProductTypeMapping: {
   [key in AutoPromptType]?: ProductType;
@@ -141,7 +134,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.activityIframeView_ = new ActivityIframeView(
       deps_.win(),
       deps_.activities(),
-      feUrl(actionToIframeMapping[params_.action], iframeParams),
+      feUrl(ActionToIframeMapping[params_.action], iframeParams),
       feArgs({
         'supportsEventManager': true,
         'productType': this.productType_,
