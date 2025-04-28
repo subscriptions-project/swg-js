@@ -223,6 +223,15 @@ export interface Subscriptions {
   ): Promise<LinkSubscriptionResult>;
 
   /**
+   * Starts linking subscriptions for multiple publications in the same
+   * organization.
+   * @return promise indicating result of the operation
+   */
+  linkSubscriptions(
+    linkSubscriptionsRequest: LinkSubscriptionsRequest
+  ): Promise<LinkSubscriptionsResult>;
+
+  /**
    * Creates an element with the SwG button style and the provided callback.
    * The default theme is "light".
    */

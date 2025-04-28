@@ -25,7 +25,7 @@ const PAY_ENVIRONMENT = 'SANDBOX';
 const PLAY_ENVIRONMENT = 'STAGING';
 const ADS_SERVER = 'https://pubads.g.doubleclick.net';
 const EXPERIMENTS = '';
-const {red, cyan, green} = require('ansi-colors');
+const {cyan, green} = require('ansi-colors');
 
 const overrides = {};
 
@@ -37,12 +37,6 @@ exports.resolveConfig = () => {
 
   console.log(green('Configuration'));
   console.log(green('  --frontend ') + cyan(swgServerOrigin));
-  const swgServerOriginIsValid =
-    /^https?:\/\/[A-Za-z0-9.-]+\.com(:[0-9]+)?$/.test(swgServerOrigin);
-  if (!swgServerOriginIsValid) {
-    console.log(red('Frontend URL (--frontend) is invalid'));
-    throw new Error('Frontend URL (--frontend) is invalid');
-  }
 
   const config = {
     'FRONTEND': swgServerOrigin,
