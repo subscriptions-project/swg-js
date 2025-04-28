@@ -1,10 +1,13 @@
 import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
+import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
+import {EntitlementsManager} from './entitlements-manager';
 import {Intervention} from './intervention';
 import {ProductType} from '../api/subscriptions';
+import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
@@ -16,14 +19,19 @@ export class InlincCtaApi {
   private readonly doc_: Doc;
   private readonly win_: Window;
   private readonly activityPorts_: ActivityPorts;
-
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly entitlementsManager_: EntitlementsManager;
   constructor(private readonly deps_: Deps) {
     this.doc_ = deps_.doc();
     this.win_ = deps_.win();
     this.activityPorts_ = deps_.activities();
+    this.entitlementsManager_ = deps_.entitlementsManager();
+    this.clientConfigManager_ = deps_.clientConfigManager();
+    assert(
+      this.clientConfigManager_,
+      'InlineCta requires an instance of ClientConfigManager.'
+    );
   }
-
-  init() {}
 
   actionToUrlPrefix(
     configId: string | null,
@@ -39,6 +47,8 @@ export class InlincCtaApi {
     }
     return '';
   }
+
+  resizeInlineCta(height: number) {}
 
   async attachInlineCtaWithAttribute(
     div: HTMLElement,
@@ -70,7 +80,6 @@ export class InlincCtaApi {
       fetchArgs
     );
     setImportantStyles(activityIframeView.getElement(), {
-      'height': '100%',
       'width': '100%',
     });
 
@@ -81,13 +90,46 @@ export class InlincCtaApi {
       fetchUrl,
       fetchArgs
     );
+    port.onResizeRequest((height) => {
+      setImportantStyles(activityIframeView.getElement(), {
+        'height': `${height}px`,
+      });
+    });
+
     await port.whenReady();
   }
 
-  attachInlineCtasWithAttribute(actions: Intervention[] = []) {
+  async attachInlineCtasWithAttribute(): Promise<void> {
     const elements: HTMLElement[] = Array.from(
       this.doc_.getWin().document.querySelectorAll(INLINE_CTA_ATTRIUBUTE_QUERY)
     );
+
+    if (!elements) {
+      return;
+    }
+
+    // Fetch entitlements and article actions from the server, so that we have
+    // the information we need to determine whether and which CTA to show.
+    const [clientConfig, entitlements, article] = await Promise.all([
+      this.clientConfigManager_.getClientConfig(),
+      this.entitlementsManager_.getEntitlements(),
+      this.entitlementsManager_.getArticle(),
+    ]);
+
+    if (!clientConfig.uiPredicates?.canDisplayAutoPrompt || !article) {
+      return;
+    }
+
+    const hasValidEntitlements = entitlements.enablesThis();
+    if (hasValidEntitlements) {
+      return;
+    }
+
+    const actions = article.audienceActions?.actions;
+    if (!actions || actions.length === 0) {
+      return;
+    }
+
     for (const element of elements) {
       this.attachInlineCtaWithAttribute(element, actions);
     }
