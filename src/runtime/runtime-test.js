@@ -827,6 +827,18 @@ describes.realWin('Runtime', (env) => {
       expect(result).to.deep.equal(mockResult);
     });
 
+    it('delegates linkSubscriptions', async () => {
+      const mockResult = {success: true};
+      configuredRuntimeMock
+        .expects('linkSubscriptions')
+        .once()
+        .resolves(mockResult);
+
+      const result = await runtime.linkSubscriptions({});
+
+      expect(result).to.deep.equal(mockResult);
+    });
+
     it('delegates getAvailableInterventions', async () => {
       const mockResult = [];
       configuredRuntimeMock
@@ -2319,6 +2331,29 @@ subscribe() method'
           .returns(mockResult);
 
         const result = await runtime.linkSubscription(request);
+
+        expect(start).to.be.calledOnceWith(request);
+        expect(result).to.deep.equal(mockResult);
+      });
+    });
+
+    describe('linkSubscriptions', () => {
+      it('starts SubscriptionLinkingFlow', async () => {
+        const request = {
+          linkTo: [{publicationId: 'pub1', publisherPovidedId: 'foo'}],
+        };
+        const mockResult = {
+          anySuccess: true,
+          anyFailure: false,
+          links: [
+            {success: true, publicationId: 'pub1', publisherPovidedId: 'foo'},
+          ],
+        };
+        const start = sandbox
+          .stub(SubscriptionLinkingFlow.prototype, 'startMultipleLinks')
+          .returns(mockResult);
+
+        const result = await runtime.linkSubscriptions(request);
 
         expect(start).to.be.calledOnceWith(request);
         expect(result).to.deep.equal(mockResult);
