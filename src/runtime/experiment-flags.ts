@@ -44,4 +44,9 @@ export enum ArticleExperimentFlags {
    * targeted intervention funnel.
    */
   ACTION_ORCHESTRATION_EXPERIMENT = 'action_orchestration_experiment',
+
+  /**
+   * [Inline CTA] Experiment flag to enable rendering of the CTAs inline.
+   */
+  INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
 }
