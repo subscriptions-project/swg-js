@@ -33,13 +33,10 @@ export class InlincCtaApi {
     );
   }
 
-  actionToUrlPrefix(
-    configId: string | null,
+  private actionToUrlPrefix_(
+    configId: string,
     actions: Intervention[] = []
   ): string {
-    if (!configId || actions.length <= 0) {
-      return '';
-    }
     for (const action of actions) {
       if (action.configurationId === configId) {
         return ActionToIframeMapping[action.type];
@@ -48,17 +45,7 @@ export class InlincCtaApi {
     return '';
   }
 
-  resizeInlineCta(height: number) {}
-
-  async attachInlineCtaWithAttribute(
-    div: HTMLElement,
-    actions: Intervention[] = []
-  ) {
-    const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
-    const urlPrefix = this.actionToUrlPrefix(configId, actions);
-    if (!urlPrefix) {
-      return;
-    }
+  private getUrl_(urlPrefix: string, configId: string): string {
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(this.win_.location.href).origin,
       'configurationId': configId || '',
@@ -68,7 +55,22 @@ export class InlincCtaApi {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'ctaMode': 'CTA_MODE_INLINE',
     };
-    const fetchUrl = feUrl(urlPrefix, iframeParams);
+    return feUrl(urlPrefix, iframeParams);
+  }
+
+  async renderInlineCtaWithAttribute(
+    div: HTMLElement,
+    actions: Intervention[] = []
+  ) {
+    const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
+    if (!configId) {
+      return;
+    }
+    const urlPrefix = this.actionToUrlPrefix_(configId, actions);
+    if (!urlPrefix) {
+      return;
+    }
+    const fetchUrl = this.getUrl_(urlPrefix, configId);
     const fetchArgs = feArgs({
       'supportsEventManager': true,
       'productType': DEFAULT_PRODUCT_TYPE,
@@ -116,12 +118,11 @@ export class InlincCtaApi {
       this.entitlementsManager_.getArticle(),
     ]);
 
-    if (!clientConfig.uiPredicates?.canDisplayAutoPrompt || !article) {
-      return;
-    }
-
-    const hasValidEntitlements = entitlements.enablesThis();
-    if (hasValidEntitlements) {
+    if (
+      !clientConfig.uiPredicates?.canDisplayAutoPrompt ||
+      !article ||
+      !!entitlements.enablesThis()
+    ) {
       return;
     }
 
@@ -131,7 +132,7 @@ export class InlincCtaApi {
     }
 
     for (const element of elements) {
-      this.attachInlineCtaWithAttribute(element, actions);
+      this.renderInlineCtaWithAttribute(element, actions);
     }
   }
 }
