@@ -567,6 +567,12 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
         return;
       }
 
+      const lastMeterFlow = this.entitlementsManager().getLastMeterToast();
+      if (lastMeterFlow) {
+        lastMeterFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
       const lastAudienceActionFlow =
         this.autoPromptManager_.getLastAudienceActionFlow();
       if (lastAudienceActionFlow) {
