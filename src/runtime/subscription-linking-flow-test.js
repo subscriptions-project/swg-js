@@ -80,7 +80,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       expect(pathname).to.equal('/swg/ui/v1/linksaveiframe');
       expect(searchParams.get('subscriptionLinking')).to.equal('true');
       expect(searchParams.get('linkTo')).to.equal(
-        encodeURIComponent(`${PUBLICATION_ID},${REQUEST.publisherProvidedId}`)
+        `${PUBLICATION_ID},${REQUEST.publisherProvidedId}`
       );
       const args = activityIframeView.args_;
       expect(args['publicationId']).to.equal(PUBLICATION_ID);
@@ -121,11 +121,13 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       const {pathname, searchParams} = url;
       expect(pathname).to.equal('/swg/ui/v1/linksaveiframe');
       expect(searchParams.get('subscriptionLinking')).to.equal('true');
-      const link1 = encodeURIComponent(
-        `${PUBLICATION_ID},${REQUEST.publisherProvidedId}`
+      const links = activityIframeView.src_.split('linkTo=');
+      expect(links.length).to.equal(3);
+      expect(links[1]).to.equal(
+        encodeURIComponent(`${PUBLICATION_ID},${REQUEST.publisherProvidedId}`) +
+          '&'
       );
-      const link2 = encodeURIComponent(`${PUBLICATION_ID}2,ppid2`);
-      expect(searchParams.get('linkTo')).to.equal(`${link1}&linkTo=${link2}`);
+      expect(links[2]).to.equal(encodeURIComponent(`${PUBLICATION_ID}2,ppid2`));
       const args = activityIframeView.args_;
       expect(args['publicationId']).to.equal(PUBLICATION_ID);
       expect(activityIframeView.shouldFadeBody_).to.be.false;
