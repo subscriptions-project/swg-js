@@ -226,9 +226,9 @@ export class AutoPromptManager {
     this.shouldRenderOnsitePreview_ = !!article?.previewEnabled;
 
     if (this.shouldRenderOnsitePreview_) {
-      this.showPreviewAutoPrompt_(article!, params);
+      await this.showPreviewAutoPrompt_(article!, params);
     } else {
-      this.showAutoPrompt_(clientConfig, entitlements, article, params);
+      await this.showAutoPrompt_(clientConfig, entitlements, article, params);
     }
   }
 
