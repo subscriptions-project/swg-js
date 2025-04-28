@@ -202,6 +202,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('sku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await flow.start();
   });
 
@@ -247,6 +250,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('sku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await contribFlow.start();
   });
 
@@ -293,6 +299,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await oneTimeFlow.start();
   });
 
@@ -343,6 +352,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await metadataFlow.start();
   });
 
@@ -394,6 +406,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
     await replaceFlow.start();
   });
 
@@ -407,6 +422,9 @@ describes.realWin('PayStartFlow', (env) => {
       runtime,
       subscriptionRequest
     );
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true})));
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', subscriptionRequest)
@@ -443,6 +461,9 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku2')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED, true);
     await replaceFlowNoProrationMode.start();
   });
 
@@ -1503,6 +1524,47 @@ describes.realWin('PayCompleteFlow', (env) => {
         expect(response).to.be.instanceof(SubscribeResponse);
         expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
+    });
+
+    it('should log EVENT_PAY_PAYMENT_COMPLETE with useUpdatedOfferFlows config', async () => {
+      PayCompleteFlow.waitingForPayClient = true;
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .returns(
+          Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true}))
+        );
+
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE, true);
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.CONTRIBUTE)
+        );
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.CONTRIBUTE)
+        );
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+      data['googleTransactionId'] = runtime.analytics().getTransactionId();
+      data['paymentRequest'] = {
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.UI_CONTRIBUTION},
+      };
+      await responseCallback(Promise.resolve(data));
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
     });
 
     it('should log ACTION_PAYMENT_COMPLETE with contribution param', async () => {

@@ -123,13 +123,16 @@ export class PayStartFlow {
   async start(): Promise<void> {
     // Get the paySwgVersion for buyflow.
     const clientConfig = await this.clientConfigManager_.getClientConfig();
-    this.start_(clientConfig.paySwgVersion);
+    this.start_(clientConfig.useUpdatedOfferFlows, clientConfig.paySwgVersion);
   }
 
   /**
    * Starts the payments flow for the given version.
    */
-  private start_(paySwgVersion?: string): void {
+  private start_(
+    usePayFlow: boolean | undefined,
+    paySwgVersion?: string
+  ): void {
     const swgPaymentRequest: SwgPaymentRequest = {
       'skuId': this.subscriptionRequest_['skuId'],
       'publicationId': this.pageConfig_.getPublicationId(),
@@ -177,6 +180,13 @@ export class PayStartFlow {
       true,
       getEventParams(swgPaymentRequest['skuId'])
     );
+    this.eventManager_.logSwgEvent(
+      usePayFlow
+        ? AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED
+        : AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+      true
+    );
+
     PayCompleteFlow.waitingForPayClient = true;
     this.payClient_.start(
       {
@@ -233,6 +243,14 @@ export class PayCompleteFlow {
               : SubscriptionFlows.SUBSCRIBE
           )
         );
+
+        const clientConfig = await deps.clientConfigManager().getClientConfig();
+        if (clientConfig.useUpdatedOfferFlows) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE,
+            true
+          );
+        }
         if (response.productType == ProductType.UI_CONTRIBUTION) {
           eventManager.logSwgEvent(
             AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,

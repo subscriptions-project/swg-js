@@ -109,6 +109,8 @@ export enum AnalyticsEvent {
   ACTION_ACCOUNT_ACKNOWLEDGED = 1003,
   ACTION_SUBSCRIPTIONS_LANDING_PAGE = 1004,
   ACTION_PAYMENT_FLOW_STARTED = 1005,
+  ACTION_PAY_PAYMENT_FLOW_STARTED = 1090,
+  ACTION_PLAY_PAYMENT_FLOW_STARTED = 1091,
   ACTION_OFFER_SELECTED = 1006,
   ACTION_SWG_BUTTON_CLICK = 1007,
   ACTION_VIEW_OFFERS = 1008,
@@ -257,6 +259,7 @@ export enum AnalyticsEvent {
   EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR = 3047,
   EVENT_SUBSCRIPTION_PAYMENT_COMPLETE = 3050,
   EVENT_CONTRIBUTION_PAYMENT_COMPLETE = 3051,
+  EVENT_PAY_PAYMENT_COMPLETE = 3058,
   EVENT_HOSTED_PAGE_SUBSCRIPTION_PAYMENT_COMPLETE = 3054,
   EVENT_HOSTED_PAGE_CONTRIBUTION_PAYMENT_COMPLETE = 3055,
   EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR = 3056,
@@ -1732,6 +1735,7 @@ export class SubscribeResponse implements Message {
 export class SubscriptionLinkingCompleteResponse implements Message {
   private publisherProvidedId_: string | null;
   private success_: boolean | null;
+  private linkResults_: SubscriptionLinkingLinkResult[] | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1740,6 +1744,10 @@ export class SubscriptionLinkingCompleteResponse implements Message {
       data[base] == null ? null : (data[base] as string);
 
     this.success_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
+
+    this.linkResults_ = ((data[2 + base] as unknown[][]) || []).map(
+      (item) => new SubscriptionLinkingLinkResult(item, includesLabel)
+    );
   }
 
   getPublisherProvidedId(): string | null {
@@ -1758,10 +1766,21 @@ export class SubscriptionLinkingCompleteResponse implements Message {
     this.success_ = value;
   }
 
+  getLinkResultsList(): SubscriptionLinkingLinkResult[] | null {
+    return this.linkResults_;
+  }
+
+  setLinkResultsList(value: SubscriptionLinkingLinkResult[]): void {
+    this.linkResults_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.publisherProvidedId_, // field 1 - publisher_provided_id
       this.success_, // field 2 - success
+      this.linkResults_
+        ? this.linkResults_.map((item) => item.toArray(includeLabel))
+        : [], // field 3 - link_results
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1771,6 +1790,65 @@ export class SubscriptionLinkingCompleteResponse implements Message {
 
   label(): string {
     return 'SubscriptionLinkingCompleteResponse';
+  }
+}
+
+/** */
+export class SubscriptionLinkingLinkResult implements Message {
+  private success_: boolean | null;
+  private swgPublicationId_: string | null;
+  private publisherProvidedId_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.success_ = data[base] == null ? null : (data[base] as boolean);
+
+    this.swgPublicationId_ =
+      data[1 + base] == null ? null : (data[1 + base] as string);
+
+    this.publisherProvidedId_ =
+      data[2 + base] == null ? null : (data[2 + base] as string);
+  }
+
+  getSuccess(): boolean | null {
+    return this.success_;
+  }
+
+  setSuccess(value: boolean): void {
+    this.success_ = value;
+  }
+
+  getSwgPublicationId(): string | null {
+    return this.swgPublicationId_;
+  }
+
+  setSwgPublicationId(value: string): void {
+    this.swgPublicationId_ = value;
+  }
+
+  getPublisherProvidedId(): string | null {
+    return this.publisherProvidedId_;
+  }
+
+  setPublisherProvidedId(value: string): void {
+    this.publisherProvidedId_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.success_, // field 1 - success
+      this.swgPublicationId_, // field 2 - swg_publication_id
+      this.publisherProvidedId_, // field 3 - publisher_provided_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'SubscriptionLinkingLinkResult';
   }
 }
 
@@ -2149,35 +2227,36 @@ export class ViewSubscriptionsResponse implements Message {
 }
 
 const PROTO_MAP: {[key: string]: MessageConstructor} = {
-  'AccountCreationRequest': AccountCreationRequest,
-  'ActionRequest': ActionRequest,
-  'AlreadySubscribedResponse': AlreadySubscribedResponse,
-  'AnalyticsContext': AnalyticsContext,
-  'AnalyticsEventMeta': AnalyticsEventMeta,
-  'AnalyticsRequest': AnalyticsRequest,
-  'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
-  'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
-  'Duration': Duration,
-  'EntitlementJwt': EntitlementJwt,
-  'EntitlementsRequest': EntitlementsRequest,
-  'EntitlementsResponse': EntitlementsResponse,
-  'EventParams': EventParams,
-  'FinishedLoggingResponse': FinishedLoggingResponse,
-  'LinkSaveTokenRequest': LinkSaveTokenRequest,
-  'LinkingInfoResponse': LinkingInfoResponse,
-  'OpenDialogRequest': OpenDialogRequest,
-  'SkuSelectedResponse': SkuSelectedResponse,
-  'SmartBoxMessage': SmartBoxMessage,
-  'SubscribeResponse': SubscribeResponse,
-  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
-  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
-  'SurveyAnswer': SurveyAnswer,
-  'SurveyDataTransferRequest': SurveyDataTransferRequest,
-  'SurveyDataTransferResponse': SurveyDataTransferResponse,
-  'SurveyQuestion': SurveyQuestion,
-  'Timestamp': Timestamp,
-  'ToastCloseRequest': ToastCloseRequest,
-  'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
+  AccountCreationRequest,
+  ActionRequest,
+  AlreadySubscribedResponse,
+  AnalyticsContext,
+  AnalyticsEventMeta,
+  AnalyticsRequest,
+  AudienceActivityClientLogsRequest,
+  CompleteAudienceActionResponse,
+  Duration,
+  EntitlementJwt,
+  EntitlementsRequest,
+  EntitlementsResponse,
+  EventParams,
+  FinishedLoggingResponse,
+  LinkSaveTokenRequest,
+  LinkingInfoResponse,
+  OpenDialogRequest,
+  SkuSelectedResponse,
+  SmartBoxMessage,
+  SubscribeResponse,
+  SubscriptionLinkingCompleteResponse,
+  SubscriptionLinkingLinkResult,
+  SubscriptionLinkingResponse,
+  SurveyAnswer,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
+  SurveyQuestion,
+  Timestamp,
+  ToastCloseRequest,
+  ViewSubscriptionsResponse,
 };
 
 /**

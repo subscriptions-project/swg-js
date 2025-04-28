@@ -136,9 +136,11 @@ interface ActionTimestamps {
  * displayed to the user.
  */
 export class AutoPromptManager {
+  private isInDevMode_: boolean | undefined;
   private hasStoredMiniPromptImpression_ = false;
   private promptIsFromCtaButton_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
+  private configId_: string | undefined;
   private isClosable_: boolean | undefined;
   private autoPromptType_: AutoPromptType | undefined;
   private contentType_: ContentType | undefined;
@@ -200,6 +202,7 @@ export class AutoPromptManager {
     // Manual override of display rules, mainly for demo purposes. Requires
     // contribution or subscription to be set as autoPromptType in snippet.
     if (params.alwaysShow) {
+      this.isInDevMode_ = true;
       this.autoPromptType_ = this.getPromptTypeToDisplay_(
         params.autoPromptType
       );
@@ -223,9 +226,9 @@ export class AutoPromptManager {
     this.shouldRenderOnsitePreview_ = !!article?.previewEnabled;
 
     if (this.shouldRenderOnsitePreview_) {
-      this.showPreviewAutoPrompt_(article!, params);
+      await this.showPreviewAutoPrompt_(article!, params);
     } else {
-      this.showAutoPrompt_(clientConfig, entitlements, article, params);
+      await this.showAutoPrompt_(clientConfig, entitlements, article, params);
     }
   }
 
@@ -261,8 +264,8 @@ export class AutoPromptManager {
       params.autoPromptType
     )!;
 
-    // For FPA M0.5 - default to the contentType.
-    // TODO(b/364344782): Determine closability for FPA M1+.
+    // For FCA - default to the contentType.
+    // TODO(b/364344782): Determine closability for Phase 2+.
     this.isClosable_ = this.contentType_ != ContentType.CLOSED;
 
     const previewAction = actions[0];
@@ -284,6 +287,7 @@ export class AutoPromptManager {
     article: Article | null,
     params: ShowAutoPromptParams
   ): Promise<void> {
+    this.isInDevMode_ = false;
     if (!article) {
       return;
     }
@@ -353,6 +357,7 @@ export class AutoPromptManager {
     }
 
     this.promptIsFromCtaButton_ = false;
+    this.configId_ = potentialAction?.configurationId;
     // Add display delay to dismissible prompts.
     const displayDelayMs = this.isClosable_
       ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
@@ -511,11 +516,16 @@ export class AutoPromptManager {
     if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
-        Object.entries(actionsTimestamps!).map(([type, timestamps]) =>
-          type === nextOrchestration!.type
-            ? timestamps.completions // Completed repeatable actions count towards global frequency
-            : timestamps.impressions
-        )
+        Object.entries(actionsTimestamps!)
+          // Ignore events keyed by configId before FCA Phase 1 rampup
+          .filter(([key, _]) =>
+            Object.values<string>(InterventionType).includes(key)
+          )
+          .map(([type, timestamps]) =>
+            type === nextOrchestration!.type
+              ? timestamps.completions // Completed repeatable actions count towards global frequency
+              : timestamps.impressions
+          )
       );
       if (
         this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
@@ -697,7 +707,7 @@ export class AutoPromptManager {
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
-    // For FPA M0.5, do not log frequency capping event for closed contentType. Blocking
+    // For FCA, do not log frequency capping event for closed contentType. Blocking
     // interventions on Open content will still log impression & completion timestamps
     // (but not dismissal).
     if (this.contentType_ === ContentType.CLOSED) {
@@ -806,6 +816,17 @@ export class AutoPromptManager {
     };
     actionTimestamps.impressions.push(Date.now());
     timestamps[action] = actionTimestamps;
+    // FCA Phase 1: Dual write frequency capping events keyed by configid
+    // TODO(justinchou): Add error handling and logging for absent configId
+    if (!this.isInDemoMode_() && this.configId_) {
+      const configTimestamps = timestamps[this.configId_] || {
+        impressions: [],
+        dismissals: [],
+        completions: [],
+      };
+      configTimestamps.impressions.push(Date.now());
+      timestamps[this.configId_] = configTimestamps;
+    }
     this.setTimestamps(timestamps);
   }
 
@@ -818,6 +839,17 @@ export class AutoPromptManager {
     };
     actionTimestamps.dismissals.push(Date.now());
     timestamps[action] = actionTimestamps;
+    // FCA Phase 1: Dual write frequency capping events keyed by configid
+    // TODO(justinchou): Add error handling and logging for absent configId
+    if (!this.isInDemoMode_() && this.configId_) {
+      const configTimestamps = timestamps[this.configId_] || {
+        impressions: [],
+        dismissals: [],
+        completions: [],
+      };
+      configTimestamps.dismissals.push(Date.now());
+      timestamps[this.configId_] = configTimestamps;
+    }
     this.setTimestamps(timestamps);
   }
 
@@ -830,6 +862,17 @@ export class AutoPromptManager {
     };
     actionTimestamps.completions.push(Date.now());
     timestamps[action] = actionTimestamps;
+    // FCA Phase 1: Dual write frequency capping events keyed by configid
+    // TODO(justinchou): Add error handling and logging for absent configId
+    if (!this.isInDemoMode_() && this.configId_) {
+      const configTimestamps = timestamps[this.configId_] || {
+        impressions: [],
+        dismissals: [],
+        completions: [],
+      };
+      configTimestamps.completions.push(Date.now());
+      timestamps[this.configId_] = configTimestamps;
+    }
     this.setTimestamps(timestamps);
   }
 
@@ -861,6 +904,16 @@ export class AutoPromptManager {
 
   private getInnerWidth_(): number {
     return this.doc_.getWin()./* OK */ innerWidth;
+  }
+
+  /**
+   * Returns whether the client is executing a demo workflow, not shown to
+   * readers. Example: Via Onsite Preview or params.alwaysShow override.
+   * For FCA Phase 1+, this will be used to check when to set Frequency Capping
+   * event timestamps.
+   */
+  private isInDemoMode_(): boolean {
+    return this.isInDevMode_ || this.shouldRenderOnsitePreview_;
   }
 
   /**

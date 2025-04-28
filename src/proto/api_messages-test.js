@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, Duration, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CompleteAudienceActionResponse, Duration, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -1333,6 +1333,7 @@ describe('SubscriptionLinkingCompleteResponse', () => {
     const /** !SubscriptionLinkingCompleteResponse  */ subscriptionlinkingcompleteresponse1 = new SubscriptionLinkingCompleteResponse();
     subscriptionlinkingcompleteresponse1.setPublisherProvidedId('');
     subscriptionlinkingcompleteresponse1.setSuccess(false);
+    subscriptionlinkingcompleteresponse1.setLinkResultsList([]);
 
     let subscriptionlinkingcompleteresponseDeserialized;
 
@@ -1348,6 +1349,8 @@ describe('SubscriptionLinkingCompleteResponse', () => {
         subscriptionlinkingcompleteresponse1.getPublisherProvidedId());
     expect(subscriptionlinkingcompleteresponseDeserialized.getSuccess()).to.deep.equal(
         subscriptionlinkingcompleteresponse1.getSuccess());
+    expect(subscriptionlinkingcompleteresponseDeserialized.getLinkResultsList()).to.deep.equal(
+        subscriptionlinkingcompleteresponse1.getLinkResultsList());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -1361,6 +1364,8 @@ describe('SubscriptionLinkingCompleteResponse', () => {
         subscriptionlinkingcompleteresponse1.getPublisherProvidedId());
     expect(subscriptionlinkingcompleteresponseDeserialized.getSuccess()).to.deep.equal(
         subscriptionlinkingcompleteresponse1.getSuccess());
+    expect(subscriptionlinkingcompleteresponseDeserialized.getLinkResultsList()).to.deep.equal(
+        subscriptionlinkingcompleteresponse1.getLinkResultsList());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -1373,6 +1378,63 @@ describe('SubscriptionLinkingCompleteResponse', () => {
         subscriptionlinkingcompleteresponse1.getPublisherProvidedId());
     expect(subscriptionlinkingcompleteresponseDeserialized.getSuccess()).to.deep.equal(
         subscriptionlinkingcompleteresponse1.getSuccess());
+    expect(subscriptionlinkingcompleteresponseDeserialized.getLinkResultsList()).to.deep.equal(
+        subscriptionlinkingcompleteresponse1.getLinkResultsList());
+  });
+});
+
+describe('SubscriptionLinkingLinkResult', () => {
+  it('should deserialize correctly', () => {
+    const /** !SubscriptionLinkingLinkResult  */ subscriptionlinkinglinkresult1 = new SubscriptionLinkingLinkResult();
+    subscriptionlinkinglinkresult1.setSuccess(false);
+    subscriptionlinkinglinkresult1.setSwgPublicationId('');
+    subscriptionlinkinglinkresult1.setPublisherProvidedId('');
+
+    let subscriptionlinkinglinkresultDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    subscriptionlinkinglinkresultDeserialized = deserialize(
+        subscriptionlinkinglinkresult1.toArray(undefined));
+    expect(subscriptionlinkinglinkresultDeserialized.toArray(undefined)).to.deep.equal(
+        subscriptionlinkinglinkresult1.toArray(undefined));
+
+    // Verify fields.
+    expect(subscriptionlinkinglinkresultDeserialized.getSuccess()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getSuccess());
+    expect(subscriptionlinkinglinkresultDeserialized.getSwgPublicationId()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getSwgPublicationId());
+    expect(subscriptionlinkinglinkresultDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getPublisherProvidedId());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    subscriptionlinkinglinkresultDeserialized = deserialize(
+        subscriptionlinkinglinkresult1.toArray(true));
+    expect(subscriptionlinkinglinkresultDeserialized.toArray(true)).to.deep.equal(
+        subscriptionlinkinglinkresult1.toArray(true));
+
+    // Verify fields.
+    expect(subscriptionlinkinglinkresultDeserialized.getSuccess()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getSuccess());
+    expect(subscriptionlinkinglinkresultDeserialized.getSwgPublicationId()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getSwgPublicationId());
+    expect(subscriptionlinkinglinkresultDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getPublisherProvidedId());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    subscriptionlinkinglinkresultDeserialized = new SubscriptionLinkingLinkResult(subscriptionlinkinglinkresult1.toArray(false), false);
+    expect(subscriptionlinkinglinkresultDeserialized.toArray(false)).to.deep.equal(
+        subscriptionlinkinglinkresult1.toArray(false));
+
+    // Verify fields.
+    expect(subscriptionlinkinglinkresultDeserialized.getSuccess()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getSuccess());
+    expect(subscriptionlinkinglinkresultDeserialized.getSwgPublicationId()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getSwgPublicationId());
+    expect(subscriptionlinkinglinkresultDeserialized.getPublisherProvidedId()).to.deep.equal(
+        subscriptionlinkinglinkresult1.getPublisherProvidedId());
   });
 });
 
