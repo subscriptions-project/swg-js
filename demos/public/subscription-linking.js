@@ -24,24 +24,24 @@ function linkSubscription() {
     const outputElement = document.getElementById('link-result');
     outputElement./*OK*/ innerText = '';
     const result = await subscriptions.linkSubscription({
-      publisherProvidedId: getInputValue('ppid-input'),
+      publisherProvidedId: getInputValue('ppid-input1'),
     });
     outputElement./*OK*/ innerText = JSON.stringify(result, null, 2);
   });
 }
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-function linkSubscription2() {
+function linkSubscriptions() {
   self.SWG.push(async (subscriptions) => {
     const outputElement = document.getElementById('link-result');
     const linkTo = [
       {
-        publicationId: window.URL.arguments['publicationId'],
-        publisherProvidedId: getInputValue('ppid-input'),
+        publicationId: getInputValue('publication-id-input1'),
+        publisherProvidedId: getInputValue('ppid-input1'),
       },
       {
         publicationId: getInputValue('publication-id-input2'),
-        publisherProvidedId: getInputValue('ppid-input-2'),
+        publisherProvidedId: getInputValue('ppid-input2'),
       },
     ];
     outputElement./*OK*/ innerText = '';
@@ -55,17 +55,19 @@ function randomPpid() {
 }
 
 function getLabeledInput(label, id) {
-  return `<label for="${id}">${label}</label><input type="text" id="${id}"/><br/><br/>`;
+  return `<label for="${id}">${label}</label><input type="text" id="${id}"/>`;
 }
 
 function createForm() {
   const element = document.querySelector('.subscription-linking');
   element./*OK*/ innerHTML = `
   <p>
-    ${getLabeledInput('PPID:', 'ppid-input')}
+    ${getLabeledInput('Link 1 PPID:', 'ppid-input1')}<br/><br/>
     <button onclick="linkSubscription();">Link 1 Subscription</button><br/><br/>
-    ${getLabeledInput('Link2 Publication:', 'publication-id-input2')}
-    ${getLabeledInput('Link2 PPID:', 'ppid-input2')}
+    ${getLabeledInput('Link1 Publication:', 'publication-id-input1')}
+    <span>Required if linking 2 subscriptions</span><br/><br/>
+    ${getLabeledInput('Link2 Publication:', 'publication-id-input2')}<br/><br/>
+    ${getLabeledInput('Link2 PPID:', 'ppid-input2')}<br/><br/>
     <button onclick="linkSubscriptions();">Link 2 Subscriptions</button>
     <span>Please note the publications must be on the same organization.</span>
   </p>
@@ -76,6 +78,6 @@ function createForm() {
 
 (async () => {
   createForm();
-  document.getElementById('ppid-input').value = randomPpid();
+  document.getElementById('ppid-input1').value = randomPpid();
   document.getElementById('ppid-input2').value = randomPpid();
 })();

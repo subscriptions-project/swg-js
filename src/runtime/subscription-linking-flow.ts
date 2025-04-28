@@ -59,22 +59,22 @@ export class SubscriptionLinkingFlow {
       throw new Error('Missing required field: linkTo');
     }
     const publicationId = this.pageConfig_.getPublicationId();
+    const linkToStr = linkTo
+      .map((link) =>
+        encodeURIComponent(`${link.publicationId},${link.publisherProvidedId}`)
+      )
+      .join('&linkTo=');
     const args = feArgs({
       publicationId,
     });
+    const url =
+      feUrl('/linksaveiframe', {
+        subscriptionLinking: 'true',
+      }) + `&linkTo=${linkToStr}`;
     const activityIframeView = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      feUrl('/linksaveiframe', {
-        subscriptionLinking: 'true',
-        linkTo: linkTo
-          .map((link) =>
-            encodeURIComponent(
-              `${link.publicationId},${link.publisherProvidedId}`
-            )
-          )
-          .join('&linkTo='),
-      }),
+      url,
       args,
       /* shouldFadeBody= */ false
     );
