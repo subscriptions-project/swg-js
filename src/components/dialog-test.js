@@ -15,11 +15,11 @@
  */
 
 import {ArticleExperimentFlags} from '../runtime/experiment-flags';
+import {CloseWindowRequest} from '../proto/api_messages';
 import {Dialog} from './dialog';
 import {GlobalDoc} from '../model/doc';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from '../runtime/experiments';
-import {CloseWindowRequest} from '../proto/api_messages';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;

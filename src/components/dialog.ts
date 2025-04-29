@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {CloseWindowRequest} from '../proto/api_messages';
 import {Doc, resolveDoc} from '../model/doc';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
@@ -28,8 +30,6 @@ import {
 } from '../utils/dom';
 import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
-import {ActivityIframeView} from '../ui/activity-iframe-view';
-import {CloseWindowRequest} from '../proto/api_messages';
 
 const Z_INDEX = 2147483647;
 
