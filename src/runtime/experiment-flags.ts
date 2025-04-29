@@ -43,4 +43,9 @@ export enum ArticleExperimentFlags {
    * ineligible to purchase.
    */
   DISMISSIBILITY_CTA_FILTER_EXPERIMENT = 'dismissibility_cta_filter_experiment',
+
+  /**
+   * Experiment flag to enable the rendering of the CTAs inline.
+   */
+  INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
 }
