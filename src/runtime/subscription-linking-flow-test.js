@@ -283,6 +283,24 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       });
     });
 
+    it('handles no link results', async () => {
+      dialogManagerMock.expects('openView').once().resolves();
+      expectedResponse.setLinkResultsList(null);
+      expectedResponse.setSuccess(false);
+
+      const resultPromise =
+        subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST);
+      const handler = messageMap[expectedResponse.label()];
+      handler(expectedResponse);
+
+      const result = await resultPromise;
+      expect(result).to.deep.equal({
+        anyFailure: true,
+        anySuccess: false,
+        links: [],
+      });
+    });
+
     it('throws an error when rejected', async () => {
       dialogManagerMock
         .expects('openView')
