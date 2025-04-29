@@ -869,6 +869,39 @@ export class AudienceActivityClientLogsRequest implements Message {
 }
 
 /** */
+export class CloseWindowRequest implements Message {
+  private close_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.close_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getClose(): boolean | null {
+    return this.close_;
+  }
+
+  setClose(value: boolean): void {
+    this.close_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.close_, // field 1 - close
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'CloseWindowRequest';
+  }
+}
+
+/** */
 export class CompleteAudienceActionResponse implements Message {
   private swgUserToken_: string | null;
   private actionCompleted_: boolean | null;
@@ -2234,6 +2267,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   AnalyticsEventMeta,
   AnalyticsRequest,
   AudienceActivityClientLogsRequest,
+  CloseWindowRequest,
   CompleteAudienceActionResponse,
   Duration,
   EntitlementJwt,
