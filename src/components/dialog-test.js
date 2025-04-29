@@ -19,6 +19,7 @@ import {Dialog} from './dialog';
 import {GlobalDoc} from '../model/doc';
 import {getStyle} from '../utils/style';
 import {setExperimentsStringForTesting} from '../runtime/experiments';
+import {CloseWindowRequest} from '../proto/api_messages';
 
 const NO_ANIMATE = false;
 const ANIMATE = true;
@@ -42,13 +43,13 @@ describes.realWin('Dialog', (env) => {
     globalDoc = new GlobalDoc(win);
 
     element = doc.createElement('div');
-    element.contentWindow = {postMessage: (message) => (lastMessage = message)};
     view = {
       getElement: () => element,
       init: (dialog) => Promise.resolve(dialog),
       resized: () => {},
       shouldFadeBody: () => true,
       shouldAnimateFade: () => true,
+      execute: (msg) => (lastMessage = msg),
     };
 
     sandbox.stub(self, 'requestAnimationFrame').callsFake((callback) => {
@@ -595,10 +596,10 @@ describes.realWin('Dialog', (env) => {
 
         await el.click();
 
-        //swg-js is expected to post a message of 'close' to the iframe's
-        //contentWindow. Boq listens for the message and then clicks the close
-        //button so it can handle logging.
-        expect(lastMessage).to.equal('close');
+        //swg-js is expected to post a message of CloseWindowRequest to activity
+        //port.  Boq listens for the message and then clicks the close button so
+        //it can handle logging.
+        expect(lastMessage).to.deep.equal(new CloseWindowRequest());
       });
 
       it('respects closable with domain', async () => {
@@ -619,10 +620,10 @@ describes.realWin('Dialog', (env) => {
 
         await el.click();
 
-        //swg-js is expected to post a message of 'close' to the iframe's
-        //contentWindow. Boq listens for the message and then clicks the close
-        //button so it can handle logging.
-        expect(lastMessage).to.equal('close');
+        //swg-js is expected to post a message of CloseWindowRequest to activity
+        //port.  Boq listens for the message and then clicks the close button so
+        //it can handle logging.
+        expect(lastMessage).to.deep.equal(new CloseWindowRequest());
 
         element.src = null;
       });
