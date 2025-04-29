@@ -870,25 +870,25 @@ export class AudienceActivityClientLogsRequest implements Message {
 
 /** */
 export class CloseWindowRequest implements Message {
-  private close_: boolean | null;
+  private unused_: boolean | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.close_ = data[base] == null ? null : (data[base] as boolean);
+    this.unused_ = data[base] == null ? null : (data[base] as boolean);
   }
 
-  getClose(): boolean | null {
-    return this.close_;
+  getUnused(): boolean | null {
+    return this.unused_;
   }
 
-  setClose(value: boolean): void {
-    this.close_ = value;
+  setUnused(value: boolean): void {
+    this.unused_ = value;
   }
 
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
-      this.close_, // field 1 - close
+      this.unused_, // field 1 - unused
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2260,37 +2260,37 @@ export class ViewSubscriptionsResponse implements Message {
 }
 
 const PROTO_MAP: {[key: string]: MessageConstructor} = {
-  AccountCreationRequest,
-  ActionRequest,
-  AlreadySubscribedResponse,
-  AnalyticsContext,
-  AnalyticsEventMeta,
-  AnalyticsRequest,
-  AudienceActivityClientLogsRequest,
-  CloseWindowRequest,
-  CompleteAudienceActionResponse,
-  Duration,
-  EntitlementJwt,
-  EntitlementsRequest,
-  EntitlementsResponse,
-  EventParams,
-  FinishedLoggingResponse,
-  LinkSaveTokenRequest,
-  LinkingInfoResponse,
-  OpenDialogRequest,
-  SkuSelectedResponse,
-  SmartBoxMessage,
-  SubscribeResponse,
-  SubscriptionLinkingCompleteResponse,
-  SubscriptionLinkingLinkResult,
-  SubscriptionLinkingResponse,
-  SurveyAnswer,
-  SurveyDataTransferRequest,
-  SurveyDataTransferResponse,
-  SurveyQuestion,
-  Timestamp,
-  ToastCloseRequest,
-  ViewSubscriptionsResponse,
+  'AccountCreationRequest': AccountCreationRequest,
+  'ActionRequest': ActionRequest,
+  'AlreadySubscribedResponse': AlreadySubscribedResponse,
+  'AnalyticsContext': AnalyticsContext,
+  'AnalyticsEventMeta': AnalyticsEventMeta,
+  'AnalyticsRequest': AnalyticsRequest,
+  'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
+  'CloseWindowRequest': CloseWindowRequest,
+  'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
+  'Duration': Duration,
+  'EntitlementJwt': EntitlementJwt,
+  'EntitlementsRequest': EntitlementsRequest,
+  'EntitlementsResponse': EntitlementsResponse,
+  'EventParams': EventParams,
+  'FinishedLoggingResponse': FinishedLoggingResponse,
+  'LinkSaveTokenRequest': LinkSaveTokenRequest,
+  'LinkingInfoResponse': LinkingInfoResponse,
+  'OpenDialogRequest': OpenDialogRequest,
+  'SkuSelectedResponse': SkuSelectedResponse,
+  'SmartBoxMessage': SmartBoxMessage,
+  'SubscribeResponse': SubscribeResponse,
+  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
+  'SubscriptionLinkingLinkResult': SubscriptionLinkingLinkResult,
+  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
+  'SurveyAnswer': SurveyAnswer,
+  'SurveyDataTransferRequest': SurveyDataTransferRequest,
+  'SurveyDataTransferResponse': SurveyDataTransferResponse,
+  'SurveyQuestion': SurveyQuestion,
+  'Timestamp': Timestamp,
+  'ToastCloseRequest': ToastCloseRequest,
+  'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
 /**
