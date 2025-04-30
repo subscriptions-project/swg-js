@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {CloseWindowRequest} from '../proto/api_messages';
 import {Doc, resolveDoc} from '../model/doc';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
@@ -448,13 +450,9 @@ export class Dialog {
   private onGrayPaneClick_(event: Event) {
     event.stopPropagation();
     if (this.closeOnBackgroundClick_) {
-      const viewEl = this.view_!.getElement();
-      const contentWindow = viewEl.contentWindow!;
-      if (contentWindow) {
-        const origin = viewEl.src ? new URL(viewEl.src).origin : '*';
-        // The boq iframe must be listening for this event in order for it to
-        // work.
-        contentWindow.postMessage('close', origin);
+      const view = this.view_ as ActivityIframeView;
+      if (view.execute) {
+        view.execute(new CloseWindowRequest());
       }
     }
     return false;
