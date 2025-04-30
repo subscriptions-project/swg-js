@@ -136,7 +136,7 @@ describes.realWin('InlineCtaApi', (env) => {
       // Contribution and Subscription not yet supported by mapping
       {
         configId: CONTRIBUTION_INTERVENTION.configurationId,
-        resultPrefix: undefined,
+        resultPrefix: '',
       },
       {
         configId: SUBSCRIPTION_INTERVENTION.configurationId,

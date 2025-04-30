@@ -39,7 +39,7 @@ export class InlincCtaApi {
   ): string {
     for (const action of actions) {
       if (action.configurationId === configId) {
-        return ActionToIframeMapping[action.type];
+        return ActionToIframeMapping[action.type] ?? '';
       }
     }
     return '';
