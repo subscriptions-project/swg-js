@@ -13,12 +13,14 @@
   <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg-basic.js"></script>
 
   <script>
-    (self.SWG_BASIC = self.SWG_BASIC || []).push( basicSubscriptions => {
+    (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
       basicSubscriptions.init({
         type: "NewsArticle",
+        isAccessibleForFree: false,
         isPartOfType: ["Product"],
-        isPartOfProductId: "CAowwNrUCw:openaccess",
-        clientOptions: { theme: "light", lang: "en" },
+        isPartOfProductId: "CAowz7enCw:cool",
+        autoPromptType: "contribution",
+        clientOptions: { theme: "dark", lang: "en" },
       });
     });
   </script>
@@ -29,11 +31,6 @@
     <article>
       <h2>Autoprompt (Paywalled Article)</h2>
 
-      <p>
-        Macaroon chocolate wafer cake chocolate cake gummies soufflé lollipop pie. Cheesecake cotton candy macaroon
-        caramels pie.
-      </p>
-      <div rrm-inline-cta="630cdc66-cdaf-41e5-9521-4d26e59bf71b"></div>
       <p>
         Macaroon chocolate wafer cake chocolate cake gummies soufflé lollipop pie. Cheesecake cotton candy macaroon
         caramels pie.
