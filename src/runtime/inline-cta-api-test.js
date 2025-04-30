@@ -67,6 +67,7 @@ describes.realWin('InlineCtaApi', (env) => {
   let newsletterSnippet;
   let port;
   let activitiesMock;
+  let onResizeRequestCallback;
   const productId = 'pub1:label1';
   const pubId = 'pub1';
 
@@ -116,6 +117,10 @@ describes.realWin('InlineCtaApi', (env) => {
 
     inlineCtaApi = new InlincCtaApi(deps);
     port = new MockActivityPort();
+    sandbox.stub(port, 'onResizeRequest').callsFake((callback) => {
+      onResizeRequestCallback = callback;
+      return true;
+    });
   });
 
   it('should be listening for events from the events manager', () => {
@@ -257,9 +262,26 @@ describes.realWin('InlineCtaApi', (env) => {
       expectOpenIframe();
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
-
       const iframe = win.document.querySelector('iframe');
+
       expect(iframe.nodeType).to.equal(1);
+    });
+
+    it('adjust CTA height on resize callback', async () => {
+      setEntitlements();
+      setArticleResponse([
+        CONTRIBUTION_INTERVENTION,
+        SURVEY_INTERVENTION,
+        NEWSLETTER_INTERVENTION,
+      ]);
+      expectOpenIframe();
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+      const iframe = win.document.querySelector('iframe');
+
+      expect(port.onResizeRequest).to.have.been.calledOnce;
+      onResizeRequestCallback(100);
+      expect(iframe.style.height).to.equal('100px');
     });
   });
 
