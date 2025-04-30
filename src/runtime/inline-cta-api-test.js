@@ -136,9 +136,12 @@ describes.realWin('InlineCtaApi', (env) => {
       // Contribution and Subscription not yet supported by mapping
       {
         configId: CONTRIBUTION_INTERVENTION.configurationId,
+        resultPrefix: undefined,
+      },
+      {
+        configId: SUBSCRIPTION_INTERVENTION.configurationId,
         resultPrefix: '',
       },
-      {configId: SUBSCRIPTION_INTERVENTION.configurationId, resultPrefix: ''},
     ].forEach(({configId, resultPrefix}) => {
       it('Action type mapped to right UrlPrefix', () => {
         const actions = [
