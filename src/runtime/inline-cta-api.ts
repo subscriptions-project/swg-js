@@ -49,7 +49,7 @@ export class InlincCtaApi {
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(this.win_.location.href).origin,
       'configurationId': configId || '',
-      'isClosable': 'false',
+      'isClosable': 'true',
       'calledManually': 'false',
       'previewEnabled': 'false',
       'publicationId': this.deps_.pageConfig().getPublicationId(),
@@ -58,7 +58,7 @@ export class InlincCtaApi {
     return feUrl(urlPrefix, iframeParams);
   }
 
-  async renderInlineCtaWithAttribute(
+  private async renderInlineCtaWithAttribute_(
     div: HTMLElement,
     actions: Intervention[] = []
   ) {
@@ -75,6 +75,7 @@ export class InlincCtaApi {
       'supportsEventManager': true,
       'productType': DEFAULT_PRODUCT_TYPE,
     });
+
     const activityIframeView = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
@@ -86,7 +87,6 @@ export class InlincCtaApi {
     });
 
     div.appendChild(activityIframeView.getElement());
-
     const port = await this.activityPorts_.openIframe(
       activityIframeView.getElement(),
       fetchUrl,
@@ -106,7 +106,7 @@ export class InlincCtaApi {
       this.doc_.getWin().document.querySelectorAll(INLINE_CTA_ATTRIUBUTE_QUERY)
     );
 
-    if (!elements) {
+    if (elements.length === 0) {
       return;
     }
 
@@ -132,7 +132,7 @@ export class InlincCtaApi {
     }
 
     for (const element of elements) {
-      this.renderInlineCtaWithAttribute(element, actions);
+      this.renderInlineCtaWithAttribute_(element, actions);
     }
   }
 }

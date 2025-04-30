@@ -37,7 +37,6 @@ import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
-import {InlincCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -122,9 +121,6 @@ export function installBasicRuntime(win: Window): void {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
-
-  // Render CTAs inline.
-  basicRuntime.setupInlineCta();
 }
 
 export class BasicRuntime implements BasicSubscriptions {
@@ -316,11 +312,6 @@ export class BasicRuntime implements BasicSubscriptions {
   getContentType_(isOpenAccess: boolean): ContentType {
     return isOpenAccess ? ContentType.OPEN : ContentType.CLOSED;
   }
-
-  async setupInlineCta(): Promise<void> {
-    const runtime = await this.configured_(false);
-    runtime.setupInlineCta();
-  }
 }
 
 export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
@@ -332,7 +323,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly configuredClassicRuntime_: ConfiguredRuntime;
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
-  private readonly inlineCtaApi_: InlincCtaApi;
 
   constructor(
     winOrDoc: Window | Document | Doc,
@@ -408,8 +398,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       Promise.resolve(this.configuredClassicRuntime_)
     );
     this.buttonApi_.init(); // Injects swg-button stylesheet.
-
-    this.inlineCtaApi_ = new InlincCtaApi(this);
   }
 
   /** Getter for the ConfiguredRuntime, exposed for testing. */
@@ -651,10 +639,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
    */
   private setOnOffersFlowRequest_(callback: () => void): void {
     this.callbacks().setOnOffersFlowRequest(callback);
-  }
-
-  async setupInlineCta(): Promise<void> {
-    this.inlineCtaApi_.attachInlineCtasWithAttribute();
   }
 }
 
