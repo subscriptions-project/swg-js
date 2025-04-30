@@ -35,7 +35,7 @@ export class InlincCtaApi {
 
   private actionToUrlPrefix_(
     configId: string,
-    actions: Intervention[] = []
+    actions: Intervention[]
   ): string {
     for (const action of actions) {
       if (action.configurationId === configId) {
@@ -60,7 +60,7 @@ export class InlincCtaApi {
 
   private async renderInlineCtaWithAttribute_(
     div: HTMLElement,
-    actions: Intervention[] = []
+    actions: Intervention[]
   ) {
     const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
     if (!configId) {
