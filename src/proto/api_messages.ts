@@ -869,6 +869,39 @@ export class AudienceActivityClientLogsRequest implements Message {
 }
 
 /** */
+export class CloseWindowRequest implements Message {
+  private unused_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.unused_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getUnused(): boolean | null {
+    return this.unused_;
+  }
+
+  setUnused(value: boolean): void {
+    this.unused_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.unused_, // field 1 - unused
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'CloseWindowRequest';
+  }
+}
+
+/** */
 export class CompleteAudienceActionResponse implements Message {
   private swgUserToken_: string | null;
   private actionCompleted_: boolean | null;
@@ -2227,36 +2260,37 @@ export class ViewSubscriptionsResponse implements Message {
 }
 
 const PROTO_MAP: {[key: string]: MessageConstructor} = {
-  AccountCreationRequest,
-  ActionRequest,
-  AlreadySubscribedResponse,
-  AnalyticsContext,
-  AnalyticsEventMeta,
-  AnalyticsRequest,
-  AudienceActivityClientLogsRequest,
-  CompleteAudienceActionResponse,
-  Duration,
-  EntitlementJwt,
-  EntitlementsRequest,
-  EntitlementsResponse,
-  EventParams,
-  FinishedLoggingResponse,
-  LinkSaveTokenRequest,
-  LinkingInfoResponse,
-  OpenDialogRequest,
-  SkuSelectedResponse,
-  SmartBoxMessage,
-  SubscribeResponse,
-  SubscriptionLinkingCompleteResponse,
-  SubscriptionLinkingLinkResult,
-  SubscriptionLinkingResponse,
-  SurveyAnswer,
-  SurveyDataTransferRequest,
-  SurveyDataTransferResponse,
-  SurveyQuestion,
-  Timestamp,
-  ToastCloseRequest,
-  ViewSubscriptionsResponse,
+  'AccountCreationRequest': AccountCreationRequest,
+  'ActionRequest': ActionRequest,
+  'AlreadySubscribedResponse': AlreadySubscribedResponse,
+  'AnalyticsContext': AnalyticsContext,
+  'AnalyticsEventMeta': AnalyticsEventMeta,
+  'AnalyticsRequest': AnalyticsRequest,
+  'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
+  'CloseWindowRequest': CloseWindowRequest,
+  'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
+  'Duration': Duration,
+  'EntitlementJwt': EntitlementJwt,
+  'EntitlementsRequest': EntitlementsRequest,
+  'EntitlementsResponse': EntitlementsResponse,
+  'EventParams': EventParams,
+  'FinishedLoggingResponse': FinishedLoggingResponse,
+  'LinkSaveTokenRequest': LinkSaveTokenRequest,
+  'LinkingInfoResponse': LinkingInfoResponse,
+  'OpenDialogRequest': OpenDialogRequest,
+  'SkuSelectedResponse': SkuSelectedResponse,
+  'SmartBoxMessage': SmartBoxMessage,
+  'SubscribeResponse': SubscribeResponse,
+  'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
+  'SubscriptionLinkingLinkResult': SubscriptionLinkingLinkResult,
+  'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
+  'SurveyAnswer': SurveyAnswer,
+  'SurveyDataTransferRequest': SurveyDataTransferRequest,
+  'SurveyDataTransferResponse': SurveyDataTransferResponse,
+  'SurveyQuestion': SurveyQuestion,
+  'Timestamp': Timestamp,
+  'ToastCloseRequest': ToastCloseRequest,
+  'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 
 /**
