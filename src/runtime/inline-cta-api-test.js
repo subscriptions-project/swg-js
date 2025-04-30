@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActivityPorts} from '../components/activities';
 import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -21,6 +22,7 @@ import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
 import {InlincCtaApi} from './inline-cta-api';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
 import {XhrFetcher} from './fetcher';
@@ -58,12 +60,13 @@ describes.realWin('InlineCtaApi', (env) => {
   let eventManagerCallback;
   let entitlementsManager;
   let entitlementsManagerMock;
-  let clientConfigManager;
   let clientConfigManagerMock;
   let getArticleExpectation;
   let entitlements;
   let getEntitlementsExpectation;
   let newsletterSnippet;
+  let port;
+  let activitiesMock;
   const productId = 'pub1:label1';
   const pubId = 'pub1';
 
@@ -103,11 +106,16 @@ describes.realWin('InlineCtaApi', (env) => {
     entitlementsManagerMock = sandbox.mock(entitlementsManager);
     sandbox.stub(deps, 'entitlementsManager').returns(entitlementsManager);
 
-    clientConfigManager = new ClientConfigManager(deps, pubId, fetcher);
+    const clientConfigManager = new ClientConfigManager(deps, pubId, fetcher);
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 
+    const activityPort = new ActivityPorts(deps);
+    activitiesMock = sandbox.mock(activityPort);
+    sandbox.stub(deps, 'activities').returns(activityPort);
+
     inlineCtaApi = new InlincCtaApi(deps);
+    port = new MockActivityPort();
   });
 
   it('should be listening for events from the events manager', () => {
@@ -187,19 +195,12 @@ describes.realWin('InlineCtaApi', (env) => {
     afterEach(() => {
       entitlementsManagerMock.verify();
       clientConfigManagerMock.verify();
+      activitiesMock.verify();
     });
 
     it('should not show any CTA if there are no audience actions', async () => {
-      sandbox.stub(entitlements, 'enablesThis').returns(false);
-      getEntitlementsExpectation.resolves(entitlements).once();
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [],
-            engineId: '123',
-          },
-        })
-        .once();
+      setEntitlements();
+      setArticleResponse();
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
 
@@ -208,16 +209,8 @@ describes.realWin('InlineCtaApi', (env) => {
     });
 
     it('should not show any CTA if actions not match inline config', async () => {
-      sandbox.stub(entitlements, 'enablesThis').returns(false);
-      getEntitlementsExpectation.resolves(entitlements).once();
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [CONTRIBUTION_INTERVENTION, SURVEY_INTERVENTION],
-            engineId: '123',
-          },
-        })
-        .once();
+      setEntitlements();
+      setArticleResponse([CONTRIBUTION_INTERVENTION, SURVEY_INTERVENTION]);
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
 
@@ -231,16 +224,12 @@ describes.realWin('InlineCtaApi', (env) => {
         'rrm-inline-cta': '',
       });
       win.document.body.append(emptySnippet);
-      sandbox.stub(entitlements, 'enablesThis').returns(false);
-      getEntitlementsExpectation.resolves(entitlements).once();
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [CONTRIBUTION_INTERVENTION, SURVEY_INTERVENTION],
-            engineId: '123',
-          },
-        })
-        .once();
+      setEntitlements();
+      setArticleResponse([
+        CONTRIBUTION_INTERVENTION,
+        SURVEY_INTERVENTION,
+        NEWSLETTER_INTERVENTION,
+      ]);
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
 
@@ -249,16 +238,8 @@ describes.realWin('InlineCtaApi', (env) => {
     });
 
     it('should not show any CTA if there are entitlements', async () => {
-      sandbox.stub(entitlements, 'enablesThis').returns(true);
-      getEntitlementsExpectation.resolves(entitlements).once();
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [NEWSLETTER_INTERVENTION],
-            engineId: '123',
-          },
-        })
-        .once();
+      setEntitlements(true);
+      setArticleResponse([NEWSLETTER_INTERVENTION]);
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
 
@@ -267,20 +248,13 @@ describes.realWin('InlineCtaApi', (env) => {
     });
 
     it('should render CTA if action is active', async () => {
-      sandbox.stub(entitlements, 'enablesThis').returns(false);
-      getEntitlementsExpectation.resolves(entitlements).once();
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [
-              CONTRIBUTION_INTERVENTION,
-              SURVEY_INTERVENTION,
-              NEWSLETTER_INTERVENTION,
-            ],
-            engineId: '123',
-          },
-        })
-        .once();
+      setEntitlements();
+      setArticleResponse([
+        CONTRIBUTION_INTERVENTION,
+        SURVEY_INTERVENTION,
+        NEWSLETTER_INTERVENTION,
+      ]);
+      expectOpenIframe();
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
 
@@ -288,4 +262,24 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(iframe.nodeType).to.equal(1);
     });
   });
+
+  function setEntitlements(enablesThis = false) {
+    sandbox.stub(entitlements, 'enablesThis').returns(enablesThis);
+    getEntitlementsExpectation.resolves(entitlements).once();
+  }
+
+  function setArticleResponse(actions = []) {
+    getArticleExpectation
+      .resolves({
+        audienceActions: {
+          actions,
+          engineId: '123',
+        },
+      })
+      .once();
+  }
+
+  function expectOpenIframe() {
+    activitiesMock.expects('openIframe').resolves(port);
+  }
 });
