@@ -48,7 +48,7 @@ export class InlincCtaApi {
   private getUrl_(urlPrefix: string, configId: string): string {
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(this.win_.location.href).origin,
-      'configurationId': configId || '',
+      'configurationId': configId,
       'isClosable': 'true',
       'calledManually': 'false',
       'previewEnabled': 'false',
