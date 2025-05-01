@@ -1421,6 +1421,39 @@ export class EventParams implements Message {
 }
 
 /** */
+export class ExampleMessage implements Message {
+  private exampleField_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.exampleField_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getExampleField(): boolean | null {
+    return this.exampleField_;
+  }
+
+  setExampleField(value: boolean): void {
+    this.exampleField_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.exampleField_, // field 1 - example_field
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'ExampleMessage';
+  }
+}
+
+/** */
 export class FinishedLoggingResponse implements Message {
   private complete_: boolean | null;
   private error_: string | null;
@@ -1573,72 +1606,6 @@ export class OpenDialogRequest implements Message {
 
   label(): string {
     return 'OpenDialogRequest';
-  }
-}
-
-/** */
-export class RewardedAdAlternateActionResponse implements Message {
-  private unused_: boolean | null;
-
-  constructor(data: unknown[] = [], includesLabel = true) {
-    const base = includesLabel ? 1 : 0;
-
-    this.unused_ = data[base] == null ? null : (data[base] as boolean);
-  }
-
-  getUnused(): boolean | null {
-    return this.unused_;
-  }
-
-  setUnused(value: boolean): void {
-    this.unused_ = value;
-  }
-
-  toArray(includeLabel = true): unknown[] {
-    const arr: unknown[] = [
-      this.unused_, // field 1 - unused
-    ];
-    if (includeLabel) {
-      arr.unshift(this.label());
-    }
-    return arr;
-  }
-
-  label(): string {
-    return 'RewardedAdAlternateActionResponse';
-  }
-}
-
-/** */
-export class RewardedAdViewAdResponse implements Message {
-  private adUnit_: string | null;
-
-  constructor(data: unknown[] = [], includesLabel = true) {
-    const base = includesLabel ? 1 : 0;
-
-    this.adUnit_ = data[base] == null ? null : (data[base] as string);
-  }
-
-  getAdUnit(): string | null {
-    return this.adUnit_;
-  }
-
-  setAdUnit(value: string): void {
-    this.adUnit_ = value;
-  }
-
-  toArray(includeLabel = true): unknown[] {
-    const arr: unknown[] = [
-      this.adUnit_, // field 1 - ad_unit
-    ];
-    if (includeLabel) {
-      arr.unshift(this.label());
-    }
-    return arr;
-  }
-
-  label(): string {
-    return 'RewardedAdViewAdResponse';
   }
 }
 
@@ -2340,12 +2307,11 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
+  'ExampleMessage': ExampleMessage,
   'FinishedLoggingResponse': FinishedLoggingResponse,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
   'OpenDialogRequest': OpenDialogRequest,
-  'RewardedAdAlternateActionResponse': RewardedAdAlternateActionResponse,
-  'RewardedAdViewAdResponse': RewardedAdViewAdResponse,
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
