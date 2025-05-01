@@ -1225,7 +1225,7 @@ describe('RewardedAdAlternateActionResponse', () => {
     // Verify fields.
     expect(rewardedadalternateactionresponseDeserialized.getUnused()).to.deep.equal(
         rewardedadalternateactionresponse1.getUnused());
-  
+
     // Verify includeLabel false
     // Verify serialized arrays.
     rewardedadalternateactionresponseDeserialized = new RewardedAdAlternateActionResponse(rewardedadalternateactionresponse1.toArray(false), false);
@@ -1237,7 +1237,7 @@ describe('RewardedAdAlternateActionResponse', () => {
         rewardedadalternateactionresponse1.getUnused());
   });
 });
-  
+
 describe('RewardedAdViewAdResponse', () => {
   it('should deserialize correctly', () => {
     const /** !RewardedAdViewAdResponse  */ rewardedadviewadresponse1 = new RewardedAdViewAdResponse();
@@ -1248,7 +1248,7 @@ describe('RewardedAdViewAdResponse', () => {
     // Verify includeLabel undefined
     // Verify serialized arrays.
     rewardedadviewadresponseDeserialized = deserialize(
-      rewardedadviewadresponse1.toArray(undefined));
+        rewardedadviewadresponse1.toArray(undefined));
     expect(rewardedadviewadresponseDeserialized.toArray(undefined)).to.deep.equal(
         rewardedadviewadresponse1.toArray(undefined));
 
@@ -1277,7 +1277,7 @@ describe('RewardedAdViewAdResponse', () => {
     expect(rewardedadviewadresponseDeserialized.getAdUnit()).to.deep.equal(
         rewardedadviewadresponse1.getAdUnit());
   });
-});  
+});
 
 describe('SkuSelectedResponse', () => {
   it('should deserialize correctly', () => {
