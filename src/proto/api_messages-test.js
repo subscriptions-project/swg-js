@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, Duration, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, ExampleMessage, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, Duration, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, RewardedAdAlternateActionResponse, RewardedAdViewAdResponse, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -1019,47 +1019,6 @@ describe('EventParams', () => {
   });
 });
 
-describe('ExampleMessage', () => {
-  it('should deserialize correctly', () => {
-    const /** !ExampleMessage  */ examplemessage1 = new ExampleMessage();
-    examplemessage1.setExampleField(false);
-
-    let examplemessageDeserialized;
-
-    // Verify includeLabel undefined
-    // Verify serialized arrays.
-    examplemessageDeserialized = deserialize(
-        examplemessage1.toArray(undefined));
-    expect(examplemessageDeserialized.toArray(undefined)).to.deep.equal(
-        examplemessage1.toArray(undefined));
-
-    // Verify fields.
-    expect(examplemessageDeserialized.getExampleField()).to.deep.equal(
-        examplemessage1.getExampleField());
-
-    // Verify includeLabel true
-    // Verify serialized arrays.
-    examplemessageDeserialized = deserialize(
-        examplemessage1.toArray(true));
-    expect(examplemessageDeserialized.toArray(true)).to.deep.equal(
-        examplemessage1.toArray(true));
-
-    // Verify fields.
-    expect(examplemessageDeserialized.getExampleField()).to.deep.equal(
-        examplemessage1.getExampleField());
-
-    // Verify includeLabel false
-    // Verify serialized arrays.
-    examplemessageDeserialized = new ExampleMessage(examplemessage1.toArray(false), false);
-    expect(examplemessageDeserialized.toArray(false)).to.deep.equal(
-        examplemessage1.toArray(false));
-
-    // Verify fields.
-    expect(examplemessageDeserialized.getExampleField()).to.deep.equal(
-        examplemessage1.getExampleField());
-  });
-});
-
 describe('FinishedLoggingResponse', () => {
   it('should deserialize correctly', () => {
     const /** !FinishedLoggingResponse  */ finishedloggingresponse1 = new FinishedLoggingResponse();
@@ -1237,6 +1196,88 @@ describe('OpenDialogRequest', () => {
         opendialogrequest1.getUrlPath());
   });
 });
+
+describe('RewardedAdAlternateActionResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !RewardedAdAlternateActionResponse  */ rewardedadalternateactionresponse1 = new RewardedAdAlternateActionResponse();
+      rewardedadalternateactionresponse1.setUnused(false);
+  
+      let rewardedadalternateactionresponseDeserialized;
+  
+      // Verify includeLabel undefined
+      // Verify serialized arrays.
+      rewardedadalternateactionresponseDeserialized = deserialize(
+          rewardedadalternateactionresponse1.toArray(undefined));
+      expect(rewardedadalternateactionresponseDeserialized.toArray(undefined)).to.deep.equal(
+          rewardedadalternateactionresponse1.toArray(undefined));
+  
+      // Verify fields.
+      expect(rewardedadalternateactionresponseDeserialized.getUnused()).to.deep.equal(
+          rewardedadalternateactionresponse1.getUnused());
+  
+      // Verify includeLabel true
+      // Verify serialized arrays.
+      rewardedadalternateactionresponseDeserialized = deserialize(
+          rewardedadalternateactionresponse1.toArray(true));
+      expect(rewardedadalternateactionresponseDeserialized.toArray(true)).to.deep.equal(
+          rewardedadalternateactionresponse1.toArray(true));
+  
+      // Verify fields.
+      expect(rewardedadalternateactionresponseDeserialized.getUnused()).to.deep.equal(
+          rewardedadalternateactionresponse1.getUnused());
+  
+      // Verify includeLabel false
+      // Verify serialized arrays.
+      rewardedadalternateactionresponseDeserialized = new RewardedAdAlternateActionResponse(rewardedadalternateactionresponse1.toArray(false), false);
+      expect(rewardedadalternateactionresponseDeserialized.toArray(false)).to.deep.equal(
+          rewardedadalternateactionresponse1.toArray(false));
+  
+      // Verify fields.
+      expect(rewardedadalternateactionresponseDeserialized.getUnused()).to.deep.equal(
+          rewardedadalternateactionresponse1.getUnused());
+    });
+  });
+  
+  describe('RewardedAdViewAdResponse', () => {
+    it('should deserialize correctly', () => {
+      const /** !RewardedAdViewAdResponse  */ rewardedadviewadresponse1 = new RewardedAdViewAdResponse();
+      rewardedadviewadresponse1.setAdUnit('');
+  
+      let rewardedadviewadresponseDeserialized;
+  
+      // Verify includeLabel undefined
+      // Verify serialized arrays.
+      rewardedadviewadresponseDeserialized = deserialize(
+          rewardedadviewadresponse1.toArray(undefined));
+      expect(rewardedadviewadresponseDeserialized.toArray(undefined)).to.deep.equal(
+          rewardedadviewadresponse1.toArray(undefined));
+  
+      // Verify fields.
+      expect(rewardedadviewadresponseDeserialized.getAdUnit()).to.deep.equal(
+          rewardedadviewadresponse1.getAdUnit());
+  
+      // Verify includeLabel true
+      // Verify serialized arrays.
+      rewardedadviewadresponseDeserialized = deserialize(
+          rewardedadviewadresponse1.toArray(true));
+      expect(rewardedadviewadresponseDeserialized.toArray(true)).to.deep.equal(
+          rewardedadviewadresponse1.toArray(true));
+  
+      // Verify fields.
+      expect(rewardedadviewadresponseDeserialized.getAdUnit()).to.deep.equal(
+          rewardedadviewadresponse1.getAdUnit());
+  
+      // Verify includeLabel false
+      // Verify serialized arrays.
+      rewardedadviewadresponseDeserialized = new RewardedAdViewAdResponse(rewardedadviewadresponse1.toArray(false), false);
+      expect(rewardedadviewadresponseDeserialized.toArray(false)).to.deep.equal(
+          rewardedadviewadresponse1.toArray(false));
+  
+      // Verify fields.
+      expect(rewardedadviewadresponseDeserialized.getAdUnit()).to.deep.equal(
+          rewardedadviewadresponse1.getAdUnit());
+    });
+  });  
 
 describe('SkuSelectedResponse', () => {
   it('should deserialize correctly', () => {
