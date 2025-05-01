@@ -55,6 +55,9 @@ import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {warn} from '../utils/log';
+import { InterventionType } from '../api/intervention-type';
+
+export type AudienceActionType = InterventionType.TYPE_REGISTRATION_WALL | InterventionType.TYPE_NEWSLETTER_SIGNUP | InterventionType.TYPE_REWARDED_SURVEY | InterventionType.TYPE_BYO_CTA | InterventionType.TYPE_REWARDED_AD;
 
 export interface AudienceActionFlow {
   start: () => Promise<void>;
@@ -62,7 +65,7 @@ export interface AudienceActionFlow {
 }
 
 export interface AudienceActionIframeParams {
-  action: string;
+  action: AudienceActionType;
   configurationId?: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
@@ -71,21 +74,15 @@ export interface AudienceActionIframeParams {
   calledManually: boolean;
   shouldRenderPreview?: boolean;
   suppressToast?: boolean;
+  monetizationFunction?: () => void;
 }
 
-// TODO: mhkawano - replace these consts in the project with these
-// Action types returned by the article endpoint
-export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
-export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
-export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
-export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
-export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
-
-const actionToIframeMapping: {[key: string]: string} = {
-  TYPE_REGISTRATION_WALL: '/regwalliframe',
-  TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
-  TYPE_REWARDED_SURVEY: '/surveyiframe',
-  TYPE_BYO_CTA: '/byoctaiframe',
+const actionToIframeMapping: {[key in AudienceActionType]: string} = {
+  [InterventionType.TYPE_REGISTRATION_WALL] : '/regwalliframe',
+  [InterventionType.TYPE_NEWSLETTER_SIGNUP]: '/newsletteriframe',
+  [InterventionType.TYPE_REWARDED_SURVEY]: '/surveyiframe',
+  [InterventionType.TYPE_BYO_CTA]: '/byoctaiframe',
+  [InterventionType.TYPE_REWARDED_AD]: '/rewardedadiframe'
 };
 
 const autopromptTypeToProductTypeMapping: {
@@ -150,7 +147,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       /* shouldFadeBody */ true
     );
     // Disables interaction with prompt if rendering for preview.
-    if (!!params_.shouldRenderPreview && params_.action !== TYPE_BYO_CTA) {
+    if (!!params_.shouldRenderPreview && params_.action !== InterventionType.TYPE_BYO_CTA) {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });
@@ -266,7 +263,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
   private isOptIn(action: string): boolean {
     return (
-      action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL
+      action === InterventionType.TYPE_NEWSLETTER_SIGNUP || action === InterventionType.TYPE_REGISTRATION_WALL
     );
   }
 

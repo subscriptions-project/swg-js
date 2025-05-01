@@ -20,6 +20,7 @@ import {ArticleExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
+  AudienceActionType,
 } from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType, ContentType} from '../api/basic-subscriptions';
@@ -573,19 +574,7 @@ export class AutoPromptManager {
   }): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-        actionType === TYPE_REWARDED_AD
-          ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType as InterventionType,
-              configurationId,
-              autoPromptType: this.autoPromptType_,
-              isClosable: this.isClosable_,
-              monetizationFunction: this.getLargeMonetizationPromptFn_(
-                /* shouldAnimateFade */ false
-              ),
-              calledManually: false,
-              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
-            })
-          : actionType === TYPE_NEWSLETTER_SIGNUP &&
+            actionType === TYPE_NEWSLETTER_SIGNUP &&
             preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType as InterventionType,
@@ -596,12 +585,15 @@ export class AutoPromptManager {
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             })
           : new AudienceActionIframeFlow(this.deps_, {
-              action: actionType,
+              action: actionType as AudienceActionType,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
               calledManually: false,
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
+              monetizationFunction: this.getLargeMonetizationPromptFn_(
+                /* shouldAnimateFade */ false
+              ),
             });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
