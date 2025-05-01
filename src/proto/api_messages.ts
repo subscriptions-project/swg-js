@@ -1577,6 +1577,72 @@ export class OpenDialogRequest implements Message {
 }
 
 /** */
+export class RewardedAdAlternateActionResponse implements Message {
+  private unused_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.unused_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getUnused(): boolean | null {
+    return this.unused_;
+  }
+
+  setUnused(value: boolean): void {
+    this.unused_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.unused_, // field 1 - unused
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'RewardedAdAlternateActionResponse';
+  }
+}
+
+/** */
+export class RewardedAdViewAdResponse implements Message {
+  private adUnit_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.adUnit_ = data[base] == null ? null : (data[base] as string);
+  }
+
+  getAdUnit(): string | null {
+    return this.adUnit_;
+  }
+
+  setAdUnit(value: string): void {
+    this.adUnit_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.adUnit_, // field 1 - ad_unit
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'RewardedAdViewAdResponse';
+  }
+}
+
+/** */
 export class SkuSelectedResponse implements Message {
   private sku_: string | null;
   private oldSku_: string | null;
@@ -2278,6 +2344,8 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
   'OpenDialogRequest': OpenDialogRequest,
+  'RewardedAdAlternateActionResponse': RewardedAdAlternateActionResponse,
+  'RewardedAdViewAdResponse': RewardedAdViewAdResponse,
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
