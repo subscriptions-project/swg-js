@@ -33,6 +33,8 @@ import {
   EventOriginator,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
+  RewardedAdAlternateActionResponse,
+  RewardedAdViewAdResponse
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
@@ -169,6 +171,16 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.activityIframeView_.on(
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      RewardedAdViewAdResponse,
+      this.handleRewardedAdViewAdResponse.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      RewardedAdAlternateActionResponse,
+      this.handleRewardedAdAlternateActionResponse.bind(this)
     );
 
     const {onCancel} = this.params_;
@@ -476,6 +488,15 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       });
     });
     return true;
+  }
+
+  private handleRewardedAdViewAdResponse(response: RewardedAdViewAdResponse) {
+    console.log('handleRewardedAdViewAdResponse': response.getAdUnit());
+
+  }
+
+  private handleRewardedAdAlternateActionResponse() {
+    console.log('handleRewardedAdAlternateActionResponse');
   }
 
   /**
