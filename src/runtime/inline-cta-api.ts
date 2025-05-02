@@ -24,14 +24,12 @@ import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {Intervention} from './intervention';
 import {ProductType} from '../api/subscriptions';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
-import {Toast} from '../ui/toast';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
-import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
+import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
@@ -82,38 +80,15 @@ export class InlincCtaApi {
     }
     if (response.getAlreadyCompleted()) {
       this.clearInlineCta_(div);
-      this.showAlreadyOptedInToast_(actionType);
+      showAlreadyOptedInToast(
+        actionType,
+        this.clientConfigManager_.getLanguage(),
+        this.deps_
+      );
     }
     const now = Date.now().toString();
     this.storage_.set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
-  }
-
-  private showAlreadyOptedInToast_(actionType: string): void {
-    let urlParams;
-    switch (actionType) {
-      case 'TYPE_REGISTRATION_WALL':
-        // Show 'Signed in as abc@gmail.com' toast on the pub page.
-        urlParams = {
-          flavor: 'basic',
-        };
-        break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
-        const lang = this.clientConfigManager_.getLanguage();
-        const customText = msg(
-          SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
-          lang
-        )!;
-        urlParams = {
-          flavor: 'custom',
-          customText,
-        };
-        break;
-      default:
-        // Do not show toast for other types.
-        return;
-    }
-    new Toast(this.deps_, feUrl('/toastiframe', urlParams)).open();
   }
 
   private clearInlineCta_(div: HTMLElement) {

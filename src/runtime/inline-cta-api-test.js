@@ -174,28 +174,6 @@ describes.realWin('InlineCtaApi', (env) => {
 
       expect(newsletterSnippet.firsChild).to.equal(undefined);
     });
-
-    it('showAlreadyOptedInToast shows basic toast', () => {
-      toastOpenStub = sandbox
-        .stub(Toast.prototype, 'open')
-        .callsFake(function () {
-          toast = this;
-        });
-
-      inlineCtaApi.showAlreadyOptedInToast_('TYPE_REGISTRATION_WALL');
-
-      expect(toastOpenStub).to.be.called;
-      expect(toast).not.to.be.null;
-      expect(toast.src_).to.contain('flavor=basic');
-    });
-
-    it('showAlreadyOptedInToast show no toast if other types', () => {
-      const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
-
-      inlineCtaApi.showAlreadyOptedInToast_('TYPE_REWARDED_SURVEY');
-
-      expect(toastOpenStub).not.to.be.called;
-    });
   });
 
   describe('Rendering', () => {
