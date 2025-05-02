@@ -167,7 +167,7 @@ export class GaaSignInWithGoogleButton {
         jwtPayload,
         returnedJwt,
       });
-    } catch (err) {
+    } catch {
       sendErrorMessageToParent();
     }
   }

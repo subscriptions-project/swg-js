@@ -48,7 +48,7 @@ export class DialogManager {
       if (this.popupWin_) {
         try {
           this.popupWin_.focus();
-        } catch (e) {
+        } catch {
           // Ignore error.
         }
       }
@@ -137,7 +137,7 @@ export class DialogManager {
     this.popupWin_ = null;
     try {
       this.popupGraypane_.hide();
-    } catch (e) {
+    } catch {
       // Ignore.
     }
   }
