@@ -21,10 +21,10 @@ import {
   deserialize,
   getLabel,
 } from '../proto/api_messages';
+import {Deps} from '../runtime/deps';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {StorageKeys} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
-import {Deps} from '../runtime/deps';
 
 export interface ActivityPortDef {
   acceptResult(): Promise<wa.ActivityResult>;
