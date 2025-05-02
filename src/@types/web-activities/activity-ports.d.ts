@@ -68,7 +68,7 @@ declare module 'web-activities/activity-ports' {
    * The result of an activity. The activity implementation returns this object
    * for a successful result, a cancelation or a failure.
    */
-  interface ActivityResult {
+  export interface ActivityResult {
     readonly code: ActivityResultCode;
     readonly data: unknown;
     readonly mode: ActivityMode;
@@ -157,7 +157,7 @@ declare module 'web-activities/activity-ports' {
    * as a singleton. It can start activities of all modes: iframe, popup, and
    * redirect.
    */
-  class ActivityPorts {
+  export class ActivityPorts {
     readonly version: string;
 
     constructor(win: Window);

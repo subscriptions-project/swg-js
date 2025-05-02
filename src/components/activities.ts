@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as wa from 'web-activities/activity-ports';
 import {
   AnalyticsRequest,
   EventOriginator,
@@ -21,29 +22,19 @@ import {
   getLabel,
 } from '../proto/api_messages';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
-
 import {StorageKeys} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
-
-import {
-  ActivityMode,
-  ActivityOpenOptions,
-  ActivityResult,
-  ActivityIframePort as WebActivityIframePort,
-  ActivityPort as WebActivityPort,
-  ActivityPorts as WebActivityPorts,
-} from 'web-activities/activity-ports';
 import {Deps} from '../runtime/deps';
 
 export interface ActivityPortDef {
-  acceptResult(): Promise<ActivityResult>;
+  acceptResult(): Promise<wa.ActivityResult>;
 }
 
 export interface ActivityPort extends ActivityPortDef {
   /**
    * Returns the mode of the activity: iframe, popup or redirect.
    */
-  getMode(): ActivityMode;
+  getMode(): wa.ActivityMode;
 
   /**
    * Accepts the result when ready. The client should verify the activity's
@@ -53,7 +44,7 @@ export interface ActivityPort extends ActivityPortDef {
    * Returns the promise that yields when the activity has been completed and
    * either a result, a cancelation or a failure has been returned.
    */
-  acceptResult(): Promise<ActivityResult>;
+  acceptResult(): Promise<wa.ActivityResult>;
 
   /**
    * Returns a promise that yields when the iframe is ready to be interacted
@@ -92,15 +83,15 @@ export interface ActivityPort extends ActivityPortDef {
 }
 
 class ActivityPortDeprecated implements ActivityPortDef {
-  constructor(private readonly port_: WebActivityPort) {}
+  constructor(private readonly port_: wa.ActivityPort) {}
 
-  acceptResult(): Promise<ActivityResult> {
+  acceptResult(): Promise<wa.ActivityResult> {
     return this.port_.acceptResult();
   }
 }
 
 export class ActivityIframePort implements ActivityPortDef {
-  private readonly iframePort_: WebActivityIframePort;
+  private readonly iframePort_: wa.ActivityIframePort;
   private readonly callbackMap_: {[key: string]: (message: Message) => void};
 
   constructor(
@@ -109,7 +100,7 @@ export class ActivityIframePort implements ActivityPortDef {
     private readonly deps_: Deps,
     args?: unknown
   ) {
-    this.iframePort_ = new WebActivityIframePort(iframe, url, args);
+    this.iframePort_ = new wa.ActivityIframePort(iframe, url, args);
     this.callbackMap_ = {};
   }
 
@@ -163,7 +154,7 @@ export class ActivityIframePort implements ActivityPortDef {
   /**
    * Returns the mode of the activity: iframe, popup or redirect.
    */
-  getMode(): ActivityMode {
+  getMode(): wa.ActivityMode {
     return this.iframePort_.getMode();
   }
 
@@ -175,7 +166,7 @@ export class ActivityIframePort implements ActivityPortDef {
    * Returns the promise that yields when the activity has been completed and
    * either a result, a cancelation or a failure has been returned.
    */
-  acceptResult(): Promise<ActivityResult> {
+  acceptResult(): Promise<wa.ActivityResult> {
     return this.iframePort_.acceptResult();
   }
 
@@ -220,10 +211,10 @@ export class ActivityIframePort implements ActivityPortDef {
 }
 
 export class ActivityPorts {
-  activityPorts_: WebActivityPorts;
+  activityPorts_: wa.ActivityPorts;
 
   constructor(private readonly deps_: Deps) {
-    this.activityPorts_ = new WebActivityPorts(deps_.win());
+    this.activityPorts_ = new wa.ActivityPorts(deps_.win());
   }
 
   /**
@@ -311,7 +302,7 @@ export class ActivityPorts {
     url: string,
     target: string,
     args?: {} | null,
-    options?: ActivityOpenOptions | null,
+    options?: wa.ActivityOpenOptions | null,
     addDefaultArguments = false
   ): {targetWin: Window | null} {
     if (addDefaultArguments) {
@@ -357,7 +348,7 @@ export class ActivityPorts {
     this.activityPorts_.onRedirectError(handler);
   }
 
-  getOriginalWebActivityPorts(): WebActivityPorts {
+  getOriginalWebActivityPorts(): wa.ActivityPorts {
     return this.activityPorts_;
   }
 }

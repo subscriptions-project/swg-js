@@ -114,6 +114,7 @@ export default defineConfig({
   plugins,
 
   build: {
+    sourcemap: true,
     emptyOutDir: false,
     commonjsOptions: {
       sourceMap: true,
@@ -143,7 +144,6 @@ export default defineConfig({
         {
           format: 'iife',
           entryFileNames: output,
-          sourcemap: true,
         },
       ],
     },
