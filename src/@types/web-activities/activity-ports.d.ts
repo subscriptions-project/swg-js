@@ -245,30 +245,6 @@ declare module 'web-activities/activity-ports' {
   }
 
   /**
-   * The result of an activity. The activity implementation returns this object
-   * for a successful result, a cancelation or a failure.
-   */
-  export interface ActivityResult {
-    readonly code: ActivityResultCode;
-    readonly data: unknown;
-    readonly mode: ActivityMode;
-    readonly origin: string;
-    readonly originVerified: boolean;
-    readonly secureChannel: boolean;
-    readonly ok: boolean;
-    readonly error: Error | null;
-
-    constructor(
-      code: ActivityResultCode,
-      data: unknown,
-      mode: ActivityMode,
-      origin: string,
-      originVerified: boolean,
-      secureChannel: boolean
-    );
-  }
-
-  /**
    * Activity client-side binding for messaging.
    *
    * Whether the host can or cannot receive a message depends on the type of
