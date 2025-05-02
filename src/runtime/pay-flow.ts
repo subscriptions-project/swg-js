@@ -413,7 +413,7 @@ export class PayCompleteFlow {
 
     try {
       await this.activityIframeView_!.acceptResult();
-    } catch (err) {
+    } catch {
       // Ignore errors.
     }
 

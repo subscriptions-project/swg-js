@@ -158,7 +158,7 @@ export class GaaGoogleSignInButton {
         command: POST_MESSAGE_COMMAND_USER,
         gaaUser,
       });
-    } catch (err) {
+    } catch {
       sendErrorMessageToParent();
     }
   }

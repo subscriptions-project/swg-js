@@ -407,7 +407,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
         ? parsedExistingIabTaxonomyValues
         : [];
-    } catch (e) {
+    } catch {
       // Ignore error since it defaults to empty array.
     }
 
