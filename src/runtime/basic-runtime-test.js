@@ -48,6 +48,7 @@ import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 import {tick} from '../../test/tick';
+import {InlineCtaApi} from './inline-cta-api';
 
 describes.realWin('installBasicRuntime', (env) => {
   let win;
@@ -680,6 +681,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     let entitlementsStub;
     let miniPromptApiMock;
     let autoPromptManagerMock;
+    let inlineCtaMock;
 
     beforeEach(() => {
       entitlementsStub = sandbox.stub(
@@ -712,6 +714,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       autoPromptManagerMock = sandbox.mock(
         configuredBasicRuntime.autoPromptManager_
       );
+      inlineCtaMock = sandbox.mock(configuredBasicRuntime.inlineCtaApi_);
     });
 
     afterEach(() => {
@@ -1404,6 +1407,63 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       expect(showOffersStub).to.be.calledOnce;
       expect(completeAllStub).to.be.calledOnce;
       expect(offersOptions.isClosable).to.equal(true);
+    });
+
+    it('should configure inline CTA when experiment enabled', async () => {
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['inline_cta_experiment'],
+          },
+        })
+        .atLeast(1);
+
+      inlineCtaMock.expects('attachInlineCtasWithAttribute').once();
+    });
+
+    it('should not configure inline CTA when experiment disabled', async () => {
+      entitlementsManagerMock
+        .expects('getArticle')
+        .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
+          audienceActions: {
+            actions: [
+              {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
+            ],
+            engineId: '123',
+          },
+        })
+        .atLeast(1);
+
+      inlineCtaMock.expects('attachInlineCtasWithAttribute').never();
     });
   });
 });

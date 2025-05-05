@@ -16,6 +16,7 @@
 
 import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
@@ -51,6 +52,7 @@ import {acceptPortResultData} from '../utils/activity-utils';
 import {assert} from '../utils/log';
 import {feArgs, feOrigin, feUrl} from './services';
 import {msg} from '../utils/i18n';
+import {InlineCtaApi} from './inline-cta-api';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
@@ -121,6 +123,8 @@ export function installBasicRuntime(win: Window): void {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
+
+  basicRuntime.setupInlineCta();
 }
 
 export class BasicRuntime implements BasicSubscriptions {
@@ -293,6 +297,15 @@ export class BasicRuntime implements BasicSubscriptions {
     runtime.setupButtons();
   }
 
+  /**
+   * Sets up all the inline CTA on the page with attribute
+   * 'rrm-inline-cta'.
+   */
+  async setupInlineCta(): Promise<void> {
+    const runtime = await this.configured_(false);
+    runtime.setupInlineCta();
+  }
+
   /** Process result from checkentitlements view */
   async processEntitlements(): Promise<void> {
     const runtime = await this.configured_(false);
@@ -323,6 +336,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly configuredClassicRuntime_: ConfiguredRuntime;
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
+  private readonly inlineCtaApi_: InlineCtaApi;
 
   constructor(
     winOrDoc: Window | Document | Doc,
@@ -392,6 +406,8 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       this,
       this.configuredClassicRuntime_
     );
+
+    this.inlineCtaApi_ = new InlineCtaApi(this);
 
     this.buttonApi_ = new ButtonApi(
       this.doc_,
@@ -632,6 +648,22 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
         },
       }
     );
+  }
+
+  /**
+   * Renders all the inline CTAs on the page with attribute
+   * 'rrm-inline-cta' when experiment is enabled.
+   */
+  async setupInlineCta(): Promise<void> {
+    const inlineCtaEnabled = await this.entitlementsManager()
+      .getExperimentConfigFlags()
+      .then((flags) =>
+        flags.includes(ArticleExperimentFlags.INLINE_CTA_EXPERIMENT)
+      );
+
+    if (inlineCtaEnabled) {
+      this.inlineCtaApi_.attachInlineCtasWithAttribute();
+    }
   }
 
   /**
