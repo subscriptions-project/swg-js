@@ -48,7 +48,6 @@ import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 import {tick} from '../../test/tick';
-import {InlineCtaApi} from './inline-cta-api';
 
 describes.realWin('installBasicRuntime', (env) => {
   let win;
