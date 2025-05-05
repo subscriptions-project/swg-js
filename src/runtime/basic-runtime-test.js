@@ -19,6 +19,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
@@ -654,6 +655,12 @@ describes.realWin('BasicRuntime', (env) => {
 
       await basicRuntime.processEntitlements();
     });
+
+    it('should delegate "setupInlineCta"', async () => {
+      configuredBasicRuntimeMock.expects('setupInlineCta').once();
+
+      await basicRuntime.setupInlineCta();
+    });
   });
 });
 
@@ -722,6 +729,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredClassicRuntimeMock.verify();
       miniPromptApiMock.verify();
       winMock.verify();
+      inlineCtaMock.verify();
     });
 
     it('should store creationTimestamp', () => {
@@ -1410,59 +1418,24 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
     it('should configure inline CTA when experiment enabled', async () => {
       entitlementsManagerMock
-        .expects('getArticle')
-        .resolves({
-          actionOrchestration: {
-            interventionFunnel: {
-              interventions: [
-                {
-                  configId: 'config_id',
-                  type: 'TYPE_CONTRIBUTION',
-                  closability: 'DISMISSIBLE',
-                },
-              ],
-            },
-          },
-          audienceActions: {
-            actions: [
-              {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
-            ],
-            engineId: '123',
-          },
-          experimentConfig: {
-            experimentFlags: ['inline_cta_experiment'],
-          },
-        })
+        .expects('getExperimentConfigFlags')
+        .resolves([ArticleExperimentFlags.INLINE_CTA_EXPERIMENT])
         .atLeast(1);
 
       inlineCtaMock.expects('attachInlineCtasWithAttribute').once();
+
+      await configuredBasicRuntime.setupInlineCta();
     });
 
     it('should not configure inline CTA when experiment disabled', async () => {
       entitlementsManagerMock
-        .expects('getArticle')
-        .resolves({
-          actionOrchestration: {
-            interventionFunnel: {
-              interventions: [
-                {
-                  configId: 'config_id',
-                  type: 'TYPE_CONTRIBUTION',
-                  closability: 'DISMISSIBLE',
-                },
-              ],
-            },
-          },
-          audienceActions: {
-            actions: [
-              {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
-            ],
-            engineId: '123',
-          },
-        })
+        .expects('getExperimentConfigFlags')
+        .resolves([])
         .atLeast(1);
 
       inlineCtaMock.expects('attachInlineCtasWithAttribute').never();
+
+      await configuredBasicRuntime.setupInlineCta();
     });
   });
 });
