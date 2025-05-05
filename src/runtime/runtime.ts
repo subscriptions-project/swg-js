@@ -929,7 +929,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
         if (skus.length > 0) {
           this.analyticsService_.setSku(skus.join(','));
         }
-      } catch (ex) {}
+      } catch {}
     }
 
     const experiment = await this.entitlementsManager_
