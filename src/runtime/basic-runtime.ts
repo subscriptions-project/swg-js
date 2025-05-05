@@ -38,6 +38,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {InlineCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -52,7 +53,6 @@ import {acceptPortResultData} from '../utils/activity-utils';
 import {assert} from '../utils/log';
 import {feArgs, feOrigin, feUrl} from './services';
 import {msg} from '../utils/i18n';
-import {InlineCtaApi} from './inline-cta-api';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
