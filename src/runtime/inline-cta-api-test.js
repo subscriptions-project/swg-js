@@ -23,7 +23,7 @@ import {CompleteAudienceActionResponse} from '../proto/api_messages';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
-import {InlincCtaApi} from './inline-cta-api';
+import {InlineCtaApi} from './inline-cta-api';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
@@ -129,7 +129,7 @@ describes.realWin('InlineCtaApi', (env) => {
     storageMock = sandbox.mock(storage);
     sandbox.stub(deps, 'storage').returns(storage);
 
-    inlineCtaApi = new InlincCtaApi(deps);
+    inlineCtaApi = new InlineCtaApi(deps);
 
     port = new MockActivityPort();
     port.whenReady = () => Promise.resolve();

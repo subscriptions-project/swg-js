@@ -35,7 +35,7 @@ const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
 const DEFAULT_PRODUCT_TYPE = ProductType.UI_CONTRIBUTION;
 
-export class InlincCtaApi {
+export class InlineCtaApi {
   private readonly doc_: Doc;
   private readonly win_: Window;
   private readonly activityPorts_: ActivityPorts;
