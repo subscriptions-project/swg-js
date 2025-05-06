@@ -593,32 +593,53 @@ export interface SubscriptionRequest {
   metadata?: object;
 }
 
+/** Request that the user get linked to the current publication. */
 export interface LinkSubscriptionRequest {
+  /* An ID managed by the publisher.  This becomes the readers identifier. */
   publisherProvidedId: string;
 }
 
+/** Result of linking a single subscription. */
 export interface LinkSubscriptionResult {
+  /* An ID managed by the publisher.  This becomes the readers identifier. */
   publisherProvidedId?: string | null;
+  /* True if the link was successful. */
   success: boolean;
 }
 
+/** Represents a single publication/publisher ID to link the user to. */
 export interface SubscriptionLinkRequest {
+  /** The publication to create a link to. */
   publicationId?: string | null;
+  /* An ID managed by the publisher.  This becomes the readers identifier. */
   publisherProvidedId?: string | null;
 }
 
+/**
+ * Request that the user have their subscriptions linked to multiple
+ * publications.
+ */
 export interface LinkSubscriptionsRequest {
+  /** The publications to link to. */
   linkTo: SubscriptionLinkRequest[];
 }
 
+/** The result of linking a single publication. */
 export interface SubscriptionLinkResult {
+  /** The publication the reader was attempting to link. */
   publicationId?: string | null;
+  /* The ID chosen by the publisher for this publication. */
   publisherProvidedId?: string | null;
+  /** True if this link was created successfully. */
   success: boolean;
 }
 
+/** The result of linking multiple publications. */
 export interface LinkSubscriptionsResult {
+  /** True if at least 1 link was created. */
   anySuccess: boolean;
+  /** True if at least 1 link failed. */
   anyFailure: boolean;
+  /** The individual results of each requested link. */
   links: SubscriptionLinkResult[];
 }

@@ -33,13 +33,8 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
   let cancelCallback;
 
   const PUBLICATION_ID = 'pub1';
-  const REQUEST = {publisherProvidedId: 'ppid'};
-  const MULTI_REQUEST = {
-    linkTo: [
-      {publicationId: PUBLICATION_ID, publisherProvidedId: 'ppid'},
-      {publicationId: PUBLICATION_ID + '2', publisherProvidedId: 'ppid2'},
-    ],
-  };
+  let REQUEST;
+  let MULTI_REQUEST;
 
   beforeEach(() => {
     win = env.win;
@@ -56,6 +51,13 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       cancelCallback = cb;
     });
     subscriptionLinkingFlow = new SubscriptionLinkingFlow(runtime);
+    REQUEST = {publisherProvidedId: 'ppid'};
+    MULTI_REQUEST = {
+      linkTo: [
+        {publicationId: PUBLICATION_ID, publisherProvidedId: 'ppid'},
+        {publicationId: PUBLICATION_ID + '2', publisherProvidedId: 'ppid2'},
+      ],
+    };
   });
 
   describe('start', () => {
@@ -66,25 +68,24 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       dialogManagerMock
         .expects('openView')
         .once()
-        .callsFake((viewArg, hiddenArg, dialogConfigArg) => {
+        .callsFake(async (viewArg, hiddenArg, dialogConfigArg) => {
           activityIframeView = viewArg;
           hidden = hiddenArg;
           dialogConfig = dialogConfigArg;
-          return Promise.resolve();
         });
 
       subscriptionLinkingFlow.start(REQUEST);
 
-      const url = new URL(activityIframeView.src_);
+      const url = new URL(activityIframeView.getUrl());
       const {pathname, searchParams} = url;
       expect(pathname).to.equal('/swg/ui/v1/linksaveiframe');
       expect(searchParams.get('subscriptionLinking')).to.equal('true');
       expect(searchParams.get('linkTo')).to.equal(
         `${PUBLICATION_ID},${REQUEST.publisherProvidedId}`
       );
-      const args = activityIframeView.args_;
+      const args = activityIframeView.getArgs();
       expect(args['publicationId']).to.equal(PUBLICATION_ID);
-      expect(activityIframeView.shouldFadeBody_).to.be.false;
+      expect(activityIframeView.shouldFadeBody()).to.be.false;
       expect(hidden).to.be.false;
       expect(dialogConfig).to.deep.equal({
         desktopConfig: {isCenterPositioned: false},
@@ -108,29 +109,28 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       dialogManagerMock
         .expects('openView')
         .once()
-        .callsFake((viewArg, hiddenArg, dialogConfigArg) => {
+        .callsFake(async (viewArg, hiddenArg, dialogConfigArg) => {
           activityIframeView = viewArg;
           hidden = hiddenArg;
           dialogConfig = dialogConfigArg;
-          return Promise.resolve();
         });
 
       subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST);
 
-      const url = new URL(activityIframeView.src_);
+      const url = new URL(activityIframeView.getUrl());
       const {pathname, searchParams} = url;
       expect(pathname).to.equal('/swg/ui/v1/linksaveiframe');
       expect(searchParams.get('subscriptionLinking')).to.equal('true');
-      const links = activityIframeView.src_.split('linkTo=');
+      const links = activityIframeView.getUrl().split('linkTo=');
       expect(links.length).to.equal(3);
       expect(links[1]).to.equal(
         encodeURIComponent(`${PUBLICATION_ID},${REQUEST.publisherProvidedId}`) +
           '&'
       );
       expect(links[2]).to.equal(encodeURIComponent(`${PUBLICATION_ID}2,ppid2`));
-      const args = activityIframeView.args_;
+      const args = activityIframeView.getArgs();
       expect(args['publicationId']).to.equal(PUBLICATION_ID);
-      expect(activityIframeView.shouldFadeBody_).to.be.false;
+      expect(activityIframeView.shouldFadeBody()).to.be.false;
       expect(hidden).to.be.false;
       expect(dialogConfig).to.deep.equal({
         desktopConfig: {isCenterPositioned: false},

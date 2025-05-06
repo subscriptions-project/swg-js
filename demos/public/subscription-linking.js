@@ -15,7 +15,8 @@
  */
 
 function getInputValue(inputName) {
-  return document.getElementById(inputName).value.trim();
+  const input = document.getElementById(inputName);
+  return input ? input.value.trim() : '';
 }
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
