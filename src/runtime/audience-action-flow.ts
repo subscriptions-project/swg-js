@@ -24,6 +24,7 @@
  * 4) Close the prompt that initiated the flow.
  */
 
+import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
@@ -52,8 +53,8 @@ import {Storage} from './storage';
 import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
-import {parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
+import {showAlreadyOptedInToast} from '../utils/cta-utils';
 import {warn} from '../utils/log';
 
 export interface AudienceActionFlow {
@@ -80,13 +81,6 @@ export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
 export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
 export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
 export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
-
-const actionToIframeMapping: {[key: string]: string} = {
-  TYPE_REGISTRATION_WALL: '/regwalliframe',
-  TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
-  TYPE_REWARDED_SURVEY: '/surveyiframe',
-  TYPE_BYO_CTA: '/byoctaiframe',
-};
 
 const autopromptTypeToProductTypeMapping: {
   [key in AutoPromptType]?: ProductType;
@@ -141,7 +135,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.activityIframeView_ = new ActivityIframeView(
       deps_.win(),
       deps_.activities(),
-      feUrl(actionToIframeMapping[params_.action], iframeParams),
+      feUrl(ActionToIframeMapping[params_.action], iframeParams),
       feArgs({
         'supportsEventManager': true,
         'productType': this.productType_,
@@ -223,7 +217,11 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       if (response.getActionCompleted()) {
         this.showSignedInToast_(response.getUserEmail() ?? '');
       } else if (response.getAlreadyCompleted()) {
-        this.showAlreadyOptedInToast_();
+        showAlreadyOptedInToast(
+          this.params_.action,
+          this.clientConfigManager_.getLanguage(),
+          this.deps_
+        );
       } else {
         this.showFailedOptedInToast_();
       }
@@ -268,33 +266,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     return (
       action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL
     );
-  }
-
-  private showAlreadyOptedInToast_(): void {
-    let urlParams;
-    switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
-        // Show 'Signed in as abc@gmail.com' toast on the pub page.
-        urlParams = {
-          flavor: 'basic',
-        };
-        break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
-        const lang = this.clientConfigManager_.getLanguage();
-        const customText = msg(
-          SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
-          lang
-        )!;
-        urlParams = {
-          flavor: 'custom',
-          customText,
-        };
-        break;
-      default:
-        // Do not show toast for other types.
-        return;
-    }
-    new Toast(this.deps_, feUrl('/toastiframe', urlParams)).open();
   }
 
   private showFailedOptedInToast_(): void {
@@ -414,7 +385,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
         ? parsedExistingIabTaxonomyValues
         : [];
-    } catch (e) {
+    } catch {
       // Ignore error since it defaults to empty array.
     }
 
