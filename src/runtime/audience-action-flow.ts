@@ -33,8 +33,10 @@ import {
   EventOriginator,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
-  RewardedAdAlternateActionResponse,
-  RewardedAdViewAdResponse
+  RewardedAdAlternateActionRequest,
+  RewardedAdViewAdRequest,
+  RewardedAdLoadAdRequest,
+  RewardedAdLoadAdResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
@@ -174,13 +176,18 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     );
 
     this.activityIframeView_.on(
-      RewardedAdViewAdResponse,
-      this.handleRewardedAdViewAdResponse.bind(this)
+      RewardedAdLoadAdRequest,
+      this.handleRewardedAdLoadAdRequest.bind(this)
     );
 
     this.activityIframeView_.on(
-      RewardedAdAlternateActionResponse,
-      this.handleRewardedAdAlternateActionResponse.bind(this)
+      RewardedAdViewAdRequest,
+      this.handleRewardedAdViewAdRequest.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      RewardedAdAlternateActionRequest,
+      this.handleRewardedAdAlternateActionRequest.bind(this)
     );
 
     const {onCancel} = this.params_;
@@ -490,13 +497,21 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     return true;
   }
 
-  private handleRewardedAdViewAdResponse(response: RewardedAdViewAdResponse) {
-    console.log('handleRewardedAdViewAdResponse': response.getAdUnit());
+  private handleRewardedAdLoadAdRequest() {
+    // TODO: mhkawano - Implement loading a rewarded ad
+    const response = new RewardedAdLoadAdResponse();
+    response.setSuccess(true);
+    this.activityIframeView_.execute(response);
+  }
+  
+  private handleRewardedAdViewAdRequest(request: RewardedAdViewAdRequest) {
+    // TODO: mhkawano - Implement viewing a rewarded ad
+    console.log('handleRewardedAdViewAdResponse', request.getAdUnit());
 
   }
 
-  private handleRewardedAdAlternateActionResponse() {
-    console.log('handleRewardedAdAlternateActionResponse');
+  private handleRewardedAdAlternateActionRequest() {
+    this.params_.monetizationFunction?.();
   }
 
   /**
