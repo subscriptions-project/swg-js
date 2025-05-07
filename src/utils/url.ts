@@ -201,6 +201,7 @@ const ActionToIframeMapping: {[key: string]: string} = {
   TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
   TYPE_REWARDED_SURVEY: '/surveyiframe',
   TYPE_BYO_CTA: '/byoctaiframe',
+  TYPE_REWARDED_AD: '/rewardedadiframe'
 };
 
 export {ActionToIframeMapping};
