@@ -192,3 +192,15 @@ export function isSecure(parsedUrl = PARSED_URL): boolean {
 export function wasReferredByGoogle(parsedReferrer = PARSED_REFERRER): boolean {
   return isSecure(parsedReferrer) && isGoogleDomain(parsedReferrer);
 }
+
+/**
+ * Map action type to their iframe url prefix.
+ */
+const ActionToIframeMapping: {[key: string]: string} = {
+  TYPE_REGISTRATION_WALL: '/regwalliframe',
+  TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
+  TYPE_REWARDED_SURVEY: '/surveyiframe',
+  TYPE_BYO_CTA: '/byoctaiframe',
+};
+
+export {ActionToIframeMapping};
