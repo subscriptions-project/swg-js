@@ -1953,7 +1953,7 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [NEWSLETTER_INTERVENTION],
+            actions: [SURVEY_INTERVENTION],
             engineId: '123',
           },
           previewEnabled: true,
@@ -1964,8 +1964,8 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_NEWSLETTER_SIGNUP',
-        configurationId: 'newsletter_config_id',
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
@@ -1980,7 +1980,6 @@ describes.realWin('AutoPromptManager', (env) => {
             actions: [SURVEY_INTERVENTION],
             engineId: '123',
           },
-
           previewEnabled: true,
         })
         .once();
@@ -3335,15 +3334,15 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [SURVEY_INTERVENTION],
+            actions: [NEWSLETTER_INTERVENTION],
             engineId: '123',
           },
           actionOrchestration: {
             interventionFunnel: {
               interventions: [
                 {
-                  configId: 'survey_config_id',
-                  type: 'TYPE_REWARDED_SURVEY',
+                  configId: 'newsletter_config_id',
+                  type: 'TYPE_NEWSLETTER_SIGNUP',
                   closability: 'DISMISSIBLE',
                 },
               ],
@@ -3356,8 +3355,8 @@ describes.realWin('AutoPromptManager', (env) => {
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_REWARDED_SURVEY',
-        configurationId: 'survey_config_id',
+        action: 'TYPE_NEWSLETTER_SIGNUP',
+        configurationId: 'newsletter_config_id',
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
