@@ -3593,6 +3593,16 @@ describes.realWin('AutoPromptManager', (env) => {
       winMock.expects('setTimeout').never();
 
       await autoPromptManager.showAutoPrompt({});
+
+      expect(startSpy).to.have.been.calledOnce;
+      expect(actionFlowSpy).to.have.been.calledWith(deps, {
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
+        autoPromptType: undefined,
+        isClosable: false,
+        calledManually: false,
+        shouldRenderPreview: false,
+      });
     });
 
     it(`should set isInDevMode_ to false`, async () => {

@@ -369,7 +369,6 @@ export class AutoPromptManager {
     } else {
       promptFn();
     }
-    // this.deps_.win().setTimeout(promptFn, displayDelayMs);
     return;
   }
 
