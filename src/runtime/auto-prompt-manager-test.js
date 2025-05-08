@@ -287,9 +287,13 @@ describes.realWin('AutoPromptManager', (env) => {
     ].forEach(({eventType, action}) => {
       it(`for eventType=${eventType}, should set impression timestamps for action=${action}`, async () => {
         autoPromptManager.isClosable_ = true;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [action]: {impressions: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [action]: {impressions: [CURRENT_TIME]},
+          }
+        );
 
         await eventManagerCallback({
           eventType,
@@ -386,10 +390,14 @@ describes.realWin('AutoPromptManager', (env) => {
     it(`should set configId keyed impression timestamps when not in dev mode`, async () => {
       autoPromptManager.isInDevMode_ = false;
       autoPromptManager.configId_ = 'config_id';
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
-        ['config_id']: {impressions: [CURRENT_TIME]},
-      });
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
+          ['config_id']: {impressions: [CURRENT_TIME]},
+        }
+      );
 
       await eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
@@ -402,9 +410,13 @@ describes.realWin('AutoPromptManager', (env) => {
     it(`should not set configId keyed impression timestamps when in dev mode`, async () => {
       autoPromptManager.isInDevMode_ = true;
       autoPromptManager.configId_ = 'config_id';
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
-      });
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['TYPE_CONTRIBUTION']: {impressions: [CURRENT_TIME]},
+        }
+      );
 
       await eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
@@ -450,9 +462,13 @@ describes.realWin('AutoPromptManager', (env) => {
     ].forEach(({eventType, action}) => {
       it(`for eventType=${eventType}, should set dismissals via local storage for action=${action}`, async () => {
         autoPromptManager.isClosable_ = true;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [action]: {dismissals: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [action]: {dismissals: [CURRENT_TIME]},
+          }
+        );
 
         await eventManagerCallback({
           eventType,
@@ -533,10 +549,14 @@ describes.realWin('AutoPromptManager', (env) => {
     it(`should set configId keyed dismissal timestamps when not in dev mode`, async () => {
       autoPromptManager.isInDevMode_ = false;
       autoPromptManager.configId_ = 'config_id';
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
-        ['config_id']: {dismissals: [CURRENT_TIME]},
-      });
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
+          ['config_id']: {dismissals: [CURRENT_TIME]},
+        }
+      );
 
       await eventManagerCallback({
         eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
@@ -549,9 +569,13 @@ describes.realWin('AutoPromptManager', (env) => {
     it(`should not set configId keyed dismissal timestamps when in dev mode`, async () => {
       autoPromptManager.isInDevMode_ = true;
       autoPromptManager.configId_ = 'config_id';
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
-      });
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['TYPE_CONTRIBUTION']: {dismissals: [CURRENT_TIME]},
+        }
+      );
 
       await eventManagerCallback({
         eventType: AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
@@ -598,9 +622,13 @@ describes.realWin('AutoPromptManager', (env) => {
     ].forEach(({eventType, action}) => {
       it(`for eventType=${eventType}, should set completions via local storage for action=${action}`, async () => {
         autoPromptManager.isClosable_ = true;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [action]: {completions: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [action]: {completions: [CURRENT_TIME]},
+          }
+        );
 
         await eventManagerCallback({
           eventType,
@@ -655,10 +683,14 @@ describes.realWin('AutoPromptManager', (env) => {
     it(`should set configId keyed completion timestamps when not in dev mode`, async () => {
       autoPromptManager.isInDevMode_ = false;
       autoPromptManager.configId_ = 'config_id';
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
-        ['config_id']: {completions: [CURRENT_TIME]},
-      });
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
+          ['config_id']: {completions: [CURRENT_TIME]},
+        }
+      );
 
       await eventManagerCallback({
         eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
@@ -671,9 +703,13 @@ describes.realWin('AutoPromptManager', (env) => {
     it(`should not set configId keyed completion timestamps when in dev mode`, async () => {
       autoPromptManager.isInDevMode_ = true;
       autoPromptManager.configId_ = 'config_id';
-      expectFrequencyCappingTimestamps(storageMock, '', {
-        ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
-      });
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['TYPE_CONTRIBUTION']: {completions: [CURRENT_TIME]},
+        }
+      );
 
       await eventManagerCallback({
         eventType: AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
@@ -709,10 +745,14 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
         autoPromptManager.autoPromptType_ = autoPromptType;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [action]: {completions: [CURRENT_TIME]},
-          'config_id': {completions: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [action]: {completions: [CURRENT_TIME]},
+            'config_id': {completions: [CURRENT_TIME]},
+          }
+        );
 
         await eventManagerCallback({
           eventType,
@@ -1184,9 +1224,13 @@ describes.realWin('AutoPromptManager', (env) => {
       } = params;
       it(`should not store an impression for ${autoPromptType} if a previous miniprompt impression has been stored`, async () => {
         autoPromptManager.isClosable_ = true;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [autoPromptType]: {impressions: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [autoPromptType]: {impressions: [CURRENT_TIME]},
+          }
+        );
         expectFrequencyCappingTimestamps(
           storageMock,
           {[autoPromptType]: {impressions: [CURRENT_TIME]}},
@@ -1232,10 +1276,14 @@ describes.realWin('AutoPromptManager', (env) => {
       it(`for miniprompt eventType=${eventType}, should set impression timestamps for action=${action}`, async () => {
         autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [action]: {impressions: [CURRENT_TIME]},
-          'config_id': {impressions: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [action]: {impressions: [CURRENT_TIME]},
+            'config_id': {impressions: [CURRENT_TIME]},
+          }
+        );
 
         await eventManagerCallback({
           eventType,
@@ -1259,10 +1307,14 @@ describes.realWin('AutoPromptManager', (env) => {
       it(`for miniprompt eventType=${eventType}, should set dismissal timestamps for action=${action}`, async () => {
         autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [action]: {dismissals: [CURRENT_TIME]},
-          'config_id': {dismissals: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [action]: {dismissals: [CURRENT_TIME]},
+            'config_id': {dismissals: [CURRENT_TIME]},
+          }
+        );
 
         await eventManagerCallback({
           eventType,
@@ -1426,10 +1478,14 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptManager.promptIsFromCtaButton_ = true;
         autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [action]: {dismissals: [CURRENT_TIME]},
-          'config_id': {dismissals: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [action]: {dismissals: [CURRENT_TIME]},
+            'config_id': {dismissals: [CURRENT_TIME]},
+          }
+        );
 
         await eventManagerCallback({
           eventType,
@@ -1454,10 +1510,14 @@ describes.realWin('AutoPromptManager', (env) => {
         autoPromptManager.promptIsFromCtaButton_ = true;
         autoPromptManager.configId_ = 'config_id';
         autoPromptManager.isClosable_ = true;
-        expectFrequencyCappingTimestamps(storageMock, '', {
-          [action]: {completions: [CURRENT_TIME]},
-          'config_id': {completions: [CURRENT_TIME]},
-        });
+        expectFrequencyCappingTimestamps(
+          storageMock,
+          {},
+          {
+            [action]: {completions: [CURRENT_TIME]},
+            'config_id': {completions: [CURRENT_TIME]},
+          }
+        );
 
         await eventManagerCallback({
           eventType,
@@ -1755,7 +1815,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
-      expectFrequencyCappingTimestamps(storageMock, {});
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({});
 
@@ -1884,7 +1944,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
-      expectFrequencyCappingTimestamps(storageMock, {});
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({});
 
@@ -3336,15 +3396,15 @@ describes.realWin('AutoPromptManager', (env) => {
       getArticleExpectation
         .resolves({
           audienceActions: {
-            actions: [NEWSLETTER_INTERVENTION],
+            actions: [SURVEY_INTERVENTION],
             engineId: '123',
           },
           actionOrchestration: {
             interventionFunnel: {
               interventions: [
                 {
-                  configId: 'newsletter_config_id',
-                  type: 'TYPE_NEWSLETTER_SIGNUP',
+                  configId: 'survey_config_id',
+                  type: 'TYPE_REWARDED_SURVEY',
                   closability: 'DISMISSIBLE',
                 },
               ],
@@ -3352,13 +3412,14 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
 
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
-        action: 'TYPE_NEWSLETTER_SIGNUP',
-        configurationId: 'newsletter_config_id',
+        action: 'TYPE_REWARDED_SURVEY',
+        configurationId: 'survey_config_id',
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
