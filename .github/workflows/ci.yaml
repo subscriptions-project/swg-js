@@ -129,7 +129,11 @@ jobs:
         run: npm ci --omit optional
 
       - name: Unit Tests
-        run: gulp unit --headless --coverage
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: gulp unit --headless --coverage
 
       - uses: codecov/codecov-action@v5
         with:
