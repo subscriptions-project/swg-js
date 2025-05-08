@@ -3542,7 +3542,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
-      // expectFrequencyCappingTimestamps(storageMock);
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
 
