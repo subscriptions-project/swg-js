@@ -3618,10 +3618,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         },
         experimentConfig: {
-          experimentFlags: [
-            'action_orchestration_experiment',
-            'dismissibility_cta_filter_experiment',
-          ],
+          experimentFlags: ['dismissibility_cta_filter_experiment'],
         },
       });
       const readerCannotPurchaseClientConfig = new ClientConfig({
