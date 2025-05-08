@@ -1658,7 +1658,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(startSpy).to.not.have.been.called;
     });
 
-    it('for closed content, should not show CTA actionOrchestration is absent and subscription is not eligible', async () => {
+    it('for closed content, should not show CTA if actionOrchestration is absent and subscription is not eligible', async () => {
       getArticleExpectation
         .resolves({
           audienceActions: {
@@ -3473,6 +3473,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({});
 
@@ -3507,6 +3508,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({});
 
@@ -3540,6 +3542,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
+      expectFrequencyCappingTimestamps(storageMock);
 
       await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
 
