@@ -51,7 +51,6 @@ import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {InterventionResult} from '../api/available-intervention';
-import {InterventionType} from '../api/intervention-type';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
@@ -62,13 +61,6 @@ import {setImportantStyles} from '../utils/style';
 import {showAlreadyOptedInToast} from '../utils/cta-utils';
 import {warn} from '../utils/log';
 
-export type AudienceActionType =
-  | InterventionType.TYPE_REGISTRATION_WALL
-  | InterventionType.TYPE_NEWSLETTER_SIGNUP
-  | InterventionType.TYPE_REWARDED_SURVEY
-  | InterventionType.TYPE_BYO_CTA
-  | InterventionType.TYPE_REWARDED_AD;
-
 export interface AudienceActionFlow {
   start: () => Promise<void>;
   showNoEntitlementFoundToast: () => void;
@@ -77,7 +69,7 @@ export interface AudienceActionFlow {
 const TIMEOUT_MS = 5000;
 
 export interface AudienceActionIframeParams {
-  action: AudienceActionType;
+  action: string;
   configurationId?: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
@@ -88,6 +80,14 @@ export interface AudienceActionIframeParams {
   suppressToast?: boolean;
   monetizationFunction?: () => void;
 }
+
+// TODO: mhkawano - replace these consts in the project with these
+// Action types returned by the article endpoint
+export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
+export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
+export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
+export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
+export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 
 const autopromptTypeToProductTypeMapping: {
   [key in AutoPromptType]?: ProductType;
@@ -152,10 +152,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       /* shouldFadeBody */ true
     );
     // Disables interaction with prompt if rendering for preview.
-    if (
-      !!params_.shouldRenderPreview &&
-      params_.action !== InterventionType.TYPE_BYO_CTA
-    ) {
+    if (!!params_.shouldRenderPreview && params_.action !== TYPE_BYO_CTA) {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });
@@ -290,8 +287,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
   private isOptIn(action: string): boolean {
     return (
-      action === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
-      action === InterventionType.TYPE_REGISTRATION_WALL
+      action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL
     );
   }
 
@@ -486,6 +482,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       this.activityIframeView_.execute(response);
     };
     const googletag = this.deps_.win().googletag;
+    // TODO: mhkawano - assert googletage
     const timeout = setTimeout(() => {
       result(false);
     }, TIMEOUT_MS);
@@ -494,6 +491,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         request.getAdUnit(),
         googletag.enums.OutOfPageFormat.REWARDED
       );
+      // TODO: mhkawano - assert rewardedAdSlot
       rewardedAdSlot.addService(googletag.pubads());
       googletag
         .pubads()
