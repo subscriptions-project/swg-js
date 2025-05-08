@@ -74,6 +74,8 @@ export interface AudienceActionFlow {
   showNoEntitlementFoundToast: () => void;
 }
 
+const TIMEOUT_MS = 5000;
+
 export interface AudienceActionIframeParams {
   action: AudienceActionType;
   configurationId?: string;
@@ -484,22 +486,14 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       this.activityIframeView_.execute(response);
     };
     const googletag = this.deps_.win().googletag;
-    if (!googletag) {
-      result(false);
-      return;
-    }
     const timeout = setTimeout(() => {
       result(false);
-    }, 3000);
+    }, TIMEOUT_MS);
     googletag.cmd.push(() => {
       const rewardedAdSlot = googletag.defineOutOfPageSlot(
         request.getAdUnit(),
         googletag.enums.OutOfPageFormat.REWARDED
       );
-      if (!rewardedAdSlot) {
-        result(false);
-        return;
-      }
       rewardedAdSlot.addService(googletag.pubads());
       googletag
         .pubads()
