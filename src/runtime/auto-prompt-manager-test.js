@@ -158,6 +158,7 @@ describes.realWin('AutoPromptManager', (env) => {
     clientConfigManagerMock.verify();
     storageMock.verify();
     miniPromptApiMock.verify();
+    winMock.verify();
   });
 
   it('should be listening for events from the events manager', () => {
@@ -1488,6 +1489,7 @@ describes.realWin('AutoPromptManager', (env) => {
       autoPromptConfig = new AutoPromptConfig({
         globalFrequencyCapDurationSeconds,
         anyPromptFrequencyCapDurationSeconds,
+        displayDelaySeconds: 0,
       });
       const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
       const clientConfig = new ClientConfig({
@@ -3588,7 +3590,7 @@ describes.realWin('AutoPromptManager', (env) => {
           },
         })
         .once();
-      winMock.expects('setTimeout').withExactArgs(sandbox.match.any, 0).once();
+      winMock.expects('setTimeout').never();
 
       await autoPromptManager.showAutoPrompt({});
     });
