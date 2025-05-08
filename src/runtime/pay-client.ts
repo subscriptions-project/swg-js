@@ -296,7 +296,7 @@ export class RedirectVerifierHelper {
       if (pair) {
         try {
           this.win_.localStorage.setItem(StorageKeys.REDIRECT, pair.key);
-        } catch (e) {
+        } catch {
           // If storage has failed, there's no point in using the verifer.
           // However, there are other ways to recover the redirect, so it's
           // not necessarily a fatal condition.
@@ -317,7 +317,7 @@ export class RedirectVerifierHelper {
           this.win_.localStorage.getItem(StorageKeys.REDIRECT)) ||
         null
       );
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -350,7 +350,7 @@ export class RedirectVerifierHelper {
     let supportsLocalStorage;
     try {
       supportsLocalStorage = !!this.win_.localStorage;
-    } catch (e) {
+    } catch {
       // Note: This can happen when cookies are disabled.
       return false;
     }
@@ -388,7 +388,7 @@ export class RedirectVerifierHelper {
       const verifier = btoa(bytesToString(new Uint8Array(buffer)));
 
       return {key, verifier};
-    } catch (reason) {
+    } catch {
       // Ignore failures. A failure to create a redirect verifier is often
       // recoverable.
       return null;

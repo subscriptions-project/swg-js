@@ -323,7 +323,7 @@ export class Entitlement {
       subscriptionTokenContents = subscriptionToken
         ? jwtHelper.decode(subscriptionToken)
         : null;
-    } catch (e) {
+    } catch {
       subscriptionTokenContents = null;
     }
 
@@ -333,7 +333,7 @@ export class Entitlement {
       const seconds = timestampJson!['seconds_'];
       const nanos = timestampJson!['nanos_'];
       subscriptionTimestamp = new Timestamp([seconds, nanos], false);
-    } catch (e) {
+    } catch {
       subscriptionTimestamp = null;
     }
     return new Entitlement(

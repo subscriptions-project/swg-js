@@ -18,47 +18,41 @@ import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {ClientConfigManager} from './client-config-manager';
+import {CompleteAudienceActionResponse} from '../proto/api_messages';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {Intervention} from './intervention';
 import {ProductType} from '../api/subscriptions';
+import {Storage} from './storage';
+import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
 import {setImportantStyles} from '../utils/style';
+import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
 const DEFAULT_PRODUCT_TYPE = ProductType.UI_CONTRIBUTION;
 
-export class InlincCtaApi {
+export class InlineCtaApi {
   private readonly doc_: Doc;
   private readonly win_: Window;
   private readonly activityPorts_: ActivityPorts;
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly entitlementsManager_: EntitlementsManager;
+  private readonly storage_: Storage;
   constructor(private readonly deps_: Deps) {
     this.doc_ = deps_.doc();
     this.win_ = deps_.win();
     this.activityPorts_ = deps_.activities();
     this.entitlementsManager_ = deps_.entitlementsManager();
     this.clientConfigManager_ = deps_.clientConfigManager();
+    this.storage_ = deps_.storage();
     assert(
       this.clientConfigManager_,
       'InlineCta requires an instance of ClientConfigManager.'
     );
-  }
-
-  private actionToUrlPrefix_(
-    configId: string,
-    actions: Intervention[]
-  ): string {
-    for (const action of actions) {
-      if (action.configurationId === configId) {
-        return ActionToIframeMapping[action.type] ?? '';
-      }
-    }
-    return '';
   }
 
   private getUrl_(urlPrefix: string, configId: string): string {
@@ -74,15 +68,53 @@ export class InlincCtaApi {
     return feUrl(urlPrefix, iframeParams);
   }
 
+  private handleCompleteAudienceActionResponse_(
+    response: CompleteAudienceActionResponse,
+    actionType: string,
+    div: HTMLElement
+  ): void {
+    this.entitlementsManager_.clear();
+    const userToken = response.getSwgUserToken();
+    if (userToken) {
+      this.storage_.set(StorageKeys.USER_TOKEN, userToken, true);
+    }
+    if (response.getAlreadyCompleted()) {
+      this.clearInlineCta_(div);
+      showAlreadyOptedInToast(
+        actionType,
+        this.clientConfigManager_.getLanguage(),
+        this.deps_
+      );
+    }
+    const now = Date.now().toString();
+    this.storage_.set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
+    this.entitlementsManager_.getEntitlements();
+  }
+
+  private clearInlineCta_(div: HTMLElement) {
+    if (div.firstChild) {
+      div.removeChild(div.firstChild);
+    }
+  }
+
   private async renderInlineCtaWithAttribute_(
     div: HTMLElement,
     actions: Intervention[]
   ) {
+    // return if config id is not set in inline CTA code snippet.
     const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
     if (!configId) {
       return;
     }
-    const urlPrefix = this.actionToUrlPrefix_(configId, actions);
+    // return if no active action matches config id.
+    const action = actions.find(
+      (action) => action.configurationId === configId
+    );
+    if (!action) {
+      return;
+    }
+    // return if no urlPrefix matches action type.
+    const urlPrefix = ActionToIframeMapping[action.type] ?? '';
     if (!urlPrefix) {
       return;
     }
@@ -101,6 +133,10 @@ export class InlincCtaApi {
     setImportantStyles(activityIframeView.getElement(), {
       'width': '100%',
     });
+
+    activityIframeView.on(CompleteAudienceActionResponse, (response) =>
+      this.handleCompleteAudienceActionResponse_(response, action.type, div)
+    );
 
     div.appendChild(activityIframeView.getElement());
     const port = await this.activityPorts_.openIframe(

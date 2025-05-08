@@ -58,6 +58,7 @@ import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
+import {showAlreadyOptedInToast} from '../utils/cta-utils';
 import {warn} from '../utils/log';
 import { InterventionType } from '../api/intervention-type';
 
@@ -232,7 +233,11 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       if (response.getActionCompleted()) {
         this.showSignedInToast_(response.getUserEmail() ?? '');
       } else if (response.getAlreadyCompleted()) {
-        this.showAlreadyOptedInToast_();
+        showAlreadyOptedInToast(
+          this.params_.action,
+          this.clientConfigManager_.getLanguage(),
+          this.deps_
+        );
       } else {
         this.showFailedOptedInToast_();
       }
@@ -277,33 +282,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     return (
       action === InterventionType.TYPE_NEWSLETTER_SIGNUP || action === InterventionType.TYPE_REGISTRATION_WALL
     );
-  }
-
-  private showAlreadyOptedInToast_(): void {
-    let urlParams;
-    switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
-        // Show 'Signed in as abc@gmail.com' toast on the pub page.
-        urlParams = {
-          flavor: 'basic',
-        };
-        break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
-        const lang = this.clientConfigManager_.getLanguage();
-        const customText = msg(
-          SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
-          lang
-        )!;
-        urlParams = {
-          flavor: 'custom',
-          customText,
-        };
-        break;
-      default:
-        // Do not show toast for other types.
-        return;
-    }
-    new Toast(this.deps_, feUrl('/toastiframe', urlParams)).open();
   }
 
   private showFailedOptedInToast_(): void {
@@ -423,7 +401,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
         ? parsedExistingIabTaxonomyValues
         : [];
-    } catch (e) {
+    } catch {
       // Ignore error since it defaults to empty array.
     }
 

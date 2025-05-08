@@ -127,7 +127,7 @@ export class Toast {
 
     try {
       await callback();
-    } catch (err) {
+    } catch {
       // Ignore errors to make sure animations don't get stuck.
     }
   }

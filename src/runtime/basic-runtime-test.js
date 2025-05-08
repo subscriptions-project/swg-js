@@ -19,6 +19,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
@@ -654,6 +655,12 @@ describes.realWin('BasicRuntime', (env) => {
 
       await basicRuntime.processEntitlements();
     });
+
+    it('should delegate "setupInlineCta"', async () => {
+      configuredBasicRuntimeMock.expects('setupInlineCta').once();
+
+      await basicRuntime.setupInlineCta();
+    });
   });
 });
 
@@ -680,6 +687,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     let entitlementsStub;
     let miniPromptApiMock;
     let autoPromptManagerMock;
+    let inlineCtaMock;
 
     beforeEach(() => {
       entitlementsStub = sandbox.stub(
@@ -712,6 +720,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       autoPromptManagerMock = sandbox.mock(
         configuredBasicRuntime.autoPromptManager_
       );
+      inlineCtaMock = sandbox.mock(configuredBasicRuntime.inlineCtaApi_);
     });
 
     afterEach(() => {
@@ -720,6 +729,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredClassicRuntimeMock.verify();
       miniPromptApiMock.verify();
       winMock.verify();
+      inlineCtaMock.verify();
     });
 
     it('should store creationTimestamp', () => {
@@ -1404,6 +1414,28 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       expect(showOffersStub).to.be.calledOnce;
       expect(completeAllStub).to.be.calledOnce;
       expect(offersOptions.isClosable).to.equal(true);
+    });
+
+    it('should configure inline CTA when experiment enabled', async () => {
+      entitlementsManagerMock
+        .expects('getExperimentConfigFlags')
+        .resolves([ArticleExperimentFlags.INLINE_CTA_EXPERIMENT])
+        .atLeast(1);
+
+      inlineCtaMock.expects('attachInlineCtasWithAttribute').once();
+
+      await configuredBasicRuntime.setupInlineCta();
+    });
+
+    it('should not configure inline CTA when experiment disabled', async () => {
+      entitlementsManagerMock
+        .expects('getExperimentConfigFlags')
+        .resolves([])
+        .atLeast(1);
+
+      inlineCtaMock.expects('attachInlineCtasWithAttribute').never();
+
+      await configuredBasicRuntime.setupInlineCta();
     });
   });
 });

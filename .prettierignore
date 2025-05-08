@@ -1,0 +1,2 @@
+# Ignore api proto imported from g3
+src/proto/*

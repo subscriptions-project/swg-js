@@ -65,7 +65,7 @@ export class Storage {
         if (storage) {
           try {
             resolve(storage.getItem(finalKey));
-          } catch (e) {
+          } catch {
             // Ignore error.
             resolve(null);
           }
@@ -120,7 +120,7 @@ export class Storage {
       if (storage) {
         try {
           storage.setItem(finalKey, value);
-        } catch (e) {
+        } catch {
           // Ignore error.
         }
       }
@@ -162,7 +162,7 @@ export class Storage {
       if (storage) {
         try {
           storage.removeItem(finalKey);
-        } catch (e) {
+        } catch {
           // Ignore error.
         }
       }
