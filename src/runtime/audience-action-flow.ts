@@ -104,6 +104,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly storage_: Storage;
   private readonly activityIframeView_: ActivityIframeView;
+  private showRewardedAd?: () => void;
 
   constructor(
     private readonly deps_: Deps,
@@ -489,17 +490,66 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     return true;
   }
 
-  private handleRewardedAdLoadAdRequest() {
-    // TODO: mhkawano - Implement loading a rewarded ad
-    const response = new RewardedAdLoadAdResponse();
-    response.setSuccess(true);
-    this.activityIframeView_.execute(response);
+  private handleRewardedAdLoadAdRequest(request: RewardedAdLoadAdRequest) {
+    const result = (success: boolean) => {
+      const response = new RewardedAdLoadAdResponse();
+      response.setSuccess(success);
+      this.activityIframeView_.execute(response);
+    };
+    const googletag = this.deps_.win().googletag;
+    if (!googletag) {
+      result(false);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      result(false);
+    }, 3000);
+    googletag.cmd.push(() => {
+      const rewardedAdSlot = googletag.defineOutOfPageSlot(
+        request.getAdUnit(),
+        googletag.enums.OutOfPageFormat.REWARDED
+      );
+      if (!rewardedAdSlot) {
+        result(false);
+        return;
+      }
+      rewardedAdSlot.addService(googletag.pubads());
+      googletag
+        .pubads()
+        .addEventListener('rewardedSlotReady', (rewardedAd: googletag.events.RewardedSlotReadyEvent) => {
+          clearTimeout(timeout);
+          this.showRewardedAd = rewardedAd.makeRewardedVisible;
+          result(true);
+        });
+      googletag
+        .pubads()
+        .addEventListener('rewardedSlotClosed', () => {
+          this.params_.monetizationFunction?.();
+        });
+      googletag
+        .pubads()
+        .addEventListener('rewardedSlotGranted', () => {
+          googletag.destroySlots([rewardedAdSlot]);
+          // TODO: mhkawano - Mark the action as completed and toast
+        });
+      googletag
+        .pubads()
+        .addEventListener('slotRenderEnded', (event: googletag.events.SlotRenderEndedEvent) => {
+          if (event.slot === rewardedAdSlot && event.isEmpty) {
+            clearTimeout(timeout);
+            result(false);
+          }
+
+        });
+      googletag.enableServices();
+      googletag.display(rewardedAdSlot);
+      googletag.pubads().refresh([rewardedAdSlot]);
+
+    });
   }
   
-  private handleRewardedAdViewAdRequest(request: RewardedAdViewAdRequest) {
-    // TODO: mhkawano - Implement viewing a rewarded ad
-    console.log('handleRewardedAdViewAdResponse', request.getAdUnit());
-
+  private handleRewardedAdViewAdRequest() {
+    this.showRewardedAd?.();
   }
 
   private handleRewardedAdAlternateActionRequest() {
