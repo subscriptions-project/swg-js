@@ -32,12 +32,12 @@ import {
   CompleteAudienceActionResponse,
   EntitlementsResponse,
   EventOriginator,
-  SurveyDataTransferRequest,
-  SurveyDataTransferResponse,
   RewardedAdAlternateActionRequest,
-  RewardedAdViewAdRequest,
   RewardedAdLoadAdRequest,
   RewardedAdLoadAdResponse,
+  RewardedAdViewAdRequest,
+  SurveyDataTransferRequest,
+  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
@@ -51,6 +51,7 @@ import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {InterventionResult} from '../api/available-intervention';
+import {InterventionType} from '../api/intervention-type';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
@@ -60,9 +61,13 @@ import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
 import {showAlreadyOptedInToast} from '../utils/cta-utils';
 import {warn} from '../utils/log';
-import { InterventionType } from '../api/intervention-type';
 
-export type AudienceActionType = InterventionType.TYPE_REGISTRATION_WALL | InterventionType.TYPE_NEWSLETTER_SIGNUP | InterventionType.TYPE_REWARDED_SURVEY | InterventionType.TYPE_BYO_CTA | InterventionType.TYPE_REWARDED_AD;
+export type AudienceActionType =
+  | InterventionType.TYPE_REGISTRATION_WALL
+  | InterventionType.TYPE_NEWSLETTER_SIGNUP
+  | InterventionType.TYPE_REWARDED_SURVEY
+  | InterventionType.TYPE_BYO_CTA
+  | InterventionType.TYPE_REWARDED_AD;
 
 export interface AudienceActionFlow {
   start: () => Promise<void>;
@@ -145,7 +150,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       /* shouldFadeBody */ true
     );
     // Disables interaction with prompt if rendering for preview.
-    if (!!params_.shouldRenderPreview && params_.action !== InterventionType.TYPE_BYO_CTA) {
+    if (
+      !!params_.shouldRenderPreview &&
+      params_.action !== InterventionType.TYPE_BYO_CTA
+    ) {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });
@@ -280,7 +288,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
   private isOptIn(action: string): boolean {
     return (
-      action === InterventionType.TYPE_NEWSLETTER_SIGNUP || action === InterventionType.TYPE_REGISTRATION_WALL
+      action === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      action === InterventionType.TYPE_REGISTRATION_WALL
     );
   }
 
@@ -494,38 +503,38 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       rewardedAdSlot.addService(googletag.pubads());
       googletag
         .pubads()
-        .addEventListener('rewardedSlotReady', (rewardedAd: googletag.events.RewardedSlotReadyEvent) => {
-          clearTimeout(timeout);
-          this.showRewardedAd = rewardedAd.makeRewardedVisible;
-          result(true);
-        });
-      googletag
-        .pubads()
-        .addEventListener('rewardedSlotClosed', () => {
-          this.params_.monetizationFunction?.();
-        });
-      googletag
-        .pubads()
-        .addEventListener('rewardedSlotGranted', () => {
-          googletag.destroySlots([rewardedAdSlot]);
-          // TODO: mhkawano - Mark the action as completed and toast
-        });
-      googletag
-        .pubads()
-        .addEventListener('slotRenderEnded', (event: googletag.events.SlotRenderEndedEvent) => {
-          if (event.slot === rewardedAdSlot && event.isEmpty) {
+        .addEventListener(
+          'rewardedSlotReady',
+          (rewardedAd: googletag.events.RewardedSlotReadyEvent) => {
             clearTimeout(timeout);
-            result(false);
+            this.showRewardedAd = rewardedAd.makeRewardedVisible;
+            result(true);
           }
-
-        });
+        );
+      googletag.pubads().addEventListener('rewardedSlotClosed', () => {
+        this.params_.monetizationFunction?.();
+      });
+      googletag.pubads().addEventListener('rewardedSlotGranted', () => {
+        googletag.destroySlots([rewardedAdSlot]);
+        // TODO: mhkawano - Mark the action as completed and toast
+      });
+      googletag
+        .pubads()
+        .addEventListener(
+          'slotRenderEnded',
+          (event: googletag.events.SlotRenderEndedEvent) => {
+            if (event.slot === rewardedAdSlot && event.isEmpty) {
+              clearTimeout(timeout);
+              result(false);
+            }
+          }
+        );
       googletag.enableServices();
       googletag.display(rewardedAdSlot);
       googletag.pubads().refresh([rewardedAdSlot]);
-
     });
   }
-  
+
   private handleRewardedAdViewAdRequest() {
     this.showRewardedAd?.();
   }

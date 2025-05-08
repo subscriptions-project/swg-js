@@ -574,8 +574,8 @@ export class AutoPromptManager {
   }): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-            actionType === TYPE_NEWSLETTER_SIGNUP &&
-            preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
+        actionType === TYPE_NEWSLETTER_SIGNUP &&
+        preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType as InterventionType,
               configurationId,
