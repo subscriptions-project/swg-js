@@ -363,7 +363,12 @@ export class AutoPromptManager {
       ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
           ?.displayDelaySeconds || 0) * SECOND_IN_MILLIS
       : 0;
-    this.deps_.win().setTimeout(promptFn, displayDelayMs);
+
+    if (displayDelayMs > 0) {
+      this.deps_.win().setTimeout(promptFn, displayDelayMs);
+    } else {
+      promptFn();
+    }
     return;
   }
 
