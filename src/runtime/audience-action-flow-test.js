@@ -1786,15 +1786,15 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=configId&audienceActionType=TYPE_REWARDED_AD'
       );
       entitlementsManagerMock.expects('clear').once();
-    entitlementsManagerMock.expects('getEntitlements').once();
-    storageMock
-      .expects('set')
-      .withExactArgs(StorageKeys.USER_TOKEN, 'xyz', true)
-      .exactly(1);
-    storageMock
-      .expects('set')
-      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
-      .exactly(1);
+      entitlementsManagerMock.expects('getEntitlements').once();
+      storageMock
+        .expects('set')
+        .withExactArgs(StorageKeys.USER_TOKEN, 'xyz', true)
+        .exactly(1);
+      storageMock
+        .expects('set')
+        .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
+        .exactly(1);
 
       eventListeners['rewardedSlotClosed']();
       expect(alternateActionSpy).to.be.called;

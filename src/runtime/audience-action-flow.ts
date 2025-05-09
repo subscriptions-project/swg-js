@@ -569,23 +569,23 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       emptyMessage
     )) as unknown as DirectCompleteAudienceActionResponse;
     if (response.updated) {
-      await this.updateEntitlements(response.swgUserToken)
+      await this.updateEntitlements(response.swgUserToken);
     }
     // TODO: mhkawano - else log error
   }
 
   private async updateEntitlements(swgUserToken: string | undefined | null) {
-      this.entitlementsManager_.clear();
-      if (swgUserToken) {
-        await this.deps_
-          .storage()
-          .set(StorageKeys.USER_TOKEN, swgUserToken, true);
-      }
-      const now = Date.now().toString();
+    this.entitlementsManager_.clear();
+    if (swgUserToken) {
       await this.deps_
         .storage()
-        .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
-      await this.entitlementsManager_.getEntitlements();
+        .set(StorageKeys.USER_TOKEN, swgUserToken, true);
+    }
+    const now = Date.now().toString();
+    await this.deps_
+      .storage()
+      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
+    await this.entitlementsManager_.getEntitlements();
   }
 
   /**
