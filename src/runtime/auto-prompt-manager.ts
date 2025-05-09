@@ -146,6 +146,7 @@ export class AutoPromptManager {
   private contentType_: ContentType | undefined;
   private shouldRenderOnsitePreview_: boolean = false;
   private dismissibilityCtaFilterExperiment_: boolean = false;
+  private standardRewardedAdExperiment = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -243,6 +244,10 @@ export class AutoPromptManager {
     this.dismissibilityCtaFilterExperiment_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.DISMISSIBILITY_CTA_FILTER_EXPERIMENT
+    );
+    this.standardRewardedAdExperiment = this.isArticleExperimentEnabled_(
+      article,
+      ArticleExperimentFlags.STANDARD_REWARDED_AD_EXPERIMENT
     );
   }
 
@@ -578,7 +583,7 @@ export class AutoPromptManager {
   }): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-        actionType === TYPE_REWARDED_AD
+        actionType === TYPE_REWARDED_AD && !this.standardRewardedAdExperiment
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType as InterventionType,
               configurationId,
@@ -607,6 +612,9 @@ export class AutoPromptManager {
               isClosable: this.isClosable_,
               calledManually: false,
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
+              monetizationFunction: this.getLargeMonetizationPromptFn_(
+                /* shouldAnimateFade */ false
+              ),
             });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
