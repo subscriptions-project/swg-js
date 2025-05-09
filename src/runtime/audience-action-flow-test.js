@@ -193,6 +193,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         gtag: () => {},
         innerHeight: WINDOW_INNER_HEIGHT,
         googletag,
+        fetch: sandbox.stub(),
       }
     );
     messageMap = {};
@@ -1746,6 +1747,12 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
 
     it('handles load and view flows', async () => {
+      storageMock
+        .expects('get')
+        .withArgs(StorageKeys.USER_TOKEN)
+        .resolves('abc')
+        .atLeast(0);
+
       win.googletag.cmd[0]();
       const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
       rewardedAdLoadAdResponse.setSuccess(true);
@@ -1766,8 +1773,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
       expect(readyEventArg.makeRewardedVisible).to.be.called;
 
-      eventListeners['rewardedSlotGranted']();
+      await eventListeners['rewardedSlotGranted']();
       expect(win.googletag.destroySlots).to.be.called;
+      expect(win.fetch).to.be.calledWith(
+        'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=configId&audienceActionType=TYPE_REWARDED_AD'
+      );
 
       eventListeners['rewardedSlotClosed']();
       expect(alternateActionSpy).to.be.called;

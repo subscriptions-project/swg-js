@@ -51,12 +51,16 @@ import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {InterventionResult} from '../api/available-intervention';
+import {Message} from '../proto/api_messages';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
 import {Toast} from '../ui/toast';
+import {XhrFetcher} from './fetcher';
+import {addQueryParam} from '../utils/url';
 import {feArgs, feUrl} from './services';
 import {msg} from '../utils/i18n';
+import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 import {showAlreadyOptedInToast} from '../utils/cta-utils';
 import {warn} from '../utils/log';
@@ -102,6 +106,12 @@ const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
 const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
 
+interface DirectCompleteAudienceActionResponse {
+  updated?: boolean;
+  alreadyCompleted?: boolean;
+  swgUserToken?: string;
+}
+
 /**
  * The flow to initiate and manage handling an audience action.
  */
@@ -112,6 +122,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly storage_: Storage;
   private readonly activityIframeView_: ActivityIframeView;
+  private readonly fetcher: XhrFetcher;
   private showRewardedAd?: () => void;
 
   constructor(
@@ -129,6 +140,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
     this.storage_ = deps_.storage();
+
+    this.fetcher = new XhrFetcher(deps_.win());
 
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(deps_.win().location.href).origin,
@@ -506,9 +519,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       googletag.pubads().addEventListener('rewardedSlotClosed', () => {
         this.params_.monetizationFunction?.();
       });
-      googletag.pubads().addEventListener('rewardedSlotGranted', () => {
+      googletag.pubads().addEventListener('rewardedSlotGranted', async () => {
         googletag.destroySlots([rewardedAdSlot]);
-        // TODO: mhkawano - Mark the action as completed and toast
+        await this.completeAudienceAction();
+        // TODO: mhkawano - Add toast
       });
       googletag
         .pubads()
@@ -533,6 +547,52 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
   private handleRewardedAdAlternateActionRequest() {
     this.params_.monetizationFunction?.();
+  }
+
+  private async completeAudienceAction() {
+    if (!!this.params_.shouldRenderPreview) {
+      return;
+    }
+    const swgUserToken = await this.deps_
+      .storage()
+      .get(StorageKeys.USER_TOKEN, true);
+    const queryParams = [
+      ['sut', swgUserToken!],
+      ['configurationId', this.params_.configurationId!],
+      ['audienceActionType', this.params_.action],
+    ];
+    const publicationId = this.deps_.pageConfig().getPublicationId();
+    const baseUrl = `/publication/${encodeURIComponent(
+      publicationId
+    )}/completeaudienceaction`;
+    const url = queryParams.reduce(
+      (url, [param, value]) => addQueryParam(url, param, value),
+      serviceUrl(baseUrl)
+    );
+
+    // Empty message send as part of the post.
+    const emptyMessage: Message = {
+      toArray: () => [],
+      label: String,
+    };
+    const response = (await this.fetcher.sendPost(
+      url,
+      emptyMessage
+    )) as unknown as DirectCompleteAudienceActionResponse;
+    if (response.updated) {
+      this.entitlementsManager_.clear();
+      if (response.swgUserToken) {
+        await this.deps_
+          .storage()
+          .set(StorageKeys.USER_TOKEN, response.swgUserToken, true);
+      }
+      const now = Date.now().toString();
+      await this.deps_
+        .storage()
+        .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
+      await this.entitlementsManager_.getEntitlements();
+    }
+    // TODO: mhkawano - else log error
   }
 
   /**
