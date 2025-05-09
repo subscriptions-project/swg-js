@@ -21,6 +21,7 @@ import {
   SubscriptionLinkingCompleteResponse,
   SubscriptionLinkingLinkResult,
 } from '../proto/api_messages';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 
 describes.realWin('SubscriptionLinkingFlow', (env) => {
@@ -35,12 +36,14 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
   const PUBLICATION_ID = 'pub1';
   let REQUEST;
   let MULTI_REQUEST;
+  let activitiesMock;
 
   beforeEach(() => {
     win = env.win;
     pageConfig = new PageConfig(`${PUBLICATION_ID}:prod1`);
     runtime = new ConfiguredRuntime(win, pageConfig);
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
+    activitiesMock = sandbox.mock(runtime.activities());
     messageMap = {};
     sandbox.stub(ActivityIframeView.prototype, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
@@ -61,7 +64,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
   });
 
   describe('start', () => {
-    it('opens /linksaveiframe in an ActivityIframeView', async () => {
+    it('Setup the dialog and iframe properly', async () => {
       let activityIframeView;
       let hidden;
       let dialogConfig;
@@ -76,21 +79,31 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
 
       subscriptionLinkingFlow.start(REQUEST);
 
-      const url = new URL(activityIframeView.getUrl());
-      const {pathname, searchParams} = url;
-      expect(pathname).to.equal('/swg/ui/v1/linksaveiframe');
-      expect(searchParams.get('subscriptionLinking')).to.equal('true');
-      expect(searchParams.get('linkTo')).to.equal(
-        `${PUBLICATION_ID},${REQUEST.publisherProvidedId}`
-      );
-      const args = activityIframeView.getArgs();
-      expect(args['publicationId']).to.equal(PUBLICATION_ID);
       expect(activityIframeView.shouldFadeBody()).to.be.false;
       expect(hidden).to.be.false;
       expect(dialogConfig).to.deep.equal({
         desktopConfig: {isCenterPositioned: false},
       });
       dialogManagerMock.verify();
+    });
+
+    it('opens /linksaveiframe in an ActivityIframeView', async () => {
+      const port = new MockActivityPort();
+      port.onResizeRequest = () => {};
+      port.whenReady = () => Promise.resolve();
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(
+          sandbox.match((arg) => arg.tagName == 'IFRAME'),
+          `https://news.google.com/swg/ui/v1/linksaveiframe?_=_&subscriptionLinking=true&linkTo=${PUBLICATION_ID}%2C${REQUEST.publisherProvidedId}`,
+          {publicationId: PUBLICATION_ID, _client: 'SwG 0.0.0'}
+        )
+        .resolves(port);
+
+      subscriptionLinkingFlow.start(REQUEST);
+      await subscriptionLinkingFlow.getRenderPromise();
+
+      activitiesMock.verify();
     });
 
     it('throws an error if publisherProvidedId is missing', async () => {
@@ -103,39 +116,22 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
 
   describe('startMultipleLinks', () => {
     it('opens /linksaveiframe in an ActivityIframeView', async () => {
-      let activityIframeView;
-      let hidden;
-      let dialogConfig;
-      dialogManagerMock
-        .expects('openView')
-        .once()
-        .callsFake(async (viewArg, hiddenArg, dialogConfigArg) => {
-          activityIframeView = viewArg;
-          hidden = hiddenArg;
-          dialogConfig = dialogConfigArg;
-        });
+      const port = new MockActivityPort();
+      port.onResizeRequest = () => {};
+      port.whenReady = () => Promise.resolve();
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(
+          sandbox.match((arg) => arg.tagName == 'IFRAME'),
+          `https://news.google.com/swg/ui/v1/linksaveiframe?_=_&subscriptionLinking=true&linkTo=${PUBLICATION_ID}%2C${REQUEST.publisherProvidedId}&linkTo=${PUBLICATION_ID}2%2Cppid2`,
+          {publicationId: PUBLICATION_ID, _client: 'SwG 0.0.0'}
+        )
+        .resolves(port);
 
       subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST);
+      await subscriptionLinkingFlow.getRenderPromise();
 
-      const url = new URL(activityIframeView.getUrl());
-      const {pathname, searchParams} = url;
-      expect(pathname).to.equal('/swg/ui/v1/linksaveiframe');
-      expect(searchParams.get('subscriptionLinking')).to.equal('true');
-      const links = activityIframeView.getUrl().split('linkTo=');
-      expect(links.length).to.equal(3);
-      expect(links[1]).to.equal(
-        encodeURIComponent(`${PUBLICATION_ID},${REQUEST.publisherProvidedId}`) +
-          '&'
-      );
-      expect(links[2]).to.equal(encodeURIComponent(`${PUBLICATION_ID}2,ppid2`));
-      const args = activityIframeView.getArgs();
-      expect(args['publicationId']).to.equal(PUBLICATION_ID);
-      expect(activityIframeView.shouldFadeBody()).to.be.false;
-      expect(hidden).to.be.false;
-      expect(dialogConfig).to.deep.equal({
-        desktopConfig: {isCenterPositioned: false},
-      });
-      dialogManagerMock.verify();
+      activitiesMock.verify();
     });
 
     it('throws an error if linkTo is missing', async () => {

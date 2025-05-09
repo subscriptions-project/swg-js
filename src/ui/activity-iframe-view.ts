@@ -171,12 +171,4 @@ export class ActivityIframeView extends View {
   shouldAnimateFade(): boolean {
     return this.shouldAnimateFade_;
   }
-
-  getUrl(): string {
-    return this.src_;
-  }
-
-  getArgs(): {[key: string]: string} {
-    return this.args_;
-  }
 }

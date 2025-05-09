@@ -37,6 +37,7 @@ export class SubscriptionLinkingFlow {
   private readonly dialogManager_: DialogManager;
   private completionResolver_: (result: LinkSubscriptionsResult) => void =
     () => {};
+  private renderPromise_?: Promise<void>;
 
   constructor(private readonly deps_: Deps) {
     this.activityPorts_ = deps_.activities();
@@ -46,6 +47,10 @@ export class SubscriptionLinkingFlow {
     this.pageConfig_ = deps_.pageConfig();
 
     this.dialogManager_ = deps_.dialogManager();
+  }
+
+  getRenderPromise() {
+    return this.renderPromise_;
   }
 
   /**
@@ -132,13 +137,14 @@ export class SubscriptionLinkingFlow {
         .eventManager()
         .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_LOADING);
 
-      await this.dialogManager_.openView(
+      this.renderPromise_ = this.dialogManager_.openView(
         activityIframeView,
         /* hidden= */ false,
         {
           desktopConfig: {isCenterPositioned: false},
         }
       );
+      await this.renderPromise_;
 
       this.deps_
         .eventManager()
