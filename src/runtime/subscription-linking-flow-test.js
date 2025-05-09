@@ -16,12 +16,12 @@
 
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ConfiguredRuntime} from './runtime';
+import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {
   SubscriptionLinkingCompleteResponse,
   SubscriptionLinkingLinkResult,
 } from '../proto/api_messages';
-import {MockActivityPort} from '../../test/mock-activity-port';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
 
 describes.realWin('SubscriptionLinkingFlow', (env) => {
