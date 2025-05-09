@@ -140,6 +140,13 @@ const TEST_OPTINONRESULT = {
   data: TEST_OPTINRESULT,
 };
 
+const COMPLETE_RESPONSE = `
+{
+  "updated": true,
+  "alreadyCompleted": true,
+  "swgUserToken": "xyz"
+}`;
+
 describes.realWin('AudienceActionIframeFlow', (env) => {
   let win;
   let runtime;
@@ -1752,13 +1759,20 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         .withArgs(StorageKeys.USER_TOKEN)
         .resolves('abc')
         .atLeast(0);
-      win.fetch
-        .onCall(1)
-        .returns(
-          Promise.resolve(
-            '{"updated": true, "alreadyCompleted": false, "swgUserToken": "xyz"}'
-          )
-        );
+      const completeResponse = new Response(null, {status: 200});
+      completeResponse.text = sandbox
+        .stub()
+        .returns(Promise.resolve(COMPLETE_RESPONSE));
+      win.fetch.onCall(0).returns(Promise.resolve(completeResponse));
+      storageMock
+        .expects('get')
+        .withArgs(StorageKeys.USER_TOKEN)
+        .resolves('abc')
+        .exactly(1);
+      storageMock.expects('set').withArgs(StorageKeys.USER_TOKEN).exactly(1);
+      storageMock.expects('set').withArgs(StorageKeys.READ_TIME).exactly(1);
+      entitlementsManagerMock.expects('clear').once();
+      entitlementsManagerMock.expects('getEntitlements').once();
 
       win.googletag.cmd[0]();
       const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
@@ -1785,16 +1799,8 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       expect(win.fetch).to.be.calledWith(
         'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=configId&audienceActionType=TYPE_REWARDED_AD'
       );
-      entitlementsManagerMock.expects('clear').once();
-      entitlementsManagerMock.expects('getEntitlements').once();
-      storageMock
-        .expects('set')
-        .withExactArgs(StorageKeys.USER_TOKEN, 'xyz', true)
-        .exactly(1);
-      storageMock
-        .expects('set')
-        .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
-        .exactly(1);
+      entitlementsManagerMock.verify();
+      storageMock.verify();
 
       eventListeners['rewardedSlotClosed']();
       expect(alternateActionSpy).to.be.called;
