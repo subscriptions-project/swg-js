@@ -31,7 +31,7 @@
   "devDependencies": {
     "@babel/core": "7.27.1",
     "@babel/eslint-parser": "7.27.1",
-    "@babel/preset-env": "7.27.1",
+    "@babel/preset-env": "7.27.2",
     "@types/google-publisher-tag": "1.20250428.0",
     "@typescript-eslint/eslint-plugin": "8.31.1",
     "@typescript-eslint/parser": "8.31.1",
