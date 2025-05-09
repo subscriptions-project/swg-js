@@ -1752,6 +1752,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         .withArgs(StorageKeys.USER_TOKEN)
         .resolves('abc')
         .atLeast(0);
+      win.fetch
+        .onCall(1)
+        .returns(
+          Promise.resolve(
+            '"{updated": true, "alreadyCompleted": false, "swgUserToken": "xyz"}'
+          )
+        );
 
       win.googletag.cmd[0]();
       const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();

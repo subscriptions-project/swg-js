@@ -550,9 +550,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   private async completeAudienceAction() {
-    if (!!this.params_.shouldRenderPreview) {
-      return;
-    }
     const swgUserToken = await this.deps_
       .storage()
       .get(StorageKeys.USER_TOKEN, true);
