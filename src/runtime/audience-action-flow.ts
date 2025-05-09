@@ -226,16 +226,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
    * 3) Update READ_TIME in local storage to indicate that entitlements may have changed recently
    * 4) Re-fetch entitlements which may potentially provide access to the page
    */
-  private handleCompleteAudienceActionResponse_(
+  private async handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse
-  ): void {
+  ) {
     const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
-    this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
-    if (userToken) {
-      this.deps_.storage().set(StorageKeys.USER_TOKEN, userToken, true);
-    }
+    await this.updateEntitlements(userToken);
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
         configurationId,
@@ -262,11 +259,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         this.showFailedOptedInToast_();
       }
     }
-    const now = Date.now().toString();
-    this.deps_
-      .storage()
-      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
-    this.entitlementsManager_.getEntitlements();
   }
 
   private showSignedInToast_(userEmail: string): void {
@@ -577,19 +569,23 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       emptyMessage
     )) as unknown as DirectCompleteAudienceActionResponse;
     if (response.updated) {
+      await this.updateEntitlements(response.swgUserToken)
+    }
+    // TODO: mhkawano - else log error
+  }
+
+  private async updateEntitlements(swgUserToken: string | undefined | null) {
       this.entitlementsManager_.clear();
-      if (response.swgUserToken) {
+      if (swgUserToken) {
         await this.deps_
           .storage()
-          .set(StorageKeys.USER_TOKEN, response.swgUserToken, true);
+          .set(StorageKeys.USER_TOKEN, swgUserToken, true);
       }
       const now = Date.now().toString();
       await this.deps_
         .storage()
         .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
       await this.entitlementsManager_.getEntitlements();
-    }
-    // TODO: mhkawano - else log error
   }
 
   /**

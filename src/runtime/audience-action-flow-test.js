@@ -392,7 +392,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -437,7 +437,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -483,7 +483,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -526,7 +526,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -572,7 +572,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -616,7 +616,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -654,7 +654,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setActionCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -688,7 +688,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setAlreadyCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -722,7 +722,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setAlreadyCompleted(false);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -767,7 +767,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setFamilyName(TEST_FAMILY_NAME);
     completeAudienceActionResponse.setTermsAndConditionsConsent(true);
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -805,7 +805,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -1756,7 +1756,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         .onCall(1)
         .returns(
           Promise.resolve(
-            '"{updated": true, "alreadyCompleted": false, "swgUserToken": "xyz"}'
+            '{"updated": true, "alreadyCompleted": false, "swgUserToken": "xyz"}'
           )
         );
 
@@ -1785,6 +1785,16 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       expect(win.fetch).to.be.calledWith(
         'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=configId&audienceActionType=TYPE_REWARDED_AD'
       );
+      entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(StorageKeys.USER_TOKEN, 'xyz', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
 
       eventListeners['rewardedSlotClosed']();
       expect(alternateActionSpy).to.be.called;
