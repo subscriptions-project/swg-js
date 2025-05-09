@@ -32,6 +32,10 @@ import {
   CompleteAudienceActionResponse,
   EntitlementsResponse,
   EventOriginator,
+  RewardedAdAlternateActionRequest,
+  RewardedAdLoadAdRequest,
+  RewardedAdLoadAdResponse,
+  RewardedAdViewAdRequest,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
@@ -62,6 +66,8 @@ export interface AudienceActionFlow {
   showNoEntitlementFoundToast: () => void;
 }
 
+const TIMEOUT_MS = 5000;
+
 export interface AudienceActionIframeParams {
   action: string;
   configurationId?: string;
@@ -72,6 +78,7 @@ export interface AudienceActionIframeParams {
   calledManually: boolean;
   shouldRenderPreview?: boolean;
   suppressToast?: boolean;
+  monetizationFunction?: () => void;
 }
 
 // TODO: mhkawano - replace these consts in the project with these
@@ -105,6 +112,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly clientConfigManager_: ClientConfigManager;
   private readonly storage_: Storage;
   private readonly activityIframeView_: ActivityIframeView;
+  private showRewardedAd?: () => void;
 
   constructor(
     private readonly deps_: Deps,
@@ -166,6 +174,21 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.activityIframeView_.on(
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      RewardedAdLoadAdRequest,
+      this.handleRewardedAdLoadAdRequest.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      RewardedAdViewAdRequest,
+      this.handleRewardedAdViewAdRequest.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      RewardedAdAlternateActionRequest,
+      this.handleRewardedAdAlternateActionRequest.bind(this)
     );
 
     const {onCancel} = this.params_;
@@ -450,6 +473,66 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       });
     });
     return true;
+  }
+
+  private handleRewardedAdLoadAdRequest(request: RewardedAdLoadAdRequest) {
+    const result = (success: boolean) => {
+      const response = new RewardedAdLoadAdResponse();
+      response.setSuccess(success);
+      this.activityIframeView_.execute(response);
+    };
+    const googletag = this.deps_.win().googletag;
+    // TODO: mhkawano - assert googletage
+    const timeout = setTimeout(() => {
+      result(false);
+    }, TIMEOUT_MS);
+    googletag.cmd.push(() => {
+      const rewardedAdSlot = googletag.defineOutOfPageSlot(
+        request.getAdUnit(),
+        googletag.enums.OutOfPageFormat.REWARDED
+      );
+      // TODO: mhkawano - assert rewardedAdSlot
+      rewardedAdSlot.addService(googletag.pubads());
+      googletag
+        .pubads()
+        .addEventListener(
+          'rewardedSlotReady',
+          (rewardedAd: googletag.events.RewardedSlotReadyEvent) => {
+            clearTimeout(timeout);
+            this.showRewardedAd = rewardedAd.makeRewardedVisible;
+            result(true);
+          }
+        );
+      googletag.pubads().addEventListener('rewardedSlotClosed', () => {
+        this.params_.monetizationFunction?.();
+      });
+      googletag.pubads().addEventListener('rewardedSlotGranted', () => {
+        googletag.destroySlots([rewardedAdSlot]);
+        // TODO: mhkawano - Mark the action as completed and toast
+      });
+      googletag
+        .pubads()
+        .addEventListener(
+          'slotRenderEnded',
+          (event: googletag.events.SlotRenderEndedEvent) => {
+            if (event.slot === rewardedAdSlot && event.isEmpty) {
+              clearTimeout(timeout);
+              result(false);
+            }
+          }
+        );
+      googletag.enableServices();
+      googletag.display(rewardedAdSlot);
+      googletag.pubads().refresh([rewardedAdSlot]);
+    });
+  }
+
+  private handleRewardedAdViewAdRequest() {
+    this.showRewardedAd?.();
+  }
+
+  private handleRewardedAdAlternateActionRequest() {
+    this.params_.monetizationFunction?.();
   }
 
   /**

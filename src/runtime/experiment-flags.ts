@@ -48,4 +48,9 @@ export enum ArticleExperimentFlags {
    * Experiment flag to enable the rendering of the CTAs inline.
    */
   INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
+
+  /**
+   * Experiment flag to enable the standardized rewarded ads.
+   */
+  STANDARD_REWARDED_AD_EXPERIMENT = 'standard_rewarded_ad_experiment',
 }
