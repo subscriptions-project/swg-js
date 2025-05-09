@@ -32,6 +32,7 @@ module.exports = {
     watch: true,
     debug: true,
     fast: true,
+    ignoreMissing: true,
     plugin: ['tsify'],
     transform: [
       [
