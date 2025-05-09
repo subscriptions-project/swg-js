@@ -20,6 +20,10 @@ import {
   CompleteAudienceActionResponse,
   EntitlementsResponse,
   EventOriginator,
+  RewardedAdAlternateActionRequest,
+  RewardedAdLoadAdRequest,
+  RewardedAdLoadAdResponse,
+  RewardedAdViewAdRequest,
   SurveyAnswer,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
@@ -149,8 +153,38 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   let dialogManagerMock;
   let clientOptions;
   let eventManagerMock;
+  let rewardedSlot;
+  let pubadsobj;
+  let eventListeners;
+  let readyEventArg;
+  let clock;
 
   beforeEach(() => {
+    rewardedSlot = {
+      addService: () => {},
+    };
+    eventListeners = {};
+    pubadsobj = {
+      addEventListener: (event, handler) => {
+        eventListeners[event] = handler;
+      },
+      removeEventListener: sandbox.spy(),
+      refresh: sandbox.spy(),
+    };
+    readyEventArg = {
+      makeRewardedVisible: sandbox.spy(),
+    };
+    const googletag = {
+      cmd: [],
+      defineOutOfPageSlot: () => rewardedSlot,
+      enums: {OutOfPageFormat: {REWARDED: 'REWARDED'}},
+      pubads: () => pubadsobj,
+      enableServices: () => {},
+      display: () => {},
+      destroySlots: sandbox.spy(),
+      apiReady: true,
+      getVersion: () => 'GOOGLETAG_VERSION',
+    };
     win = Object.assign(
       {},
       {
@@ -158,6 +192,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         document: env.win.document,
         gtag: () => {},
         innerHeight: WINDOW_INNER_HEIGHT,
+        googletag,
       }
     );
     messageMap = {};
@@ -188,7 +223,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
     sandbox.stub(runtime, 'win').returns(win);
     onCancelSpy = sandbox.spy();
-    sandbox.useFakeTimers(CURRENT_TIME);
+    clock = sandbox.useFakeTimers(CURRENT_TIME);
     sandbox.stub(self.console, 'warn');
   });
 
@@ -229,6 +264,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       action: 'TYPE_BYO_CTA',
       configurationId: 'byo_cta_config',
       path: 'byoctaiframe',
+    },
+    {
+      action: 'TYPE_REWARDED_AD',
+      configurationId: 'rewarded_ad_config',
+      path: 'rewardedadiframe',
     },
   ].forEach(({action, configurationId, path}) => {
     it(`opens an AudienceActionIframeFlow constructed with params for ${action}`, async () => {
@@ -1676,5 +1716,104 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     activitiesMock.verify();
     activityIframeViewMock.expects('getElement').once();
     expect(onCancelSpy).to.not.be.called;
+  });
+
+  describe('rewarded ad', async () => {
+    let alternateActionSpy;
+    let audienceActionFlow;
+    let activityIframeViewMock;
+    beforeEach(async () => {
+      activitiesMock.expects('openIframe').resolves(port);
+      alternateActionSpy = sandbox.spy();
+      audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+        action: 'TYPE_REWARDED_AD',
+        configurationId: 'configId',
+        onCancel: onCancelSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        calledManually: false,
+        monetizationFunction: alternateActionSpy,
+      });
+      activityIframeViewMock = sandbox.mock(
+        audienceActionFlow.activityIframeView_
+      );
+
+      await audienceActionFlow.start();
+      const rewardedAdLoadAdRequest = new RewardedAdLoadAdRequest();
+      rewardedAdLoadAdRequest.setAdUnit('adunit');
+      const rewardedAdLoadAdRequestCallback =
+        messageMap[rewardedAdLoadAdRequest.label()];
+      rewardedAdLoadAdRequestCallback(rewardedAdLoadAdRequest);
+    });
+
+    it('handles load and view flows', async () => {
+      win.googletag.cmd[0]();
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      eventListeners['rewardedSlotReady'](readyEventArg);
+      eventListeners['slotRenderEnded']({
+        slot: rewardedSlot,
+        isEmpty: false,
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+      expect(readyEventArg.makeRewardedVisible).to.be.called;
+
+      eventListeners['rewardedSlotGranted']();
+      expect(win.googletag.destroySlots).to.be.called;
+
+      eventListeners['rewardedSlotClosed']();
+      expect(alternateActionSpy).to.be.called;
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles rewarded ad timout', async () => {
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      await clock.tick(10000);
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles rewarded no fill', async () => {
+      win.googletag.cmd[0]();
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+      eventListeners['slotRenderEnded']({
+        slot: rewardedSlot,
+        isEmpty: true,
+      });
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles rewarded ad alternate action', async () => {
+      const rewardedAdAlternateActionRequest =
+        new RewardedAdAlternateActionRequest();
+      const rewardedAdAlternateActionRequestCallback =
+        messageMap[rewardedAdAlternateActionRequest.label()];
+      rewardedAdAlternateActionRequestCallback(
+        rewardedAdAlternateActionRequest
+      );
+
+      expect(alternateActionSpy).to.be.called;
+    });
   });
 });
