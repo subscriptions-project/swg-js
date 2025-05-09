@@ -29,6 +29,8 @@ import {
   Config,
   LinkSubscriptionRequest,
   LinkSubscriptionResult,
+  LinkSubscriptionsRequest,
+  LinkSubscriptionsResult,
   LoginRequest,
   OffersRequest,
   PublisherEntitlement,
@@ -587,6 +589,13 @@ export class Runtime implements SubscriptionsInterface {
   ): Promise<LinkSubscriptionResult> {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
+  }
+
+  async linkSubscriptions(
+    request: LinkSubscriptionsRequest
+  ): Promise<LinkSubscriptionsResult> {
+    const runtime = await this.configured_(true);
+    return runtime.linkSubscriptions(request);
   }
 
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
@@ -1235,6 +1244,15 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   ): Promise<LinkSubscriptionResult> {
     await this.documentParsed_;
     return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
+  }
+
+  async linkSubscriptions(
+    linkSubscriptionsRequest: LinkSubscriptionsRequest
+  ): Promise<LinkSubscriptionsResult> {
+    await this.documentParsed_;
+    return new SubscriptionLinkingFlow(this).startMultipleLinks(
+      linkSubscriptionsRequest
+    );
   }
 
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
