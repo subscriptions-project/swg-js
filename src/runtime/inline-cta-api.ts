@@ -113,6 +113,12 @@ export class InlineCtaApi {
     if (!action) {
       return;
     }
+
+    // return if action is not inline CTA supported type.
+    if (action.type === 'TYPE_REWARDED_AD' || action.type === 'TYPE_BYO_CTA') {
+      return;
+    }
+
     // return if no urlPrefix matches action type.
     const urlPrefix = ActionToIframeMapping[action.type] ?? '';
     if (!urlPrefix) {
