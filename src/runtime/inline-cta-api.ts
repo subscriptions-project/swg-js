@@ -28,6 +28,7 @@ import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
+import {isAudienceActionType} from './audience-action-type';
 import {setImportantStyles} from '../utils/style';
 import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
@@ -113,11 +114,12 @@ export class InlineCtaApi {
     if (!action) {
       return;
     }
-    // return if no urlPrefix matches action type.
-    const urlPrefix = ActionToIframeMapping[action.type] ?? '';
-    if (!urlPrefix) {
+    // return if action is not an audience action type
+    if (!isAudienceActionType(action.type)) {
       return;
     }
+    // return if no urlPrefix matches action type.
+    const urlPrefix = ActionToIframeMapping[action.type];
     const fetchUrl = this.getUrl_(urlPrefix, configId);
     const fetchArgs = feArgs({
       'supportsEventManager': true,
