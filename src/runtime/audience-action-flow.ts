@@ -39,7 +39,6 @@ import {
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
-import {AudienceActionType} from './audience-action-type';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
 import {
@@ -73,6 +72,24 @@ export interface AudienceActionFlow {
 }
 
 const TIMEOUT_MS = 5000;
+
+const AUDIENCE_ACTION_TYPES_VALUES = [
+  InterventionType.TYPE_BYO_CTA,
+  InterventionType.TYPE_REGISTRATION_WALL,
+  InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  InterventionType.TYPE_REWARDED_AD,
+  InterventionType.TYPE_REWARDED_SURVEY,
+] as const;
+
+export type AudienceActionType = (typeof AUDIENCE_ACTION_TYPES_VALUES)[number];
+
+const values = AUDIENCE_ACTION_TYPES_VALUES as ReadonlyArray<InterventionType>;
+
+export function isAudienceActionType(
+  actionType: InterventionType
+): actionType is AudienceActionType {
+  return values.includes(actionType);
+}
 
 export interface AudienceActionIframeParams {
   action: AudienceActionType;

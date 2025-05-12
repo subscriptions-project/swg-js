@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AudienceActionType} from '../runtime/audience-action-type';
 import {Doc} from '../model/doc';
 import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
@@ -197,8 +196,11 @@ export function wasReferredByGoogle(parsedReferrer = PARSED_REFERRER): boolean {
 
 /**
  * Map audience action type to their iframe url prefix.
+ * TODO: mhkawano - make all our endpoints into an enum.
  */
-const ActionToIframeMapping: Record<AudienceActionType, string> = {
+const ActionToIframeMapping: Record<InterventionType, string> = {
+  [InterventionType.TYPE_SUBSCRIPTION]: '/subscriptionoffersiframe',
+  [InterventionType.TYPE_CONTRIBUTION]: '/contributionoffersiframe',
   [InterventionType.TYPE_REGISTRATION_WALL]: '/regwalliframe',
   [InterventionType.TYPE_NEWSLETTER_SIGNUP]: '/newsletteriframe',
   [InterventionType.TYPE_REWARDED_SURVEY]: '/surveyiframe',

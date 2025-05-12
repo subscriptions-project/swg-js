@@ -20,9 +20,10 @@ import {ArticleExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
+  AudienceActionType,
+  isAudienceActionType,
 } from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
-import {AudienceActionType, isAudienceActionType} from './audience-action-type';
 import {AutoPromptType, ContentType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';

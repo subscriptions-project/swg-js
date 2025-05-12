@@ -29,13 +29,30 @@ import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
-import {isAudienceActionType} from './audience-action-type';
 import {setImportantStyles} from '../utils/style';
 import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
 const DEFAULT_PRODUCT_TYPE = ProductType.UI_CONTRIBUTION;
+
+const INLINE_CTA_TYPES_VALUES = [
+  InterventionType.TYPE_REGISTRATION_WALL,
+  InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  InterventionType.TYPE_REWARDED_SURVEY,
+  InterventionType.TYPE_CONTRIBUTION,
+  InterventionType.TYPE_SUBSCRIPTION,
+] as const;
+
+type InlineCtaType = (typeof INLINE_CTA_TYPES_VALUES)[number];
+
+const values = INLINE_CTA_TYPES_VALUES as ReadonlyArray<InterventionType>;
+
+function isInlineCtaType(
+  actionType: InterventionType
+): actionType is InlineCtaType {
+  return values.includes(actionType);
+}
 
 export class InlineCtaApi {
   private readonly doc_: Doc;
@@ -116,14 +133,7 @@ export class InlineCtaApi {
       return;
     }
     // return if action is not inline CTA supported type.
-    if (
-      action.type === InterventionType.TYPE_REWARDED_AD ||
-      action.type === InterventionType.TYPE_BYO_CTA
-    ) {
-      return;
-    }
-    // return if action is not an audience action type
-    if (!isAudienceActionType(action.type)) {
+    if (!isInlineCtaType(action.type)) {
       return;
     }
     const urlPrefix = ActionToIframeMapping[action.type];
