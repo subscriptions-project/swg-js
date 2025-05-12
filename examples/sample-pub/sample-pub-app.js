@@ -105,7 +105,7 @@ app.get('/', (req, res) => {
 /**
  * An Article.
  */
-app.get('/:id', (req, res) => {
+app.get(/\/(?<id>\d+$)/, (req, res) => {
   renderArticle(req, res);
 });
 
