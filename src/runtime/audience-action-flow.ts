@@ -574,7 +574,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     // TODO: mhkawano - else log error
   }
 
-  private async updateEntitlements(swgUserToken: string | undefined | null) {
+  private async updateEntitlements(swgUserToken?: string | null) {
     this.entitlementsManager_.clear();
     if (swgUserToken) {
       await this.deps_
