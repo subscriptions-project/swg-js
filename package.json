@@ -5,8 +5,7 @@
   "description": "Subscribe with Google",
   "main": "index.js",
   "engines": {
-    "node": "^22.0.0",
-    "npm": "^11.0.0"
+    "node": "^22.0.0"
   },
   "author": "Subscribe with Google Authors",
   "license": "Apache-2.0",
