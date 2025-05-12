@@ -169,13 +169,78 @@ export class SubscriptionLinkingFlow {
       throw new Error('Missing required field: publisherProvidedId');
     }
     const publicationId = this.pageConfig_.getPublicationId();
-    return this.startMultipleLinks({
-      linkTo: [{publicationId, publisherProvidedId}],
-    }).then((result) => {
-      return {
-        success: !result.anyFailure,
-        publisherProvidedId: result.links[0].publisherProvidedId,
-      };
+    const args = feArgs({publicationId});
+    const activityIframeView = new ActivityIframeView(
+      this.win_,
+      this.activityPorts_,
+      feUrl('/linksaveiframe', {
+        subscriptionLinking: 'true',
+        ppid: publisherProvidedId,
+      }),
+      args,
+      /* shouldFadeBody= */ false
+    );
+
+    activityIframeView.onCancel(() => {
+      const completionStatus = AnalyticsEvent.ACTION_SUBSCRIPTION_LINKING_CLOSE;
+
+      this.deps_.eventManager().logSwgEvent(completionStatus, true);
+
+      this.completionResolver_({
+        anyFailure: true,
+        anySuccess: false,
+        links: [{publicationId, publisherProvidedId, success: false}],
+      });
     });
+
+    activityIframeView.on(
+      SubscriptionLinkingCompleteResponse,
+      (response: SubscriptionLinkingCompleteResponse) => {
+        const completionStatus = response.getSuccess()
+          ? AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_SUCCESS
+          : AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_FAILED;
+
+        this.deps_.eventManager().logSwgEvent(completionStatus);
+        const success = response.getSuccess() ?? false;
+        this.completionResolver_({
+          anyFailure: !success,
+          anySuccess: success,
+          links: [{publicationId, publisherProvidedId, success}],
+        });
+      }
+    );
+
+    const completionPromise = new Promise<LinkSubscriptionsResult>(
+      (resolve) => {
+        this.completionResolver_ = resolve;
+      }
+    );
+    try {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_LOADING);
+
+      this.renderPromise_ = this.dialogManager_.openView(
+        activityIframeView,
+        /* hidden= */ false,
+        {
+          desktopConfig: {isCenterPositioned: false},
+        }
+      );
+      await this.renderPromise_;
+
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_COMPLETE);
+
+      return completionPromise.then((resultsPromise) => {
+        return {publisherProvidedId, success: !resultsPromise.anyFailure};
+      });
+    } catch (e) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.IMPRESSION_SUBSCRIPTION_LINKING_ERROR);
+      throw e;
+    }
   }
 }
