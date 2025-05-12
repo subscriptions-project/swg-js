@@ -105,11 +105,11 @@ app.get('/', (req, res) => {
 /**
  * An Article.
  */
-app.get('/:id(\\d+)', (req, res) => {
+app.get(/^\/(?<id>\d+$)/, (req, res) => {
   renderArticle(req, res);
 });
 
-app.get('/config/:config/:id(\\d+)', (req, res) => {
+app.get('/config/:config/:id', (req, res) => {
   renderArticle(req, res);
 });
 

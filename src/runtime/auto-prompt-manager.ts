@@ -184,14 +184,14 @@ interface ActionTimestamps {
  * displayed to the user.
  */
 export class AutoPromptManager {
-  private isInDevMode_: boolean | undefined;
+  private isInDevMode_?: boolean;
   private hasStoredMiniPromptImpression_ = false;
   private promptIsFromCtaButton_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
-  private configId_: string | undefined;
-  private isClosable_: boolean | undefined;
-  private autoPromptType_: AutoPromptType | undefined;
-  private contentType_: ContentType | undefined;
+  private configId_?: string;
+  private isClosable_?: boolean;
+  private autoPromptType_?: AutoPromptType;
+  private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
   private dismissibilityCtaFilterExperiment_: boolean = false;
   private standardRewardedAdExperiment = false;
@@ -453,7 +453,7 @@ export class AutoPromptManager {
    */
   private getAutoPromptType_(
     actions: Intervention[] = [],
-    autoPromptType: AutoPromptType | undefined
+    autoPromptType?: AutoPromptType
   ): AutoPromptType | undefined {
     const potentialAction = actions.find(
       (action) =>
@@ -529,7 +529,7 @@ export class AutoPromptManager {
     }
 
     // Only other supported ContentType is OPEN.
-    let nextOrchestration: InterventionOrchestration | undefined = undefined;
+    let nextOrchestration: InterventionOrchestration | undefined;
     // Check Default FrequencyCapConfig is valid.
     if (
       !this.isValidFrequencyCap_(
@@ -1110,9 +1110,7 @@ export class AutoPromptManager {
       : frequencyCapConfig.globalFrequencyCap!.frequencyCapDuration;
   }
 
-  private isValidFrequencyCap_(
-    frequencyCapConfig: FrequencyCapConfig | undefined
-  ) {
+  private isValidFrequencyCap_(frequencyCapConfig?: FrequencyCapConfig) {
     return (
       this.isValidFrequencyCapDuration_(
         frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration
@@ -1126,7 +1124,7 @@ export class AutoPromptManager {
     );
   }
 
-  private isValidFrequencyCapDuration_(duration: Duration | undefined) {
+  private isValidFrequencyCapDuration_(duration?: Duration) {
     return !!duration?.seconds || !!duration?.nanos;
   }
 
