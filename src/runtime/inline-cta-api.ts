@@ -124,14 +124,8 @@ export class InlineCtaApi {
     }
     // return if action is not an audience action type
     if (!isAudienceActionType(action.type)) {
-      return
-    }
-    // return if no urlPrefix matches action type.
-    const urlPrefix = ActionToIframeMapping[action.type] ?? '';
-    if (!urlPrefix) {
       return;
     }
-    // return if no urlPrefix matches action type.
     const urlPrefix = ActionToIframeMapping[action.type];
     const fetchUrl = this.getUrl_(urlPrefix, configId);
     const fetchArgs = feArgs({
