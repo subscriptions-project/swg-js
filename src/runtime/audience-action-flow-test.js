@@ -34,13 +34,13 @@ import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
 import {Constants, StorageKeys} from '../utils/constants';
+import {InterventionType} from '../api/intervention-type';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
-import {tick} from '../../test/tick';
 import {isAudienceActionType} from './audience-action-flow';
-import {InterventionType} from '../api/intervention-type';
+import {tick} from '../../test/tick';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const WINDOW_INNER_HEIGHT = 424242;
@@ -1853,12 +1853,17 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   });
 
   it('isAudienceActionType returns correct value for InterventionType', () => {
-    expect(isAudienceActionType(InterventionType.TYPE_SUBSCRIPTION)).to.be.false;
-    expect(isAudienceActionType(InterventionType.TYPE_CONTRIBUTION)).to.be.false;
+    expect(isAudienceActionType(InterventionType.TYPE_SUBSCRIPTION)).to.be
+      .false;
+    expect(isAudienceActionType(InterventionType.TYPE_CONTRIBUTION)).to.be
+      .false;
     expect(isAudienceActionType(InterventionType.TYPE_BYO_CTA)).to.be.true;
-    expect(isAudienceActionType(InterventionType.TYPE_NEWSLETTER_SIGNUP)).to.be.true;
-    expect(isAudienceActionType(InterventionType.TYPE_REGISTRATION_WALL)).to.be.true;
+    expect(isAudienceActionType(InterventionType.TYPE_NEWSLETTER_SIGNUP)).to.be
+      .true;
+    expect(isAudienceActionType(InterventionType.TYPE_REGISTRATION_WALL)).to.be
+      .true;
     expect(isAudienceActionType(InterventionType.TYPE_REWARDED_AD)).to.be.true;
-    expect(isAudienceActionType(InterventionType.TYPE_REWARDED_SURVEY)).to.be.true;
+    expect(isAudienceActionType(InterventionType.TYPE_REWARDED_SURVEY)).to.be
+      .true;
   });
 });
