@@ -109,7 +109,7 @@ app.get(/\/(?<id>\d+$)/, (req, res) => {
   renderArticle(req, res);
 });
 
-app.get(/\/config\/(?<config>[\w-]+$)\/(?<id>\d+$)/, (req, res) => {
+app.get(/\/config\/(?<config>[\w-]+)\/(?<id>\d+$)/, (req, res) => {
   renderArticle(req, res);
 });
 
