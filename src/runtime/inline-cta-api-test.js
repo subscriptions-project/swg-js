@@ -45,6 +45,10 @@ const NEWSLETTER_INTERVENTION = {
   type: 'TYPE_NEWSLETTER_SIGNUP',
   configurationId: 'newsletter_config_id',
 };
+const REWARDED_AD_INTERVENTION = {
+  type: 'TYPE_REWARDED_AD',
+  configurationId: 'rewarded_ad_config_id',
+};
 const CURRENT_TIME = 1615416442000;
 const EXPECTED_TIME_STRING = '1615416442000';
 
@@ -239,6 +243,21 @@ describes.realWin('InlineCtaApi', (env) => {
     it('should not show any CTA if there are entitlements', async () => {
       setEntitlements(true);
       setArticleResponse([NEWSLETTER_INTERVENTION]);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      const iframe = win.document.querySelector('iframe');
+      expect(iframe).to.equal(null);
+    });
+
+    it('should not show any CTA if no inline configId', async () => {
+      win.document.body.removeChild(newsletterSnippet);
+      const rewardedAdSnippet = createElement(win.document, 'div', {
+        'rrm-inline-cta': REWARDED_AD_INTERVENTION.configurationId,
+      });
+      win.document.body.append(rewardedAdSnippet);
+      setEntitlements();
+      setArticleResponse([REWARDED_AD_INTERVENTION]);
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
 
