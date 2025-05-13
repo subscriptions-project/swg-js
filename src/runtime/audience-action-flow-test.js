@@ -1730,7 +1730,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     let alternateActionSpy;
     let audienceActionFlow;
     let activityIframeViewMock;
-    beforeEach(async () => {
+    async function setupRewardedAds() {
       activitiesMock.expects('openIframe').resolves(port);
       alternateActionSpy = sandbox.spy();
       audienceActionFlow = new AudienceActionIframeFlow(runtime, {
@@ -1751,9 +1751,10 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       const rewardedAdLoadAdRequestCallback =
         messageMap[rewardedAdLoadAdRequest.label()];
       rewardedAdLoadAdRequestCallback(rewardedAdLoadAdRequest);
-    });
+    }
 
     it('handles load and view flows', async () => {
+      await setupRewardedAds();
       storageMock
         .expects('get')
         .withArgs(StorageKeys.USER_TOKEN)
@@ -1773,6 +1774,28 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       storageMock.expects('set').withArgs(StorageKeys.READ_TIME).exactly(1);
       entitlementsManagerMock.expects('clear').once();
       entitlementsManagerMock.expects('getEntitlements').once();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_GRANTED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
 
       win.googletag.cmd[0]();
       const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
@@ -1809,6 +1832,18 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
 
     it('handles rewarded ad timout', async () => {
+      await setupRewardedAds();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
       const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
       rewardedAdLoadAdResponse.setSuccess(false);
       activityIframeViewMock
@@ -1822,6 +1857,18 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
 
     it('handles rewarded no fill', async () => {
+      await setupRewardedAds();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
       win.googletag.cmd[0]();
       const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
       rewardedAdLoadAdResponse.setSuccess(false);
@@ -1837,7 +1884,45 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       activityIframeViewMock.verify();
     });
 
+    it('handles missing googletag', async () => {
+      win.googletag = undefined;
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      await setupRewardedAds({disableDefineOutOfPageSlot: true});
+    });
+
+    it('handles improper page set up', async () => {
+      win.googletag.defineOutOfPageSlot = () => {};
+
+      await setupRewardedAds();
+
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      win.googletag.cmd[0]();
+    });
+
     it('handles rewarded ad alternate action', async () => {
+      await setupRewardedAds();
       const rewardedAdAlternateActionRequest =
         new RewardedAdAlternateActionRequest();
       const rewardedAdAlternateActionRequestCallback =
