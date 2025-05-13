@@ -1548,7 +1548,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
     beforeEach(() => {
       autoPromptConfig = new AutoPromptConfig({
-        globalFrequencyCapDurationSeconds,
         anyPromptFrequencyCapDurationSeconds,
         displayDelaySeconds: 0,
       });
