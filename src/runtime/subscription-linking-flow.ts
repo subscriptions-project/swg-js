@@ -201,7 +201,7 @@ export class SubscriptionLinkingFlow {
           : AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_FAILED;
 
         this.deps_.eventManager().logSwgEvent(completionStatus);
-        const success = response.getSuccess() ?? false;
+        const success = !!response.getSuccess();
         this.completionResolver_({
           anyFailure: !success,
           anySuccess: success,
