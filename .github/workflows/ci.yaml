@@ -130,3 +130,8 @@ jobs:
 
       - name: Unit Tests
         run: gulp unit --headless --coverage
+
+      - uses: codecov/codecov-action@v5
+        with:
+          token: b46693f4-3af4-40ce-a257-3cbbe9cc3bee
+          files: ./test/coverage/lcov-unit.info
