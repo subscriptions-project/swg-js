@@ -265,15 +265,15 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(iframe).to.equal(null);
     });
 
-    it('should not show any CTA if action type is not in mapping', async () => {
+    it('should not show any CTA if action type is not supported', async () => {
       win.document.body.removeChild(newsletterSnippet);
       const contributionSnippet = createElement(win.document, 'div', {
-        'rrm-inline-cta': CONTRIBUTION_INTERVENTION.configurationId,
+        'rrm-inline-cta': REWARDED_AD_INTERVENTION.configurationId,
       });
       win.document.body.append(contributionSnippet);
       setEntitlements();
       setArticleResponse([
-        CONTRIBUTION_INTERVENTION,
+        REWARDED_AD_INTERVENTION,
         SURVEY_INTERVENTION,
         NEWSLETTER_INTERVENTION,
       ]);

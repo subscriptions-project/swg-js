@@ -23,6 +23,7 @@ import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {Intervention} from './intervention';
+import {InterventionType} from '../api/intervention-type';
 import {ProductType} from '../api/subscriptions';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
@@ -113,17 +114,14 @@ export class InlineCtaApi {
     if (!action) {
       return;
     }
-
     // return if action is not inline CTA supported type.
-    if (action.type === 'TYPE_REWARDED_AD' || action.type === 'TYPE_BYO_CTA') {
+    if (
+      action.type === InterventionType.TYPE_REWARDED_AD ||
+      action.type === InterventionType.TYPE_BYO_CTA
+    ) {
       return;
     }
-
-    // return if no urlPrefix matches action type.
-    const urlPrefix = ActionToIframeMapping[action.type] ?? '';
-    if (!urlPrefix) {
-      return;
-    }
+    const urlPrefix = ActionToIframeMapping[action.type];
     const fetchUrl = this.getUrl_(urlPrefix, configId);
     const fetchArgs = feArgs({
       'supportsEventManager': true,
