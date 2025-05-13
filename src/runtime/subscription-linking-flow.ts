@@ -119,7 +119,7 @@ export class SubscriptionLinkingFlow {
             const val: SubscriptionLinkResult = {
               publicationId: link.getSwgPublicationId(),
               publisherProvidedId: link.getPublisherProvidedId(),
-              success: link.getSuccess() || false,
+              success: !!link.getSuccess(),
             };
             return val;
           }),
