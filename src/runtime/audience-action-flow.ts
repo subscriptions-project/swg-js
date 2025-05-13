@@ -502,8 +502,17 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       this.activityIframeView_.execute(response);
     };
     const googletag = this.deps_.win().googletag;
-    // TODO: mhkawano - assert googletage
+    if (!googletag) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR);
+      result(false);
+      return;
+    }
     const timeout = setTimeout(() => {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR);
       result(false);
     }, TIMEOUT_MS);
     googletag.cmd.push(() => {
@@ -511,7 +520,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         request.getAdUnit(),
         googletag.enums.OutOfPageFormat.REWARDED
       );
-      // TODO: mhkawano - assert rewardedAdSlot
+      if (!rewardedAdSlot) {
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR);
+        result(false);
+        return;
+      }
       rewardedAdSlot.addService(googletag.pubads());
       googletag
         .pubads()
@@ -524,11 +539,20 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           }
         );
       googletag.pubads().addEventListener('rewardedSlotClosed', () => {
+        this.deps_
+          .eventManager()
+          .logSwgEvent(
+            AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+            /* isFromUserAction */ true
+          );
         this.params_.monetizationFunction?.();
       });
       googletag.pubads().addEventListener('rewardedSlotGranted', async () => {
         googletag.destroySlots([rewardedAdSlot]);
         await this.completeAudienceAction();
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
         // TODO: mhkawano - Add toast
       });
       googletag
@@ -538,6 +562,9 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           (event: googletag.events.SlotRenderEndedEvent) => {
             if (event.slot === rewardedAdSlot && event.isEmpty) {
               clearTimeout(timeout);
+              this.deps_
+                .eventManager()
+                .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED);
               result(false);
             }
           }
