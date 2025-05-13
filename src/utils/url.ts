@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {Doc} from '../model/doc';
+import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {warn} from './log';
 
@@ -194,14 +195,17 @@ export function wasReferredByGoogle(parsedReferrer = PARSED_REFERRER): boolean {
 }
 
 /**
- * Map action type to their iframe url prefix.
+ * Map audience action type to their iframe url prefix.
+ * TODO: mhkawano - make all our endpoints into an enum.
  */
-const ActionToIframeMapping: {[key: string]: string} = {
-  TYPE_REGISTRATION_WALL: '/regwalliframe',
-  TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
-  TYPE_REWARDED_SURVEY: '/surveyiframe',
-  TYPE_BYO_CTA: '/byoctaiframe',
-  TYPE_REWARDED_AD: '/rewardedadiframe',
+const ActionToIframeMapping: Record<InterventionType, string> = {
+  [InterventionType.TYPE_SUBSCRIPTION]: '/subscriptionoffersiframe',
+  [InterventionType.TYPE_CONTRIBUTION]: '/contributionoffersiframe',
+  [InterventionType.TYPE_REGISTRATION_WALL]: '/regwalliframe',
+  [InterventionType.TYPE_NEWSLETTER_SIGNUP]: '/newsletteriframe',
+  [InterventionType.TYPE_REWARDED_SURVEY]: '/surveyiframe',
+  [InterventionType.TYPE_BYO_CTA]: '/byoctaiframe',
+  [InterventionType.TYPE_REWARDED_AD]: '/rewardedadiframe',
 };
 
 export {ActionToIframeMapping};

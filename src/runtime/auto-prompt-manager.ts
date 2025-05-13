@@ -20,6 +20,8 @@ import {ArticleExperimentFlags} from './experiment-flags';
 import {
   AudienceActionFlow,
   AudienceActionIframeFlow,
+  AudienceActionType,
+  isAudienceActionType,
 } from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType, ContentType} from '../api/basic-subscriptions';
@@ -48,14 +50,6 @@ import {Storage, pruneTimestamps} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 
-// TODO: mhkawano - replace these consts with api/interventions:InterventionType
-const TYPE_CONTRIBUTION = 'TYPE_CONTRIBUTION';
-const TYPE_SUBSCRIPTION = 'TYPE_SUBSCRIPTION';
-const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
-const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
-const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
-const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
-const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 const SECOND_IN_MILLIS = 1000;
 const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
   'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
@@ -68,43 +62,97 @@ const monetizationImpressionEvents = [
 ];
 
 const DISMISSAL_EVENTS_TO_ACTION_MAP = new Map([
-  [AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE, TYPE_CONTRIBUTION],
-  [AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED, TYPE_CONTRIBUTION],
-  [AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE, TYPE_NEWSLETTER_SIGNUP],
-  [AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE, TYPE_NEWSLETTER_SIGNUP],
-  [AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE, TYPE_REGISTRATION_WALL],
-  [AnalyticsEvent.ACTION_SURVEY_CLOSED, TYPE_REWARDED_SURVEY],
-  [AnalyticsEvent.ACTION_REWARDED_AD_CLOSE, TYPE_REWARDED_AD],
-  [AnalyticsEvent.ACTION_BYO_CTA_CLOSE, TYPE_BYO_CTA],
-  [AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE, TYPE_SUBSCRIPTION],
-  [AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED, TYPE_SUBSCRIPTION],
+  [
+    AnalyticsEvent.ACTION_SWG_CONTRIBUTION_MINI_PROMPT_CLOSE,
+    InterventionType.TYPE_CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.ACTION_CONTRIBUTION_OFFERS_CLOSED,
+    InterventionType.TYPE_CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_CLOSE,
+    InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  ],
+  [
+    AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE,
+    InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  ],
+  [
+    AnalyticsEvent.ACTION_REGWALL_OPT_IN_CLOSE,
+    InterventionType.TYPE_REGISTRATION_WALL,
+  ],
+  [AnalyticsEvent.ACTION_SURVEY_CLOSED, InterventionType.TYPE_REWARDED_SURVEY],
+  [AnalyticsEvent.ACTION_REWARDED_AD_CLOSE, InterventionType.TYPE_REWARDED_AD],
+  [AnalyticsEvent.ACTION_BYO_CTA_CLOSE, InterventionType.TYPE_BYO_CTA],
+  [
+    AnalyticsEvent.ACTION_SWG_SUBSCRIPTION_MINI_PROMPT_CLOSE,
+    InterventionType.TYPE_SUBSCRIPTION,
+  ],
+  [
+    AnalyticsEvent.ACTION_SUBSCRIPTION_OFFERS_CLOSED,
+    InterventionType.TYPE_SUBSCRIPTION,
+  ],
 ]);
 
 const COMPLETION_EVENTS_TO_ACTION_MAP = new Map([
-  [AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE, TYPE_CONTRIBUTION],
+  [
+    AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
+    InterventionType.TYPE_CONTRIBUTION,
+  ],
   [
     AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
-    TYPE_NEWSLETTER_SIGNUP,
+    InterventionType.TYPE_NEWSLETTER_SIGNUP,
   ],
-  [AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT, TYPE_NEWSLETTER_SIGNUP],
-  [AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK, TYPE_REGISTRATION_WALL],
-  [AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK, TYPE_REWARDED_SURVEY],
-  [AnalyticsEvent.ACTION_REWARDED_AD_VIEW, TYPE_REWARDED_AD],
-  [AnalyticsEvent.ACTION_BYO_CTA_BUTTON_CLICK, TYPE_BYO_CTA],
-  [AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE, TYPE_SUBSCRIPTION],
+  [
+    AnalyticsEvent.ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT,
+    InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  ],
+  [
+    AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
+    InterventionType.TYPE_REGISTRATION_WALL,
+  ],
+  [
+    AnalyticsEvent.ACTION_SURVEY_SUBMIT_CLICK,
+    InterventionType.TYPE_REWARDED_SURVEY,
+  ],
+  [AnalyticsEvent.ACTION_REWARDED_AD_VIEW, InterventionType.TYPE_REWARDED_AD],
+  [AnalyticsEvent.ACTION_BYO_CTA_BUTTON_CLICK, InterventionType.TYPE_BYO_CTA],
+  [
+    AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+    InterventionType.TYPE_SUBSCRIPTION,
+  ],
 ]);
 
 const IMPRESSION_EVENTS_TO_ACTION_MAP = new Map([
-  [AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT, TYPE_CONTRIBUTION],
-  [AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS, TYPE_CONTRIBUTION],
-  [AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN, TYPE_NEWSLETTER_SIGNUP],
-  [AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN, TYPE_NEWSLETTER_SIGNUP],
-  [AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN, TYPE_REGISTRATION_WALL],
-  [AnalyticsEvent.IMPRESSION_SURVEY, TYPE_REWARDED_SURVEY],
-  [AnalyticsEvent.IMPRESSION_REWARDED_AD, TYPE_REWARDED_AD],
-  [AnalyticsEvent.IMPRESSION_BYO_CTA, TYPE_BYO_CTA],
-  [AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT, TYPE_SUBSCRIPTION],
-  [AnalyticsEvent.IMPRESSION_OFFERS, TYPE_SUBSCRIPTION],
+  [
+    AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
+    InterventionType.TYPE_CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
+    InterventionType.TYPE_CONTRIBUTION,
+  ],
+  [
+    AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+    InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  ],
+  [
+    AnalyticsEvent.IMPRESSION_BYOP_NEWSLETTER_OPT_IN,
+    InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  ],
+  [
+    AnalyticsEvent.IMPRESSION_REGWALL_OPT_IN,
+    InterventionType.TYPE_REGISTRATION_WALL,
+  ],
+  [AnalyticsEvent.IMPRESSION_SURVEY, InterventionType.TYPE_REWARDED_SURVEY],
+  [AnalyticsEvent.IMPRESSION_REWARDED_AD, InterventionType.TYPE_REWARDED_AD],
+  [AnalyticsEvent.IMPRESSION_BYO_CTA, InterventionType.TYPE_BYO_CTA],
+  [
+    AnalyticsEvent.IMPRESSION_SWG_SUBSCRIPTION_MINI_PROMPT,
+    InterventionType.TYPE_SUBSCRIPTION,
+  ],
+  [AnalyticsEvent.IMPRESSION_OFFERS, InterventionType.TYPE_SUBSCRIPTION],
 ]);
 
 const GENERIC_COMPLETION_EVENTS = [AnalyticsEvent.EVENT_PAYMENT_FAILED];
@@ -136,14 +184,14 @@ interface ActionTimestamps {
  * displayed to the user.
  */
 export class AutoPromptManager {
-  private isInDevMode_: boolean | undefined;
+  private isInDevMode_?: boolean;
   private hasStoredMiniPromptImpression_ = false;
   private promptIsFromCtaButton_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
-  private configId_: string | undefined;
-  private isClosable_: boolean | undefined;
-  private autoPromptType_: AutoPromptType | undefined;
-  private contentType_: ContentType | undefined;
+  private configId_?: string;
+  private isClosable_?: boolean;
+  private autoPromptType_?: AutoPromptType;
+  private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
   private dismissibilityCtaFilterExperiment_: boolean = false;
   private standardRewardedAdExperiment = false;
@@ -391,8 +439,11 @@ export class AutoPromptManager {
     );
   }
 
-  private isMonetizationAction_(actionType: string | undefined): boolean {
-    return actionType === TYPE_SUBSCRIPTION || actionType === TYPE_CONTRIBUTION;
+  private isMonetizationAction_(actionType: InterventionType): boolean {
+    return (
+      actionType === InterventionType.TYPE_SUBSCRIPTION ||
+      actionType === InterventionType.TYPE_CONTRIBUTION
+    );
   }
 
   /**
@@ -402,11 +453,12 @@ export class AutoPromptManager {
    */
   private getAutoPromptType_(
     actions: Intervention[] = [],
-    autoPromptType: AutoPromptType | undefined
+    autoPromptType?: AutoPromptType
   ): AutoPromptType | undefined {
     const potentialAction = actions.find(
       (action) =>
-        action.type === TYPE_CONTRIBUTION || action.type === TYPE_SUBSCRIPTION
+        action.type === InterventionType.TYPE_CONTRIBUTION ||
+        action.type === InterventionType.TYPE_SUBSCRIPTION
     );
 
     // No article actions match contribution or subscription.
@@ -415,7 +467,7 @@ export class AutoPromptManager {
     }
 
     const snippetAction =
-      potentialAction.type === TYPE_CONTRIBUTION
+      potentialAction.type === InterventionType.TYPE_CONTRIBUTION
         ? // Allow autoPromptType to enable miniprompt.
           autoPromptType === AutoPromptType.CONTRIBUTION
           ? AutoPromptType.CONTRIBUTION
@@ -477,7 +529,7 @@ export class AutoPromptManager {
     }
 
     // Only other supported ContentType is OPEN.
-    let nextOrchestration: InterventionOrchestration | undefined = undefined;
+    let nextOrchestration: InterventionOrchestration | undefined;
     // Check Default FrequencyCapConfig is valid.
     if (
       !this.isValidFrequencyCap_(
@@ -577,13 +629,14 @@ export class AutoPromptManager {
     configurationId,
     preference,
   }: {
-    actionType: string;
+    actionType: AudienceActionType;
     configurationId?: string;
     preference?: string;
   }): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-        actionType === TYPE_REWARDED_AD && !this.standardRewardedAdExperiment
+        actionType === InterventionType.TYPE_REWARDED_AD &&
+        !this.standardRewardedAdExperiment
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType as InterventionType,
               configurationId,
@@ -595,7 +648,7 @@ export class AutoPromptManager {
               calledManually: false,
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             })
-          : actionType === TYPE_NEWSLETTER_SIGNUP &&
+          : actionType === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
             preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
               action: actionType as InterventionType,
@@ -906,10 +959,10 @@ export class AutoPromptManager {
       this.storeCompletion(action!);
     } else if (GENERIC_COMPLETION_EVENTS.includes(event)) {
       if (this.isContribution_()) {
-        this.storeCompletion(TYPE_CONTRIBUTION);
+        this.storeCompletion(InterventionType.TYPE_CONTRIBUTION);
       }
       if (this.isSubscription_()) {
-        this.storeCompletion(TYPE_SUBSCRIPTION);
+        this.storeCompletion(InterventionType.TYPE_SUBSCRIPTION);
       }
       // TODO(justinchou@) handle failure modes for event EVENT_PAYMENT_FAILED
     }
@@ -936,7 +989,7 @@ export class AutoPromptManager {
     action: Intervention,
     timestamps: ActionsTimestamps
   ): boolean {
-    if (action.type === TYPE_REWARDED_SURVEY) {
+    if (action.type === InterventionType.TYPE_REWARDED_SURVEY) {
       const isAnalyticsEligible =
         GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
         GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
@@ -948,7 +1001,9 @@ export class AutoPromptManager {
       // Client side eligibility is required to handle identity transitions
       // after sign-in flow. TODO(b/332759781): update survey completion check
       // to persist even after 2 weeks.
-      return !(timestamps[TYPE_REWARDED_SURVEY]?.completions || []).length;
+      return !(
+        timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions || []
+      ).length;
     }
     return true;
   }
@@ -1055,9 +1110,7 @@ export class AutoPromptManager {
       : frequencyCapConfig.globalFrequencyCap!.frequencyCapDuration;
   }
 
-  private isValidFrequencyCap_(
-    frequencyCapConfig: FrequencyCapConfig | undefined
-  ) {
+  private isValidFrequencyCap_(frequencyCapConfig?: FrequencyCapConfig) {
     return (
       this.isValidFrequencyCapDuration_(
         frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration
@@ -1071,18 +1124,18 @@ export class AutoPromptManager {
     );
   }
 
-  private isValidFrequencyCapDuration_(duration: Duration | undefined) {
+  private isValidFrequencyCapDuration_(duration?: Duration) {
     return !!duration?.seconds || !!duration?.nanos;
   }
 
   private getAutoPromptFunction_(action: Intervention) {
-    return this.isMonetizationAction_(action.type)
-      ? this.getMonetizationPromptFn_()
-      : this.getAudienceActionPromptFn_({
+    return isAudienceActionType(action.type)
+      ? this.getAudienceActionPromptFn_({
           actionType: action.type,
           configurationId: action.configurationId,
           preference: action.preference,
-        });
+        })
+      : this.getMonetizationPromptFn_();
   }
 
   /**

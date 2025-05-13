@@ -5,8 +5,7 @@
   "description": "Subscribe with Google",
   "main": "index.js",
   "engines": {
-    "node": "^22.0.0",
-    "npm": "^11.0.0"
+    "node": "^22.0.0"
   },
   "author": "Subscribe with Google Authors",
   "license": "Apache-2.0",
@@ -33,8 +32,8 @@
     "@babel/eslint-parser": "7.27.1",
     "@babel/preset-env": "7.27.2",
     "@types/google-publisher-tag": "1.20250428.0",
-    "@typescript-eslint/eslint-plugin": "8.32.0",
-    "@typescript-eslint/parser": "8.32.0",
+    "@typescript-eslint/eslint-plugin": "8.32.1",
+    "@typescript-eslint/parser": "8.32.1",
     "ansi-colors": "4.1.3",
     "autoprefixer": "10.4.21",
     "babel-loader": "10.0.0",
@@ -51,7 +50,7 @@
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-sort-requires": "2.1.0",
-    "express": "4.21.2",
+    "express": "5.1.0",
     "fancy-log": "2.0.0",
     "fs-extra": "11.3.0",
     "glob": "11.0.2",

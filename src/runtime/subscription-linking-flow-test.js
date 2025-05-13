@@ -95,7 +95,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          `https://news.google.com/swg/ui/v1/linksaveiframe?_=_&subscriptionLinking=true&linkTo=${PUBLICATION_ID}%2C${REQUEST.publisherProvidedId}`,
+          `https://news.google.com/swg/ui/v1/linksaveiframe?_=_&subscriptionLinking=true&ppid=${REQUEST.publisherProvidedId}`,
           {publicationId: PUBLICATION_ID, _client: 'SwG 0.0.0'}
         )
         .resolves(port);
@@ -147,28 +147,31 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       const linkResult = new SubscriptionLinkingLinkResult();
       linkResult.setSuccess(true);
       linkResult.setSwgPublicationId(PUBLICATION_ID);
-      linkResult.setPublisherProvidedId('abc');
+      linkResult.setPublisherProvidedId('ppid');
       const response = new SubscriptionLinkingCompleteResponse();
       response.setLinkResultsList([linkResult]);
       response.setSuccess(true);
-      response.setPublisherProvidedId('abc');
+      response.setPublisherProvidedId('ppid');
 
       const resultPromise = subscriptionLinkingFlow.start(REQUEST);
       const handler = messageMap[response.label()];
       handler(response);
 
       const result = await resultPromise;
-      expect(result).to.deep.equal({publisherProvidedId: 'abc', success: true});
+      expect(result).to.deep.equal({
+        publisherProvidedId: 'ppid',
+        success: true,
+      });
     });
 
     it('resolves with success=false if missing from response', async () => {
       dialogManagerMock.expects('openView').once().resolves();
       const linkResult = new SubscriptionLinkingLinkResult();
       linkResult.setSwgPublicationId(PUBLICATION_ID);
-      linkResult.setPublisherProvidedId('abc');
+      linkResult.setPublisherProvidedId('ppid');
       linkResult.setSuccess(false);
       const response = new SubscriptionLinkingCompleteResponse();
-      response.setPublisherProvidedId('abc');
+      response.setPublisherProvidedId('ppid');
       response.setLinkResultsList([linkResult]);
       response.setSuccess(false);
 
@@ -178,7 +181,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
 
       const result = await resultPromise;
       expect(result).to.deep.equal({
-        publisherProvidedId: 'abc',
+        publisherProvidedId: 'ppid',
         success: false,
       });
     });
