@@ -51,6 +51,7 @@ import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {InterventionResult} from '../api/available-intervention';
+import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
@@ -72,8 +73,26 @@ export interface AudienceActionFlow {
 
 const TIMEOUT_MS = 5000;
 
+const AUDIENCE_ACTION_TYPES_VALUES = [
+  InterventionType.TYPE_BYO_CTA,
+  InterventionType.TYPE_REGISTRATION_WALL,
+  InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  InterventionType.TYPE_REWARDED_AD,
+  InterventionType.TYPE_REWARDED_SURVEY,
+] as const;
+
+export type AudienceActionType = (typeof AUDIENCE_ACTION_TYPES_VALUES)[number];
+
+const values = AUDIENCE_ACTION_TYPES_VALUES as ReadonlyArray<InterventionType>;
+
+export function isAudienceActionType(
+  actionType: InterventionType
+): actionType is AudienceActionType {
+  return values.includes(actionType);
+}
+
 export interface AudienceActionIframeParams {
-  action: string;
+  action: AudienceActionType;
   configurationId?: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
@@ -84,14 +103,6 @@ export interface AudienceActionIframeParams {
   suppressToast?: boolean;
   monetizationFunction?: () => void;
 }
-
-// TODO: mhkawano - replace these consts in the project with these
-// Action types returned by the article endpoint
-export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
-export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
-export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
-export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
-export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
 
 const autopromptTypeToProductTypeMapping: {
   [key in AutoPromptType]?: ProductType;
@@ -165,7 +176,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       /* shouldFadeBody */ true
     );
     // Disables interaction with prompt if rendering for preview.
-    if (!!params_.shouldRenderPreview && params_.action !== TYPE_BYO_CTA) {
+    if (
+      !!params_.shouldRenderPreview &&
+      params_.action !== InterventionType.TYPE_BYO_CTA
+    ) {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });
@@ -265,13 +279,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
+      case InterventionType.TYPE_REGISTRATION_WALL:
         customText = msg(
           SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED_LANG_MAP,
           lang
         )!.replace(placeholderPatternForEmail, userEmail);
         break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
+      case InterventionType.TYPE_NEWSLETTER_SIGNUP:
         customText = msg(
           SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_LANG_MAP,
           lang
@@ -292,7 +306,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
   private isOptIn(action: string): boolean {
     return (
-      action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL
+      action === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      action === InterventionType.TYPE_REGISTRATION_WALL
     );
   }
 
@@ -300,13 +315,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
+      case InterventionType.TYPE_REGISTRATION_WALL:
         customText = msg(
           SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED_LANG_MAP,
           lang
         )!;
         break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
+      case InterventionType.TYPE_NEWSLETTER_SIGNUP:
         customText = msg(
           SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED_LANG_MAP,
           lang
