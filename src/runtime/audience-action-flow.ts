@@ -587,7 +587,11 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
         /* isFromUserAction */ true
       );
-    this.params_.monetizationFunction?.();
+    if (this.params_.onAlternateAction) {
+      this.params_.onAlternateAction();
+    } else {
+      this.params_.monetizationFunction?.();
+    }
     this.params_.onResult?.({
       configurationId: this.params_.configurationId,
       data: {
