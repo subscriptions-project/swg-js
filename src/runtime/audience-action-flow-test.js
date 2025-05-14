@@ -837,9 +837,33 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     response.setSubscriberOrMember(true);
     const messageCallback = messageMap['AlreadySubscribedResponse'];
     messageCallback(response);
+
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
     });
+  });
+
+  it('should trigger login callback if provided', async () => {
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    const loginCallbackSpy = sandbox.spy();
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+      onSignIn: loginCallbackSpy,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+    const response = new AlreadySubscribedResponse();
+    response.setSubscriberOrMember(true);
+    const messageCallback = messageMap['AlreadySubscribedResponse'];
+    messageCallback(response);
+
+    expect(loginStub).to.not.be.called;
+    expect(loginCallbackSpy).to.be.called;
   });
 
   it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
@@ -1730,10 +1754,12 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
 
   describe('rewarded ad', async () => {
     let alternateActionSpy;
+    let monetizationFunctionSpy;
     let audienceActionFlow;
     let activityIframeViewMock;
-    async function setupRewardedAds() {
+    async function setupRewardedAds(opt) {
       activitiesMock.expects('openIframe').resolves(port);
+      monetizationFunctionSpy = sandbox.spy();
       alternateActionSpy = sandbox.spy();
       audienceActionFlow = new AudienceActionIframeFlow(runtime, {
         action: 'TYPE_REWARDED_AD',
@@ -1741,7 +1767,10 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         onCancel: onCancelSpy,
         autoPromptType: AutoPromptType.SUBSCRIPTION,
         calledManually: false,
-        monetizationFunction: alternateActionSpy,
+        monetizationFunction: monetizationFunctionSpy,
+        onAlternateAction: opt?.setAlternateActionCallback
+          ? alternateActionSpy
+          : undefined,
       });
       activityIframeViewMock = sandbox.mock(
         audienceActionFlow.activityIframeView_
@@ -1828,7 +1857,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       storageMock.verify();
 
       eventListeners['rewardedSlotClosed']();
-      expect(alternateActionSpy).to.be.called;
+      expect(monetizationFunctionSpy).to.be.called;
 
       activityIframeViewMock.verify();
     });
@@ -1924,7 +1953,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
 
     it('handles rewarded ad alternate action', async () => {
-      await setupRewardedAds();
+      await setupRewardedAds({setAlternateActionCallback: true});
       const rewardedAdAlternateActionRequest =
         new RewardedAdAlternateActionRequest();
       const rewardedAdAlternateActionRequestCallback =
@@ -1933,7 +1962,22 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         rewardedAdAlternateActionRequest
       );
 
+      expect(monetizationFunctionSpy).to.not.be.called;
       expect(alternateActionSpy).to.be.called;
+    });
+
+    it('handles rewarded ad alternate action', async () => {
+      await setupRewardedAds({setAlternateActionCallback: false});
+      const rewardedAdAlternateActionRequest =
+        new RewardedAdAlternateActionRequest();
+      const rewardedAdAlternateActionRequestCallback =
+        messageMap[rewardedAdAlternateActionRequest.label()];
+      rewardedAdAlternateActionRequestCallback(
+        rewardedAdAlternateActionRequest
+      );
+
+      expect(monetizationFunctionSpy).to.be.called;
+      expect(alternateActionSpy).to.not.be.called;
     });
   });
 

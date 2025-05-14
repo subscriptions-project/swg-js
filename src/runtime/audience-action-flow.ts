@@ -546,7 +546,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private setUpRewardedAd(adunit: string | null) {
     const googletag = this.deps_.win().googletag;
     this.rewardedAdSlot = googletag.defineOutOfPageSlot(
-      adunit || '',
+      adunit!,
       googletag.enums.OutOfPageFormat.REWARDED
     );
     if (!this.rewardedAdSlot) {
