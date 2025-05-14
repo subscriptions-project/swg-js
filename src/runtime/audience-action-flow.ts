@@ -177,13 +177,11 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();
     }
-    if (this.params_.action === InterventionType.TYPE_REWARDED_AD) {
-      if (this.params_.onAlternateAction) {
-        iframeParams['onaa'] = 'true';
-      }
-      if (this.params_.onSignIn) {
-        iframeParams['onsi'] = 'true';
-      }
+    if (this.params_.onAlternateAction) {
+      iframeParams['onaa'] = 'true';
+    }
+    if (this.params_.onSignIn) {
+      iframeParams['onsi'] = 'true';
     }
     this.activityIframeView_ = new ActivityIframeView(
       deps_.win(),
