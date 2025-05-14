@@ -1005,6 +1005,18 @@ export class AutoPromptManager {
         timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions || []
       ).length;
     }
+    // NOTE: passing these checks does not mean googletag is always available.
+    if (action.type === InterventionType.TYPE_REWARDED_AD) {
+      const gtag = this.deps_.win().googletag;
+      // Because this happens after the article call, googletag should have had enougn time to set up
+      if (!gtag) {
+        return false;
+      }
+      // Fake api check
+      if (!!gtag?.apiReady && !gtag?.getVersion()) {
+        return false;
+      }
+    }
     return true;
   }
 
