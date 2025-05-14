@@ -77,9 +77,6 @@ function runLinter(filePath, stream, options) {
     log(green('Starting linter...'));
   }
 
-  // Load custom rules.
-  options.rulePaths = ['build-system/eslint-rules'];
-
   const fixedFiles = {};
   return stream
     .pipe(eslint(options))

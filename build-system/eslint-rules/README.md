@@ -1,1 +1,0 @@
-ESLint rules for the SwG project. These rules were copied from the [`ampproject/amphtml` project](https://github.com/ampproject/amphtml/tree/master/build-system/eslint-rules). Only a relevant subset of rules were copied, since this project's scope is smaller.

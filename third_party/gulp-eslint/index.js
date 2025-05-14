@@ -4,7 +4,6 @@ const PluginError = require('plugin-error');
 const {ESLint} = require('eslint');
 const {
   createIgnoreResult,
-  filterResult,
   firstResultMessage,
   handleCallback,
   isErrorMessage,
