@@ -1013,7 +1013,7 @@ export class AutoPromptManager {
         return false;
       }
       // Fake api check
-      if(!!gtag?.apiReady && !gtag?.getVersion()) {
+      if (!!gtag?.apiReady && !gtag?.getVersion()) {
         return false;
       }
     }

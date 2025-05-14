@@ -3870,7 +3870,10 @@ describes.realWin('AutoPromptManager', (env) => {
     it('Rewarded ad is not eligible when googletag is not available', async () => {
       win.googletag = undefined;
 
-      const isEligible = autoPromptManager.checkActionEligibility_({type: 'TYPE_REWARDED_AD'},{});
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        {type: 'TYPE_REWARDED_AD'},
+        {}
+      );
 
       expect(isEligible).to.be.false;
     });
@@ -3881,7 +3884,10 @@ describes.realWin('AutoPromptManager', (env) => {
         getVersion: () => '',
       };
 
-      const isEligible = autoPromptManager.checkActionEligibility_({type: 'TYPE_REWARDED_AD'},{});
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        {type: 'TYPE_REWARDED_AD'},
+        {}
+      );
 
       expect(isEligible).to.be.false;
     });
@@ -3892,7 +3898,10 @@ describes.realWin('AutoPromptManager', (env) => {
         getVersion: () => 'foo',
       };
 
-      const isEligible = autoPromptManager.checkActionEligibility_({type: 'TYPE_REWARDED_AD'},{});
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        {type: 'TYPE_REWARDED_AD'},
+        {}
+      );
 
       expect(isEligible).to.be.true;
     });
