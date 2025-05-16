@@ -33,11 +33,11 @@ import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {Constants, StorageKeys} from '../utils/constants';
 import {InterventionType} from '../api/intervention-type';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
+import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {isAudienceActionType} from './audience-action-flow';
 import {tick} from '../../test/tick';
@@ -241,13 +241,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     eventManagerMock.verify();
     self.console.warn.reset();
   });
-
-  function setWinWithoutGtag() {
-    const winWithNoGtag = Object.assign({}, win);
-    delete winWithNoGtag.gtag;
-    runtime.win.restore();
-    sandbox.stub(runtime, 'win').returns(winWithNoGtag);
-  }
 
   [
     {
@@ -867,165 +860,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     activityIframeViewMock.verify();
   });
 
-  it(`handles a SurveyDataTransferRequest with successful Google Analytics logging`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_1,
-            'event_label': TEST_ANSWER_TEXT_1,
-            'survey_question': TEST_QUESTION_TEXT_1,
-            'survey_question_category': TEST_QUESTION_CATEGORY_1,
-            'survey_answer': TEST_ANSWER_TEXT_1,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_1,
-            'content_id': TEST_QUESTION_CATEGORY_1,
-            'content_group': TEST_QUESTION_TEXT_1,
-            'content_type': TEST_ANSWER_TEXT_1,
-          },
-        }
-      )
-      .once();
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          // Rendering response for more than first survey answer choice
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_1,
-            'event_label': TEST_ANSWER_TEXT_2,
-            'survey_question': TEST_QUESTION_TEXT_1,
-            'survey_question_category': TEST_QUESTION_CATEGORY_1,
-            'survey_answer': TEST_ANSWER_TEXT_2,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
-            'content_id': TEST_QUESTION_CATEGORY_1,
-            'content_group': TEST_QUESTION_TEXT_1,
-            'content_type': TEST_ANSWER_TEXT_2,
-          },
-        }
-      )
-      .once();
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_2,
-            'event_label': TEST_ANSWER_TEXT_2,
-            'survey_question': TEST_QUESTION_TEXT_2,
-            'survey_question_category': TEST_QUESTION_CATEGORY_2,
-            'survey_answer': TEST_ANSWER_TEXT_2,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
-            'content_id': TEST_QUESTION_CATEGORY_2,
-            'content_group': TEST_QUESTION_TEXT_2,
-            'content_type': TEST_ANSWER_TEXT_2,
-          },
-        }
-      )
-      .once();
-    eventManagerMock.expects('logEvent').withExactArgs(
-      {
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-        configurationId: null,
-      },
-      undefined,
-      undefined
-    );
-
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with failed Google Analytics logging`, async () => {
-    setWinWithoutGtag();
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      )
-      .once();
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(false);
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-  });
-
   it(`handles a SurveyDataTransferRequest with successful gtm logging`, async () => {
     const winWithDataLayer = Object.assign({}, win);
     delete winWithDataLayer.gtag;
@@ -1146,56 +980,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     await tick(10);
 
     activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful onResult logging`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-      .resolves(true)
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: TEST_SURVEYONRESULTCONFIGID,
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
-      calledManually: false,
-    });
-
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock.expects('logEvent').withExactArgs(
-      {
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-        configurationId: null,
-      },
-      undefined,
-      undefined
-    );
-
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-    onResultMock.verify();
   });
 
   it(`handles a SurveyDataTransferRequest with failed onResult logging`, async () => {
@@ -1363,146 +1147,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     onResultMock.verify();
   });
 
-  it(`handles an empty SurveyDataTransferRequest without onResult logging`, async () => {
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': '',
-            'event_label': '',
-            'survey_question': '',
-            'survey_question_category': '',
-            'survey_answer': '',
-            'survey_answer_category': '',
-            'content_id': '',
-            'content_group': '',
-            'content_type': '',
-          },
-        }
-      )
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock.expects('logEvent').withExactArgs(
-      {
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-        configurationId: null,
-      },
-      undefined,
-      undefined
-    );
-
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-
-    const messageCallback =
-      messageMap[TEST_EMPTY_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_EMPTY_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful PPS storage in empty localStorage`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
-    };
-    storageMock
-      .expects('set')
-      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
-      .once();
-
-    await audienceActionFlow.start();
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock.expects('execute').once();
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
-
-    await tick(10);
-
-    storageMock.verify();
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    const existingIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['2', '3', '4']},
-    };
-    const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {
-        values: ['1', '2', '3', '4'],
-      },
-    };
-
-    storageMock
-      .expects('get')
-      .withExactArgs('ppstaxonomies', true)
-      .resolves(JSON.stringify(existingIabTaxonomyMap))
-      .once();
-
-    storageMock
-      .expects('set')
-      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
-      .once();
-
-    await audienceActionFlow.start();
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock.expects('execute').once();
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
-
-    await tick(10);
-
-    storageMock.verify();
-    activityIframeViewMock.verify();
-  });
-
   it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS ppstaxonomies but flag enabled`, async () => {
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
@@ -1524,50 +1168,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
 
     await tick(10);
 
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with improper existing PPS`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    const existingIabTaxonomyMapBadFormat = {
-      'test': {'values': ['5']},
-    };
-    const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
-    };
-
-    storageMock
-      .expects('get')
-      .withExactArgs('ppstaxonomies', true)
-      .resolves(JSON.stringify(existingIabTaxonomyMapBadFormat))
-      .once();
-
-    storageMock
-      .expects('set')
-      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
-      .once();
-
-    await audienceActionFlow.start();
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock.expects('execute').once();
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
-
-    await tick(10);
-
-    storageMock.verify();
     activityIframeViewMock.verify();
   });
 

@@ -19,7 +19,10 @@ import {ActivityPorts} from '../components/activities';
 import {ClientConfig, UiPredicates} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {CompleteAudienceActionResponse} from '../proto/api_messages';
+import {
+  CompleteAudienceActionResponse,
+  SurveyDataTransferRequest,
+} from '../proto/api_messages';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
@@ -32,6 +35,7 @@ import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {createElement} from '../utils/dom';
+import * as Utils from '../utils/cta-utils';
 
 const CONTRIBUTION_INTERVENTION = {
   type: 'TYPE_CONTRIBUTION',
@@ -250,27 +254,12 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(iframe).to.equal(null);
     });
 
-    it('should not show any CTA if no inline configId', async () => {
+    it('should not show any CTA if action type is not supported', async () => {
       win.document.body.removeChild(newsletterSnippet);
       const rewardedAdSnippet = createElement(win.document, 'div', {
         'rrm-inline-cta': REWARDED_AD_INTERVENTION.configurationId,
       });
       win.document.body.append(rewardedAdSnippet);
-      setEntitlements();
-      setArticleResponse([REWARDED_AD_INTERVENTION]);
-
-      await inlineCtaApi.attachInlineCtasWithAttribute({});
-
-      const iframe = win.document.querySelector('iframe');
-      expect(iframe).to.equal(null);
-    });
-
-    it('should not show any CTA if action type is not supported', async () => {
-      win.document.body.removeChild(newsletterSnippet);
-      const contributionSnippet = createElement(win.document, 'div', {
-        'rrm-inline-cta': REWARDED_AD_INTERVENTION.configurationId,
-      });
-      win.document.body.append(contributionSnippet);
       setEntitlements();
       setArticleResponse([
         REWARDED_AD_INTERVENTION,
@@ -314,6 +303,26 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(port.onResizeRequest).to.have.been.calledOnce;
       onResizeRequestCallback(100);
       expect(iframe.style.height).to.equal('100px');
+    });
+
+    it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
+      const surveyDataTransferRequest = new SurveyDataTransferRequest();
+      const handleSurveyDataTransferRequestSpy = sandbox.spy(
+        Utils.handleSurveyDataTransferRequest
+      );
+      setEntitlements();
+      setArticleResponse([
+        CONTRIBUTION_INTERVENTION,
+        SURVEY_INTERVENTION,
+        NEWSLETTER_INTERVENTION,
+      ]);
+      expectOpenIframe();
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+      const messageCallback = messageMap[surveyDataTransferRequest.label()];
+
+      messageCallback(surveyDataTransferRequest);
+
+      expect(handleSurveyDataTransferRequestSpy).to.be.called;
     });
   });
 

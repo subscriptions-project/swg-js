@@ -31,40 +31,43 @@ import {
   AnalyticsEvent,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
-  EventOriginator,
+  // EventOriginator,
   RewardedAdAlternateActionRequest,
   RewardedAdLoadAdRequest,
   RewardedAdLoadAdResponse,
   RewardedAdViewAdRequest,
   SurveyDataTransferRequest,
-  SurveyDataTransferResponse,
+  // SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
-import {
-  Constants,
-  StorageKeys,
-  StorageKeysWithoutPublicationIdSuffix,
-} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
-import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+// import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {ProductType} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
-import {Storage} from './storage';
+// import {Storage} from './storage';
+import {
+  // Constants,
+  StorageKeys,
+  // StorageKeysWithoutPublicationIdSuffix,
+} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {feArgs, feUrl} from './services';
+import {
+  handleSurveyDataTransferRequest,
+  showAlreadyOptedInToast,
+} from '../utils/cta-utils';
 import {msg} from '../utils/i18n';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
-import {showAlreadyOptedInToast} from '../utils/cta-utils';
-import {warn} from '../utils/log';
+// import {warn} from '../utils/log';
 
 export interface AudienceActionFlow {
   start: () => Promise<void>;
@@ -131,7 +134,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly dialogManager_: DialogManager;
   private readonly entitlementsManager_: EntitlementsManager;
   private readonly clientConfigManager_: ClientConfigManager;
-  private readonly storage_: Storage;
+  // private readonly storage_: Storage;
   private readonly activityIframeView_: ActivityIframeView;
   private readonly fetcher: XhrFetcher;
   private showRewardedAd?: () => void;
@@ -150,7 +153,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
     this.clientConfigManager_ = deps_.clientConfigManager();
 
-    this.storage_ = deps_.storage();
+    // this.storage_ = deps_.storage();
 
     this.fetcher = new XhrFetcher(deps_.win());
 
@@ -195,7 +198,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     );
 
     this.activityIframeView_.on(SurveyDataTransferRequest, (request) =>
-      this.handleSurveyDataTransferRequest_(request)
+      handleSurveyDataTransferRequest(
+        request,
+        this.deps_,
+        this.activityIframeView_,
+        this.params_.configurationId,
+        this.params_.onResult
+      )
     );
 
     this.activityIframeView_.on(
@@ -347,153 +356,153 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     }
   }
 
-  private async handleSurveyDataTransferRequest_(
-    request: SurveyDataTransferRequest
-  ): Promise<void> {
-    const dataTransferSuccess = await this.attemptSurveyDataTransfer(request);
-    if (dataTransferSuccess) {
-      this.deps_
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-          /* isFromUserAction */ true
-        );
-    } else {
-      this.deps_
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          /* isFromUserAction */ false
-        );
-    }
-    const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    const isPpsEligible = request.getStorePpsInLocalStorage();
+  // private async handleSurveyDataTransferRequest_(
+  //   request: SurveyDataTransferRequest
+  // ): Promise<void> {
+  //   const dataTransferSuccess = await this.attemptSurveyDataTransfer(request);
+  //   if (dataTransferSuccess) {
+  //     this.deps_
+  //       .eventManager()
+  //       .logSwgEvent(
+  //         AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+  //         /* isFromUserAction */ true
+  //       );
+  //   } else {
+  //     this.deps_
+  //       .eventManager()
+  //       .logSwgEvent(
+  //         AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+  //         /* isFromUserAction */ false
+  //       );
+  //   }
+  //   const surveyDataTransferResponse = new SurveyDataTransferResponse();
+  //   const isPpsEligible = request.getStorePpsInLocalStorage();
 
-    if (isPpsEligible) {
-      await this.storePpsValuesFromSurveyAnswers(request);
-    }
+  //   if (isPpsEligible) {
+  //     await this.storePpsValuesFromSurveyAnswers(request);
+  //   }
 
-    surveyDataTransferResponse.setSuccess(dataTransferSuccess);
-    this.activityIframeView_.execute(surveyDataTransferResponse);
-  }
+  //   surveyDataTransferResponse.setSuccess(dataTransferSuccess);
+  //   this.activityIframeView_.execute(surveyDataTransferResponse);
+  // }
 
   /**
    * Attempts to log survey data.
    */
-  private async attemptSurveyDataTransfer(
-    request: SurveyDataTransferRequest
-  ): Promise<boolean> {
-    // @TODO(justinchou): execute callback with setOnInterventionComplete
-    // then check for success
-    const {onResult} = this.params_;
-    if (onResult) {
-      try {
-        return await onResult({
-          configurationId: this.params_.configurationId,
-          data: request,
-        });
-      } catch (e) {
-        warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
-        return false;
-      }
-    }
-    return this.logSurveyDataToGoogleAnalytics(request);
-  }
+  // private async attemptSurveyDataTransfer(
+  //   request: SurveyDataTransferRequest
+  // ): Promise<boolean> {
+  //   // @TODO(justinchou): execute callback with setOnInterventionComplete
+  //   // then check for success
+  //   const {onResult} = this.params_;
+  //   if (onResult) {
+  //     try {
+  //       return await onResult({
+  //         configurationId: this.params_.configurationId,
+  //         data: request,
+  //       });
+  //     } catch (e) {
+  //       warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
+  //       return false;
+  //     }
+  //   }
+  //   return this.logSurveyDataToGoogleAnalytics(request);
+  // }
 
   /**
    * Populates localStorage with PPS configuration parameters based on
    * SurveyDataTransferRequest.
    **/
-  private async storePpsValuesFromSurveyAnswers(
-    request: SurveyDataTransferRequest
-  ): Promise<void> {
-    const iabAudienceKey = StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES;
-    // PPS value field is optional and category may not be populated
-    // in accordance to IAB taxonomies.
-    const ppsConfigParams = request
-      .getSurveyQuestionsList()!
-      .flatMap((question) => question.getSurveyAnswersList())
-      .map((answer) => answer?.getPpsValue())
-      .filter((ppsValue) => ppsValue !== null);
+  // private async storePpsValuesFromSurveyAnswers(
+  //   request: SurveyDataTransferRequest
+  // ): Promise<void> {
+  //   const iabAudienceKey = StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES;
+  //   // PPS value field is optional and category may not be populated
+  //   // in accordance to IAB taxonomies.
+  //   const ppsConfigParams = request
+  //     .getSurveyQuestionsList()!
+  //     .flatMap((question) => question.getSurveyAnswersList())
+  //     .map((answer) => answer?.getPpsValue())
+  //     .filter((ppsValue) => ppsValue !== null);
 
-    const existingIabTaxonomy = await this.storage_.get(
-      iabAudienceKey,
-      /* useLocalStorage= */ true
-    );
-    let existingIabTaxonomyValues: string[] = [];
-    try {
-      const parsedExistingIabTaxonomyValues = JSON.parse(
-        existingIabTaxonomy!
-      )?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]?.values;
-      existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
-        ? parsedExistingIabTaxonomyValues
-        : [];
-    } catch {
-      // Ignore error since it defaults to empty array.
-    }
+  //   const existingIabTaxonomy = await this.storage_.get(
+  //     iabAudienceKey,
+  //     /* useLocalStorage= */ true
+  //   );
+  //   let existingIabTaxonomyValues: string[] = [];
+  //   try {
+  //     const parsedExistingIabTaxonomyValues = JSON.parse(
+  //       existingIabTaxonomy!
+  //     )?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]?.values;
+  //     existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
+  //       ? parsedExistingIabTaxonomyValues
+  //       : [];
+  //   } catch {
+  //     // Ignore error since it defaults to empty array.
+  //   }
 
-    const iabTaxonomyValues = Array.from(
-      new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
-    );
-    const iabTaxonomy = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
-    };
+  //   const iabTaxonomyValues = Array.from(
+  //     new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
+  //   );
+  //   const iabTaxonomy = {
+  //     [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
+  //   };
 
-    await Promise.resolve(
-      this.storage_.set(
-        iabAudienceKey,
-        JSON.stringify(iabTaxonomy),
-        /* useLocalStorage= */ true
-      )
-    );
-    // TODO(caroljli): clearcut event logging
-  }
+  //   await Promise.resolve(
+  //     this.storage_.set(
+  //       iabAudienceKey,
+  //       JSON.stringify(iabTaxonomy),
+  //       /* useLocalStorage= */ true
+  //     )
+  //   );
+  //   // TODO(caroljli): clearcut event logging
+  // }
 
   /*
    * Logs SurveyDataTransferRequest to Google Analytics, which contains payload to surface as dimensions in Google Analytics (GA4, UA, GTM).
    * Returns whether or not logging was successful.
    */
-  private logSurveyDataToGoogleAnalytics(
-    request: SurveyDataTransferRequest
-  ): boolean {
-    if (
-      !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
-      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_) &&
-      !GoogleAnalyticsEventListener.isGtmEligible(this.deps_)
-    ) {
-      return false;
-    }
-    request.getSurveyQuestionsList()?.map((question) => {
-      const event = {
-        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-      };
-      question.getSurveyAnswersList()?.map((answer) => {
-        const eventParams = {
-          googleAnalyticsParameters: {
-            // Custom dimensions.
-            'survey_question': question.getQuestionText() || '',
-            'survey_question_category': question.getQuestionCategory() || '',
-            'survey_answer': answer.getAnswerText() || '',
-            'survey_answer_category': answer.getAnswerCategory() || '',
-            // GA4 Default dimensions.
-            'content_id': question.getQuestionCategory() || '',
-            'content_group': question.getQuestionText() || '',
-            'content_type': answer.getAnswerText() || '',
-            // UA Default dimensions.
-            // TODO(yeongjinoh): Remove default dimensions once beta publishers
-            // complete migration to GA4.
-            'event_category': question.getQuestionCategory() || '',
-            'event_label': answer.getAnswerText() || '',
-          },
-        };
-        this.deps_.eventManager().logEvent(event, eventParams);
-      });
-    });
-    return true;
-  }
+  // private logSurveyDataToGoogleAnalytics(
+  //   request: SurveyDataTransferRequest
+  // ): boolean {
+  //   if (
+  //     !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
+  //     !GoogleAnalyticsEventListener.isGtagEligible(this.deps_) &&
+  //     !GoogleAnalyticsEventListener.isGtmEligible(this.deps_)
+  //   ) {
+  //     return false;
+  //   }
+  //   request.getSurveyQuestionsList()?.map((question) => {
+  //     const event = {
+  //       eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+  //       eventOriginator: EventOriginator.SWG_CLIENT,
+  //       isFromUserAction: true,
+  //       additionalParameters: null,
+  //     };
+  //     question.getSurveyAnswersList()?.map((answer) => {
+  //       const eventParams = {
+  //         googleAnalyticsParameters: {
+  //           // Custom dimensions.
+  //           'survey_question': question.getQuestionText() || '',
+  //           'survey_question_category': question.getQuestionCategory() || '',
+  //           'survey_answer': answer.getAnswerText() || '',
+  //           'survey_answer_category': answer.getAnswerCategory() || '',
+  //           // GA4 Default dimensions.
+  //           'content_id': question.getQuestionCategory() || '',
+  //           'content_group': question.getQuestionText() || '',
+  //           'content_type': answer.getAnswerText() || '',
+  //           // UA Default dimensions.
+  //           // TODO(yeongjinoh): Remove default dimensions once beta publishers
+  //           // complete migration to GA4.
+  //           'event_category': question.getQuestionCategory() || '',
+  //           'event_label': answer.getAnswerText() || '',
+  //         },
+  //       };
+  //       this.deps_.eventManager().logEvent(event, eventParams);
+  //     });
+  //   });
+  //   return true;
+  // }
 
   private handleRewardedAdLoadAdRequest(request: RewardedAdLoadAdRequest) {
     const result = (success: boolean) => {
