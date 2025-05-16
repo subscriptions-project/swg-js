@@ -3117,6 +3117,8 @@ describes.realWin('EntitlementsManager', (env) => {
         onResult: undefined,
         calledManually: true,
         suppressToast: true,
+        onAlternateAction: undefined,
+        onSignIn: undefined,
       });
       expect(startSpy).to.have.been.calledOnce;
     });
