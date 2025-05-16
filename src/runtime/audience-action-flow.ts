@@ -617,6 +617,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         type: event?.payload?.type,
       },
     });
+    this.dialogManager_.completeView(this.activityIframeView_);
     if (!this.params_.suppressToast) {
       new Toast(this.deps_, feUrl('/toastiframe', {flavor: 'ad'})).open();
     }
@@ -649,7 +650,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   private handleRewardedAdViewAdRequest() {
-    this.dialogManager_.completeView(this.activityIframeView_);
+    // this.dialogManager_.completeView(this.activityIframeView_);
     this.showRewardedAd?.();
   }
 
