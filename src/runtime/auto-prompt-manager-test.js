@@ -3867,6 +3867,45 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(isEligible).to.be.false;
     });
 
+    it('Rewarded ad is not eligible when googletag is not available', async () => {
+      win.googletag = undefined;
+
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        {type: 'TYPE_REWARDED_AD'},
+        {}
+      );
+
+      expect(isEligible).to.be.false;
+    });
+
+    it('Rewarded ad is not eligible when fake googletag api is available', async () => {
+      win.googletag = {
+        apiReady: true,
+        getVersion: () => '',
+      };
+
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        {type: 'TYPE_REWARDED_AD'},
+        {}
+      );
+
+      expect(isEligible).to.be.false;
+    });
+
+    it('Rewarded ad is eligible when googletag available', async () => {
+      win.googletag = {
+        apiReady: true,
+        getVersion: () => 'foo',
+      };
+
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        {type: 'TYPE_REWARDED_AD'},
+        {}
+      );
+
+      expect(isEligible).to.be.true;
+    });
+
     it('Orchestration is not eligible when action is not eligible', async () => {
       const isEligible = autoPromptManager.checkOrchestrationEligibility_(
         {configId: 'not_eligible_id'},
