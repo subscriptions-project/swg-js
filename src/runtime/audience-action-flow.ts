@@ -125,7 +125,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly dialogManager_: DialogManager;
   private readonly entitlementsManager_: EntitlementsManager;
   private readonly clientConfigManager_: ClientConfigManager;
-  // private readonly storage_: Storage;
   private readonly activityIframeView_: ActivityIframeView;
   private readonly fetcher: XhrFetcher;
   private showRewardedAd?: () => void;
@@ -143,8 +142,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.entitlementsManager_ = deps_.entitlementsManager();
 
     this.clientConfigManager_ = deps_.clientConfigManager();
-
-    // this.storage_ = deps_.storage();
 
     this.fetcher = new XhrFetcher(deps_.win());
 
