@@ -230,7 +230,7 @@ export interface Subscriptions {
    *
    * @return promise indicating result of the operation
    */
-   linkSubscriptions(
+  linkSubscriptions(
     linkSubscriptionsRequest: LinkSubscriptionsRequest
   ): Promise<LinkSubscriptionsResult>;
 
