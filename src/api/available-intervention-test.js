@@ -27,7 +27,7 @@ describes.realWin('AvailableIntervention', (env) => {
   });
 
   it('calls audience action flow', async () => {
-    const resultHanlder = () => {};
+    const resultHandler = () => {};
     const alternateActionHandler = () => {};
     const signInHandler = () => {};
     const startStub = sandbox.stub();
@@ -45,7 +45,7 @@ describes.realWin('AvailableIntervention', (env) => {
     await availableIntervention.show({
       isClosable: true,
       suppressToast: true,
-      onResult: resultHanlder,
+      onResult: resultHandler,
       onAlternateAction: alternateActionHandler,
       onSignIn: signInHandler,
     });
@@ -54,7 +54,7 @@ describes.realWin('AvailableIntervention', (env) => {
       isClosable: true,
       action: InterventionType.TYPE_NEWSLETTER_SIGNUP,
       configurationId: 'TEST_CONFIGURATION_ID',
-      onResult: resultHanlder,
+      onResult: resultHandler,
       calledManually: true,
       suppressToast: true,
       onAlternateAction: alternateActionHandler,
