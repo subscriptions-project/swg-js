@@ -34,7 +34,7 @@ describes.realWin('CTA utils', (env) => {
   });
 
   describe('showAlreadyOptedInToast', () => {
-    it('showAlreadyOptedInToast shows basic toast for regwall', () => {
+    it('shows basic toast for regwall', () => {
       toastOpenStub = sandbox
         .stub(Toast.prototype, 'open')
         .callsFake(function () {
@@ -48,7 +48,7 @@ describes.realWin('CTA utils', (env) => {
       expect(toast.src_).to.contain('flavor=basic');
     });
 
-    it('showAlreadyOptedInToast shows custom toast for newsletter', () => {
+    it('shows custom toast for newsletter', () => {
       toastOpenStub = sandbox
         .stub(Toast.prototype, 'open')
         .callsFake(function () {
@@ -63,7 +63,7 @@ describes.realWin('CTA utils', (env) => {
       expect(decodeURI(toast.src_)).to.contain('You have signed up before.');
     });
 
-    it('showAlreadyOptedInToast show no toast if other types', () => {
+    it('show no toast if other types', () => {
       const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
       showAlreadyOptedInToast('TYPE_REWARDED_SURVEY', 'en', deps);

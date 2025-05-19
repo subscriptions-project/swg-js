@@ -18,10 +18,14 @@ import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {ClientConfigManager} from './client-config-manager';
-import {CompleteAudienceActionResponse} from '../proto/api_messages';
+import {
+  CompleteAudienceActionResponse,
+  SurveyDataTransferRequest,
+} from '../proto/api_messages';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
+
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
 import {ProductType} from '../api/subscriptions';
@@ -29,6 +33,7 @@ import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
+import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {setImportantStyles} from '../utils/style';
 import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
@@ -140,6 +145,14 @@ export class InlineCtaApi {
 
     activityIframeView.on(CompleteAudienceActionResponse, (response) =>
       this.handleCompleteAudienceActionResponse_(response, action.type, div)
+    );
+    activityIframeView.on(SurveyDataTransferRequest, (request) =>
+      handleSurveyDataTransferRequest(
+        request,
+        this.deps_,
+        activityIframeView,
+        configId
+      )
     );
 
     div.appendChild(activityIframeView.getElement());
