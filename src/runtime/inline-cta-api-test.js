@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Utils from '../utils/cta-utils';
+import * as Utils from '../utils/survey-utils';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {ClientConfig, UiPredicates} from '../model/client-config';

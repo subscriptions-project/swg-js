@@ -33,11 +33,9 @@ import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
-import {
-  handleSurveyDataTransferRequest,
-  showAlreadyOptedInToast,
-} from '../utils/cta-utils';
+import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {setImportantStyles} from '../utils/style';
+import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';

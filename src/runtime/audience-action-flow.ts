@@ -52,13 +52,11 @@ import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {feArgs, feUrl} from './services';
-import {
-  handleSurveyDataTransferRequest,
-  showAlreadyOptedInToast,
-} from '../utils/cta-utils';
+import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {msg} from '../utils/i18n';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
+import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
 export interface AudienceActionFlow {
   start: () => Promise<void>;
@@ -190,7 +188,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         request,
         this.deps_,
         this.activityIframeView_,
-        this.params_.configurationId,
+        this.params_.configurationId!,
         this.params_.onResult
       )
     );

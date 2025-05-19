@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Utils from '../utils/cta-utils';
+import * as Utils from '../utils/survey-utils';
 import {
   AlreadySubscribedResponse,
   AnalyticsEvent,
