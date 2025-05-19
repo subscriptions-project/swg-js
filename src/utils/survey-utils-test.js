@@ -96,7 +96,6 @@ TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
 describes.realWin('Survey utils', (env) => {
   let deps;
   let win;
-  //   let doc;
   let eventManagerMock;
   let storageMock;
   let activityIframeView;
@@ -113,8 +112,6 @@ describes.realWin('Survey utils', (env) => {
       {}
     );
     sandbox.stub(deps, 'win').returns(win);
-    // doc = new GlobalDoc(win);
-    // sandbox.stub(deps, 'doc').returns(doc);
     const eventManager = new ClientEventManager(Promise.resolve());
     eventManagerMock = sandbox.mock(eventManager);
     sandbox.stub(deps, 'eventManager').returns(eventManager);
