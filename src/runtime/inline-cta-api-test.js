@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as Utils from '../utils/cta-utils';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {ClientConfig, UiPredicates} from '../model/client-config';
@@ -35,7 +36,6 @@ import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {createElement} from '../utils/dom';
-import * as Utils from '../utils/cta-utils';
 
 const CONTRIBUTION_INTERVENTION = {
   type: 'TYPE_CONTRIBUTION',
@@ -308,7 +308,8 @@ describes.realWin('InlineCtaApi', (env) => {
     it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
       const surveyDataTransferRequest = new SurveyDataTransferRequest();
       const handleSurveyDataTransferRequestSpy = sandbox.spy(
-        Utils.handleSurveyDataTransferRequest
+        Utils,
+        'handleSurveyDataTransferRequest'
       );
       setEntitlements();
       setArticleResponse([

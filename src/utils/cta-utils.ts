@@ -75,8 +75,6 @@ export async function handleSurveyDataTransferRequest(
     deps,
     onResult
   );
-  console.log('dataTransferSuccess: ');
-  console.log(dataTransferSuccess);
   if (dataTransferSuccess) {
     deps
       .eventManager()
@@ -93,10 +91,7 @@ export async function handleSurveyDataTransferRequest(
       );
   }
   const surveyDataTransferResponse = new SurveyDataTransferResponse();
-  console.log('before getStorePpsInLocalStorage');
   const isPpsEligible = request.getStorePpsInLocalStorage();
-  console.log('isPpsEligible:');
-  console.log(isPpsEligible);
 
   if (isPpsEligible) {
     await storePpsValuesFromSurveyAnswers(request, deps);
@@ -127,7 +122,6 @@ async function attemptSurveyDataTransfer(
       return false;
     }
   }
-  console.log('attmpt');
   return logSurveyDataToGoogleAnalytics(request, deps);
 }
 

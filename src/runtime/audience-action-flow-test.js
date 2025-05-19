@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as Utils from '../utils/cta-utils';
 import {
   AlreadySubscribedResponse,
   AnalyticsEvent,
@@ -24,10 +25,7 @@ import {
   RewardedAdLoadAdRequest,
   RewardedAdLoadAdResponse,
   RewardedAdViewAdRequest,
-  SurveyAnswer,
   SurveyDataTransferRequest,
-  SurveyDataTransferResponse,
-  SurveyQuestion,
 } from '../proto/api_messages';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
@@ -40,88 +38,11 @@ import {ProductType} from '../api/subscriptions';
 import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {isAudienceActionType} from './audience-action-flow';
-import {tick} from '../../test/tick';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const WINDOW_INNER_HEIGHT = 424242;
 const CURRENT_TIME = 1615416442000;
 const EXPECTED_TIME_STRING = '1615416442000';
-
-const TEST_QUESTION_CATEGORY_1 = 'Test Question Category 1';
-const TEST_QUESTION_TEXT_1 = 'Test Question 1';
-const TEST_QUESTION_CATEGORY_2 = 'Test Question Category 2';
-const TEST_QUESTION_TEXT_2 = 'Test Question 2';
-const TEST_ANSWER_CATEGORY_1 = 'Test Answer Category 1';
-const TEST_ANSWER_TEXT_1 = 'Test Answer 1';
-const TEST_ANSWER_PPS_1 = '1';
-const TEST_ANSWER_CATEGORY_2 = 'Test Answer Category 2';
-const TEST_ANSWER_TEXT_2 = 'Test Answer 2';
-const TEST_ANSWER_PPS_2 = '2';
-const TEST_QUESTION_CATEGORY_3 = 'Test Question Category 3';
-const TEST_QUESTION_TEXT_3 = 'Test Question 3';
-const TEST_ANSWER_CATEGORY_3 = 'Test Answer Category 3';
-const TEST_ANSWER_TEXT_3 = 'Test Answer 3';
-
-const TEST_SURVEYANSWER_1 = new SurveyAnswer();
-TEST_SURVEYANSWER_1.setAnswerCategory(TEST_ANSWER_CATEGORY_1);
-TEST_SURVEYANSWER_1.setAnswerText(TEST_ANSWER_TEXT_1);
-TEST_SURVEYANSWER_1.setPpsValue(TEST_ANSWER_PPS_1);
-
-const TEST_SURVEYANSWER_2 = new SurveyAnswer();
-TEST_SURVEYANSWER_2.setAnswerCategory(TEST_ANSWER_CATEGORY_2);
-TEST_SURVEYANSWER_2.setAnswerText(TEST_ANSWER_TEXT_2);
-TEST_SURVEYANSWER_2.setPpsValue(TEST_ANSWER_PPS_2);
-
-const TEST_SURVEYQUESTION_1 = new SurveyQuestion();
-TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_QUESTION_CATEGORY_1);
-TEST_SURVEYQUESTION_1.setQuestionText(TEST_QUESTION_TEXT_1);
-TEST_SURVEYQUESTION_1.setSurveyAnswersList([
-  TEST_SURVEYANSWER_1,
-  TEST_SURVEYANSWER_2,
-]);
-
-const TEST_SURVEYQUESTION_2 = new SurveyQuestion();
-TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
-TEST_SURVEYQUESTION_2.setQuestionText(TEST_QUESTION_TEXT_2);
-TEST_SURVEYQUESTION_2.setSurveyAnswersList([TEST_SURVEYANSWER_2]);
-
-const TEST_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
-TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
-  TEST_SURVEYQUESTION_1,
-  TEST_SURVEYQUESTION_2,
-]);
-
-const TEST_SURVEYONRESULTCONFIGID = 'survey onsResult config id';
-const TEST_SURVEYONRESULTRESPONSE = {
-  configurationId: TEST_SURVEYONRESULTCONFIGID,
-  data: TEST_SURVEYDATATRANSFERREQUEST,
-};
-
-const TEST_SURVEYANSWER_EMPTY = new SurveyAnswer();
-const TEST_SURVEYQUESTION_EMPTY = new SurveyQuestion();
-TEST_SURVEYQUESTION_EMPTY.setSurveyAnswersList([TEST_SURVEYANSWER_EMPTY]);
-const TEST_EMPTY_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
-TEST_EMPTY_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
-  TEST_SURVEYQUESTION_EMPTY,
-]);
-
-const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS = new SurveyDataTransferRequest();
-TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setSurveyQuestionsList([
-  TEST_SURVEYQUESTION_1,
-  TEST_SURVEYQUESTION_2,
-]);
-TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setStorePpsInLocalStorage(true);
-
-const TEST_SURVEYANSWER_3 = new SurveyAnswer();
-TEST_SURVEYANSWER_3.setAnswerCategory(TEST_ANSWER_CATEGORY_3);
-TEST_SURVEYANSWER_3.setAnswerText(TEST_ANSWER_TEXT_3);
-const TEST_SURVEYQUESTION_3 = new SurveyQuestion();
-TEST_SURVEYQUESTION_3.setQuestionCategory(TEST_QUESTION_CATEGORY_3);
-TEST_SURVEYQUESTION_3.setQuestionText(TEST_QUESTION_TEXT_3);
-TEST_SURVEYQUESTION_3.setSurveyAnswersList([TEST_SURVEYANSWER_3]);
-const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES =
-  new SurveyDataTransferRequest();
-TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
 
 const TEST_OPTINCONFIGID = 'optin onResult config id';
 const TEST_EMAIL = 'test email';
@@ -860,15 +781,12 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     activityIframeViewMock.verify();
   });
 
-  it(`handles a SurveyDataTransferRequest with successful gtm logging`, async () => {
-    const winWithDataLayer = Object.assign({}, win);
-    delete winWithDataLayer.gtag;
-    winWithDataLayer.dataLayer = {
-      push: () => {},
-    };
-    runtime.win.restore();
-    sandbox.stub(runtime, 'win').returns(winWithDataLayer);
-
+  it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
+    const surveyDataTransferRequest = new SurveyDataTransferRequest();
+    const handleSurveyDataTransferRequestSpy = sandbox.spy(
+      Utils,
+      'handleSurveyDataTransferRequest'
+    );
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
@@ -876,299 +794,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.CONTRIBUTION,
       calledManually: false,
     });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_1,
-            'event_label': TEST_ANSWER_TEXT_1,
-            'survey_question': TEST_QUESTION_TEXT_1,
-            'survey_question_category': TEST_QUESTION_CATEGORY_1,
-            'survey_answer': TEST_ANSWER_TEXT_1,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_1,
-            'content_id': TEST_QUESTION_CATEGORY_1,
-            'content_group': TEST_QUESTION_TEXT_1,
-            'content_type': TEST_ANSWER_TEXT_1,
-          },
-        }
-      )
-      .once();
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_1,
-            'event_label': TEST_ANSWER_TEXT_2,
-            'survey_question': TEST_QUESTION_TEXT_1,
-            'survey_question_category': TEST_QUESTION_CATEGORY_1,
-            'survey_answer': TEST_ANSWER_TEXT_2,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
-            'content_id': TEST_QUESTION_CATEGORY_1,
-            'content_group': TEST_QUESTION_TEXT_1,
-            'content_type': TEST_ANSWER_TEXT_2,
-          },
-        }
-      )
-      .once();
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_2,
-            'event_label': TEST_ANSWER_TEXT_2,
-            'survey_question': TEST_QUESTION_TEXT_2,
-            'survey_question_category': TEST_QUESTION_CATEGORY_2,
-            'survey_answer': TEST_ANSWER_TEXT_2,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
-            'content_id': TEST_QUESTION_CATEGORY_2,
-            'content_group': TEST_QUESTION_TEXT_2,
-            'content_type': TEST_ANSWER_TEXT_2,
-          },
-        }
-      )
-      .once();
-    eventManagerMock.expects('logEvent').withExactArgs(
-      {
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-        configurationId: null,
-      },
-      undefined,
-      undefined
-    );
-
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with failed onResult logging`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-      .resolves(false)
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: TEST_SURVEYONRESULTCONFIGID,
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
-      calledManually: false,
-    });
 
     activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      )
-      .once();
-
     await audienceActionFlow.start();
+    const messageCallback = messageMap[surveyDataTransferRequest.label()];
+    messageCallback(surveyDataTransferRequest);
 
-    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    failSurveyDataTransferResponse.setSuccess(false);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(failSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-    onResultMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with onResult logging exception`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-      .throws(new Error('Test Callback Exception'))
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: TEST_SURVEYONRESULTCONFIGID,
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
-      calledManually: false,
-    });
-
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      )
-      .once();
-
-    await audienceActionFlow.start();
-
-    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    failSurveyDataTransferResponse.setSuccess(false);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(failSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
-    );
-    activityIframeViewMock.verify();
-    onResultMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with onResult logging rejection`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-      .rejects(new Error('Test Callback Exception'))
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: TEST_SURVEYONRESULTCONFIGID,
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
-      calledManually: false,
-    });
-
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      )
-      .once();
-
-    await audienceActionFlow.start();
-
-    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    failSurveyDataTransferResponse.setSuccess(false);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(failSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
-    );
-    activityIframeViewMock.verify();
-    onResultMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS ppstaxonomies but flag enabled`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    await audienceActionFlow.start();
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
+    expect(handleSurveyDataTransferRequestSpy).to.be.called;
   });
 
   it('opens dialog with scrolling disabled', async () => {

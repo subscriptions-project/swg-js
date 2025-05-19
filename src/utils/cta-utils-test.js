@@ -69,15 +69,15 @@ TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
 TEST_SURVEYQUESTION_2.setQuestionText(TEST_QUESTION_TEXT_2);
 TEST_SURVEYQUESTION_2.setSurveyAnswersList([TEST_SURVEYANSWER_2]);
 
-const SURVEY_DATA_TRANSFER_REQUEST = new SurveyDataTransferRequest();
-SURVEY_DATA_TRANSFER_REQUEST.setSurveyQuestionsList([
+const TEST_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
+TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_1,
   TEST_SURVEYQUESTION_2,
 ]);
 const TEST_SURVEYONRESULTCONFIGID = 'survey onsResult config id';
 const TEST_SURVEYONRESULTRESPONSE = {
   configurationId: TEST_SURVEYONRESULTCONFIGID,
-  data: SURVEY_DATA_TRANSFER_REQUEST,
+  data: TEST_SURVEYDATATRANSFERREQUEST,
 };
 
 const TEST_SURVEYANSWER_EMPTY = new SurveyAnswer();
@@ -93,6 +93,9 @@ TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setSurveyQuestionsList([
   TEST_SURVEYQUESTION_2,
 ]);
 TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setStorePpsInLocalStorage(true);
+const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES =
+  new SurveyDataTransferRequest();
+TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
 
 describes.realWin('CTA utils', (env) => {
   let deps;
@@ -123,6 +126,7 @@ describes.realWin('CTA utils', (env) => {
     const storage = new Storage(win, pageConfig);
     storageMock = sandbox.mock(storage);
     sandbox.stub(deps, 'storage').returns(storage);
+    sandbox.stub(self.console, 'warn');
   });
 
   describe('showAlreadyOptedInToast', () => {
@@ -165,6 +169,24 @@ describes.realWin('CTA utils', (env) => {
   });
 
   describe('handleSurveyDataTransferRequest', () => {
+    let activityIframeView;
+    let activityIframeViewMock;
+
+    beforeEach(() => {
+      activityIframeView = new ActivityIframeView(
+        win,
+        deps.activityPorts,
+        '',
+        {}
+      );
+      activityIframeViewMock = sandbox.mock(activityIframeView);
+    });
+
+    afterEach(() => {
+      eventManagerMock.verify();
+      self.console.warn.reset();
+    });
+
     it(`with successful Google Analytics logging`, async () => {
       eventManagerMock
         .expects('logEvent')
@@ -253,27 +275,19 @@ describes.realWin('CTA utils', (env) => {
       const successSurveyDataTransferResponse =
         new SurveyDataTransferResponse();
       successSurveyDataTransferResponse.setSuccess(true);
-      const activityIframeView = new ActivityIframeView(
-        win,
-        deps.activityPorts,
-        '',
-        {}
-      );
-      const activityIframeViewMock = sandbox.mock(activityIframeView);
       activityIframeViewMock
         .expects('execute')
         .withExactArgs(successSurveyDataTransferResponse)
         .once();
 
       handleSurveyDataTransferRequest(
-        SURVEY_DATA_TRANSFER_REQUEST,
+        TEST_SURVEYDATATRANSFERREQUEST,
         deps,
         activityIframeView,
         'configId'
       );
       await tick(10);
 
-      eventManagerMock.verify();
       activityIframeViewMock.verify();
     });
 
@@ -285,13 +299,6 @@ describes.realWin('CTA utils', (env) => {
       const successSurveyDataTransferResponse =
         new SurveyDataTransferResponse();
       successSurveyDataTransferResponse.setSuccess(false);
-      const activityIframeView = new ActivityIframeView(
-        win,
-        deps.activityPorts,
-        '',
-        {}
-      );
-      const activityIframeViewMock = sandbox.mock(activityIframeView);
       activityIframeViewMock
         .expects('execute')
         .withExactArgs(successSurveyDataTransferResponse)
@@ -312,18 +319,17 @@ describes.realWin('CTA utils', (env) => {
         .once();
 
       handleSurveyDataTransferRequest(
-        SURVEY_DATA_TRANSFER_REQUEST,
+        TEST_SURVEYDATATRANSFERREQUEST,
         deps,
         activityIframeView,
         'configId'
       );
       await tick(10);
 
-      eventManagerMock.verify();
       activityIframeViewMock.verify();
     });
 
-    it(` ith successful gtm logging`, async () => {
+    it(`with successful gtm logging`, async () => {
       const winWithDataLayer = Object.assign({}, win);
       delete winWithDataLayer.gtag;
       winWithDataLayer.dataLayer = {
@@ -419,27 +425,19 @@ describes.realWin('CTA utils', (env) => {
       const successSurveyDataTransferResponse =
         new SurveyDataTransferResponse();
       successSurveyDataTransferResponse.setSuccess(true);
-      const activityIframeView = new ActivityIframeView(
-        win,
-        deps.activityPorts,
-        '',
-        {}
-      );
-      const activityIframeViewMock = sandbox.mock(activityIframeView);
       activityIframeViewMock
         .expects('execute')
         .withExactArgs(successSurveyDataTransferResponse)
         .once();
 
       handleSurveyDataTransferRequest(
-        SURVEY_DATA_TRANSFER_REQUEST,
+        TEST_SURVEYDATATRANSFERREQUEST,
         deps,
         activityIframeView,
         'configId'
       );
       await tick(10);
 
-      eventManagerMock.verify();
       activityIframeViewMock.verify();
     });
 
@@ -447,13 +445,6 @@ describes.realWin('CTA utils', (env) => {
       const successSurveyDataTransferResponse =
         new SurveyDataTransferResponse();
       successSurveyDataTransferResponse.setSuccess(true);
-      const activityIframeView = new ActivityIframeView(
-        win,
-        deps.activityPorts,
-        '',
-        {}
-      );
-      const activityIframeViewMock = sandbox.mock(activityIframeView);
       activityIframeViewMock
         .expects('execute')
         .withExactArgs(successSurveyDataTransferResponse)
@@ -476,7 +467,7 @@ describes.realWin('CTA utils', (env) => {
       );
 
       handleSurveyDataTransferRequest(
-        SURVEY_DATA_TRANSFER_REQUEST,
+        TEST_SURVEYDATATRANSFERREQUEST,
         deps,
         activityIframeView,
         TEST_SURVEYONRESULTCONFIGID,
@@ -484,7 +475,140 @@ describes.realWin('CTA utils', (env) => {
       );
       await tick(10);
 
-      eventManagerMock.verify();
+      activityIframeViewMock.verify();
+      onResultMock.verify();
+    });
+
+    it(`with failed onResult logging`, async () => {
+      const onResultMock = sandbox
+        .mock()
+        .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
+        .resolves(false)
+        .once();
+
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          {
+            eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: false,
+            additionalParameters: null,
+            configurationId: null,
+          },
+          undefined,
+          undefined
+        )
+        .once();
+
+      const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+      failSurveyDataTransferResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(failSurveyDataTransferResponse)
+        .once();
+
+      handleSurveyDataTransferRequest(
+        TEST_SURVEYDATATRANSFERREQUEST,
+        deps,
+        activityIframeView,
+        TEST_SURVEYONRESULTCONFIGID,
+        onResultMock
+      );
+
+      await tick(10);
+
+      activityIframeViewMock.verify();
+      onResultMock.verify();
+    });
+
+    it(`with onResult logging exception`, async () => {
+      const onResultMock = sandbox
+        .mock()
+        .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
+        .throws(new Error('Test Callback Exception'))
+        .once();
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          {
+            eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: false,
+            additionalParameters: null,
+            configurationId: null,
+          },
+          undefined,
+          undefined
+        )
+        .once();
+
+      const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+      failSurveyDataTransferResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(failSurveyDataTransferResponse)
+        .once();
+
+      handleSurveyDataTransferRequest(
+        TEST_SURVEYDATATRANSFERREQUEST,
+        deps,
+        activityIframeView,
+        TEST_SURVEYONRESULTCONFIGID,
+        onResultMock
+      );
+
+      await tick(10);
+
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
+      );
+      activityIframeViewMock.verify();
+      onResultMock.verify();
+    });
+
+    it(`with onResult logging rejection`, async () => {
+      const onResultMock = sandbox
+        .mock()
+        .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
+        .rejects(new Error('Test Callback Exception'))
+        .once();
+
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          {
+            eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: false,
+            additionalParameters: null,
+            configurationId: null,
+          },
+          undefined,
+          undefined
+        )
+        .once();
+
+      const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+      failSurveyDataTransferResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(failSurveyDataTransferResponse)
+        .once();
+
+      handleSurveyDataTransferRequest(
+        TEST_SURVEYDATATRANSFERREQUEST,
+        deps,
+        activityIframeView,
+        TEST_SURVEYONRESULTCONFIGID,
+        onResultMock
+      );
+
+      await tick(10);
+
+      expect(self.console.warn).to.have.been.calledWithExactly(
+        '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
+      );
       activityIframeViewMock.verify();
       onResultMock.verify();
     });
@@ -528,12 +652,6 @@ describes.realWin('CTA utils', (env) => {
       const successSurveyDataTransferResponse =
         new SurveyDataTransferResponse();
       successSurveyDataTransferResponse.setSuccess(true);
-      const activityIframeView = new ActivityIframeView(
-        win,
-        deps.activityPorts,
-        '',
-        {}
-      );
 
       handleSurveyDataTransferRequest(
         TEST_EMPTY_SURVEYDATATRANSFERREQUEST,
@@ -542,8 +660,6 @@ describes.realWin('CTA utils', (env) => {
         'configId'
       );
       await tick(10);
-
-      eventManagerMock.verify();
     });
 
     it(`with successful PPS storage in empty localStorage`, async () => {
@@ -554,14 +670,6 @@ describes.realWin('CTA utils', (env) => {
         .expects('set')
         .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
         .once();
-
-      const activityIframeView = new ActivityIframeView(
-        win,
-        deps.activityPorts,
-        '',
-        {}
-      );
-      const activityIframeViewMock = sandbox.mock(activityIframeView);
       activityIframeViewMock.expects('execute').once();
 
       handleSurveyDataTransferRequest(
@@ -594,14 +702,6 @@ describes.realWin('CTA utils', (env) => {
         .expects('set')
         .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
         .once();
-
-      const activityIframeView = new ActivityIframeView(
-        win,
-        deps.activityPorts,
-        '',
-        {}
-      );
-      const activityIframeViewMock = sandbox.mock(activityIframeView);
       activityIframeViewMock.expects('execute').once();
 
       handleSurveyDataTransferRequest(
@@ -613,6 +713,19 @@ describes.realWin('CTA utils', (env) => {
       await tick(10);
 
       storageMock.verify();
+      activityIframeViewMock.verify();
+    });
+
+    it(`with successful PPS storage with no PPS ppstaxonomies but flag enabled`, async () => {
+      handleSurveyDataTransferRequest(
+        TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES,
+        deps,
+        activityIframeView,
+        'configId'
+      );
+
+      await tick(10);
+
       activityIframeViewMock.verify();
     });
 
@@ -634,14 +747,6 @@ describes.realWin('CTA utils', (env) => {
         .expects('set')
         .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
         .once();
-
-      const activityIframeView = new ActivityIframeView(
-        win,
-        deps.activityPorts,
-        '',
-        {}
-      );
-      const activityIframeViewMock = sandbox.mock(activityIframeView);
       activityIframeViewMock.expects('execute').once();
 
       handleSurveyDataTransferRequest(
