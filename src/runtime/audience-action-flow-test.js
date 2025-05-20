@@ -1304,6 +1304,21 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       activityIframeViewMock.verify();
     });
 
+    it('handles adsense failed to fill', async () => {
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      await setupRewardedAds({adSense: true});
+
+      win.adsbygoogle[0]['params']['google_acr'](undefined);
+
+      activityIframeViewMock.verify();
+    });
+
     it('handles adsense granted', async () => {
       await setupRewardedAds({adSense: true});
       setupGranted();
