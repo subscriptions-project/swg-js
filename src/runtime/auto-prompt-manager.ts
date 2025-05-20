@@ -1011,7 +1011,7 @@ export class AutoPromptManager {
         }
       } else {
         const googletag = this.deps_.win().googletag;
-        // Because this happens after the article call, googletag should have had enougn time to set up
+        // Because this happens after the article call, googletag should have had enough time to set up
         if (!googletag) {
           return false;
         }
