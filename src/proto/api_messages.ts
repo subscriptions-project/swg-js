@@ -1256,6 +1256,7 @@ export class EventParams implements Message {
   private subscriptionFlow_: string | null;
   private subscriptionTimestamp_: Timestamp | null;
   private campaignId_: string | null;
+  private linkedPublicationsCount_: number | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1280,6 +1281,8 @@ export class EventParams implements Message {
         : new Timestamp(data[7 + base] as unknown[], includesLabel);
 
     this.campaignId_ = data[8 + base] == null ? null : (data[8 + base] as string);
+
+    this.linkedPublicationsCount_ = data[9 + base] == null ? null : (data[9 + base] as number);
   }
 
   getSmartboxMessage(): string | null {
@@ -1354,6 +1357,14 @@ export class EventParams implements Message {
     this.campaignId_ = value;
   }
 
+  getLinkedPublicationsCount(): number | null {
+    return this.linkedPublicationsCount_;
+  }
+
+  setLinkedPublicationsCount(value: number): void {
+    this.linkedPublicationsCount_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1365,6 +1376,7 @@ export class EventParams implements Message {
       this.subscriptionFlow_, // field 7 - subscription_flow
       this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 8 - subscription_timestamp
       this.campaignId_, // field 9 - campaign_id
+      this.linkedPublicationsCount_, // field 10 - linked_publications_count
     ];
     if (includeLabel) {
       arr.unshift(this.label());
