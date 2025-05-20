@@ -71,6 +71,9 @@ export class InlineCtaApi {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'ctaMode': 'CTA_MODE_INLINE',
     };
+    if (this.clientConfigManager_.shouldForceLangInIframes()) {
+      iframeParams['hl'] = this.clientConfigManager_.getLanguage();
+    }
     return feUrl(urlPrefix, iframeParams);
   }
 
