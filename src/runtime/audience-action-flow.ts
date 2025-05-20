@@ -94,6 +94,8 @@ export interface AudienceActionIframeParams {
   shouldRenderPreview?: boolean;
   suppressToast?: boolean;
   monetizationFunction?: () => void;
+  onAlternateAction?: () => void;
+  onSignIn?: () => void;
 }
 
 const autopromptTypeToProductTypeMapping: {
@@ -126,6 +128,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly activityIframeView_: ActivityIframeView;
   private readonly fetcher: XhrFetcher;
   private showRewardedAd?: () => void;
+  private rewardedAdSlot?: googletag.Slot;
+  private rewardedAdTimeout?: NodeJS.Timeout;
+  private readonly rewardedSlotReadyHandler;
+  private readonly rewardedSlotClosedHandler;
+  private readonly rewardedSlotGrantedHandler;
+  private readonly slotRenderEndedHandler;
 
   constructor(
     private readonly deps_: Deps,
@@ -143,6 +151,11 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
     this.fetcher = new XhrFetcher(deps_.win());
 
+    this.rewardedSlotReadyHandler = this.rewardedSlotReady.bind(this);
+    this.rewardedSlotClosedHandler = this.rewardedSlotClosed.bind(this);
+    this.rewardedSlotGrantedHandler = this.rewardedSlotGranted.bind(this);
+    this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
+
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(deps_.win().location.href).origin,
       'configurationId': this.params_.configurationId || '',
@@ -152,6 +165,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     };
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();
+    }
+    if (this.params_.onAlternateAction) {
+      iframeParams['onaa'] = 'true';
+    }
+    if (this.params_.onSignIn) {
+      iframeParams['onsi'] = 'true';
     }
     this.activityIframeView_ = new ActivityIframeView(
       deps_.win(),
@@ -213,10 +232,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       this.handleRewardedAdAlternateActionRequest.bind(this)
     );
 
-    const {onCancel} = this.params_;
-    if (onCancel) {
-      this.activityIframeView_.onCancel(onCancel);
-    }
+    this.activityIframeView_.onCancel(() => {
+      this.params_.onCancel?.();
+      this.cleanUpGoogletag();
+    });
 
     return this.dialogManager_.openView(
       this.activityIframeView_,
@@ -337,89 +356,141 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   private handleLinkRequest_(response: AlreadySubscribedResponse): void {
-    if (response.getSubscriberOrMember()) {
+    if (this.params_.onSignIn) {
+      this.params_.onSignIn();
+    } else if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
   }
 
   private handleRewardedAdLoadAdRequest(request: RewardedAdLoadAdRequest) {
-    const result = (success: boolean) => {
-      const response = new RewardedAdLoadAdResponse();
-      response.setSuccess(success);
-      this.activityIframeView_.execute(response);
-    };
     const googletag = this.deps_.win().googletag;
     if (!googletag) {
       this.deps_
         .eventManager()
         .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR);
-      result(false);
+      this.sendRewardedAdLoadAdResponse(false);
       return;
     }
-    const timeout = setTimeout(() => {
+
+    this.rewardedAdTimeout = setTimeout(
+      this.handleRewardedAdLoadAdRequestTimeout.bind(this),
+      TIMEOUT_MS
+    );
+
+    googletag.cmd.push(() => this.setUpRewardedAd(request.getAdUnit()));
+  }
+
+  private handleRewardedAdLoadAdRequestTimeout() {
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR);
+    this.sendRewardedAdLoadAdResponse(false);
+  }
+
+  private setUpRewardedAd(adunit: string | null) {
+    const googletag = this.deps_.win().googletag;
+    this.rewardedAdSlot = googletag.defineOutOfPageSlot(
+      adunit!,
+      googletag.enums.OutOfPageFormat.REWARDED
+    );
+    if (!this.rewardedAdSlot) {
       this.deps_
         .eventManager()
-        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR);
-      result(false);
-    }, TIMEOUT_MS);
-    googletag.cmd.push(() => {
-      const rewardedAdSlot = googletag.defineOutOfPageSlot(
-        request.getAdUnit(),
-        googletag.enums.OutOfPageFormat.REWARDED
+        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR);
+      this.sendRewardedAdLoadAdResponse(false);
+      return;
+    }
+    const pubads = googletag.pubads();
+    this.rewardedAdSlot.addService(pubads);
+    pubads.addEventListener('rewardedSlotReady', this.rewardedSlotReadyHandler);
+    pubads.addEventListener(
+      'rewardedSlotClosed',
+      this.rewardedSlotClosedHandler
+    );
+    pubads.addEventListener(
+      'rewardedSlotGranted',
+      this.rewardedSlotGrantedHandler
+    );
+    pubads.addEventListener('slotRenderEnded', this.slotRenderEndedHandler);
+    googletag.enableServices();
+    googletag.display(this.rewardedAdSlot);
+    pubads.refresh([this.rewardedAdSlot]);
+  }
+
+  private rewardedSlotReady(
+    rewardedAd: googletag.events.RewardedSlotReadyEvent
+  ) {
+    clearTimeout(this.rewardedAdTimeout);
+    this.showRewardedAd = rewardedAd.makeRewardedVisible;
+    this.sendRewardedAdLoadAdResponse(true);
+  }
+
+  private rewardedSlotClosed() {
+    this.cleanUpGoogletag();
+    this.deps_
+      .eventManager()
+      .logSwgEvent(
+        AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+        /* isFromUserAction */ true
       );
-      if (!rewardedAdSlot) {
-        this.deps_
-          .eventManager()
-          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR);
-        result(false);
-        return;
-      }
-      rewardedAdSlot.addService(googletag.pubads());
-      googletag
-        .pubads()
-        .addEventListener(
-          'rewardedSlotReady',
-          (rewardedAd: googletag.events.RewardedSlotReadyEvent) => {
-            clearTimeout(timeout);
-            this.showRewardedAd = rewardedAd.makeRewardedVisible;
-            result(true);
-          }
-        );
-      googletag.pubads().addEventListener('rewardedSlotClosed', () => {
-        this.deps_
-          .eventManager()
-          .logSwgEvent(
-            AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
-            /* isFromUserAction */ true
-          );
-        this.params_.monetizationFunction?.();
-      });
-      googletag.pubads().addEventListener('rewardedSlotGranted', async () => {
-        googletag.destroySlots([rewardedAdSlot]);
-        await this.completeAudienceAction();
-        this.deps_
-          .eventManager()
-          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
-        // TODO: mhkawano - Add toast
-      });
-      googletag
-        .pubads()
-        .addEventListener(
-          'slotRenderEnded',
-          (event: googletag.events.SlotRenderEndedEvent) => {
-            if (event.slot === rewardedAdSlot && event.isEmpty) {
-              clearTimeout(timeout);
-              this.deps_
-                .eventManager()
-                .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED);
-              result(false);
-            }
-          }
-        );
-      googletag.enableServices();
-      googletag.display(rewardedAdSlot);
-      googletag.pubads().refresh([rewardedAdSlot]);
+    if (this.params_.onAlternateAction) {
+      this.params_.onAlternateAction();
+    } else {
+      this.params_.monetizationFunction?.();
+    }
+    this.params_.onResult?.({
+      configurationId: this.params_.configurationId,
+      data: {
+        rendered: true,
+        rewardGranted: false,
+      },
     });
+  }
+
+  private async rewardedSlotGranted(
+    event: googletag.events.RewardedSlotGrantedEvent
+  ) {
+    this.cleanUpGoogletag();
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
+    this.params_.onResult?.({
+      configurationId: this.params_.configurationId,
+      data: {
+        rendered: true,
+        rewardGranted: true,
+        reward: event?.payload?.amount,
+        type: event?.payload?.type,
+      },
+    });
+    this.dialogManager_.completeView(this.activityIframeView_);
+    await this.completeAudienceAction();
+  }
+
+  private slotRenderEnded(event: googletag.events.SlotRenderEndedEvent) {
+    if (event.slot === this.rewardedAdSlot && event.isEmpty) {
+      clearTimeout(this.rewardedAdTimeout);
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED);
+      this.sendRewardedAdLoadAdResponse(false);
+    }
+  }
+
+  private sendRewardedAdLoadAdResponse(success: boolean) {
+    const response = new RewardedAdLoadAdResponse();
+    response.setSuccess(success);
+    this.activityIframeView_.execute(response);
+    if (!success) {
+      this.params_.onResult?.({
+        configurationId: this.params_.configurationId,
+        data: {
+          rendered: false,
+          rewardGranted: false,
+        },
+      });
+    }
   }
 
   private handleRewardedAdViewAdRequest() {
@@ -427,7 +498,35 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   private handleRewardedAdAlternateActionRequest() {
-    this.params_.monetizationFunction?.();
+    if (this.params_.onAlternateAction) {
+      this.params_.onAlternateAction();
+    } else {
+      this.params_.monetizationFunction?.();
+    }
+  }
+
+  private cleanUpGoogletag() {
+    const googletag = this.deps_.win().googletag;
+    if (this.rewardedAdSlot) {
+      googletag?.destroySlots?.([this.rewardedAdSlot]);
+    }
+    const pubads = googletag?.pubads?.();
+    pubads?.removeEventListener?.(
+      'rewardedSlotReady',
+      this.rewardedSlotReadyHandler
+    );
+    pubads?.removeEventListener?.(
+      'rewardedSlotClosed',
+      this.rewardedSlotClosedHandler
+    );
+    pubads?.removeEventListener?.(
+      'rewardedSlotGranted',
+      this.rewardedSlotGrantedHandler
+    );
+    pubads?.removeEventListener?.(
+      'slotRenderEnded',
+      this.slotRenderEndedHandler
+    );
   }
 
   private async completeAudienceAction() {
