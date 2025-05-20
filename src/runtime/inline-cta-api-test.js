@@ -174,25 +174,6 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(url).to.equal(resultUrl);
     });
 
-    it('getUrl returns url with language setting', () => {
-      clientConfigManagerMock
-        .expects('shouldForceLangInIframes')
-        .returns(true)
-        .once();
-      clientConfigManagerMock.expects('getLanguage').returns('pt-BR').once();
-      const urlPrefix = '/url_prefix';
-      const resultUrl =
-        'https://news.google.com/swg/ui/v1/url_prefix?_=_&origin=about%3Asrcdoc&configurationId=survey_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&hl=pt-BR';
-
-      const url = inlineCtaApi.getUrl_(
-        urlPrefix,
-        SURVEY_INTERVENTION.configurationId
-      );
-
-      expect(url).to.equal(resultUrl);
-      clientConfigManagerMock.verify();
-    });
-
     it('clearInlineCta remove inline CTA from page', () => {
       const inlineCta = createElement(win.document, 'iframe');
       newsletterSnippet.appendChild(inlineCta);
@@ -322,6 +303,30 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(port.onResizeRequest).to.have.been.calledOnce;
       onResizeRequestCallback(100);
       expect(iframe.style.height).to.equal('100px');
+    });
+
+    it('opens iframe with language setting', async () => {
+      setEntitlements();
+      setArticleResponse([SURVEY_INTERVENTION, NEWSLETTER_INTERVENTION]);
+      clientConfigManagerMock
+        .expects('shouldForceLangInIframes')
+        .returns(true)
+        .once();
+      clientConfigManagerMock.expects('getLanguage').returns('pt-BR').once();
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/newsletteriframe?_=_&origin=about%3Asrcdoc&configurationId=newsletter_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&hl=pt-BR';
+      const resultArgs = {
+        supportsEventManager: true,
+        productType: 'UI_CONTRIBUTION',
+        _client: 'SwG 0.0.0',
+      };
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
     });
 
     it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
