@@ -41,7 +41,7 @@ import {Doc} from '../model/doc';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {Intervention} from './intervention';
+import {Intervention, PromptPreference} from './intervention';
 import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
@@ -51,8 +51,6 @@ import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 
 const SECOND_IN_MILLIS = 1000;
-const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
-  'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
 const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -624,21 +622,17 @@ export class AutoPromptManager {
     return undefined;
   }
 
-  private getAudienceActionPromptFn_({
-    actionType,
-    configurationId,
-    preference,
-  }: {
-    actionType: AudienceActionType;
-    configurationId?: string;
-    preference?: string;
-  }): () => void {
+  private getAudienceActionPromptFn_(
+    action: AudienceActionType,
+    configurationId: string,
+    preference?: PromptPreference
+  ): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-        actionType === InterventionType.TYPE_REWARDED_AD &&
+        action === InterventionType.TYPE_REWARDED_AD &&
         !this.standardRewardedAdExperiment
           ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType as InterventionType,
+              action,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
@@ -648,10 +642,10 @@ export class AutoPromptManager {
               calledManually: false,
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             })
-          : actionType === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
-            preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
+          : action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
+            preference === PromptPreference.PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType as InterventionType,
+              action,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
@@ -659,8 +653,9 @@ export class AutoPromptManager {
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             })
           : new AudienceActionIframeFlow(this.deps_, {
-              action: actionType,
+              action,
               configurationId,
+              preference,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
               calledManually: false,
@@ -1005,16 +1000,25 @@ export class AutoPromptManager {
         timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions || []
       ).length;
     }
-    // NOTE: passing these checks does not mean googletag is always available.
+    // NOTE: passing these checks does not mean the APIs are always available.
     if (action.type === InterventionType.TYPE_REWARDED_AD) {
-      const gtag = this.deps_.win().googletag;
-      // Because this happens after the article call, googletag should have had enougn time to set up
-      if (!gtag) {
-        return false;
-      }
-      // Fake api check
-      if (!!gtag?.apiReady && !gtag?.getVersion()) {
-        return false;
+      if (
+        action.preference === PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
+      ) {
+        const adsbygoogle = this.deps_.win().adsbygoogle;
+        if (!adsbygoogle?.loaded) {
+          return false;
+        }
+      } else {
+        const googletag = this.deps_.win().googletag;
+        // Because this happens after the article call, googletag should have had enougn time to set up
+        if (!googletag) {
+          return false;
+        }
+        // Fake api check
+        if (!!googletag?.apiReady && !googletag?.getVersion()) {
+          return false;
+        }
       }
     }
     return true;
@@ -1141,12 +1145,12 @@ export class AutoPromptManager {
   }
 
   private getAutoPromptFunction_(action: Intervention) {
-    return isAudienceActionType(action.type)
-      ? this.getAudienceActionPromptFn_({
-          actionType: action.type,
-          configurationId: action.configurationId,
-          preference: action.preference,
-        })
+    return isAudienceActionType(action.type) && action.configurationId
+      ? this.getAudienceActionPromptFn_(
+          action.type,
+          action.configurationId,
+          action.preference
+        )
       : this.getMonetizationPromptFn_();
   }
 
