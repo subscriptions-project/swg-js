@@ -1308,6 +1308,7 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    linkSubscriptions: runtime.linkSubscriptions.bind(runtime),
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
   };
 }
