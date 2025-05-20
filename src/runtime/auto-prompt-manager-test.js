@@ -1908,6 +1908,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
@@ -1954,6 +1955,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_BYO_CTA',
         configurationId: 'byocta_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
@@ -2031,6 +2033,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
@@ -2056,6 +2059,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: false,
         calledManually: false,
@@ -2119,6 +2123,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REGISTRATION_WALL',
         configurationId: 'regwall_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
         isClosable: false,
         calledManually: false,
@@ -2296,6 +2301,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2335,6 +2341,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2421,6 +2428,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2464,6 +2472,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2557,6 +2566,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2623,6 +2633,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2670,6 +2681,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_NEWSLETTER_SIGNUP',
         configurationId: 'newsletter_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2744,6 +2756,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_NEWSLETTER_SIGNUP',
         configurationId: 'newsletter_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2829,6 +2842,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_NEWSLETTER_SIGNUP',
         configurationId: 'newsletter_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -2923,6 +2937,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_NEWSLETTER_SIGNUP',
         configurationId: 'newsletter_config_id',
+        preference: undefined,
         autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
         isClosable: true,
         calledManually: false,
@@ -3436,6 +3451,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
@@ -3498,6 +3514,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
@@ -3534,6 +3551,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: false,
         calledManually: false,
@@ -3569,6 +3587,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: true,
         calledManually: false,
@@ -3603,6 +3622,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: false,
         calledManually: false,
@@ -3683,6 +3703,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
         action: 'TYPE_REWARDED_SURVEY',
         configurationId: 'survey_config_id',
+        preference: undefined,
         autoPromptType: undefined,
         isClosable: false,
         calledManually: false,
@@ -3900,6 +3921,34 @@ describes.realWin('AutoPromptManager', (env) => {
 
       const isEligible = autoPromptManager.checkActionEligibility_(
         {type: 'TYPE_REWARDED_AD'},
+        {}
+      );
+
+      expect(isEligible).to.be.true;
+    });
+
+    it('Rewarded ad with adsense is not eligible when adsbygoogle is not available', async () => {
+      win.adsbygoogle = undefined;
+
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        {
+          type: 'TYPE_REWARDED_AD',
+          preference: 'PREFERENCE_ADSENSE_REWARDED_AD',
+        },
+        {}
+      );
+
+      expect(isEligible).to.be.false;
+    });
+
+    it('Rewarded ad with adsense is eligible when adsbygoogle is available', async () => {
+      win.adsbygoogle = {loaded: true};
+
+      const isEligible = autoPromptManager.checkActionEligibility_(
+        {
+          type: 'TYPE_REWARDED_AD',
+          preference: 'PREFERENCE_ADSENSE_REWARDED_AD',
+        },
         {}
       );
 

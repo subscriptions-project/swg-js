@@ -35,6 +35,7 @@ import {InterventionType} from '../api/intervention-type';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
+import {PromptPreference} from './intervention';
 import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {isAudienceActionType} from './audience-action-flow';
@@ -86,7 +87,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   let rewardedSlot;
   let pubadsobj;
   let eventListeners;
-  let readyEventArg;
   let clock;
 
   beforeEach(() => {
@@ -101,9 +101,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       removeEventListener: sandbox.spy(),
       refresh: sandbox.spy(),
     };
-    readyEventArg = {
-      makeRewardedVisible: sandbox.spy(),
-    };
     const googletag = {
       cmd: [],
       defineOutOfPageSlot: () => rewardedSlot,
@@ -115,6 +112,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       apiReady: true,
       getVersion: () => 'GOOGLETAG_VERSION',
     };
+    const adsbygoogle = [];
     win = Object.assign(
       {},
       {
@@ -123,6 +121,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         gtag: () => {},
         innerHeight: WINDOW_INNER_HEIGHT,
         googletag,
+        adsbygoogle,
         fetch: sandbox.stub(),
       }
     );
@@ -989,6 +988,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     let monetizationFunctionSpy;
     let audienceActionFlow;
     let activityIframeViewMock;
+
     async function setupRewardedAds(opt) {
       activitiesMock.expects('openIframe').resolves(port);
       monetizationFunctionSpy = sandbox.spy();
@@ -996,6 +996,9 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       audienceActionFlow = new AudienceActionIframeFlow(runtime, {
         action: 'TYPE_REWARDED_AD',
         configurationId: 'configId',
+        preference: opt?.adSense
+          ? PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
+          : undefined,
         onCancel: onCancelSpy,
         autoPromptType: AutoPromptType.SUBSCRIPTION,
         calledManually: false,
@@ -1016,34 +1019,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       rewardedAdLoadAdRequestCallback(rewardedAdLoadAdRequest);
     }
 
-    it('handles load and view', async () => {
-      await setupRewardedAds();
-      win.googletag.cmd[0]();
-
-      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
-      rewardedAdLoadAdResponse.setSuccess(true);
-      activityIframeViewMock
-        .expects('execute')
-        .withExactArgs(rewardedAdLoadAdResponse)
-        .once();
-
-      eventListeners['rewardedSlotReady'](readyEventArg);
-      eventListeners['slotRenderEnded']({
-        slot: rewardedSlot,
-        isEmpty: false,
-      });
-
-      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
-      const rewardedAdViewAdRequestCallback =
-        messageMap[rewardedAdViewAdRequest.label()];
-      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
-      expect(readyEventArg.makeRewardedVisible).to.be.called;
-
-      activityIframeViewMock.verify();
-    });
-
-    it('handles granted', async () => {
-      await setupRewardedAds();
+    function setupGranted() {
       storageMock
         .expects('get')
         .withArgs(StorageKeys.USER_TOKEN)
@@ -1074,16 +1050,54 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         undefined,
         undefined
       );
+    }
 
-      win.googletag.cmd[0]();
-
-      await eventListeners['rewardedSlotGranted']();
-      expect(win.googletag.destroySlots).to.be.called;
+    function verifyGranted() {
       expect(win.fetch).to.be.calledWith(
         'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=configId&audienceActionType=TYPE_REWARDED_AD'
       );
       entitlementsManagerMock.verify();
       storageMock.verify();
+    }
+
+    it('handles load and view', async () => {
+      await setupRewardedAds();
+      win.googletag.cmd[0]();
+
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      const readyEventArg = {
+        makeRewardedVisible: sandbox.spy(),
+      };
+      eventListeners['rewardedSlotReady'](readyEventArg);
+      eventListeners['slotRenderEnded']({
+        slot: rewardedSlot,
+        isEmpty: false,
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+      expect(readyEventArg.makeRewardedVisible).to.be.called;
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles granted', async () => {
+      await setupRewardedAds();
+      setupGranted();
+
+      win.googletag.cmd[0]();
+      await eventListeners['rewardedSlotGranted']();
+
+      expect(win.googletag.destroySlots).to.be.called;
+      verifyGranted();
     });
 
     it('handles close', async () => {
@@ -1183,6 +1197,12 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
 
     it('handles missing googletag', async () => {
       win.googletag = undefined;
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
       eventManagerMock.expects('logEvent').withExactArgs(
         {
           eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR,
@@ -1241,6 +1261,96 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       rewardedAdAlternateActionRequestCallback(
         rewardedAdAlternateActionRequest
       );
+
+      expect(monetizationFunctionSpy).to.be.called;
+      expect(alternateActionSpy).to.not.be.called;
+    });
+
+    it('handles adsense load and view', async () => {
+      await setupRewardedAds({adSense: true});
+
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      const showSpy = sandbox.spy();
+      win.adsbygoogle[0]['params']['google_acr']({
+        show: showSpy,
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+      expect(showSpy).to.be.called;
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles adsense failed to load', async () => {
+      win.adsbygoogle = undefined;
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      await setupRewardedAds({adSense: true});
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles adsense granted', async () => {
+      await setupRewardedAds({adSense: true});
+      setupGranted();
+
+      let grantedCallback;
+      win.adsbygoogle[0]['params']['google_acr']({
+        show: (c) => (grantedCallback = c),
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+
+      await grantedCallback({
+        status: 'viewed',
+        reward: {type: 'foo', amount: 3},
+      });
+
+      verifyGranted();
+    });
+
+    it('handles adsense not granted', async () => {
+      await setupRewardedAds({adSense: true});
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      let grantedCallback;
+      win.adsbygoogle[0]['params']['google_acr']({
+        show: (c) => (grantedCallback = c),
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+
+      await grantedCallback({status: 'foo', reward: undefined});
 
       expect(monetizationFunctionSpy).to.be.called;
       expect(alternateActionSpy).to.not.be.called;

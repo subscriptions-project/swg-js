@@ -375,6 +375,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       const adsbygoogle = this.deps_.win().adsbygoogle;
       if (!adsbygoogle) {
         // TODO(mhkawano): log error for missing api.
+        this.sendRewardedAdLoadAdResponse(false);
         return;
       }
       adsbygoogle?.push({
