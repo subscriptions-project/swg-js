@@ -751,9 +751,33 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     response.setSubscriberOrMember(true);
     const messageCallback = messageMap['AlreadySubscribedResponse'];
     messageCallback(response);
+
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
     });
+  });
+
+  it('should trigger login callback if provided', async () => {
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    const loginCallbackSpy = sandbox.spy();
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+      onSignIn: loginCallbackSpy,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+    const response = new AlreadySubscribedResponse();
+    response.setSubscriberOrMember(true);
+    const messageCallback = messageMap['AlreadySubscribedResponse'];
+    messageCallback(response);
+
+    expect(loginStub).to.not.be.called;
+    expect(loginCallbackSpy).to.be.called;
   });
 
   it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
@@ -962,10 +986,12 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
 
   describe('rewarded ad', async () => {
     let alternateActionSpy;
+    let monetizationFunctionSpy;
     let audienceActionFlow;
     let activityIframeViewMock;
-    async function setupRewardedAds() {
+    async function setupRewardedAds(opt) {
       activitiesMock.expects('openIframe').resolves(port);
+      monetizationFunctionSpy = sandbox.spy();
       alternateActionSpy = sandbox.spy();
       audienceActionFlow = new AudienceActionIframeFlow(runtime, {
         action: 'TYPE_REWARDED_AD',
@@ -973,7 +999,10 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         onCancel: onCancelSpy,
         autoPromptType: AutoPromptType.SUBSCRIPTION,
         calledManually: false,
-        monetizationFunction: alternateActionSpy,
+        monetizationFunction: monetizationFunctionSpy,
+        onAlternateAction: opt?.setAlternateActionCallback
+          ? alternateActionSpy
+          : undefined,
       });
       activityIframeViewMock = sandbox.mock(
         audienceActionFlow.activityIframeView_
@@ -987,7 +1016,33 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       rewardedAdLoadAdRequestCallback(rewardedAdLoadAdRequest);
     }
 
-    it('handles load and view flows', async () => {
+    it('handles load and view', async () => {
+      await setupRewardedAds();
+      win.googletag.cmd[0]();
+
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      eventListeners['rewardedSlotReady'](readyEventArg);
+      eventListeners['slotRenderEnded']({
+        slot: rewardedSlot,
+        isEmpty: false,
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+      expect(readyEventArg.makeRewardedVisible).to.be.called;
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles granted', async () => {
       await setupRewardedAds();
       storageMock
         .expects('get')
@@ -1010,17 +1065,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       entitlementsManagerMock.expects('getEntitlements').once();
       eventManagerMock.expects('logEvent').withExactArgs(
         {
-          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      );
-      eventManagerMock.expects('logEvent').withExactArgs(
-        {
           eventType: AnalyticsEvent.EVENT_REWARDED_AD_GRANTED,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: false,
@@ -1032,24 +1076,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       );
 
       win.googletag.cmd[0]();
-      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
-      rewardedAdLoadAdResponse.setSuccess(true);
-      activityIframeViewMock
-        .expects('execute')
-        .withExactArgs(rewardedAdLoadAdResponse)
-        .once();
-
-      eventListeners['rewardedSlotReady'](readyEventArg);
-      eventListeners['slotRenderEnded']({
-        slot: rewardedSlot,
-        isEmpty: false,
-      });
-
-      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
-      const rewardedAdViewAdRequestCallback =
-        messageMap[rewardedAdViewAdRequest.label()];
-      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
-      expect(readyEventArg.makeRewardedVisible).to.be.called;
 
       await eventListeners['rewardedSlotGranted']();
       expect(win.googletag.destroySlots).to.be.called;
@@ -1058,11 +1084,48 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       );
       entitlementsManagerMock.verify();
       storageMock.verify();
+    });
+
+    it('handles close', async () => {
+      await setupRewardedAds({setAlternateActionCallback: false});
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      win.googletag.cmd[0]();
 
       eventListeners['rewardedSlotClosed']();
-      expect(alternateActionSpy).to.be.called;
+      expect(monetizationFunctionSpy).to.be.called;
+      expect(alternateActionSpy).to.not.be.called;
+    });
 
-      activityIframeViewMock.verify();
+    it('handles close with callback', async () => {
+      await setupRewardedAds({setAlternateActionCallback: true});
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      win.googletag.cmd[0]();
+
+      eventListeners['rewardedSlotClosed']();
+      expect(monetizationFunctionSpy).to.not.be.called;
+      expect(alternateActionSpy).to.be.called;
     });
 
     it('handles rewarded ad timout', async () => {
@@ -1156,7 +1219,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
 
     it('handles rewarded ad alternate action', async () => {
-      await setupRewardedAds();
+      await setupRewardedAds({setAlternateActionCallback: true});
       const rewardedAdAlternateActionRequest =
         new RewardedAdAlternateActionRequest();
       const rewardedAdAlternateActionRequestCallback =
@@ -1165,7 +1228,22 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         rewardedAdAlternateActionRequest
       );
 
+      expect(monetizationFunctionSpy).to.not.be.called;
       expect(alternateActionSpy).to.be.called;
+    });
+
+    it('handles rewarded ad alternate action', async () => {
+      await setupRewardedAds({setAlternateActionCallback: false});
+      const rewardedAdAlternateActionRequest =
+        new RewardedAdAlternateActionRequest();
+      const rewardedAdAlternateActionRequestCallback =
+        messageMap[rewardedAdAlternateActionRequest.label()];
+      rewardedAdAlternateActionRequestCallback(
+        rewardedAdAlternateActionRequest
+      );
+
+      expect(monetizationFunctionSpy).to.be.called;
+      expect(alternateActionSpy).to.not.be.called;
     });
   });
 
