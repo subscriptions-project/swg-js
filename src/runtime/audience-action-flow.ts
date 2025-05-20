@@ -46,6 +46,7 @@ import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {ProductType} from '../api/subscriptions';
+import {PromptPreference} from './intervention';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
@@ -86,6 +87,7 @@ export function isAudienceActionType(
 export interface AudienceActionIframeParams {
   action: AudienceActionType;
   configurationId?: string;
+  preference?: PromptPreference;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
@@ -128,6 +130,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly activityIframeView_: ActivityIframeView;
   private readonly fetcher: XhrFetcher;
   private showRewardedAd?: () => void;
+  private disposeAd?: () => void;
   private rewardedAdSlot?: googletag.Slot;
   private rewardedAdTimeout?: NodeJS.Timeout;
   private readonly rewardedSlotReadyHandler;
@@ -235,6 +238,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.activityIframeView_.onCancel(() => {
       this.params_.onCancel?.();
       this.cleanUpGoogletag();
+      this.disposeAd?.();
     });
 
     return this.dialogManager_.openView(
@@ -364,21 +368,41 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   private handleRewardedAdLoadAdRequest(request: RewardedAdLoadAdRequest) {
-    const googletag = this.deps_.win().googletag;
-    if (!googletag) {
-      this.deps_
-        .eventManager()
-        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR);
-      this.sendRewardedAdLoadAdResponse(false);
-      return;
+    if (
+      this.params_.preference ===
+      PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
+    ) {
+      const adsbygoogle = this.deps_.win().adsbygoogle;
+      if (!adsbygoogle) {
+        // TODO(mhkawano): log error for missing api.
+        return;
+      }
+      adsbygoogle?.push({
+        params: {
+          'google_adtest': 'on', // TODO(mhkawano): remove before launch.
+          'google_tag_origin': 'rrm',
+          'google_reactive_ad_format': 11,
+          'google_wrap_fullscreen_ad': true,
+          'google_video_play_muted': false,
+          'google_acr': this.showASRewardedAd.bind(this),
+        },
+      });
+    } else {
+      const googletag = this.deps_.win().googletag;
+      if (!googletag) {
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR);
+        this.sendRewardedAdLoadAdResponse(false);
+        return;
+      }
+      googletag.cmd.push(() => this.setUpRewardedAd(request.getAdUnit()));
     }
 
     this.rewardedAdTimeout = setTimeout(
       this.handleRewardedAdLoadAdRequestTimeout.bind(this),
       TIMEOUT_MS
     );
-
-    googletag.cmd.push(() => this.setUpRewardedAd(request.getAdUnit()));
   }
 
   private handleRewardedAdLoadAdRequestTimeout() {
@@ -386,6 +410,34 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       .eventManager()
       .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR);
     this.sendRewardedAdLoadAdResponse(false);
+  }
+
+  private showASRewardedAd(rewardedAd?: {
+    show?: CallableFunction;
+    disposeAd?: () => void;
+  }) {
+    clearTimeout(this.rewardedAdTimeout);
+    if (!rewardedAd?.show) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED);
+      this.sendRewardedAdLoadAdResponse(false);
+    }
+    this.showRewardedAd = () =>
+      rewardedAd!.show!(this.handleASRewardedAdResult.bind(this));
+    this.disposeAd = rewardedAd?.disposeAd;
+    this.sendRewardedAdLoadAdResponse(true);
+  }
+
+  private async handleASRewardedAdResult(result: {
+    status?: string;
+    reward?: {type?: string; amount?: number};
+  }) {
+    if (result.status === 'viewed') {
+      await this.rewardedAdGrant(result?.reward?.amount, result?.reward?.type);
+    } else {
+      this.rewardedSlotClosed();
+    }
   }
 
   private setUpRewardedAd(adunit: string | null) {
@@ -449,9 +501,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   private async rewardedSlotGranted(
-    event: googletag.events.RewardedSlotGrantedEvent
+    event?: googletag.events.RewardedSlotGrantedEvent
   ) {
     this.cleanUpGoogletag();
+    await this.rewardedAdGrant(event?.payload?.amount, event?.payload?.type);
+  }
+
+  private async rewardedAdGrant(amount?: number, type?: string) {
     this.deps_
       .eventManager()
       .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
@@ -460,8 +516,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       data: {
         rendered: true,
         rewardGranted: true,
-        reward: event?.payload?.amount,
-        type: event?.payload?.type,
+        reward: amount,
+        type,
       },
     });
     this.dialogManager_.completeView(this.activityIframeView_);

@@ -17,6 +17,16 @@
 import {InterventionType} from '../api/intervention-type';
 
 /**
+ * CTA / Prompt variations.
+ */
+export enum PromptPreference {
+  PREFERENCE_UNSPECIFIED = 'PREFERENCE_UNSPECIFIED',
+  PREFERENCE_GOOGLE_PROVIDED_PROMPT = 'PREFERENCE_GOOGLE_PROVIDED_PROMPT',
+  PREFERENCE_PUBLISHER_PROVIDED_PROMPT = 'PREFERENCE_PUBLISHER_PROVIDED_PROMPT',
+  PREFERENCE_ADSENSE_REWARDED_AD = 'PREFERENCE_ADSENSE_REWARDED_AD',
+}
+
+/**
  * Intervention returned from the article endpoint. Interventions are configured
  * in the Publisher Center, and are used to display a prompt.
  */
@@ -26,9 +36,8 @@ export interface Intervention {
   // ID used to fetch the configuration for the intervention. IDs are found in
   // the Publisher Center.
   readonly configurationId?: string;
-  // Indicates if the intervention should be Google provided, or publisher
-  // provided.
-  readonly preference?: string;
+  // Indicates how a CTA is rendered.
+  readonly preference?: PromptPreference;
   // Flexible Prompt Architecture - number of completions used only for
   // repeatable actions (Rewarded Ads, BYO-CTA) to determine action eligibility
   // based on funnel-level configured repeatability.
