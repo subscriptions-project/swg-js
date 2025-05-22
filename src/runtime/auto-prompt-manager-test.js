@@ -64,10 +64,6 @@ const SUBSCRIPTION_INTERVENTION = {
   type: 'TYPE_SUBSCRIPTION',
   configurationId: 'subscription_config_id',
 };
-const REWARDED_AD_INTERVENTION = {
-  type: 'TYPE_REWARDED_AD',
-  configurationId: 'rewarded_ad_config_id',
-};
 
 describes.realWin('AutoPromptManager', (env) => {
   let autoPromptManager;
