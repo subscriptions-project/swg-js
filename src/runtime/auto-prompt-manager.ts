@@ -192,7 +192,6 @@ export class AutoPromptManager {
   private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
   private dismissibilityCtaFilterExperiment_: boolean = false;
-  private standardRewardedAdExperiment = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -290,10 +289,6 @@ export class AutoPromptManager {
     this.dismissibilityCtaFilterExperiment_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.DISMISSIBILITY_CTA_FILTER_EXPERIMENT
-    );
-    this.standardRewardedAdExperiment = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.STANDARD_REWARDED_AD_EXPERIMENT
     );
   }
 
