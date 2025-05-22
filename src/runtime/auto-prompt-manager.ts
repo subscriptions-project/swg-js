@@ -192,7 +192,6 @@ export class AutoPromptManager {
   private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
   private dismissibilityCtaFilterExperiment_: boolean = false;
-  private standardRewardedAdExperiment = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -290,10 +289,6 @@ export class AutoPromptManager {
     this.dismissibilityCtaFilterExperiment_ = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.DISMISSIBILITY_CTA_FILTER_EXPERIMENT
-    );
-    this.standardRewardedAdExperiment = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.STANDARD_REWARDED_AD_EXPERIMENT
     );
   }
 
@@ -629,21 +624,8 @@ export class AutoPromptManager {
   ): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-        action === InterventionType.TYPE_REWARDED_AD &&
-        !this.standardRewardedAdExperiment
-          ? new AudienceActionLocalFlow(this.deps_, {
-              action,
-              configurationId,
-              autoPromptType: this.autoPromptType_,
-              isClosable: this.isClosable_,
-              monetizationFunction: this.getLargeMonetizationPromptFn_(
-                /* shouldAnimateFade */ false
-              ),
-              calledManually: false,
-              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
-            })
-          : action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
-            preference === PromptPreference.PREFERENCE_PUBLISHER_PROVIDED_PROMPT
+        action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
+        preference === PromptPreference.PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
               action,
               configurationId,
