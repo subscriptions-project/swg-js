@@ -4348,30 +4348,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves(clientConfig)
         .once();
       getArticleExpectation = entitlementsManagerMock.expects('getArticle');
-      getArticleExpectation
-        .resolves({
-          actionOrchestration: {
-            interventionFunnel: {
-              interventions: [
-                {
-                  configId: 'rewarded_ad_config_id',
-                  type: 'TYPE_REWARDED_AD',
-                  closability: 'BLOCKING',
-                },
-                {
-                  configId: 'subscription_config_id',
-                  type: 'TYPE_SUBSCRIPTION',
-                  closability: 'BLOCKING',
-                },
-              ],
-            },
-          },
-          audienceActions: {
-            actions: [REWARDED_AD_INTERVENTION, SUBSCRIPTION_INTERVENTION],
-            engineId: '123',
-          },
-        })
-        .once();
 
       startLocalSpy = sandbox.spy(
         audienceActionLocalFlow.AudienceActionLocalFlow.prototype,
@@ -4382,28 +4358,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .returns({
           start: startLocalSpy,
         });
-    });
-
-    it('is rendered for TYPE_REWARDED_ADS', async () => {
-      win.googletag = {
-        apiReady: true,
-        getVersion: () => 'gpt_version_foo',
-      };
-
-      await autoPromptManager.showAutoPrompt({});
-
-      expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
-        action: 'TYPE_REWARDED_AD',
-        configurationId: 'rewarded_ad_config_id',
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-        isClosable: false,
-        monetizationFunction: sandbox.match.any,
-        calledManually: false,
-        shouldRenderPreview: false,
-      });
-      expect(startLocalSpy).to.have.been.calledOnce;
-      expect(startSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
 
     it('is rendered for BYOP TYPE_NEWSLETTER_SIGNUP', async () => {

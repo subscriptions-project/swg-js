@@ -629,20 +629,7 @@ export class AutoPromptManager {
   ): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-        action === InterventionType.TYPE_REWARDED_AD &&
-        !this.standardRewardedAdExperiment
-          ? new AudienceActionLocalFlow(this.deps_, {
-              action,
-              configurationId,
-              autoPromptType: this.autoPromptType_,
-              isClosable: this.isClosable_,
-              monetizationFunction: this.getLargeMonetizationPromptFn_(
-                /* shouldAnimateFade */ false
-              ),
-              calledManually: false,
-              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
-            })
-          : action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
+          action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
             preference === PromptPreference.PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
               action,
