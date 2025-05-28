@@ -22,11 +22,6 @@ import {
   ERROR_HTML,
   LOADING_HTML,
   OPT_IN_CLOSE_BUTTON_HTML,
-  REWARDED_AD_CLOSE_BUTTON_HTML,
-  REWARDED_AD_HTML,
-  REWARDED_AD_SIGN_IN_HTML,
-  REWARDED_AD_SUPPORT_HTML,
-  REWARDED_AD_THANKS_HTML,
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -35,6 +30,7 @@ import {EntitlementsManager} from './entitlements-manager';
 import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
+import {PromptPreference} from './intervention';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
@@ -42,17 +38,15 @@ import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {createElement, removeElement} from '../utils/dom';
 import {feUrl} from './services';
-import {htmlEscape} from 'safevalues';
 import {msg} from '../utils/i18n';
 import {parseUrl} from '../utils/url';
 import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 import {setStyle} from '../utils/style';
-import {warn} from '../utils/log';
 
 export interface AudienceActionLocalParams {
   action: InterventionType;
-  configurationId?: string;
+  configurationId: string;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
@@ -60,8 +54,6 @@ export interface AudienceActionLocalParams {
   monetizationFunction?: () => void;
   calledManually: boolean;
   shouldRenderPreview?: boolean;
-  onAlternateAction?: () => void;
-  onSignIn?: () => void;
 }
 
 interface AudienceActionConfig {
@@ -72,10 +64,6 @@ interface AudienceActionConfig {
       contributions?: boolean;
       premonetization?: boolean;
     };
-  };
-  rewardedAdParameters?: {
-    adunit?: string;
-    customMessage?: string;
   };
   optInParameters?: {
     title: string;
@@ -91,13 +79,6 @@ interface CompleteAudienceActionResponse {
   swgUserToken?: string;
 }
 
-// Default timeout for waiting on ready callback.
-const GPT_TIMEOUT_MS = 10000;
-// Default timeout to auto-dismiss the rewarded ad thanks prompt
-const THANKS_TIMEOUT_MS = 3000;
-const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
-  'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
-
 /**
  * An audience action local flow will show a dialog prompt to a reader, asking them
  * to complete an action for potentially free, additional metered entitlements.
@@ -110,25 +91,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   private readonly fetcher_: XhrFetcher;
   private readonly eventManager_: ClientEventManager;
   private readonly entitlementsManager_: EntitlementsManager;
-  // Ad slot used to host the rewarded ad.
-  private rewardedSlot_?: googletag.Slot;
-  // Used to render the rewarded ad, returned from the ready callback.
-  private makeRewardedVisible_?: () => void;
-  private rewardedAdTimeout_?: NodeJS.Timeout;
   // Used for focus trap.
   private bottomSentinal_!: HTMLElement;
-  private config?: AudienceActionConfig;
-  // Rewarded ad callback handlers.
-  private readonly rewardedSlotReadyHandler;
-  private readonly rewardedSlotClosedHandler;
-  private readonly rewardedSlotGrantedHandler;
-  private readonly slotRenderEndedHandler;
 
   constructor(
     private readonly deps_: Deps,
-    private readonly params_: AudienceActionLocalParams,
-    private readonly gptTimeoutMs_: number = GPT_TIMEOUT_MS,
-    private readonly thanksTimeoutMs_: number = THANKS_TIMEOUT_MS
+    private readonly params_: AudienceActionLocalParams
   ) {
     this.clientConfigManager_ = deps_.clientConfigManager();
 
@@ -143,11 +111,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.eventManager_ = deps_.eventManager();
 
     this.entitlementsManager_ = deps_.entitlementsManager();
-
-    this.rewardedSlotReadyHandler = this.rewardedSlotReady_.bind(this);
-    this.rewardedSlotClosedHandler = this.rewardedSlotClosed_.bind(this);
-    this.rewardedSlotGrantedHandler = this.rewardedSlotGranted_.bind(this);
-    this.slotRenderEndedHandler = this.slotRenderEnded_.bind(this);
   }
 
   private createWrapper_(): HTMLElement {
@@ -221,31 +184,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     this.prompt_./*OK*/ innerHTML = ERROR_HTML;
   }
 
-  private bailoutPrompt_() {
-    if (!this.params_.isClosable && !this.params_.monetizationFunction) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.IMPRESSION_REWARDED_AD_ERROR
-      );
-    }
-    this.cleanUpGoogletag();
-    this.params_.onCancel?.();
-    this.params_.monetizationFunction?.();
-    this.triggerRewardedAdOnResultCallback(
-      /* rendered */ false,
-      /* rewardGranted */ false
-    );
-  }
-
   private renderLoadingView_() {
     this.prompt_./*OK*/ innerHTML = LOADING_HTML;
   }
 
   private async initPrompt_() {
-    if (this.params_.action === InterventionType.TYPE_REWARDED_AD) {
-      await this.initRewardedAdWall_();
-    } else if (
-      this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP
-    ) {
+    if (this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
       await this.initNewsletterSignup_();
     } else {
       this.params_.onCancel?.();
@@ -268,7 +212,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const validNewsletterSignupParams =
       codeSnippet &&
       config?.optInParameters?.promptPreference ===
-        PREFERENCE_PUBLISHER_PROVIDED_PROMPT;
+        PromptPreference.PREFERENCE_PUBLISHER_PROVIDED_PROMPT;
 
     if (validNewsletterSignupParams) {
       this.renderOptInPrompt_(codeSnippet);
@@ -361,315 +305,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private isSubscription(): boolean {
-    return (
-      this.params_.autoPromptType === AutoPromptType.SUBSCRIPTION ||
-      this.params_.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
-      // Check the revenue model as backup
-      // TODO: b/374764869 - rework how autoPromptType is determined
-      (!this.params_.autoPromptType &&
-        !!this.config?.publication?.revenueModel?.subscriptions)
-    );
-  }
-
-  private isContribution(): boolean {
-    return (
-      this.params_.autoPromptType === AutoPromptType.CONTRIBUTION ||
-      this.params_.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE ||
-      // Check the revenue model as backup
-      // TODO: b/374764869 - rework how autoPromptType is determined
-      (!this.params_.autoPromptType &&
-        !!this.config?.publication?.revenueModel?.contributions)
-    );
-  }
-
-  private async checkGoogletagAvailable_(): Promise<boolean> {
-    const window = this.deps_.win();
-    // Shortcut the check if there is a fake api loaded
-    if (!!window.googletag?.apiReady && !window.googletag?.getVersion()) {
-      return false;
-    }
-    // Race aginst the command queue to confirm that it has been loaded
-    return new Promise((res) => {
-      const timeout = setTimeout(() => res(false), this.gptTimeoutMs_);
-      window.googletag = window.googletag || {cmd: []};
-      window.googletag.cmd.push(() => {
-        clearTimeout(timeout);
-        res(true);
-      });
-    });
-  }
-
-  private async initRewardedAdWall_() {
-    this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_FLOW_INIT);
-    const [config, googletagAvailable] = await Promise.all([
-      this.getConfig_(),
-      this.checkGoogletagAvailable_(),
-    ]);
-    if (!googletagAvailable) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
-      );
-      this.bailoutPrompt_();
-      return;
-    }
-    const validRewardedAdParams =
-      config?.rewardedAdParameters?.adunit &&
-      config?.rewardedAdParameters?.customMessage &&
-      config?.publication?.name;
-    if (!validRewardedAdParams) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_REWARDED_AD_CONFIG_ERROR
-      );
-      this.bailoutPrompt_();
-      return;
-    }
-    this.config = config;
-    // Setup callback for googletag init.
-    const googletag = this.deps_.win().googletag;
-    googletag.cmd.push(this.initRewardedAdSlot_.bind(this));
-    // There is no good method of checking that gpt.js is working correctly.
-    // This timeout allows us to sanity check and error out if things are not
-    // working correctly.
-    this.rewardedAdTimeout_ = setTimeout(() => {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR
-      );
-      this.bailoutPrompt_();
-    }, this.gptTimeoutMs_);
-  }
-
-  private initRewardedAdSlot_() {
-    const googletag = this.deps_.win().googletag;
-
-    this.rewardedSlot_ = googletag.defineOutOfPageSlot(
-      this.config!.rewardedAdParameters!.adunit!,
-      googletag.enums.OutOfPageFormat.REWARDED
-    );
-
-    if (!this.rewardedSlot_) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR
-      );
-      this.bailoutPrompt_();
-      return;
-    }
-    this.rewardedSlot_.addService(googletag.pubads());
-    googletag
-      .pubads()
-      .addEventListener('rewardedSlotReady', this.rewardedSlotReadyHandler);
-    googletag
-      .pubads()
-      .addEventListener('rewardedSlotClosed', this.rewardedSlotClosedHandler);
-    googletag
-      .pubads()
-      .addEventListener('rewardedSlotGranted', this.rewardedSlotGrantedHandler);
-    googletag
-      .pubads()
-      .addEventListener('slotRenderEnded', this.slotRenderEndedHandler);
-    googletag.enableServices();
-    googletag.display(this.rewardedSlot_);
-    googletag.pubads().refresh([this.rewardedSlot_]);
-  }
-
-  /**
-   * Called when rendering the slot has ended. Used to determine if a slot was
-   * filled.
-   */
-  private slotRenderEnded_(event: googletag.events.SlotRenderEndedEvent) {
-    if (event.slot === this.rewardedSlot_! && event.isEmpty) {
-      clearTimeout(this.rewardedAdTimeout_);
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED
-      );
-      warn('Rewarded ad slot could not be filled');
-      this.bailoutPrompt_();
-    }
-  }
-
-  /**
-   * When gpt.js is ready to show an ad, we replace the loading view and wire up
-   * the buttons.
-   */
-  private rewardedSlotReady_(
-    rewardedAd: googletag.events.RewardedSlotReadyEvent
-  ) {
-    clearTimeout(this.rewardedAdTimeout_);
-    this.makeRewardedVisible_ = rewardedAd.makeRewardedVisible;
-
-    const isPremonetization = !this.isContribution() && !this.isSubscription();
-
-    const language = this.clientConfigManager_.getLanguage();
-
-    // verified existance in initRewardedAdWall_
-    const publication = htmlEscape(this.config!.publication!.name!).toString();
-    const closeButtonHtml = this.getCloseButtonOrEmptyHtml_(
-      REWARDED_AD_CLOSE_BUTTON_HTML
-    );
-    // verified existance in initRewardedAdWall_
-    const message = htmlEscape(
-      this.config!.rewardedAdParameters!.customMessage!
-    ).toString();
-    const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
-
-    const support =
-      this.isSubscription() || !!this.params_.onAlternateAction
-        ? msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!
-        : msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!;
-
-    const supportHtml =
-      !this.params_.onAlternateAction && isPremonetization
-        ? ''
-        : REWARDED_AD_SUPPORT_HTML.replace('$SUPPORT_MESSAGE$', support);
-
-    const signin =
-      this.isSubscription() || !!this.params_.onSignIn
-        ? msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!
-        : msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!;
-
-    const signinHtml =
-      !this.params_.onSignIn && isPremonetization
-        ? ''
-        : REWARDED_AD_SIGN_IN_HTML.replace('$SIGN_IN_MESSAGE$', signin);
-
-    this.prompt_./*OK*/ innerHTML = REWARDED_AD_HTML.replace(
-      '$TITLE$',
-      publication
-    )
-      .replace('$EXIT$', closeButtonHtml)
-      .replace('$MESSAGE$', message)
-      .replace('$VIEW_AN_AD$', viewad)
-      .replace('$SUPPORT_BUTTON$', supportHtml)
-      .replace('$SIGN_IN_BUTTON$', signinHtml);
-
-    this.prompt_
-      .querySelector('.rewarded-ad-support-button')
-      ?.addEventListener('click', this.supportRewardedAdWall_.bind(this));
-    this.prompt_
-      .querySelector('.rewarded-ad-view-ad-button')
-      ?.addEventListener('click', this.viewRewardedAdWall_.bind(this));
-    this.prompt_
-      .querySelector('.rewarded-ad-close-button')
-      ?.addEventListener('click', this.closeRewardedAdWall_.bind(this));
-    this.prompt_
-      .querySelector('.rewarded-ad-sign-in-button')
-      ?.addEventListener('click', this.signinRewardedAdWall_.bind(this));
-    this.lock_();
-    this.focusRewardedAds_();
-    // TODO: mhkawano - EVENT_REWARDED_AD_READY and IMPRESSION_REWARDED_AD are redundant.
-    this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_READY);
-    this.eventManager_.logSwgEvent(AnalyticsEvent.IMPRESSION_REWARDED_AD);
-  }
-
-  private rewardedSlotClosed_() {
-    this.cleanUpGoogletag();
-    if (this.params_.isClosable) {
-      this.unlock_();
-      this.params_.onCancel?.();
-    }
-    this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
-      /* isFromUserAction */ true
-    );
-    this.triggerRewardedAdOnResultCallback(
-      /* rendered */ true,
-      /* rewardGranted */ false
-    );
-  }
-
-  private async rewardedSlotGranted_(
-    event: googletag.events.RewardedSlotGrantedEvent
-  ) {
-    const language = this.clientConfigManager_.getLanguage();
-    const closeButtonDescription = msg(
-      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
-      language
-    )!;
-    const thanksMessage = msg(
-      SWG_I18N_STRINGS['THANKS_FOR_VIEWING_THIS_AD'],
-      language
-    )!;
-    this.prompt_./*OK*/ innerHTML = REWARDED_AD_THANKS_HTML.replace(
-      '$CLOSE_BUTTON_DESCRIPTION$',
-      closeButtonDescription
-    ).replace('$THANKS_FOR_VIEWING_THIS_AD$', thanksMessage);
-
-    const closeButton = this.prompt_.getElementsByClassName(
-      'rewarded-ad-close-button'
-    );
-    const timeout = setTimeout(this.unlock_.bind(this), this.thanksTimeoutMs_);
-    closeButton.item(0)?.addEventListener('click', () => {
-      clearTimeout(timeout);
-      this.unlock_();
-    });
-    this.cleanUpGoogletag();
-    this.eventManager_.logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
-    this.focusRewardedAds_();
-    this.triggerRewardedAdOnResultCallback(
-      /* rendered */ true,
-      /* rewardGranted */ true,
-      event?.payload?.amount,
-      event?.payload?.type
-    );
-    await this.complete_();
-  }
-
-  private closeRewardedAdWall_() {
-    this.cleanUpGoogletag();
-    this.unlock_();
-    this.params_.onCancel?.();
-    this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_REWARDED_AD_CLOSE,
-      /* isFromUserAction */ true
-    );
-    this.triggerRewardedAdOnResultCallback(
-      /* rendered */ true,
-      /* rewardGranted */ false
-    );
-  }
-
-  private supportRewardedAdWall_() {
-    this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_REWARDED_AD_SUPPORT,
-      /* isFromUserAction */ true
-    );
-    this.params_.onCancel?.();
-    this.unlock_();
-    this.cleanUpGoogletag();
-    if (!!this.params_.onAlternateAction) {
-      this.params_.onAlternateAction();
-    } else {
-      this.params_.monetizationFunction!();
-    }
-  }
-
-  private viewRewardedAdWall_() {
-    const viewButton = this.prompt_.getElementsByClassName(
-      'rewarded-ad-view-ad-button'
-    );
-    viewButton.item(0)?.setAttribute('disabled', 'true');
-    this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_REWARDED_AD_VIEW,
-      /* isFromUserAction */ true
-    );
-    this.makeRewardedVisible_!();
-  }
-
-  private signinRewardedAdWall_() {
-    this.eventManager_.logSwgEvent(
-      AnalyticsEvent.ACTION_REWARDED_AD_SIGN_IN,
-      /* isFromUserAction */ true
-    );
-    if (!!this.params_.onSignIn) {
-      this.params_.onCancel?.();
-      this.unlock_();
-      this.cleanUpGoogletag();
-      this.params_.onSignIn();
-    } else {
-      this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
-    }
-  }
-
   private buildEndpointUrl_(endpoint: string, queryParams: string[][]): string {
     const publicationId = this.deps_.pageConfig().getPublicationId();
     const baseUrl = `/publication/${encodeURIComponent(
@@ -747,10 +382,6 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     setStyle(this.doc_.body, 'overflow', '');
   }
 
-  private focusRewardedAds_() {
-    (this.prompt_.querySelector('.rewarded-ad-prompt')! as HTMLElement).focus();
-  }
-
   private focusFirst_() {
     const focusable = this.getFocusable_();
     (focusable[1] as HTMLElement).focus();
@@ -817,53 +448,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   }
 
   close() {
-    if (this.params_.action === InterventionType.TYPE_REWARDED_AD) {
-      this.closeRewardedAdWall_();
-    } else if (
-      this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP
-    ) {
+    if (this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
       this.closeOptInPrompt_();
     }
-  }
-
-  private cleanUpGoogletag() {
-    const googletag = this.deps_.win().googletag;
-    if (this.rewardedSlot_) {
-      googletag?.destroySlots?.([this.rewardedSlot_!]);
-    }
-    const pubads = googletag?.pubads?.();
-    pubads?.removeEventListener?.(
-      'rewardedSlotReady',
-      this.rewardedSlotReadyHandler
-    );
-    pubads?.removeEventListener?.(
-      'rewardedSlotClosed',
-      this.rewardedSlotClosedHandler
-    );
-    pubads?.removeEventListener?.(
-      'rewardedSlotGranted',
-      this.rewardedSlotGrantedHandler
-    );
-    pubads?.removeEventListener?.(
-      'slotRenderEnded',
-      this.slotRenderEndedHandler
-    );
-  }
-
-  private triggerRewardedAdOnResultCallback(
-    rendered: boolean,
-    rewardGranted: boolean,
-    reward?: number,
-    type?: string
-  ) {
-    this.params_.onResult?.({
-      configurationId: this.params_.configurationId,
-      data: {
-        rendered,
-        rewardGranted,
-        reward,
-        type,
-      },
-    });
   }
 }
