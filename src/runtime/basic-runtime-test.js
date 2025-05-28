@@ -231,8 +231,6 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should not force lang if html attribute and clientOptions not set', async () => {
-      win.document.documentElement.lang = undefined;
-
       basicRuntime.init({
         type: 'NewsArticle',
         isAccessibleForFree: true,
@@ -275,8 +273,6 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should force lang if clientOptions set', async () => {
-      win.document.documentElement.lang = undefined;
-
       basicRuntime.init({
         type: 'NewsArticle',
         isAccessibleForFree: true,
