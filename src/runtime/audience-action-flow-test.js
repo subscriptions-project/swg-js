@@ -14,103 +14,36 @@
  * limitations under the License.
  */
 
+import * as Utils from '../utils/survey-utils';
 import {
   AlreadySubscribedResponse,
   AnalyticsEvent,
   CompleteAudienceActionResponse,
   EntitlementsResponse,
   EventOriginator,
-  SurveyAnswer,
+  RewardedAdAlternateActionRequest,
+  RewardedAdLoadAdRequest,
+  RewardedAdLoadAdResponse,
+  RewardedAdViewAdRequest,
   SurveyDataTransferRequest,
-  SurveyDataTransferResponse,
-  SurveyQuestion,
 } from '../proto/api_messages';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
+import {InterventionType} from '../api/intervention-type';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
 import {ProductType} from '../api/subscriptions';
+import {PromptPreference} from './intervention';
+import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
-import {tick} from '../../test/tick';
+import {isAudienceActionType} from './audience-action-flow';
 
 const WINDOW_LOCATION_DOMAIN = 'https://www.test.com';
 const WINDOW_INNER_HEIGHT = 424242;
 const CURRENT_TIME = 1615416442000;
 const EXPECTED_TIME_STRING = '1615416442000';
-
-const TEST_QUESTION_CATEGORY_1 = 'Test Question Category 1';
-const TEST_QUESTION_TEXT_1 = 'Test Question 1';
-const TEST_QUESTION_CATEGORY_2 = 'Test Question Category 2';
-const TEST_QUESTION_TEXT_2 = 'Test Question 2';
-const TEST_ANSWER_CATEGORY_1 = 'Test Answer Category 1';
-const TEST_ANSWER_TEXT_1 = 'Test Answer 1';
-const TEST_ANSWER_PPS_1 = '1';
-const TEST_ANSWER_CATEGORY_2 = 'Test Answer Category 2';
-const TEST_ANSWER_TEXT_2 = 'Test Answer 2';
-const TEST_ANSWER_PPS_2 = '2';
-const TEST_QUESTION_CATEGORY_3 = 'Test Question Category 3';
-const TEST_QUESTION_TEXT_3 = 'Test Question 3';
-const TEST_ANSWER_CATEGORY_3 = 'Test Answer Category 3';
-const TEST_ANSWER_TEXT_3 = 'Test Answer 3';
-
-const TEST_SURVEYANSWER_1 = new SurveyAnswer();
-TEST_SURVEYANSWER_1.setAnswerCategory(TEST_ANSWER_CATEGORY_1);
-TEST_SURVEYANSWER_1.setAnswerText(TEST_ANSWER_TEXT_1);
-TEST_SURVEYANSWER_1.setPpsValue(TEST_ANSWER_PPS_1);
-const TEST_SURVEYQUESTION_1 = new SurveyQuestion();
-TEST_SURVEYQUESTION_1.setQuestionCategory(TEST_QUESTION_CATEGORY_1);
-TEST_SURVEYQUESTION_1.setQuestionText(TEST_QUESTION_TEXT_1);
-TEST_SURVEYQUESTION_1.setSurveyAnswersList([TEST_SURVEYANSWER_1]);
-
-const TEST_SURVEYANSWER_2 = new SurveyAnswer();
-TEST_SURVEYANSWER_2.setAnswerCategory(TEST_ANSWER_CATEGORY_2);
-TEST_SURVEYANSWER_2.setAnswerText(TEST_ANSWER_TEXT_2);
-TEST_SURVEYANSWER_2.setPpsValue(TEST_ANSWER_PPS_2);
-const TEST_SURVEYQUESTION_2 = new SurveyQuestion();
-TEST_SURVEYQUESTION_2.setQuestionCategory(TEST_QUESTION_CATEGORY_2);
-TEST_SURVEYQUESTION_2.setQuestionText(TEST_QUESTION_TEXT_2);
-TEST_SURVEYQUESTION_2.setSurveyAnswersList([TEST_SURVEYANSWER_2]);
-
-const TEST_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
-TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
-  TEST_SURVEYQUESTION_1,
-  TEST_SURVEYQUESTION_2,
-]);
-
-const TEST_SURVEYONRESULTCONFIGID = 'survey onsResult config id';
-const TEST_SURVEYONRESULTRESPONSE = {
-  configurationId: TEST_SURVEYONRESULTCONFIGID,
-  data: TEST_SURVEYDATATRANSFERREQUEST,
-};
-
-const TEST_SURVEYANSWER_EMPTY = new SurveyAnswer();
-const TEST_SURVEYQUESTION_EMPTY = new SurveyQuestion();
-TEST_SURVEYQUESTION_EMPTY.setSurveyAnswersList([TEST_SURVEYANSWER_EMPTY]);
-const TEST_EMPTY_SURVEYDATATRANSFERREQUEST = new SurveyDataTransferRequest();
-TEST_EMPTY_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
-  TEST_SURVEYQUESTION_EMPTY,
-]);
-
-const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS = new SurveyDataTransferRequest();
-TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setSurveyQuestionsList([
-  TEST_SURVEYQUESTION_1,
-  TEST_SURVEYQUESTION_2,
-]);
-TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.setStorePpsInLocalStorage(true);
-
-const TEST_SURVEYANSWER_3 = new SurveyAnswer();
-TEST_SURVEYANSWER_3.setAnswerCategory(TEST_ANSWER_CATEGORY_3);
-TEST_SURVEYANSWER_3.setAnswerText(TEST_ANSWER_TEXT_3);
-const TEST_SURVEYQUESTION_3 = new SurveyQuestion();
-TEST_SURVEYQUESTION_3.setQuestionCategory(TEST_QUESTION_CATEGORY_3);
-TEST_SURVEYQUESTION_3.setQuestionText(TEST_QUESTION_TEXT_3);
-TEST_SURVEYQUESTION_3.setSurveyAnswersList([TEST_SURVEYANSWER_3]);
-const TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES =
-  new SurveyDataTransferRequest();
-TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.setStorePpsInLocalStorage(true);
 
 const TEST_OPTINCONFIGID = 'optin onResult config id';
 const TEST_EMAIL = 'test email';
@@ -123,12 +56,20 @@ const TEST_OPTINRESULT = {
   displayName: TEST_DISPLAY_NAME,
   givenName: TEST_GIVEN_NAME,
   familyName: TEST_FAMILY_NAME,
+  termsAndConditionsConsent: true,
 };
 
 const TEST_OPTINONRESULT = {
   configurationId: TEST_OPTINCONFIGID,
   data: TEST_OPTINRESULT,
 };
+
+const COMPLETE_RESPONSE = `
+{
+  "updated": true,
+  "alreadyCompleted": true,
+  "swgUserToken": "xyz"
+}`;
 
 describes.realWin('AudienceActionIframeFlow', (env) => {
   let win;
@@ -143,8 +84,35 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   let dialogManagerMock;
   let clientOptions;
   let eventManagerMock;
+  let rewardedSlot;
+  let pubadsobj;
+  let eventListeners;
+  let clock;
 
   beforeEach(() => {
+    rewardedSlot = {
+      addService: () => {},
+    };
+    eventListeners = {};
+    pubadsobj = {
+      addEventListener: (event, handler) => {
+        eventListeners[event] = handler;
+      },
+      removeEventListener: sandbox.spy(),
+      refresh: sandbox.spy(),
+    };
+    const googletag = {
+      cmd: [],
+      defineOutOfPageSlot: () => rewardedSlot,
+      enums: {OutOfPageFormat: {REWARDED: 'REWARDED'}},
+      pubads: () => pubadsobj,
+      enableServices: () => {},
+      display: () => {},
+      destroySlots: sandbox.spy(),
+      apiReady: true,
+      getVersion: () => 'GOOGLETAG_VERSION',
+    };
+    const adsbygoogle = [];
     win = Object.assign(
       {},
       {
@@ -152,6 +120,9 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         document: env.win.document,
         gtag: () => {},
         innerHeight: WINDOW_INNER_HEIGHT,
+        googletag,
+        adsbygoogle,
+        fetch: sandbox.stub(),
       }
     );
     messageMap = {};
@@ -182,7 +153,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
     sandbox.stub(runtime, 'win').returns(win);
     onCancelSpy = sandbox.spy();
-    sandbox.useFakeTimers(CURRENT_TIME);
+    clock = sandbox.useFakeTimers(CURRENT_TIME);
     sandbox.stub(self.console, 'warn');
   });
 
@@ -190,13 +161,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     eventManagerMock.verify();
     self.console.warn.reset();
   });
-
-  function setWinWithoutGtag() {
-    const winWithNoGtag = Object.assign({}, win);
-    delete winWithNoGtag.gtag;
-    runtime.win.restore();
-    sandbox.stub(runtime, 'win').returns(winWithNoGtag);
-  }
 
   [
     {
@@ -218,6 +182,16 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       // undefined configurationId
       action: 'TYPE_REWARDED_SURVEY',
       path: 'surveyiframe',
+    },
+    {
+      action: 'TYPE_BYO_CTA',
+      configurationId: 'byo_cta_config',
+      path: 'byoctaiframe',
+    },
+    {
+      action: 'TYPE_REWARDED_AD',
+      configurationId: 'rewarded_ad_config',
+      path: 'rewardedadiframe',
     },
   ].forEach(({action, configurationId, path}) => {
     it(`opens an AudienceActionIframeFlow constructed with params for ${action}`, async () => {
@@ -320,11 +294,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -340,7 +314,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -365,11 +339,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -385,7 +359,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -410,11 +384,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -431,7 +405,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -453,11 +427,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -474,7 +448,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -499,11 +473,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -520,7 +494,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -543,11 +517,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     let toast;
@@ -564,7 +538,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -589,11 +563,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
@@ -602,7 +576,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setActionCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -622,11 +596,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
@@ -636,7 +610,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setAlreadyCompleted(true);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -656,11 +630,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
@@ -670,7 +644,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setAlreadyCompleted(false);
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -696,11 +670,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
 
@@ -713,8 +687,9 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setDisplayName(TEST_DISPLAY_NAME);
     completeAudienceActionResponse.setGivenName(TEST_GIVEN_NAME);
     completeAudienceActionResponse.setFamilyName(TEST_FAMILY_NAME);
+    completeAudienceActionResponse.setTermsAndConditionsConsent(true);
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -736,11 +711,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     entitlementsManagerMock.expects('getEntitlements').once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     storageMock
       .expects('set')
-      .withExactArgs(Constants.READ_TIME, EXPECTED_TIME_STRING, false)
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
       .exactly(1);
 
     const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
@@ -752,7 +727,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setSwgUserToken('fake user token');
     completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
-    messageCallback(completeAudienceActionResponse);
+    await messageCallback(completeAudienceActionResponse);
 
     entitlementsManagerMock.verify();
     storageMock.verify();
@@ -775,9 +750,33 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     response.setSubscriberOrMember(true);
     const messageCallback = messageMap['AlreadySubscribedResponse'];
     messageCallback(response);
+
     expect(loginStub).to.be.calledOnce.calledWithExactly({
       linkRequested: false,
     });
+  });
+
+  it('should trigger login callback if provided', async () => {
+    const loginStub = sandbox.stub(runtime.callbacks(), 'triggerLoginRequest');
+    const loginCallbackSpy = sandbox.spy();
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+      onSignIn: loginCallbackSpy,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+
+    await audienceActionFlow.start();
+    const response = new AlreadySubscribedResponse();
+    response.setSubscriberOrMember(true);
+    const messageCallback = messageMap['AlreadySubscribedResponse'];
+    messageCallback(response);
+
+    expect(loginStub).to.not.be.called;
+    expect(loginCallbackSpy).to.be.called;
   });
 
   it('should send an empty EntitlementsResponse to show the no entitlement found toast on Activity iFrame view', async () => {
@@ -805,479 +804,12 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     activityIframeViewMock.verify();
   });
 
-  it(`handles a SurveyDataTransferRequest with successful Google Analytics logging`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_1,
-            'event_label': TEST_ANSWER_TEXT_1,
-            'survey_question': TEST_QUESTION_TEXT_1,
-            'survey_question_category': TEST_QUESTION_CATEGORY_1,
-            'survey_answer': TEST_ANSWER_TEXT_1,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_1,
-            'content_id': TEST_QUESTION_CATEGORY_1,
-            'content_group': TEST_QUESTION_TEXT_1,
-            'content_type': TEST_ANSWER_TEXT_1,
-          },
-        }
-      )
-      .once();
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_2,
-            'event_label': TEST_ANSWER_TEXT_2,
-            'survey_question': TEST_QUESTION_TEXT_2,
-            'survey_question_category': TEST_QUESTION_CATEGORY_2,
-            'survey_answer': TEST_ANSWER_TEXT_2,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
-            'content_id': TEST_QUESTION_CATEGORY_2,
-            'content_group': TEST_QUESTION_TEXT_2,
-            'content_type': TEST_ANSWER_TEXT_2,
-          },
-        }
-      )
-      .once();
-    eventManagerMock.expects('logEvent').withExactArgs(
-      {
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-        configurationId: null,
-      },
-      undefined,
-      undefined
+  it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
+    const surveyDataTransferRequest = new SurveyDataTransferRequest();
+    const handleSurveyDataTransferRequestSpy = sandbox.spy(
+      Utils,
+      'handleSurveyDataTransferRequest'
     );
-
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with failed Google Analytics logging`, async () => {
-    setWinWithoutGtag();
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      )
-      .once();
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(false);
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful gtm logging`, async () => {
-    const winWithDataLayer = Object.assign({}, win);
-    delete winWithDataLayer.gtag;
-    winWithDataLayer.dataLayer = {
-      push: () => {},
-    };
-    runtime.win.restore();
-    sandbox.stub(runtime, 'win').returns(winWithDataLayer);
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_1,
-            'event_label': TEST_ANSWER_TEXT_1,
-            'survey_question': TEST_QUESTION_TEXT_1,
-            'survey_question_category': TEST_QUESTION_CATEGORY_1,
-            'survey_answer': TEST_ANSWER_TEXT_1,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_1,
-            'content_id': TEST_QUESTION_CATEGORY_1,
-            'content_group': TEST_QUESTION_TEXT_1,
-            'content_type': TEST_ANSWER_TEXT_1,
-          },
-        }
-      )
-      .once();
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': TEST_QUESTION_CATEGORY_2,
-            'event_label': TEST_ANSWER_TEXT_2,
-            'survey_question': TEST_QUESTION_TEXT_2,
-            'survey_question_category': TEST_QUESTION_CATEGORY_2,
-            'survey_answer': TEST_ANSWER_TEXT_2,
-            'survey_answer_category': TEST_ANSWER_CATEGORY_2,
-            'content_id': TEST_QUESTION_CATEGORY_2,
-            'content_group': TEST_QUESTION_TEXT_2,
-            'content_type': TEST_ANSWER_TEXT_2,
-          },
-        }
-      )
-      .once();
-    eventManagerMock.expects('logEvent').withExactArgs(
-      {
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-        configurationId: null,
-      },
-      undefined,
-      undefined
-    );
-
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful onResult logging`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-      .resolves(true)
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: TEST_SURVEYONRESULTCONFIGID,
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
-      calledManually: false,
-    });
-
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock.expects('logEvent').withExactArgs(
-      {
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-        configurationId: null,
-      },
-      undefined,
-      undefined
-    );
-
-    await audienceActionFlow.start();
-
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(successSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-    onResultMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with failed onResult logging`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-      .resolves(false)
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: TEST_SURVEYONRESULTCONFIGID,
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
-      calledManually: false,
-    });
-
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      )
-      .once();
-
-    await audienceActionFlow.start();
-
-    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    failSurveyDataTransferResponse.setSuccess(false);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(failSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-    onResultMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with onResult logging exception`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-      .throws(new Error('Test Callback Exception'))
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: TEST_SURVEYONRESULTCONFIGID,
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
-      calledManually: false,
-    });
-
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      )
-      .once();
-
-    await audienceActionFlow.start();
-
-    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    failSurveyDataTransferResponse.setSuccess(false);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(failSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
-    );
-    activityIframeViewMock.verify();
-    onResultMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with onResult logging rejection`, async () => {
-    const onResultMock = sandbox
-      .mock()
-      .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-      .rejects(new Error('Test Callback Exception'))
-      .once();
-
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: TEST_SURVEYONRESULTCONFIGID,
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      onResult: onResultMock,
-      calledManually: false,
-    });
-
-    activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: false,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      )
-      .once();
-
-    await audienceActionFlow.start();
-
-    const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    failSurveyDataTransferResponse.setSuccess(false);
-
-    const activityIframeViewMock = sandbox
-      .mock(audienceActionFlow.activityIframeView_)
-      .expects('execute')
-      .withExactArgs(failSurveyDataTransferResponse)
-      .once();
-
-    const messageCallback = messageMap[TEST_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-
-    expect(self.console.warn).to.have.been.calledWithExactly(
-      '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
-    );
-    activityIframeViewMock.verify();
-    onResultMock.verify();
-  });
-
-  it(`handles an empty SurveyDataTransferRequest without onResult logging`, async () => {
-    eventManagerMock
-      .expects('logEvent')
-      .withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-        },
-        {
-          googleAnalyticsParameters: {
-            'event_category': '',
-            'event_label': '',
-            'survey_question': '',
-            'survey_question_category': '',
-            'survey_answer': '',
-            'survey_answer_category': '',
-            'content_id': '',
-            'content_group': '',
-            'content_type': '',
-          },
-        }
-      )
-      .once();
-
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REWARDED_SURVEY',
       configurationId: 'configId',
@@ -1287,177 +819,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
 
     activitiesMock.expects('openIframe').resolves(port);
-
-    eventManagerMock.expects('logEvent').withExactArgs(
-      {
-        eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-        configurationId: null,
-      },
-      undefined,
-      undefined
-    );
-
     await audienceActionFlow.start();
+    const messageCallback = messageMap[surveyDataTransferRequest.label()];
+    messageCallback(surveyDataTransferRequest);
 
-    const successSurveyDataTransferResponse = new SurveyDataTransferResponse();
-    successSurveyDataTransferResponse.setSuccess(true);
-
-    const messageCallback =
-      messageMap[TEST_EMPTY_SURVEYDATATRANSFERREQUEST.label()];
-    messageCallback(TEST_EMPTY_SURVEYDATATRANSFERREQUEST);
-
-    await tick(10);
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful PPS storage in empty localStorage`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
-    };
-    storageMock
-      .expects('set')
-      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
-      .once();
-
-    await audienceActionFlow.start();
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock.expects('execute').once();
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
-
-    await tick(10);
-
-    storageMock.verify();
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful PPS storage in populated localStorage`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    const existingIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['2', '3', '4']},
-    };
-    const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {
-        values: ['1', '2', '3', '4'],
-      },
-    };
-
-    storageMock
-      .expects('get')
-      .withExactArgs('ppstaxonomies', true)
-      .resolves(JSON.stringify(existingIabTaxonomyMap))
-      .once();
-
-    storageMock
-      .expects('set')
-      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
-      .once();
-
-    await audienceActionFlow.start();
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock.expects('execute').once();
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
-
-    await tick(10);
-
-    storageMock.verify();
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with successful PPS storage with no PPS ppstaxonomies but flag enabled`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    await audienceActionFlow.start();
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES);
-
-    await tick(10);
-
-    activityIframeViewMock.verify();
-  });
-
-  it(`handles a SurveyDataTransferRequest with improper existing PPS`, async () => {
-    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REWARDED_SURVEY',
-      configurationId: 'configId',
-      onCancel: onCancelSpy,
-      autoPromptType: AutoPromptType.CONTRIBUTION,
-      calledManually: false,
-    });
-    activitiesMock.expects('openIframe').resolves(port);
-
-    const existingIabTaxonomyMapBadFormat = {
-      'test': {'values': ['5']},
-    };
-    const newIabTaxonomyMap = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: ['1', '2']},
-    };
-
-    storageMock
-      .expects('get')
-      .withExactArgs('ppstaxonomies', true)
-      .resolves(JSON.stringify(existingIabTaxonomyMapBadFormat))
-      .once();
-
-    storageMock
-      .expects('set')
-      .withExactArgs('ppstaxonomies', JSON.stringify(newIabTaxonomyMap), true)
-      .once();
-
-    await audienceActionFlow.start();
-    const activityIframeViewMock = sandbox.mock(
-      audienceActionFlow.activityIframeView_
-    );
-    activityIframeViewMock.expects('execute').once();
-
-    const messageCallback =
-      messageMap[TEST_SURVEYDATATRANSFERREQUEST_WITHPPS.label()];
-    messageCallback(TEST_SURVEYDATATRANSFERREQUEST_WITHPPS);
-
-    await tick(10);
-
-    storageMock.verify();
-    activityIframeViewMock.verify();
+    expect(handleSurveyDataTransferRequestSpy).to.be.called;
   });
 
   it('opens dialog with scrolling disabled', async () => {
@@ -1615,5 +981,409 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     activitiesMock.verify();
     activityIframeViewMock.expects('getElement').once();
     expect(onCancelSpy).to.not.be.called;
+  });
+
+  describe('rewarded ad', async () => {
+    let alternateActionSpy;
+    let monetizationFunctionSpy;
+    let audienceActionFlow;
+    let activityIframeViewMock;
+
+    async function setupRewardedAds(opt) {
+      activitiesMock.expects('openIframe').resolves(port);
+      monetizationFunctionSpy = sandbox.spy();
+      alternateActionSpy = sandbox.spy();
+      audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+        action: 'TYPE_REWARDED_AD',
+        configurationId: 'configId',
+        preference: opt?.adSense
+          ? PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
+          : undefined,
+        onCancel: onCancelSpy,
+        autoPromptType: AutoPromptType.SUBSCRIPTION,
+        calledManually: false,
+        monetizationFunction: monetizationFunctionSpy,
+        onAlternateAction: opt?.setAlternateActionCallback
+          ? alternateActionSpy
+          : undefined,
+      });
+      activityIframeViewMock = sandbox.mock(
+        audienceActionFlow.activityIframeView_
+      );
+
+      await audienceActionFlow.start();
+      const rewardedAdLoadAdRequest = new RewardedAdLoadAdRequest();
+      rewardedAdLoadAdRequest.setAdUnit('adunit');
+      const rewardedAdLoadAdRequestCallback =
+        messageMap[rewardedAdLoadAdRequest.label()];
+      rewardedAdLoadAdRequestCallback(rewardedAdLoadAdRequest);
+    }
+
+    function setupGranted() {
+      storageMock
+        .expects('get')
+        .withArgs(StorageKeys.USER_TOKEN)
+        .resolves('abc')
+        .atLeast(0);
+      const completeResponse = new Response(null, {status: 200});
+      completeResponse.text = sandbox
+        .stub()
+        .returns(Promise.resolve(COMPLETE_RESPONSE));
+      win.fetch.onCall(0).returns(Promise.resolve(completeResponse));
+      storageMock
+        .expects('get')
+        .withArgs(StorageKeys.USER_TOKEN)
+        .resolves('abc')
+        .exactly(1);
+      storageMock.expects('set').withArgs(StorageKeys.USER_TOKEN).exactly(1);
+      storageMock.expects('set').withArgs(StorageKeys.READ_TIME).exactly(1);
+      entitlementsManagerMock.expects('clear').once();
+      entitlementsManagerMock.expects('getEntitlements').once();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_GRANTED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+    }
+
+    function verifyGranted() {
+      expect(win.fetch).to.be.calledWith(
+        'https://news.google.com/swg/_/api/v1/publication/pub1/completeaudienceaction?sut=abc&configurationId=configId&audienceActionType=TYPE_REWARDED_AD'
+      );
+      entitlementsManagerMock.verify();
+      storageMock.verify();
+    }
+
+    it('handles load and view', async () => {
+      await setupRewardedAds();
+      win.googletag.cmd[0]();
+
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      const readyEventArg = {
+        makeRewardedVisible: sandbox.spy(),
+      };
+      eventListeners['rewardedSlotReady'](readyEventArg);
+      eventListeners['slotRenderEnded']({
+        slot: rewardedSlot,
+        isEmpty: false,
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+      expect(readyEventArg.makeRewardedVisible).to.be.called;
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles granted', async () => {
+      await setupRewardedAds();
+      setupGranted();
+
+      win.googletag.cmd[0]();
+      await eventListeners['rewardedSlotGranted']();
+
+      expect(win.googletag.destroySlots).to.be.called;
+      verifyGranted();
+    });
+
+    it('handles close', async () => {
+      await setupRewardedAds({setAlternateActionCallback: false});
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      win.googletag.cmd[0]();
+
+      eventListeners['rewardedSlotClosed']();
+      expect(monetizationFunctionSpy).to.be.called;
+      expect(alternateActionSpy).to.not.be.called;
+    });
+
+    it('handles close with callback', async () => {
+      await setupRewardedAds({setAlternateActionCallback: true});
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      win.googletag.cmd[0]();
+
+      eventListeners['rewardedSlotClosed']();
+      expect(monetizationFunctionSpy).to.not.be.called;
+      expect(alternateActionSpy).to.be.called;
+    });
+
+    it('handles rewarded ad timout', async () => {
+      await setupRewardedAds();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      await clock.tick(10000);
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles rewarded no fill', async () => {
+      await setupRewardedAds();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+      win.googletag.cmd[0]();
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+      eventListeners['slotRenderEnded']({
+        slot: rewardedSlot,
+        isEmpty: true,
+      });
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles missing googletag', async () => {
+      win.googletag = undefined;
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      await setupRewardedAds({disableDefineOutOfPageSlot: true});
+    });
+
+    it('handles improper page set up', async () => {
+      win.googletag.defineOutOfPageSlot = () => {};
+
+      await setupRewardedAds();
+
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      win.googletag.cmd[0]();
+    });
+
+    it('handles rewarded ad alternate action', async () => {
+      await setupRewardedAds({setAlternateActionCallback: true});
+      const rewardedAdAlternateActionRequest =
+        new RewardedAdAlternateActionRequest();
+      const rewardedAdAlternateActionRequestCallback =
+        messageMap[rewardedAdAlternateActionRequest.label()];
+      rewardedAdAlternateActionRequestCallback(
+        rewardedAdAlternateActionRequest
+      );
+
+      expect(monetizationFunctionSpy).to.not.be.called;
+      expect(alternateActionSpy).to.be.called;
+    });
+
+    it('handles rewarded ad alternate action', async () => {
+      await setupRewardedAds({setAlternateActionCallback: false});
+      const rewardedAdAlternateActionRequest =
+        new RewardedAdAlternateActionRequest();
+      const rewardedAdAlternateActionRequestCallback =
+        messageMap[rewardedAdAlternateActionRequest.label()];
+      rewardedAdAlternateActionRequestCallback(
+        rewardedAdAlternateActionRequest
+      );
+
+      expect(monetizationFunctionSpy).to.be.called;
+      expect(alternateActionSpy).to.not.be.called;
+    });
+
+    it('handles adsense load and view', async () => {
+      await setupRewardedAds({adSense: true});
+
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      const showSpy = sandbox.spy();
+      win.adsbygoogle[0]['params']['google_acr']({
+        show: showSpy,
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+      expect(showSpy).to.be.called;
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles adsense failed to load', async () => {
+      win.adsbygoogle = undefined;
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      await setupRewardedAds({adSense: true});
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles adsense failed to fill', async () => {
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      await setupRewardedAds({adSense: true});
+
+      win.adsbygoogle[0]['params']['google_acr'](undefined);
+
+      activityIframeViewMock.verify();
+    });
+
+    it('handles adsense granted', async () => {
+      await setupRewardedAds({adSense: true});
+      setupGranted();
+
+      let grantedCallback;
+      win.adsbygoogle[0]['params']['google_acr']({
+        show: (c) => (grantedCallback = c),
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+
+      await grantedCallback({
+        status: 'viewed',
+        reward: {type: 'foo', amount: 3},
+      });
+
+      verifyGranted();
+    });
+
+    it('handles adsense not granted', async () => {
+      await setupRewardedAds({adSense: true});
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+
+      let grantedCallback;
+      win.adsbygoogle[0]['params']['google_acr']({
+        show: (c) => (grantedCallback = c),
+      });
+
+      const rewardedAdViewAdRequest = new RewardedAdViewAdRequest();
+      const rewardedAdViewAdRequestCallback =
+        messageMap[rewardedAdViewAdRequest.label()];
+      rewardedAdViewAdRequestCallback(rewardedAdViewAdRequest);
+
+      await grantedCallback({status: 'foo', reward: undefined});
+
+      expect(monetizationFunctionSpy).to.be.called;
+      expect(alternateActionSpy).to.not.be.called;
+    });
+  });
+
+  it('isAudienceActionType returns correct value for InterventionType', () => {
+    expect(isAudienceActionType(InterventionType.TYPE_SUBSCRIPTION)).to.be
+      .false;
+    expect(isAudienceActionType(InterventionType.TYPE_CONTRIBUTION)).to.be
+      .false;
+    expect(isAudienceActionType(InterventionType.TYPE_BYO_CTA)).to.be.true;
+    expect(isAudienceActionType(InterventionType.TYPE_NEWSLETTER_SIGNUP)).to.be
+      .true;
+    expect(isAudienceActionType(InterventionType.TYPE_REGISTRATION_WALL)).to.be
+      .true;
+    expect(isAudienceActionType(InterventionType.TYPE_REWARDED_AD)).to.be.true;
+    expect(isAudienceActionType(InterventionType.TYPE_REWARDED_SURVEY)).to.be
+      .true;
   });
 });

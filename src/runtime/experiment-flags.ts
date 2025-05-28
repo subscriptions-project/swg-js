@@ -20,7 +20,12 @@
  * IMPORTANT: All flags should also be added to the e2e test configuration in
  * nightwatch.conf.js.
  */
-export enum ExperimentFlags {}
+export enum ExperimentFlags {
+  /**
+   * Experiment flag for enabling publication_id suffix to browser storage key.
+   */
+  ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY = 'enable-pub-id-suffix-for-storage-key',
+}
 
 /**
  * Experiment flags within article experiment config.
@@ -34,9 +39,18 @@ export enum ArticleExperimentFlags {
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 
   /**
-   * [FPA M0.5] Experiment flag to enable the new autoPromptManager flow to use
-   * actionOrchestration from the article response as the source of the
-   * targeted intervention funnel.
+   * Experiment flag that filters out dismissible monetary CTAs if reader is
+   * ineligible to purchase.
    */
-  ACTION_ORCHESTRATION_EXPERIMENT = 'action_orchestration_experiment',
+  DISMISSIBILITY_CTA_FILTER_EXPERIMENT = 'dismissibility_cta_filter_experiment',
+
+  /**
+   * Experiment flag to enable the rendering of the CTAs inline.
+   */
+  INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
+
+  /**
+   * Experiment flag to enable the standardized rewarded ads.
+   */
+  STANDARD_REWARDED_AD_EXPERIMENT = 'standard_rewarded_ad_experiment',
 }

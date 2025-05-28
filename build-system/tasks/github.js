@@ -24,7 +24,7 @@ const GITHUB_ACCESS_TOKEN = process.env.GITHUB_ACCESS_TOKEN;
 const GITHUB_BASE = 'https://api.github.com/repos/subscriptions-project/swg-js';
 
 /**
- * @param {!{path: string, qs: Object, json: Object, method: string | undefined}} req
+ * @param {!{path: string, qs: Object, json: Object, method?: string}} req
  */
 exports.githubRequest = (req) => {
   return request({

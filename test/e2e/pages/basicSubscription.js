@@ -29,7 +29,7 @@ const commands = {
   },
   subscribe: function () {
     return this.log('Clicking buy button')
-      .assert.textContains('@buyButton', 'Buy now')
+      .assert.textContains('@buyButton', 'Subscribe now')
       .click('@buyButton');
   },
 };
@@ -51,7 +51,7 @@ module.exports = {
       selector: '.skWZYc button',
     },
     subscriptionHeader: {
-      selector: '.bNGhnc',
+      selector: '.jNru1c',
     },
   },
 };

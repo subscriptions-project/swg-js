@@ -19,6 +19,7 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
@@ -35,6 +36,8 @@ import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GlobalDoc} from '../model/doc';
+import {MeterClientTypes} from '../api/metering';
+import {MeterToastApi} from './meter-toast-api';
 import {MiniPromptApi} from './mini-prompt-api';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {OffersFlow} from './offers-flow';
@@ -719,6 +722,12 @@ describes.realWin('BasicRuntime', (env) => {
 
       await basicRuntime.processEntitlements();
     });
+
+    it('should delegate "setupInlineCta"', async () => {
+      configuredBasicRuntimeMock.expects('setupInlineCta').once();
+
+      await basicRuntime.setupInlineCta();
+    });
   });
 });
 
@@ -745,6 +754,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     let entitlementsStub;
     let miniPromptApiMock;
     let autoPromptManagerMock;
+    let inlineCtaMock;
 
     beforeEach(() => {
       entitlementsStub = sandbox.stub(
@@ -777,6 +787,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       autoPromptManagerMock = sandbox.mock(
         configuredBasicRuntime.autoPromptManager_
       );
+      inlineCtaMock = sandbox.mock(configuredBasicRuntime.inlineCtaApi_);
     });
 
     afterEach(() => {
@@ -785,6 +796,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredClassicRuntimeMock.verify();
       miniPromptApiMock.verify();
       winMock.verify();
+      inlineCtaMock.verify();
     });
 
     it('should store creationTimestamp', () => {
@@ -851,12 +863,21 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       configuredBasicRuntime.jserror();
     });
 
-    it('should configure subscription miniprompts to show offers for paygated content', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-
+    it('should configure blocking subscription miniprompts to show offers', async () => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
@@ -876,12 +897,22 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure subscription auto prompts to show offers for paygated content when the desktop viewport is large', async () => {
+    it('should configure blocking subscription auto prompts to show offers when the desktop viewport is large', async () => {
       autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
@@ -907,12 +938,21 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure subscription auto prompts to show offers for paygated content', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-
+    it('should configure blocking subscription auto prompts to show offers', async () => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_SUBSCRIPTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_SUBSCRIPTION', configurationId: 'config_id'},
@@ -938,12 +978,21 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure contribution miniprompts to show contribution options for paygated content', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-
+    it('should configure blocking contribution miniprompts to show contribution options', async () => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
@@ -963,12 +1012,22 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure contribution auto prompts to show contribution options for paygated content when the desktop viewport is large', async () => {
+    it('should configure contribution auto prompts to show contribution options when the desktop viewport is large', async () => {
       autoPromptManagerMock.expects('getInnerWidth_').returns(500).once();
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
@@ -994,12 +1053,21 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       });
     });
 
-    it('should configure contribution auto prompts to show contribution options for paygated content', async () => {
-      sandbox.stub(pageConfig, 'isLocked').returns(true);
-
+    it('should configure contribution auto prompts to show contribution options', async () => {
       entitlementsManagerMock
         .expects('getArticle')
         .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'config_id',
+                  type: 'TYPE_CONTRIBUTION',
+                  closability: 'DISMISSIBLE',
+                },
+              ],
+            },
+          },
           audienceActions: {
             actions: [
               {type: 'TYPE_CONTRIBUTION', configurationId: 'config_id'},
@@ -1277,6 +1345,39 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       audienceActionFlowMock.verify();
     });
 
+    it('should handle an empty EntitlementsResponse from meter flow', async () => {
+      const port = new MockActivityPort();
+      port.acceptResult = () => {
+        const result = new ActivityResult();
+        result.data = {}; // no data
+        result.origin = 'https://news.google.com';
+        result.originVerified = true;
+        result.secureChannel = true;
+        return Promise.resolve(result);
+      };
+
+      const meterToastApi = new MeterToastApi(configuredBasicRuntime, {
+        meterClientType: MeterClientTypes.METERED_BY_GOOGLE.valueOf(),
+        meterClientUserAttribute: 'standard_registered_user',
+      });
+      const entitlementsManagerMock = sandbox.mock(
+        configuredBasicRuntime.entitlementsManager()
+      );
+      entitlementsManagerMock
+        .expects('getLastMeterToast')
+        .withExactArgs()
+        .returns(meterToastApi)
+        .once();
+
+      const meterToastApiMock = sandbox.mock(meterToastApi);
+      meterToastApiMock
+        .expects('showNoEntitlementFoundToast')
+        .withExactArgs()
+        .once();
+      await configuredBasicRuntime.entitlementsResponseHandler(port);
+      meterToastApiMock.verify();
+    });
+
     it('should handle an empty EntitlementsResponse with no active flow', async () => {
       const port = new MockActivityPort();
       port.acceptResult = () => {
@@ -1380,6 +1481,28 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       expect(showOffersStub).to.be.calledOnce;
       expect(completeAllStub).to.be.calledOnce;
       expect(offersOptions.isClosable).to.equal(true);
+    });
+
+    it('should configure inline CTA when experiment enabled', async () => {
+      entitlementsManagerMock
+        .expects('getExperimentConfigFlags')
+        .resolves([ArticleExperimentFlags.INLINE_CTA_EXPERIMENT])
+        .atLeast(1);
+
+      inlineCtaMock.expects('attachInlineCtasWithAttribute').once();
+
+      await configuredBasicRuntime.setupInlineCta();
+    });
+
+    it('should not configure inline CTA when experiment disabled', async () => {
+      entitlementsManagerMock
+        .expects('getExperimentConfigFlags')
+        .resolves([])
+        .atLeast(1);
+
+      inlineCtaMock.expects('attachInlineCtasWithAttribute').never();
+
+      await configuredBasicRuntime.setupInlineCta();
     });
   });
 });

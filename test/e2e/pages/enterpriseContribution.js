@@ -29,7 +29,7 @@ const commands = {
   },
   contribute: function () {
     return this.log('Clicking contribute button')
-      .assert.textContains('@contributeBtn', 'Contribute $16 / month')
+      .assert.textContains('@contributeBtn', 'Contribute $10 / month')
       .click('@contributeBtn');
   },
 };
@@ -51,7 +51,7 @@ module.exports = {
       selector: '.PNojLb button',
     },
     contributionHeader: {
-      selector: '.XWoc8b',
+      selector: '.jNru1c',
     },
     priceChip: {
       selector: '.h57Fgb',

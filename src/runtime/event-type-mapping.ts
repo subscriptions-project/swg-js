@@ -217,6 +217,18 @@ export const AnalyticsEventToGoogleAnalyticsEvent: {
     '',
     false
   ),
+  [AnalyticsEvent.IMPRESSION_BYO_CTA]: createGoogleAnalyticsEvent(
+    '',
+    'custom cta modal impression',
+    '',
+    true
+  ),
+  [AnalyticsEvent.ACTION_BYO_CTA_BUTTON_CLICK]: createGoogleAnalyticsEvent(
+    '',
+    'custom cta click',
+    '',
+    false
+  ),
 };
 
 export const SubscriptionSpecificAnalyticsEventToGoogleAnalyticsEvent: {

@@ -407,6 +407,21 @@ function startFlowAuto() {
     return;
   }
 
+  if (flow == 'showNewsletterSignup') {
+    onEntitlements = (subscriptions) => {
+      subscriptions.getAvailableInterventions().then((interventions) => {
+        const newsletterIntervention = interventions.find(
+          (intervention) => intervention.type == 'TYPE_NEWSLETTER_SIGNUP'
+        );
+        newsletterIntervention.show({});
+      });
+    };
+    whenReady((subscriptions) => {
+      subscriptions.start();
+    });
+    return;
+  }
+
   startFlow(flow);
 }
 
