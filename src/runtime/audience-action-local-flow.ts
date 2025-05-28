@@ -30,13 +30,13 @@ import {
 } from './audience-action-local-ui';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {EntitlementsManager} from './entitlements-manager';
 import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
@@ -67,6 +67,11 @@ export interface AudienceActionLocalParams {
 interface AudienceActionConfig {
   publication?: {
     name?: string;
+    revenueModel?: {
+      subscriptions?: boolean;
+      contributions?: boolean;
+      premonetization?: boolean;
+    };
   };
   rewardedAdParameters?: {
     adunit?: string;
@@ -356,17 +361,25 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
   }
 
-  private isSubscription() {
+  private isSubscription(): boolean {
     return (
-      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION ||
-      this.params_.autoPromptType == AutoPromptType.SUBSCRIPTION_LARGE
+      this.params_.autoPromptType === AutoPromptType.SUBSCRIPTION ||
+      this.params_.autoPromptType === AutoPromptType.SUBSCRIPTION_LARGE ||
+      // Check the revenue model as backup
+      // TODO: b/374764869 - rework how autoPromptType is determined
+      (!this.params_.autoPromptType &&
+        !!this.config?.publication?.revenueModel?.subscriptions)
     );
   }
 
-  private isContribution() {
+  private isContribution(): boolean {
     return (
-      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION ||
-      this.params_.autoPromptType == AutoPromptType.CONTRIBUTION_LARGE
+      this.params_.autoPromptType === AutoPromptType.CONTRIBUTION ||
+      this.params_.autoPromptType === AutoPromptType.CONTRIBUTION_LARGE ||
+      // Check the revenue model as backup
+      // TODO: b/374764869 - rework how autoPromptType is determined
+      (!this.params_.autoPromptType &&
+        !!this.config?.publication?.revenueModel?.contributions)
     );
   }
 
@@ -500,7 +513,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
 
     const support =
-      this.isSubscription() || !!this.params_.onSignIn
+      this.isSubscription() || !!this.params_.onAlternateAction
         ? msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!
         : msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!;
 
@@ -688,7 +701,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     }
     const swgUserToken = await this.deps_
       .storage()
-      .get(Constants.USER_TOKEN, true);
+      .get(StorageKeys.USER_TOKEN, true);
     const queryParams = [
       // TODO: mhkawano - check and error out if swgUserToken is null
       ['sut', swgUserToken!],
@@ -711,12 +724,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       if (response.swgUserToken) {
         await this.deps_
           .storage()
-          .set(Constants.USER_TOKEN, response.swgUserToken, true);
+          .set(StorageKeys.USER_TOKEN, response.swgUserToken, true);
       }
       const now = Date.now().toString();
       await this.deps_
         .storage()
-        .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+        .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
       await this.entitlementsManager_.getEntitlements();
     }
     // TODO: mhkawano - else log error

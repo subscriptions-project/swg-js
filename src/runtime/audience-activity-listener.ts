@@ -20,15 +20,17 @@ import {
 } from '../proto/api_messages';
 import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {Fetcher} from './fetcher';
 import {Storage} from './storage';
+import {StorageKeys} from '../utils/constants';
 import {addQueryParam} from '../utils/url';
 import {serviceUrl} from './services';
 
 const audienceActivityLoggingEvents = new Set<AnalyticsEvent>([
   // Keep sorted
+  AnalyticsEvent.ACTION_BYO_CTA_BUTTON_CLICK,
+  AnalyticsEvent.ACTION_BYO_CTA_CLOSE,
   AnalyticsEvent.ACTION_CONTRIBUTION_OFFER_SELECTED,
   AnalyticsEvent.ACTION_NEWSLETTER_ALREADY_OPTED_IN_CLICK,
   AnalyticsEvent.ACTION_NEWSLETTER_OPT_IN_BUTTON_CLICK,
@@ -43,6 +45,7 @@ const audienceActivityLoggingEvents = new Set<AnalyticsEvent>([
   AnalyticsEvent.EVENT_NEWSLETTER_OPTED_IN,
   AnalyticsEvent.EVENT_REGWALL_OPTED_IN,
   AnalyticsEvent.EVENT_SURVEY_SUBMITTED,
+  AnalyticsEvent.IMPRESSION_BYO_CTA,
   AnalyticsEvent.IMPRESSION_CONTRIBUTION_OFFERS,
   AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
   AnalyticsEvent.IMPRESSION_OFFERS,
@@ -86,7 +89,7 @@ export class AudienceActivityEventListener {
     }
 
     // Bail if SUT is unavailable.
-    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
+    const swgUserToken = await this.storage_.get(StorageKeys.USER_TOKEN, true);
     if (!swgUserToken) {
       return;
     }

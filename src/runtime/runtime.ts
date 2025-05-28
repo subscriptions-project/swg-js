@@ -29,6 +29,8 @@ import {
   Config,
   LinkSubscriptionRequest,
   LinkSubscriptionResult,
+  LinkSubscriptionsRequest,
+  LinkSubscriptionsResult,
   LoginRequest,
   OffersRequest,
   PublisherEntitlement,
@@ -190,7 +192,7 @@ export class Runtime implements SubscriptionsInterface {
 
   private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
-  private readonly config_: Config;
+  private readonly config_: Config = {};
   private readonly configuredRuntimePromise_: Promise<ConfiguredRuntime>;
   private readonly buttonApi_: ButtonApi;
 
@@ -198,10 +200,6 @@ export class Runtime implements SubscriptionsInterface {
     this.creationTimestamp_ = Date.now();
 
     this.doc_ = resolveDoc(win_);
-
-    this.config_ = {
-      useArticleEndpoint: true,
-    };
 
     this.configuredRuntimePromise_ = new Promise((resolve) => {
       this.configuredRuntimeResolver_ = resolve;
@@ -250,7 +248,6 @@ export class Runtime implements SubscriptionsInterface {
       pageConfig,
       /* integr */ {
         configPromise: this.configuredRuntimePromise_.then(),
-        useArticleEndpoint: this.config_.useArticleEndpoint || false,
       },
       this.config_,
       {
@@ -594,6 +591,13 @@ export class Runtime implements SubscriptionsInterface {
     return runtime.linkSubscription(request);
   }
 
+  async linkSubscriptions(
+    request: LinkSubscriptionsRequest
+  ): Promise<LinkSubscriptionsResult> {
+    const runtime = await this.configured_(true);
+    return runtime.linkSubscriptions(request);
+  }
+
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
     const runtime = await this.configured_(true);
     return runtime.getAvailableInterventions();
@@ -636,7 +640,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           configPromise?: Promise<void>;
           enableGoogleAnalytics?: boolean;
           enableDefaultMeteringHandler?: boolean;
-          useArticleEndpoint?: boolean;
         }
       | undefined,
     config?: Config,
@@ -670,7 +673,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
     this.fetcher_ = integr.fetcher || new XhrFetcher(this.win_);
 
-    this.storage_ = new Storage(this.win_);
+    this.storage_ = new Storage(this.win_, this.pageConfig_);
 
     this.callbacks_ = new Callbacks();
 
@@ -697,7 +700,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       this.pageConfig_,
       this.fetcher_,
       this, // See note about 'this' above
-      integr.useArticleEndpoint || false,
       integr.enableDefaultMeteringHandler || false
     );
 
@@ -863,12 +865,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
             error = 'publisherProvidedId must be a string, value: ' + value;
           }
           break;
-        case 'useArticleEndpoint':
-          if (!isBoolean(value)) {
-            error =
-              'useArticleEndpoint must be a boolean, type: ' + typeof value;
-          }
-          break;
         case 'paySwgVersion':
           if (typeof value !== 'string') {
             error = 'paySwgVersion must be a string, type: ' + typeof value;
@@ -942,7 +938,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
         if (skus.length > 0) {
           this.analyticsService_.setSku(skus.join(','));
         }
-      } catch (ex) {}
+      } catch {}
     }
 
     const experiment = await this.entitlementsManager_
@@ -1250,6 +1246,15 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
   }
 
+  async linkSubscriptions(
+    linkSubscriptionsRequest: LinkSubscriptionsRequest
+  ): Promise<LinkSubscriptionsResult> {
+    await this.documentParsed_;
+    return new SubscriptionLinkingFlow(this).startMultipleLinks(
+      linkSubscriptionsRequest
+    );
+  }
+
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
     await this.getEntitlements();
     return this.entitlementsManager().getAvailableInterventions();
@@ -1303,6 +1308,7 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    linkSubscriptions: runtime.linkSubscriptions.bind(runtime),
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
   };
 }

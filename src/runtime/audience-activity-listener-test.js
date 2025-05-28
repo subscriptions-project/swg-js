@@ -18,8 +18,8 @@ import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
 import {PageConfig} from '../model/page-config';
+import {StorageKeys} from '../utils/constants';
 import {XhrFetcher} from './fetcher';
 import {setExperimentsStringForTesting} from './experiments';
 
@@ -63,7 +63,7 @@ describes.realWin('AudienceActivityEventListener', (env) => {
   it('should log audience activity events', async () => {
     storageMock
       .expects('get')
-      .withExactArgs(Constants.USER_TOKEN, true)
+      .withExactArgs(StorageKeys.USER_TOKEN, true)
       .resolves('ab+c').once;
     audienceActivityEventListener.start();
 
@@ -88,7 +88,7 @@ describes.realWin('AudienceActivityEventListener', (env) => {
   it('bails if SUT is unavailable', async () => {
     storageMock
       .expects('get')
-      .withExactArgs(Constants.USER_TOKEN, true)
+      .withExactArgs(StorageKeys.USER_TOKEN, true)
       .resolves(null).once;
     audienceActivityEventListener.start();
 

@@ -16,6 +16,7 @@
 
 import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
@@ -31,13 +32,13 @@ import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {InlineCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -45,6 +46,7 @@ import {PageConfigWriter} from '../model/page-config-writer';
 import {PayClient} from './pay-client';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
+import {StorageKeys} from '../utils/constants';
 import {SubscribeResponse} from '../api/subscribe-response';
 import {Toast} from '../ui/toast';
 import {acceptPortResultData} from '../utils/activity-utils';
@@ -121,6 +123,8 @@ export function installBasicRuntime(win: Window): void {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
+
+  basicRuntime.setupInlineCta();
 }
 
 export class BasicRuntime implements BasicSubscriptions {
@@ -294,6 +298,15 @@ export class BasicRuntime implements BasicSubscriptions {
     runtime.setupButtons();
   }
 
+  /**
+   * Sets up all the inline CTA on the page with attribute
+   * 'rrm-inline-cta'.
+   */
+  async setupInlineCta(): Promise<void> {
+    const runtime = await this.configured_(false);
+    runtime.setupInlineCta();
+  }
+
   /** Process result from checkentitlements view */
   async processEntitlements(): Promise<void> {
     const runtime = await this.configured_(false);
@@ -324,6 +337,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly configuredClassicRuntime_: ConfiguredRuntime;
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
+  private readonly inlineCtaApi_: InlineCtaApi;
 
   constructor(
     winOrDoc: Window | Document | Doc,
@@ -333,7 +347,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       configPromise?: Promise<void>;
       enableDefaultMeteringHandler?: boolean;
       enableGoogleAnalytics?: boolean;
-      useArticleEndpoint?: boolean;
     } = {},
     config?: Config,
     clientOptions?: ClientOptions,
@@ -346,7 +359,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     integr.configPromise ||= Promise.resolve();
     integr.fetcher = integr.fetcher || new XhrFetcher(this.win_);
     integr.enableGoogleAnalytics = true;
-    integr.useArticleEndpoint = true;
 
     this.fetcher_ = integr.fetcher;
 
@@ -395,6 +407,8 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       this,
       this.configuredClassicRuntime_
     );
+
+    this.inlineCtaApi_ = new InlineCtaApi(this);
 
     this.buttonApi_ = new ButtonApi(
       this.doc_,
@@ -537,7 +551,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       this.entitlementsManager().pushNextEntitlements(jwt);
       const userToken = response['usertoken'];
       if (userToken) {
-        this.storage().set(Constants.USER_TOKEN, userToken, true);
+        this.storage().set(StorageKeys.USER_TOKEN, userToken, true);
       }
 
       // Show 'Signed in as abc@gmail.com' toast on the pub page.
@@ -560,6 +574,12 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
         this.configuredClassicRuntime_.getLastContributionsFlow();
       if (lastContributionsFlow) {
         lastContributionsFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
+      const lastMeterFlow = this.entitlementsManager().getLastMeterToast();
+      if (lastMeterFlow) {
+        lastMeterFlow.showNoEntitlementFoundToast();
         return;
       }
 
@@ -629,6 +649,22 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
         },
       }
     );
+  }
+
+  /**
+   * Renders all the inline CTAs on the page with attribute
+   * 'rrm-inline-cta' when experiment is enabled.
+   */
+  async setupInlineCta(): Promise<void> {
+    const inlineCtaEnabled = await this.entitlementsManager()
+      .getExperimentConfigFlags()
+      .then((flags) =>
+        flags.includes(ArticleExperimentFlags.INLINE_CTA_EXPERIMENT)
+      );
+
+    if (inlineCtaEnabled) {
+      this.inlineCtaApi_.attachInlineCtasWithAttribute();
+    }
   }
 
   /**

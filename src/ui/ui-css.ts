@@ -158,11 +158,16 @@ export const DIALOG_CSS = css`
     .swg-toast {
       width: 480px !important;
       left: -240px !important;
-      margin-left: calc(100vw - 100vw / 2) !important;
+      margin-inline-start: calc(100vw - 100vw / 2) !important;
       border-top-left-radius: 8px !important;
       border-top-right-radius: 8px !important;
       box-shadow: rgba(60, 64, 67, 0.3) 0 1px 1px,
         rgba(60, 64, 67, 0.15) 0 1px 4px 1px !important;
+    }
+
+    [dir='rtl'] .swg-dialog,
+    [dir='rtl'] .swg-toast {
+      margin-inline-start: calc(100vw - 100vw / 2 - 240px) !important;
     }
   }
 
@@ -171,9 +176,13 @@ export const DIALOG_CSS = css`
     .swg-dialog {
       width: 630px !important;
       left: -315px !important;
-      margin-left: calc(100vw - 100vw / 2) !important;
+      margin-inline-start: calc(100vw - 100vw / 2) !important;
       background-color: transparent !important;
       border: none !important;
+    }
+
+    [dir='rtl'] .swg-dialog {
+      margin-inline-start: calc(100vw - 100vw / 2 - 315px) !important;
     }
 
     .swg-toast {
@@ -192,7 +201,7 @@ export const DIALOG_CSS = css`
       width: 100% !important;
       left: 0 !important;
       right: 0 !important;
-      margin-left: 0 !important;
+      margin-inline-start: 0 !important;
     }
   }
 

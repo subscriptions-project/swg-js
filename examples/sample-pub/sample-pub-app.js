@@ -67,13 +67,13 @@ const MAX_METER = 3;
  */
 const CONFIGS = {
   'rrme-subscriptions-prod': {
-    publicationId: 'CAow5rTUCw',
+    publicationId: 'CAowo5_ZCw',
   },
   'rrme-subscriptions-qual': {
     publicationId: 'CAowwuyEAQ',
   },
   'rrme-contributions-prod': {
-    publicationId: 'CAowtrTUCw',
+    publicationId: 'CAowpJ_ZCw',
   },
   'rrme-contributions-qual': {
     publicationId: 'CAow-Jp5',
@@ -105,11 +105,11 @@ app.get('/', (req, res) => {
 /**
  * An Article.
  */
-app.get('/:id(\\d+)', (req, res) => {
+app.get(/^\/(?<id>\d+$)/, (req, res) => {
   renderArticle(req, res);
 });
 
-app.get('/config/:config/:id(\\d+)', (req, res) => {
+app.get('/config/:config/:id', (req, res) => {
   renderArticle(req, res);
 });
 

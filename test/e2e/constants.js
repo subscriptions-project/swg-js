@@ -16,6 +16,7 @@
 
 module.exports = {
   google: {
+    accountsDomain: 'accounts.google.com',
     domain: 'google.com',
   },
   setup: {

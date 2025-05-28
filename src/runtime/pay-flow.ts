@@ -32,7 +32,6 @@ import {AnalyticsEvent, EventParams} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {Constants} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {Entitlements} from '../api/entitlements';
@@ -50,6 +49,7 @@ import {
   WindowOpenMode,
 } from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
+import {StorageKeys} from '../utils/constants';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString} from '../utils/json';
@@ -123,13 +123,13 @@ export class PayStartFlow {
   async start(): Promise<void> {
     // Get the paySwgVersion for buyflow.
     const clientConfig = await this.clientConfigManager_.getClientConfig();
-    this.start_(clientConfig.paySwgVersion);
+    this.start_(clientConfig.useUpdatedOfferFlows, clientConfig.paySwgVersion);
   }
 
   /**
    * Starts the payments flow for the given version.
    */
-  private start_(paySwgVersion?: string): void {
+  private start_(usePayFlow?: boolean, paySwgVersion?: string): void {
     const swgPaymentRequest: SwgPaymentRequest = {
       'skuId': this.subscriptionRequest_['skuId'],
       'publicationId': this.pageConfig_.getPublicationId(),
@@ -177,6 +177,13 @@ export class PayStartFlow {
       true,
       getEventParams(swgPaymentRequest['skuId'])
     );
+    this.eventManager_.logSwgEvent(
+      usePayFlow
+        ? AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED
+        : AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+      true
+    );
+
     PayCompleteFlow.waitingForPayClient = true;
     this.payClient_.start(
       {
@@ -233,6 +240,14 @@ export class PayCompleteFlow {
               : SubscriptionFlows.SUBSCRIBE
           )
         );
+
+        const clientConfig = await deps.clientConfigManager().getClientConfig();
+        if (clientConfig.useUpdatedOfferFlows) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE,
+            true
+          );
+        }
         if (response.productType == ProductType.UI_CONTRIBUTION) {
           eventManager.logSwgEvent(
             AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
@@ -321,7 +336,7 @@ export class PayCompleteFlow {
       if (response.swgUserToken) {
         this.deps_
           .storage()
-          .set(Constants.USER_TOKEN, response.swgUserToken, true);
+          .set(StorageKeys.USER_TOKEN, response.swgUserToken, true);
       }
     } else {
       args['loginHint'] = response.userData?.email;
@@ -378,7 +393,7 @@ export class PayCompleteFlow {
     const now = Date.now().toString();
     this.deps_
       .storage()
-      .set(Constants.READ_TIME, now, /*useLocalStorage=*/ false);
+      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
 
     this.deps_.entitlementsManager().unblockNextNotification();
 
@@ -395,7 +410,7 @@ export class PayCompleteFlow {
 
     try {
       await this.activityIframeView_!.acceptResult();
-    } catch (err) {
+    } catch {
       // Ignore errors.
     }
 

@@ -24,7 +24,6 @@ import {
   LinkingInfoResponse,
 } from '../proto/api_messages';
 import {ConfiguredRuntime} from './runtime';
-import {Constants} from '../utils/constants';
 import {Dialog} from '../components/dialog';
 import {GlobalDoc} from '../model/doc';
 import {
@@ -34,6 +33,7 @@ import {
 } from './link-accounts-flow';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
+import {StorageKeys} from '../utils/constants';
 import {createCancelError} from '../utils/errors';
 import {tick} from '../../test/tick';
 
@@ -398,7 +398,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     entitlementsManagerMock.expects('reset').withExactArgs(true).once();
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'test-token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'test-token', true)
       .exactly(1);
 
     await linkCompleteFlow.start();
@@ -507,7 +507,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     const storageMock = sandbox.mock(runtime.storage());
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .exactly(1);
     port = new MockActivityPort();
     port.onResizeRequest = () => {};
@@ -555,7 +555,7 @@ describes.realWin('LinkCompleteFlow', (env) => {
     const storageMock = sandbox.mock(runtime.storage());
     storageMock
       .expects('set')
-      .withExactArgs(Constants.USER_TOKEN, 'fake user token', true)
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
       .throws(new Error('example error'));
     port = new MockActivityPort();
     port.onResizeRequest = () => {};

@@ -16,7 +16,7 @@ jobs:
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x'
 
       - name: Install dependencies
         run: npm ci --omit optional
@@ -36,7 +36,7 @@ jobs:
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x'
 
       - name: Install dependencies
         run: npm ci
@@ -44,13 +44,19 @@ jobs:
       - name: E2E Tests
         run: . ./build_and_run_e2e.sh
 
-      - name: Upload VRT report
+      - name: Upload e2e VRT baseline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrt-baseline
+          path: test/e2e/vrt/baseline
+
+      - name: Upload e2e VRT report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vrt-report
-          path: |
-            .vrt
-            vrt-report
+          path: vrt-report
 
   e2e-with-all-experiments-enabled:
     runs-on: ubuntu-latest
@@ -61,7 +67,7 @@ jobs:
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x'
 
       - name: Install dependencies
         run: npm ci
@@ -69,13 +75,19 @@ jobs:
       - name: E2E Tests with all experiments enabled
         run: . ./build_and_run_e2e.sh all_experiments_enabled
 
-      - name: Upload VRT report
+      - name: Upload e2e with all experiments VRT baseline
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vrt-report
-          path: |
-            .vrt
-            vrt-report
+          name: all-experiments-vrt-baseline
+          path: test/e2e/vrt/baseline
+
+      - name: Upload e2e with all experiments VRT report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-experiments-vrt-report
+          path: vrt-report
 
   binaries:
     runs-on: ubuntu-latest
@@ -86,7 +98,7 @@ jobs:
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x'
 
       - name: Install dependencies
         run: npm ci
@@ -111,7 +123,7 @@ jobs:
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x'
 
       - name: Install dependencies
         run: npm ci --omit optional
@@ -119,7 +131,7 @@ jobs:
       - name: Unit Tests
         run: gulp unit --headless --coverage
 
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           token: 3bd95ad1-098e-45cc-b6c9-4ead17849c96
           files: ./test/coverage/lcov-unit.info

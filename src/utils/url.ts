@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {Doc} from '../model/doc';
+import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {warn} from './log';
 
@@ -108,7 +109,7 @@ export function parseQueryString(query: string): {[key: string]: string} {
         if (key) {
           params[key] = value;
         }
-      } catch (err) {
+      } catch {
         // eslint-disable-next-line no-console
         warn(`SwG could not parse a URL query param: ${item[0]}`);
       }
@@ -145,17 +146,23 @@ export function serializeProtoMessageForUrl(message: Message): string {
   return JSON.stringify(message.toArray(false));
 }
 
+export function getCanonicalTag(doc: Doc): string | undefined {
+  const rootNode = doc.getRootNode();
+  const canonicalTag = rootNode.querySelector(
+    "link[rel='canonical']"
+  ) as HTMLLinkElement;
+  return canonicalTag?.href;
+}
+
 /**
  * Returns the canonical URL from the canonical tag. If the canonical tag is
  * not present, treat the doc URL itself as canonical.
  */
 export function getCanonicalUrl(doc: Doc): string {
   const rootNode = doc.getRootNode();
-  const canonicalTag = rootNode.querySelector(
-    "link[rel='canonical']"
-  ) as HTMLLinkElement;
   return (
-    canonicalTag?.href || rootNode.location.origin + rootNode.location.pathname
+    getCanonicalTag(doc) ||
+    rootNode.location.origin + rootNode.location.pathname
   );
 }
 
@@ -186,3 +193,19 @@ export function isSecure(parsedUrl = PARSED_URL): boolean {
 export function wasReferredByGoogle(parsedReferrer = PARSED_REFERRER): boolean {
   return isSecure(parsedReferrer) && isGoogleDomain(parsedReferrer);
 }
+
+/**
+ * Map audience action type to their iframe url prefix.
+ * TODO: mhkawano - make all our endpoints into an enum.
+ */
+const ActionToIframeMapping: Record<InterventionType, string> = {
+  [InterventionType.TYPE_SUBSCRIPTION]: '/subscriptionoffersiframe',
+  [InterventionType.TYPE_CONTRIBUTION]: '/contributionoffersiframe',
+  [InterventionType.TYPE_REGISTRATION_WALL]: '/regwalliframe',
+  [InterventionType.TYPE_NEWSLETTER_SIGNUP]: '/newsletteriframe',
+  [InterventionType.TYPE_REWARDED_SURVEY]: '/surveyiframe',
+  [InterventionType.TYPE_BYO_CTA]: '/byoctaiframe',
+  [InterventionType.TYPE_REWARDED_AD]: '/rewardedadiframe',
+};
+
+export {ActionToIframeMapping};

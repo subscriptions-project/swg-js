@@ -97,12 +97,20 @@ export enum AnalyticsEvent {
   IMPRESSION_REWARDED_AD = 49,
   IMPRESSION_BYOP_NEWSLETTER_OPT_IN = 50,
   IMPRESSION_REWARDED_AD_ERROR = 51,
+  IMPRESSION_HOSTED_PAGE_SUBSCRIPTION_OFFERS = 52,
+  IMPRESSION_HOSTED_PAGE_CONTRIBUTION_OFFERS = 53,
+  IMPRESSION_HOSTED_PAGE_SUBSCRIPTION_OFFERS_ERROR = 54,
+  IMPRESSION_HOSTED_PAGE_CONTRIBUTION_OFFERS_ERROR = 55,
+  IMPRESSION_BYO_CTA = 56,
+  IMPRESSION_BYO_CTA_ERROR = 57,
   ACTION_SUBSCRIBE = 1000,
   ACTION_PAYMENT_COMPLETE = 1001,
   ACTION_ACCOUNT_CREATED = 1002,
   ACTION_ACCOUNT_ACKNOWLEDGED = 1003,
   ACTION_SUBSCRIPTIONS_LANDING_PAGE = 1004,
   ACTION_PAYMENT_FLOW_STARTED = 1005,
+  ACTION_PAY_PAYMENT_FLOW_STARTED = 1090,
+  ACTION_PLAY_PAYMENT_FLOW_STARTED = 1091,
   ACTION_OFFER_SELECTED = 1006,
   ACTION_SWG_BUTTON_CLICK = 1007,
   ACTION_VIEW_OFFERS = 1008,
@@ -184,6 +192,9 @@ export enum AnalyticsEvent {
   ACTION_BYOP_NEWSLETTER_OPT_IN_CLOSE = 1084,
   ACTION_BYOP_NEWSLETTER_OPT_IN_SUBMIT = 1085,
   ACTION_SUBSCRIPTION_LINKING_CLOSE = 1086,
+  ACTION_BYO_CTA_CLOSE = 1087,
+  ACTION_BYO_CTA_BUTTON_CLICK = 1088,
+  ACTION_BYO_CTA_PAGE_REFRESH = 1089,
   EVENT_PAYMENT_FAILED = 2000,
   EVENT_REGWALL_OPT_IN_FAILED = 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED = 2002,
@@ -193,6 +204,7 @@ export enum AnalyticsEvent {
   EVENT_SURVEY_ALREADY_SUBMITTED = 2006,
   EVENT_SURVEY_COMPLETION_RECORD_FAILED = 2007,
   EVENT_SURVEY_DATA_TRANSFER_FAILED = 2008,
+  EVENT_BYO_CTA_COMPLETION_RECORD_FAILED = 2009,
   EVENT_CUSTOM = 3000,
   EVENT_CONFIRM_TX_ID = 3001,
   EVENT_CHANGED_TX_ID = 3002,
@@ -243,10 +255,15 @@ export enum AnalyticsEvent {
   EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR = 3052,
   EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR = 3045,
   EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND = 3053,
+  EVENT_FREQUENCY_CAP_LOCAL_STORAGE_CONFIG_ID_KEY_NOT_FOUND = 3057,
   EVENT_BYOP_NEWSLETTER_OPT_IN_CONFIG_ERROR = 3046,
   EVENT_BYOP_NEWSLETTER_OPT_IN_CODE_SNIPPET_ERROR = 3047,
   EVENT_SUBSCRIPTION_PAYMENT_COMPLETE = 3050,
   EVENT_CONTRIBUTION_PAYMENT_COMPLETE = 3051,
+  EVENT_PAY_PAYMENT_COMPLETE = 3058,
+  EVENT_HOSTED_PAGE_SUBSCRIPTION_PAYMENT_COMPLETE = 3054,
+  EVENT_HOSTED_PAGE_CONTRIBUTION_PAYMENT_COMPLETE = 3055,
+  EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR = 3056,
   EVENT_SUBSCRIPTION_STATE = 4000,
 }
 
@@ -363,11 +380,9 @@ export class AlreadySubscribedResponse implements Message {
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.subscriberOrMember_ =
-      data[base] == null ? null : (data[base] as boolean);
+    this.subscriberOrMember_ = data[base] == null ? null : (data[base] as boolean);
 
-    this.linkRequested_ =
-      data[1 + base] == null ? null : (data[1 + base] as boolean);
+    this.linkRequested_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
   }
 
   getSubscriberOrMember(): boolean | null {
@@ -422,36 +437,30 @@ export class AnalyticsContext implements Message {
   private loadEventStartDelay_: Duration | null;
   private runtimeCreationTimestamp_: Timestamp | null;
   private isLockedContent_: boolean | null;
+  private urlFromMarkup_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
     this.embedderOrigin_ = data[base] == null ? null : (data[base] as string);
 
-    this.transactionId_ =
-      data[1 + base] == null ? null : (data[1 + base] as string);
+    this.transactionId_ = data[1 + base] == null ? null : (data[1 + base] as string);
 
-    this.referringOrigin_ =
-      data[2 + base] == null ? null : (data[2 + base] as string);
+    this.referringOrigin_ = data[2 + base] == null ? null : (data[2 + base] as string);
 
-    this.utmSource_ =
-      data[3 + base] == null ? null : (data[3 + base] as string);
+    this.utmSource_ = data[3 + base] == null ? null : (data[3 + base] as string);
 
-    this.utmCampaign_ =
-      data[4 + base] == null ? null : (data[4 + base] as string);
+    this.utmCampaign_ = data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.utmMedium_ =
-      data[5 + base] == null ? null : (data[5 + base] as string);
+    this.utmMedium_ = data[5 + base] == null ? null : (data[5 + base] as string);
 
     this.sku_ = data[6 + base] == null ? null : (data[6 + base] as string);
 
-    this.readyToPay_ =
-      data[7 + base] == null ? null : (data[7 + base] as boolean);
+    this.readyToPay_ = data[7 + base] == null ? null : (data[7 + base] as boolean);
 
-    this.label_ = (data[8 + base] as string[]) || [];
+    this.label_ = data[8 + base] as string[] || [];
 
-    this.clientVersion_ =
-      data[9 + base] == null ? null : (data[9 + base] as string);
+    this.clientVersion_ = data[9 + base] == null ? null : (data[9 + base] as string);
 
     this.url_ = data[10 + base] == null ? null : (data[10 + base] as string);
 
@@ -460,11 +469,9 @@ export class AnalyticsContext implements Message {
         ? null
         : new Timestamp(data[11 + base] as unknown[], includesLabel);
 
-    this.readerSurfaceType_ =
-      data[12 + base] == null ? null : (data[12 + base] as ReaderSurfaceType);
+    this.readerSurfaceType_ = data[12 + base] == null ? null : (data[12 + base] as ReaderSurfaceType);
 
-    this.integrationVersion_ =
-      data[13 + base] == null ? null : (data[13 + base] as string);
+    this.integrationVersion_ = data[13 + base] == null ? null : (data[13 + base] as string);
 
     this.pageLoadBeginTimestamp_ =
       data[14 + base] == null
@@ -481,8 +488,9 @@ export class AnalyticsContext implements Message {
         ? null
         : new Timestamp(data[16 + base] as unknown[], includesLabel);
 
-    this.isLockedContent_ =
-      data[17 + base] == null ? null : (data[17 + base] as boolean);
+    this.isLockedContent_ = data[17 + base] == null ? null : (data[17 + base] as boolean);
+
+    this.urlFromMarkup_ = data[18 + base] == null ? null : (data[18 + base] as string);
   }
 
   getEmbedderOrigin(): string | null {
@@ -629,6 +637,14 @@ export class AnalyticsContext implements Message {
     this.isLockedContent_ = value;
   }
 
+  getUrlFromMarkup(): string | null {
+    return this.urlFromMarkup_;
+  }
+
+  setUrlFromMarkup(value: string): void {
+    this.urlFromMarkup_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.embedderOrigin_, // field 1 - embedder_origin
@@ -645,16 +661,11 @@ export class AnalyticsContext implements Message {
       this.clientTimestamp_ ? this.clientTimestamp_.toArray(includeLabel) : [], // field 12 - client_timestamp
       this.readerSurfaceType_, // field 13 - reader_surface_type
       this.integrationVersion_, // field 14 - integration_version
-      this.pageLoadBeginTimestamp_
-        ? this.pageLoadBeginTimestamp_.toArray(includeLabel)
-        : [], // field 15 - page_load_begin_timestamp
-      this.loadEventStartDelay_
-        ? this.loadEventStartDelay_.toArray(includeLabel)
-        : [], // field 16 - load_event_start_delay
-      this.runtimeCreationTimestamp_
-        ? this.runtimeCreationTimestamp_.toArray(includeLabel)
-        : [], // field 17 - runtime_creation_timestamp
+      this.pageLoadBeginTimestamp_ ? this.pageLoadBeginTimestamp_.toArray(includeLabel) : [], // field 15 - page_load_begin_timestamp
+      this.loadEventStartDelay_ ? this.loadEventStartDelay_.toArray(includeLabel) : [], // field 16 - load_event_start_delay
+      this.runtimeCreationTimestamp_ ? this.runtimeCreationTimestamp_.toArray(includeLabel) : [], // field 17 - runtime_creation_timestamp
       this.isLockedContent_, // field 18 - is_locked_content
+      this.urlFromMarkup_, // field 19 - url_from_markup
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -676,14 +687,11 @@ export class AnalyticsEventMeta implements Message {
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.eventOriginator_ =
-      data[base] == null ? null : (data[base] as EventOriginator);
+    this.eventOriginator_ = data[base] == null ? null : (data[base] as EventOriginator);
 
-    this.isFromUserAction_ =
-      data[1 + base] == null ? null : (data[1 + base] as boolean);
+    this.isFromUserAction_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
 
-    this.configurationId_ =
-      data[2 + base] == null ? null : (data[2 + base] as string);
+    this.configurationId_ = data[2 + base] == null ? null : (data[2 + base] as string);
   }
 
   getEventOriginator(): EventOriginator | null {
@@ -742,8 +750,7 @@ export class AnalyticsRequest implements Message {
         ? null
         : new AnalyticsContext(data[base] as unknown[], includesLabel);
 
-    this.event_ =
-      data[1 + base] == null ? null : (data[1 + base] as AnalyticsEvent);
+    this.event_ = data[1 + base] == null ? null : (data[1 + base] as AnalyticsEvent);
 
     this.meta_ =
       data[2 + base] == null
@@ -840,6 +847,39 @@ export class AudienceActivityClientLogsRequest implements Message {
 }
 
 /** */
+export class CloseWindowRequest implements Message {
+  private unused_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.unused_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getUnused(): boolean | null {
+    return this.unused_;
+  }
+
+  setUnused(value: boolean): void {
+    this.unused_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.unused_, // field 1 - unused
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'CloseWindowRequest';
+  }
+}
+
+/** */
 export class CompleteAudienceActionResponse implements Message {
   private swgUserToken_: string | null;
   private actionCompleted_: boolean | null;
@@ -848,29 +888,26 @@ export class CompleteAudienceActionResponse implements Message {
   private displayName_: string | null;
   private givenName_: string | null;
   private familyName_: string | null;
+  private termsAndConditionsConsent_: boolean | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
     this.swgUserToken_ = data[base] == null ? null : (data[base] as string);
 
-    this.actionCompleted_ =
-      data[1 + base] == null ? null : (data[1 + base] as boolean);
+    this.actionCompleted_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
 
-    this.userEmail_ =
-      data[2 + base] == null ? null : (data[2 + base] as string);
+    this.userEmail_ = data[2 + base] == null ? null : (data[2 + base] as string);
 
-    this.alreadyCompleted_ =
-      data[3 + base] == null ? null : (data[3 + base] as boolean);
+    this.alreadyCompleted_ = data[3 + base] == null ? null : (data[3 + base] as boolean);
 
-    this.displayName_ =
-      data[4 + base] == null ? null : (data[4 + base] as string);
+    this.displayName_ = data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.givenName_ =
-      data[5 + base] == null ? null : (data[5 + base] as string);
+    this.givenName_ = data[5 + base] == null ? null : (data[5 + base] as string);
 
-    this.familyName_ =
-      data[6 + base] == null ? null : (data[6 + base] as string);
+    this.familyName_ = data[6 + base] == null ? null : (data[6 + base] as string);
+
+    this.termsAndConditionsConsent_ = data[7 + base] == null ? null : (data[7 + base] as boolean);
   }
 
   getSwgUserToken(): string | null {
@@ -929,6 +966,14 @@ export class CompleteAudienceActionResponse implements Message {
     this.familyName_ = value;
   }
 
+  getTermsAndConditionsConsent(): boolean | null {
+    return this.termsAndConditionsConsent_;
+  }
+
+  setTermsAndConditionsConsent(value: boolean): void {
+    this.termsAndConditionsConsent_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.swgUserToken_, // field 1 - swg_user_token
@@ -938,6 +983,7 @@ export class CompleteAudienceActionResponse implements Message {
       this.displayName_, // field 5 - display_name
       this.givenName_, // field 6 - given_name
       this.familyName_, // field 7 - family_name
+      this.termsAndConditionsConsent_, // field 8 - terms_and_conditions_consent
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1063,16 +1109,13 @@ export class EntitlementsRequest implements Message {
         ? null
         : new Timestamp(data[1 + base] as unknown[], includesLabel);
 
-    this.entitlementSource_ =
-      data[2 + base] == null ? null : (data[2 + base] as EntitlementSource);
+    this.entitlementSource_ = data[2 + base] == null ? null : (data[2 + base] as EntitlementSource);
 
-    this.entitlementResult_ =
-      data[3 + base] == null ? null : (data[3 + base] as EntitlementResult);
+    this.entitlementResult_ = data[3 + base] == null ? null : (data[3 + base] as EntitlementResult);
 
     this.token_ = data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.isUserRegistered_ =
-      data[5 + base] == null ? null : (data[5 + base] as boolean);
+    this.isUserRegistered_ = data[5 + base] == null ? null : (data[5 + base] as boolean);
 
     this.subscriptionTimestamp_ =
       data[6 + base] == null
@@ -1144,9 +1187,7 @@ export class EntitlementsRequest implements Message {
       this.entitlementResult_, // field 4 - entitlement_result
       this.token_, // field 5 - token
       this.isUserRegistered_, // field 6 - is_user_registered
-      this.subscriptionTimestamp_
-        ? this.subscriptionTimestamp_.toArray(includeLabel)
-        : [], // field 7 - subscription_timestamp
+      this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 7 - subscription_timestamp
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1169,8 +1210,7 @@ export class EntitlementsResponse implements Message {
 
     this.jwt_ = data[base] == null ? null : (data[base] as string);
 
-    this.swgUserToken_ =
-      data[1 + base] == null ? null : (data[1 + base] as string);
+    this.swgUserToken_ = data[1 + base] == null ? null : (data[1 + base] as string);
   }
 
   getJwt(): string | null {
@@ -1215,33 +1255,34 @@ export class EventParams implements Message {
   private isUserRegistered_: boolean | null;
   private subscriptionFlow_: string | null;
   private subscriptionTimestamp_: Timestamp | null;
+  private campaignId_: string | null;
+  private linkedPublicationsCount_: number | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
     this.smartboxMessage_ = data[base] == null ? null : (data[base] as string);
 
-    this.gpayTransactionId_ =
-      data[1 + base] == null ? null : (data[1 + base] as string);
+    this.gpayTransactionId_ = data[1 + base] == null ? null : (data[1 + base] as string);
 
-    this.hadLogged_ =
-      data[2 + base] == null ? null : (data[2 + base] as boolean);
+    this.hadLogged_ = data[2 + base] == null ? null : (data[2 + base] as boolean);
 
     this.sku_ = data[3 + base] == null ? null : (data[3 + base] as string);
 
-    this.oldTransactionId_ =
-      data[4 + base] == null ? null : (data[4 + base] as string);
+    this.oldTransactionId_ = data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.isUserRegistered_ =
-      data[5 + base] == null ? null : (data[5 + base] as boolean);
+    this.isUserRegistered_ = data[5 + base] == null ? null : (data[5 + base] as boolean);
 
-    this.subscriptionFlow_ =
-      data[6 + base] == null ? null : (data[6 + base] as string);
+    this.subscriptionFlow_ = data[6 + base] == null ? null : (data[6 + base] as string);
 
     this.subscriptionTimestamp_ =
       data[7 + base] == null
         ? null
         : new Timestamp(data[7 + base] as unknown[], includesLabel);
+
+    this.campaignId_ = data[8 + base] == null ? null : (data[8 + base] as string);
+
+    this.linkedPublicationsCount_ = data[9 + base] == null ? null : (data[9 + base] as number);
   }
 
   getSmartboxMessage(): string | null {
@@ -1308,6 +1349,22 @@ export class EventParams implements Message {
     this.subscriptionTimestamp_ = value;
   }
 
+  getCampaignId(): string | null {
+    return this.campaignId_;
+  }
+
+  setCampaignId(value: string): void {
+    this.campaignId_ = value;
+  }
+
+  getLinkedPublicationsCount(): number | null {
+    return this.linkedPublicationsCount_;
+  }
+
+  setLinkedPublicationsCount(value: number): void {
+    this.linkedPublicationsCount_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1317,9 +1374,9 @@ export class EventParams implements Message {
       this.oldTransactionId_, // field 5 - old_transaction_id
       this.isUserRegistered_, // field 6 - is_user_registered
       this.subscriptionFlow_, // field 7 - subscription_flow
-      this.subscriptionTimestamp_
-        ? this.subscriptionTimestamp_.toArray(includeLabel)
-        : [], // field 8 - subscription_timestamp
+      this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 8 - subscription_timestamp
+      this.campaignId_, // field 9 - campaign_id
+      this.linkedPublicationsCount_, // field 10 - linked_publications_count
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1489,6 +1546,138 @@ export class OpenDialogRequest implements Message {
 }
 
 /** */
+export class RewardedAdAlternateActionRequest implements Message {
+  private unused_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.unused_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getUnused(): boolean | null {
+    return this.unused_;
+  }
+
+  setUnused(value: boolean): void {
+    this.unused_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.unused_, // field 1 - unused
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'RewardedAdAlternateActionRequest';
+  }
+}
+
+/** */
+export class RewardedAdLoadAdRequest implements Message {
+  private adUnit_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.adUnit_ = data[base] == null ? null : (data[base] as string);
+  }
+
+  getAdUnit(): string | null {
+    return this.adUnit_;
+  }
+
+  setAdUnit(value: string): void {
+    this.adUnit_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.adUnit_, // field 1 - ad_unit
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'RewardedAdLoadAdRequest';
+  }
+}
+
+/** */
+export class RewardedAdLoadAdResponse implements Message {
+  private success_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.success_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getSuccess(): boolean | null {
+    return this.success_;
+  }
+
+  setSuccess(value: boolean): void {
+    this.success_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.success_, // field 1 - success
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'RewardedAdLoadAdResponse';
+  }
+}
+
+/** */
+export class RewardedAdViewAdRequest implements Message {
+  private adUnit_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.adUnit_ = data[base] == null ? null : (data[base] as string);
+  }
+
+  getAdUnit(): string | null {
+    return this.adUnit_;
+  }
+
+  setAdUnit(value: string): void {
+    this.adUnit_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.adUnit_, // field 1 - ad_unit
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'RewardedAdViewAdRequest';
+  }
+}
+
+/** */
 export class SkuSelectedResponse implements Message {
   private sku_: string | null;
   private oldSku_: string | null;
@@ -1508,20 +1697,15 @@ export class SkuSelectedResponse implements Message {
 
     this.oneTime_ = data[2 + base] == null ? null : (data[2 + base] as boolean);
 
-    this.playOffer_ =
-      data[3 + base] == null ? null : (data[3 + base] as string);
+    this.playOffer_ = data[3 + base] == null ? null : (data[3 + base] as string);
 
-    this.oldPlayOffer_ =
-      data[4 + base] == null ? null : (data[4 + base] as string);
+    this.oldPlayOffer_ = data[4 + base] == null ? null : (data[4 + base] as string);
 
-    this.customMessage_ =
-      data[5 + base] == null ? null : (data[5 + base] as string);
+    this.customMessage_ = data[5 + base] == null ? null : (data[5 + base] as string);
 
-    this.anonymous_ =
-      data[6 + base] == null ? null : (data[6 + base] as boolean);
+    this.anonymous_ = data[6 + base] == null ? null : (data[6 + base] as boolean);
 
-    this.sharingPolicyEnabled_ =
-      data[7 + base] == null ? null : (data[7 + base] as boolean);
+    this.sharingPolicyEnabled_ = data[7 + base] == null ? null : (data[7 + base] as boolean);
   }
 
   getSku(): string | null {
@@ -1680,14 +1864,16 @@ export class SubscribeResponse implements Message {
 export class SubscriptionLinkingCompleteResponse implements Message {
   private publisherProvidedId_: string | null;
   private success_: boolean | null;
+  private linkResults_: SubscriptionLinkingLinkResult[] | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.publisherProvidedId_ =
-      data[base] == null ? null : (data[base] as string);
+    this.publisherProvidedId_ = data[base] == null ? null : (data[base] as string);
 
     this.success_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
+
+    this.linkResults_ = (data[2 + base] as unknown[][] || []).map(item => new SubscriptionLinkingLinkResult(item, includesLabel));
   }
 
   getPublisherProvidedId(): string | null {
@@ -1706,10 +1892,19 @@ export class SubscriptionLinkingCompleteResponse implements Message {
     this.success_ = value;
   }
 
+  getLinkResultsList(): SubscriptionLinkingLinkResult[] | null {
+    return this.linkResults_;
+  }
+
+  setLinkResultsList(value: SubscriptionLinkingLinkResult[]): void {
+    this.linkResults_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.publisherProvidedId_, // field 1 - publisher_provided_id
       this.success_, // field 2 - success
+      this.linkResults_ ? this.linkResults_.map(item => item.toArray(includeLabel)) : [], // field 3 - link_results
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1723,14 +1918,70 @@ export class SubscriptionLinkingCompleteResponse implements Message {
 }
 
 /** */
+export class SubscriptionLinkingLinkResult implements Message {
+  private success_: boolean | null;
+  private swgPublicationId_: string | null;
+  private publisherProvidedId_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.success_ = data[base] == null ? null : (data[base] as boolean);
+
+    this.swgPublicationId_ = data[1 + base] == null ? null : (data[1 + base] as string);
+
+    this.publisherProvidedId_ = data[2 + base] == null ? null : (data[2 + base] as string);
+  }
+
+  getSuccess(): boolean | null {
+    return this.success_;
+  }
+
+  setSuccess(value: boolean): void {
+    this.success_ = value;
+  }
+
+  getSwgPublicationId(): string | null {
+    return this.swgPublicationId_;
+  }
+
+  setSwgPublicationId(value: string): void {
+    this.swgPublicationId_ = value;
+  }
+
+  getPublisherProvidedId(): string | null {
+    return this.publisherProvidedId_;
+  }
+
+  setPublisherProvidedId(value: string): void {
+    this.publisherProvidedId_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.success_, // field 1 - success
+      this.swgPublicationId_, // field 2 - swg_publication_id
+      this.publisherProvidedId_, // field 3 - publisher_provided_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'SubscriptionLinkingLinkResult';
+  }
+}
+
+/** */
 export class SubscriptionLinkingResponse implements Message {
   private publisherProvidedId_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.publisherProvidedId_ =
-      data[base] == null ? null : (data[base] as string);
+    this.publisherProvidedId_ = data[base] == null ? null : (data[base] as string);
   }
 
   getPublisherProvidedId(): string | null {
@@ -1768,11 +2019,9 @@ export class SurveyAnswer implements Message {
 
     this.answerId_ = data[base] == null ? null : (data[base] as number);
 
-    this.answerText_ =
-      data[1 + base] == null ? null : (data[1 + base] as string);
+    this.answerText_ = data[1 + base] == null ? null : (data[1 + base] as string);
 
-    this.answerCategory_ =
-      data[2 + base] == null ? null : (data[2 + base] as string);
+    this.answerCategory_ = data[2 + base] == null ? null : (data[2 + base] as string);
 
     this.ppsValue_ = data[3 + base] == null ? null : (data[3 + base] as string);
   }
@@ -1835,12 +2084,9 @@ export class SurveyDataTransferRequest implements Message {
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
 
-    this.surveyQuestions_ = ((data[base] as unknown[][]) || []).map(
-      (item) => new SurveyQuestion(item, includesLabel)
-    );
+    this.surveyQuestions_ = (data[base] as unknown[][] || []).map(item => new SurveyQuestion(item, includesLabel));
 
-    this.storePpsInLocalStorage_ =
-      data[1 + base] == null ? null : (data[1 + base] as boolean);
+    this.storePpsInLocalStorage_ = data[1 + base] == null ? null : (data[1 + base] as boolean);
   }
 
   getSurveyQuestionsList(): SurveyQuestion[] | null {
@@ -1861,9 +2107,7 @@ export class SurveyDataTransferRequest implements Message {
 
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
-      this.surveyQuestions_
-        ? this.surveyQuestions_.map((item) => item.toArray(includeLabel))
-        : [], // field 1 - survey_questions
+      this.surveyQuestions_ ? this.surveyQuestions_.map(item => item.toArray(includeLabel)) : [], // field 1 - survey_questions
       this.storePpsInLocalStorage_, // field 2 - store_pps_in_local_storage
     ];
     if (includeLabel) {
@@ -1922,15 +2166,11 @@ export class SurveyQuestion implements Message {
 
     this.questionId_ = data[base] == null ? null : (data[base] as number);
 
-    this.questionText_ =
-      data[1 + base] == null ? null : (data[1 + base] as string);
+    this.questionText_ = data[1 + base] == null ? null : (data[1 + base] as string);
 
-    this.questionCategory_ =
-      data[2 + base] == null ? null : (data[2 + base] as string);
+    this.questionCategory_ = data[2 + base] == null ? null : (data[2 + base] as string);
 
-    this.surveyAnswers_ = ((data[3 + base] as unknown[][]) || []).map(
-      (item) => new SurveyAnswer(item, includesLabel)
-    );
+    this.surveyAnswers_ = (data[3 + base] as unknown[][] || []).map(item => new SurveyAnswer(item, includesLabel));
   }
 
   getQuestionId(): number | null {
@@ -1970,9 +2210,7 @@ export class SurveyQuestion implements Message {
       this.questionId_, // field 1 - question_id
       this.questionText_, // field 2 - question_text
       this.questionCategory_, // field 3 - question_category
-      this.surveyAnswers_
-        ? this.surveyAnswers_.map((item) => item.toArray(includeLabel))
-        : [], // field 4 - survey_answers
+      this.surveyAnswers_ ? this.surveyAnswers_.map(item => item.toArray(includeLabel)) : [], // field 4 - survey_answers
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2104,6 +2342,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'AnalyticsEventMeta': AnalyticsEventMeta,
   'AnalyticsRequest': AnalyticsRequest,
   'AudienceActivityClientLogsRequest': AudienceActivityClientLogsRequest,
+  'CloseWindowRequest': CloseWindowRequest,
   'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
   'Duration': Duration,
   'EntitlementJwt': EntitlementJwt,
@@ -2114,10 +2353,15 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
   'OpenDialogRequest': OpenDialogRequest,
+  'RewardedAdAlternateActionRequest': RewardedAdAlternateActionRequest,
+  'RewardedAdLoadAdRequest': RewardedAdLoadAdRequest,
+  'RewardedAdLoadAdResponse': RewardedAdLoadAdResponse,
+  'RewardedAdViewAdRequest': RewardedAdViewAdRequest,
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
   'SubscribeResponse': SubscribeResponse,
   'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
+  'SubscriptionLinkingLinkResult': SubscriptionLinkingLinkResult,
   'SubscriptionLinkingResponse': SubscriptionLinkingResponse,
   'SurveyAnswer': SurveyAnswer,
   'SurveyDataTransferRequest': SurveyDataTransferRequest,

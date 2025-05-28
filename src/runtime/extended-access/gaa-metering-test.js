@@ -765,11 +765,11 @@ describes.realWin('GaaMetering', () => {
   });
 
   describe('getProductIDFromPageConfig_', () => {
-    it('gets the publisher ID from object page config', () => {
+    it('gets the product ID from object page config', () => {
       expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
-    it('gets the publisher ID from array page config', () => {
+    it('gets the product ID from array page config', () => {
       self.document.head.innerHTML = `
         <script type="application/ld+json">
           [${ARTICLE_LD_JSON_METADATA}]
@@ -779,7 +779,7 @@ describes.realWin('GaaMetering', () => {
       expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
-    it('gets publisher ID from microdata', () => {
+    it('gets product ID from microdata', () => {
       removeJsonLdScripts();
 
       // Add Microdata.
@@ -787,14 +787,14 @@ describes.realWin('GaaMetering', () => {
       expect(GaaMetering.getProductIDFromPageConfig_()).to.equal(PRODUCT_ID);
     });
 
-    it('throws if article metadata lacks a publisher id', () => {
+    it('throws if article metadata lacks a product id', () => {
       removeJsonLdScripts();
       // Remove microdata
       microdata.innerHTML = '';
 
       const meteringError = () => GaaMetering.getProductIDFromPageConfig_();
       expect(meteringError).throws(
-        'Showcase articles must define a publisher ID with either JSON-LD or Microdata.'
+        'Showcase articles must define a product ID with either JSON-LD or Microdata.'
       );
     });
   });

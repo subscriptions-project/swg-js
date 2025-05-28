@@ -23,6 +23,7 @@ module.exports = {
       .navigate()
       .waitForElementPresent('@swgRegwallDialog', 'Found regwall')
       .waitForElementVisible('@swgRegwallDialog')
+      .pause(3000)
       .assert.screenshotIdenticalToBaseline('body', 'regwall')
       .assert.textContains('@title', 'Get more with Google')
       .assert.textContains(

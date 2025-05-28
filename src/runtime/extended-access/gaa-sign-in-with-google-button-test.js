@@ -84,6 +84,7 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
             client_id: clientId,
             callback: argsInit[0][0].callback,
             allowed_parent_origin: allowedOrigins,
+            use_fedcm_for_button: true,
             /* eslint-enable google-camelcase/google-camelcase */
           },
         ],

@@ -34,7 +34,6 @@ import {
   GetEntitlementsParamsExternalDef,
   GetEntitlementsParamsInternalDef,
 } from '../api/subscriptions';
-import {Constants, StorageKeys} from '../utils/constants';
 import {ContentType} from '../api/basic-subscriptions';
 import {Deps} from './deps';
 import {
@@ -51,6 +50,7 @@ import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
+import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
@@ -69,6 +69,7 @@ const ENABLED_INTERVENTIONS = new Set([
   InterventionType.TYPE_NEWSLETTER_SIGNUP,
   InterventionType.TYPE_REWARDED_SURVEY,
   InterventionType.TYPE_REWARDED_AD,
+  InterventionType.TYPE_BYO_CTA,
 ]);
 
 /**
@@ -95,12 +96,12 @@ export class EntitlementsManager {
   private readonly publicationId_: string;
   private readonly storage_: Storage;
 
-  private action_: string;
   private article_: Article | null = null;
   private blockNextNotification_ = false;
   private blockNextToast_ = false;
   private enableMeteredByGoogle_ = false;
-  private encodedParamName_: string;
+  private lastMeterToast_: MeterToastApi | null = null;
+
   /**
    * String containing encoded metering parameters currently.
    * We may expand this to contain more information in the future.
@@ -120,18 +121,11 @@ export class EntitlementsManager {
     private readonly pageConfig_: PageConfig,
     private readonly fetcher_: Fetcher,
     private readonly deps_: Deps,
-    private readonly useArticleEndpoint_: boolean,
     private readonly enableDefaultMeteringHandler_: boolean
   ) {
     this.publicationId_ = this.pageConfig_.getPublicationId();
 
     this.jwtHelper_ = new JwtHelper();
-
-    this.encodedParamName_ = useArticleEndpoint_
-      ? 'encodedEntitlementsParams'
-      : 'encodedParams';
-
-    this.action_ = useArticleEndpoint_ ? '/article' : '/entitlements';
 
     this.storage_ = deps_.storage();
 
@@ -352,8 +346,7 @@ export class EntitlementsManager {
       message.setSubscriptionTimestamp(optionalSubscriptionTimestamp);
     }
 
-    let url =
-      '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
+    let url = `/publication/${encodeURIComponent(this.publicationId_)}/article`;
     url = addDevModeParamsToUrl(this.win_.location, url);
 
     // Set encoded params, once.
@@ -372,11 +365,11 @@ export class EntitlementsManager {
     }
 
     // Get swgUserToken from local storage
-    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
+    const swgUserToken = await this.storage_.get(StorageKeys.USER_TOKEN, true);
     if (swgUserToken) {
       url = addQueryParam(url, 'sut', swgUserToken);
     }
-    url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
+    url = addQueryParam(url, 'encodedEntitlementsParams', this.encodedParams_);
 
     await this.fetcher_.sendPost(serviceUrl(url), message);
   }
@@ -430,9 +423,7 @@ export class EntitlementsManager {
    * will be accessible from here and should resolve a null promise otherwise.
    */
   async getArticle(): Promise<Article | null> {
-    // The base manager only fetches from the entitlements endpoint, which does
-    // not contain an Article.
-    if (!this.useArticleEndpoint_ || !this.responsePromise_) {
+    if (!this.responsePromise_) {
       return null;
     }
 
@@ -512,6 +503,11 @@ export class EntitlementsManager {
     this.enableMeteredByGoogle_ = true;
   }
 
+  /** Get the last shown meter toast. */
+  getLastMeterToast(): MeterToastApi | null {
+    return this.lastMeterToast_;
+  }
+
   /**
    * The JSON must either contain a "signedEntitlements" with JWT, or
    * "entitlements" field with plain JSON object.
@@ -565,7 +561,7 @@ export class EntitlementsManager {
    */
   private saveSwgUserToken_(swgUserToken?: string | null): void {
     if (swgUserToken) {
-      this.storage_.set(Constants.USER_TOKEN, swgUserToken, true);
+      this.storage_.set(StorageKeys.USER_TOKEN, swgUserToken, true);
     }
   }
 
@@ -754,6 +750,7 @@ export class EntitlementsManager {
             subscriptionTokenContents['metering']['clientUserAttribute'],
         });
         meterToastApi.setOnConsumeCallback(onConsumeCallback);
+        this.lastMeterToast_ = meterToastApi;
         return meterToastApi.start();
       } else {
         // If showToast isn't true, don't show a toast, and return
@@ -767,16 +764,15 @@ export class EntitlementsManager {
     params?: GetEntitlementsParamsExternalDef
   ): Promise<Entitlements> {
     // Get swgUserToken from local storage
-    const swgUserToken = await this.storage_.get(Constants.USER_TOKEN, true);
+    const swgUserToken = await this.storage_.get(StorageKeys.USER_TOKEN, true);
 
     // Get read_time from session storage
     const readTime = await this.storage_.get(
-      Constants.READ_TIME,
+      StorageKeys.READ_TIME,
       /*useLocalStorage=*/ false
     );
 
-    let url =
-      '/publication/' + encodeURIComponent(this.publicationId_) + this.action_;
+    let url = `/publication/${encodeURIComponent(this.publicationId_)}/article`;
 
     url = addDevModeParamsToUrl(this.win_.location, url);
 
@@ -823,15 +819,13 @@ export class EntitlementsManager {
       }
     }
 
-    // Add locked param.
-    if (this.useArticleEndpoint_) {
-      url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
-      url = addQueryParam(
-        url,
-        'contentType',
-        getContentTypeParamString(this.pageConfig_.isLocked())
-      );
-    }
+    url = addQueryParam(url, 'locked', String(this.pageConfig_.isLocked()));
+    url = addQueryParam(
+      url,
+      'contentType',
+      getContentTypeParamString(this.pageConfig_.isLocked())
+    );
+
     const hashedCanonicalUrl = await this.getHashedCanonicalUrl_();
 
     let encodableParams: GetEntitlementsParamsInternalDef | undefined = this
@@ -931,7 +925,11 @@ export class EntitlementsManager {
       this.encodedParams_ = base64UrlEncodeFromBytes(
         utf8EncodeSync(JSON.stringify(encodableParams))
       );
-      url = addQueryParam(url, this.encodedParamName_, this.encodedParams_);
+      url = addQueryParam(
+        url,
+        'encodedEntitlementsParams',
+        this.encodedParams_
+      );
     }
     url = serviceUrl(url);
 
@@ -940,11 +938,8 @@ export class EntitlementsManager {
       .eventManager()
       .logSwgEvent(AnalyticsEvent.ACTION_GET_ENTITLEMENTS, false);
     const json = await this.fetcher_.fetchCredentialedJson(url);
-    let response = json as Entitlements;
-    if (this.useArticleEndpoint_) {
-      this.article_ = json as Article;
-      response = this.article_['entitlements'];
-    }
+    this.article_ = json as Article;
+    const response = this.article_['entitlements'] || {};
 
     // Log errors.
     const errorMessages = (json as {errorMessages?: string[]})['errorMessages'];
