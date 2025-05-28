@@ -247,7 +247,6 @@ describes.realWin('BasicRuntime', (env) => {
       expect(basicRuntime.clientOptions_).to.deep.equal({
         disableButton: false,
         forceLangInIframes: false,
-        lang: '',
         theme: ClientTheme.DARK,
       });
     });
