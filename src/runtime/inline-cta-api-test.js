@@ -305,6 +305,30 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(iframe.style.height).to.equal('100px');
     });
 
+    it('opens iframe with language setting', async () => {
+      setEntitlements();
+      setArticleResponse([SURVEY_INTERVENTION, NEWSLETTER_INTERVENTION]);
+      clientConfigManagerMock
+        .expects('shouldForceLangInIframes')
+        .returns(true)
+        .once();
+      clientConfigManagerMock.expects('getLanguage').returns('pt-BR').once();
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/newsletteriframe?_=_&origin=about%3Asrcdoc&configurationId=newsletter_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&hl=pt-BR';
+      const resultArgs = {
+        supportsEventManager: true,
+        productType: 'UI_CONTRIBUTION',
+        _client: 'SwG 0.0.0',
+      };
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+    });
+
     it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
       const surveyDataTransferRequest = new SurveyDataTransferRequest();
       const handleSurveyDataTransferRequestSpy = sandbox.spy(

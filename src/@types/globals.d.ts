@@ -104,7 +104,7 @@ declare global {
     googletag?: googletag;
 
     /**
-     * AdSense API definiton.
+     * AdSense API definition.
      */
     adsbygoogle?: {
       loaded?: boolean;
