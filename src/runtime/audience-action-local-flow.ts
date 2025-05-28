@@ -211,7 +211,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     const validNewsletterSignupParams =
       codeSnippet &&
-      config?.optInParameters?.promptPreference ==
+      config?.optInParameters?.promptPreference ===
         PromptPreference.PREFERENCE_PUBLISHER_PROVIDED_PROMPT;
 
     if (validNewsletterSignupParams) {

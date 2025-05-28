@@ -64,6 +64,10 @@ const SUBSCRIPTION_INTERVENTION = {
   type: 'TYPE_SUBSCRIPTION',
   configurationId: 'subscription_config_id',
 };
+const REWARDED_AD_INTERVENTION = {
+  type: 'TYPE_REWARDED_AD',
+  configurationId: 'rewarded_ad_config_id',
+};
 
 describes.realWin('AutoPromptManager', (env) => {
   let autoPromptManager;
@@ -4315,6 +4319,71 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       expect(isEligible).to.equal(true);
+    });
+  });
+
+  describe('AudienceActionFlow', () => {
+    it('is rendered for TYPE_REWARDED_AD', async () => {
+      win.googletag = {
+        apiReady: true,
+        getVersion: () => 'foo',
+      };
+      const entitlements = new Entitlements();
+      entitlementsManagerMock
+        .expects('getEntitlements')
+        .resolves(entitlements)
+        .once();
+      const autoPromptConfig = new AutoPromptConfig({});
+      const uiPredicates = new UiPredicates(
+        /* canDisplayAutoPrompt */ true,
+        /* canDisplayButton */ true
+      );
+      const clientConfig = new ClientConfig({
+        autoPromptConfig,
+        useUpdatedOfferFlows: true,
+        uiPredicates,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .resolves(clientConfig)
+        .once();
+      const getArticleExpectation =
+        entitlementsManagerMock.expects('getArticle');
+
+      getArticleExpectation
+        .resolves({
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'rewarded_ad_config_id',
+                  type: 'TYPE_REWARDED_AD',
+                  closability: 'BLOCKING',
+                },
+              ],
+            },
+          },
+          audienceActions: {
+            actions: [REWARDED_AD_INTERVENTION],
+            engineId: '123',
+          },
+        })
+        .once();
+
+      await autoPromptManager.showAutoPrompt({});
+
+      expect(actionFlowSpy).to.have.been.calledOnce.calledWith(deps, {
+        action: 'TYPE_REWARDED_AD',
+        configurationId: 'rewarded_ad_config_id',
+        preference: undefined,
+        autoPromptType: undefined,
+        isClosable: false,
+        calledManually: false,
+        shouldRenderPreview: false,
+        monetizationFunction: undefined,
+      });
+      expect(startSpy).to.have.been.called;
+      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
   });
 
