@@ -231,6 +231,8 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should not force lang if html attribute and clientOptions not set', async () => {
+      win.document.documentElement.lang = '';
+
       basicRuntime.init({
         type: 'NewsArticle',
         isAccessibleForFree: true,
@@ -245,7 +247,7 @@ describes.realWin('BasicRuntime', (env) => {
       expect(basicRuntime.clientOptions_).to.deep.equal({
         disableButton: false,
         forceLangInIframes: false,
-        lang: undefined,
+        lang: '',
         theme: ClientTheme.DARK,
       });
     });
@@ -273,6 +275,8 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should force lang if clientOptions set', async () => {
+      win.document.documentElement.lang = '';
+
       basicRuntime.init({
         type: 'NewsArticle',
         isAccessibleForFree: true,
