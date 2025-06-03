@@ -596,9 +596,8 @@ export class AutoPromptManager {
             this.multiInstanceCtaExperiment &&
             key === nextOrchestration!.configId
               ? timestamps.completions
-              : // Before FCA Phase 1 rampup, only get completiosn fo matching action type
-              !this.multiInstanceCtaExperiment &&
-                key === nextOrchestration!.type
+              : // For backwards compatability, continue to get completions of matching action type
+              key === nextOrchestration!.type
               ? timestamps.completions
               : timestamps.impressions
           )
