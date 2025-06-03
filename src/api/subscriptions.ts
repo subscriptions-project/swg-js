@@ -224,10 +224,6 @@ export interface Subscriptions {
 
   /**
    * Starts the subscription linking flow for multiple publications.
-   *
-   * This functionality is still under testing and not yet ready for production
-   * use.
-   *
    * @return promise indicating result of the operation
    */
   linkSubscriptions(

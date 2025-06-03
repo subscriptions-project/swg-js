@@ -95,7 +95,7 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         .expects('openIframe')
         .withExactArgs(
           sandbox.match((arg) => arg.tagName == 'IFRAME'),
-          `https://news.google.com/swg/ui/v1/linksaveiframe?_=_&subscriptionLinking=true&ppid=${REQUEST.publisherProvidedId}`,
+          `https://news.google.com/swg/ui/v1/linksaveiframe?_=_&subscriptionLinking=true&linkTo=${PUBLICATION_ID}%2C${REQUEST.publisherProvidedId}`,
           {publicationId: PUBLICATION_ID, _client: 'SwG 0.0.0'}
         )
         .resolves(port);
