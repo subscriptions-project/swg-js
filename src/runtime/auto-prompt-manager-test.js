@@ -6768,6 +6768,56 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     [
+      '12345',
+      'this is a string',
+      [],
+      JSON.stringify({
+        'contribution_config_id': {},
+      }),
+      JSON.stringify({
+        'contribution_config_id': {
+          impressions: [55555, 99999],
+        },
+      }),
+      JSON.stringify({
+        'contribution_config_id': {
+          impressions: [55555, 99999],
+          dismissals: [0, '12345'],
+          completions: [],
+        },
+      }),
+      JSON.stringify({
+        'contribution_config_id': {
+          impressions: [55555, 99999],
+          dismissals: [0, 'not a timestamps'],
+          completions: [],
+        },
+      }),
+      JSON.stringify({
+        'contribution_config_id': {
+          impressions: [55555, 99999],
+          dismissals: [0],
+          completions: [],
+          extraField: [],
+        },
+      }),
+      JSON.stringify({
+        'contribution_config_id': {
+          impressions: [55555, 99999],
+          dismissals: [0],
+          completions: [],
+        },
+        'TYPE WITH EMPTY TIMESTAMPS': {},
+      }),
+    ].forEach((timestamps) => {
+      it('isValidActionsTimestamps_ should return false for invalid timestamps by configId key', async () => {
+        const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
+
+        expect(isValid).to.be.false;
+      });
+    });
+
+    [
       '',
       '{}',
       JSON.stringify({
@@ -6789,6 +6839,34 @@ describes.realWin('AutoPromptManager', (env) => {
       }),
     ].forEach((timestamps) => {
       it('isValidActionsTimestamps_ should return true for valid timestamps', async () => {
+        const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
+
+        expect(isValid).to.be.false;
+      });
+    });
+
+    [
+      '',
+      '{}',
+      JSON.stringify({
+        'contribution_config_id': {
+          impressions: [55555, 99999],
+          dismissals: [0],
+          completions: [],
+        },
+        'rewarded_ad_config_id': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+        'some_config_id': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+      }),
+    ].forEach((timestamps) => {
+      it('isValidActionsTimestamps_ should return true for valid timestamps by configId', async () => {
         const isValid = autoPromptManager.isValidActionsTimestamps_(timestamps);
 
         expect(isValid).to.be.false;
@@ -6840,6 +6918,59 @@ describes.realWin('AutoPromptManager', (env) => {
       const timestamps = autoPromptManager.getTimestampsForPromptFrequency_(
         actionsTimestamps,
         {'type': 'TYPE_REWARDED_SURVEY', closability: 'BLOCKING'}
+      );
+
+      expect(timestamps.length).to.equal(3);
+      expect(timestamps[0]).to.equal('s_c1');
+      expect(timestamps[1]).to.equal('s_c2');
+      expect(timestamps[2]).to.equal('s_c3');
+    });
+
+    it('getTimestampsForPromptFrequency_ should return dismissals and completions timestamps by configId for DISMISSIBLE closability', async () => {
+      const actionsTimestamps = {
+        'contribution_config_id': {
+          'impressions': ['c_i1', 'c_i2', 'c_i3'],
+          'dismissals': ['c_d1', 'c_d2', 'c_d3'],
+          'completions': ['c_c1', 'c_c2', 'c_c3'],
+        },
+        'survey_config_id': {
+          'impressions': ['s_i1', 's_i2', 's_i3'],
+          'dismissals': ['s_d1', 's_d2', 's_d3'],
+          'completions': ['s_c1', 's_c2', 's_c3'],
+        },
+      };
+
+      const timestamps = autoPromptManager.getTimestampsForPromptFrequency_(
+        actionsTimestamps,
+        {'type': 'survey_config_id', closability: 'DISMISSIBLE'}
+      );
+
+      expect(timestamps.length).to.equal(6);
+      expect(timestamps[0]).to.equal('s_d1');
+      expect(timestamps[1]).to.equal('s_d2');
+      expect(timestamps[2]).to.equal('s_d3');
+      expect(timestamps[3]).to.equal('s_c1');
+      expect(timestamps[4]).to.equal('s_c2');
+      expect(timestamps[5]).to.equal('s_c3');
+    });
+
+    it('getTimestampsForPromptFrequency_ should return completions timestamps by configId for BLOCKING closability', async () => {
+      const actionsTimestamps = {
+        'contribution_config_id': {
+          'impressions': ['c_i1', 'c_i2', 'c_i3'],
+          'dismissals': ['c_d1', 'c_d2', 'c_d3'],
+          'completions': ['c_c1', 'c_c2', 'c_c3'],
+        },
+        'survey_config_id': {
+          'impressions': ['s_i1', 's_i2', 's_i3'],
+          'dismissals': ['s_d1', 's_d2', 's_d3'],
+          'completions': ['s_c1', 's_c2', 's_c3'],
+        },
+      };
+
+      const timestamps = autoPromptManager.getTimestampsForPromptFrequency_(
+        actionsTimestamps,
+        {'type': 'survey_config_id', closability: 'BLOCKING'}
       );
 
       expect(timestamps.length).to.equal(3);
