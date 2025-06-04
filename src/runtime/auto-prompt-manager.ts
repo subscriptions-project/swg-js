@@ -853,18 +853,9 @@ export class AutoPromptManager {
     timestamps: ActionsTimestamps,
     orchestration: InterventionOrchestration
   ) {
-    let actionTimestamps;
-    if (this.multiInstanceCtaExperiment) {
-      actionTimestamps = timestamps[orchestration.configId];
-      if (!actionTimestamps && !!timestamps[orchestration.type]) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_FREQUENCY_CAP_LOCAL_STORAGE_CONFIG_ID_KEY_NOT_FOUND
-        );
-        actionTimestamps = timestamps[orchestration.type];
-      }
-    } else {
-      actionTimestamps = timestamps[orchestration.type];
-    }
+    const actionTimestamps = this.multiInstanceCtaExperiment
+      ? timestamps[orchestration.configId]
+      : timestamps[orchestration.type];
     return orchestration.closability === Closability.BLOCKING
       ? actionTimestamps?.completions || []
       : [
@@ -1022,9 +1013,10 @@ export class AutoPromptManager {
       // Client side eligibility is required to handle identity transitions
       // after sign-in flow. TODO(b/332759781): update survey completion check
       // to persist even after 2 weeks.
-      return !(
-        timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions || []
-      ).length;
+      const completions = this.multiInstanceCtaExperiment
+        ? timestamps[action.configurationId!]?.completions
+        : timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions;
+      return !(completions || []).length;
     }
     // NOTE: passing these checks does not mean the APIs are always available.
     if (action.type === InterventionType.TYPE_REWARDED_AD) {
