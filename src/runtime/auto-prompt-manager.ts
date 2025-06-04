@@ -193,6 +193,7 @@ export class AutoPromptManager {
   private shouldRenderOnsitePreview_: boolean = false;
   private dismissibilityCtaFilterExperiment_: boolean = false;
   private standardRewardedAdExperiment = false;
+  private multiInstanceCtaExperiment: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -294,6 +295,10 @@ export class AutoPromptManager {
     this.standardRewardedAdExperiment = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.STANDARD_REWARDED_AD_EXPERIMENT
+    );
+    this.multiInstanceCtaExperiment = this.isArticleExperimentEnabled_(
+      article,
+      ArticleExperimentFlags.MULTI_INSTANCE_CTA_EXPERIMENT
     );
   }
 
@@ -526,8 +531,6 @@ export class AutoPromptManager {
       return interventionOrchestration[0];
     }
 
-    // Only other supported ContentType is OPEN.
-    let nextOrchestration: InterventionOrchestration | undefined;
     // Check Default FrequencyCapConfig is valid.
     if (
       !this.isValidFrequencyCap_(
@@ -539,6 +542,9 @@ export class AutoPromptManager {
       );
       return interventionOrchestration[0];
     }
+
+    // Only other supported ContentType is OPEN.
+    let nextOrchestration: InterventionOrchestration | undefined;
 
     // b/325512849: Evaluate prompt frequency cap before global frequency cap.
     // This disambiguates the scenarios where a reader meets the cap when the
@@ -577,13 +583,22 @@ export class AutoPromptManager {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
         Object.entries(actionsTimestamps!)
-          // Ignore events keyed by configId before FCA Phase 1 rampup
           .filter(([key, _]) =>
-            Object.values<string>(InterventionType).includes(key)
+            // During FCA Phase 1, include all events
+            this.multiInstanceCtaExperiment
+              ? true
+              : // Before FCA Phase 1 rampup, ignore events keyed by configId
+                Object.values<string>(InterventionType).includes(key)
           )
-          .map(([type, timestamps]) =>
-            type === nextOrchestration!.type
-              ? timestamps.completions // Completed repeatable actions count towards global frequency
+          // Completed repeatable actions count towards global frequency
+          .map(([key, timestamps]) =>
+            // During FCA Phase 1, only get completions of matching config ID
+            this.multiInstanceCtaExperiment &&
+            key === nextOrchestration!.configId
+              ? timestamps.completions
+              : // For backwards compatability, continue to get completions of matching action type
+              key === nextOrchestration!.type
+              ? timestamps.completions
               : timestamps.impressions
           )
       );
@@ -838,7 +853,9 @@ export class AutoPromptManager {
     timestamps: ActionsTimestamps,
     orchestration: InterventionOrchestration
   ) {
-    const actionTimestamps = timestamps[orchestration.type];
+    const actionTimestamps = this.multiInstanceCtaExperiment
+      ? timestamps[orchestration.configId]
+      : timestamps[orchestration.type];
     return orchestration.closability === Closability.BLOCKING
       ? actionTimestamps?.completions || []
       : [
@@ -996,9 +1013,10 @@ export class AutoPromptManager {
       // Client side eligibility is required to handle identity transitions
       // after sign-in flow. TODO(b/332759781): update survey completion check
       // to persist even after 2 weeks.
-      return !(
-        timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions || []
-      ).length;
+      const completions = this.multiInstanceCtaExperiment
+        ? timestamps[action.configurationId!]?.completions
+        : timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions;
+      return !(completions || []).length;
     }
     // NOTE: passing these checks does not mean the APIs are always available.
     if (action.type === InterventionType.TYPE_REWARDED_AD) {
