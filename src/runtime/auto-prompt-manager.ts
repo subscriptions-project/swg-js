@@ -1030,11 +1030,10 @@ export class AutoPromptManager {
       } else {
         const googletag = this.deps_.win().googletag;
         // Because this happens after the article call, googletag should have had enough time to set up
-        if (!googletag) {
-          return false;
-        }
-        // Fake api check
-        if (!!googletag?.apiReady && !googletag?.getVersion()) {
+        if (!googletag?.getVersion()) {
+          this.eventManager_.logSwgEvent(
+            AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
+          );
           return false;
         }
       }
