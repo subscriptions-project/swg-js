@@ -172,6 +172,21 @@ describes.realWin('ActivityIframeView', (env) => {
       expect(actualResult).to.equal(result);
     });
 
+    it('should accept port and result without dialog', async () => {
+      const result = new ActivityResult('OK');
+      sandbox
+        .stub(activityIframePort, 'acceptResult')
+        .callsFake(() => Promise.resolve(result));
+
+      await activityIframeView.init();
+      expect(activityIframePort.whenReady).to.have.been.calledOnce;
+
+      const actualPort = await activityIframeView.getPortPromise_();
+      const actualResult = await activityIframeView.acceptResult();
+      expect(actualPort).to.equal(activityIframePort);
+      expect(actualResult).to.equal(result);
+    });
+
     it('should accept port and result and verify', async () => {
       const ORIGIN = 'https://example.com';
       const VERIFIED = true;
