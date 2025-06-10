@@ -159,18 +159,8 @@ export class InlineCtaApi {
     );
 
     div.appendChild(activityIframeView.getElement());
-    const port = await this.activityPorts_.openIframe(
-      activityIframeView.getElement(),
-      fetchUrl,
-      fetchArgs
-    );
-    port.onResizeRequest((height) => {
-      setImportantStyles(activityIframeView.getElement(), {
-        'height': `${height}px`,
-      });
-    });
 
-    await port.whenReady();
+    await activityIframeView.init();
   }
 
   async attachInlineCtasWithAttribute(): Promise<void> {

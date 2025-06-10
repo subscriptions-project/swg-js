@@ -41,7 +41,7 @@ import {Doc} from '../model/doc';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
-import {Intervention} from './intervention';
+import {Intervention, PromptPreference} from './intervention';
 import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
@@ -51,8 +51,6 @@ import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 
 const SECOND_IN_MILLIS = 1000;
-const PREFERENCE_PUBLISHER_PROVIDED_PROMPT =
-  'PREFERENCE_PUBLISHER_PROVIDED_PROMPT';
 
 const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -195,6 +193,7 @@ export class AutoPromptManager {
   private shouldRenderOnsitePreview_: boolean = false;
   private dismissibilityCtaFilterExperiment_: boolean = false;
   private standardRewardedAdExperiment = false;
+  private multiInstanceCtaExperiment: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -296,6 +295,10 @@ export class AutoPromptManager {
     this.standardRewardedAdExperiment = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.STANDARD_REWARDED_AD_EXPERIMENT
+    );
+    this.multiInstanceCtaExperiment = this.isArticleExperimentEnabled_(
+      article,
+      ArticleExperimentFlags.MULTI_INSTANCE_CTA_EXPERIMENT
     );
   }
 
@@ -528,8 +531,6 @@ export class AutoPromptManager {
       return interventionOrchestration[0];
     }
 
-    // Only other supported ContentType is OPEN.
-    let nextOrchestration: InterventionOrchestration | undefined;
     // Check Default FrequencyCapConfig is valid.
     if (
       !this.isValidFrequencyCap_(
@@ -541,6 +542,9 @@ export class AutoPromptManager {
       );
       return interventionOrchestration[0];
     }
+
+    // Only other supported ContentType is OPEN.
+    let nextOrchestration: InterventionOrchestration | undefined;
 
     // b/325512849: Evaluate prompt frequency cap before global frequency cap.
     // This disambiguates the scenarios where a reader meets the cap when the
@@ -579,13 +583,22 @@ export class AutoPromptManager {
       const globalTimestamps = Array.prototype.concat.apply(
         [],
         Object.entries(actionsTimestamps!)
-          // Ignore events keyed by configId before FCA Phase 1 rampup
           .filter(([key, _]) =>
-            Object.values<string>(InterventionType).includes(key)
+            // During FCA Phase 1, include all events
+            this.multiInstanceCtaExperiment
+              ? true
+              : // Before FCA Phase 1 rampup, ignore events keyed by configId
+                Object.values<string>(InterventionType).includes(key)
           )
-          .map(([type, timestamps]) =>
-            type === nextOrchestration!.type
-              ? timestamps.completions // Completed repeatable actions count towards global frequency
+          // Completed repeatable actions count towards global frequency
+          .map(([key, timestamps]) =>
+            // During FCA Phase 1, only get completions of matching config ID
+            this.multiInstanceCtaExperiment &&
+            key === nextOrchestration!.configId
+              ? timestamps.completions
+              : // For backwards compatability, continue to get completions of matching action type
+              key === nextOrchestration!.type
+              ? timestamps.completions
               : timestamps.impressions
           )
       );
@@ -624,21 +637,17 @@ export class AutoPromptManager {
     return undefined;
   }
 
-  private getAudienceActionPromptFn_({
-    actionType,
-    configurationId,
-    preference,
-  }: {
-    actionType: AudienceActionType;
-    configurationId?: string;
-    preference?: string;
-  }): () => void {
+  private getAudienceActionPromptFn_(
+    action: AudienceActionType,
+    configurationId: string,
+    preference?: PromptPreference
+  ): () => void {
     return () => {
       const audienceActionFlow: AudienceActionFlow =
-        actionType === InterventionType.TYPE_REWARDED_AD &&
+        action === InterventionType.TYPE_REWARDED_AD &&
         !this.standardRewardedAdExperiment
           ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType as InterventionType,
+              action,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
@@ -648,10 +657,10 @@ export class AutoPromptManager {
               calledManually: false,
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             })
-          : actionType === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
-            preference === PREFERENCE_PUBLISHER_PROVIDED_PROMPT
+          : action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
+            preference === PromptPreference.PREFERENCE_PUBLISHER_PROVIDED_PROMPT
           ? new AudienceActionLocalFlow(this.deps_, {
-              action: actionType as InterventionType,
+              action,
               configurationId,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
@@ -659,8 +668,9 @@ export class AutoPromptManager {
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
             })
           : new AudienceActionIframeFlow(this.deps_, {
-              action: actionType,
+              action,
               configurationId,
+              preference,
               autoPromptType: this.autoPromptType_,
               isClosable: this.isClosable_,
               calledManually: false,
@@ -843,7 +853,9 @@ export class AutoPromptManager {
     timestamps: ActionsTimestamps,
     orchestration: InterventionOrchestration
   ) {
-    const actionTimestamps = timestamps[orchestration.type];
+    const actionTimestamps = this.multiInstanceCtaExperiment
+      ? timestamps[orchestration.configId]
+      : timestamps[orchestration.type];
     return orchestration.closability === Closability.BLOCKING
       ? actionTimestamps?.completions || []
       : [
@@ -1001,20 +1013,29 @@ export class AutoPromptManager {
       // Client side eligibility is required to handle identity transitions
       // after sign-in flow. TODO(b/332759781): update survey completion check
       // to persist even after 2 weeks.
-      return !(
-        timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions || []
-      ).length;
+      const completions = this.multiInstanceCtaExperiment
+        ? timestamps[action.configurationId!]?.completions
+        : timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions;
+      return !(completions || []).length;
     }
-    // NOTE: passing these checks does not mean googletag is always available.
+    // NOTE: passing these checks does not mean the APIs are always available.
     if (action.type === InterventionType.TYPE_REWARDED_AD) {
-      const gtag = this.deps_.win().googletag;
-      // Because this happens after the article call, googletag should have had enougn time to set up
-      if (!gtag) {
-        return false;
-      }
-      // Fake api check
-      if (!!gtag?.apiReady && !gtag?.getVersion()) {
-        return false;
+      if (
+        action.preference === PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
+      ) {
+        const adsbygoogle = this.deps_.win().adsbygoogle;
+        if (!adsbygoogle?.loaded) {
+          return false;
+        }
+      } else {
+        const googletag = this.deps_.win().googletag;
+        // Because this happens after the article call, googletag should have had enough time to set up
+        if (!googletag?.getVersion()) {
+          this.eventManager_.logSwgEvent(
+            AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
+          );
+          return false;
+        }
       }
     }
     return true;
@@ -1141,12 +1162,12 @@ export class AutoPromptManager {
   }
 
   private getAutoPromptFunction_(action: Intervention) {
-    return isAudienceActionType(action.type)
-      ? this.getAudienceActionPromptFn_({
-          actionType: action.type,
-          configurationId: action.configurationId,
-          preference: action.preference,
-        })
+    return isAudienceActionType(action.type) && action.configurationId
+      ? this.getAudienceActionPromptFn_(
+          action.type,
+          action.configurationId,
+          action.preference
+        )
       : this.getMonetizationPromptFn_();
   }
 

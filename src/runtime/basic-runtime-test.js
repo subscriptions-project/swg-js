@@ -230,6 +230,96 @@ describes.realWin('BasicRuntime', (env) => {
       });
     });
 
+    it('should not force lang if html attribute and clientOptions not set', async () => {
+      win.document.documentElement.lang = '';
+
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          disableButton: false,
+          theme: ClientTheme.DARK,
+        },
+      });
+
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        disableButton: false,
+        forceLangInIframes: false,
+        lang: '',
+        theme: ClientTheme.DARK,
+      });
+    });
+
+    it('should force lang if html attribute set', async () => {
+      win.document.documentElement.lang = 'pt-br';
+
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          disableButton: false,
+          theme: ClientTheme.DARK,
+        },
+      });
+
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        disableButton: false,
+        forceLangInIframes: true,
+        lang: 'pt-br',
+        theme: ClientTheme.DARK,
+      });
+    });
+
+    it('should force lang if clientOptions set', async () => {
+      win.document.documentElement.lang = '';
+
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          lang: 'pt-br',
+          disableButton: false,
+          theme: ClientTheme.DARK,
+        },
+      });
+
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        disableButton: false,
+        forceLangInIframes: true,
+        lang: 'pt-br',
+        theme: ClientTheme.DARK,
+      });
+    });
+
+    it('preferr clientOptions over lang if both are set ', async () => {
+      win.document.documentElement.lang = 'pt-br';
+
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        clientOptions: {
+          lang: 'fr',
+          disableButton: false,
+          theme: ClientTheme.DARK,
+        },
+      });
+
+      expect(basicRuntime.clientOptions_).to.deep.equal({
+        disableButton: false,
+        forceLangInIframes: true,
+        lang: 'fr',
+        theme: ClientTheme.DARK,
+      });
+    });
+
     it('should allow caller to disable default metering handler', async () => {
       basicRuntime.init({
         type: 'NewsArticle',
