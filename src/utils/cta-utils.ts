@@ -60,20 +60,32 @@ export function showAlreadyOptedInToast(
 export function getContributionsUrl(
   clientConfig: ClientConfig,
   clientConfigManager: ClientConfigManager,
-  pageConfig: PageConfig
+  pageConfig: PageConfig,
+  isInlineCta: boolean = false
 ): string {
   if (!clientConfig.useUpdatedOfferFlows) {
     return feUrl('/contributionsiframe');
   }
 
   if (clientConfigManager.shouldForceLangInIframes()) {
-    return feUrl('/contributionoffersiframe', {
-      'hl': clientConfigManager.getLanguage(),
-      'publicationId': pageConfig.getPublicationId(),
-    });
+    return isInlineCta
+      ? feUrl('/contributionoffersiframe', {
+          'hl': clientConfigManager.getLanguage(),
+          'publicationId': pageConfig.getPublicationId(),
+          'ctaMode': 'CTA_MODE_INLINE',
+        })
+      : feUrl('/contributionoffersiframe', {
+          'hl': clientConfigManager.getLanguage(),
+          'publicationId': pageConfig.getPublicationId(),
+        });
   }
 
-  return feUrl('/contributionoffersiframe', {
-    'publicationId': pageConfig.getPublicationId(),
-  });
+  return isInlineCta
+    ? feUrl('/contributionoffersiframe', {
+        'publicationId': pageConfig.getPublicationId(),
+        'ctaMode': 'CTA_MODE_INLINE',
+      })
+    : feUrl('/contributionoffersiframe', {
+        'publicationId': pageConfig.getPublicationId(),
+      });
 }

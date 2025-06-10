@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+import {ClientConfig} from '../model/client-config';
+import {ClientConfigManager} from '../runtime/client-config-manager';
 import {GlobalDoc} from '../model/doc';
 import {MockDeps} from '../../test/mock-deps';
+import {PageConfig} from '../model/page-config';
 import {Toast} from '../ui/toast';
-import {showAlreadyOptedInToast} from './cta-utils';
+import {XhrFetcher} from '../runtime/fetcher';
+import {getContributionsUrl, showAlreadyOptedInToast} from './cta-utils';
 
 describes.realWin('CTA utils', (env) => {
   let deps;
@@ -25,6 +29,9 @@ describes.realWin('CTA utils', (env) => {
   let doc;
   let toast;
   let toastOpenStub;
+  const productId = 'pub1:label1';
+  const pubId = 'pub1';
+
   beforeEach(() => {
     deps = new MockDeps();
     win = Object.assign({}, env.win, {});
@@ -73,41 +80,93 @@ describes.realWin('CTA utils', (env) => {
   });
 
   describe('getContributionsUrl', () => {
+    let fetcher;
+    let pageConfig;
+    let clientConfigManager;
+    beforeEach(() => {
+      fetcher = new XhrFetcher(win);
+      pageConfig = new PageConfig(productId);
+      clientConfigManager = new ClientConfigManager(deps, pubId, fetcher);
+    });
+
     it('returns old url', () => {
-      toastOpenStub = sandbox
-        .stub(Toast.prototype, 'open')
-        .callsFake(function () {
-          toast = this;
-        });
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: false});
 
-      getContributionsUrl('TYPE_REGISTRATION_WALL', 'en', deps);
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig
+      );
 
-      expect(toastOpenStub).to.be.called;
-      expect(toast).not.to.be.null;
-      expect(toast.src_).to.contain('flavor=basic');
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionsiframe?_=_'
+      );
     });
 
     it('returns new url', () => {
-      toastOpenStub = sandbox
-        .stub(Toast.prototype, 'open')
-        .callsFake(function () {
-          toast = this;
-        });
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
 
-      showAlreadyOptedInToast('TYPE_NEWSLETTER_SIGNUP', 'en', deps);
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig
+      );
 
-      expect(toastOpenStub).to.be.called;
-      expect(toast).not.to.be.null;
-      expect(toast.src_).to.contain('flavor=custom');
-      expect(decodeURI(toast.src_)).to.contain('You have signed up before.');
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1'
+      );
     });
 
     it('returns url with language setting', () => {
-      const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+      sandbox
+        .stub(clientConfigManager, 'shouldForceLangInIframes')
+        .resolves(true);
+      sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-CA');
 
-      showAlreadyOptedInToast('TYPE_REWARDED_SURVEY', 'en', deps);
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig
+      );
 
-      expect(toastOpenStub).not.to.be.called;
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1'
+      );
+    });
+
+    it('returns url with inline cta mode', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        /* ctaMode */ true
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE'
+      );
+    });
+
+    it('returns url with inline cta mode and language setting', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+      sandbox
+        .stub(clientConfigManager, 'shouldForceLangInIframes')
+        .resolves(true);
+      sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-CA');
+
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        /* ctaMode */ true
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1&ctaMode=CTA_MODE_INLINE'
+      );
     });
   });
 });

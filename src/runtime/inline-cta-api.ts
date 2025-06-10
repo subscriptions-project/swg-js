@@ -17,6 +17,7 @@
 import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
+import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {
   CompleteAudienceActionResponse,
@@ -25,7 +26,6 @@ import {
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
-
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
 import {ProductType} from '../api/subscriptions';
@@ -33,9 +33,9 @@ import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
+import {getContributionsUrl, showAlreadyOptedInToast} from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {setImportantStyles} from '../utils/style';
-import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
@@ -108,7 +108,8 @@ export class InlineCtaApi {
 
   private async renderInlineCtaWithAttribute_(
     div: HTMLElement,
-    actions: Intervention[]
+    actions: Intervention[],
+    clientConfig: ClientConfig
   ) {
     // return if config id is not set in inline CTA code snippet.
     const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
@@ -130,11 +131,30 @@ export class InlineCtaApi {
       return;
     }
     const urlPrefix = ActionToIframeMapping[action.type];
-    const fetchUrl = this.getUrl_(urlPrefix, configId);
-    const fetchArgs = feArgs({
-      'supportsEventManager': true,
-      'productType': DEFAULT_PRODUCT_TYPE,
-    });
+    const fetchUrl =
+      action.type === InterventionType.TYPE_CONTRIBUTION
+        ? getContributionsUrl(
+            clientConfig,
+            this.clientConfigManager_,
+            this.deps_.pageConfig(),
+            /* ctaMode */ true
+          )
+        : this.getUrl_(urlPrefix, configId);
+    const fetchArgs =
+      action.type === InterventionType.TYPE_CONTRIBUTION
+        ? feArgs({
+            'productId': this.deps_.pageConfig().getProductId(),
+            'publicationId': this.deps_.pageConfig().getPublicationId(),
+            'productType': ProductType.UI_CONTRIBUTION,
+            'list': 'default',
+            'skus': null,
+            'isClosable': false,
+            'supportsEventManager': true,
+          })
+        : feArgs({
+            'supportsEventManager': true,
+            'productType': DEFAULT_PRODUCT_TYPE,
+          });
 
     const activityIframeView = new ActivityIframeView(
       this.win_,
@@ -194,7 +214,7 @@ export class InlineCtaApi {
     }
 
     for (const element of elements) {
-      this.renderInlineCtaWithAttribute_(element, actions);
+      this.renderInlineCtaWithAttribute_(element, actions, clientConfig);
     }
   }
 }
