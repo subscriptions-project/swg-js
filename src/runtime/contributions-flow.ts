@@ -32,9 +32,9 @@ import {
   SubscriptionFlows,
   SubscriptionRequest,
 } from '../api/subscriptions';
-import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
-import {feArgs, feUrl} from './services';
+import {feArgs} from './services';
+import {getContributionsUrl} from '../utils/cta-utils';
 
 /**
  * The class for Contributions flow.
@@ -76,7 +76,11 @@ export class ContributionsFlow {
     return new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      this.getUrl_(clientConfig, this.deps_.pageConfig()),
+      getContributionsUrl(
+        clientConfig,
+        this.clientConfigManager_,
+        this.deps_.pageConfig()
+      ),
       feArgs({
         'productId': this.deps_.pageConfig().getProductId(),
         'publicationId': this.deps_.pageConfig().getPublicationId(),
@@ -165,26 +169,6 @@ export class ContributionsFlow {
           closeOnBackgroundClick: this.isClosable_,
         }
       : {};
-  }
-
-  /**
-   * Gets the complete URL that should be used for the activity iFrame view.
-   */
-  private getUrl_(clientConfig: ClientConfig, pageConfig: PageConfig): string {
-    if (!clientConfig.useUpdatedOfferFlows) {
-      return feUrl('/contributionsiframe');
-    }
-
-    if (this.clientConfigManager_.shouldForceLangInIframes()) {
-      return feUrl('/contributionoffersiframe', {
-        'hl': this.clientConfigManager_.getLanguage(),
-        'publicationId': pageConfig.getPublicationId(),
-      });
-    }
-
-    return feUrl('/contributionoffersiframe', {
-      'publicationId': pageConfig.getPublicationId(),
-    });
   }
 
   /**

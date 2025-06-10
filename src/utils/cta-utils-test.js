@@ -71,4 +71,43 @@ describes.realWin('CTA utils', (env) => {
       expect(toastOpenStub).not.to.be.called;
     });
   });
+
+  describe('getContributionsUrl', () => {
+    it('returns old url', () => {
+      toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
+
+      getContributionsUrl('TYPE_REGISTRATION_WALL', 'en', deps);
+
+      expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
+      expect(toast.src_).to.contain('flavor=basic');
+    });
+
+    it('returns new url', () => {
+      toastOpenStub = sandbox
+        .stub(Toast.prototype, 'open')
+        .callsFake(function () {
+          toast = this;
+        });
+
+      showAlreadyOptedInToast('TYPE_NEWSLETTER_SIGNUP', 'en', deps);
+
+      expect(toastOpenStub).to.be.called;
+      expect(toast).not.to.be.null;
+      expect(toast.src_).to.contain('flavor=custom');
+      expect(decodeURI(toast.src_)).to.contain('You have signed up before.');
+    });
+
+    it('returns url with language setting', () => {
+      const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
+
+      showAlreadyOptedInToast('TYPE_REWARDED_SURVEY', 'en', deps);
+
+      expect(toastOpenStub).not.to.be.called;
+    });
+  });
 });
