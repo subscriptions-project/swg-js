@@ -131,7 +131,7 @@ describes.realWin('CTA utils', (env) => {
       );
 
       expect(result).to.equal(
-        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1'
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&hl=fr-CA'
       );
     });
 
@@ -142,7 +142,7 @@ describes.realWin('CTA utils', (env) => {
         clientConfig,
         clientConfigManager,
         pageConfig,
-        /* ctaMode */ true
+        /* isInlineCta */ true
       );
 
       expect(result).to.equal(
@@ -161,11 +161,11 @@ describes.realWin('CTA utils', (env) => {
         clientConfig,
         clientConfigManager,
         pageConfig,
-        /* ctaMode */ true
+        /* isInlineCta */ true
       );
 
       expect(result).to.equal(
-        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1&ctaMode=CTA_MODE_INLINE'
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&hl=fr-CA&ctaMode=CTA_MODE_INLINE'
       );
     });
   });

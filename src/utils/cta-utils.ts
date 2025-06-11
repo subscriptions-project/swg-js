@@ -67,25 +67,16 @@ export function getContributionsUrl(
     return feUrl('/contributionsiframe');
   }
 
+  const params: {[key: string]: string} = {
+    'publicationId': pageConfig.getPublicationId(),
+  };
+
   if (clientConfigManager.shouldForceLangInIframes()) {
-    return isInlineCta
-      ? feUrl('/contributionoffersiframe', {
-          'hl': clientConfigManager.getLanguage(),
-          'publicationId': pageConfig.getPublicationId(),
-          'ctaMode': 'CTA_MODE_INLINE',
-        })
-      : feUrl('/contributionoffersiframe', {
-          'hl': clientConfigManager.getLanguage(),
-          'publicationId': pageConfig.getPublicationId(),
-        });
+    params['hl'] = clientConfigManager.getLanguage();
+  }
+  if (isInlineCta) {
+    params['ctaMode'] = 'CTA_MODE_INLINE';
   }
 
-  return isInlineCta
-    ? feUrl('/contributionoffersiframe', {
-        'publicationId': pageConfig.getPublicationId(),
-        'ctaMode': 'CTA_MODE_INLINE',
-      })
-    : feUrl('/contributionoffersiframe', {
-        'publicationId': pageConfig.getPublicationId(),
-      });
+  return feUrl('/contributionoffersiframe', params);
 }

@@ -137,7 +137,7 @@ export class InlineCtaApi {
             clientConfig,
             this.clientConfigManager_,
             this.deps_.pageConfig(),
-            /* ctaMode */ true
+            /* isInlineCta */ true
           )
         : this.getUrl_(urlPrefix, configId);
     const fetchArgs =
