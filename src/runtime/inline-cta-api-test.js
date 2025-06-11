@@ -192,7 +192,10 @@ describes.realWin('InlineCtaApi', (env) => {
         entitlementsManagerMock.expects('getEntitlements');
       getArticleExpectation = entitlementsManagerMock.expects('getArticle');
       const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
-      const clientConfig = new ClientConfig({uiPredicates});
+      const clientConfig = new ClientConfig({
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
       clientConfigManagerMock
         .expects('getClientConfig')
         .returns(clientConfig)
@@ -321,6 +324,36 @@ describes.realWin('InlineCtaApi', (env) => {
         productType: 'UI_CONTRIBUTION',
         _client: 'SwG 0.0.0',
       };
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+    });
+
+    it('opens iframe for contribution', async () => {
+      win.document.body.removeChild(newsletterSnippet);
+      const contributionSnippet = createElement(win.document, 'div', {
+        'rrm-inline-cta': CONTRIBUTION_INTERVENTION.configurationId,
+      });
+      win.document.body.append(contributionSnippet);
+      setEntitlements();
+      setArticleResponse([CONTRIBUTION_INTERVENTION]);
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE';
+      const resultArgs = {
+        'productId': productId,
+        'publicationId': pubId,
+        'productType': 'UI_CONTRIBUTION',
+        'list': 'default',
+        'skus': null,
+        'isClosable': false,
+        'supportsEventManager': true,
+        _client: 'SwG 0.0.0',
+      };
+
       activitiesMock
         .expects('openIframe')
         .withExactArgs(element, resultUrl, resultArgs)

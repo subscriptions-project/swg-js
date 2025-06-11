@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+import {ClientConfig} from '../model/client-config';
+import {ClientConfigManager} from '../runtime/client-config-manager';
 import {Deps} from '../runtime/deps';
+import {PageConfig} from '../model/page-config';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
@@ -49,4 +52,31 @@ export function showAlreadyOptedInToast(
       return;
   }
   new Toast(deps, feUrl('/toastiframe', urlParams)).open();
+}
+
+/**
+ * Gets the complete contribution URL that should be used for the activity iFrame view.
+ */
+export function getContributionsUrl(
+  clientConfig: ClientConfig,
+  clientConfigManager: ClientConfigManager,
+  pageConfig: PageConfig,
+  isInlineCta: boolean = false
+): string {
+  if (!clientConfig.useUpdatedOfferFlows) {
+    return feUrl('/contributionsiframe');
+  }
+
+  const params: {[key: string]: string} = {
+    'publicationId': pageConfig.getPublicationId(),
+  };
+
+  if (clientConfigManager.shouldForceLangInIframes()) {
+    params['hl'] = clientConfigManager.getLanguage();
+  }
+  if (isInlineCta) {
+    params['ctaMode'] = 'CTA_MODE_INLINE';
+  }
+
+  return feUrl('/contributionoffersiframe', params);
 }
