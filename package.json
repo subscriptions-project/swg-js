@@ -89,7 +89,7 @@
     "mocha": "11.6.0",
     "nodemon": "3.1.10",
     "plugin-error": "2.0.1",
-    "postcss": "8.5.4",
+    "postcss": "8.5.5",
     "postcss-import": "16.1.0",
     "prettier": "2.8.8",
     "regenerator-runtime": "0.14.1",
