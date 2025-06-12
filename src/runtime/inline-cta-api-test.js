@@ -387,12 +387,6 @@ describes.realWin('InlineCtaApi', (env) => {
 
       // Trigger the cancellation callback.
       let onCancelCallback;
-      // const activityIframeView =
-      //   await contributionsFlow.activityIframeViewPromise_;
-      // const activityIframeViewMock = sandbox.mock(activityIframeView);
-      // activityIframeViewMock.expects('onCancel').callsFake((cb) => {
-      //   onCancelCallback = cb;
-      // });
       sandbox.stub(ActivityIframeView.prototype, 'onCancel').callsFake((cb) => {
         onCancelCallback = cb;
       });
