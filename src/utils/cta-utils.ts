@@ -18,7 +18,10 @@ import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from '../runtime/client-config-manager';
 import {Deps} from '../runtime/deps';
 import {PageConfig} from '../model/page-config';
+import {PayStartFlow} from '../runtime/pay-flow';
+import {ProductType, SubscriptionRequest} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {SkuSelectedResponse} from '../proto/api_messages';
 import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
 import {msg} from '../utils/i18n';
@@ -79,4 +82,22 @@ export function getContributionsUrl(
   }
 
   return feUrl('/contributionoffersiframe', params);
+}
+
+export function startPayFlow(response: SkuSelectedResponse, deps: Deps): void {
+  const sku = response.getSku();
+  const isOneTime = response.getOneTime();
+  if (sku) {
+    const contributionRequest: SubscriptionRequest = {
+      'skuId': sku,
+    };
+    if (isOneTime) {
+      contributionRequest['oneTime'] = isOneTime;
+    }
+    new PayStartFlow(
+      deps,
+      contributionRequest,
+      ProductType.UI_CONTRIBUTION
+    ).start();
+  }
 }
