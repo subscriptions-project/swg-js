@@ -122,7 +122,7 @@ export class ContributionsFlow {
       this.handleLinkRequest_.bind(this)
     );
     activityIframeView.on(SkuSelectedResponse, (response) =>
-      startPayFlow(response, this.deps_)
+      startPayFlow(this.deps_, response)
     );
 
     const clientConfig = await this.clientConfigManager_.getClientConfig();

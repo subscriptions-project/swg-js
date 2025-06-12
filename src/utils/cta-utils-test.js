@@ -183,7 +183,7 @@ describes.realWin('CTA utils', (env) => {
       skuSelected.setSku('sku1');
       skuSelected.setOneTime(true);
 
-      startPayFlow(skuSelected, deps);
+      startPayFlow(deps, skuSelected);
 
       expect(payStub).to.be.calledOnce;
       expect(

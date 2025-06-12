@@ -181,7 +181,7 @@ export class InlineCtaApi {
           .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
       });
       activityIframeView.on(SkuSelectedResponse, (response) =>
-        startPayFlow(response, this.deps_)
+        startPayFlow(this.deps_, response)
       );
     } else {
       activityIframeView.on(CompleteAudienceActionResponse, (response) =>

@@ -84,7 +84,7 @@ export function getContributionsUrl(
   return feUrl('/contributionoffersiframe', params);
 }
 
-export function startPayFlow(response: SkuSelectedResponse, deps: Deps): void {
+export function startPayFlow(deps: Deps, response: SkuSelectedResponse): void {
   const sku = response.getSku();
   const isOneTime = response.getOneTime();
   if (sku) {
