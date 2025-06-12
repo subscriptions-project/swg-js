@@ -382,7 +382,6 @@ describes.realWin('InlineCtaApi', (env) => {
       win.document.body.append(contributionSnippet);
       setEntitlements();
       setArticleResponse([CONTRIBUTION_INTERVENTION]);
-
       activitiesMock.expects('openIframe').resolves(port);
 
       // Trigger the cancellation callback.
