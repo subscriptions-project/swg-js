@@ -30,11 +30,9 @@ import {
   OffersRequest,
   ProductType,
   SubscriptionFlows,
-  SubscriptionRequest,
 } from '../api/subscriptions';
-import {PayStartFlow} from './pay-flow';
 import {feArgs} from './services';
-import {getContributionsUrl} from '../utils/cta-utils';
+import {getContributionsUrl, startPayFlow} from '../utils/cta-utils';
 
 /**
  * The class for Contributions flow.
@@ -104,24 +102,6 @@ export class ContributionsFlow {
     }
   }
 
-  private startPayFlow_(response: SkuSelectedResponse): void {
-    const sku = response.getSku();
-    const isOneTime = response.getOneTime();
-    if (sku) {
-      const contributionRequest: SubscriptionRequest = {
-        'skuId': sku,
-      };
-      if (isOneTime) {
-        contributionRequest['oneTime'] = isOneTime;
-      }
-      new PayStartFlow(
-        this.deps_,
-        contributionRequest,
-        ProductType.UI_CONTRIBUTION
-      ).start();
-    }
-  }
-
   /**
    * Starts the contributions flow or alreadyMember flow.
    */
@@ -141,7 +121,9 @@ export class ContributionsFlow {
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
-    activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
+    activityIframeView.on(SkuSelectedResponse, (response) =>
+      startPayFlow(this.deps_, response)
+    );
 
     const clientConfig = await this.clientConfigManager_.getClientConfig();
     return this.dialogManager_.openView(

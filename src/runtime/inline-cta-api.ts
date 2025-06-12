@@ -21,6 +21,7 @@ import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {
   CompleteAudienceActionResponse,
+  SkuSelectedResponse,
   SurveyDataTransferRequest,
 } from '../proto/api_messages';
 import {Deps} from './deps';
@@ -28,12 +29,16 @@ import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
-import {ProductType} from '../api/subscriptions';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
-import {getContributionsUrl, showAlreadyOptedInToast} from '../utils/cta-utils';
+import {
+  getContributionsUrl,
+  showAlreadyOptedInToast,
+  startPayFlow,
+} from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {setImportantStyles} from '../utils/style';
 
@@ -166,17 +171,31 @@ export class InlineCtaApi {
       'width': '100%',
     });
 
-    activityIframeView.on(CompleteAudienceActionResponse, (response) =>
-      this.handleCompleteAudienceActionResponse_(response, action.type, div)
-    );
-    activityIframeView.on(SurveyDataTransferRequest, (request) =>
-      handleSurveyDataTransferRequest(
-        request,
-        this.deps_,
-        activityIframeView,
-        configId
-      )
-    );
+    if (action.type === InterventionType.TYPE_CONTRIBUTION) {
+      this.deps_
+        .callbacks()
+        .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+      activityIframeView.onCancel(() => {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+      });
+      activityIframeView.on(SkuSelectedResponse, (response) =>
+        startPayFlow(this.deps_, response)
+      );
+    } else {
+      activityIframeView.on(CompleteAudienceActionResponse, (response) =>
+        this.handleCompleteAudienceActionResponse_(response, action.type, div)
+      );
+      activityIframeView.on(SurveyDataTransferRequest, (request) =>
+        handleSurveyDataTransferRequest(
+          request,
+          this.deps_,
+          activityIframeView,
+          configId
+        )
+      );
+    }
 
     div.appendChild(activityIframeView.getElement());
 

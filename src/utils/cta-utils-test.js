@@ -19,9 +19,15 @@ import {ClientConfigManager} from '../runtime/client-config-manager';
 import {GlobalDoc} from '../model/doc';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
+import {PayStartFlow} from '../runtime/pay-flow';
+import {SkuSelectedResponse} from '../proto/api_messages';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from '../runtime/fetcher';
-import {getContributionsUrl, showAlreadyOptedInToast} from './cta-utils';
+import {
+  getContributionsUrl,
+  showAlreadyOptedInToast,
+  startPayFlow,
+} from './cta-utils';
 
 describes.realWin('CTA utils', (env) => {
   let deps;
@@ -167,6 +173,24 @@ describes.realWin('CTA utils', (env) => {
       expect(result).to.equal(
         'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&hl=fr-CA&ctaMode=CTA_MODE_INLINE'
       );
+    });
+  });
+
+  describe('startPayFlow', () => {
+    it('calls PayStartFlow with right params', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(true);
+
+      startPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .true;
     });
   });
 });
