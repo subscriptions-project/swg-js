@@ -22,6 +22,7 @@ import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
+import {setImportantStyles} from '../utils/style';
 
 const iframeAttributes = {
   'frameborder': '0',
@@ -65,7 +66,7 @@ export class ActivityIframeView extends View {
     return this.iframe_;
   }
 
-  async init(dialog: Dialog) {
+  async init(dialog?: Dialog) {
     const port = await this.activityPorts_.openIframe(
       this.iframe_,
       this.src_,
@@ -90,14 +91,22 @@ export class ActivityIframeView extends View {
 
   private onOpenIframeResponse_(
     port: ActivityIframePort,
-    dialog: Dialog
+    dialog?: Dialog
   ): Promise<void> {
     this.port_ = port;
     this.portResolver_!(port);
 
-    this.port_.onResizeRequest((height) => {
-      dialog.resizeView(this, height);
-    });
+    if (!!dialog) {
+      this.port_.onResizeRequest((height) => {
+        dialog.resizeView(this, height);
+      });
+    } else {
+      port.onResizeRequest((height) => {
+        setImportantStyles(this.iframe_, {
+          'height': `${height}px`,
+        });
+      });
+    }
 
     return this.port_.whenReady();
   }

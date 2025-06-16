@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
+import {ClientConfig} from '../model/client-config';
+import {ClientConfigManager} from '../runtime/client-config-manager';
 import {Deps} from '../runtime/deps';
+import {PageConfig} from '../model/page-config';
+import {PayStartFlow} from '../runtime/pay-flow';
+import {ProductType, SubscriptionRequest} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {SkuSelectedResponse} from '../proto/api_messages';
 import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
 import {msg} from '../utils/i18n';
@@ -49,4 +55,49 @@ export function showAlreadyOptedInToast(
       return;
   }
   new Toast(deps, feUrl('/toastiframe', urlParams)).open();
+}
+
+/**
+ * Gets the complete contribution URL that should be used for the activity iFrame view.
+ */
+export function getContributionsUrl(
+  clientConfig: ClientConfig,
+  clientConfigManager: ClientConfigManager,
+  pageConfig: PageConfig,
+  isInlineCta: boolean = false
+): string {
+  if (!clientConfig.useUpdatedOfferFlows) {
+    return feUrl('/contributionsiframe');
+  }
+
+  const params: {[key: string]: string} = {
+    'publicationId': pageConfig.getPublicationId(),
+  };
+
+  if (clientConfigManager.shouldForceLangInIframes()) {
+    params['hl'] = clientConfigManager.getLanguage();
+  }
+  if (isInlineCta) {
+    params['ctaMode'] = 'CTA_MODE_INLINE';
+  }
+
+  return feUrl('/contributionoffersiframe', params);
+}
+
+export function startPayFlow(deps: Deps, response: SkuSelectedResponse): void {
+  const sku = response.getSku();
+  const isOneTime = response.getOneTime();
+  if (sku) {
+    const contributionRequest: SubscriptionRequest = {
+      'skuId': sku,
+    };
+    if (isOneTime) {
+      contributionRequest['oneTime'] = isOneTime;
+    }
+    new PayStartFlow(
+      deps,
+      contributionRequest,
+      ProductType.UI_CONTRIBUTION
+    ).start();
+  }
 }
