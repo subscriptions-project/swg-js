@@ -1026,7 +1026,7 @@ export class AutoPromptManager {
         const adsbygoogle = this.deps_.win().adsbygoogle;
         if (!adsbygoogle?.loaded) {
           this.eventManager_.logSwgEvent(
-            AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTRED
+            AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED
           );
           return false;
         }
