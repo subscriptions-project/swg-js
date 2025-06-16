@@ -88,7 +88,6 @@ describes.realWin('InlineCtaApi', (env) => {
   let toastOpenStub;
   let messageMap;
   let callbacksMock;
-  let activityPort;
   const productId = 'pub1:label1';
   const pubId = 'pub1';
 
@@ -136,7 +135,7 @@ describes.realWin('InlineCtaApi', (env) => {
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(deps, 'clientConfigManager').returns(clientConfigManager);
 
-    activityPort = new ActivityPorts(deps);
+    const activityPort = new ActivityPorts(deps);
     activitiesMock = sandbox.mock(activityPort);
     sandbox.stub(deps, 'activities').returns(activityPort);
 
