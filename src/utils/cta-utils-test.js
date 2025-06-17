@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
+import {
+  AnalyticsEvent,
+  EventParams,
+  SkuSelectedResponse,
+} from '../proto/api_messages';
+import {AnalyticsService} from '../runtime/analytics-service';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from '../runtime/client-config-manager';
+import {ClientEventManager} from '../runtime/client-event-manager';
 import {GlobalDoc} from '../model/doc';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from '../runtime/pay-flow';
-import {SkuSelectedResponse} from '../proto/api_messages';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from '../runtime/fetcher';
 import {
@@ -28,6 +34,7 @@ import {
   getSubscriptionUrl,
   showAlreadyOptedInToast,
   startPayFlow,
+  startSubscriptionPayFlow,
 } from './cta-utils';
 
 describes.realWin('CTA utils', (env) => {
@@ -192,6 +199,62 @@ describes.realWin('CTA utils', (env) => {
       ).to.equal('sku1');
       expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
         .true;
+    });
+  });
+
+  describe('startSubscriptionPayFlow', () => {
+    let analyticsMock;
+    let eventManagerMock;
+
+    beforeEach(() => {
+      const eventManager = new ClientEventManager(Promise.resolve());
+      eventManagerMock = sandbox.mock(eventManager);
+      sandbox.stub(deps, 'eventManager').returns(eventManager);
+      const pageConfig = new PageConfig(productId, true);
+      sandbox.stub(deps, 'pageConfig').returns(pageConfig);
+      const analyticsService = new AnalyticsService(deps);
+      analyticsMock = sandbox.mock(analyticsService);
+      sandbox.stub(deps, 'analytics').returns(analyticsService);
+    });
+
+    it('calls PayStartFlow with right params', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOldSku('sku2');
+      analyticsMock.expects('setSku').withExactArgs('sku2').once();
+
+      startSubscriptionPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.oldSku
+      ).to.equal('sku2');
+      analyticsMock.verify();
+    });
+
+    it('logs offer selection event', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.ACTION_OFFER_SELECTED,
+          true,
+          new EventParams([, , , , 'sku1'])
+        )
+        .once();
+
+      startSubscriptionPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
     });
   });
 

@@ -23,7 +23,7 @@ import {
   SubscribeResponse,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -35,15 +35,13 @@ import {
   ProductType,
   SubscriptionFlows,
 } from '../api/subscriptions';
-import {PayStartFlow} from './pay-flow';
-import {SubscriptionRequest} from '../api/subscriptions';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
-import {getSubscriptionUrl} from '../utils/cta-utils';
-
-function getEventParams(sku: string): EventParams {
-  return new EventParams([, , , , sku]);
-}
+import {
+  getSubscriptionUrl,
+  startNativeFlow,
+  startSubscriptionPayFlow,
+} from '../utils/cta-utils';
 
 /**
  * Offers view is closable when request was originated from 'AbbrvOfferFlow'
@@ -125,7 +123,7 @@ export class OffersFlow {
         const skuSelectedResponse = new SkuSelectedResponse();
         skuSelectedResponse.setSku(sku);
         skuSelectedResponse.setOldSku(oldSku);
-        this.startPayFlow_(skuSelectedResponse);
+        startSubscriptionPayFlow(this.deps_, skuSelectedResponse);
         return;
       }
     }
@@ -158,26 +156,6 @@ export class OffersFlow {
     );
   }
 
-  private startPayFlow_(response: SkuSelectedResponse): void {
-    const sku = response.getSku();
-    if (sku) {
-      const subscriptionRequest: SubscriptionRequest = {
-        'skuId': sku,
-      };
-      const oldSku = response.getOldSku();
-      if (oldSku) {
-        subscriptionRequest['oldSku'] = oldSku;
-        this.deps_.analytics().setSku(oldSku);
-      }
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.ACTION_OFFER_SELECTED,
-        true,
-        getEventParams(sku)
-      );
-      new PayStartFlow(this.deps_, subscriptionRequest).start();
-    }
-  }
-
   private handleLinkRequest_(response: AlreadySubscribedResponse): void {
     if (response.getSubscriberOrMember()) {
       this.eventManager_.logSwgEvent(
@@ -187,12 +165,6 @@ export class OffersFlow {
       this.deps_.callbacks().triggerLoginRequest({
         linkRequested: !!response.getLinkRequested(),
       });
-    }
-  }
-
-  private startNativeFlow_(response: ViewSubscriptionsResponse): void {
-    if (response.getNative()) {
-      this.deps_.callbacks().triggerSubscribeRequest();
     }
   }
 
@@ -215,17 +187,15 @@ export class OffersFlow {
     this.activityIframeView_.onCancel(() => {
       this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
     });
-    this.activityIframeView_.on(
-      SkuSelectedResponse,
-      this.startPayFlow_.bind(this)
+    this.activityIframeView_.on(SkuSelectedResponse, (response) =>
+      startSubscriptionPayFlow(this.deps_, response)
     );
     this.activityIframeView_.on(
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
-    this.activityIframeView_.on(
-      ViewSubscriptionsResponse,
-      this.startNativeFlow_.bind(this)
+    this.activityIframeView_.on(ViewSubscriptionsResponse, (response) =>
+      startNativeFlow(this.deps_, response)
     );
 
     const clientConfig = await this.clientConfigPromise_!;

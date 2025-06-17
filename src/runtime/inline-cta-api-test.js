@@ -26,6 +26,7 @@ import {
   CompleteAudienceActionResponse,
   SkuSelectedResponse,
   SurveyDataTransferRequest,
+  ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
@@ -197,7 +198,7 @@ describes.realWin('InlineCtaApi', (env) => {
     });
   });
 
-  describe('Rendering', () => {
+  describe('Non-mon CTA Rendering', () => {
     beforeEach(() => {
       win.document.body.appendChild(newsletterSnippet);
       entitlements = new Entitlements();
@@ -345,15 +346,59 @@ describes.realWin('InlineCtaApi', (env) => {
       await inlineCtaApi.attachInlineCtasWithAttribute({});
     });
 
-    it('opens iframe for contribution', async () => {
-      callbacksMock.verify();
-      win.document.body.removeChild(newsletterSnippet);
+    it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
+      const surveyDataTransferRequest = new SurveyDataTransferRequest();
+      const handleSurveyDataTransferRequestSpy = sandbox.spy(
+        Utils,
+        'handleSurveyDataTransferRequest'
+      );
+      setEntitlements();
+      setArticleResponse([
+        CONTRIBUTION_INTERVENTION,
+        SURVEY_INTERVENTION,
+        NEWSLETTER_INTERVENTION,
+      ]);
+      expectOpenIframe();
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+      const messageCallback = messageMap[surveyDataTransferRequest.label()];
+
+      messageCallback(surveyDataTransferRequest);
+
+      expect(handleSurveyDataTransferRequestSpy).to.be.called;
+    });
+  });
+
+  describe('Contribution', () => {
+    beforeEach(() => {
       const contributionSnippet = createElement(win.document, 'div', {
         'rrm-inline-cta': CONTRIBUTION_INTERVENTION.configurationId,
       });
-      win.document.body.append(contributionSnippet);
+      win.document.body.appendChild(contributionSnippet);
+      entitlements = new Entitlements();
+      getEntitlementsExpectation =
+        entitlementsManagerMock.expects('getEntitlements');
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      const clientConfig = new ClientConfig({
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .returns(clientConfig)
+        .once();
       setEntitlements();
       setArticleResponse([CONTRIBUTION_INTERVENTION]);
+    });
+
+    afterEach(() => {
+      entitlementsManagerMock.verify();
+      clientConfigManagerMock.verify();
+      activitiesMock.verify();
+      callbacksMock.verify();
+    });
+
+    it('opens iframe', async () => {
       const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
       const resultUrl =
         'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE';
@@ -377,15 +422,7 @@ describes.realWin('InlineCtaApi', (env) => {
       await inlineCtaApi.attachInlineCtasWithAttribute({});
     });
 
-    it('handles flow cancellation for contribution', async () => {
-      callbacksMock.verify();
-      win.document.body.removeChild(newsletterSnippet);
-      const contributionSnippet = createElement(win.document, 'div', {
-        'rrm-inline-cta': CONTRIBUTION_INTERVENTION.configurationId,
-      });
-      win.document.body.append(contributionSnippet);
-      setEntitlements();
-      setArticleResponse([CONTRIBUTION_INTERVENTION]);
+    it('handles flow cancellation', async () => {
       activitiesMock.expects('openIframe').resolves(port);
 
       // Trigger the cancellation callback.
@@ -402,15 +439,7 @@ describes.realWin('InlineCtaApi', (env) => {
       onCancelCallback();
     });
 
-    it('call startPayFlow for contribution', async () => {
-      callbacksMock.verify();
-      win.document.body.removeChild(newsletterSnippet);
-      const contributionSnippet = createElement(win.document, 'div', {
-        'rrm-inline-cta': CONTRIBUTION_INTERVENTION.configurationId,
-      });
-      win.document.body.append(contributionSnippet);
-      setEntitlements();
-      setArticleResponse([CONTRIBUTION_INTERVENTION]);
+    it('call startPayFlow on sku selection', async () => {
       callbacksMock.expects('triggerFlowStarted').once();
       activitiesMock.expects('openIframe').resolves(port);
 
@@ -424,37 +453,39 @@ describes.realWin('InlineCtaApi', (env) => {
 
       expect(startPayFlowSpy).to.be.called;
     });
+  });
 
-    it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
-      const surveyDataTransferRequest = new SurveyDataTransferRequest();
-      const handleSurveyDataTransferRequestSpy = sandbox.spy(
-        Utils,
-        'handleSurveyDataTransferRequest'
-      );
-      setEntitlements();
-      setArticleResponse([
-        CONTRIBUTION_INTERVENTION,
-        SURVEY_INTERVENTION,
-        NEWSLETTER_INTERVENTION,
-      ]);
-      expectOpenIframe();
-      await inlineCtaApi.attachInlineCtasWithAttribute({});
-      const messageCallback = messageMap[surveyDataTransferRequest.label()];
-
-      messageCallback(surveyDataTransferRequest);
-
-      expect(handleSurveyDataTransferRequestSpy).to.be.called;
-    });
-
-    it('opens iframe for subscription', async () => {
-      callbacksMock.verify();
-      win.document.body.removeChild(newsletterSnippet);
+  describe('Subscription', () => {
+    beforeEach(() => {
       const subscriptionSnippet = createElement(win.document, 'div', {
         'rrm-inline-cta': SUBSCRIPTION_INTERVENTION.configurationId,
       });
-      win.document.body.append(subscriptionSnippet);
+      win.document.body.appendChild(subscriptionSnippet);
+      entitlements = new Entitlements();
+      getEntitlementsExpectation =
+        entitlementsManagerMock.expects('getEntitlements');
+      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
+      const uiPredicates = new UiPredicates(/* canDisplayAutoPrompt */ true);
+      const clientConfig = new ClientConfig({
+        uiPredicates,
+        useUpdatedOfferFlows: true,
+      });
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .returns(clientConfig)
+        .once();
       setEntitlements();
       setArticleResponse([SUBSCRIPTION_INTERVENTION]);
+    });
+
+    afterEach(() => {
+      entitlementsManagerMock.verify();
+      clientConfigManagerMock.verify();
+      activitiesMock.verify();
+      callbacksMock.verify();
+    });
+
+    it('opens iframe for subscription', async () => {
       const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
       const resultUrl =
         'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE';
@@ -489,6 +520,56 @@ describes.realWin('InlineCtaApi', (env) => {
         .resolves(port);
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
+    });
+
+    it('handles flow cancellation', async () => {
+      activitiesMock.expects('addDefaultArguments').returns({}).once();
+      activitiesMock.expects('openIframe').resolves(port);
+
+      // Trigger the cancellation callback.
+      let onCancelCallback;
+      sandbox.stub(ActivityIframeView.prototype, 'onCancel').callsFake((cb) => {
+        onCancelCallback = cb;
+      });
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      callbacksMock
+        .expects('triggerFlowCanceled')
+        .once()
+        .withExactArgs(SubscriptionFlows.SHOW_OFFERS);
+      onCancelCallback();
+    });
+
+    it('call startSubscriptionPayFlow on sku selection', async () => {
+      callbacksMock.expects('triggerFlowStarted').once();
+      activitiesMock.expects('addDefaultArguments').returns({}).once();
+      activitiesMock.expects('openIframe').resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      const skuSelectedResponse = new SkuSelectedResponse();
+      const messageCallback = messageMap[skuSelectedResponse.label()];
+      const startPayFlowSpy = sandbox.spy(CtaUtils, 'startSubscriptionPayFlow');
+
+      messageCallback(skuSelectedResponse);
+
+      expect(startPayFlowSpy).to.be.called;
+    });
+
+    it('call startNativeFlow on ViewSubscriptionsResponse', async () => {
+      callbacksMock.expects('triggerFlowStarted').once();
+      activitiesMock.expects('addDefaultArguments').returns({}).once();
+      activitiesMock.expects('openIframe').resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      const viewSubscriptionsResponse = new ViewSubscriptionsResponse();
+      const messageCallback = messageMap[viewSubscriptionsResponse.label()];
+      const startPayFlowSpy = sandbox.spy(CtaUtils, 'startNativeFlow');
+
+      messageCallback(viewSubscriptionsResponse);
+
+      expect(startPayFlowSpy).to.be.called;
     });
   });
 
