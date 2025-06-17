@@ -675,7 +675,7 @@ export class AutoPromptManager {
               isClosable: this.isClosable_,
               calledManually: false,
               shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
-              monetizationFunction: this.getLargeMonetizationPromptFn_(
+              onAlternateAction: this.getLargeMonetizationPromptFn_(
                 /* shouldAnimateFade */ false
               ),
             });
