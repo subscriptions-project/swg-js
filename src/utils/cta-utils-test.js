@@ -25,6 +25,7 @@ import {Toast} from '../ui/toast';
 import {XhrFetcher} from '../runtime/fetcher';
 import {
   getContributionsUrl,
+  getSubscriptionUrl,
   showAlreadyOptedInToast,
   startPayFlow,
 } from './cta-utils';
@@ -191,6 +192,121 @@ describes.realWin('CTA utils', (env) => {
       ).to.equal('sku1');
       expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
         .true;
+    });
+  });
+
+  describe('getSubscriptionUrl', () => {
+    let fetcher;
+    let pageConfig;
+    let clientConfigManager;
+    const query = 'swg.newoffercard=1';
+    beforeEach(() => {
+      fetcher = new XhrFetcher(win);
+      pageConfig = new PageConfig(productId);
+      clientConfigManager = new ClientConfigManager(deps, pubId, fetcher);
+    });
+
+    it('returns old url', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: false});
+
+      const result = getSubscriptionUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        query
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/offersiframe?_=_&useNewOfferCard=1'
+      );
+    });
+
+    it('returns new url', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+
+      const result = getSubscriptionUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        query
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1'
+      );
+    });
+
+    it('returns url with language setting', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+      sandbox
+        .stub(clientConfigManager, 'shouldForceLangInIframes')
+        .resolves(true);
+      sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-CA');
+
+      const result = getSubscriptionUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        query
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&hl=fr-CA'
+      );
+    });
+
+    it('returns url with purchaseUnavailableRegion', () => {
+      const clientConfig = new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {purchaseUnavailableRegion: true},
+      });
+
+      const result = getSubscriptionUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        query
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&purchaseUnavailableRegion=true'
+      );
+    });
+
+    it('returns url with inline cta mode', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+
+      const result = getSubscriptionUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        query,
+        /* isInlineCta */ true
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE'
+      );
+    });
+
+    it('returns url with inline cta mode and language setting', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+      sandbox
+        .stub(clientConfigManager, 'shouldForceLangInIframes')
+        .resolves(true);
+      sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-CA');
+
+      const result = getSubscriptionUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        query,
+        /* isInlineCta */ true
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&hl=fr-CA&ctaMode=CTA_MODE_INLINE'
+      );
     });
   });
 });

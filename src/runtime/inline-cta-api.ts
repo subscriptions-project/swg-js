@@ -36,6 +36,7 @@ import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
 import {
   getContributionsUrl,
+  getSubscriptionUrl,
   showAlreadyOptedInToast,
   startPayFlow,
 } from '../utils/cta-utils';
@@ -137,7 +138,15 @@ export class InlineCtaApi {
     }
     const urlPrefix = ActionToIframeMapping[action.type];
     const fetchUrl =
-      action.type === InterventionType.TYPE_CONTRIBUTION
+      action.type === InterventionType.TYPE_SUBSCRIPTION
+        ? getSubscriptionUrl(
+            clientConfig,
+            this.clientConfigManager_,
+            this.deps_.pageConfig(),
+            this.win_.location.hash,
+            /* isInlineCta */ true
+          )
+        : action.type === InterventionType.TYPE_CONTRIBUTION
         ? getContributionsUrl(
             clientConfig,
             this.clientConfigManager_,
@@ -146,7 +155,15 @@ export class InlineCtaApi {
           )
         : this.getUrl_(urlPrefix, configId);
     const fetchArgs =
-      action.type === InterventionType.TYPE_CONTRIBUTION
+      action.type === InterventionType.TYPE_SUBSCRIPTION
+        ? (this.activityPorts_.addDefaultArguments({
+            'showNative': this.deps_.callbacks().hasSubscribeRequestCallback(),
+            'productType': ProductType.SUBSCRIPTION,
+            'list': 'default',
+            'skus': null,
+            'isClosable': false,
+          }) as {[key: string]: string})
+        : action.type === InterventionType.TYPE_CONTRIBUTION
         ? feArgs({
             'productId': this.deps_.pageConfig().getProductId(),
             'publicationId': this.deps_.pageConfig().getPublicationId(),
