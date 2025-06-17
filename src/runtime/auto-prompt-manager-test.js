@@ -6579,6 +6579,14 @@ describes.realWin('AutoPromptManager', (env) => {
         {}
       );
 
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
       expect(isEligible).to.be.false;
     });
 
@@ -6593,6 +6601,14 @@ describes.realWin('AutoPromptManager', (env) => {
         {}
       );
 
+      expect(logEventSpy).not.to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
       expect(isEligible).to.be.true;
     });
 
@@ -6607,6 +6623,14 @@ describes.realWin('AutoPromptManager', (env) => {
         {}
       );
 
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
       expect(isEligible).to.be.false;
     });
 
@@ -6621,6 +6645,14 @@ describes.realWin('AutoPromptManager', (env) => {
         {}
       );
 
+      expect(logEventSpy).not.to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
       expect(isEligible).to.be.true;
     });
 
