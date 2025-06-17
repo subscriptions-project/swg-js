@@ -45,6 +45,10 @@ const CONTRIBUTION_INTERVENTION = {
   type: 'TYPE_CONTRIBUTION',
   configurationId: 'contribution_config_id',
 };
+const SUBSCRIPTION_INTERVENTION = {
+  type: 'TYPE_SUBSCRIPTION',
+  configurationId: 'subscription_config_id',
+};
 const SURVEY_INTERVENTION = {
   type: 'TYPE_REWARDED_SURVEY',
   configurationId: 'survey_config_id',
@@ -440,6 +444,51 @@ describes.realWin('InlineCtaApi', (env) => {
       messageCallback(surveyDataTransferRequest);
 
       expect(handleSurveyDataTransferRequestSpy).to.be.called;
+    });
+
+    it('opens iframe for subscription', async () => {
+      callbacksMock.verify();
+      win.document.body.removeChild(newsletterSnippet);
+      const subscriptionSnippet = createElement(win.document, 'div', {
+        'rrm-inline-cta': SUBSCRIPTION_INTERVENTION.configurationId,
+      });
+      win.document.body.append(subscriptionSnippet);
+      setEntitlements();
+      setArticleResponse([SUBSCRIPTION_INTERVENTION]);
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE';
+      const resultArgs = {
+        'analyticsContext': [],
+        'publicationId': pubId,
+        'productId': productId,
+        '_client': 'SwG 0.0.0',
+        'supportsEventManager': true,
+        showNative: false,
+        productType: 'SUBSCRIPTION',
+        list: 'default',
+        skus: null,
+        isClosable: false,
+      };
+
+      callbacksMock.expects('triggerFlowStarted').once();
+      activitiesMock
+        .expects('addDefaultArguments')
+        .withExactArgs({
+          showNative: false,
+          productType: 'SUBSCRIPTION',
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+        .returns(resultArgs)
+        .once();
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
     });
   });
 
