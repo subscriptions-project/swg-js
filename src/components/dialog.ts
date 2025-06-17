@@ -424,7 +424,7 @@ export class Dialog {
     this.animate_(async () => {
       setImportantStyles(this.getElement(), {
         'transform': 'translateY(100%)',
-        'opactiy': '1',
+        'opacity': '1',
         'visibility': 'visible',
       });
 
