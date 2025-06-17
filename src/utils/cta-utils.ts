@@ -24,7 +24,8 @@ import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {SkuSelectedResponse} from '../proto/api_messages';
 import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
-import {msg} from '../utils/i18n';
+import {msg} from './i18n';
+import {parseQueryString} from './url';
 
 /** Show a toast idicating that reader has already registered before. */
 export function showAlreadyOptedInToast(
@@ -100,4 +101,41 @@ export function startPayFlow(deps: Deps, response: SkuSelectedResponse): void {
       ProductType.UI_CONTRIBUTION
     ).start();
   }
+}
+
+/**
+ * Gets the complete subscription offers URL that should be used for the activity iFrame view.
+ */
+export function getSubscriptionUrl(
+  clientConfig: ClientConfig,
+  clientConfigManager: ClientConfigManager,
+  pageConfig: PageConfig,
+  query: string,
+  isInlineCta: boolean = false
+): string {
+  if (!clientConfig.useUpdatedOfferFlows) {
+    const offerCardParam = parseQueryString(query)['swg.newoffercard'];
+    const params: {[key: string]: string} = offerCardParam
+      ? {'useNewOfferCard': offerCardParam}
+      : {};
+    return feUrl('/offersiframe', params);
+  }
+
+  const params: {[key: string]: string} = {
+    'publicationId': pageConfig.getPublicationId(),
+  };
+
+  if (clientConfigManager.shouldForceLangInIframes()) {
+    params['hl'] = clientConfigManager.getLanguage();
+  }
+
+  if (clientConfig.uiPredicates?.purchaseUnavailableRegion) {
+    params['purchaseUnavailableRegion'] = 'true';
+  }
+
+  if (isInlineCta) {
+    params['ctaMode'] = 'CTA_MODE_INLINE';
+  }
+
+  return feUrl('/subscriptionoffersiframe', params);
 }

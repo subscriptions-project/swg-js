@@ -35,12 +35,11 @@ import {
   ProductType,
   SubscriptionFlows,
 } from '../api/subscriptions';
-import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from './pay-flow';
 import {SubscriptionRequest} from '../api/subscriptions';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
-import {parseQueryString} from '../utils/url';
+import {getSubscriptionUrl} from '../utils/cta-utils';
 
 function getEventParams(sku: string): EventParams {
   return new EventParams([, , , , sku]);
@@ -146,7 +145,12 @@ export class OffersFlow {
     return new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      this.getUrl_(clientConfig, this.deps_.pageConfig()),
+      getSubscriptionUrl(
+        clientConfig,
+        this.clientConfigManager_,
+        this.deps_.pageConfig(),
+        this.win_.location.hash
+      ),
       args as {[key: string]: string},
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
@@ -251,35 +255,6 @@ export class OffersFlow {
           closeOnBackgroundClick: this.isClosable_,
         }
       : {};
-  }
-
-  /**
-   * Returns the full URL that should be used for the activity iFrame view.
-   */
-  private getUrl_(clientConfig: ClientConfig, pageConfig: PageConfig): string {
-    if (!clientConfig.useUpdatedOfferFlows) {
-      const offerCardParam = parseQueryString(this.win_.location.hash)[
-        'swg.newoffercard'
-      ];
-      const params: {[key: string]: string} = offerCardParam
-        ? {'useNewOfferCard': offerCardParam}
-        : {};
-      return feUrl('/offersiframe', params);
-    }
-
-    const params: {[key: string]: string} = {
-      'publicationId': pageConfig.getPublicationId(),
-    };
-
-    if (this.clientConfigManager_.shouldForceLangInIframes()) {
-      params['hl'] = this.clientConfigManager_.getLanguage();
-    }
-
-    if (clientConfig.uiPredicates?.purchaseUnavailableRegion) {
-      params['purchaseUnavailableRegion'] = 'true';
-    }
-
-    return feUrl('/subscriptionoffersiframe', params);
   }
 
   /**
