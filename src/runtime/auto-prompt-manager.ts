@@ -1025,6 +1025,9 @@ export class AutoPromptManager {
       ) {
         const adsbygoogle = this.deps_.win().adsbygoogle;
         if (!adsbygoogle?.loaded) {
+          this.eventManager_.logSwgEvent(
+            AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED
+          );
           return false;
         }
       } else {
@@ -1032,7 +1035,7 @@ export class AutoPromptManager {
         // Because this happens after the article call, googletag should have had enough time to set up
         if (!googletag?.getVersion()) {
           this.eventManager_.logSwgEvent(
-            AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR
+            AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED
           );
           return false;
         }

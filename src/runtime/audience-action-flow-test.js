@@ -1298,6 +1298,17 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         .expects('execute')
         .withExactArgs(rewardedAdLoadAdResponse)
         .once();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_MISSING_ERROR,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
 
       await setupRewardedAds({adSense: true});
 
