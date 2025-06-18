@@ -23,6 +23,7 @@ import {
   CompleteAudienceActionResponse,
   SkuSelectedResponse,
   SurveyDataTransferRequest,
+  ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
@@ -38,7 +39,9 @@ import {
   getContributionsUrl,
   getSubscriptionUrl,
   showAlreadyOptedInToast,
+  startNativeFlow,
   startPayFlow,
+  startSubscriptionPayFlow,
 } from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {setImportantStyles} from '../utils/style';
@@ -46,7 +49,8 @@ import {setImportantStyles} from '../utils/style';
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
 const DEFAULT_PRODUCT_TYPE = ProductType.UI_CONTRIBUTION;
-
+// The value logged when the offers screen shows all available SKUs.
+const ALL_SKUS = '*';
 export class InlineCtaApi {
   private readonly doc_: Doc;
   private readonly win_: Window;
@@ -188,7 +192,23 @@ export class InlineCtaApi {
       'width': '100%',
     });
 
-    if (action.type === InterventionType.TYPE_CONTRIBUTION) {
+    if (action.type === InterventionType.TYPE_SUBSCRIPTION) {
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
+        skus: [ALL_SKUS],
+        source: 'SwG',
+      });
+      activityIframeView.onCancel(() => {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+      });
+      activityIframeView.on(SkuSelectedResponse, (response) =>
+        startSubscriptionPayFlow(this.deps_, response)
+      );
+      activityIframeView.on(ViewSubscriptionsResponse, (response) =>
+        startNativeFlow(this.deps_, response)
+      );
+    } else if (action.type === InterventionType.TYPE_CONTRIBUTION) {
       this.deps_
         .callbacks()
         .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);

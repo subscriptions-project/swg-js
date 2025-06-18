@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+import {
+  AnalyticsEvent,
+  EventParams,
+  SkuSelectedResponse,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from '../runtime/client-config-manager';
 import {Deps} from '../runtime/deps';
@@ -21,7 +27,6 @@ import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from '../runtime/pay-flow';
 import {ProductType, SubscriptionRequest} from '../api/subscriptions';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
-import {SkuSelectedResponse} from '../proto/api_messages';
 import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
 import {msg} from './i18n';
@@ -138,4 +143,42 @@ export function getSubscriptionUrl(
   }
 
   return feUrl('/subscriptionoffersiframe', params);
+}
+
+export function startSubscriptionPayFlow(
+  deps: Deps,
+  response: SkuSelectedResponse
+): void {
+  const sku = response.getSku();
+  if (sku) {
+    const subscriptionRequest: SubscriptionRequest = {
+      'skuId': sku,
+    };
+    const oldSku = response.getOldSku();
+    if (oldSku) {
+      subscriptionRequest['oldSku'] = oldSku;
+      deps.analytics().setSku(oldSku);
+    }
+    deps
+      .eventManager()
+      .logSwgEvent(
+        AnalyticsEvent.ACTION_OFFER_SELECTED,
+        true,
+        getEventParams(sku)
+      );
+    new PayStartFlow(deps, subscriptionRequest).start();
+  }
+}
+
+function getEventParams(sku: string): EventParams {
+  return new EventParams([, , , , sku]);
+}
+
+export function startNativeFlow(
+  deps: Deps,
+  response: ViewSubscriptionsResponse
+): void {
+  if (response.getNative()) {
+    deps.callbacks().triggerSubscribeRequest();
+  }
 }
