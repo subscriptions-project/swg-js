@@ -382,6 +382,7 @@ export class AutoPromptManager {
         );
       }
       if (this.isContribution_() || this.isSubscription_()) {
+        this.isMonetizationClosable_ = this.isClosable_;
         const monetizationIntervention =
           article.actionOrchestration.interventionFunnel?.interventions?.find(
             (intervention) =>
