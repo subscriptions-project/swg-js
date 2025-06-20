@@ -104,7 +104,8 @@ export class PayStartFlow {
   constructor(
     private readonly deps_: Deps,
     private readonly subscriptionRequest_: SubscriptionRequest,
-    private readonly productType_: ProductType = ProductType.SUBSCRIPTION
+    private readonly productType_: ProductType = ProductType.SUBSCRIPTION,
+    private readonly isInlineCta_: boolean = false
   ) {
     this.payClient_ = deps_.payClient();
 
@@ -123,6 +124,7 @@ export class PayStartFlow {
   async start(): Promise<void> {
     // Get the paySwgVersion for buyflow.
     const clientConfig = await this.clientConfigManager_.getClientConfig();
+    PayCompleteFlow.isInlineCta = this.isInlineCta_;
     this.start_(clientConfig.useUpdatedOfferFlows, clientConfig.paySwgVersion);
   }
 
@@ -212,6 +214,7 @@ export class PayStartFlow {
  */
 export class PayCompleteFlow {
   static waitingForPayClient = false;
+  static isInlineCta = false;
 
   static configurePending(deps: Deps): void {
     const eventManager = deps.eventManager();
@@ -340,6 +343,10 @@ export class PayCompleteFlow {
       }
     } else {
       args['loginHint'] = response.userData?.email;
+    }
+
+    if (PayCompleteFlow.isInlineCta) {
+      args['ctaMode'] = 'CTA_MODE_INLINE';
     }
 
     const urlParams: {[key: string]: string} = {};
