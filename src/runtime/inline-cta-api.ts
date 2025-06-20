@@ -24,7 +24,6 @@ import {
   SkuSelectedResponse,
   SurveyDataTransferRequest,
   ViewSubscriptionsResponse,
-  ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
@@ -41,9 +40,7 @@ import {
   getSubscriptionUrl,
   showAlreadyOptedInToast,
   startNativeFlow,
-  startNativeFlow,
   startPayFlow,
-  startSubscriptionPayFlow,
   startSubscriptionPayFlow,
 } from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
@@ -52,8 +49,6 @@ import {setImportantStyles} from '../utils/style';
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
 const DEFAULT_PRODUCT_TYPE = ProductType.UI_CONTRIBUTION;
-// The value logged when the offers screen shows all available SKUs.
-const ALL_SKUS = '*';
 // The value logged when the offers screen shows all available SKUs.
 const ALL_SKUS = '*';
 export class InlineCtaApi {

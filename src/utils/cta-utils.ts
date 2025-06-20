@@ -20,12 +20,6 @@ import {
   SkuSelectedResponse,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {
-  AnalyticsEvent,
-  EventParams,
-  SkuSelectedResponse,
-  ViewSubscriptionsResponse,
-} from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from '../runtime/client-config-manager';
 import {Deps} from '../runtime/deps';
