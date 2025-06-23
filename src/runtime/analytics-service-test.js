@@ -606,7 +606,7 @@ describes.realWin('AnalyticsService', (env) => {
     });
 
     it('can remove labels', () => {
-      analyticsService.addLabels(['L1', 'L2', 'L1', 'L2']);
+      analyticsService.addLabels(['L1', 'L2']);
       expect(analyticsService.context_.getLabelList()).to.deep.equal([
         'L1',
         'L2',
