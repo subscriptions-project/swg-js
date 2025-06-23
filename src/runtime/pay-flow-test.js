@@ -1026,6 +1026,46 @@ describes.realWin('PayCompleteFlow', (env) => {
     await flow.readyPromise_;
   });
 
+  it('should have valid flow constructed for inline CTA', async () => {
+    PayCompleteFlow.isInlineCta = true;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_&ctaMode=CTA_MODE_INLINE',
+        {
+          _client: 'SwG 0.0.0',
+          publicationId: 'pub1',
+          idToken: USER_ID_TOKEN,
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
+        }
+      )
+      .resolves(port);
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+  });
+
   it('should complete the flow', async () => {
     const response = createDefaultSubscribeResponse();
     const port = new MockActivityPort();

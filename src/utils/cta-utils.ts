@@ -90,7 +90,11 @@ export function getContributionsUrl(
   return feUrl('/contributionoffersiframe', params);
 }
 
-export function startPayFlow(deps: Deps, response: SkuSelectedResponse): void {
+export function startPayFlow(
+  deps: Deps,
+  response: SkuSelectedResponse,
+  isInlineCta: boolean = false
+): void {
   const sku = response.getSku();
   const isOneTime = response.getOneTime();
   if (sku) {
@@ -103,7 +107,8 @@ export function startPayFlow(deps: Deps, response: SkuSelectedResponse): void {
     new PayStartFlow(
       deps,
       contributionRequest,
-      ProductType.UI_CONTRIBUTION
+      ProductType.UI_CONTRIBUTION,
+      isInlineCta
     ).start();
   }
 }
@@ -147,7 +152,8 @@ export function getSubscriptionUrl(
 
 export function startSubscriptionPayFlow(
   deps: Deps,
-  response: SkuSelectedResponse
+  response: SkuSelectedResponse,
+  isInlineCta: boolean = false
 ): void {
   const sku = response.getSku();
   if (sku) {
@@ -166,7 +172,12 @@ export function startSubscriptionPayFlow(
         true,
         getEventParams(sku)
       );
-    new PayStartFlow(deps, subscriptionRequest).start();
+    new PayStartFlow(
+      deps,
+      subscriptionRequest,
+      ProductType.SUBSCRIPTION,
+      isInlineCta
+    ).start();
   }
 }
 

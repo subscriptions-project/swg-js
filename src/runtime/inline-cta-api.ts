@@ -203,7 +203,7 @@ export class InlineCtaApi {
           .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
       });
       activityIframeView.on(SkuSelectedResponse, (response) =>
-        startSubscriptionPayFlow(this.deps_, response)
+        startSubscriptionPayFlow(this.deps_, response, /* isInlineCta */ true)
       );
       activityIframeView.on(ViewSubscriptionsResponse, (response) =>
         startNativeFlow(this.deps_, response)
@@ -218,7 +218,7 @@ export class InlineCtaApi {
           .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
       });
       activityIframeView.on(SkuSelectedResponse, (response) =>
-        startPayFlow(this.deps_, response)
+        startPayFlow(this.deps_, response, /* isInlineCta */ true)
       );
     } else {
       activityIframeView.on(CompleteAudienceActionResponse, (response) =>

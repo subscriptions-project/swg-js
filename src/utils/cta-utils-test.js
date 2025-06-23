@@ -191,7 +191,7 @@ describes.realWin('CTA utils', (env) => {
       skuSelected.setSku('sku1');
       skuSelected.setOneTime(true);
 
-      startPayFlow(deps, skuSelected);
+      startPayFlow(deps, skuSelected, /* isInlineCta */ true);
 
       expect(payStub).to.be.calledOnce;
       expect(
@@ -199,6 +199,7 @@ describes.realWin('CTA utils', (env) => {
       ).to.equal('sku1');
       expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
         .true;
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
     });
   });
 
@@ -233,6 +234,7 @@ describes.realWin('CTA utils', (env) => {
       expect(
         payStub.getCalls()[0].thisValue.subscriptionRequest_.oldSku
       ).to.equal('sku2');
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.false;
       analyticsMock.verify();
     });
 
