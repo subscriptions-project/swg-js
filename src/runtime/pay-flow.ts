@@ -345,14 +345,15 @@ export class PayCompleteFlow {
       args['loginHint'] = response.userData?.email;
     }
 
-    if (PayCompleteFlow.isInlineCta) {
-      args['ctaMode'] = 'CTA_MODE_INLINE';
-    }
-
     const urlParams: {[key: string]: string} = {};
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       urlParams.hl = this.clientConfigManager_.getLanguage();
     }
+
+    if (PayCompleteFlow.isInlineCta) {
+      urlParams.ctaMode = 'CTA_MODE_INLINE';
+    }
+
     const confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
 
     const clientConfig = await this.clientConfigManager_.getClientConfig();
