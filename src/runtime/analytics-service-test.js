@@ -605,6 +605,16 @@ describes.realWin('AnalyticsService', (env) => {
       ]);
     });
 
+    it('can remove labels', () => {
+      analyticsService.addLabels(['L1', 'L2', 'L1', 'L2']);
+      expect(analyticsService.context_.getLabelList()).to.deep.equal([
+        'L1',
+        'L2',
+      ]);
+      analyticsService.removeLabels(['L0', 'L2', 'L3']);
+      expect(analyticsService.context_.getLabelList()).to.deep.equal(['L1']);
+    });
+
     it('should respect custom URLs', async () => {
       sandbox.stub(activityIframePort, 'execute').callsFake(() => {});
       analyticsService.setUrl('diffUrl');
