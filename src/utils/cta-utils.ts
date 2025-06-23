@@ -32,6 +32,8 @@ import {feUrl} from '../runtime/services';
 import {msg} from './i18n';
 import {parseQueryString} from './url';
 
+const INLINE_CTA_LABEL = 'CTA_MODE_INLINE';
+
 /** Show a toast idicating that reader has already registered before. */
 export function showAlreadyOptedInToast(
   actionType: string,
@@ -84,7 +86,7 @@ export function getContributionsUrl(
     params['hl'] = clientConfigManager.getLanguage();
   }
   if (isInlineCta) {
-    params['ctaMode'] = 'CTA_MODE_INLINE';
+    params['ctaMode'] = INLINE_CTA_LABEL;
   }
 
   return feUrl('/contributionoffersiframe', params);
@@ -144,7 +146,7 @@ export function getSubscriptionUrl(
   }
 
   if (isInlineCta) {
-    params['ctaMode'] = 'CTA_MODE_INLINE';
+    params['ctaMode'] = INLINE_CTA_LABEL;
   }
 
   return feUrl('/subscriptionoffersiframe', params);
@@ -165,6 +167,13 @@ export function startSubscriptionPayFlow(
       subscriptionRequest['oldSku'] = oldSku;
       deps.analytics().setSku(oldSku);
     }
+
+    if (isInlineCta) {
+      deps.analytics().addLabels([INLINE_CTA_LABEL]);
+    } else {
+      deps.analytics().removeLabels([INLINE_CTA_LABEL]);
+    }
+
     deps
       .eventManager()
       .logSwgEvent(
