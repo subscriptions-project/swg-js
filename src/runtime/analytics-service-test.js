@@ -611,7 +611,7 @@ describes.realWin('AnalyticsService', (env) => {
         'L1',
         'L2',
       ]);
-      analyticsService.removeLabels(['L0', 'L2', 'L3']);
+      analyticsService.removeLabels(['L2update', 'L2', 'L3']);
       expect(analyticsService.context_.getLabelList()).to.deep.equal(['L1']);
     });
 
