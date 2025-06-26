@@ -40,7 +40,7 @@ import {
   getSubscriptionUrl,
   showAlreadyOptedInToast,
   startNativeFlow,
-  startPayFlow,
+  startContributionPayFlow,
   startSubscriptionPayFlow,
 } from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
@@ -203,7 +203,12 @@ export class InlineCtaApi {
           .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
       });
       activityIframeView.on(SkuSelectedResponse, (response) =>
-        startSubscriptionPayFlow(this.deps_, response, /* isInlineCta */ true)
+        startSubscriptionPayFlow(
+          this.deps_,
+          response,
+          /* isInlineCta */ true,
+          configId
+        )
       );
       activityIframeView.on(ViewSubscriptionsResponse, (response) =>
         startNativeFlow(this.deps_, response)
@@ -218,7 +223,12 @@ export class InlineCtaApi {
           .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
       });
       activityIframeView.on(SkuSelectedResponse, (response) =>
-        startPayFlow(this.deps_, response, /* isInlineCta */ true)
+        startContributionPayFlow(
+          this.deps_,
+          response,
+          /* isInlineCta */ true,
+          configId
+        )
       );
     } else {
       activityIframeView.on(CompleteAudienceActionResponse, (response) =>
