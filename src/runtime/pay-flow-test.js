@@ -1290,6 +1290,120 @@ describes.realWin('PayCompleteFlow', (env) => {
     await flow.readyPromise_;
   });
 
+  it('no iframe open if inline config id is empty', async () => {
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = '';
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+  });
+
+  it('no iframe open if inline code snippet not found', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
+  it('no iframe open if inline code snippet not match config id', async () => {
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = 'contribution_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': 'subscription_config_id',
+    });
+    win.document.body.appendChild(subscriptionSnippet);
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
+  it('child element removed when code snippet was found', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': subscriptionConfigId,
+    });
+    const childDiv = createElement(win.document, 'span', {
+      'id': 'childElement',
+    });
+    subscriptionSnippet.appendChild(childDiv);
+    win.document.body.appendChild(subscriptionSnippet);
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').resolves(port);
+    expect(win.document.getElementById('childElement')).to.not.be.null;
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+    expect(win.document.getElementById('childElement')).to.be.null;
+  });
+
   it('should have valid flow constructed for inline CTA', async () => {
     const subscriptionConfigId = 'subscription_config_id';
     const subscriptionSnippet = createElement(win.document, 'div', {
