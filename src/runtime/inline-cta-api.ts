@@ -39,8 +39,8 @@ import {
   getContributionsUrl,
   getSubscriptionUrl,
   showAlreadyOptedInToast,
-  startNativeFlow,
   startContributionPayFlow,
+  startNativeFlow,
   startSubscriptionPayFlow,
 } from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
