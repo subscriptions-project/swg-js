@@ -56,6 +56,9 @@ import {getPropertyFromJsonString} from '../utils/json';
 import {getSwgMode} from './services';
 import {isCancelError} from '../utils/errors';
 
+const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
+const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
+
 /**
  * Subscribe with Google request to pass to payments.
  */
@@ -105,7 +108,8 @@ export class PayStartFlow {
     private readonly deps_: Deps,
     private readonly subscriptionRequest_: SubscriptionRequest,
     private readonly productType_: ProductType = ProductType.SUBSCRIPTION,
-    private readonly isInlineCta_: boolean = false
+    private readonly isInlineCta_: boolean = false,
+    private readonly configId_: string = ''
   ) {
     this.payClient_ = deps_.payClient();
 
@@ -125,6 +129,7 @@ export class PayStartFlow {
     // Get the paySwgVersion for buyflow.
     const clientConfig = await this.clientConfigManager_.getClientConfig();
     PayCompleteFlow.isInlineCta = this.isInlineCta_;
+    PayCompleteFlow.inlineConfigId = this.configId_;
     this.start_(clientConfig.useUpdatedOfferFlows, clientConfig.paySwgVersion);
   }
 
@@ -215,6 +220,7 @@ export class PayStartFlow {
 export class PayCompleteFlow {
   static waitingForPayClient = false;
   static isInlineCta = false;
+  static inlineConfigId = '';
 
   static configurePending(deps: Deps): void {
     const eventManager = deps.eventManager();
@@ -372,12 +378,27 @@ export class PayCompleteFlow {
       this.handleEntitlementsResponse_.bind(this)
     );
 
-    this.activityIframeView_.acceptResult().then(() => {
-      // The flow is complete.
-      this.dialogManager_.completeView(this.activityIframeView_);
-    });
-
-    this.readyPromise_ = this.dialogManager_.openView(this.activityIframeView_);
+    if (PayCompleteFlow.isInlineCta) {
+      const inlineDiv = this.getInlineCtaDiv_(PayCompleteFlow.inlineConfigId);
+      if (!inlineDiv) {
+        return;
+      }
+      // Remove pay iframe
+      if (inlineDiv.firstChild) {
+        inlineDiv.removeChild(inlineDiv.firstChild);
+      }
+      // Attach confirmation iframe
+      inlineDiv.appendChild(this.activityIframeView_.getElement());
+      this.readyPromise_ = this.activityIframeView_.init();
+    } else {
+      this.activityIframeView_.acceptResult().then(() => {
+        // The flow is complete.
+        this.dialogManager_.completeView(this.activityIframeView_);
+      });
+      this.readyPromise_ = this.dialogManager_.openView(
+        this.activityIframeView_
+      );
+    }
 
     this.readyPromise_.then(() => {
       this.deps_.callbacks().triggerPayConfirmOpened(this.activityIframeView_!);
@@ -389,6 +410,25 @@ export class PayCompleteFlow {
     if (jwt) {
       this.deps_.entitlementsManager().pushNextEntitlements(jwt);
     }
+  }
+
+  private getInlineCtaDiv_(configId: string): HTMLElement | null {
+    if (!configId) {
+      return null;
+    }
+    const elements: HTMLElement[] = Array.from(
+      this.win_.document.querySelectorAll(INLINE_CTA_ATTRIUBUTE_QUERY)
+    );
+
+    if (elements.length === 0) {
+      return null;
+    }
+    for (const element of elements) {
+      if (configId === element.getAttribute(INLINE_CTA_ATTRIUBUTE)) {
+        return element;
+      }
+    }
+    return null;
   }
 
   async complete(): Promise<void> {

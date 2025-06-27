@@ -439,7 +439,7 @@ describes.realWin('InlineCtaApi', (env) => {
       onCancelCallback();
     });
 
-    it('call startPayFlow on sku selection', async () => {
+    it('call startPayFlowSpy on sku selection', async () => {
       callbacksMock.expects('triggerFlowStarted').once();
       activitiesMock.expects('openIframe').resolves(port);
 
@@ -447,7 +447,7 @@ describes.realWin('InlineCtaApi', (env) => {
 
       const skuSelectedResponse = new SkuSelectedResponse();
       const messageCallback = messageMap[skuSelectedResponse.label()];
-      const startPayFlowSpy = sandbox.spy(CtaUtils, 'startPayFlow');
+      const startPayFlowSpy = sandbox.spy(CtaUtils, 'startContributionPayFlow');
 
       messageCallback(skuSelectedResponse);
 
