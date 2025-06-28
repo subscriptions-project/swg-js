@@ -42,7 +42,7 @@
     "body-parser": "2.2.0",
     "browserify": "17.0.1",
     "chai": "4.5.0",
-    "chai-as-promised": "7.1.2",
+    "chai-as-promised": "8.0.1",
     "cssnano": "7.0.7",
     "del": "8.0.0",
     "eslint": "8.57.1",
