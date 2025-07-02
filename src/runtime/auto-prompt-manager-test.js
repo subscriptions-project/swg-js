@@ -3697,10 +3697,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     describe('when reader cannot purchase', () => {
-      const createArticleWithDismissibilityFilterExperiment = (
-        intervention,
-        closability
-      ) => ({
+      const createArticle = (intervention, closability) => ({
         audienceActions: {actions: [intervention], engineId: '123'},
         actionOrchestration: {
           interventionFunnel: {
@@ -3713,7 +3710,6 @@ describes.realWin('AutoPromptManager', (env) => {
             ],
           },
         },
-        experimentConfig: {experimentFlags: []},
       });
 
       beforeEach(() => {
@@ -3734,12 +3730,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('filters out monetary cta if open content', async () => {
         getArticleExpectation
-          .resolves(
-            createArticleWithDismissibilityFilterExperiment(
-              SUBSCRIPTION_INTERVENTION,
-              'BLOCKING'
-            )
-          )
+          .resolves(createArticle(SUBSCRIPTION_INTERVENTION, 'BLOCKING'))
           .once();
 
         await autoPromptManager.showAutoPrompt({
@@ -3751,12 +3742,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('filters out if monetary, closed content, dismissible', async () => {
         getArticleExpectation
-          .resolves(
-            createArticleWithDismissibilityFilterExperiment(
-              CONTRIBUTION_INTERVENTION,
-              'DISMISSIBLE'
-            )
-          )
+          .resolves(createArticle(CONTRIBUTION_INTERVENTION, 'DISMISSIBLE'))
           .once();
 
         await autoPromptManager.showAutoPrompt({
@@ -3768,12 +3754,7 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('shows if closed content and non-dismissible', async () => {
         getArticleExpectation
-          .resolves(
-            createArticleWithDismissibilityFilterExperiment(
-              CONTRIBUTION_INTERVENTION,
-              'UNSPECIFIED'
-            )
-          )
+          .resolves(createArticle(CONTRIBUTION_INTERVENTION, 'UNSPECIFIED'))
           .once();
 
         await autoPromptManager.showAutoPrompt({
