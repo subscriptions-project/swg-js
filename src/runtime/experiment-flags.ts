@@ -39,12 +39,6 @@ export enum ArticleExperimentFlags {
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 
   /**
-   * Experiment flag that filters out dismissible monetary CTAs if reader is
-   * ineligible to purchase.
-   */
-  DISMISSIBILITY_CTA_FILTER_EXPERIMENT = 'dismissibility_cta_filter_experiment',
-
-  /**
    * Experiment flag to enable the rendering of the CTAs inline.
    */
   INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
