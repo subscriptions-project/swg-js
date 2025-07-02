@@ -192,7 +192,6 @@ export class AutoPromptManager {
   private autoPromptType_?: AutoPromptType;
   private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
-  private dismissibilityCtaFilterExperiment_: boolean = false;
   private standardRewardedAdExperiment = false;
   private multiInstanceCtaExperiment: boolean = false;
 
@@ -290,10 +289,6 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    this.dismissibilityCtaFilterExperiment_ = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.DISMISSIBILITY_CTA_FILTER_EXPERIMENT
-    );
     this.standardRewardedAdExperiment = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.STANDARD_REWARDED_AD_EXPERIMENT
@@ -1107,11 +1102,7 @@ export class AutoPromptManager {
     const isDismissible =
       this.contentType_ !== ContentType.CLOSED ||
       closability === Closability.DISMISSIBLE;
-    if (
-      this.dismissibilityCtaFilterExperiment_ &&
-      isDismissible &&
-      readerCannotPurchase
-    ) {
+    if (isDismissible && readerCannotPurchase) {
       return false;
     }
 

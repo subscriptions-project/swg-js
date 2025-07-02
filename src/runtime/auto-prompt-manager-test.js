@@ -3696,7 +3696,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.isInDevMode_).to.be.false;
     });
 
-    describe('when dismissibility filter experiment enabled', () => {
+    describe('when reader cannot purchase', () => {
       const createArticleWithDismissibilityFilterExperiment = (
         intervention,
         closability
@@ -3713,24 +3713,26 @@ describes.realWin('AutoPromptManager', (env) => {
             ],
           },
         },
-        experimentConfig: {
-          experimentFlags: ['dismissibility_cta_filter_experiment'],
-        },
-      });
-      const readerCannotPurchaseClientConfig = new ClientConfig({
-        autoPromptConfig,
-        uiPredicates: new UiPredicates(
-          /* canDisplayAutoPrompt */ true,
-          /* canDisplayButton */ false,
-          /* purchaseUnavailableRegion */ true
-        ),
-        useUpdatedOfferFlows: true,
+        experimentConfig: {experimentFlags: []},
       });
 
-      it('filters out if open content and reader cannot purchase', async () => {
+      beforeEach(() => {
         getClientConfigExpectation
-          .resolves(readerCannotPurchaseClientConfig)
+          .resolves(
+            new ClientConfig({
+              autoPromptConfig,
+              uiPredicates: new UiPredicates(
+                /* canDisplayAutoPrompt */ true,
+                /* canDisplayButton */ false,
+                /* purchaseUnavailableRegion */ true
+              ),
+              useUpdatedOfferFlows: true,
+            })
+          )
           .once();
+      });
+
+      it('filters out monetary cta if open content', async () => {
         getArticleExpectation
           .resolves(
             createArticleWithDismissibilityFilterExperiment(
@@ -3747,10 +3749,7 @@ describes.realWin('AutoPromptManager', (env) => {
         expect(subscriptionPromptFnSpy).not.to.have.been.called;
       });
 
-      it('filters out if closed content, dismissible, and reader cannot purchase', async () => {
-        getClientConfigExpectation
-          .resolves(readerCannotPurchaseClientConfig)
-          .once();
+      it('filters out if monetary, closed content, dismissible', async () => {
         getArticleExpectation
           .resolves(
             createArticleWithDismissibilityFilterExperiment(
@@ -3767,10 +3766,7 @@ describes.realWin('AutoPromptManager', (env) => {
         expect(contributionPromptFnSpy).not.to.have.been.called;
       });
 
-      it('shows if closed content and non-dismissible even if reader cannot purchase', async () => {
-        getClientConfigExpectation
-          .resolves(readerCannotPurchaseClientConfig)
-          .once();
+      it('shows if closed content and non-dismissible', async () => {
         getArticleExpectation
           .resolves(
             createArticleWithDismissibilityFilterExperiment(
@@ -3785,23 +3781,6 @@ describes.realWin('AutoPromptManager', (env) => {
         });
 
         expect(contributionPromptFnSpy).to.have.been.calledOnce;
-      });
-
-      it('shows if reader can purchase', async () => {
-        getArticleExpectation
-          .resolves(
-            createArticleWithDismissibilityFilterExperiment(
-              SUBSCRIPTION_INTERVENTION,
-              'BLOCKING'
-            )
-          )
-          .once();
-
-        await autoPromptManager.showAutoPrompt({
-          contentType: ContentType.OPEN,
-        });
-
-        expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
       });
     });
 
