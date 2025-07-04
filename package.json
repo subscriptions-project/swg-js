@@ -107,7 +107,7 @@
   },
   "optionalDependencies": {
     "@nightwatch/vrt": "^3.0.0",
-    "@rollup/plugin-commonjs": "25.0.8",
+    "@rollup/plugin-commonjs": "28.0.6",
     "@rollup/plugin-replace": "6.0.2",
     "cheerio": "1.1.0",
     "chromedriver": "138.0.0",
