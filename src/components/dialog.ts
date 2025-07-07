@@ -424,20 +424,22 @@ export class Dialog {
     this.animate_(async () => {
       setImportantStyles(this.getElement(), {
         'transform': 'translateY(100%)',
-        'opactiy': '1',
+        'opacity': '1',
         'visibility': 'visible',
       });
 
-      await transition(
-        this.getElement(),
-        {
-          'transform': this.getDefaultTranslateY_(),
-          'opacity': '1',
-          'visibility': 'visible',
-        },
-        300,
-        'ease-out'
-      );
+      if (this.shouldPositionCenter_()) {
+        await transition(
+          this.getElement(),
+          {
+            'transform': this.getDefaultTranslateY_(),
+            'opacity': '1',
+            'visibility': 'visible',
+          },
+          300,
+          'ease-out'
+        );
+      }
 
       // Focus the dialog contents, per WAI-ARIA best practices.
       this.getElement().focus();

@@ -95,7 +95,6 @@ export interface AudienceActionIframeParams {
   calledManually: boolean;
   shouldRenderPreview?: boolean;
   suppressToast?: boolean;
-  monetizationFunction?: () => void;
   onAlternateAction?: () => void;
   onSignIn?: () => void;
 }
@@ -374,7 +373,9 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     ) {
       const adsbygoogle = this.deps_.win().adsbygoogle;
       if (!adsbygoogle) {
-        // TODO(mhkawano): log error for missing api.
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_MISSING_ERROR);
         this.sendRewardedAdLoadAdResponse(false);
         return;
       }
@@ -489,8 +490,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       );
     if (this.params_.onAlternateAction) {
       this.params_.onAlternateAction();
-    } else {
-      this.params_.monetizationFunction?.();
     }
     this.params_.onResult?.({
       configurationId: this.params_.configurationId,
@@ -557,8 +556,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private handleRewardedAdAlternateActionRequest() {
     if (this.params_.onAlternateAction) {
       this.params_.onAlternateAction();
-    } else {
-      this.params_.monetizationFunction?.();
     }
   }
 

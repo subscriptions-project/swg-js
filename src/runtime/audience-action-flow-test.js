@@ -985,13 +985,11 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
 
   describe('rewarded ad', async () => {
     let alternateActionSpy;
-    let monetizationFunctionSpy;
     let audienceActionFlow;
     let activityIframeViewMock;
 
     async function setupRewardedAds(opt) {
       activitiesMock.expects('openIframe').resolves(port);
-      monetizationFunctionSpy = sandbox.spy();
       alternateActionSpy = sandbox.spy();
       audienceActionFlow = new AudienceActionIframeFlow(runtime, {
         action: 'TYPE_REWARDED_AD',
@@ -1002,7 +1000,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         onCancel: onCancelSpy,
         autoPromptType: AutoPromptType.SUBSCRIPTION,
         calledManually: false,
-        monetizationFunction: monetizationFunctionSpy,
         onAlternateAction: opt?.setAlternateActionCallback
           ? alternateActionSpy
           : undefined,
@@ -1101,27 +1098,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
 
     it('handles close', async () => {
-      await setupRewardedAds({setAlternateActionCallback: false});
-      eventManagerMock.expects('logEvent').withExactArgs(
-        {
-          eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          additionalParameters: null,
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      );
-
-      win.googletag.cmd[0]();
-
-      eventListeners['rewardedSlotClosed']();
-      expect(monetizationFunctionSpy).to.be.called;
-      expect(alternateActionSpy).to.not.be.called;
-    });
-
-    it('handles close with callback', async () => {
       await setupRewardedAds({setAlternateActionCallback: true});
       eventManagerMock.expects('logEvent').withExactArgs(
         {
@@ -1138,7 +1114,6 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       win.googletag.cmd[0]();
 
       eventListeners['rewardedSlotClosed']();
-      expect(monetizationFunctionSpy).to.not.be.called;
       expect(alternateActionSpy).to.be.called;
     });
 
@@ -1248,22 +1223,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         rewardedAdAlternateActionRequest
       );
 
-      expect(monetizationFunctionSpy).to.not.be.called;
       expect(alternateActionSpy).to.be.called;
-    });
-
-    it('handles rewarded ad alternate action', async () => {
-      await setupRewardedAds({setAlternateActionCallback: false});
-      const rewardedAdAlternateActionRequest =
-        new RewardedAdAlternateActionRequest();
-      const rewardedAdAlternateActionRequestCallback =
-        messageMap[rewardedAdAlternateActionRequest.label()];
-      rewardedAdAlternateActionRequestCallback(
-        rewardedAdAlternateActionRequest
-      );
-
-      expect(monetizationFunctionSpy).to.be.called;
-      expect(alternateActionSpy).to.not.be.called;
     });
 
     it('handles adsense load and view', async () => {
@@ -1298,6 +1258,17 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         .expects('execute')
         .withExactArgs(rewardedAdLoadAdResponse)
         .once();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_MISSING_ERROR,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: false,
+          additionalParameters: null,
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
 
       await setupRewardedAds({adSense: true});
 
@@ -1342,7 +1313,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
 
     it('handles adsense not granted', async () => {
-      await setupRewardedAds({adSense: true});
+      await setupRewardedAds({adSense: true, setAlternateActionCallback: true});
       eventManagerMock.expects('logEvent').withExactArgs(
         {
           eventType: AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
@@ -1367,8 +1338,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
 
       await grantedCallback({status: 'foo', reward: undefined});
 
-      expect(monetizationFunctionSpy).to.be.called;
-      expect(alternateActionSpy).to.not.be.called;
+      expect(alternateActionSpy).to.be.called;
     });
   });
 

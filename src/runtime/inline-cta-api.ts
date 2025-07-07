@@ -17,30 +17,40 @@
 import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
+import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {
   CompleteAudienceActionResponse,
+  SkuSelectedResponse,
   SurveyDataTransferRequest,
+  ViewSubscriptionsResponse,
 } from '../proto/api_messages';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
-
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
-import {ProductType} from '../api/subscriptions';
+import {ProductType, SubscriptionFlows} from '../api/subscriptions';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
+import {
+  getContributionsUrl,
+  getSubscriptionUrl,
+  showAlreadyOptedInToast,
+  startContributionPayFlow,
+  startNativeFlow,
+  startSubscriptionPayFlow,
+} from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {setImportantStyles} from '../utils/style';
-import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
 const DEFAULT_PRODUCT_TYPE = ProductType.UI_CONTRIBUTION;
-
+// The value logged when the offers screen shows all available SKUs.
+const ALL_SKUS = '*';
 export class InlineCtaApi {
   private readonly doc_: Doc;
   private readonly win_: Window;
@@ -108,7 +118,8 @@ export class InlineCtaApi {
 
   private async renderInlineCtaWithAttribute_(
     div: HTMLElement,
-    actions: Intervention[]
+    actions: Intervention[],
+    clientConfig: ClientConfig
   ) {
     // return if config id is not set in inline CTA code snippet.
     const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
@@ -130,11 +141,47 @@ export class InlineCtaApi {
       return;
     }
     const urlPrefix = ActionToIframeMapping[action.type];
-    const fetchUrl = this.getUrl_(urlPrefix, configId);
-    const fetchArgs = feArgs({
-      'supportsEventManager': true,
-      'productType': DEFAULT_PRODUCT_TYPE,
-    });
+    const fetchUrl =
+      action.type === InterventionType.TYPE_SUBSCRIPTION
+        ? getSubscriptionUrl(
+            clientConfig,
+            this.clientConfigManager_,
+            this.deps_.pageConfig(),
+            this.win_.location.hash,
+            /* isInlineCta */ true
+          )
+        : action.type === InterventionType.TYPE_CONTRIBUTION
+        ? getContributionsUrl(
+            clientConfig,
+            this.clientConfigManager_,
+            this.deps_.pageConfig(),
+            /* isInlineCta */ true
+          )
+        : this.getUrl_(urlPrefix, configId);
+    const fetchArgs =
+      action.type === InterventionType.TYPE_SUBSCRIPTION
+        ? (this.activityPorts_.addDefaultArguments({
+            'showNative': this.deps_.callbacks().hasSubscribeRequestCallback(),
+            'productType': ProductType.SUBSCRIPTION,
+            'list': 'default',
+            'skus': null,
+            'isClosable': false,
+            'supportsEventManager': false,
+          }) as {[key: string]: string})
+        : action.type === InterventionType.TYPE_CONTRIBUTION
+        ? feArgs({
+            'productId': this.deps_.pageConfig().getProductId(),
+            'publicationId': this.deps_.pageConfig().getPublicationId(),
+            'productType': ProductType.UI_CONTRIBUTION,
+            'list': 'default',
+            'skus': null,
+            'isClosable': false,
+            'supportsEventManager': false,
+          })
+        : feArgs({
+            'supportsEventManager': false,
+            'productType': DEFAULT_PRODUCT_TYPE,
+          });
 
     const activityIframeView = new ActivityIframeView(
       this.win_,
@@ -146,17 +193,57 @@ export class InlineCtaApi {
       'width': '100%',
     });
 
-    activityIframeView.on(CompleteAudienceActionResponse, (response) =>
-      this.handleCompleteAudienceActionResponse_(response, action.type, div)
-    );
-    activityIframeView.on(SurveyDataTransferRequest, (request) =>
-      handleSurveyDataTransferRequest(
-        request,
-        this.deps_,
-        activityIframeView,
-        configId
-      )
-    );
+    if (action.type === InterventionType.TYPE_SUBSCRIPTION) {
+      this.deps_.callbacks().triggerFlowStarted(SubscriptionFlows.SHOW_OFFERS, {
+        skus: [ALL_SKUS],
+        source: 'SwG',
+      });
+      activityIframeView.onCancel(() => {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
+      });
+      activityIframeView.on(SkuSelectedResponse, (response) =>
+        startSubscriptionPayFlow(
+          this.deps_,
+          response,
+          /* isInlineCta */ true,
+          configId
+        )
+      );
+      activityIframeView.on(ViewSubscriptionsResponse, (response) =>
+        startNativeFlow(this.deps_, response)
+      );
+    } else if (action.type === InterventionType.TYPE_CONTRIBUTION) {
+      this.deps_
+        .callbacks()
+        .triggerFlowStarted(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+      activityIframeView.onCancel(() => {
+        this.deps_
+          .callbacks()
+          .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
+      });
+      activityIframeView.on(SkuSelectedResponse, (response) =>
+        startContributionPayFlow(
+          this.deps_,
+          response,
+          /* isInlineCta */ true,
+          configId
+        )
+      );
+    } else {
+      activityIframeView.on(CompleteAudienceActionResponse, (response) =>
+        this.handleCompleteAudienceActionResponse_(response, action.type, div)
+      );
+      activityIframeView.on(SurveyDataTransferRequest, (request) =>
+        handleSurveyDataTransferRequest(
+          request,
+          this.deps_,
+          activityIframeView,
+          configId
+        )
+      );
+    }
 
     div.appendChild(activityIframeView.getElement());
 
@@ -194,7 +281,7 @@ export class InlineCtaApi {
     }
 
     for (const element of elements) {
-      this.renderInlineCtaWithAttribute_(element, actions);
+      this.renderInlineCtaWithAttribute_(element, actions, clientConfig);
     }
   }
 }

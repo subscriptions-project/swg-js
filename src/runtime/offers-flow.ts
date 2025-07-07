@@ -23,7 +23,7 @@ import {
   SubscribeResponse,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {AnalyticsEvent, EventParams} from '../proto/api_messages';
+import {AnalyticsEvent} from '../proto/api_messages';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -35,16 +35,13 @@ import {
   ProductType,
   SubscriptionFlows,
 } from '../api/subscriptions';
-import {PageConfig} from '../model/page-config';
-import {PayStartFlow} from './pay-flow';
-import {SubscriptionRequest} from '../api/subscriptions';
 import {assert} from '../utils/log';
 import {feArgs, feUrl} from './services';
-import {parseQueryString} from '../utils/url';
-
-function getEventParams(sku: string): EventParams {
-  return new EventParams([, , , , sku]);
-}
+import {
+  getSubscriptionUrl,
+  startNativeFlow,
+  startSubscriptionPayFlow,
+} from '../utils/cta-utils';
 
 /**
  * Offers view is closable when request was originated from 'AbbrvOfferFlow'
@@ -126,7 +123,7 @@ export class OffersFlow {
         const skuSelectedResponse = new SkuSelectedResponse();
         skuSelectedResponse.setSku(sku);
         skuSelectedResponse.setOldSku(oldSku);
-        this.startPayFlow_(skuSelectedResponse);
+        startSubscriptionPayFlow(this.deps_, skuSelectedResponse);
         return;
       }
     }
@@ -146,32 +143,17 @@ export class OffersFlow {
     return new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      this.getUrl_(clientConfig, this.deps_.pageConfig()),
+      getSubscriptionUrl(
+        clientConfig,
+        this.clientConfigManager_,
+        this.deps_.pageConfig(),
+        this.win_.location.hash
+      ),
       args as {[key: string]: string},
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
       /* shouldAnimateFade */ this.shouldAnimateFade_
     );
-  }
-
-  private startPayFlow_(response: SkuSelectedResponse): void {
-    const sku = response.getSku();
-    if (sku) {
-      const subscriptionRequest: SubscriptionRequest = {
-        'skuId': sku,
-      };
-      const oldSku = response.getOldSku();
-      if (oldSku) {
-        subscriptionRequest['oldSku'] = oldSku;
-        this.deps_.analytics().setSku(oldSku);
-      }
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.ACTION_OFFER_SELECTED,
-        true,
-        getEventParams(sku)
-      );
-      new PayStartFlow(this.deps_, subscriptionRequest).start();
-    }
   }
 
   private handleLinkRequest_(response: AlreadySubscribedResponse): void {
@@ -183,12 +165,6 @@ export class OffersFlow {
       this.deps_.callbacks().triggerLoginRequest({
         linkRequested: !!response.getLinkRequested(),
       });
-    }
-  }
-
-  private startNativeFlow_(response: ViewSubscriptionsResponse): void {
-    if (response.getNative()) {
-      this.deps_.callbacks().triggerSubscribeRequest();
     }
   }
 
@@ -211,17 +187,15 @@ export class OffersFlow {
     this.activityIframeView_.onCancel(() => {
       this.deps_.callbacks().triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
     });
-    this.activityIframeView_.on(
-      SkuSelectedResponse,
-      this.startPayFlow_.bind(this)
+    this.activityIframeView_.on(SkuSelectedResponse, (response) =>
+      startSubscriptionPayFlow(this.deps_, response)
     );
     this.activityIframeView_.on(
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
-    this.activityIframeView_.on(
-      ViewSubscriptionsResponse,
-      this.startNativeFlow_.bind(this)
+    this.activityIframeView_.on(ViewSubscriptionsResponse, (response) =>
+      startNativeFlow(this.deps_, response)
     );
 
     const clientConfig = await this.clientConfigPromise_!;
@@ -251,35 +225,6 @@ export class OffersFlow {
           closeOnBackgroundClick: this.isClosable_,
         }
       : {};
-  }
-
-  /**
-   * Returns the full URL that should be used for the activity iFrame view.
-   */
-  private getUrl_(clientConfig: ClientConfig, pageConfig: PageConfig): string {
-    if (!clientConfig.useUpdatedOfferFlows) {
-      const offerCardParam = parseQueryString(this.win_.location.hash)[
-        'swg.newoffercard'
-      ];
-      const params: {[key: string]: string} = offerCardParam
-        ? {'useNewOfferCard': offerCardParam}
-        : {};
-      return feUrl('/offersiframe', params);
-    }
-
-    const params: {[key: string]: string} = {
-      'publicationId': pageConfig.getPublicationId(),
-    };
-
-    if (this.clientConfigManager_.shouldForceLangInIframes()) {
-      params['hl'] = this.clientConfigManager_.getLanguage();
-    }
-
-    if (clientConfig.uiPredicates?.purchaseUnavailableRegion) {
-      params['purchaseUnavailableRegion'] = 'true';
-    }
-
-    return feUrl('/subscriptionoffersiframe', params);
   }
 
   /**

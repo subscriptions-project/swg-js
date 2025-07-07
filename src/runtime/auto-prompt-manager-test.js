@@ -1917,7 +1917,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: true,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -1964,7 +1964,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -2042,7 +2042,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: true,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -2068,7 +2068,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: false,
         calledManually: false,
         shouldRenderPreview: true,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -2132,7 +2132,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: false,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2310,7 +2310,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2350,7 +2350,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2437,7 +2437,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2481,7 +2481,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2575,7 +2575,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2642,7 +2642,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2690,7 +2690,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2765,7 +2765,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2851,7 +2851,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -2946,7 +2946,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: sinon.match.func,
+        onAlternateAction: sinon.match.func,
       });
     });
 
@@ -3434,7 +3434,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -3497,7 +3497,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -3534,7 +3534,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: false,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -3570,7 +3570,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: true,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -3605,7 +3605,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: false,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -3686,7 +3686,7 @@ describes.realWin('AutoPromptManager', (env) => {
         isClosable: false,
         calledManually: false,
         shouldRenderPreview: false,
-        monetizationFunction: undefined,
+        onAlternateAction: undefined,
       });
     });
 
@@ -3696,11 +3696,8 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.isInDevMode_).to.be.false;
     });
 
-    describe('when dismissibility filter experiment enabled', () => {
-      const createArticleWithDismissibilityFilterExperiment = (
-        intervention,
-        closability
-      ) => ({
+    describe('when reader cannot purchase', () => {
+      const createArticle = (intervention, closability) => ({
         audienceActions: {actions: [intervention], engineId: '123'},
         actionOrchestration: {
           interventionFunnel: {
@@ -3713,31 +3710,27 @@ describes.realWin('AutoPromptManager', (env) => {
             ],
           },
         },
-        experimentConfig: {
-          experimentFlags: ['dismissibility_cta_filter_experiment'],
-        },
-      });
-      const readerCannotPurchaseClientConfig = new ClientConfig({
-        autoPromptConfig,
-        uiPredicates: new UiPredicates(
-          /* canDisplayAutoPrompt */ true,
-          /* canDisplayButton */ false,
-          /* purchaseUnavailableRegion */ true
-        ),
-        useUpdatedOfferFlows: true,
       });
 
-      it('filters out if open content and reader cannot purchase', async () => {
+      beforeEach(() => {
         getClientConfigExpectation
-          .resolves(readerCannotPurchaseClientConfig)
-          .once();
-        getArticleExpectation
           .resolves(
-            createArticleWithDismissibilityFilterExperiment(
-              SUBSCRIPTION_INTERVENTION,
-              'BLOCKING'
-            )
+            new ClientConfig({
+              autoPromptConfig,
+              uiPredicates: new UiPredicates(
+                /* canDisplayAutoPrompt */ true,
+                /* canDisplayButton */ false,
+                /* purchaseUnavailableRegion */ true
+              ),
+              useUpdatedOfferFlows: true,
+            })
           )
+          .once();
+      });
+
+      it('filters out monetary cta if open content', async () => {
+        getArticleExpectation
+          .resolves(createArticle(SUBSCRIPTION_INTERVENTION, 'BLOCKING'))
           .once();
 
         await autoPromptManager.showAutoPrompt({
@@ -3747,17 +3740,9 @@ describes.realWin('AutoPromptManager', (env) => {
         expect(subscriptionPromptFnSpy).not.to.have.been.called;
       });
 
-      it('filters out if closed content, dismissible, and reader cannot purchase', async () => {
-        getClientConfigExpectation
-          .resolves(readerCannotPurchaseClientConfig)
-          .once();
+      it('filters out if monetary, closed content, dismissible', async () => {
         getArticleExpectation
-          .resolves(
-            createArticleWithDismissibilityFilterExperiment(
-              CONTRIBUTION_INTERVENTION,
-              'DISMISSIBLE'
-            )
-          )
+          .resolves(createArticle(CONTRIBUTION_INTERVENTION, 'DISMISSIBLE'))
           .once();
 
         await autoPromptManager.showAutoPrompt({
@@ -3767,17 +3752,9 @@ describes.realWin('AutoPromptManager', (env) => {
         expect(contributionPromptFnSpy).not.to.have.been.called;
       });
 
-      it('shows if closed content and non-dismissible even if reader cannot purchase', async () => {
-        getClientConfigExpectation
-          .resolves(readerCannotPurchaseClientConfig)
-          .once();
+      it('shows if closed content and non-dismissible', async () => {
         getArticleExpectation
-          .resolves(
-            createArticleWithDismissibilityFilterExperiment(
-              CONTRIBUTION_INTERVENTION,
-              'UNSPECIFIED'
-            )
-          )
+          .resolves(createArticle(CONTRIBUTION_INTERVENTION, 'UNSPECIFIED'))
           .once();
 
         await autoPromptManager.showAutoPrompt({
@@ -3785,23 +3762,6 @@ describes.realWin('AutoPromptManager', (env) => {
         });
 
         expect(contributionPromptFnSpy).to.have.been.calledOnce;
-      });
-
-      it('shows if reader can purchase', async () => {
-        getArticleExpectation
-          .resolves(
-            createArticleWithDismissibilityFilterExperiment(
-              SUBSCRIPTION_INTERVENTION,
-              'BLOCKING'
-            )
-          )
-          .once();
-
-        await autoPromptManager.showAutoPrompt({
-          contentType: ContentType.OPEN,
-        });
-
-        expect(subscriptionPromptFnSpy).to.have.been.calledOnce;
       });
     });
 
@@ -4101,7 +4061,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4141,7 +4101,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4242,7 +4202,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4286,7 +4246,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4398,7 +4358,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4465,7 +4425,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4517,7 +4477,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4592,7 +4552,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4678,7 +4638,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -4767,7 +4727,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -5537,7 +5497,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -5573,7 +5533,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -5670,7 +5630,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -5714,7 +5674,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -5816,7 +5776,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -5863,7 +5823,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -5905,7 +5865,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -5960,7 +5920,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -6026,7 +5986,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -6091,7 +6051,7 @@ describes.realWin('AutoPromptManager', (env) => {
           isClosable: true,
           calledManually: false,
           shouldRenderPreview: false,
-          monetizationFunction: sinon.match.func,
+          onAlternateAction: sinon.match.func,
         });
       });
 
@@ -6579,6 +6539,14 @@ describes.realWin('AutoPromptManager', (env) => {
         {}
       );
 
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
       expect(isEligible).to.be.false;
     });
 
@@ -6593,6 +6561,14 @@ describes.realWin('AutoPromptManager', (env) => {
         {}
       );
 
+      expect(logEventSpy).not.to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
       expect(isEligible).to.be.true;
     });
 
@@ -6607,6 +6583,14 @@ describes.realWin('AutoPromptManager', (env) => {
         {}
       );
 
+      expect(logEventSpy).to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
       expect(isEligible).to.be.false;
     });
 
@@ -6621,6 +6605,14 @@ describes.realWin('AutoPromptManager', (env) => {
         {}
       );
 
+      expect(logEventSpy).not.to.be.calledOnceWith({
+        eventType: AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED,
+        eventOriginator: EventOriginator.SWG_CLIENT,
+        isFromUserAction: false,
+        additionalParameters: null,
+        timestamp: sandbox.match.number,
+        configurationId: null,
+      });
       expect(isEligible).to.be.true;
     });
 
@@ -7182,28 +7174,6 @@ describes.realWin('AutoPromptManager', (env) => {
         .returns({
           start: startLocalSpy,
         });
-    });
-
-    it('is rendered for TYPE_REWARDED_ADS', async () => {
-      win.googletag = {
-        apiReady: true,
-        getVersion: () => 'gpt_version_foo',
-      };
-
-      await autoPromptManager.showAutoPrompt({});
-
-      expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
-        action: 'TYPE_REWARDED_AD',
-        configurationId: 'rewarded_ad_config_id',
-        autoPromptType: AutoPromptType.SUBSCRIPTION_LARGE,
-        isClosable: false,
-        monetizationFunction: sandbox.match.any,
-        calledManually: false,
-        shouldRenderPreview: false,
-      });
-      expect(startLocalSpy).to.have.been.calledOnce;
-      expect(startSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
 
     it('is rendered for BYOP TYPE_NEWSLETTER_SIGNUP', async () => {

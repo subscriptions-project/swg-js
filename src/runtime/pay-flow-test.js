@@ -44,6 +44,7 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {StorageKeys} from '../utils/constants';
 import {UserData} from '../api/user-data';
+import {createElement} from '../utils/dom';
 import {tick} from '../../test/tick';
 
 const INTEGR_DATA_STRING =
@@ -1287,6 +1288,166 @@ describes.realWin('PayCompleteFlow', (env) => {
       .once();
     await flow.start(response);
     await flow.readyPromise_;
+  });
+
+  it('no iframe open if inline config id is empty', async () => {
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = '';
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+  });
+
+  it('no iframe open if inline code snippet not found', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
+  it('no iframe open if inline code snippet not match config id', async () => {
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = 'contribution_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': 'subscription_config_id',
+    });
+    win.document.body.appendChild(subscriptionSnippet);
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
+  it('child element removed when code snippet was found', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': subscriptionConfigId,
+    });
+    const childDiv = createElement(win.document, 'span', {
+      'id': 'childElement',
+    });
+    subscriptionSnippet.appendChild(childDiv);
+    win.document.body.appendChild(subscriptionSnippet);
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').resolves(port);
+    expect(win.document.getElementById('childElement')).to.not.be.null;
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+    expect(win.document.getElementById('childElement')).to.be.null;
+  });
+
+  it('should have valid flow constructed for inline CTA', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': subscriptionConfigId,
+    });
+    win.document.body.appendChild(subscriptionSnippet);
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_&ctaMode=CTA_MODE_INLINE',
+        {
+          _client: 'SwG 0.0.0',
+          publicationId: 'pub1',
+          idToken: USER_ID_TOKEN,
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
+        }
+      )
+      .resolves(port);
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
   });
 
   describe('payments response', () => {
