@@ -1448,6 +1448,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+    expect(subscriptionSnippet.firstChild.style.width).to.equal('100%');
   });
 
   describe('payments response', () => {
