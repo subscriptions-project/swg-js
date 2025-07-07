@@ -55,6 +55,7 @@ import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString} from '../utils/json';
 import {getSwgMode} from './services';
 import {isCancelError} from '../utils/errors';
+import {setImportantStyles} from '../utils/style';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
@@ -388,6 +389,9 @@ export class PayCompleteFlow {
         inlineDiv.removeChild(inlineDiv.firstChild);
       }
       // Attach confirmation iframe
+      setImportantStyles(this.activityIframeView_.getElement(), {
+        'width': '100%',
+      });
       inlineDiv.appendChild(this.activityIframeView_.getElement());
       this.readyPromise_ = this.activityIframeView_.init();
     } else {
