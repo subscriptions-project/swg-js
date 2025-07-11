@@ -456,11 +456,11 @@ describes.realWin('Dialog', (env) => {
         await openedDialog.openView(view);
         doc.body.addEventListener('click', clickFun);
         // This class is added when the screen is opened.
-        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(doc.documentElement).to.have.class('swg-disable-scroll');
 
         el.click();
 
-        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(doc.documentElement).to.have.class('swg-disable-scroll');
         expect(wasClicked).to.be.true;
       });
 
@@ -480,11 +480,11 @@ describes.realWin('Dialog', (env) => {
         await openedDialog.openView(view);
         doc.body.addEventListener('click', clickFun);
         // This class is added when the screen is opened.
-        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(doc.documentElement).to.have.class('swg-disable-scroll');
 
         el.click();
 
-        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(doc.documentElement).to.have.class('swg-disable-scroll');
         expect(wasClicked).to.be.true;
       });
     });
@@ -641,7 +641,7 @@ describes.realWin('Dialog', (env) => {
           await dialog.open();
           view.shouldDisableBodyScrolling = () => true;
           await dialog.openView(view);
-          expect(doc.body).to.have.class('swg-disable-scroll');
+          expect(doc.documentElement).to.have.class('swg-disable-scroll');
         });
 
         it('does not add swg-disable-scroll otherwise', async () => {
@@ -654,7 +654,7 @@ describes.realWin('Dialog', (env) => {
           await dialog.open();
           view.shouldDisableBodyScrolling = () => false;
           await dialog.openView(view);
-          expect(doc.body).not.to.have.class('swg-disable-scroll');
+          expect(doc.documentElement).not.to.have.class('swg-disable-scroll');
         });
       });
 
@@ -669,9 +669,9 @@ describes.realWin('Dialog', (env) => {
           await dialog.open();
           view.shouldDisableBodyScrolling = () => true;
           await dialog.openView(view);
-          expect(doc.body).to.have.class('swg-disable-scroll');
+          expect(doc.documentElement).to.have.class('swg-disable-scroll');
           await dialog.close();
-          expect(doc.body).not.to.have.class('swg-disable-scroll');
+          expect(doc.documentElement).not.to.have.class('swg-disable-scroll');
         });
       });
     });
