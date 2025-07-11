@@ -107,6 +107,11 @@ export function startContributionPayFlow(
     if (isOneTime) {
       contributionRequest['oneTime'] = isOneTime;
     }
+    if (isInlineCta) {
+      deps.analytics().addLabels([INLINE_CTA_LABEL]);
+    } else {
+      deps.analytics().removeLabels([INLINE_CTA_LABEL]);
+    }
     new PayStartFlow(
       deps,
       contributionRequest,
