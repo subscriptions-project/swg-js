@@ -164,8 +164,7 @@ export class ClientEventManager implements ClientEventManagerApi {
     isFromUserAction: boolean | null = false,
     eventParams: EventParams | null = null,
     eventTime?: number,
-    configurationId: string | null = null,
-    label?: string[] | null
+    configurationId: string | null = null
   ) {
     this.logEvent(
       {
@@ -174,7 +173,6 @@ export class ClientEventManager implements ClientEventManagerApi {
         isFromUserAction,
         additionalParameters: eventParams,
         configurationId,
-        label,
       },
       undefined,
       eventTime
