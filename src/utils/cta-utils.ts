@@ -32,6 +32,8 @@ import {feUrl} from '../runtime/services';
 import {msg} from './i18n';
 import {parseQueryString} from './url';
 
+const INLINE_CTA_LABEL = 'CTA_MODE_INLINE';
+
 /** Show a toast idicating that reader has already registered before. */
 export function showAlreadyOptedInToast(
   actionType: string,
@@ -84,13 +86,18 @@ export function getContributionsUrl(
     params['hl'] = clientConfigManager.getLanguage();
   }
   if (isInlineCta) {
-    params['ctaMode'] = 'CTA_MODE_INLINE';
+    params['ctaMode'] = INLINE_CTA_LABEL;
   }
 
   return feUrl('/contributionoffersiframe', params);
 }
 
-export function startPayFlow(deps: Deps, response: SkuSelectedResponse): void {
+export function startContributionPayFlow(
+  deps: Deps,
+  response: SkuSelectedResponse,
+  isInlineCta: boolean = false,
+  configId: string = ''
+): void {
   const sku = response.getSku();
   const isOneTime = response.getOneTime();
   if (sku) {
@@ -100,10 +107,17 @@ export function startPayFlow(deps: Deps, response: SkuSelectedResponse): void {
     if (isOneTime) {
       contributionRequest['oneTime'] = isOneTime;
     }
+    if (isInlineCta) {
+      deps.analytics().addLabels([INLINE_CTA_LABEL]);
+    } else {
+      deps.analytics().removeLabels([INLINE_CTA_LABEL]);
+    }
     new PayStartFlow(
       deps,
       contributionRequest,
-      ProductType.UI_CONTRIBUTION
+      ProductType.UI_CONTRIBUTION,
+      isInlineCta,
+      configId
     ).start();
   }
 }
@@ -139,7 +153,7 @@ export function getSubscriptionUrl(
   }
 
   if (isInlineCta) {
-    params['ctaMode'] = 'CTA_MODE_INLINE';
+    params['ctaMode'] = INLINE_CTA_LABEL;
   }
 
   return feUrl('/subscriptionoffersiframe', params);
@@ -147,7 +161,9 @@ export function getSubscriptionUrl(
 
 export function startSubscriptionPayFlow(
   deps: Deps,
-  response: SkuSelectedResponse
+  response: SkuSelectedResponse,
+  isInlineCta: boolean = false,
+  configId: string = ''
 ): void {
   const sku = response.getSku();
   if (sku) {
@@ -159,6 +175,13 @@ export function startSubscriptionPayFlow(
       subscriptionRequest['oldSku'] = oldSku;
       deps.analytics().setSku(oldSku);
     }
+
+    if (isInlineCta) {
+      deps.analytics().addLabels([INLINE_CTA_LABEL]);
+    } else {
+      deps.analytics().removeLabels([INLINE_CTA_LABEL]);
+    }
+
     deps
       .eventManager()
       .logSwgEvent(
@@ -166,7 +189,13 @@ export function startSubscriptionPayFlow(
         true,
         getEventParams(sku)
       );
-    new PayStartFlow(deps, subscriptionRequest).start();
+    new PayStartFlow(
+      deps,
+      subscriptionRequest,
+      ProductType.SUBSCRIPTION,
+      isInlineCta,
+      configId
+    ).start();
   }
 }
 

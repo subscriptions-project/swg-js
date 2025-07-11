@@ -39,8 +39,8 @@ import {
   getContributionsUrl,
   getSubscriptionUrl,
   showAlreadyOptedInToast,
+  startContributionPayFlow,
   startNativeFlow,
-  startPayFlow,
   startSubscriptionPayFlow,
 } from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
@@ -166,6 +166,7 @@ export class InlineCtaApi {
             'list': 'default',
             'skus': null,
             'isClosable': false,
+            'supportsEventManager': false,
           }) as {[key: string]: string})
         : action.type === InterventionType.TYPE_CONTRIBUTION
         ? feArgs({
@@ -175,10 +176,10 @@ export class InlineCtaApi {
             'list': 'default',
             'skus': null,
             'isClosable': false,
-            'supportsEventManager': true,
+            'supportsEventManager': false,
           })
         : feArgs({
-            'supportsEventManager': true,
+            'supportsEventManager': false,
             'productType': DEFAULT_PRODUCT_TYPE,
           });
 
@@ -203,7 +204,12 @@ export class InlineCtaApi {
           .triggerFlowCanceled(SubscriptionFlows.SHOW_OFFERS);
       });
       activityIframeView.on(SkuSelectedResponse, (response) =>
-        startSubscriptionPayFlow(this.deps_, response)
+        startSubscriptionPayFlow(
+          this.deps_,
+          response,
+          /* isInlineCta */ true,
+          configId
+        )
       );
       activityIframeView.on(ViewSubscriptionsResponse, (response) =>
         startNativeFlow(this.deps_, response)
@@ -218,7 +224,12 @@ export class InlineCtaApi {
           .triggerFlowCanceled(SubscriptionFlows.SHOW_CONTRIBUTION_OPTIONS);
       });
       activityIframeView.on(SkuSelectedResponse, (response) =>
-        startPayFlow(this.deps_, response)
+        startContributionPayFlow(
+          this.deps_,
+          response,
+          /* isInlineCta */ true,
+          configId
+        )
       );
     } else {
       activityIframeView.on(CompleteAudienceActionResponse, (response) =>

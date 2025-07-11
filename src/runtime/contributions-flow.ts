@@ -32,7 +32,10 @@ import {
   SubscriptionFlows,
 } from '../api/subscriptions';
 import {feArgs} from './services';
-import {getContributionsUrl, startPayFlow} from '../utils/cta-utils';
+import {
+  getContributionsUrl,
+  startContributionPayFlow,
+} from '../utils/cta-utils';
 
 /**
  * The class for Contributions flow.
@@ -122,7 +125,7 @@ export class ContributionsFlow {
       this.handleLinkRequest_.bind(this)
     );
     activityIframeView.on(SkuSelectedResponse, (response) =>
-      startPayFlow(this.deps_, response)
+      startContributionPayFlow(this.deps_, response)
     );
 
     const clientConfig = await this.clientConfigManager_.getClientConfig();

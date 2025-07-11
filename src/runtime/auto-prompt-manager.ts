@@ -188,10 +188,10 @@ export class AutoPromptManager {
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private configId_?: string;
   private isClosable_?: boolean;
+  private isMonetizationClosable_?: boolean;
   private autoPromptType_?: AutoPromptType;
   private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
-  private dismissibilityCtaFilterExperiment_: boolean = false;
   private standardRewardedAdExperiment = false;
   private multiInstanceCtaExperiment: boolean = false;
 
@@ -255,6 +255,7 @@ export class AutoPromptManager {
         params.autoPromptType
       );
       this.isClosable_ = this.contentType_ != ContentType.CLOSED;
+      this.isMonetizationClosable_ = this.isClosable_;
       const promptFn = this.getMonetizationPromptFn_();
       promptFn();
       return;
@@ -288,10 +289,6 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    this.dismissibilityCtaFilterExperiment_ = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.DISMISSIBILITY_CTA_FILTER_EXPERIMENT
-    );
     this.standardRewardedAdExperiment = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.STANDARD_REWARDED_AD_EXPERIMENT
@@ -323,6 +320,7 @@ export class AutoPromptManager {
     // For FCA - default to the contentType.
     // TODO(b/364344782): Determine closability for Phase 2+.
     this.isClosable_ = this.contentType_ != ContentType.CLOSED;
+    this.isMonetizationClosable_ = this.isClosable_;
 
     const previewAction = actions[0];
 
@@ -373,19 +371,24 @@ export class AutoPromptManager {
         article
       );
       if (!!nextOrchestration) {
-        switch (nextOrchestration?.closability) {
-          case Closability.BLOCKING:
-            this.isClosable_ = false;
-            break;
-          case Closability.DISMISSIBLE:
-            this.isClosable_ = true;
-            break;
-          default:
-            this.isClosable_ = this.contentType_ != ContentType.CLOSED;
-        }
+        this.isClosable_ = this.isOrchestrationClosable(nextOrchestration);
         potentialAction = article.audienceActions?.actions?.find(
           (action) => action.configurationId === nextOrchestration.configId
         );
+      }
+      if (this.isContribution_() || this.isSubscription_()) {
+        this.isMonetizationClosable_ = this.isClosable_;
+        const monetizationIntervention =
+          article.actionOrchestration.interventionFunnel?.interventions?.find(
+            (intervention) =>
+              intervention.type === InterventionType.TYPE_SUBSCRIPTION ||
+              intervention.type === InterventionType.TYPE_CONTRIBUTION
+          );
+        if (monetizationIntervention) {
+          this.isMonetizationClosable_ = this.isOrchestrationClosable(
+            monetizationIntervention
+          );
+        }
       }
     } else {
       // Unexpected state where actionOrchestration is not defined.
@@ -396,6 +399,7 @@ export class AutoPromptManager {
         );
         if (subscriptionAction) {
           this.isClosable_ = false;
+          this.isMonetizationClosable_ = false;
           potentialAction = {
             type: subscriptionAction.type,
             configurationId: subscriptionAction.configurationId,
@@ -426,6 +430,17 @@ export class AutoPromptManager {
       promptFn();
     }
     return;
+  }
+
+  private isOrchestrationClosable(orchestration: InterventionOrchestration) {
+    switch (orchestration?.closability) {
+      case Closability.BLOCKING:
+        return false;
+      case Closability.DISMISSIBLE:
+        return true;
+      default:
+        return this.contentType_ != ContentType.CLOSED;
+    }
   }
 
   private isSubscription_(): boolean {
@@ -622,7 +637,7 @@ export class AutoPromptManager {
     shouldAnimateFade: boolean = true
   ): (() => void) | undefined {
     const options: OffersRequest = {
-      isClosable: !!this.isClosable_,
+      isClosable: !!this.isMonetizationClosable_,
       shouldAnimateFade,
     };
     if (this.isSubscription_()) {
@@ -1087,11 +1102,7 @@ export class AutoPromptManager {
     const isDismissible =
       this.contentType_ !== ContentType.CLOSED ||
       closability === Closability.DISMISSIBLE;
-    if (
-      this.dismissibilityCtaFilterExperiment_ &&
-      isDismissible &&
-      readerCannotPurchase
-    ) {
+    if (isDismissible && readerCannotPurchase) {
       return false;
     }
 

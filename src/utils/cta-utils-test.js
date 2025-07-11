@@ -33,7 +33,7 @@ import {
   getContributionsUrl,
   getSubscriptionUrl,
   showAlreadyOptedInToast,
-  startPayFlow,
+  startContributionPayFlow,
   startSubscriptionPayFlow,
 } from './cta-utils';
 
@@ -184,14 +184,30 @@ describes.realWin('CTA utils', (env) => {
     });
   });
 
-  describe('startPayFlow', () => {
+  describe('startContributionPayFlow', () => {
+    let analyticsMock;
+
+    beforeEach(() => {
+      const eventManager = new ClientEventManager(Promise.resolve());
+      sandbox.stub(deps, 'eventManager').returns(eventManager);
+      const pageConfig = new PageConfig(productId, true);
+      sandbox.stub(deps, 'pageConfig').returns(pageConfig);
+      const analyticsService = new AnalyticsService(deps);
+      analyticsMock = sandbox.mock(analyticsService);
+      sandbox.stub(deps, 'analytics').returns(analyticsService);
+    });
+
     it('calls PayStartFlow with right params', async () => {
       const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
       const skuSelected = new SkuSelectedResponse();
       skuSelected.setSku('sku1');
       skuSelected.setOneTime(true);
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
 
-      startPayFlow(deps, skuSelected);
+      startContributionPayFlow(deps, skuSelected, /* isInlineCta */ false);
 
       expect(payStub).to.be.calledOnce;
       expect(
@@ -199,6 +215,56 @@ describes.realWin('CTA utils', (env) => {
       ).to.equal('sku1');
       expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
         .true;
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.false;
+    });
+
+    it('calls PayStartFlow with right params for inline CTA', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(true);
+      analyticsMock
+        .expects('addLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startContributionPayFlow(deps, skuSelected, /* isInlineCta */ true);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .true;
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
+    });
+
+    it('calls PayStartFlow with right configId params', async () => {
+      const configId = 'test_config_id';
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(true);
+      analyticsMock
+        .expects('addLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startContributionPayFlow(
+        deps,
+        skuSelected,
+        /* isInlineCta */ true,
+        configId
+      );
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .true;
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
+      expect(payStub.getCalls()[0].thisValue.configId_).to.equal(configId);
     });
   });
 
@@ -223,6 +289,10 @@ describes.realWin('CTA utils', (env) => {
       skuSelected.setSku('sku1');
       skuSelected.setOldSku('sku2');
       analyticsMock.expects('setSku').withExactArgs('sku2').once();
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
 
       startSubscriptionPayFlow(deps, skuSelected);
 
@@ -233,6 +303,7 @@ describes.realWin('CTA utils', (env) => {
       expect(
         payStub.getCalls()[0].thisValue.subscriptionRequest_.oldSku
       ).to.equal('sku2');
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.false;
       analyticsMock.verify();
     });
 
@@ -255,6 +326,51 @@ describes.realWin('CTA utils', (env) => {
       expect(
         payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
       ).to.equal('sku1');
+    });
+
+    it('calls PayStartFlow with right params for inline CTA', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      analyticsMock
+        .expects('addLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startSubscriptionPayFlow(deps, skuSelected, /* isInlineCta */ true);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
+      analyticsMock.verify();
+    });
+
+    it('calls PayStartFlow with right configId params', async () => {
+      const configId = 'test_config_id';
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      analyticsMock
+        .expects('addLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startSubscriptionPayFlow(
+        deps,
+        skuSelected,
+        /* isInlineCta */ true,
+        configId
+      );
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
+      expect(payStub.getCalls()[0].thisValue.configId_).to.equal(configId);
+      analyticsMock.verify();
     });
   });
 
