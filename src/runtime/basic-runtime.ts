@@ -663,7 +663,9 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       );
 
     if (inlineCtaEnabled) {
-      this.inlineCtaApi_.attachInlineCtasWithAttribute();
+      this.win().setTimeout(() => {
+        this.inlineCtaApi_.attachInlineCtasWithAttribute();
+      }, 2000);
     }
   }
 
