@@ -401,6 +401,28 @@ describes.sandboxed('EventManager', () => {
           });
         }
       });
+
+      it('should respect label', () => {
+        const possibleValues = [null, ['inline_cta']];
+        for (const label of possibleValues) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            null,
+            null,
+            null,
+            null,
+            label
+          );
+          expect(event).to.deep.equal({
+            eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: null,
+            additionalParameters: null,
+            configurationId: null,
+            label,
+          });
+        }
+      });
     });
   });
 });

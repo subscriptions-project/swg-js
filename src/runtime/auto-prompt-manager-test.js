@@ -2157,6 +2157,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
     });
 
@@ -2253,6 +2254,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
     });
 

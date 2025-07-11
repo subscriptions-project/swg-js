@@ -305,6 +305,9 @@ export class AnalyticsService {
     if (!!event.configurationId) {
       meta.setConfigurationId(event.configurationId);
     }
+    if (!!event.label) {
+      this.addLabels(event.label);
+    }
     // Update the request's timestamp.
     this.context_.setClientTimestamp(toTimestamp(event.timestamp!));
     const loadEventStartDelay = this.getLoadEventStartDelay_();

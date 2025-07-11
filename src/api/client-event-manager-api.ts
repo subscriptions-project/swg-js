@@ -40,6 +40,8 @@ export interface ClientEvent {
   timestamp?: number;
   /** Optional. ID of the associated action configuration. */
   configurationId?: string | null;
+  /** Optional. context label of the event. */
+  label?: string[] | null;
 }
 
 export interface ClientEventManagerApi {
