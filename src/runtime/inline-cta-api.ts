@@ -123,11 +123,13 @@ export class InlineCtaApi {
     clientConfig: ClientConfig
   ) {
     // return if config id is not set in inline CTA code snippet.
-    const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
+    let configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
     if (!configId) {
       warn('No Inline CTA Config Id');
       return;
     }
+    // Remove double quotation mark if wrapped around config id.
+    configId = configId.trim().replace(/^"|"$/g, '');
     // return if no active action matches config id.
     const action = actions.find(
       (action) => action.configurationId === configId
