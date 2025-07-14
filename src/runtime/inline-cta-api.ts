@@ -122,14 +122,15 @@ export class InlineCtaApi {
     actions: Intervention[],
     clientConfig: ClientConfig
   ) {
-    // return if config id is not set in inline CTA code snippet.
-    let configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
+    // return if config id is not set in inline CTA code snippet and remove double quotation mark if wrapped around config id..
+    const configId = div
+      .getAttribute(INLINE_CTA_ATTRIUBUTE)
+      ?.trim()
+      .replaceAll('"', '');
     if (!configId) {
       warn('No Inline CTA Config Id');
       return;
     }
-    // Remove double quotation mark if wrapped around config id.
-    configId = configId.trim().replace(/^"|"$/g, '');
     // return if no active action matches config id.
     const action = actions.find(
       (action) => action.configurationId === configId
