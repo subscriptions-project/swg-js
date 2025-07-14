@@ -247,6 +247,7 @@ describes.realWin('AnalyticsService', (env) => {
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
         configurationId: 'configurationId',
+        label: ['label1', 'label2'],
       });
       expect(analyticsService.lastAction).to.not.be.null;
       await analyticsService.lastAction;
@@ -260,6 +261,10 @@ describes.realWin('AnalyticsService', (env) => {
       expect(meta.getEventOriginator()).to.equal(EventOriginator.SWG_CLIENT);
       expect(meta.getIsFromUserAction()).to.be.true;
       expect(meta.getConfigurationId()).to.equal('configurationId');
+      const labels = context.getLabelList();
+      expect(labels.length).to.equal(2);
+      expect(labels[0]).to.equal('label1');
+      expect(labels[0]).to.equal('label2');
 
       // It should have a working logging promise
       const p = analyticsService.getLoggingPromise();
