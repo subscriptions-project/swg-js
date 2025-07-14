@@ -431,7 +431,7 @@ export class PayCompleteFlow {
       const inlineConfigId = element
         .getAttribute(INLINE_CTA_ATTRIUBUTE)
         ?.trim()
-        .replace(/[''""“”‘’]/g, '');
+        .replace(/['"“”‘’]/g, '');
       if (configId === inlineConfigId) {
         return element;
       }
