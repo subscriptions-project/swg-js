@@ -276,15 +276,14 @@ export class InlineCtaApi {
       !article ||
       !!entitlements.enablesThis()
     ) {
-      if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
-        log('No Inline CTA Client Config');
-      }
-      if (!article) {
-        log('No Inline CTA Article');
-      }
-      if (!!entitlements.enablesThis()) {
-        log('Inline CTA - Has Entitlements');
-      }
+      log(
+        'Inline CTA Client Config: ' +
+          !clientConfig.uiPredicates?.canDisplayAutoPrompt +
+          'Article: ' +
+          !article +
+          'Entitlements: ' +
+          !!entitlements.enablesThis()
+      );
       return;
     }
 
