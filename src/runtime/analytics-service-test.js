@@ -223,6 +223,8 @@ describes.realWin('AnalyticsService', (env) => {
         eventOriginator: EventOriginator.UNKNOWN_CLIENT,
         isFromUserAction: null,
         additionalParameters: null,
+        configurationId: null,
+        label: ['label1', 'CTA_MODE_INLINE'],
       });
 
       // These wait for analytics server to be ready to send data.
@@ -240,6 +242,11 @@ describes.realWin('AnalyticsService', (env) => {
       );
       expect(request1.getMeta().getIsFromUserAction()).to.be.false;
       expect(request1.getMeta().getConfigurationId()).to.be.null;
+      const context1 = request1.getContext();
+      const labels1 = context1.getLabelList();
+      expect(labels1.length).to.equal(2);
+      expect(labels1[0]).to.equal('label1');
+      expect(labels1[1]).to.equal('CTA_MODE_INLINE');
       // This sends another event and waits for it to be sent
       eventManagerCallback({
         eventType: AnalyticsEvent.IMPRESSION_PAYWALL,
@@ -247,7 +254,7 @@ describes.realWin('AnalyticsService', (env) => {
         isFromUserAction: true,
         additionalParameters: {droppedData: true},
         configurationId: 'configurationId',
-        label: ['label1', 'label2'],
+        label: null,
       });
       expect(analyticsService.lastAction).to.not.be.null;
       await analyticsService.lastAction;
@@ -261,10 +268,10 @@ describes.realWin('AnalyticsService', (env) => {
       expect(meta.getEventOriginator()).to.equal(EventOriginator.SWG_CLIENT);
       expect(meta.getIsFromUserAction()).to.be.true;
       expect(meta.getConfigurationId()).to.equal('configurationId');
-      const labels = context.getLabelList();
-      expect(labels.length).to.equal(2);
-      expect(labels[0]).to.equal('label1');
-      expect(labels[0]).to.equal('label2');
+      const context2 = request2.getContext();
+      const labels2 = context2.getLabelList();
+      expect(labels2.length).to.equal(1);
+      expect(labels2[0]).to.equal('label1');
 
       // It should have a working logging promise
       const p = analyticsService.getLoggingPromise();
