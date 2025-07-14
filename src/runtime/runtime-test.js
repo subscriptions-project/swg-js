@@ -357,6 +357,7 @@ describes.realWin('Runtime', (env) => {
         isFromUserAction: false,
         additionalParameters: null,
         configurationId: null,
+        label: null,
       });
       expect(logger).to.be.instanceOf(Logger);
     });
