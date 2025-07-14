@@ -44,8 +44,8 @@ import {
   startSubscriptionPayFlow,
 } from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
-import {log} from '../utils/log';
 import {setImportantStyles} from '../utils/style';
+import {warn} from '../utils/log';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
@@ -125,7 +125,7 @@ export class InlineCtaApi {
     // return if config id is not set in inline CTA code snippet.
     const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
     if (!configId) {
-      log('No Inline CTA Config Id');
+      warn('No Inline CTA Config Id');
       return;
     }
     // return if no active action matches config id.
@@ -133,7 +133,7 @@ export class InlineCtaApi {
       (action) => action.configurationId === configId
     );
     if (!action) {
-      log('No Inline CTA Matching Action');
+      warn('No Inline CTA Matching Action');
       return;
     }
     // return if action is not inline CTA supported type.
@@ -259,7 +259,7 @@ export class InlineCtaApi {
     );
 
     if (elements.length === 0) {
-      log('No Inline CTA Snippet');
+      warn('No Inline CTA Snippet');
       return;
     }
 
@@ -276,7 +276,7 @@ export class InlineCtaApi {
       !article ||
       !!entitlements.enablesThis()
     ) {
-      log(
+      warn(
         'Inline CTA Client Config: ' +
           !clientConfig.uiPredicates?.canDisplayAutoPrompt +
           'Article: ' +
@@ -289,7 +289,7 @@ export class InlineCtaApi {
 
     const actions = article.audienceActions?.actions;
     if (!actions || actions.length === 0) {
-      log('No Inline CTA Actions');
+      warn('No Inline CTA Actions');
       return;
     }
 
