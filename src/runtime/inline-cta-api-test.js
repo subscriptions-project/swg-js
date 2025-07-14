@@ -308,7 +308,7 @@ describes.realWin('InlineCtaApi', (env) => {
     it('should render CTA if config id is wrapped in quotation mark', async () => {
       win.document.body.removeChild(newsletterSnippet);
       const quotatedSnippet = createElement(win.document, 'div', {
-        'rrm-inline-cta': '"newsletter_config_id"',
+        'rrm-inline-cta': '“newsletter_config_id"',
       });
       win.document.body.append(quotatedSnippet);
       setEntitlements();

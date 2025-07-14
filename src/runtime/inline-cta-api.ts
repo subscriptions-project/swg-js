@@ -126,7 +126,7 @@ export class InlineCtaApi {
     const configId = div
       .getAttribute(INLINE_CTA_ATTRIUBUTE)
       ?.trim()
-      .replaceAll('"', '');
+      .replace(/[''""“”‘’]/g, '');
     if (!configId) {
       warn('No Inline CTA Config Id');
       return;
