@@ -2157,6 +2157,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
     });
 
@@ -2253,6 +2254,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
     });
 
@@ -2300,6 +2302,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2340,6 +2343,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2427,6 +2431,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2471,6 +2476,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2557,6 +2563,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2565,6 +2572,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2632,6 +2640,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2680,6 +2689,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2747,6 +2757,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2755,6 +2766,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2833,6 +2845,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2841,6 +2854,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2928,6 +2942,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -2936,6 +2951,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(startSpy).to.have.been.calledOnce;
       expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -2971,6 +2987,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -3064,6 +3081,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
@@ -3072,6 +3090,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -3151,6 +3170,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3159,6 +3179,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3167,6 +3188,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -3246,6 +3268,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3254,6 +3277,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3262,6 +3286,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -3379,6 +3404,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3387,6 +3413,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(logEventSpy).to.be.calledWith({
         eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -3395,6 +3422,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(contributionPromptFnSpy).to.not.have.been.called;
       expect(startSpy).to.not.have.been.called;
@@ -3923,6 +3951,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
       });
 
@@ -4004,6 +4033,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
       });
 
@@ -4051,6 +4081,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4091,6 +4122,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4192,6 +4224,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4236,6 +4269,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4340,6 +4374,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -4348,6 +4383,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4415,6 +4451,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4467,6 +4504,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4534,6 +4572,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -4542,6 +4581,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4620,6 +4660,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -4628,6 +4669,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4709,6 +4751,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -4717,6 +4760,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -4752,6 +4796,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -4859,6 +4904,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
@@ -4867,6 +4913,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -4958,6 +5005,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -4966,6 +5014,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -4974,6 +5023,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -5065,6 +5115,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -5073,6 +5124,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -5081,6 +5133,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -5221,6 +5274,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -5229,6 +5283,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -5237,6 +5292,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -5389,6 +5445,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
       });
 
@@ -5448,6 +5505,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
       });
 
@@ -5487,6 +5545,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -5523,6 +5582,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -5620,6 +5680,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -5664,6 +5725,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -5758,6 +5820,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -5766,6 +5829,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -5813,6 +5877,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -5855,6 +5920,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -5902,6 +5968,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -5910,6 +5977,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -5968,6 +6036,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -5976,6 +6045,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -6033,6 +6103,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -6041,6 +6112,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(startSpy).to.have.been.calledOnce;
         expect(actionFlowSpy).to.have.been.calledWith(deps, {
@@ -6072,6 +6144,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -6169,6 +6242,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET,
@@ -6177,6 +6251,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -6236,6 +6311,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -6244,6 +6320,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -6252,6 +6329,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -6311,6 +6389,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -6319,6 +6398,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -6327,6 +6407,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -6433,6 +6514,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -6441,6 +6523,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(logEventSpy).to.be.calledWith({
           eventType: AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET,
@@ -6449,6 +6532,7 @@ describes.realWin('AutoPromptManager', (env) => {
           additionalParameters: null,
           timestamp: sandbox.match.number,
           configurationId: null,
+          label: null,
         });
         expect(contributionPromptFnSpy).to.not.have.been.called;
         expect(startSpy).to.not.have.been.called;
@@ -6546,6 +6630,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(isEligible).to.be.false;
     });
@@ -6568,6 +6653,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(isEligible).to.be.true;
     });
@@ -6590,6 +6676,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(isEligible).to.be.false;
     });
@@ -6612,6 +6699,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
       expect(isEligible).to.be.true;
     });
@@ -7108,6 +7196,7 @@ describes.realWin('AutoPromptManager', (env) => {
         additionalParameters: null,
         timestamp: sandbox.match.number,
         configurationId: null,
+        label: null,
       });
 
       expect(isEligible).to.equal(true);
