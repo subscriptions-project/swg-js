@@ -261,7 +261,6 @@ export class InlineCtaApi {
     );
 
     if (elements.length === 0) {
-      warn('No Inline CTA Snippet');
       return;
     }
 
