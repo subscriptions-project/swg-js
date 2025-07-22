@@ -491,6 +491,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     if (this.params_.onAlternateAction) {
       this.params_.onAlternateAction();
     }
+    this.dialogManager_.completeView(this.activityIframeView_);
     this.params_.onResult?.({
       configurationId: this.params_.configurationId,
       data: {

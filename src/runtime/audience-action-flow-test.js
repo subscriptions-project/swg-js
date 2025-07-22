@@ -1110,11 +1110,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         undefined,
         undefined
       );
+      dialogManagerMock.expects('completeView').once();
 
       win.googletag.cmd[0]();
 
       eventListeners['rewardedSlotClosed']();
       expect(alternateActionSpy).to.be.called;
+      dialogManagerMock.verify();
     });
 
     it('handles rewarded ad timout', async () => {
@@ -1325,6 +1327,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         undefined,
         undefined
       );
+      dialogManagerMock.expects('completeView').once();
 
       let grantedCallback;
       win.adsbygoogle[0]['params']['google_acr']({
@@ -1339,6 +1342,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       await grantedCallback({status: 'foo', reward: undefined});
 
       expect(alternateActionSpy).to.be.called;
+      dialogManagerMock.verify();
     });
   });
 
