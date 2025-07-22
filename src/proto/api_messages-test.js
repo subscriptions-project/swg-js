@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
- import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, Duration, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+ import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
  describe('deserialize', () => {
    it('throws if deserialization fails', () => {
@@ -456,6 +456,7 @@
      eventparams1.setSubscriptionTimestamp(timestamp4);
      eventparams1.setCampaignId('');
      eventparams1.setLinkedPublicationsCount(0);
+     eventparams1.setCtaMode(CtaMode.CTA_MODE_POPUP);
      analyticsrequest1.setParams(eventparams1);
 
      let analyticsrequestDeserialized;
@@ -936,6 +937,7 @@
      eventparams1.setSubscriptionTimestamp(timestamp1);
      eventparams1.setCampaignId('');
      eventparams1.setLinkedPublicationsCount(0);
+     eventparams1.setCtaMode(CtaMode.CTA_MODE_INLINE);
 
      let eventparamsDeserialized;
 
@@ -967,6 +969,8 @@
          eventparams1.getCampaignId());
      expect(eventparamsDeserialized.getLinkedPublicationsCount()).to.deep.equal(
          eventparams1.getLinkedPublicationsCount());
+     expect(eventparamsDeserialized.getCtaMode()).to.deep.equal(
+         eventparams1.getCtaMode());
 
      // Verify includeLabel true
      // Verify serialized arrays.
@@ -996,6 +1000,8 @@
          eventparams1.getCampaignId());
      expect(eventparamsDeserialized.getLinkedPublicationsCount()).to.deep.equal(
          eventparams1.getLinkedPublicationsCount());
+     expect(eventparamsDeserialized.getCtaMode()).to.deep.equal(
+         eventparams1.getCtaMode());
 
      // Verify includeLabel false
      // Verify serialized arrays.
@@ -1024,6 +1030,8 @@
          eventparams1.getCampaignId());
      expect(eventparamsDeserialized.getLinkedPublicationsCount()).to.deep.equal(
          eventparams1.getLinkedPublicationsCount());
+     expect(eventparamsDeserialized.getCtaMode()).to.deep.equal(
+         eventparams1.getCtaMode());
    });
  });
 

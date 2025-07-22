@@ -309,6 +309,13 @@ export enum ReaderSurfaceType {
   READER_SURFACE_TENOR = 3,
 }
 
+/** CTA rendering mode (e.g. inline, pop-up) */
+export enum CtaMode {
+  CTA_MODE_UNSPECIFIED = 0,
+  CTA_MODE_POPUP = 1,
+  CTA_MODE_INLINE = 2,
+}
+
 /** */
 export class AccountCreationRequest implements Message {
   private complete_: boolean | null;
@@ -1260,6 +1267,7 @@ export class EventParams implements Message {
   private subscriptionTimestamp_: Timestamp | null;
   private campaignId_: string | null;
   private linkedPublicationsCount_: number | null;
+  private ctaMode_: CtaMode | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1286,6 +1294,8 @@ export class EventParams implements Message {
     this.campaignId_ = data[8 + base] == null ? null : (data[8 + base] as string);
 
     this.linkedPublicationsCount_ = data[9 + base] == null ? null : (data[9 + base] as number);
+
+    this.ctaMode_ = data[10 + base] == null ? null : (data[10 + base] as number);
   }
 
   getSmartboxMessage(): string | null {
@@ -1368,6 +1378,14 @@ export class EventParams implements Message {
     this.linkedPublicationsCount_ = value;
   }
 
+  getCtaMode(): CtaMode | null {
+    return this.ctaMode_;
+  }
+
+  setCtaMode(value: CtaMode): void {
+    this.ctaMode_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1380,6 +1398,7 @@ export class EventParams implements Message {
       this.subscriptionTimestamp_ ? this.subscriptionTimestamp_.toArray(includeLabel) : [], // field 8 - subscription_timestamp
       this.campaignId_, // field 9 - campaign_id
       this.linkedPublicationsCount_, // field 10 - linked_publications_count
+      this.ctaMode_, // field 11 - cta_mode
     ];
     if (includeLabel) {
       arr.unshift(this.label());
