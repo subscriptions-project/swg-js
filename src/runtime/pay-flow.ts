@@ -428,7 +428,11 @@ export class PayCompleteFlow {
       return null;
     }
     for (const element of elements) {
-      if (configId === element.getAttribute(INLINE_CTA_ATTRIUBUTE)) {
+      const inlineConfigId = element
+        .getAttribute(INLINE_CTA_ATTRIUBUTE)
+        ?.trim()
+        .replace(/['"“”‘’]/g, '');
+      if (configId === inlineConfigId) {
         return element;
       }
     }
