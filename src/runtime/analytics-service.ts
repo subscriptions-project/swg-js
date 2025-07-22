@@ -173,6 +173,19 @@ export class AnalyticsService {
     }
   }
 
+  removeLabels(labels: string[]): void {
+    if (labels && labels.length > 0) {
+      const newLabels = ([] as string[]).concat(this.context_.getLabelList()!);
+      for (const label of labels) {
+        const labelIndex = newLabels.indexOf(label);
+        if (labelIndex > -1) {
+          newLabels.splice(labelIndex, 1);
+        }
+      }
+      this.context_.setLabelList(newLabels);
+    }
+  }
+
   getElement(): HTMLIFrameElement {
     return this.iframe_;
   }
