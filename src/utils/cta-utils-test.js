@@ -185,11 +185,48 @@ describes.realWin('CTA utils', (env) => {
   });
 
   describe('startContributionPayFlow', () => {
+    let analyticsMock;
+
+    beforeEach(() => {
+      const eventManager = new ClientEventManager(Promise.resolve());
+      sandbox.stub(deps, 'eventManager').returns(eventManager);
+      const pageConfig = new PageConfig(productId, true);
+      sandbox.stub(deps, 'pageConfig').returns(pageConfig);
+      const analyticsService = new AnalyticsService(deps);
+      analyticsMock = sandbox.mock(analyticsService);
+      sandbox.stub(deps, 'analytics').returns(analyticsService);
+    });
+
     it('calls PayStartFlow with right params', async () => {
       const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
       const skuSelected = new SkuSelectedResponse();
       skuSelected.setSku('sku1');
       skuSelected.setOneTime(true);
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startContributionPayFlow(deps, skuSelected, /* isInlineCta */ false);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .true;
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.false;
+    });
+
+    it('calls PayStartFlow with right params for inline CTA', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(true);
+      analyticsMock
+        .expects('addLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
 
       startContributionPayFlow(deps, skuSelected, /* isInlineCta */ true);
 
@@ -208,6 +245,10 @@ describes.realWin('CTA utils', (env) => {
       const skuSelected = new SkuSelectedResponse();
       skuSelected.setSku('sku1');
       skuSelected.setOneTime(true);
+      analyticsMock
+        .expects('addLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
 
       startContributionPayFlow(
         deps,

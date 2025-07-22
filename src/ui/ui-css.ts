@@ -208,8 +208,8 @@ export const DIALOG_CSS = css`
   /**
   * Class applied to content page to disable scrolling.
   */
-  html > body.swg-disable-scroll,
-  html > body.swg-disable-scroll * {
+  html.swg-disable-scroll,
+  html.swg-disable-scroll * {
     overflow: hidden !important;
   }
 `;

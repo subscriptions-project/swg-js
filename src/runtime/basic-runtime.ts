@@ -656,15 +656,15 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
    * 'rrm-inline-cta' when experiment is enabled.
    */
   async setupInlineCta(): Promise<void> {
-    const inlineCtaEnabled = await this.entitlementsManager()
+    await this.entitlementsManager()
       .getExperimentConfigFlags()
-      .then((flags) =>
-        flags.includes(ArticleExperimentFlags.INLINE_CTA_EXPERIMENT)
-      );
-
-    if (inlineCtaEnabled) {
-      this.inlineCtaApi_.attachInlineCtasWithAttribute();
-    }
+      .then((flags) => {
+        if (flags.includes(ArticleExperimentFlags.INLINE_CTA_EXPERIMENT)) {
+          this.win().setTimeout(() => {
+            this.inlineCtaApi_.attachInlineCtasWithAttribute();
+          }, 2000);
+        }
+      });
   }
 
   /**

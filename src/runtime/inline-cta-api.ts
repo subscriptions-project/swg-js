@@ -45,6 +45,7 @@ import {
 } from '../utils/cta-utils';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {setImportantStyles} from '../utils/style';
+import {warn} from '../utils/log';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
@@ -121,9 +122,13 @@ export class InlineCtaApi {
     actions: Intervention[],
     clientConfig: ClientConfig
   ) {
-    // return if config id is not set in inline CTA code snippet.
-    const configId = div.getAttribute(INLINE_CTA_ATTRIUBUTE);
+    // return if config id is not set in inline CTA code snippet and remove double quotation mark if wrapped around config id..
+    const configId = div
+      .getAttribute(INLINE_CTA_ATTRIUBUTE)
+      ?.trim()
+      .replace(/['"“”‘’]/g, '');
     if (!configId) {
+      warn('No Inline CTA Config Id');
       return;
     }
     // return if no active action matches config id.
@@ -131,6 +136,7 @@ export class InlineCtaApi {
       (action) => action.configurationId === configId
     );
     if (!action) {
+      warn('No Inline CTA Matching Action');
       return;
     }
     // return if action is not inline CTA supported type.
@@ -272,11 +278,20 @@ export class InlineCtaApi {
       !article ||
       !!entitlements.enablesThis()
     ) {
+      warn(
+        'Inline CTA Client Config: ' +
+          !clientConfig.uiPredicates?.canDisplayAutoPrompt +
+          'Article: ' +
+          !article +
+          'Entitlements: ' +
+          !!entitlements.enablesThis()
+      );
       return;
     }
 
     const actions = article.audienceActions?.actions;
     if (!actions || actions.length === 0) {
+      warn('No Inline CTA Actions');
       return;
     }
 

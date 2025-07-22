@@ -293,7 +293,7 @@ export class Dialog {
       animating = Promise.resolve();
     }
 
-    this.doc_.getBody()?.classList.remove('swg-disable-scroll');
+    this.doc_.getRootElement().classList.remove('swg-disable-scroll');
 
     await animating;
 
@@ -396,7 +396,7 @@ export class Dialog {
     this.getContainer().appendChild(view.getElement());
 
     if (this.shouldDisableBodyScrolling_) {
-      this.doc_.getBody()?.classList.add('swg-disable-scroll');
+      this.doc_.getRootElement()?.classList.add('swg-disable-scroll');
     }
 
     // If the current view should fade the parent document.

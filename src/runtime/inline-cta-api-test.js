@@ -305,6 +305,22 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(iframe.nodeType).to.equal(1);
     });
 
+    it('should render CTA if config id is wrapped in quotation mark', async () => {
+      win.document.body.removeChild(newsletterSnippet);
+      const quotatedSnippet = createElement(win.document, 'div', {
+        'rrm-inline-cta': '“newsletter_config_id"',
+      });
+      win.document.body.append(quotatedSnippet);
+      setEntitlements();
+      setArticleResponse([NEWSLETTER_INTERVENTION]);
+      expectOpenIframe();
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      const iframe = win.document.querySelector('iframe');
+      expect(iframe.nodeType).to.equal(1);
+    });
+
     it('adjust CTA height on resize callback', async () => {
       setEntitlements();
       setArticleResponse([

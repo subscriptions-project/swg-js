@@ -1451,6 +1451,36 @@ describes.realWin('PayCompleteFlow', (env) => {
     expect(subscriptionSnippet.firstChild.style.width).to.equal('100%');
   });
 
+  it('should have valid flow for inline CTA with config id in quotation', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': '"' + subscriptionConfigId + '"',
+    });
+    win.document.body.appendChild(subscriptionSnippet);
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    activitiesMock.expects('openIframe').resolves(port);
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+  });
+
   describe('payments response', () => {
     let startStub;
     let triggerPromise;
