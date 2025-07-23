@@ -17,7 +17,9 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AnalyticsEvent,
+  CtaMode,
   EventOriginator,
+  EventParams,
   SurveyAnswer,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
@@ -233,7 +235,126 @@ describes.realWin('Survey utils', (env) => {
         TEST_SURVEYDATATRANSFERREQUEST,
         deps,
         activityIframeView,
-        'configId'
+        'configId',
+        CtaMode.CTA_MODE_POPUP
+      );
+      await tick(10);
+
+      activityIframeViewMock.verify();
+    });
+
+    it(`with successful Google Analytics logging for inline`, async () => {
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          {
+            eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: true,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_INLINE},
+          },
+          {
+            googleAnalyticsParameters: {
+              'event_category': TEST_QUESTION_CATEGORY_1,
+              'event_label': TEST_ANSWER_TEXT_1,
+              'survey_question': TEST_QUESTION_TEXT_1,
+              'survey_question_category': TEST_QUESTION_CATEGORY_1,
+              'survey_answer': TEST_ANSWER_TEXT_1,
+              'survey_answer_category': TEST_ANSWER_CATEGORY_1,
+              'content_id': TEST_QUESTION_CATEGORY_1,
+              'content_group': TEST_QUESTION_TEXT_1,
+              'content_type': TEST_ANSWER_TEXT_1,
+            },
+          }
+        )
+        .once();
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          {
+            eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: true,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_INLINE},
+          },
+          {
+            // Rendering response for more than first survey answer choice
+            googleAnalyticsParameters: {
+              'event_category': TEST_QUESTION_CATEGORY_1,
+              'event_label': TEST_ANSWER_TEXT_2,
+              'survey_question': TEST_QUESTION_TEXT_1,
+              'survey_question_category': TEST_QUESTION_CATEGORY_1,
+              'survey_answer': TEST_ANSWER_TEXT_2,
+              'survey_answer_category': TEST_ANSWER_CATEGORY_2,
+              'content_id': TEST_QUESTION_CATEGORY_1,
+              'content_group': TEST_QUESTION_TEXT_1,
+              'content_type': TEST_ANSWER_TEXT_2,
+            },
+          }
+        )
+        .once();
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          {
+            eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: true,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_INLINE},
+          },
+          {
+            googleAnalyticsParameters: {
+              'event_category': TEST_QUESTION_CATEGORY_2,
+              'event_label': TEST_ANSWER_TEXT_2,
+              'survey_question': TEST_QUESTION_TEXT_2,
+              'survey_question_category': TEST_QUESTION_CATEGORY_2,
+              'survey_answer': TEST_ANSWER_TEXT_2,
+              'survey_answer_category': TEST_ANSWER_CATEGORY_2,
+              'content_id': TEST_QUESTION_CATEGORY_2,
+              'content_group': TEST_QUESTION_TEXT_2,
+              'content_type': TEST_ANSWER_TEXT_2,
+            },
+          }
+        )
+        .once();
+      eventManagerMock.expects('logEvent').withExactArgs(
+        {
+          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+          eventOriginator: EventOriginator.SWG_CLIENT,
+          isFromUserAction: true,
+          additionalParameters: new EventParams([
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            CtaMode.CTA_MODE_INLINE,
+          ]),
+          configurationId: null,
+        },
+        undefined,
+        undefined
+      );
+      const successSurveyDataTransferResponse =
+        new SurveyDataTransferResponse();
+      successSurveyDataTransferResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(successSurveyDataTransferResponse)
+        .once();
+
+      handleSurveyDataTransferRequest(
+        TEST_SURVEYDATATRANSFERREQUEST,
+        deps,
+        activityIframeView,
+        'configId',
+        CtaMode.CTA_MODE_INLINE
       );
       await tick(10);
 
@@ -271,7 +392,8 @@ describes.realWin('Survey utils', (env) => {
         TEST_SURVEYDATATRANSFERREQUEST,
         deps,
         activityIframeView,
-        'configId'
+        'configId',
+        CtaMode.CTA_MODE_POPUP
       );
       await tick(10);
 
@@ -383,7 +505,8 @@ describes.realWin('Survey utils', (env) => {
         TEST_SURVEYDATATRANSFERREQUEST,
         deps,
         activityIframeView,
-        'configId'
+        'configId',
+        CtaMode.CTA_MODE_POPUP
       );
       await tick(10);
 
@@ -420,6 +543,7 @@ describes.realWin('Survey utils', (env) => {
         deps,
         activityIframeView,
         TEST_SURVEYONRESULTCONFIGID,
+        CtaMode.CTA_MODE_UNSPECIFIED,
         onResultMock
       );
       await tick(10);
@@ -462,6 +586,7 @@ describes.realWin('Survey utils', (env) => {
         deps,
         activityIframeView,
         TEST_SURVEYONRESULTCONFIGID,
+        CtaMode.CTA_MODE_UNSPECIFIED,
         onResultMock
       );
 
@@ -504,6 +629,7 @@ describes.realWin('Survey utils', (env) => {
         deps,
         activityIframeView,
         TEST_SURVEYONRESULTCONFIGID,
+        CtaMode.CTA_MODE_POPUP,
         onResultMock
       );
 
@@ -550,6 +676,7 @@ describes.realWin('Survey utils', (env) => {
         deps,
         activityIframeView,
         TEST_SURVEYONRESULTCONFIGID,
+        CtaMode.CTA_MODE_POPUP,
         onResultMock
       );
 
@@ -606,7 +733,8 @@ describes.realWin('Survey utils', (env) => {
         TEST_EMPTY_SURVEYDATATRANSFERREQUEST,
         deps,
         activityIframeView,
-        'configId'
+        'configId',
+        CtaMode.CTA_MODE_POPUP
       );
       await tick(10);
     });
@@ -625,7 +753,8 @@ describes.realWin('Survey utils', (env) => {
         TEST_SURVEYDATATRANSFERREQUEST_WITHPPS,
         deps,
         activityIframeView,
-        'configId'
+        'configId',
+        CtaMode.CTA_MODE_POPUP
       );
       await tick(10);
 
@@ -657,7 +786,8 @@ describes.realWin('Survey utils', (env) => {
         TEST_SURVEYDATATRANSFERREQUEST_WITHPPS,
         deps,
         activityIframeView,
-        'configId'
+        'configId',
+        CtaMode.CTA_MODE_POPUP
       );
       await tick(10);
 
@@ -670,7 +800,8 @@ describes.realWin('Survey utils', (env) => {
         TEST_SURVEYDATATRANSFERREQUEST_WITHPPS_NOVALUES,
         deps,
         activityIframeView,
-        'configId'
+        'configId',
+        CtaMode.CTA_MODE_POPUP
       );
 
       await tick(10);
@@ -702,7 +833,8 @@ describes.realWin('Survey utils', (env) => {
         TEST_SURVEYDATATRANSFERREQUEST_WITHPPS,
         deps,
         activityIframeView,
-        'configId'
+        'configId',
+        CtaMode.CTA_MODE_POPUP
       );
       await tick(10);
 

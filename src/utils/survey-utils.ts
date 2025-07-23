@@ -17,7 +17,9 @@
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AnalyticsEvent,
+  CtaMode,
   EventOriginator,
+  EventParams,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
@@ -33,12 +35,14 @@ export async function handleSurveyDataTransferRequest(
   deps: Deps,
   activityIframeView: ActivityIframeView,
   configurationId: string,
+  ctaMode: CtaMode,
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean
 ): Promise<void> {
   const dataTransferSuccess = await attemptSurveyDataTransfer(
     request,
     configurationId,
     deps,
+    ctaMode,
     onResult
   );
   if (dataTransferSuccess) {
@@ -46,14 +50,20 @@ export async function handleSurveyDataTransferRequest(
       .eventManager()
       .logSwgEvent(
         AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-        /* isFromUserAction */ true
+        /* isFromUserAction */ true,
+        /* eventParams */ ctaMode === CtaMode.CTA_MODE_INLINE
+          ? getInlineCtaEventParams()
+          : null
       );
   } else {
     deps
       .eventManager()
       .logSwgEvent(
         AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-        /* isFromUserAction */ false
+        /* isFromUserAction */ false,
+        /* eventParams */ ctaMode === CtaMode.CTA_MODE_INLINE
+          ? getInlineCtaEventParams()
+          : null
       );
   }
   const surveyDataTransferResponse = new SurveyDataTransferResponse();
@@ -73,6 +83,7 @@ async function attemptSurveyDataTransfer(
   request: SurveyDataTransferRequest,
   configurationId: string,
   deps: Deps,
+  ctaMode: CtaMode,
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean
 ): Promise<boolean> {
   // @TODO(justinchou): execute callback with setOnInterventionComplete
@@ -88,7 +99,7 @@ async function attemptSurveyDataTransfer(
       return false;
     }
   }
-  return logSurveyDataToGoogleAnalytics(request, deps);
+  return logSurveyDataToGoogleAnalytics(request, deps, ctaMode);
 }
 
 /*
@@ -97,7 +108,8 @@ async function attemptSurveyDataTransfer(
  */
 function logSurveyDataToGoogleAnalytics(
   request: SurveyDataTransferRequest,
-  deps: Deps
+  deps: Deps,
+  ctaMode: CtaMode
 ): boolean {
   if (
     !GoogleAnalyticsEventListener.isGaEligible(deps) &&
@@ -111,7 +123,10 @@ function logSurveyDataToGoogleAnalytics(
       eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: true,
-      additionalParameters: null,
+      additionalParameters:
+        ctaMode === CtaMode.CTA_MODE_INLINE
+          ? {ctaMode: CtaMode.CTA_MODE_INLINE}
+          : null,
     };
     question.getSurveyAnswersList()?.map((answer) => {
       const eventParams = {
@@ -187,4 +202,8 @@ async function storePpsValuesFromSurveyAnswers(
       )
   );
   // TODO(caroljli): clearcut event logging
+}
+
+function getInlineCtaEventParams(): EventParams {
+  return new EventParams([, , , , , , , , , , , CtaMode.CTA_MODE_INLINE]);
 }
