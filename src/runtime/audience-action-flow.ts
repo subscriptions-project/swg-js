@@ -30,6 +30,7 @@ import {
   AlreadySubscribedResponse,
   AnalyticsEvent,
   CompleteAudienceActionResponse,
+  CtaMode,
   EntitlementsResponse,
   RewardedAdAlternateActionRequest,
   RewardedAdLoadAdRequest,
@@ -210,6 +211,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         this.deps_,
         this.activityIframeView_,
         this.params_.configurationId!,
+        CtaMode.CTA_MODE_POPUP,
         this.params_.onResult
       )
     );
