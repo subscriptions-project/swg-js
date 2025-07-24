@@ -21,6 +21,7 @@ import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {
   CompleteAudienceActionResponse,
+  CtaMode,
   SkuSelectedResponse,
   SurveyDataTransferRequest,
   ViewSubscriptionsResponse,
@@ -246,7 +247,8 @@ export class InlineCtaApi {
           request,
           this.deps_,
           activityIframeView,
-          configId
+          configId,
+          CtaMode.CTA_MODE_INLINE
         )
       );
     }
