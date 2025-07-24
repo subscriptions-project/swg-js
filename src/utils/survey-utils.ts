@@ -205,5 +205,7 @@ async function storePpsValuesFromSurveyAnswers(
 }
 
 function getInlineCtaEventParams(): EventParams {
-  return new EventParams([, , , , , , , , , , , CtaMode.CTA_MODE_INLINE]);
+  const eventParams: EventParams = new EventParams();
+  eventParams.setCtaMode(CtaMode.CTA_MODE_INLINE);
+  return eventParams;
 }
