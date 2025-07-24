@@ -93,8 +93,15 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
+    const ctaMode =
+      (event.additionalParameters as {[key: string]: string})?.['ctaMode'] ||
+      (event.additionalParameters as EventParams)?.getCtaMode?.() ||
+      '';
     const analyticsParams: GoogleAnalyticsParameters =
       eventParams?.googleAnalyticsParameters || {};
+
+    analyticsParams.cta_mode =
+      ctaMode === CtaMode.CTA_MODE_INLINE ? 'inline_cta' : '';
     gaEvent = {
       ...gaEvent,
       eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
