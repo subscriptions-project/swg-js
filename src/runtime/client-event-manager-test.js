@@ -344,6 +344,7 @@ describes.sandboxed('EventManager', () => {
           isFromUserAction: false,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         });
       });
 
@@ -360,6 +361,7 @@ describes.sandboxed('EventManager', () => {
             isFromUserAction,
             additionalParameters: null,
             configurationId: null,
+            label: null,
           });
         }
       });
@@ -378,6 +380,7 @@ describes.sandboxed('EventManager', () => {
             isFromUserAction: null,
             additionalParameters,
             configurationId: null,
+            label: null,
           });
         }
       });
@@ -398,6 +401,29 @@ describes.sandboxed('EventManager', () => {
             isFromUserAction: null,
             additionalParameters: null,
             configurationId,
+            label: null,
+          });
+        }
+      });
+
+      it('should respect label', () => {
+        const possibleValues = [null, ['context_label']];
+        for (const label of possibleValues) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            null,
+            null,
+            null,
+            null,
+            label
+          );
+          expect(event).to.deep.equal({
+            eventType: AnalyticsEvent.ACTION_ACCOUNT_CREATED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: null,
+            additionalParameters: null,
+            configurationId: null,
+            label,
           });
         }
       });

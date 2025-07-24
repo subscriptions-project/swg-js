@@ -64,6 +64,9 @@ const MAX_WAIT = 200;
  */
 const TIMEOUT_ERROR = 'AnalyticsService timed out waiting for a response';
 
+/** Context label for inline CTA, should be removed when not the case */
+const INLINE_CTA_LABEL = 'CTA_MODE_INLINE';
+
 function createErrorResponse(error: string): FinishedLoggingResponse {
   const response = new FinishedLoggingResponse();
   response.setComplete(false);
@@ -304,6 +307,11 @@ export class AnalyticsService {
     meta.setIsFromUserAction(!!event.isFromUserAction);
     if (!!event.configurationId) {
       meta.setConfigurationId(event.configurationId);
+    }
+    if (!!event.label) {
+      this.addLabels(event.label);
+    } else {
+      this.removeLabels([INLINE_CTA_LABEL]);
     }
     // Update the request's timestamp.
     this.context_.setClientTimestamp(toTimestamp(event.timestamp!));

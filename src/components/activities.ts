@@ -148,6 +148,7 @@ export class ActivityIframePort implements ActivityPortDef {
           isFromUserAction: request.getMeta()?.getIsFromUserAction(),
           additionalParameters: request.getParams(),
           configurationId: request.getMeta()?.getConfigurationId(),
+          label: request.getContext()?.getLabelList(),
         });
       });
     }
