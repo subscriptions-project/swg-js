@@ -400,6 +400,58 @@ describes.realWin('Survey utils', (env) => {
       activityIframeViewMock.verify();
     });
 
+    it(`with failed logging for inline CTA`, async () => {
+      const winWithNoGtag = Object.assign({}, win);
+      delete winWithNoGtag.gtag;
+      deps.win.restore();
+      sandbox.stub(deps, 'win').returns(winWithNoGtag);
+      const successSurveyDataTransferResponse =
+        new SurveyDataTransferResponse();
+      successSurveyDataTransferResponse.setSuccess(false);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(successSurveyDataTransferResponse)
+        .once();
+      eventManagerMock
+        .expects('logEvent')
+        .withExactArgs(
+          {
+            eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: false,
+            additionalParameters: new EventParams([
+              ,
+              ,
+              ,
+              ,
+              ,
+              ,
+              ,
+              ,
+              ,
+              ,
+              ,
+              CtaMode.CTA_MODE_INLINE,
+            ]),
+            configurationId: null,
+          },
+          undefined,
+          undefined
+        )
+        .once();
+
+      handleSurveyDataTransferRequest(
+        TEST_SURVEYDATATRANSFERREQUEST,
+        deps,
+        activityIframeView,
+        'configId',
+        CtaMode.CTA_MODE_INLINE
+      );
+      await tick(10);
+
+      activityIframeViewMock.verify();
+    });
+
     it(`with successful gtm logging`, async () => {
       const winWithDataLayer = Object.assign({}, win);
       delete winWithDataLayer.gtag;
