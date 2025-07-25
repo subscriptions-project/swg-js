@@ -20,10 +20,16 @@ import {
   GoogleAnalyticsParameters,
 } from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
+import {CtaMode, EventParams} from '../proto/api_messages';
 import {Deps} from './deps';
-import {EventParams} from '../proto/api_messages';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {isFunction} from '../utils/types';
+
+const CTA_MODE_MAP: {[key in CtaMode]: string} = {
+  0: 'unknown', // unkown value
+  1: 'pop up', // Pop up CTA
+  2: 'inline', // Inline CTA
+};
 
 type AnalyticsMethod = (
   command: string,
@@ -93,15 +99,16 @@ export class GoogleAnalyticsEventListener {
       return;
     }
 
-    const ctaMode =
-      (event.additionalParameters as {[key: string]: string})?.['ctaMode'] ||
-      (event.additionalParameters as EventParams)?.getCtaMode?.() ||
-      '';
     const analyticsParams: GoogleAnalyticsParameters =
       eventParams?.googleAnalyticsParameters || {};
 
-    analyticsParams.cta_mode =
-      ctaMode === CtaMode.CTA_MODE_INLINE ? 'inline_cta' : '';
+    // Add params for CTA mode. e.g. inline, pop up, etc.
+    const ctaMode =
+      (event.additionalParameters as EventParams)?.getCtaMode?.() ||
+      (event.additionalParameters as {[key: string]: CtaMode})?.['ctaMode'] ||
+      0;
+    analyticsParams['cta_mode'] = CTA_MODE_MAP[ctaMode];
+
     gaEvent = {
       ...gaEvent,
       eventCategory: analyticsParams.event_category || gaEvent.eventCategory,
