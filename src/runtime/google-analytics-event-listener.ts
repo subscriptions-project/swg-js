@@ -91,6 +91,7 @@ export class GoogleAnalyticsEventListener {
       ] ||
       (event.additionalParameters as EventParams)?.getSubscriptionFlow?.() ||
       '';
+
     let gaEvent = analyticsEventToGoogleAnalyticsEvent(
       event.eventType,
       subscriptionFlow
@@ -106,8 +107,10 @@ export class GoogleAnalyticsEventListener {
     const ctaMode =
       (event.additionalParameters as EventParams)?.getCtaMode?.() ||
       (event.additionalParameters as {[key: string]: CtaMode})?.['ctaMode'] ||
-      0;
-    analyticsParams['cta_mode'] = CTA_MODE_MAP[ctaMode];
+      null;
+    if (ctaMode != null) {
+      analyticsParams['cta_mode'] = CTA_MODE_MAP[ctaMode];
+    }
 
     gaEvent = {
       ...gaEvent,

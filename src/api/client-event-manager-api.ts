@@ -83,10 +83,10 @@ export interface ClientEventParams {
 
 export interface GoogleAnalyticsParameters {
   /* eslint-disable google-camelcase/google-camelcase */
-  cta_mode?: string;
   event_category?: string;
   survey_question?: string;
   survey_answer_category?: string;
   event_label?: string;
+  cta_mode?: string;
   /* eslint-enable google-camelcase/google-camelcase */
 }
