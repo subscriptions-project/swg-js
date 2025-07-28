@@ -60,7 +60,7 @@ import {Doc as DocInterface, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
-import {FreeAccess} from "./free-access"
+import {FreeAccess} from './free-access'
 import {FreeAccessApi} from '../api/free-access-api';
 import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';

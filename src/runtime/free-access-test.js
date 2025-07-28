@@ -17,57 +17,55 @@
 import {FreeAccess} from './free-access';
 import {LocationProvider} from './location-provider';
 
-
 describes.realWin('FreeAccess', () => {
   describe('shouldAllowFreeAccess', () => {
-
     let originalReferrerDescriptor;
 
     beforeEach(() => {
       // Save the original property descriptor.
-      originalReferrerDescriptor = Object.getOwnPropertyDescriptor(document, 'referrer');
+      originalReferrerDescriptor = Object.getOwnPropertyDescriptor(self.document, 'referrer');
     });
 
     afterEach(() => {
       // Restore the original property descriptor to avoid side effects between tests.
       if (originalReferrerDescriptor) {
-        Object.defineProperty(document, 'referrer', originalReferrerDescriptor);
+        Object.defineProperty(self.document, 'referrer', originalReferrerDescriptor);
       }
     });
 
     it('dont allow for non-Google referer', () => {
       const fakeReferrer = 'https://www.googlee.com/';
       // Redefine the property
-      Object.defineProperty(document, 'referrer', {
+      Object.defineProperty(self.document, 'referrer', {
         value: fakeReferrer,
-        writable: false,     // Typically false for referrer
-        configurable: true  // MUST be true to allow a future redefinition/cleanup
+        writable: false,
+        configurable: true,
       });
 
       const freeAccess = new FreeAccess();
       expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
-      expect(document.referrer).to.be.equal(fakeReferrer);
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
     });
     it('allow for Google referer', () => {
       const fakeReferrer = 'https://www.google.com/';
       // Redefine the property
-      Object.defineProperty(document, 'referrer', {
+      Object.defineProperty(self.document, 'referrer', {
         value: fakeReferrer,
-        writable: false,     // Typically false for referrer
-        configurable: true  // MUST be true to allow a future redefinition/cleanup
+        writable: false,
+        configurable: true,
       });
 
       const freeAccess = new FreeAccess();
       expect(freeAccess.shouldAllowFreeAccess()).to.be.true;
-      expect(document.referrer).to.be.equal(fakeReferrer);
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
     });
     it('dont allow for Google referer with explicit holdback', () => {
       const fakeReferrer = 'https://www.google.com/';
       // Redefine the property
-      Object.defineProperty(document, 'referrer', {
+      Object.defineProperty(self.document, 'referrer', {
         value: fakeReferrer,
-        writable: false,     // Typically false for referrer
-        configurable: true  // MUST be true to allow a future redefinition/cleanup
+        writable: false,
+        configurable: true,
       });
       const mockLocation = sandbox.createStubInstance(LocationProvider);
       mockLocation.getSearch.returns('?foo=bar&eafs_enabled=false');
@@ -75,15 +73,15 @@ describes.realWin('FreeAccess', () => {
       const freeAccess = new FreeAccess(mockLocation);
 
       expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
-      expect(document.referrer).to.be.equal(fakeReferrer);
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
     });
     it('allow for Google referer with explicit no holdback', () => {
       const fakeReferrer = 'https://www.google.com/';
       // Redefine the property
-      Object.defineProperty(document, 'referrer', {
+      Object.defineProperty(self.document, 'referrer', {
         value: fakeReferrer,
-        writable: false,     // Typically false for referrer
-        configurable: true  // MUST be true to allow a future redefinition/cleanup
+        writable: false,
+        configurable: true,
       });
       const mockLocation = sandbox.createStubInstance(LocationProvider);
       mockLocation.getSearch.returns('?foo=bar&eafs_enabled=true');
@@ -91,7 +89,7 @@ describes.realWin('FreeAccess', () => {
       const freeAccess = new FreeAccess(mockLocation);
 
       expect(freeAccess.shouldAllowFreeAccess()).to.be.true;
-      expect(document.referrer).to.be.equal(fakeReferrer);
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
     });
   });
 });

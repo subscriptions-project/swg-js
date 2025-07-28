@@ -16,8 +16,10 @@
 
 export interface FreeAccessApi {
   /**
-  * Checks if free access is eligible to be granted to the user under the Free Access program.
-  * @return True if article free access regwall is eligible to be shown to the user.
-  */
+   * Checks if free access is eligible to be granted to the user under the
+   * Free Access program.
+   * @return True if article free access regwall is eligible to be shown
+   * to the user.
+   */
   shouldAllowFreeAccess(): boolean;
 }

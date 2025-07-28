@@ -21,6 +21,6 @@ export class LocationProvider {
   constructor() {}
 
   getSearch(): string {
-    return window.location.search;
+    return self.window.location.search;
   }
 }
