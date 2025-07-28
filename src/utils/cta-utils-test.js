@@ -16,6 +16,7 @@
 
 import {
   AnalyticsEvent,
+  CtaMode,
   EventParams,
   SkuSelectedResponse,
 } from '../proto/api_messages';
@@ -316,7 +317,7 @@ describes.realWin('CTA utils', (env) => {
         .withExactArgs(
           AnalyticsEvent.ACTION_OFFER_SELECTED,
           true,
-          new EventParams([, , , , 'sku1'])
+          new EventParams([, , , , 'sku1', , , , , , , CtaMode.CTA_MODE_POPUP])
         )
         .once();
 
