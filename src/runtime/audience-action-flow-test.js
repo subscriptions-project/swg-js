@@ -1043,6 +1043,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           isFromUserAction: false,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -1106,6 +1107,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           isFromUserAction: true,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -1128,6 +1130,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           isFromUserAction: false,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -1153,6 +1156,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           isFromUserAction: false,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -1187,6 +1191,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           isFromUserAction: false,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -1207,6 +1212,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           isFromUserAction: false,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -1267,6 +1273,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           isFromUserAction: false,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -1323,6 +1330,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
           isFromUserAction: true,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined

@@ -219,6 +219,7 @@ describes.realWin('Survey utils', (env) => {
           isFromUserAction: true,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -382,6 +383,7 @@ describes.realWin('Survey utils', (env) => {
             isFromUserAction: false,
             additionalParameters: null,
             configurationId: null,
+            label: null,
           },
           undefined,
           undefined
@@ -540,6 +542,7 @@ describes.realWin('Survey utils', (env) => {
           isFromUserAction: true,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -585,6 +588,7 @@ describes.realWin('Survey utils', (env) => {
           isFromUserAction: true,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
@@ -620,6 +624,7 @@ describes.realWin('Survey utils', (env) => {
             isFromUserAction: false,
             additionalParameters: null,
             configurationId: null,
+            label: null,
           },
           undefined,
           undefined
@@ -663,6 +668,7 @@ describes.realWin('Survey utils', (env) => {
             isFromUserAction: false,
             additionalParameters: null,
             configurationId: null,
+            label: null,
           },
           undefined,
           undefined
@@ -710,6 +716,7 @@ describes.realWin('Survey utils', (env) => {
             isFromUserAction: false,
             additionalParameters: null,
             configurationId: null,
+            label: null,
           },
           undefined,
           undefined
@@ -773,6 +780,7 @@ describes.realWin('Survey utils', (env) => {
           isFromUserAction: true,
           additionalParameters: null,
           configurationId: null,
+          label: null,
         },
         undefined,
         undefined
