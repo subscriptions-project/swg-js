@@ -23,13 +23,20 @@ describes.realWin('FreeAccess', () => {
 
     beforeEach(() => {
       // Save the original property descriptor.
-      originalReferrerDescriptor = Object.getOwnPropertyDescriptor(self.document, 'referrer');
+      originalReferrerDescriptor = Object.getOwnPropertyDescriptor(
+        self.document,
+        'referrer'
+      );
     });
 
     afterEach(() => {
       // Restore the original property descriptor to avoid side effects between tests.
       if (originalReferrerDescriptor) {
-        Object.defineProperty(self.document, 'referrer', originalReferrerDescriptor);
+        Object.defineProperty(
+          self.document,
+          'referrer',
+          originalReferrerDescriptor
+        );
       }
     });
 

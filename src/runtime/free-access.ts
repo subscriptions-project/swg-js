@@ -22,13 +22,13 @@ export class FreeAccess implements FreeAccessApi {
     'https://www.google.com/',
     'android-app://com.google.android.googlequicksearchbox',
     'android-app://com.google.android.googlequicksearchbox/https/www.google.com',
-    'ios-app://com.google.app.ios'];
+    'ios-app://com.google.app.ios',
+  ];
 
   private static readonly HOLDBACK_QUERY_PARAM = 'eafs_enabled';
   private static readonly HOLDBACK_ENABLED_VALUE = 'false';
 
-  constructor(
-    private readonly locationProvider = new LocationProvider()) {}
+  constructor(private readonly locationProvider = new LocationProvider()) {}
 
   /**
    * Checks if free access is eligible to be granted to the user under the
@@ -37,13 +37,14 @@ export class FreeAccess implements FreeAccessApi {
    * to the user.
    */
   shouldAllowFreeAccess() {
-    const googleReferer =
-      FreeAccess.GOOGLE_REFERERS_PREFIX_LIST.some(
-	prefix => self.document.referrer.toLowerCase().startsWith(prefix));
+    const googleReferer = FreeAccess.GOOGLE_REFERERS_PREFIX_LIST.some(
+      (prefix) => self.document.referrer.toLowerCase().startsWith(prefix)
+    );
     const queryMap = this.getQueryParamsAsMap();
     const holdBackSet =
       queryMap.has(FreeAccess.HOLDBACK_QUERY_PARAM) &&
-	(queryMap.get(FreeAccess.HOLDBACK_QUERY_PARAM) === FreeAccess.HOLDBACK_ENABLED_VALUE);
+      queryMap.get(FreeAccess.HOLDBACK_QUERY_PARAM) ===
+        FreeAccess.HOLDBACK_ENABLED_VALUE;
     return googleReferer && !holdBackSet;
   }
 
