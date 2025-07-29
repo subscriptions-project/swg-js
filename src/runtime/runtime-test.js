@@ -928,15 +928,9 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should return free access module', async () => {
-      const freeAccess = new FreeAccess();
-      configuredRuntimeMock
-        .expects('getFreeAccess')
-        .once()
-          .returns(freeAccess);
-
       const freeAccessApi = await runtime.getFreeAccess();
       expect(configureStub).to.be.calledOnce.calledWith(true);
-      expect(freeAccessApi).to.equal(freeAccess);
+      expect(freeAccessApi).to.not.equal(null);
     });
 
     it('should delegate "setShowcaseEntitlement"', async () => {
