@@ -24,6 +24,7 @@
 
 import {
   AccountCreationRequest,
+  CtaMode,
   EntitlementsResponse,
 } from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
@@ -90,9 +91,18 @@ export const RecurrenceMapping = {
 
 function getEventParams(
   sku: string,
+  isInlineCta: boolean,
   subscriptionFlow: string | null = null
 ): EventParams {
-  return new EventParams([, , , , sku, , , subscriptionFlow]);
+  const eventParams: EventParams = new EventParams();
+  eventParams.setSku(sku);
+  if (subscriptionFlow != null) {
+    eventParams.setSubscriptionFlow(subscriptionFlow);
+  }
+  eventParams.setCtaMode(
+    isInlineCta ? CtaMode.CTA_MODE_INLINE : CtaMode.CTA_MODE_POPUP
+  );
+  return eventParams;
 }
 
 /**
@@ -183,13 +193,14 @@ export class PayStartFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
       true,
-      getEventParams(swgPaymentRequest['skuId'])
+      getEventParams(swgPaymentRequest['skuId'], this.isInlineCta_)
     );
     this.eventManager_.logSwgEvent(
       usePayFlow
         ? AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED
         : AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
-      true
+      true,
+      getEventParams('', this.isInlineCta_)
     );
 
     PayCompleteFlow.waitingForPayClient = true;
@@ -245,6 +256,7 @@ export class PayCompleteFlow {
           true,
           getEventParams(
             sku || '',
+            PayCompleteFlow.isInlineCta,
             response.productType == ProductType.UI_CONTRIBUTION
               ? SubscriptionFlows.CONTRIBUTE
               : SubscriptionFlows.SUBSCRIBE
@@ -255,20 +267,29 @@ export class PayCompleteFlow {
         if (clientConfig.useUpdatedOfferFlows) {
           eventManager.logSwgEvent(
             AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE,
-            true
+            true,
+            getEventParams('', PayCompleteFlow.isInlineCta)
           );
         }
         if (response.productType == ProductType.UI_CONTRIBUTION) {
           eventManager.logSwgEvent(
             AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
             true,
-            getEventParams(sku || '', SubscriptionFlows.CONTRIBUTE)
+            getEventParams(
+              sku || '',
+              PayCompleteFlow.isInlineCta,
+              SubscriptionFlows.CONTRIBUTE
+            )
           );
         } else if (response.productType == ProductType.SUBSCRIPTION) {
           eventManager.logSwgEvent(
             AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
             true,
-            getEventParams(sku || '', SubscriptionFlows.SUBSCRIBE)
+            getEventParams(
+              sku || '',
+              PayCompleteFlow.isInlineCta,
+              SubscriptionFlows.SUBSCRIBE
+            )
           );
         }
         flow.start(response);
@@ -283,11 +304,19 @@ export class PayCompleteFlow {
           deps.callbacks().triggerFlowCanceled(flow);
           deps
             .eventManager()
-            .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
+            .logSwgEvent(
+              AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW,
+              true,
+              getEventParams('', PayCompleteFlow.isInlineCta)
+            );
         } else {
           deps
             .eventManager()
-            .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
+            .logSwgEvent(
+              AnalyticsEvent.EVENT_PAYMENT_FAILED,
+              false,
+              getEventParams('', PayCompleteFlow.isInlineCta)
+            );
           deps.jserror().error('Pay failed', reason as Error);
           throw reason;
         }
@@ -325,7 +354,7 @@ export class PayCompleteFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
       true,
-      getEventParams(this.sku_ || '')
+      getEventParams(this.sku_ || '', PayCompleteFlow.isInlineCta)
     );
     this.deps_.entitlementsManager().reset(true);
     // TODO(dianajing): future-proof isOneTime flag
@@ -443,7 +472,7 @@ export class PayCompleteFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_ACCOUNT_CREATED,
       true,
-      getEventParams(this.sku_ || '')
+      getEventParams(this.sku_ || '', PayCompleteFlow.isInlineCta)
     );
 
     const now = Date.now().toString();
@@ -474,7 +503,7 @@ export class PayCompleteFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
         true,
-        getEventParams(this.sku_ || '')
+        getEventParams(this.sku_ || '', PayCompleteFlow.isInlineCta)
       );
     }
 

@@ -16,6 +16,7 @@
 
 import {
   AnalyticsEvent,
+  CtaMode,
   EventParams,
   SkuSelectedResponse,
   ViewSubscriptionsResponse,
@@ -187,7 +188,7 @@ export function startSubscriptionPayFlow(
       .logSwgEvent(
         AnalyticsEvent.ACTION_OFFER_SELECTED,
         true,
-        getEventParams(sku)
+        getEventParams(sku, isInlineCta)
       );
     new PayStartFlow(
       deps,
@@ -199,8 +200,13 @@ export function startSubscriptionPayFlow(
   }
 }
 
-function getEventParams(sku: string): EventParams {
-  return new EventParams([, , , , sku]);
+function getEventParams(sku: string, isInlineCta: boolean): EventParams {
+  const eventParams: EventParams = new EventParams();
+  eventParams.setSku(sku);
+  eventParams.setCtaMode(
+    isInlineCta ? CtaMode.CTA_MODE_INLINE : CtaMode.CTA_MODE_POPUP
+  );
+  return eventParams;
 }
 
 export function startNativeFlow(
