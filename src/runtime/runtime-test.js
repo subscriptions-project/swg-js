@@ -44,6 +44,7 @@ import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
+import {FreeAccess} from './free-access';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
@@ -924,6 +925,18 @@ describes.realWin('Runtime', (env) => {
       const propensityModule = await runtime.getPropensityModule();
       expect(configureStub).to.be.calledOnce.calledWith(true);
       expect(propensityModule).to.equal(propensity);
+    });
+
+    it('should return free access module', async () => {
+      const freeAccess = new FreeAccess();
+      configuredRuntimeMock
+        .expects('getFreeAccess')
+        .once()
+          .returns(freeAccess);
+
+      const freeAccessApi = await runtime.getFreeAccess();
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(freeAccessApi).to.equal(freeAccess);
     });
 
     it('should delegate "setShowcaseEntitlement"', async () => {

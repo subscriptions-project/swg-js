@@ -605,8 +605,9 @@ export class Runtime implements SubscriptionsInterface {
     return runtime.getAvailableInterventions();
   }
 
-  getFreeAccess(): FreeAccessApi {
-    return new FreeAccess();
+  async getFreeAccess(): Promise<FreeAccessApi> {
+    const runtime = await this.configured_(true);
+    return runtime.getFreeAccess();
   }
 }
 
@@ -1266,7 +1267,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return this.entitlementsManager().getAvailableInterventions();
   }
 
-  getFreeAccess(): FreeAccessApi {
+  async getFreeAccess(): Promise<FreeAccessApi> {
     return new FreeAccess();
   }
 }

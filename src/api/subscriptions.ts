@@ -310,7 +310,7 @@ export interface Subscriptions {
   /**
    * Returns the FreeAccess interface for extended access.
    */
-  getFreeAccess(): FreeAccessApi;
+  getFreeAccess(): Promise<FreeAccessApi>;
 }
 
 export enum ShowcaseEvent {
