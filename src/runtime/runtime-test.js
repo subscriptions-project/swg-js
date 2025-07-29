@@ -44,7 +44,6 @@ import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
-import {FreeAccess} from './free-access';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
