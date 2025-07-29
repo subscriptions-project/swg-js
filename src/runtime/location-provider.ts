@@ -15,7 +15,8 @@
  */
 
 /**
- * Class that wraps window.location. This class can be mocked, whereas window.location cannot.
+ * Class that wraps window.location. This class can be mocked, whereas
+ * window.location cannot.
  */
 export class LocationProvider {
   constructor() {}
