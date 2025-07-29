@@ -60,6 +60,8 @@ import {Doc as DocInterface, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
+import {FreeAccess} from './free-access';
+import {FreeAccessApi} from '../api/free-access-api';
 import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
@@ -601,6 +603,11 @@ export class Runtime implements SubscriptionsInterface {
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
     const runtime = await this.configured_(true);
     return runtime.getAvailableInterventions();
+  }
+
+  async getFreeAccess(): Promise<FreeAccessApi> {
+    const runtime = await this.configured_(true);
+    return runtime.getFreeAccess();
   }
 }
 
@@ -1259,6 +1266,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     await this.getEntitlements();
     return this.entitlementsManager().getAvailableInterventions();
   }
+
+  async getFreeAccess(): Promise<FreeAccessApi> {
+    return new FreeAccess();
+  }
 }
 
 function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
@@ -1310,5 +1321,6 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     linkSubscription: runtime.linkSubscription.bind(runtime),
     linkSubscriptions: runtime.linkSubscriptions.bind(runtime),
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
+    getFreeAccess: runtime.getFreeAccess.bind(runtime),
   };
 }

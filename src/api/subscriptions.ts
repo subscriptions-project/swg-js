@@ -21,6 +21,7 @@ import {
   DeferredAccountCreationResponse,
 } from './deferred-account-creation';
 import {Entitlements} from './entitlements';
+import {FreeAccessApi} from './free-access-api';
 import {LoggerApi} from './logger-api';
 import {Offer} from './offer';
 import {PropensityApi} from './propensity-api';
@@ -305,6 +306,11 @@ export interface Subscriptions {
    * an empty array is returned. If the article does not exist, null is returned.
    */
   getAvailableInterventions(): Promise<AvailableIntervention[] | null>;
+
+  /**
+   * Returns the FreeAccess interface for extended access.
+   */
+  getFreeAccess(): Promise<FreeAccessApi>;
 }
 
 export enum ShowcaseEvent {
