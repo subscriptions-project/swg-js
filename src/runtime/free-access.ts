@@ -48,10 +48,6 @@ export class FreeAccess implements FreeAccessApi {
     return googleReferer && !holdBackSet;
   }
 
-  returnLocation(): string {
-    return this.locationProvider.getSearch();
-  }
-
   private getQueryParamsAsMap(): Map<string, string> {
     const params = new URLSearchParams(this.locationProvider.getSearch());
     const queryMap = new Map<string, string>();
