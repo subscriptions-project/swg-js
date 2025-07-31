@@ -456,7 +456,7 @@
      eventparams1.setSubscriptionTimestamp(timestamp4);
      eventparams1.setCampaignId('');
      eventparams1.setLinkedPublicationsCount(0);
-     eventparams1.setCtaMode(CtaMode.CTA_MODE_POPUP);
+     eventparams1.setCtaMode(CtaMode.CTA_MODE_UNSPECIFIED);
      analyticsrequest1.setParams(eventparams1);
 
      let analyticsrequestDeserialized;
@@ -937,7 +937,7 @@
      eventparams1.setSubscriptionTimestamp(timestamp1);
      eventparams1.setCampaignId('');
      eventparams1.setLinkedPublicationsCount(0);
-     eventparams1.setCtaMode(CtaMode.CTA_MODE_INLINE);
+     eventparams1.setCtaMode(CtaMode.CTA_MODE_UNSPECIFIED);
 
      let eventparamsDeserialized;
 
