@@ -271,6 +271,13 @@ export enum AnalyticsEvent {
 }
 
 /** */
+export enum CtaMode {
+  CTA_MODE_UNSPECIFIED = 0,
+  CTA_MODE_POPUP = 1,
+  CTA_MODE_INLINE = 2,
+}
+
+/** */
 export enum EntitlementResult {
   UNKNOWN_ENTITLEMENT_RESULT = 0,
   UNLOCKED_SUBSCRIBER = 1001,
@@ -307,13 +314,6 @@ export enum ReaderSurfaceType {
   READER_SURFACE_WORDPRESS = 1,
   READER_SURFACE_CHROME = 2,
   READER_SURFACE_TENOR = 3,
-}
-
-/** CTA rendering mode (e.g. inline, pop-up) */
-export enum CtaMode {
-  CTA_MODE_UNSPECIFIED = 0,
-  CTA_MODE_POPUP = 1,
-  CTA_MODE_INLINE = 2,
 }
 
 /** */
@@ -1295,7 +1295,7 @@ export class EventParams implements Message {
 
     this.linkedPublicationsCount_ = data[9 + base] == null ? null : (data[9 + base] as number);
 
-    this.ctaMode_ = data[10 + base] == null ? null : (data[10 + base] as number);
+    this.ctaMode_ = data[10 + base] == null ? null : (data[10 + base] as CtaMode);
   }
 
   getSmartboxMessage(): string | null {
