@@ -86,6 +86,9 @@ export function getContributionsUrl(
   if (clientConfigManager.shouldForceLangInIframes()) {
     params['hl'] = clientConfigManager.getLanguage();
   }
+  if (clientConfig.uiPredicates?.purchaseUnavailableRegion) {
+    params['purchaseUnavailableRegion'] = 'true';
+  }
   if (isInlineCta) {
     params['ctaMode'] = INLINE_CTA_LABEL;
   }
