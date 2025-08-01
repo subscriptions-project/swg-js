@@ -183,6 +183,23 @@ describes.realWin('CTA utils', (env) => {
         'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&hl=fr-CA&ctaMode=CTA_MODE_INLINE'
       );
     });
+
+    it('returns url with purchaseUnavailableRegion', () => {
+      const clientConfig = new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {purchaseUnavailableRegion: true},
+      });
+
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&purchaseUnavailableRegion=true'
+      );
+    });
   });
 
   describe('startContributionPayFlow', () => {
