@@ -3120,7 +3120,7 @@ describes.realWin('EntitlementsManager', (env) => {
         suppressToast: true,
         onAlternateAction: undefined,
         onSignIn: undefined,
-        preference: 'TEST_PREFERENCE'
+        preference: 'TEST_PREFERENCE',
       });
       expect(startSpy).to.have.been.calledOnce;
     });
