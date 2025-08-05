@@ -54,6 +54,7 @@ import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
 import {addQueryParam} from '../utils/url';
 import {feArgs, feUrl} from './services';
+import {getQueryParam} from '../utils/url';
 import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {msg} from '../utils/i18n';
 import {serviceUrl} from './services';
@@ -383,7 +384,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       }
       adsbygoogle?.push({
         params: {
-          'google_adtest': 'on', // TODO(mhkawano): remove before launch.
+          'google_adtest': getQueryParam('google_adtest', this.deps_),
           'google_tag_origin': 'rrm',
           'google_reactive_ad_format': 11,
           'google_wrap_fullscreen_ad': true,

@@ -18,6 +18,7 @@ import {AnalyticsRequest, ReaderSurfaceType} from '../proto/api_messages';
 import {
   addQueryParam,
   getCanonicalUrl,
+  getQueryParam,
   isSecure,
   parseQueryString,
   parseUrl,
@@ -391,5 +392,16 @@ describe('wasReferredByGoogle', () => {
 
   it('should require a Google referrer', () => {
     expect(wasReferredByGoogle(parseUrl('https://www.gogle.com'))).to.be.false;
+  });
+});
+
+describe('getQueryParam', () => {
+  it('should return a query param', () => {
+    const deps = {win: () => ({location: {search: '?foo=bar'}})};
+    expect(getQueryParam('foo', deps)).to.equal('bar');
+  });
+  it('should return null for missing query param', () => {
+    const deps = {win: () => ({location: {search: '?foo=bar'}})};
+    expect(getQueryParam('baz', deps)).to.equal(null);
   });
 });
