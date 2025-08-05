@@ -13,6 +13,12 @@
 
       table {
         border-collapse: collapse;
+        width: 100%;
+        margin-block-end: 14px;
+      }
+
+      caption {
+        font-size: 150%;
       }
 
       thead {
@@ -31,21 +37,26 @@
         "isPartOf": {
           "@type": ["CreativeWork", "Product"],
           "name" : "Funnel for Enterprise Demo",
-          "productID": "CAowuv3XCw:openaccess"
+          "productID": "CAowmrOJAQ:openaccess"
         }
       }
     </script>
 
-    <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg.js"></script>
+    <script async
+            type="application/javascript"
+            src="/examples/sample-pub/redirect-to/swg.js"></script>
 
-    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
+    <script async='async'
+            crossorigin='anonymous'
+            data-page-url='absolutelynotmysite.com'
+            src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6851705954091379'></script>
+
+    <script async
+            src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"
+            crossorigin="anonymous"></script>
 
     <script>
       let swg;
-
-      function clearLocalStorage() {
-        localStorage.removeItem("subscribe.google.com:USER_TOKEN");
-      }
 
       function addResultRow(type, result) {
         const table = document.getElementById("resultTable");
@@ -91,6 +102,7 @@
           <td scope="col"><button>Show</button></td>
           <td scope="col">${intervention.type}</td>
           <td scope="col">${intervention.configurationId}</td>
+          <td scope="col">${intervention.intervention.preference}</td>
         `;
         row.innerHTML = html;
         const button = row.getElementsByTagName('button')[0];
@@ -133,7 +145,6 @@
 
   <body>
     <h1>Funnel for Enterprise Demo</h1>
-    <button onclick="clearLocalStorage()">Clear local storage</button>
     <input type="checkbox" id="isClosable" name="scales" checked />
       <label for="isClosable">isClosable</label>
     </input>
@@ -155,6 +166,7 @@
             <th scope="col">Activate</th>
             <th scope="col">Type</th>
             <th scope="col">ID</th>
+            <th scope="col">Preference</th>
           </tr>
         </thead>
         <tbody id="interventionTable">
