@@ -52,7 +52,7 @@
     "eslint-plugin-sort-requires": "2.1.0",
     "express": "5.1.0",
     "fancy-log": "2.0.0",
-    "fs-extra": "11.3.0",
+    "fs-extra": "11.3.1",
     "glob": "11.0.3",
     "gulp": "5.0.1",
     "gulp-eslint-if-fixed": "1.0.0",
