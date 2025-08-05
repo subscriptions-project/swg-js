@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Deps} from '../runtime/deps';
 import {Doc} from '../model/doc';
 import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
@@ -209,3 +210,9 @@ const ActionToIframeMapping: Record<InterventionType, string> = {
 };
 
 export {ActionToIframeMapping};
+
+export function getQueryParam(param: string, deps: Deps): string | null {
+  const queryString = deps.win().location.search;
+  const urlParams = new URLSearchParams(queryString);
+  return urlParams.get(param);
+}

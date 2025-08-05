@@ -1344,6 +1344,36 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       expect(alternateActionSpy).to.be.called;
       dialogManagerMock.verify();
     });
+
+    it('sets google_adtest based on query param', async () => {
+      win.location.search = '?google_adtest=on';
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      await setupRewardedAds({adSense: true});
+
+      expect(win.adsbygoogle[0]['params']['google_adtest']).to.equal('on');
+      activityIframeViewMock.verify();
+    });
+
+    it('sets google_adtest to null if query param not set', async () => {
+      win.location.search = '';
+      const rewardedAdLoadAdResponse = new RewardedAdLoadAdResponse();
+      rewardedAdLoadAdResponse.setSuccess(true);
+      activityIframeViewMock
+        .expects('execute')
+        .withExactArgs(rewardedAdLoadAdResponse)
+        .once();
+
+      await setupRewardedAds({adSense: true});
+
+      expect(win.adsbygoogle[0]['params']['google_adtest']).to.be.null;
+      activityIframeViewMock.verify();
+    });
   });
 
   it('isAudienceActionType returns correct value for InterventionType', () => {
