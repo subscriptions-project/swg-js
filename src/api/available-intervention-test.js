@@ -38,6 +38,7 @@ describes.realWin('AvailableIntervention', (env) => {
     const availableIntervention = new AvailableIntervention({
         type: InterventionType.TYPE_NEWSLETTER_SIGNUP,
         configurationId: 'TEST_CONFIGURATION_ID',
+        preference: 'TEST_PREFERENCE'
       },
       deps
     );
@@ -59,6 +60,7 @@ describes.realWin('AvailableIntervention', (env) => {
       suppressToast: true,
       onAlternateAction: alternateActionHandler,
       onSignIn: signInHandler,
+      preference: 'TEST_PREFERENCE'
     });
     expect(startStub).to.have.been.calledOnce;
   });

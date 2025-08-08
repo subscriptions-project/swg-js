@@ -115,6 +115,7 @@ export class AvailableIntervention {
         suppressToast: params.suppressToast,
         onAlternateAction: params.onAlternateAction,
         onSignIn: params.onSignIn,
+        preference: this.intervention.preference,
       }).start();
     }
     throw Error(`Can't show ${this.type}`);

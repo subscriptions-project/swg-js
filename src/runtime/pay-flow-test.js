@@ -17,6 +17,7 @@
 import {
   AccountCreationRequest,
   AnalyticsEvent,
+  CtaMode,
   EntitlementsResponse,
   EventParams,
 } from '../proto/api_messages';
@@ -96,10 +97,15 @@ const INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS = {
 /**
  * @param {string} sku
  * @param {string=} subscriptionFlow
+ * @param {CtaMode} ctaMode
  * @return {!EventParams}
  */
-function getEventParams(sku, subscriptionFlow = null) {
-  return new EventParams([, , , , sku, , , subscriptionFlow]);
+function getEventParams(
+  sku,
+  subscriptionFlow = null,
+  ctaMode = CtaMode.CTA_MODE_POPUP
+) {
+  return new EventParams([, , , , sku, , , subscriptionFlow, , , , ctaMode]);
 }
 
 const USER_ID_TOKEN = 'ID_TOK';
@@ -205,7 +211,11 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('', null, CtaMode.CTA_MODE_POPUP)
+      );
     await flow.start();
   });
 
@@ -253,7 +263,11 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
+      );
     await contribFlow.start();
   });
 
@@ -302,7 +316,11 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
+      );
     await oneTimeFlow.start();
   });
 
@@ -355,7 +373,11 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
+      );
     await metadataFlow.start();
   });
 
@@ -409,7 +431,11 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED, true);
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
+      );
     await replaceFlow.start();
   });
 
@@ -464,7 +490,11 @@ describes.realWin('PayStartFlow', (env) => {
       );
     eventManagerMock
       .expects('logSwgEvent')
-      .withExactArgs(AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED, true);
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
+      );
     await replaceFlowNoProrationMode.start();
   });
 
@@ -1306,7 +1336,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .withExactArgs(
         AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
         true,
-        getEventParams('')
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
       );
 
     activitiesMock.expects('openIframe').never();
@@ -1332,7 +1362,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .withExactArgs(
         AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
         true,
-        getEventParams('')
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
       );
 
     activitiesMock.expects('openIframe').never();
@@ -1360,7 +1390,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .withExactArgs(
         AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
         true,
-        getEventParams('')
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
       );
 
     activitiesMock.expects('openIframe').never();
@@ -1393,7 +1423,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .withExactArgs(
         AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
         true,
-        getEventParams('')
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
       );
 
     activitiesMock.expects('openIframe').resolves(port);
@@ -1425,7 +1455,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .withExactArgs(
         AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
         true,
-        getEventParams('')
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
       );
 
     activitiesMock
@@ -1472,7 +1502,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .withExactArgs(
         AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
         true,
-        getEventParams('')
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
       );
 
     activitiesMock.expects('openIframe').resolves(port);
@@ -1486,6 +1516,7 @@ describes.realWin('PayCompleteFlow', (env) => {
     let triggerPromise;
 
     beforeEach(() => {
+      PayCompleteFlow.isInlineCta = false;
       startStub = sandbox.stub(PayCompleteFlow.prototype, 'start');
       triggerPromise = undefined;
       callbacksMock
@@ -1505,7 +1536,11 @@ describes.realWin('PayCompleteFlow', (env) => {
       analyticsMock.expects('addLabels').never();
       eventManagerMock
         .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
+        .withExactArgs(
+          AnalyticsEvent.EVENT_PAYMENT_FAILED,
+          false,
+          getEventParams('')
+        )
         .once();
       jserrorMock.expects('error').withExactArgs('Pay failed', error).once();
 
@@ -1526,7 +1561,11 @@ describes.realWin('PayCompleteFlow', (env) => {
       analyticsMock.expects('addLabels').never();
       eventManagerMock
         .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true)
+        .withExactArgs(
+          AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW,
+          true,
+          getEventParams('')
+        )
         .once();
       callbacksMock
         .expects('triggerFlowCanceled')
@@ -1731,7 +1770,11 @@ describes.realWin('PayCompleteFlow', (env) => {
         .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
       eventManagerMock
         .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE, true);
+        .withExactArgs(
+          AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE,
+          true,
+          getEventParams('')
+        );
       eventManagerMock
         .expects('logSwgEvent')
         .withExactArgs(

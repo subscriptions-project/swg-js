@@ -16,6 +16,7 @@
 
 import {
   AnalyticsEvent,
+  CtaMode,
   EventParams,
   SkuSelectedResponse,
 } from '../proto/api_messages';
@@ -182,6 +183,23 @@ describes.realWin('CTA utils', (env) => {
         'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&hl=fr-CA&ctaMode=CTA_MODE_INLINE'
       );
     });
+
+    it('returns url with purchaseUnavailableRegion', () => {
+      const clientConfig = new ClientConfig({
+        useUpdatedOfferFlows: true,
+        uiPredicates: {purchaseUnavailableRegion: true},
+      });
+
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&purchaseUnavailableRegion=true'
+      );
+    });
   });
 
   describe('startContributionPayFlow', () => {
@@ -316,7 +334,7 @@ describes.realWin('CTA utils', (env) => {
         .withExactArgs(
           AnalyticsEvent.ACTION_OFFER_SELECTED,
           true,
-          new EventParams([, , , , 'sku1'])
+          new EventParams([, , , , 'sku1', , , , , , , CtaMode.CTA_MODE_POPUP])
         )
         .once();
 

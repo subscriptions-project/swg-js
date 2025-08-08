@@ -119,10 +119,7 @@ function logSurveyDataToGoogleAnalytics(
       eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: true,
-      additionalParameters:
-        ctaMode === CtaMode.CTA_MODE_INLINE
-          ? {ctaMode: CtaMode.CTA_MODE_INLINE}
-          : null,
+      additionalParameters: {ctaMode},
     };
     question.getSurveyAnswersList()?.map((answer) => {
       const eventParams = {

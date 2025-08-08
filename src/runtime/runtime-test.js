@@ -926,6 +926,12 @@ describes.realWin('Runtime', (env) => {
       expect(propensityModule).to.equal(propensity);
     });
 
+    it('should return free access module', async () => {
+      const freeAccessApi = await runtime.getFreeAccess();
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(freeAccessApi).to.not.equal(null);
+    });
+
     it('should delegate "setShowcaseEntitlement"', async () => {
       const entitlement = {
         entitlement: ShowcaseEvent.EVENT_SHOWCASE_UNLOCKED_BY_SUBSCRIPTION,

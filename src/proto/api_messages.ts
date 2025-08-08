@@ -268,6 +268,20 @@ export enum AnalyticsEvent {
   EVENT_HOSTED_PAGE_CONTRIBUTION_PAYMENT_COMPLETE = 3055,
   EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR = 3056,
   EVENT_SUBSCRIPTION_STATE = 4000,
+  FREE_ACCESS_EVENT_LANDING = 5000,
+  FREE_ACCESS_EVENT_REGWALL_IMPRESSION = 5001,
+  FREE_ACCESS_EVENT_UNLOCK_VIA_FREE_ACCESS_PROGRAM = 5002,
+  FREE_ACCESS_EVENT_UNLOCK_VIA_FREE_ACCESS_PROGRAM_FOR_NEW_REGISTRATION = 5003,
+  FREE_ACCESS_EVENT_UNLOCK_VIA_FREE_ACCESS_PROGRAM_FOR_USER_SIGN_IN = 5004,
+  FREE_ACCESS_EVENT_UNLOCK_VIA_FREE_ACCESS_PROGRAM_FOR_USER_ALREADY_SIGNED_IN = 5005,
+  FREE_ACCESS_EVENT_UNLOCKED_NOT_VIA_FREE_ACCESS = 5006,
+}
+
+/** */
+export enum CtaMode {
+  CTA_MODE_UNSPECIFIED = 0,
+  CTA_MODE_POPUP = 1,
+  CTA_MODE_INLINE = 2,
 }
 
 /** */
@@ -307,13 +321,6 @@ export enum ReaderSurfaceType {
   READER_SURFACE_WORDPRESS = 1,
   READER_SURFACE_CHROME = 2,
   READER_SURFACE_TENOR = 3,
-}
-
-/** CTA rendering mode (e.g. inline, pop-up) */
-export enum CtaMode {
-  CTA_MODE_UNSPECIFIED = 0,
-  CTA_MODE_POPUP = 1,
-  CTA_MODE_INLINE = 2,
 }
 
 /** */
@@ -1295,7 +1302,7 @@ export class EventParams implements Message {
 
     this.linkedPublicationsCount_ = data[9 + base] == null ? null : (data[9 + base] as number);
 
-    this.ctaMode_ = data[10 + base] == null ? null : (data[10 + base] as number);
+    this.ctaMode_ = data[10 + base] == null ? null : (data[10 + base] as CtaMode);
   }
 
   getSmartboxMessage(): string | null {
