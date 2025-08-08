@@ -51,9 +51,7 @@ export async function handleSurveyDataTransferRequest(
       .logSwgEvent(
         AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
         /* isFromUserAction */ true,
-        /* eventParams */ ctaMode === CtaMode.CTA_MODE_INLINE
-          ? getInlineCtaEventParams()
-          : null
+        /* eventParams */ getCtaModeEventParams(ctaMode)
       );
   } else {
     deps
@@ -61,9 +59,7 @@ export async function handleSurveyDataTransferRequest(
       .logSwgEvent(
         AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
         /* isFromUserAction */ false,
-        /* eventParams */ ctaMode === CtaMode.CTA_MODE_INLINE
-          ? getInlineCtaEventParams()
-          : null
+        /* eventParams */ getCtaModeEventParams(ctaMode)
       );
   }
   const surveyDataTransferResponse = new SurveyDataTransferResponse();
@@ -123,10 +119,7 @@ function logSurveyDataToGoogleAnalytics(
       eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
       eventOriginator: EventOriginator.SWG_CLIENT,
       isFromUserAction: true,
-      additionalParameters:
-        ctaMode === CtaMode.CTA_MODE_INLINE
-          ? {ctaMode: CtaMode.CTA_MODE_INLINE}
-          : null,
+      additionalParameters: {ctaMode},
     };
     question.getSurveyAnswersList()?.map((answer) => {
       const eventParams = {
@@ -204,8 +197,8 @@ async function storePpsValuesFromSurveyAnswers(
   // TODO(caroljli): clearcut event logging
 }
 
-function getInlineCtaEventParams(): EventParams {
+function getCtaModeEventParams(ctaMode: CtaMode): EventParams {
   const eventParams: EventParams = new EventParams();
-  eventParams.setCtaMode(CtaMode.CTA_MODE_INLINE);
+  eventParams.setCtaMode(ctaMode);
   return eventParams;
 }
