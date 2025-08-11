@@ -51,7 +51,7 @@ export async function handleSurveyDataTransferRequest(
       .logSwgEvent(
         AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
         /* isFromUserAction */ true,
-        /* eventParams */ getCtaModeEventParams(ctaMode)
+        /* eventParams */ createCtaModeEventParams(ctaMode)
       );
   } else {
     deps
@@ -59,7 +59,7 @@ export async function handleSurveyDataTransferRequest(
       .logSwgEvent(
         AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
         /* isFromUserAction */ false,
-        /* eventParams */ getCtaModeEventParams(ctaMode)
+        /* eventParams */ createCtaModeEventParams(ctaMode)
       );
   }
   const surveyDataTransferResponse = new SurveyDataTransferResponse();
@@ -197,7 +197,7 @@ async function storePpsValuesFromSurveyAnswers(
   // TODO(caroljli): clearcut event logging
 }
 
-function getCtaModeEventParams(ctaMode: CtaMode): EventParams {
+function createCtaModeEventParams(ctaMode: CtaMode): EventParams {
   const eventParams: EventParams = new EventParams();
   eventParams.setCtaMode(ctaMode);
   return eventParams;
