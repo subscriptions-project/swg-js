@@ -350,7 +350,7 @@ describes.realWin('InlineCtaApi', (env) => {
       const resultUrl =
         'https://news.google.com/swg/ui/v1/newsletteriframe?_=_&origin=about%3Asrcdoc&configurationId=newsletter_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&hl=pt-BR';
       const resultArgs = {
-        supportsEventManager: false,
+        supportsEventManager: true,
         productType: 'UI_CONTRIBUTION',
         _client: 'SwG 0.0.0',
       };
@@ -425,7 +425,7 @@ describes.realWin('InlineCtaApi', (env) => {
         'list': 'default',
         'skus': null,
         'isClosable': false,
-        'supportsEventManager': false,
+        'supportsEventManager': true,
         _client: 'SwG 0.0.0',
       };
 
@@ -510,7 +510,7 @@ describes.realWin('InlineCtaApi', (env) => {
         'publicationId': pubId,
         'productId': productId,
         '_client': 'SwG 0.0.0',
-        'supportsEventManager': false,
+        'supportsEventManager': true,
         showNative: false,
         productType: 'SUBSCRIPTION',
         list: 'default',
@@ -527,7 +527,7 @@ describes.realWin('InlineCtaApi', (env) => {
           list: 'default',
           skus: null,
           isClosable: false,
-          supportsEventManager: false,
+          supportsEventManager: true,
         })
         .returns(resultArgs)
         .once();

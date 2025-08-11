@@ -173,7 +173,7 @@ export class InlineCtaApi {
             'list': 'default',
             'skus': null,
             'isClosable': false,
-            'supportsEventManager': false,
+            'supportsEventManager': true,
           }) as {[key: string]: string})
         : action.type === InterventionType.TYPE_CONTRIBUTION
         ? feArgs({
@@ -183,10 +183,10 @@ export class InlineCtaApi {
             'list': 'default',
             'skus': null,
             'isClosable': false,
-            'supportsEventManager': false,
+            'supportsEventManager': true,
           })
         : feArgs({
-            'supportsEventManager': false,
+            'supportsEventManager': true,
             'productType': DEFAULT_PRODUCT_TYPE,
           });
 
