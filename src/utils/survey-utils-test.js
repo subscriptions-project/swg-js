@@ -19,7 +19,6 @@ import {
   AnalyticsEvent,
   CtaMode,
   EventOriginator,
-  EventParams,
   SurveyAnswer,
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
@@ -30,7 +29,10 @@ import {Constants} from './constants';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
 import {Storage} from '../runtime/storage';
-import {handleSurveyDataTransferRequest} from './survey-utils';
+import {
+  createCtaModeEventParams,
+  handleSurveyDataTransferRequest,
+} from './survey-utils';
 import {tick} from '../../test/tick';
 
 const productId = 'pub1:label1';
@@ -146,7 +148,7 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: true,
-            additionalParameters: null,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_POPUP},
           },
           {
             googleAnalyticsParameters: {
@@ -170,7 +172,7 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: true,
-            additionalParameters: null,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_POPUP},
           },
           {
             // Rendering response for more than first survey answer choice
@@ -195,7 +197,7 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: true,
-            additionalParameters: null,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_POPUP},
           },
           {
             googleAnalyticsParameters: {
@@ -217,7 +219,10 @@ describes.realWin('Survey utils', (env) => {
           eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: true,
-          additionalParameters: null,
+          // Called through logSwgEvent(), therefore need to create new EventParams
+          additionalParameters: createCtaModeEventParams(
+            CtaMode.CTA_MODE_POPUP
+          ),
           configurationId: null,
         },
         undefined,
@@ -322,20 +327,10 @@ describes.realWin('Survey utils', (env) => {
           eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: true,
-          additionalParameters: new EventParams([
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            CtaMode.CTA_MODE_INLINE,
-          ]),
+          // Called through logSwgEvent(), therefore need to create new EventParams
+          additionalParameters: createCtaModeEventParams(
+            CtaMode.CTA_MODE_INLINE
+          ),
           configurationId: null,
         },
         undefined,
@@ -380,7 +375,10 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: false,
-            additionalParameters: null,
+            // Called through logSwgEvent(), therefore need to create new EventParams
+            additionalParameters: createCtaModeEventParams(
+              CtaMode.CTA_MODE_POPUP
+            ),
             configurationId: null,
           },
           undefined,
@@ -419,20 +417,10 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: false,
-            additionalParameters: new EventParams([
-              ,
-              ,
-              ,
-              ,
-              ,
-              ,
-              ,
-              ,
-              ,
-              ,
-              ,
-              CtaMode.CTA_MODE_INLINE,
-            ]),
+            // Called through logSwgEvent(), therefore need to create new EventParams
+            additionalParameters: createCtaModeEventParams(
+              CtaMode.CTA_MODE_INLINE
+            ),
             configurationId: null,
           },
           undefined,
@@ -468,7 +456,7 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: true,
-            additionalParameters: null,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_POPUP},
           },
           {
             googleAnalyticsParameters: {
@@ -492,7 +480,7 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: true,
-            additionalParameters: null,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_POPUP},
           },
           {
             googleAnalyticsParameters: {
@@ -516,7 +504,7 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: true,
-            additionalParameters: null,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_POPUP},
           },
           {
             googleAnalyticsParameters: {
@@ -538,7 +526,10 @@ describes.realWin('Survey utils', (env) => {
           eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: true,
-          additionalParameters: null,
+          // Called through logSwgEvent(), therefore need to create new EventParams
+          additionalParameters: createCtaModeEventParams(
+            CtaMode.CTA_MODE_POPUP
+          ),
           configurationId: null,
         },
         undefined,
@@ -583,7 +574,10 @@ describes.realWin('Survey utils', (env) => {
           eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: true,
-          additionalParameters: null,
+          // Called through logSwgEvent(), therefore need to create new EventParams
+          additionalParameters: createCtaModeEventParams(
+            CtaMode.CTA_MODE_UNSPECIFIED
+          ),
           configurationId: null,
         },
         undefined,
@@ -618,7 +612,10 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: false,
-            additionalParameters: null,
+            // Called through logSwgEvent(), therefore need to create new EventParams
+            additionalParameters: createCtaModeEventParams(
+              CtaMode.CTA_MODE_UNSPECIFIED
+            ),
             configurationId: null,
           },
           undefined,
@@ -661,7 +658,10 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: false,
-            additionalParameters: null,
+            // Called through logSwgEvent(), therefore need to create new EventParams
+            additionalParameters: createCtaModeEventParams(
+              CtaMode.CTA_MODE_POPUP
+            ),
             configurationId: null,
           },
           undefined,
@@ -708,7 +708,10 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: false,
-            additionalParameters: null,
+            // Called through logSwgEvent(), therefore need to create new EventParams
+            additionalParameters: createCtaModeEventParams(
+              CtaMode.CTA_MODE_POPUP
+            ),
             configurationId: null,
           },
           undefined,
@@ -749,7 +752,7 @@ describes.realWin('Survey utils', (env) => {
             eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
             eventOriginator: EventOriginator.SWG_CLIENT,
             isFromUserAction: true,
-            additionalParameters: null,
+            additionalParameters: {ctaMode: CtaMode.CTA_MODE_POPUP},
           },
           {
             googleAnalyticsParameters: {
@@ -771,7 +774,10 @@ describes.realWin('Survey utils', (env) => {
           eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
           eventOriginator: EventOriginator.SWG_CLIENT,
           isFromUserAction: true,
-          additionalParameters: null,
+          // Called through logSwgEvent(), therefore need to create new EventParams
+          additionalParameters: createCtaModeEventParams(
+            CtaMode.CTA_MODE_POPUP
+          ),
           configurationId: null,
         },
         undefined,
