@@ -197,7 +197,8 @@ async function storePpsValuesFromSurveyAnswers(
   // TODO(caroljli): clearcut event logging
 }
 
-function createCtaModeEventParams(ctaMode: CtaMode): EventParams {
+// Create a EventParams with ctaMode param
+export function createCtaModeEventParams(ctaMode: CtaMode): EventParams {
   const eventParams: EventParams = new EventParams();
   eventParams.setCtaMode(ctaMode);
   return eventParams;
