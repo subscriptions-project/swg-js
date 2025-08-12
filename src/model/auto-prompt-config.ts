@@ -23,15 +23,6 @@ interface AutoPromptConfigParams {
   impressionBackOffSeconds?: number;
   maxImpressions?: number;
   maxImpressionsResultingHideSeconds?: number;
-  globalFrequencyCapDurationSeconds?: number;
-  globalFrequencyCapDurationNano?: number;
-  promptFrequencyCaps?: {
-    audienceActionType?: string;
-    frequencyCapDuration?: {
-      seconds?: number;
-      nano?: number;
-    };
-  }[];
   anyPromptFrequencyCapDurationSeconds?: number;
   anyPromptFrequencyCapDurationNano?: number;
 }
@@ -57,9 +48,6 @@ export class AutoPromptConfig {
     impressionBackOffSeconds,
     maxImpressions,
     maxImpressionsResultingHideSeconds,
-    globalFrequencyCapDurationSeconds,
-    globalFrequencyCapDurationNano,
-    promptFrequencyCaps,
     anyPromptFrequencyCapDurationSeconds,
     anyPromptFrequencyCapDurationNano,
   }: AutoPromptConfigParams) {
@@ -78,22 +66,6 @@ export class AutoPromptConfig {
       maxImpressionsResultingHideSeconds
     );
     this.frequencyCapConfig = new FrequencyCapConfig(
-      new GlobalFrequencyCap(
-        new Duration(
-          globalFrequencyCapDurationSeconds,
-          globalFrequencyCapDurationNano
-        )
-      ),
-      promptFrequencyCaps?.map(
-        (promptFrequencyCap) =>
-          new PromptFrequencyCap(
-            promptFrequencyCap.audienceActionType,
-            new Duration(
-              promptFrequencyCap.frequencyCapDuration?.seconds,
-              promptFrequencyCap.frequencyCapDuration?.nano
-            )
-          )
-      ),
       new AnyPromptFrequencyCap(
         new Duration(
           anyPromptFrequencyCapDurationSeconds,
@@ -140,22 +112,7 @@ export class ImpressionConfig {
  * Configuration of Prompt Frequency Capping.
  */
 export class FrequencyCapConfig {
-  constructor(
-    public readonly globalFrequencyCap?: GlobalFrequencyCap,
-    public readonly promptFrequencyCaps?: PromptFrequencyCap[],
-    public readonly anyPromptFrequencyCap?: AnyPromptFrequencyCap
-  ) {}
-}
-
-export class GlobalFrequencyCap {
-  constructor(public readonly frequencyCapDuration?: Duration) {}
-}
-
-export class PromptFrequencyCap {
-  constructor(
-    public readonly audienceActionType?: string,
-    public readonly frequencyCapDuration?: Duration
-  ) {}
+  constructor(public readonly anyPromptFrequencyCap?: AnyPromptFrequencyCap) {}
 }
 
 export class AnyPromptFrequencyCap {
