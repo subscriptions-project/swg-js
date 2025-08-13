@@ -3701,10 +3701,16 @@ describes.realWin('AutoPromptManager', (env) => {
         audienceActions: {actions: [intervention], engineId: '123'},
         actionOrchestration: {
           interventionFunnel: {
+            globalFrequencyCap: {
+              duration: {seconds: funnelGlobalFrequencyCapDurationSeconds},
+            },
             interventions: [
               {
                 configId: intervention.configurationId,
                 type: intervention.type,
+                promptFrequencyCap: {
+                  duration: {seconds: contributionFrequencyCapDurationSeconds},
+                },
                 closability,
               },
             ],
@@ -3782,6 +3788,7 @@ describes.realWin('AutoPromptManager', (env) => {
           experimentConfig: {experimentFlags: ['bcontrib_experiment']},
         };
         getArticleExpectation.resolves(article).once();
+        expectFrequencyCappingTimestamps(storageMock);
 
         await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
 
