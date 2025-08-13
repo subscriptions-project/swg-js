@@ -3728,7 +3728,19 @@ describes.realWin('AutoPromptManager', (env) => {
           .once();
       });
 
-      it('filters out monetary cta if open content', async () => {
+      it('filters out if monetary, open content, dismissible', async () => {
+        getArticleExpectation
+          .resolves(createArticle(SUBSCRIPTION_INTERVENTION, 'DISMISSIBLE'))
+          .once();
+
+        await autoPromptManager.showAutoPrompt({
+          contentType: ContentType.OPEN,
+        });
+
+        expect(subscriptionPromptFnSpy).not.to.have.been.called;
+      });
+
+      it('filters out if monetary, open content, non-dismissible', async () => {
         getArticleExpectation
           .resolves(createArticle(SUBSCRIPTION_INTERVENTION, 'BLOCKING'))
           .once();
@@ -3760,6 +3772,18 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({
           contentType: ContentType.CLOSED,
         });
+
+        expect(contributionPromptFnSpy).to.have.been.calledOnce;
+      });
+
+      it('shows if open content, non-dismissible, experiment enabled', async () => {
+        const article = {
+          ...createArticle(CONTRIBUTION_INTERVENTION, 'BLOCKING'),
+          experimentConfig: {experimentFlags: ['bcontrib_experiment']},
+        };
+        getArticleExpectation.resolves(article).once();
+
+        await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
 
         expect(contributionPromptFnSpy).to.have.been.calledOnce;
       });
