@@ -52,4 +52,11 @@ export enum ArticleExperimentFlags {
    * Experiment flag to enable multiple instances of CTAs (FCA Phase 1).
    */
   MULTI_INSTANCE_CTA_EXPERIMENT = 'multi_instance_cta_experiment',
+
+  /**
+   * Experiment flag that shows non-dismissible contribution CTA regardless of
+   * reader's region. (If reader is in RRM-unsupported region, expect
+   * contribution CTA to render "purchase not available").
+   */
+  ALWAYS_SHOW_BLOCKING_CONTRIBUTION_EXPERIMENT = 'bcontrib_experiment',
 }
