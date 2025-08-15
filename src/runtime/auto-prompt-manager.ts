@@ -194,6 +194,7 @@ export class AutoPromptManager {
   private shouldRenderOnsitePreview_: boolean = false;
   private standardRewardedAdExperiment = false;
   private multiInstanceCtaExperiment: boolean = false;
+  private alwaysShowBlockingContributionExperiment: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -297,6 +298,11 @@ export class AutoPromptManager {
       article,
       ArticleExperimentFlags.MULTI_INSTANCE_CTA_EXPERIMENT
     );
+    this.alwaysShowBlockingContributionExperiment =
+      this.isArticleExperimentEnabled_(
+        article,
+        ArticleExperimentFlags.ALWAYS_SHOW_BLOCKING_CONTRIBUTION_EXPERIMENT
+      );
   }
 
   /**
@@ -1096,12 +1102,18 @@ export class AutoPromptManager {
     }
 
     // Prevent readers from seeing dismissible CTAs they can't interact with.
+    // When experiment "alwaysShowBlockingContributionExperiment" is enabled,
+    // dismissibility is defined by the closability only. When the experiment is
+    // disabled, dismissibility is a function of content type and closability.
     const readerCannotPurchase =
       !!clientConfig?.uiPredicates?.purchaseUnavailableRegion &&
       this.isMonetizationAction_(orchestration.type);
-    const isDismissible =
-      this.contentType_ !== ContentType.CLOSED ||
-      closability === Closability.DISMISSIBLE;
+    const isClosable = closability === Closability.DISMISSIBLE;
+    const isClosedContent = this.contentType_ === ContentType.CLOSED;
+    const isDismissible = this.alwaysShowBlockingContributionExperiment
+      ? isClosable
+      : isClosable || !isClosedContent;
+
     if (isDismissible && readerCannotPurchase) {
       return false;
     }
