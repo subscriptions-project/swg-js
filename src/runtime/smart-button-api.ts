@@ -16,6 +16,7 @@
 
 import {ActivityPorts} from '../components/activities';
 import {Deps} from './deps';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {SmartBoxMessage} from '../proto/api_messages';
 import {SmartButtonOptions} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
@@ -25,6 +26,7 @@ import {setImportantStyles} from '../utils/style';
 const iframeAttributes = {
   'frameborder': '0',
   'scrolling': 'no',
+  'title': SWG_I18N_STRINGS.SWG_BUTTON.en,
 };
 
 export enum Theme {

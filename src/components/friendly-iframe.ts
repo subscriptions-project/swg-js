@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {createElement} from '../utils/dom';
 import {resetAllStyles} from '../utils/style';
 
@@ -21,6 +22,7 @@ const friendlyIframeAttributes = {
   'frameborder': '0',
   'scrolling': 'no',
   'src': 'about:blank',
+  'title': SWG_I18N_STRINGS.SWG_CTA.en,
 };
 
 /**

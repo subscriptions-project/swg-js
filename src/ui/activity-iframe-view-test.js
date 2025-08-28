@@ -85,6 +85,9 @@ describes.realWin('ActivityIframeView', (env) => {
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
       expect(activityIframe.getAttribute('frameborder')).to.equal('0');
+      expect(activityIframe.getAttribute('title')).to.equal(
+        'Subscribe with Google CTA'
+      );
     });
 
     it('returns shouldFadeBody specified in constructor', () => {

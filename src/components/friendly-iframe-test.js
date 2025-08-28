@@ -53,6 +53,9 @@ describes.realWin('FriendlyIframe', (env) => {
 
       expect(iframe.getAttribute('src')).to.equal('about:blank');
       expect(iframe.getAttribute('class')).to.equal('swg-dialog');
+      expect(iframe.getAttribute('title')).to.equal(
+        'Subscribe with Google CTA'
+      );
       expect(iframeDocument.nodeType).to.equal(9 /* Document */);
       expect(iframeDocument.nodeName).to.equal('#document');
       expect(iframeBody.nodeType).to.equal(1 /* Element */);

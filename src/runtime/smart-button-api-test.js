@@ -20,6 +20,7 @@ describes.realWin('SmartSubscriptionButtonApi', (env) => {
   let addDefaultArguments;
   let button;
   let deps;
+  let smartButton;
 
   beforeEach(() => {
     addDefaultArguments = sandbox.fake();
@@ -32,18 +33,24 @@ describes.realWin('SmartSubscriptionButtonApi', (env) => {
       win: () => env.win,
       pageConfig: () => ({getPublicationId: () => '...'}),
     };
+    smartButton = new SmartSubscriptionButtonApi(deps, button, {});
+    smartButton.start();
   });
 
-  describe('constructor', () => {
-    it('defaults theme to Theme.LIGHT', () => {
-      const smartButton = new SmartSubscriptionButtonApi(deps, button, {});
-      smartButton.start();
-      expect(addDefaultArguments).to.be.calledWithExactly({
-        publicationId: '...',
-        theme: 'light',
-        lang: 'en',
-        _client: 'SwG 0.0.0',
-      });
+  it('sets iframe attributes', () => {
+    expect(smartButton.iframe_.getAttribute('title')).to.equal(
+      'Subscribe with Google Button'
+    );
+    expect(smartButton.iframe_.getAttribute('frameborder')).to.equal('0');
+    expect(smartButton.iframe_.getAttribute('scrolling')).to.equal('no');
+  });
+
+  it('defaults theme to Theme.LIGHT', () => {
+    expect(addDefaultArguments).to.be.calledWithExactly({
+      publicationId: '...',
+      theme: 'light',
+      lang: 'en',
+      _client: 'SwG 0.0.0',
     });
   });
 });
