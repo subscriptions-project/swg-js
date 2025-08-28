@@ -76,6 +76,10 @@ describes.realWin('Toast', (env) => {
     // These two properties are not set !important.
     expect(iframeStyles.width).to.equal('300px');
     expect(iframeStyles.left).to.equal('0px');
+
+    expect(iframe.getAttribute('title')).to.equal(
+      'Subscribe with Google Notification'
+    );
   });
 
   it('should automatically close', async () => {

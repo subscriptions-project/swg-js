@@ -18,6 +18,7 @@ import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
 import {Message} from '../proto/api_messages';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
@@ -27,6 +28,7 @@ import {setImportantStyles} from '../utils/style';
 const iframeAttributes = {
   'frameborder': '0',
   'scrolling': 'no',
+  'title': SWG_I18N_STRINGS.SWG_CTA.en,
 };
 
 /**

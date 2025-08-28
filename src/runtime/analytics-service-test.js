@@ -135,6 +135,9 @@ describes.realWin('AnalyticsService', (env) => {
       const activityIframe = analyticsService.getElement();
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
+      expect(activityIframe.getAttribute('title')).to.equal(
+        'Subscribe with Google Service'
+      );
       for (const key in IFRAME_STYLES) {
         if (typeof IFRAME_STYLES[key] === 'string') {
           expect(getStyle(activityIframe, key)).to.equal(IFRAME_STYLES[key]);
