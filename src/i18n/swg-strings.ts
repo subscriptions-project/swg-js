@@ -587,4 +587,16 @@ export const SWG_I18N_STRINGS: Record<string, Translation> = {
     'zh-hk': '返回首頁',
     'zh-tw': '返回首頁',
   },
+  'SWG_CTA': {
+    'en': 'Subscribe with Google CTA',
+  },
+  'SWG_BUTTON': {
+    'en': 'Subscribe with Google Button',
+  },
+  'SWG_NOTIFICATION': {
+    'en': 'Subscribe with Google Notification',
+  },
+  'SWG_SERVICE': {
+    'en': 'Subscribe with Google Service',
+  },
 };

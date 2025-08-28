@@ -17,6 +17,7 @@
 import {ActivityPorts} from '../components/activities';
 import {Deps} from '../runtime/deps';
 import {Doc} from '../model/doc';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {createElement} from '../utils/dom';
 import {resetStyles, setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
@@ -34,6 +35,7 @@ const iframeAttributes = {
   'frameborder': '0',
   'scrolling': 'no',
   'class': 'swg-toast',
+  'title': SWG_I18N_STRINGS.SWG_NOTIFICATION.en,
 };
 
 /**
