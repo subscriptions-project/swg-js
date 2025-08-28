@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {Translation} from '../i18n/translation';
+
 /** English is the default language. */
 const DEFAULT_LANGUAGE_CODE = 'en';
 
@@ -21,13 +23,13 @@ const DEFAULT_LANGUAGE_CODE = 'en';
  * Gets a message for a given language code, from a map of messages.
  */
 export function msg(
-  map: {[key: string]: string | undefined},
+  translation: Translation,
   languageCodeOrElement: string | HTMLElement
-): string | undefined {
-  const defaultMsg = map[DEFAULT_LANGUAGE_CODE];
+): string {
+  const defaultMsg = translation[DEFAULT_LANGUAGE_CODE];
 
   // Verify params.
-  if (typeof map !== 'object' || !languageCodeOrElement) {
+  if (!languageCodeOrElement) {
     return defaultMsg;
   }
 
@@ -46,8 +48,8 @@ export function msg(
   const languageCodeSegments = languageCode.split('-');
   while (languageCodeSegments.length) {
     const key = languageCodeSegments.join('-');
-    if (key in map) {
-      return map[key];
+    if (key in translation) {
+      return translation[key];
     }
 
     // Simplify language code.

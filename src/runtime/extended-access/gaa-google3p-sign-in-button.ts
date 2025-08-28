@@ -27,7 +27,7 @@ import {
   GOOGLE_3P_SIGN_IN_IFRAME_STYLES,
 } from './html-templates';
 import {GaaUserDef} from './interfaces';
-import {I18N_STRINGS} from '../../i18n/strings';
+import {I18N_TSTRINGS} from '../../i18n/translation';
 import {
   POST_MESSAGE_COMMAND_3P_BUTTON_CLICK,
   POST_MESSAGE_COMMAND_ERROR,
@@ -69,7 +69,7 @@ export class GaaGoogle3pSignInButton {
     // Apply iframe styles.
     const styleText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
+      msg(I18N_TSTRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 

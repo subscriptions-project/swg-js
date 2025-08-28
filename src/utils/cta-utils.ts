@@ -51,9 +51,9 @@ export function showAlreadyOptedInToast(
       break;
     case 'TYPE_NEWSLETTER_SIGNUP':
       const customText = msg(
-        SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
+        SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP,
         lang
-      )!;
+      );
       urlParams = {
         flavor: 'custom',
         customText,

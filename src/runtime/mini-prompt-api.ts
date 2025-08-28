@@ -103,9 +103,9 @@ export class MiniPromptApi {
     const lang = this.clientConfigManager_.getLanguage();
     let textContent = '';
     if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
-      textContent = msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, lang)!;
+      textContent = msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE, lang);
     } else if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
-      textContent = msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, lang)!;
+      textContent = msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE, lang);
     }
 
     // Create all the elements for the mini prompt.
