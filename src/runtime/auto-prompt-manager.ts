@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+import {
+  ActionTimestamps,
+  ActionsTimestamps,
+  getFrequencyCappedOrchestration,
+} from '../utils/frequency-capping-utils';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {Article, EntitlementsManager} from './entitlements-manager';
 import {ArticleExperimentFlags} from './experiment-flags';
@@ -47,11 +52,6 @@ import {PageConfig} from '../model/page-config';
 import {Storage, pruneTimestamps} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
-import {
-  ActionTimestamps,
-  ActionsTimestamps,
-  getFrequencyCappedOrchestration,
-} from '../utils/frequency-capping-utils';
 
 const SECOND_IN_MILLIS = 1000;
 
