@@ -252,7 +252,7 @@ export class GaaMeteringRegwall {
     if (caslUrl) {
       caslHtml = CASL_HTML.replace(
         '$SHOWCASE_REGWALL_CASL$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_CASL'], languageCode)!
+        msg(I18N_STRINGS.SHOWCASE_REGWALL_CASL, languageCode)
       )
         // Update link.
         .replace(
@@ -286,20 +286,20 @@ export class GaaMeteringRegwall {
     )
       .replace(
         '$SHOWCASE_REGWALL_TITLE$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_TITLE'], languageCode)!
+        msg(I18N_STRINGS.SHOWCASE_REGWALL_TITLE, languageCode)
       )
       .replace(
         '$SHOWCASE_REGWALL_DESCRIPTION$',
-        msg(I18N_STRINGS['SHOWCASE_REGWALL_DESCRIPTION'], languageCode)!
+        msg(I18N_STRINGS.SHOWCASE_REGWALL_DESCRIPTION, languageCode)
           // Update publisher name.
           .replace(placeholderPatternForPublication, publisherName)
       )
       .replace(
         '$SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON$',
         msg(
-          I18N_STRINGS['SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON'],
+          I18N_STRINGS.SHOWCASE_REGWALL_PUBLISHER_SIGN_IN_BUTTON,
           languageCode
-        )!
+        )
       )
       .replace('$SHOWCASE_REGWALL_CASL$', caslHtml);
 
@@ -518,7 +518,7 @@ export class GaaMeteringRegwall {
     // Apply iframe styles.
     const styleText = GOOGLE_SIGN_IN_BUTTON_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
+      msg(I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 
@@ -568,7 +568,7 @@ export class GaaMeteringRegwall {
     // Apply iframe styles.
     const styleText = GOOGLE_3P_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
+      msg(I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 

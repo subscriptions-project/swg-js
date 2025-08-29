@@ -510,12 +510,12 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
     const message = htmlEscape(
       this.config!.rewardedAdParameters!.customMessage!
     ).toString();
-    const viewad = msg(SWG_I18N_STRINGS['VIEW_AN_AD'], language)!;
+    const viewad = msg(SWG_I18N_STRINGS.VIEW_AN_AD, language);
 
     const support =
       this.isSubscription() || !!this.params_.onAlternateAction
-        ? msg(SWG_I18N_STRINGS['SUBSCRIBE'], language)!
-        : msg(SWG_I18N_STRINGS['CONTRIBUTE'], language)!;
+        ? msg(SWG_I18N_STRINGS.SUBSCRIBE, language)
+        : msg(SWG_I18N_STRINGS.CONTRIBUTE, language);
 
     const supportHtml =
       !this.params_.onAlternateAction && isPremonetization
@@ -524,8 +524,8 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
     const signin =
       this.isSubscription() || !!this.params_.onSignIn
-        ? msg(SWG_I18N_STRINGS['ALREADY_A_SUBSCRIBER'], language)!
-        : msg(SWG_I18N_STRINGS['ALREADY_A_CONTRIBUTOR'], language)!;
+        ? msg(SWG_I18N_STRINGS.ALREADY_A_SUBSCRIBER, language)
+        : msg(SWG_I18N_STRINGS.ALREADY_A_CONTRIBUTOR, language);
 
     const signinHtml =
       !this.params_.onSignIn && isPremonetization
@@ -582,13 +582,13 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
   ) {
     const language = this.clientConfigManager_.getLanguage();
     const closeButtonDescription = msg(
-      SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
+      SWG_I18N_STRINGS.CLOSE_BUTTON_DESCRIPTION,
       language
-    )!;
+    );
     const thanksMessage = msg(
-      SWG_I18N_STRINGS['THANKS_FOR_VIEWING_THIS_AD'],
+      SWG_I18N_STRINGS.THANKS_FOR_VIEWING_THIS_AD,
       language
-    )!;
+    );
     this.prompt_./*OK*/ innerHTML = REWARDED_AD_THANKS_HTML.replace(
       '$CLOSE_BUTTON_DESCRIPTION$',
       closeButtonDescription
@@ -781,10 +781,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       if (this.params_.action === InterventionType.TYPE_NEWSLETTER_SIGNUP) {
         return '';
       }
-      const backToHomeText = msg(
-        SWG_I18N_STRINGS['BACK_TO_HOMEPAGE'],
-        language
-      )!;
+      const backToHomeText = msg(SWG_I18N_STRINGS.BACK_TO_HOMEPAGE, language);
       return BACK_TO_HOME_HTML.replace(
         '$BACK_TO_HOME_TEXT$',
         backToHomeText
@@ -794,19 +791,16 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
       );
     } else {
       const closeButtonDescription = msg(
-        SWG_I18N_STRINGS['CLOSE_BUTTON_DESCRIPTION'],
+        SWG_I18N_STRINGS.CLOSE_BUTTON_DESCRIPTION,
         language
-      )!;
+      );
       return html.replace('$CLOSE_BUTTON_DESCRIPTION$', closeButtonDescription);
     }
   }
 
   showNoEntitlementFoundToast() {
     const language = this.clientConfigManager_.getLanguage();
-    const customText = msg(
-      SWG_I18N_STRINGS['NO_MEMBERSHIP_FOUND_LANG_MAP'],
-      language
-    )!;
+    const customText = msg(SWG_I18N_STRINGS.NO_MEMBERSHIP_FOUND, language);
     new Toast(
       this.deps_,
       feUrl('/toastiframe', {

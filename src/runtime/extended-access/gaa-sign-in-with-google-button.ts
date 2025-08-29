@@ -63,7 +63,7 @@ export class GaaSignInWithGoogleButton {
     // Apply iframe styles.
     const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
+      msg(I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 

@@ -21,7 +21,7 @@
 //   on binary size.
 
 export const SWG_I18N_STRINGS = {
-  'SUBSCRIPTION_TITLE_LANG_MAP': {
+  'SUBSCRIPTION_TITLE': {
     'en': 'Subscribe with Google',
     'ar': 'Google اشترك مع',
     'de': 'Abonnieren mit Google',
@@ -55,7 +55,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '透過 Google 訂閱',
     'zh-tw': '透過 Google 訂閱',
   },
-  'CONTRIBUTION_TITLE_LANG_MAP': {
+  'CONTRIBUTION_TITLE': {
     'en': 'Contribute with Google',
     'ar': 'المساهمة باستخدام Google',
     'de': 'Mit Google beitragen',
@@ -89,7 +89,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '透過 Google 提供內容',
     'zh-tw': '透過 Google 捐款',
   },
-  'REGWALL_ALREADY_REGISTERED_LANG_MAP': {
+  'REGWALL_ALREADY_REGISTERED': {
     'en': 'You have registered before.',
     'ar': 'لقد سبق أن تسجّلت.',
     'de': 'Du bist bereits registriert.',
@@ -121,7 +121,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '您之前已註冊。',
     'zh-tw': '你已註冊這個出版品。',
   },
-  'NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP': {
+  'NEWSLETTER_ALREADY_SIGNED_UP': {
     'en': 'You have signed up before.',
     'ar': 'سبق أن اشتركت في النشرة الإخبارية.',
     'de': 'Du hast dich bereits angemeldet.',
@@ -153,7 +153,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '您之前已訂閱。',
     'zh-tw': '你已經訂閱了。',
   },
-  'REGWALL_REGISTER_FAILED_LANG_MAP': {
+  'REGWALL_REGISTER_FAILED': {
     'en': 'Registration failed. Try registering again.',
     'ar': 'تعذَّرت عملية التسجيل. يُرجى إعادة المحاولة.',
     'de': 'Registrierung fehlgeschlagen. Versuche es noch einmal.',
@@ -185,7 +185,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '註冊失敗。請嘗試重新註冊。',
     'zh-tw': '註冊失敗，請再試一次。',
   },
-  'NEWSLETTER_SIGN_UP_FAILED_LANG_MAP': {
+  'NEWSLETTER_SIGN_UP_FAILED': {
     'en': 'Signup failed. Try signing up again.',
     'ar': 'تعذَّرت عملية الاشتراك. يُرجى إعادة المحاولة.',
     'de': 'Anmeldung fehlgeschlagen. Versuche es noch einmal.',
@@ -217,7 +217,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '申請失敗。請嘗試重新申請。',
     'zh-tw': '訂閱失敗，請再試一次。',
   },
-  'REGWALL_ACCOUNT_CREATED_LANG_MAP': {
+  'REGWALL_ACCOUNT_CREATED': {
     'en': 'Created an account with <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph>',
     'ar': 'تم إنشاء حساب باستخدام <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph>.',
     'de': 'Konto bei <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph> wurde erstellt',
@@ -256,7 +256,7 @@ export const SWG_I18N_STRINGS = {
     'zh-hk': '已使用 <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph> 建立帳戶',
     'zh-tw': '已使用 <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph> 建立帳戶',
   },
-  'NEWSLETTER_SIGNED_UP_LANG_MAP': {
+  'NEWSLETTER_SIGNED_UP': {
     'en': 'Signed up with <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph> for the newsletter',
     'ar': 'تم الاشتراك في النشرة الإخبارية باستخدام <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph>.',
     'de': 'Du hast dich für den Newsletter von <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph> angemeldet',
@@ -296,7 +296,7 @@ export const SWG_I18N_STRINGS = {
     'zh-tw':
       '已使用 <ph name="EMAIL"><ex>user@gmail.com</ex>%s</ph> 訂閱電子報',
   },
-  'NO_MEMBERSHIP_FOUND_LANG_MAP': {
+  'NO_MEMBERSHIP_FOUND': {
     'en': 'No membership found',
     'ar': 'لم يتم العثور على أي اشتراك.',
     'de': 'Keine Mitgliedschaftsdaten gefunden',

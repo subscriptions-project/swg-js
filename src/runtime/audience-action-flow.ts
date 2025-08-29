@@ -301,15 +301,15 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     switch (this.params_.action) {
       case InterventionType.TYPE_REGISTRATION_WALL:
         customText = msg(
-          SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED_LANG_MAP,
+          SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED,
           lang
-        )!.replace(placeholderPatternForEmail, userEmail);
+        ).replace(placeholderPatternForEmail, userEmail);
         break;
       case InterventionType.TYPE_NEWSLETTER_SIGNUP:
-        customText = msg(
-          SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_LANG_MAP,
-          lang
-        )!.replace(placeholderPatternForEmail, userEmail);
+        customText = msg(SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP, lang).replace(
+          placeholderPatternForEmail,
+          userEmail
+        );
         break;
       default:
         // Do not show toast for other types.
@@ -336,16 +336,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     let customText = '';
     switch (this.params_.action) {
       case InterventionType.TYPE_REGISTRATION_WALL:
-        customText = msg(
-          SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED_LANG_MAP,
-          lang
-        )!;
+        customText = msg(SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED, lang);
         break;
       case InterventionType.TYPE_NEWSLETTER_SIGNUP:
-        customText = msg(
-          SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED_LANG_MAP,
-          lang
-        )!;
+        customText = msg(SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED, lang);
         break;
       default:
         // Do not show toast for other types.
