@@ -31,14 +31,12 @@ import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {
   Closability,
-  InterventionFunnel,
   InterventionOrchestration,
   RepeatabilityType,
 } from '../api/action-orchestration';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
-import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {Intervention, PromptPreference} from './intervention';
@@ -49,6 +47,11 @@ import {PageConfig} from '../model/page-config';
 import {Storage, pruneTimestamps} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
+import {
+  ActionTimestamps,
+  ActionsTimestamps,
+  getFrequencyCappedOrchestration,
+} from '../utils/frequency-capping-utils';
 
 const SECOND_IN_MILLIS = 1000;
 
@@ -165,16 +168,6 @@ export interface ShowAutoPromptParams {
   alwaysShow?: boolean;
   isClosable?: boolean;
   contentType: ContentType;
-}
-
-interface ActionsTimestamps {
-  [key: string]: ActionTimestamps;
-}
-
-interface ActionTimestamps {
-  impressions: number[];
-  dismissals: number[];
-  completions: number[];
 }
 
 /**
@@ -552,87 +545,14 @@ export class AutoPromptManager {
       return interventionOrchestration[0];
     }
 
-    // Check Default FrequencyCapConfig is valid.
-    if (
-      !this.isValidFrequencyCap_(
-        clientConfig.autoPromptConfig?.frequencyCapConfig
-      )
-    ) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_FREQUENCY_CAP_CONFIG_NOT_FOUND_ERROR
-      );
-      return interventionOrchestration[0];
-    }
-
-    // Only other supported ContentType is OPEN.
-    let nextOrchestration: InterventionOrchestration | undefined;
-
-    // b/325512849: Evaluate prompt frequency cap before global frequency cap.
-    // This disambiguates the scenarios where a reader meets the cap when the
-    // reader is only eligible for 1 prompt vs. when the publisher only has 1
-    // prompt configured.
-    for (const orchestration of interventionOrchestration) {
-      const promptFrequencyCapDuration = this.getPromptFrequencyCapDuration_(
-        clientConfig.autoPromptConfig?.frequencyCapConfig!,
-        orchestration
-      );
-      if (this.isValidFrequencyCapDuration_(promptFrequencyCapDuration)) {
-        const timestamps = this.getTimestampsForPromptFrequency_(
-          actionsTimestamps,
-          orchestration
-        );
-        if (this.isFrequencyCapped_(promptFrequencyCapDuration!, timestamps)) {
-          this.eventManager_.logSwgEvent(
-            AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET
-          );
-          continue;
-        }
-      }
-      nextOrchestration = orchestration;
-      break;
-    }
-
-    if (!nextOrchestration) {
-      return;
-    }
-
-    const globalFrequencyCapDuration = this.getGlobalFrequencyCapDuration_(
-      clientConfig.autoPromptConfig?.frequencyCapConfig!,
-      article.actionOrchestration?.interventionFunnel!
+    return getFrequencyCappedOrchestration(
+      this.eventManager_,
+      interventionOrchestration,
+      actionsTimestamps,
+      this.multiInstanceCtaExperiment,
+      article.actionOrchestration?.interventionFunnel!,
+      clientConfig.autoPromptConfig?.frequencyCapConfig
     );
-    if (this.isValidFrequencyCapDuration_(globalFrequencyCapDuration)) {
-      const globalTimestamps = Array.prototype.concat.apply(
-        [],
-        Object.entries(actionsTimestamps!)
-          .filter(([key, _]) =>
-            // During FCA Phase 1, include all events
-            this.multiInstanceCtaExperiment
-              ? true
-              : // Before FCA Phase 1 rampup, ignore events keyed by configId
-                Object.values<string>(InterventionType).includes(key)
-          )
-          // Completed repeatable actions count towards global frequency
-          .map(([key, timestamps]) =>
-            // During FCA Phase 1, only get completions of matching config ID
-            this.multiInstanceCtaExperiment &&
-            key === nextOrchestration!.configId
-              ? timestamps.completions
-              : // For backwards compatability, continue to get completions of matching action type
-              key === nextOrchestration!.type
-              ? timestamps.completions
-              : timestamps.impressions
-          )
-      );
-      if (
-        this.isFrequencyCapped_(globalFrequencyCapDuration!, globalTimestamps)
-      ) {
-        this.eventManager_.logSwgEvent(
-          AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET
-        );
-        return;
-      }
-    }
-    return nextOrchestration;
   }
 
   /**
@@ -870,21 +790,6 @@ export class AutoPromptManager {
     );
   }
 
-  private getTimestampsForPromptFrequency_(
-    timestamps: ActionsTimestamps,
-    orchestration: InterventionOrchestration
-  ) {
-    const actionTimestamps = this.multiInstanceCtaExperiment
-      ? timestamps[orchestration.configId]
-      : timestamps[orchestration.type];
-    return orchestration.closability === Closability.BLOCKING
-      ? actionTimestamps?.completions || []
-      : [
-          ...(actionTimestamps?.dismissals || []),
-          ...(actionTimestamps?.completions || []),
-        ];
-  }
-
   isValidActionsTimestamps_(timestamps: ActionsTimestamps) {
     return (
       timestamps instanceof Object &&
@@ -1119,72 +1024,6 @@ export class AutoPromptManager {
     }
 
     return true;
-  }
-
-  /**
-   * Computes if the frequency cap is met from the timestamps of previous
-   * provided by using the maximum/most recent timestamp.
-   */
-  private isFrequencyCapped_(
-    frequencyCapDuration: Duration,
-    timestamps: number[]
-  ): boolean {
-    if (timestamps.length === 0) {
-      return false;
-    }
-
-    const lastImpression = Math.max(...timestamps);
-    const durationInMs =
-      (frequencyCapDuration.seconds || 0) * SECOND_IN_MILLIS +
-      this.nanoToMiliseconds_(frequencyCapDuration.nanos || 0);
-    return Date.now() - lastImpression < durationInMs;
-  }
-
-  private nanoToMiliseconds_(nanos: number): number {
-    return Math.floor(nanos / Math.pow(10, 6));
-  }
-
-  private getPromptFrequencyCapDuration_(
-    frequencyCapConfig: FrequencyCapConfig,
-    interventionOrchestration: InterventionOrchestration
-  ): Duration | undefined {
-    const duration = interventionOrchestration.promptFrequencyCap?.duration;
-
-    if (!duration) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CONFIG_NOT_FOUND
-      );
-      return frequencyCapConfig.anyPromptFrequencyCap?.frequencyCapDuration;
-    }
-    return duration;
-  }
-
-  private getGlobalFrequencyCapDuration_(
-    frequencyCapConfig: FrequencyCapConfig,
-    interventionFunnel: InterventionFunnel
-  ): Duration | undefined {
-    const duration = interventionFunnel.globalFrequencyCap?.duration;
-    return duration
-      ? duration
-      : frequencyCapConfig.globalFrequencyCap!.frequencyCapDuration;
-  }
-
-  private isValidFrequencyCap_(frequencyCapConfig?: FrequencyCapConfig) {
-    return (
-      this.isValidFrequencyCapDuration_(
-        frequencyCapConfig?.globalFrequencyCap?.frequencyCapDuration
-      ) ||
-      frequencyCapConfig?.promptFrequencyCaps
-        ?.map((frequencyCap) => frequencyCap.frequencyCapDuration)
-        .some(this.isValidFrequencyCapDuration_) ||
-      this.isValidFrequencyCapDuration_(
-        frequencyCapConfig?.anyPromptFrequencyCap?.frequencyCapDuration
-      )
-    );
-  }
-
-  private isValidFrequencyCapDuration_(duration?: Duration) {
-    return !!duration?.seconds || !!duration?.nanos;
   }
 
   private getAutoPromptFunction_(action: Intervention) {
