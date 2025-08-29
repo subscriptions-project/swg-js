@@ -15,9 +15,6 @@
  */
 
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-// import {AnalyticsService} from '../runtime/analytics-service';
-// import {ClientConfig} from '../model/client-config';
-// import {ClientConfigManager} from '../runtime/client-config-manager';
 import {ClientEventManager} from '../runtime/client-event-manager';
 import {
   getFrequencyCappedOrchestration,
@@ -25,7 +22,6 @@ import {
   isFrequencyCapped,
 } from './frequency-capping-utils';
 
-// const PUB_ID = 'pub1';
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
 const SECOND_IN_MS = Math.pow(10, 3);
 const SECOND_IN_NANO = Math.pow(10, 9);
@@ -106,7 +102,7 @@ const VALID_FREQUENCY_CAP_CONFIG = {
   },
 };
 
-describes.realWin('Frequency Capping utils', (env) => {
+describes.realWin('Frequency Capping utils', () => {
   let eventManager;
   let logEventSpy;
 
