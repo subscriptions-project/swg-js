@@ -1442,7 +1442,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
       expect(runtime.pageConfig()).to.equal(config);
       expect(runtime.activities()).to.be.instanceof(ActivityPorts);
       expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
-      expect(runtime.dialogManager().doc_).to.equal(runtime.doc());
+      expect(runtime.dialogManager().doc).to.equal(runtime.doc());
       expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
       expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
       expect(runtime.jserror()).to.be.instanceOf(JsError);
