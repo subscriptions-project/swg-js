@@ -15,11 +15,12 @@
  */
 
 import {I18N_STRINGS} from './strings';
+import {SWG_I18N_STRINGS} from './swg-strings';
 
 /* Language code to string mapping. English is always provided. */
 export type Translation = {
   en: string;
 } & Record<string, string>;
 
-/* Added typing to I18N_STRINGS. Don't want to edit the file directly. */
-export const I18N_TSTRINGS: Record<string, Translation> = I18N_STRINGS;
+I18N_STRINGS satisfies Record<string, Translation>;
+SWG_I18N_STRINGS satisfies Record<string, Translation>;

@@ -26,7 +26,7 @@ import {
   GOOGLE_SIGN_IN_IFRAME_STYLES,
 } from './html-templates';
 import {GaaUserDef, GoogleUserDef} from './interfaces';
-import {I18N_TSTRINGS} from '../../i18n/translation';
+import {I18N_STRINGS} from '../../i18n/strings';
 import {
   POST_MESSAGE_COMMAND_ERROR,
   POST_MESSAGE_COMMAND_GSI_BUTTON_CLICK,
@@ -54,7 +54,7 @@ export class GaaGoogleSignInButton {
     // Apply iframe styles.
     const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_TSTRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
+      msg(I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 

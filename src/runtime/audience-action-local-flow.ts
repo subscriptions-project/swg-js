@@ -800,10 +800,7 @@ export class AudienceActionLocalFlow implements AudienceActionFlow {
 
   showNoEntitlementFoundToast() {
     const language = this.clientConfigManager_.getLanguage();
-    const customText = msg(
-      SWG_I18N_STRINGS.NO_MEMBERSHIP_FOUND_LANG_MAP,
-      language
-    );
+    const customText = msg(SWG_I18N_STRINGS.NO_MEMBERSHIP_FOUND, language);
     new Toast(
       this.deps_,
       feUrl('/toastiframe', {

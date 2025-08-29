@@ -26,7 +26,7 @@ import {
   SIGN_IN_WITH_GOOGLE_BUTTON_ID,
 } from './html-templates';
 import {GoogleIdentityV1Def} from './interfaces';
-import {I18N_TSTRINGS} from '../../i18n/translation';
+import {I18N_STRINGS} from '../../i18n/strings';
 import {JwtHelper} from '../../utils/jwt';
 import {
   POST_MESSAGE_COMMAND_ERROR,
@@ -63,7 +63,7 @@ export class GaaSignInWithGoogleButton {
     // Apply iframe styles.
     const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_TSTRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
+      msg(I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 

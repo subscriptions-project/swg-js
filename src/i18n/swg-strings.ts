@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-import {Translation} from './translation';
-
 // Why is there a strings.ts and a swg-strings.ts, you ask? strings.ts is a
 // generated file, currently used for gaa builds. This file is used for swg and
 // swg-basic builds, and is currently manually updated.
 // TODO(stellachui): Figure out if they should be merged without a large impact
 //   on binary size.
 
-export const SWG_I18N_STRINGS: Record<string, Translation> = {
+export const SWG_I18N_STRINGS = {
   'SUBSCRIPTION_TITLE': {
     'en': 'Subscribe with Google',
     'ar': 'Google اشترك مع',
