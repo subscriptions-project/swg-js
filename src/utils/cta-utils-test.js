@@ -53,6 +53,9 @@ describes.realWin('CTA utils', (env) => {
     sandbox.stub(deps, 'win').returns(win);
     doc = new GlobalDoc(win);
     sandbox.stub(deps, 'doc').returns(doc);
+    sandbox
+      .stub(deps, 'clientConfigManager')
+      .returns({getLanguage: () => 'en'});
   });
 
   describe('showAlreadyOptedInToast', () => {

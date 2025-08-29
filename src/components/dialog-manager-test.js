@@ -26,11 +26,13 @@ describes.realWin('DialogManager', (env) => {
   let currentView;
   let initView;
   let graypaneStubs;
+  let clientConfigManager;
 
   beforeEach(() => {
     clock = sandbox.useFakeTimers();
     win = env.win;
-    dialogManager = new DialogManager(new GlobalDoc(win));
+    clientConfigManager = {getLanguage: () => 'en'};
+    dialogManager = new DialogManager(new GlobalDoc(win), clientConfigManager);
     currentView = null;
     initView = {
       whenComplete: () => Promise.resolve(true),
@@ -101,7 +103,7 @@ describes.realWin('DialogManager', (env) => {
 
   it('should pass experiment as true to Dialog', async () => {
     // Open dialog twice.
-    dialogManager = new DialogManager(new GlobalDoc(win));
+    dialogManager = new DialogManager(new GlobalDoc(win), clientConfigManager);
     dialogManager.setEnableBackgroundClickExperiment(true);
 
     await dialogManager.openDialog();

@@ -80,6 +80,7 @@ export class SubscriptionLinkingFlow {
       this.activityPorts_,
       url,
       args,
+      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
       /* shouldFadeBody= */ false
     );
 

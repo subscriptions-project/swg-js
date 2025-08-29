@@ -185,6 +185,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         'productType': this.productType_,
         'windowHeight': deps_.win()./* OK */ innerHeight,
       }),
+      /* titleLang */ this.clientConfigManager_.getLanguage(),
       /* shouldFadeBody */ true
     );
     // Disables interaction with prompt if rendering for preview.

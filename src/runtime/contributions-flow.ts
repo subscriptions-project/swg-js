@@ -91,6 +91,7 @@ export class ContributionsFlow {
         'isClosable': this.isClosable_,
         'supportsEventManager': true,
       }),
+      /* titleLang */ this.clientConfigManager_.getLanguage(),
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
       /* shouldAnimateFade */ this.shouldAnimateFade_

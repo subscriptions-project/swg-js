@@ -20,6 +20,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
 import {LoadingView} from '../ui/loading-view';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {UI_CSS} from '../ui/ui-css';
 import {View} from './view';
 import {
@@ -28,6 +29,7 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
+import {msg} from '../utils/i18n';
 import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
@@ -132,6 +134,7 @@ export class Dialog {
    */
   constructor(
     doc: Doc,
+    titleLang: string,
     importantStyles: {[key: string]: string} = {},
     styles: {[key: string]: string} = {},
     dialogConfig: DialogConfig = {},
@@ -148,8 +151,11 @@ export class Dialog {
     const iframeCssClass =
       dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
 
+    const title = msg(SWG_I18N_STRINGS.SWG_CTA, titleLang);
+
     this.iframe_ = new FriendlyIframe(doc.getWin().document, {
       'class': iframeCssClass,
+      'title': title,
     });
 
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);

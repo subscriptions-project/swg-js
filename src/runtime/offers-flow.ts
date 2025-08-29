@@ -150,6 +150,7 @@ export class OffersFlow {
         this.win_.location.hash
       ),
       args as {[key: string]: string},
+      this.clientConfigManager_.getLanguage(),
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
       /* shouldAnimateFade */ this.shouldAnimateFade_
@@ -267,6 +268,7 @@ export class SubscribeOptionFlow {
         'skus': options_?.skus || null,
         'isClosable': true,
       }),
+      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
       /* shouldFadeBody */ false
     );
   }
@@ -355,6 +357,7 @@ export class AbbrvOfferFlow {
         'skus': options_.skus || null,
         'isClosable': true,
       }),
+      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
       /* shouldFadeBody */ false
     );
   }

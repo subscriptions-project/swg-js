@@ -38,7 +38,10 @@ describes.realWin('FriendlyIframe', (env) => {
 
   beforeEach(() => {
     doc = env.win.document;
-    friendlyIframe = new FriendlyIframe(doc, {'class': 'swg-dialog'});
+    friendlyIframe = new FriendlyIframe(doc, {
+      'class': 'swg-dialog',
+      'title': 'Subscribe with Google CTA',
+    });
   });
 
   describe('friendlyIframe', () => {

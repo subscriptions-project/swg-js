@@ -32,6 +32,7 @@ describes.realWin('SmartSubscriptionButtonApi', (env) => {
       }),
       win: () => env.win,
       pageConfig: () => ({getPublicationId: () => '...'}),
+      clientConfigManager: () => ({getLanguage: () => 'en'}),
     };
     smartButton = new SmartSubscriptionButtonApi(deps, button, {});
     smartButton.start();

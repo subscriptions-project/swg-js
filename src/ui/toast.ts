@@ -19,6 +19,7 @@ import {Deps} from '../runtime/deps';
 import {Doc} from '../model/doc';
 import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {createElement} from '../utils/dom';
+import {msg} from '../utils/i18n';
 import {resetStyles, setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
@@ -30,13 +31,6 @@ export interface ToastSpecDef {
   text: string;
   action?: {label: string; handler: () => void};
 }
-
-const iframeAttributes = {
-  'frameborder': '0',
-  'scrolling': 'no',
-  'class': 'swg-toast',
-  'title': SWG_I18N_STRINGS.SWG_NOTIFICATION.en,
-};
 
 /**
  * The class Notification toast.
@@ -55,6 +49,16 @@ export class Toast {
     this.doc_ = deps.doc();
 
     this.activityPorts_ = deps.activities();
+
+    const lang = deps.clientConfigManager().getLanguage();
+    const title = msg(SWG_I18N_STRINGS.SWG_NOTIFICATION, lang);
+
+    const iframeAttributes = {
+      'frameborder': '0',
+      'scrolling': 'no',
+      'class': 'swg-toast',
+      'title': title,
+    };
 
     this.iframe_ = createElement(
       this.doc_.getWin().document,

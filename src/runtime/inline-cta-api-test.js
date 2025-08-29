@@ -345,7 +345,7 @@ describes.realWin('InlineCtaApi', (env) => {
         .expects('shouldForceLangInIframes')
         .returns(true)
         .once();
-      clientConfigManagerMock.expects('getLanguage').returns('pt-BR').once();
+      clientConfigManagerMock.expects('getLanguage').returns('pt-BR').twice();
       const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
       const resultUrl =
         'https://news.google.com/swg/ui/v1/newsletteriframe?_=_&origin=about%3Asrcdoc&configurationId=newsletter_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&hl=pt-BR';

@@ -1019,7 +1019,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('shouldForceLangInIframes')
       .returns(true)
       .once();
-    clientConfigManagerMock.expects('getLanguage').returns('fr-CA').once();
+    clientConfigManagerMock.expects('getLanguage').returns('fr-CA').thrice();
     const response = createDefaultSubscribeResponse();
     entitlementsManagerMock
       .expects('pushNextEntitlements')
