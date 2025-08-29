@@ -401,6 +401,7 @@ export class PayCompleteFlow {
       this.activityPorts_,
       confirmFeUrl,
       feArgs(args),
+      /* titleLang */ this.clientConfigManager_.getLanguage(),
       /* shouldFadeBody */ true
     );
     this.activityIframeView_.on(

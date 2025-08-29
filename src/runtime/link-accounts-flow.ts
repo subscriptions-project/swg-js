@@ -200,6 +200,7 @@ export class LinkCompleteFlow {
         'productId': this.deps_.pageConfig().getProductId(),
         'publicationId': this.deps_.pageConfig().getPublicationId(),
       }),
+      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
       /* shouldFadeBody */ true
     );
 
@@ -363,6 +364,7 @@ export class LinkSaveFlow {
       this.activityPorts_,
       feUrl('/linksaveiframe'),
       iframeArgs,
+      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
       /* shouldFadeBody */ false,
       /* hasLoadingIndicator */ true
     );

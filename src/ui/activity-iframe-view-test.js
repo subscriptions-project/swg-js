@@ -41,7 +41,9 @@ describes.realWin('ActivityIframeView', (env) => {
   beforeEach(() => {
     win = env.win;
     src = 'https://news.google.com/offersiframe';
-    dialog = new Dialog(new GlobalDoc(win), {height: '100px'});
+    dialog = new Dialog(new GlobalDoc(win), /* titleLang */ 'en', {
+      height: '100px',
+    });
     deps = {
       win: () => win,
     };
@@ -71,7 +73,8 @@ describes.realWin('ActivityIframeView', (env) => {
       win,
       activityPorts,
       src,
-      activityArgs
+      activityArgs,
+      /* titleLang */ 'en'
     );
   });
 
@@ -96,6 +99,7 @@ describes.realWin('ActivityIframeView', (env) => {
         activityPorts,
         src,
         activityArgs,
+        /* titleLang */ 'en',
         /* shouldFadeBody */ true
       );
       expect(activityIframeView.shouldFadeBody()).to.be.true;
@@ -107,6 +111,7 @@ describes.realWin('ActivityIframeView', (env) => {
         activityPorts,
         src,
         activityArgs,
+        /* titleLang */ 'en',
         /* shouldFadeBody */ true,
         /* hasLoadingIndicator */ true
       );
@@ -144,7 +149,8 @@ describes.realWin('ActivityIframeView', (env) => {
         win,
         activityPorts,
         src,
-        activityArgs
+        activityArgs,
+        /* titleLang */ 'en'
       ).getElement();
 
       expect(iframe.scrolling).to.equal('no');
@@ -268,8 +274,9 @@ describes.realWin('ActivityIframeView', (env) => {
         activityPorts,
         src,
         activityArgs,
-        false,
-        true
+        /* titleLang */ 'en',
+        /* shouldFadeBody */ false,
+        /* hasLoadingIndicator */ true
       );
       expect(activityIframeView2.hasLoadingIndicator()).to.be.true;
     });

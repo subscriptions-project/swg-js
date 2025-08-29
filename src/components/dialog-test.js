@@ -64,7 +64,7 @@ describes.realWin('Dialog', (env) => {
 
   describe('dialog', () => {
     beforeEach(() => {
-      dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
+      dialog = new Dialog(globalDoc, 'en', {height: `${documentHeight}px`});
       graypaneStubs = sandbox.stub(dialog.graypane_);
     });
 
@@ -447,6 +447,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
@@ -471,6 +472,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
@@ -503,6 +505,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          'en',
           undefined,
           undefined,
           undefined,
@@ -524,6 +527,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: false},
@@ -545,7 +549,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
-
+          'en',
           {},
           {},
           {closeOnBackgroundClick: true},
@@ -563,6 +567,7 @@ describes.realWin('Dialog', (env) => {
       it('respects not closable', async () => {
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true},
@@ -582,6 +587,7 @@ describes.realWin('Dialog', (env) => {
       it('respects closable', async () => {
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true},
@@ -606,6 +612,7 @@ describes.realWin('Dialog', (env) => {
         element.src = 'http://www.test.com';
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true},
@@ -634,6 +641,7 @@ describes.realWin('Dialog', (env) => {
         it('adds swg-disable-scroll class if config specifies scrolling should be disabled', async () => {
           dialog = new Dialog(
             globalDoc,
+            /* titleLang */ 'en',
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: true}
@@ -647,6 +655,7 @@ describes.realWin('Dialog', (env) => {
         it('does not add swg-disable-scroll otherwise', async () => {
           dialog = new Dialog(
             globalDoc,
+            /* titleLang */ 'en',
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: false}
@@ -662,6 +671,7 @@ describes.realWin('Dialog', (env) => {
         it('removes swg-disable-scroll class', async () => {
           dialog = new Dialog(
             globalDoc,
+            /* titleLang */ 'en',
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: true}
@@ -683,6 +693,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {maxAllowedHeightRatio: MAX_ALLOWED_HEIGHT_RATIO}
@@ -712,6 +723,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {supportsWideScreen: true}}
@@ -731,6 +743,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {iframeCssClassOverride}
@@ -767,6 +780,7 @@ describes.realWin('Dialog', (env) => {
 
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {isCenterPositioned: true}}
@@ -835,6 +849,7 @@ describes.realWin('Dialog', (env) => {
 
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {isCenterPositioned: true}}
