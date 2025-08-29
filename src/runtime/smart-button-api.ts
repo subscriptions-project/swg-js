@@ -16,16 +16,13 @@
 
 import {ActivityPorts} from '../components/activities';
 import {Deps} from './deps';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {SmartBoxMessage} from '../proto/api_messages';
 import {SmartButtonOptions} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
 import {feArgs, feUrl} from './services';
+import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
-
-const iframeAttributes = {
-  'frameborder': '0',
-  'scrolling': 'no',
-};
 
 export enum Theme {
   LIGHT = 'light',
@@ -48,6 +45,14 @@ export class SmartSubscriptionButtonApi {
     private readonly callback_?: (event?: Event) => void
   ) {
     this.activityPorts_ = deps_.activities();
+
+    const lang = this.deps_.clientConfigManager().getLanguage();
+    const title = msg(SWG_I18N_STRINGS.SWG_BUTTON, lang);
+    const iframeAttributes = {
+      'frameborder': '0',
+      'scrolling': 'no',
+      'title': title,
+    };
 
     this.iframe_ = createElement(
       deps_.win().document,

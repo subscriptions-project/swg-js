@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ClientConfigManager} from '../runtime/client-config-manager';
 import {Dialog, DialogConfig} from './dialog';
 import {Doc} from '../model/doc';
 import {Graypane} from './graypane';
@@ -26,16 +27,16 @@ const POPUP_Z_INDEX = 2147483647;
  * The class for the top level dialog.
  */
 export class DialogManager {
-  private readonly doc_: Doc;
   private enableBackgroundClickExperiment_ = false;
   private dialog_: Dialog | null;
   private openPromise_: Promise<Dialog> | null;
   private readonly popupGraypane_: Graypane;
   private popupWin_: Window | null;
 
-  constructor(doc: Doc) {
-    this.doc_ = doc;
-
+  constructor(
+    private readonly doc: Doc,
+    private readonly clientConfigManager: ClientConfigManager
+  ) {
     this.dialog_ = null;
 
     this.openPromise_ = null;
@@ -62,7 +63,8 @@ export class DialogManager {
   openDialog(hidden = false, dialogConfig: DialogConfig = {}): Promise<Dialog> {
     if (!this.openPromise_) {
       this.dialog_ = new Dialog(
-        this.doc_,
+        this.doc,
+        /* titleLang */ this.clientConfigManager.getLanguage(),
         /* importantStyles */ {},
         /* styles */ {},
         dialogConfig,

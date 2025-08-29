@@ -194,7 +194,8 @@ export class InlineCtaApi {
       this.win_,
       this.activityPorts_,
       fetchUrl,
-      fetchArgs
+      fetchArgs,
+      /* titleLang */ this.clientConfigManager_.getLanguage()
     );
     setImportantStyles(activityIframeView.getElement(), {
       'width': '100%',

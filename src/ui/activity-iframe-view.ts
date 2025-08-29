@@ -18,16 +18,13 @@ import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
 import {Message} from '../proto/api_messages';
+import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
+import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
-
-const iframeAttributes = {
-  'frameborder': '0',
-  'scrolling': 'no',
-};
 
 /**
  * Class to build and render Activity iframe view.
@@ -47,6 +44,7 @@ export class ActivityIframeView extends View {
     private readonly src_: string,
     /** Additional data to be passed to the iframe. */
     private readonly args_: {[key: string]: string},
+    readonly titleLang: string,
     private readonly shouldFadeBody_: boolean = false,
     private readonly hasLoadingIndicator_: boolean = false,
     private readonly shouldAnimateFade_: boolean = true
@@ -54,6 +52,13 @@ export class ActivityIframeView extends View {
     super();
 
     this.doc_ = this.win_.document;
+
+    const title = msg(SWG_I18N_STRINGS.SWG_CTA, titleLang);
+    const iframeAttributes = {
+      'frameborder': '0',
+      'scrolling': 'no',
+      'title': title,
+    };
 
     this.iframe_ = createElement(this.doc_, 'iframe', iframeAttributes);
 

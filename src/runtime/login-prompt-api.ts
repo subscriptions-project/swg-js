@@ -47,6 +47,7 @@ export class LoginPromptApi {
         // First ask the user if they want us to log them in.
         userConsent: true,
       }),
+      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
       /* shouldFadeBody */ true
     );
   }

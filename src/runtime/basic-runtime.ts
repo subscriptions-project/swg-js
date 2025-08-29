@@ -593,10 +593,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       // Fallback in case there is no active flow. This occurs when the entitlment check
       // runs as a redirect.
       const language = this.clientConfigManager().getLanguage();
-      const customText = msg(
-        SWG_I18N_STRINGS['NO_MEMBERSHIP_FOUND_LANG_MAP'],
-        language
-      )!;
+      const customText = msg(SWG_I18N_STRINGS.NO_MEMBERSHIP_FOUND, language);
       new Toast(
         this,
         feUrl('/toastiframe', {

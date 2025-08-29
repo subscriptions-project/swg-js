@@ -106,6 +106,7 @@ export class DeferredAccountFlow {
         'entitlements': entitlements.raw || null,
         'consent': this.options_.consent,
       }),
+      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
       /* shouldFadeBody */ true
     );
 

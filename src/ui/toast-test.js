@@ -31,6 +31,7 @@ describes.realWin('Toast', (env) => {
   let win;
   let runtime;
   let activitiesMock;
+  let clientConfigManagerMock;
   let pageConfig;
   let port;
   let toast;
@@ -41,6 +42,7 @@ describes.realWin('Toast', (env) => {
     pageConfig = new PageConfig('pub1:label1');
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
+    clientConfigManagerMock = sandbox.mock(runtime.clientConfigManager());
     toast = new Toast(runtime, src, args);
     port = new MockActivityPort();
     port.onResizeRequest = () => {};
@@ -59,6 +61,8 @@ describes.realWin('Toast', (env) => {
         }
       )
       .resolves(port);
+
+    clientConfigManagerMock.expects('getLanguage').returns('en');
   });
 
   it('should have created Notification View', async () => {
@@ -76,6 +80,10 @@ describes.realWin('Toast', (env) => {
     // These two properties are not set !important.
     expect(iframeStyles.width).to.equal('300px');
     expect(iframeStyles.left).to.equal('0px');
+
+    expect(iframe.getAttribute('title')).to.equal(
+      'Subscribe with Google Notification'
+    );
   });
 
   it('should automatically close', async () => {

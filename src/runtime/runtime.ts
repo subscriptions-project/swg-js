@@ -710,13 +710,16 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       integr.enableDefaultMeteringHandler || false
     );
 
-    this.dialogManager_ = new DialogManager(this.doc_);
-
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above
       pageConfig.getPublicationId(),
       this.fetcher_,
       clientOptions
+    );
+
+    this.dialogManager_ = new DialogManager(
+      this.doc_,
+      this.clientConfigManager_
     );
 
     this.propensityModule_ = new Propensity(

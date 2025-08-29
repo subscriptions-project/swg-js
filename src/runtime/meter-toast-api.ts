@@ -124,8 +124,9 @@ export class MeterToastApi {
       origin: string;
       hl?: string;
     };
+    const lang = this.clientConfigManager_.getLanguage();
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
-      iframeUrlParams['hl'] = this.clientConfigManager_.getLanguage();
+      iframeUrlParams['hl'] = lang;
     }
 
     this.activityIframeView_ = new ActivityIframeView(
@@ -133,6 +134,7 @@ export class MeterToastApi {
       this.activityPorts_,
       feUrl(iframeUrl, iframeUrlParams),
       iframeArgs,
+      /* titleLang */ lang,
       /* shouldFadeBody */ false
     );
   }
