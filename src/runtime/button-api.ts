@@ -139,7 +139,7 @@ export class ButtonApi {
     button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
       '$theme$',
       theme!
-    ).replace('$textContent$', msg(I18N_STRINGS.SUBSCRIPTION_TITLE, button));
+    ).replace('$textContent$', msg(I18N_STRINGS.SUBSCRIPTION_BUTTON, button));
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_OFFERS_SWG_BUTTON);
 
     return button;
