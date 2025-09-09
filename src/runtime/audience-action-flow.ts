@@ -112,7 +112,7 @@ const autopromptTypeToProductTypeMapping: {
 
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
-const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
+const placeholderPatternForEmail = /{EMAIL}/g;
 
 interface DirectCompleteAudienceActionResponse {
   updated?: boolean;
