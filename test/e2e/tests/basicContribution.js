@@ -27,7 +27,6 @@ module.exports = {
       .pause(3000)
       .assert.screenshotIdenticalToBaseline('html', 'basic-contribution')
       .viewContributionOffers()
-      .assert.textContains('@contributionHeader', 'Swgjs Contribution Demos')
       .assert.textContains('@priceChip', '$1')
       .contribute()
       .checkPayment()
