@@ -17,8 +17,8 @@
 import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
+import {I18N_STRINGS} from '../i18n/strings';
 import {Message} from '../proto/api_messages';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {createElement} from '../utils/dom';
@@ -53,7 +53,7 @@ export class ActivityIframeView extends View {
 
     this.doc_ = this.win_.document;
 
-    const title = msg(SWG_I18N_STRINGS.SWG_CTA, titleLang);
+    const title = msg(I18N_STRINGS.SWG_CTA, titleLang);
     const iframeAttributes = {
       'frameborder': '0',
       'scrolling': 'no',

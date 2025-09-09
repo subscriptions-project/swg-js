@@ -17,7 +17,7 @@
 import {ActivityPorts} from '../components/activities';
 import {Deps} from '../runtime/deps';
 import {Doc} from '../model/doc';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {I18N_STRINGS} from '../i18n/strings';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
 import {resetStyles, setImportantStyles} from '../utils/style';
@@ -51,7 +51,7 @@ export class Toast {
     this.activityPorts_ = deps.activities();
 
     const lang = deps.clientConfigManager().getLanguage();
-    const title = msg(SWG_I18N_STRINGS.SWG_NOTIFICATION, lang);
+    const title = msg(I18N_STRINGS.SWG_NOTIFICATION, lang);
 
     const iframeAttributes = {
       'frameborder': '0',
