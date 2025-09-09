@@ -106,7 +106,7 @@ export class ButtonApi {
     if (options['lang']) {
       button.setAttribute('lang', options['lang']);
     }
-    button.setAttribute('title', msg(I18N_STRINGS.SUBSCRIPTION_TITLE, button));
+    button.setAttribute('title', msg(I18N_STRINGS.SUBSCRIPTION_BUTTON, button));
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
 
     return button;
@@ -172,7 +172,7 @@ export class ButtonApi {
     button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
       '$theme$',
       theme!
-    ).replace('$textContent$', msg(I18N_STRINGS.CONTRIBUTION_TITLE, button));
+    ).replace('$textContent$', msg(I18N_STRINGS.CONTRIBUTION_BUTTON, button));
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON);
 
     return button;
