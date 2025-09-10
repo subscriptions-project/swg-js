@@ -28,7 +28,6 @@ import {
   AudienceActionType,
   isAudienceActionType,
 } from './audience-action-flow';
-import {AudienceActionLocalFlow} from './audience-action-local-flow';
 import {AutoPromptType, ContentType} from '../api/basic-subscriptions';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
@@ -185,7 +184,6 @@ export class AutoPromptManager {
   private autoPromptType_?: AutoPromptType;
   private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
-  private standardRewardedAdExperiment = false;
   private multiInstanceCtaExperiment: boolean = false;
   private alwaysShowBlockingContributionExperiment: boolean = false;
 
@@ -283,10 +281,6 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    this.standardRewardedAdExperiment = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.STANDARD_REWARDED_AD_EXPERIMENT
-    );
     this.multiInstanceCtaExperiment = this.isArticleExperimentEnabled_(
       article,
       ArticleExperimentFlags.MULTI_INSTANCE_CTA_EXPERIMENT
@@ -584,42 +578,18 @@ export class AutoPromptManager {
     preference?: PromptPreference
   ): () => void {
     return () => {
-      const audienceActionFlow: AudienceActionFlow =
-        action === InterventionType.TYPE_REWARDED_AD &&
-        !this.standardRewardedAdExperiment
-          ? new AudienceActionLocalFlow(this.deps_, {
-              action,
-              configurationId,
-              autoPromptType: this.autoPromptType_,
-              isClosable: this.isClosable_,
-              monetizationFunction: this.getLargeMonetizationPromptFn_(
-                /* shouldAnimateFade */ false
-              ),
-              calledManually: false,
-              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
-            })
-          : action === InterventionType.TYPE_NEWSLETTER_SIGNUP &&
-            preference === PromptPreference.PREFERENCE_PUBLISHER_PROVIDED_PROMPT
-          ? new AudienceActionLocalFlow(this.deps_, {
-              action,
-              configurationId,
-              autoPromptType: this.autoPromptType_,
-              isClosable: this.isClosable_,
-              calledManually: false,
-              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
-            })
-          : new AudienceActionIframeFlow(this.deps_, {
-              action,
-              configurationId,
-              preference,
-              autoPromptType: this.autoPromptType_,
-              isClosable: this.isClosable_,
-              calledManually: false,
-              shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
-              onAlternateAction: this.getLargeMonetizationPromptFn_(
-                /* shouldAnimateFade */ false
-              ),
-            });
+      const audienceActionFlow = new AudienceActionIframeFlow(this.deps_, {
+        action,
+        configurationId,
+        preference,
+        autoPromptType: this.autoPromptType_,
+        isClosable: this.isClosable_,
+        calledManually: false,
+        shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
+        onAlternateAction: this.getLargeMonetizationPromptFn_(
+          /* shouldAnimateFade */ false
+        ),
+      });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
     };
