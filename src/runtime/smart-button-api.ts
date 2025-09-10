@@ -16,7 +16,7 @@
 
 import {ActivityPorts} from '../components/activities';
 import {Deps} from './deps';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {I18N_STRINGS} from '../i18n/strings';
 import {SmartBoxMessage} from '../proto/api_messages';
 import {SmartButtonOptions} from '../api/subscriptions';
 import {createElement} from '../utils/dom';
@@ -47,7 +47,7 @@ export class SmartSubscriptionButtonApi {
     this.activityPorts_ = deps_.activities();
 
     const lang = this.deps_.clientConfigManager().getLanguage();
-    const title = msg(SWG_I18N_STRINGS.SWG_BUTTON, lang);
+    const title = msg(I18N_STRINGS.SWG_BUTTON, lang);
     const iframeAttributes = {
       'frameborder': '0',
       'scrolling': 'no',

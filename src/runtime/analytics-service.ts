@@ -29,8 +29,8 @@ import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
+import {I18N_STRINGS} from '../i18n/strings';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
 import {getCanonicalTag, getCanonicalUrl} from '../utils/url';
@@ -110,7 +110,7 @@ export class AnalyticsService {
     this.activityPorts_ = deps_.activities();
 
     this.iframe_ = createElement(this.doc_.getWin().document, 'iframe', {
-      'title': SWG_I18N_STRINGS.SWG_SERVICE.en,
+      'title': I18N_STRINGS.SWG_SERVICE.en,
     });
     setImportantStyles(this.iframe_, iframeStyles);
     this.doc_.getBody()?.appendChild(this.getElement());

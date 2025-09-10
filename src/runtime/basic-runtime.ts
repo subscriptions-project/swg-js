@@ -38,13 +38,13 @@ import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {I18N_STRINGS} from '../i18n/strings';
 import {InlineCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {PayClient} from './pay-client';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {SubscribeResponse} from '../api/subscribe-response';
@@ -593,7 +593,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       // Fallback in case there is no active flow. This occurs when the entitlment check
       // runs as a redirect.
       const language = this.clientConfigManager().getLanguage();
-      const customText = msg(SWG_I18N_STRINGS.NO_MEMBERSHIP_FOUND, language);
+      const customText = msg(I18N_STRINGS.NO_MEMBERSHIP_FOUND, language);
       new Toast(
         this,
         feUrl('/toastiframe', {

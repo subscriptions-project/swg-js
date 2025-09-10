@@ -24,10 +24,10 @@ import {
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from '../runtime/client-config-manager';
 import {Deps} from '../runtime/deps';
+import {I18N_STRINGS} from '../i18n/strings';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from '../runtime/pay-flow';
 import {ProductType, SubscriptionRequest} from '../api/subscriptions';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
 import {msg} from './i18n';
@@ -50,10 +50,7 @@ export function showAlreadyOptedInToast(
       };
       break;
     case 'TYPE_NEWSLETTER_SIGNUP':
-      const customText = msg(
-        SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP,
-        lang
-      );
+      const customText = msg(I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP, lang);
       urlParams = {
         flavor: 'custom',
         customText,
