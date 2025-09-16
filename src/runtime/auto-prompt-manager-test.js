@@ -15,7 +15,6 @@
  */
 
 import * as audienceActionFlow from './audience-action-flow';
-import * as audienceActionLocalFlow from './audience-action-local-flow';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
 import {AutoPromptConfig} from '../model/auto-prompt-config';
 import {AutoPromptManager} from './auto-prompt-manager';
@@ -55,11 +54,6 @@ const NEWSLETTER_INTERVENTION = {
   type: 'TYPE_NEWSLETTER_SIGNUP',
   configurationId: 'newsletter_config_id',
 };
-const NEWSLETTER_INTERVENTION_PUBLISHER_PROMPT = {
-  type: 'TYPE_NEWSLETTER_SIGNUP',
-  configurationId: 'newsletter_config_id',
-  preference: 'PREFERENCE_PUBLISHER_PROVIDED_PROMPT',
-};
 const REGWALL_INTERVENTION = {
   type: 'TYPE_REGISTRATION_WALL',
   configurationId: 'regwall_config_id',
@@ -67,10 +61,6 @@ const REGWALL_INTERVENTION = {
 const SUBSCRIPTION_INTERVENTION = {
   type: 'TYPE_SUBSCRIPTION',
   configurationId: 'subscription_config_id',
-};
-const REWARDED_AD_INTERVENTION = {
-  type: 'TYPE_REWARDED_AD',
-  configurationId: 'rewarded_ad_config_id',
 };
 
 describes.realWin('AutoPromptManager', (env) => {
@@ -6918,142 +6908,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
 
       expect(isEligible).to.equal(true);
-    });
-  });
-
-  describe('AudienceActionLocalFlow', () => {
-    let getArticleExpectation;
-    let actionLocalFlowStub;
-    let startLocalSpy;
-
-    beforeEach(() => {
-      const entitlements = new Entitlements();
-      entitlementsManagerMock
-        .expects('getEntitlements')
-        .resolves(entitlements)
-        .once();
-      const autoPromptConfig = new AutoPromptConfig({});
-      const uiPredicates = new UiPredicates(
-        /* canDisplayAutoPrompt */ true,
-        /* canDisplayButton */ true
-      );
-      const clientConfig = new ClientConfig({
-        autoPromptConfig,
-        useUpdatedOfferFlows: true,
-        uiPredicates,
-      });
-      clientConfigManagerMock
-        .expects('getClientConfig')
-        .resolves(clientConfig)
-        .once();
-      getArticleExpectation = entitlementsManagerMock.expects('getArticle');
-      getArticleExpectation
-        .resolves({
-          actionOrchestration: {
-            interventionFunnel: {
-              interventions: [
-                {
-                  configId: 'rewarded_ad_config_id',
-                  type: 'TYPE_REWARDED_AD',
-                  closability: 'BLOCKING',
-                },
-                {
-                  configId: 'subscription_config_id',
-                  type: 'TYPE_SUBSCRIPTION',
-                  closability: 'BLOCKING',
-                },
-              ],
-            },
-          },
-          audienceActions: {
-            actions: [REWARDED_AD_INTERVENTION, SUBSCRIPTION_INTERVENTION],
-            engineId: '123',
-          },
-        })
-        .once();
-
-      startLocalSpy = sandbox.spy(
-        audienceActionLocalFlow.AudienceActionLocalFlow.prototype,
-        'start'
-      );
-      actionLocalFlowStub = sandbox
-        .stub(audienceActionLocalFlow, 'AudienceActionLocalFlow')
-        .returns({
-          start: startLocalSpy,
-        });
-    });
-
-    it('is rendered for BYOP TYPE_NEWSLETTER_SIGNUP', async () => {
-      getArticleExpectation
-        .resolves({
-          actionOrchestration: {
-            interventionFunnel: {
-              interventions: [
-                {
-                  configId: 'newsletter_config_id',
-                  type: 'TYPE_NEWSLETTER_SIGNUP',
-                  closability: 'DISMISSIBLE',
-                },
-                {
-                  configId: 'contribution_config_id',
-                  type: 'TYPE_CONTRIBUTION',
-                  closability: 'DISMISSIBLE',
-                },
-              ],
-            },
-          },
-          audienceActions: {
-            actions: [
-              NEWSLETTER_INTERVENTION_PUBLISHER_PROMPT,
-              CONTRIBUTION_INTERVENTION,
-            ],
-            engineId: '123',
-          },
-        })
-        .once();
-
-      await autoPromptManager.showAutoPrompt({});
-
-      expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
-        action: 'TYPE_NEWSLETTER_SIGNUP',
-        configurationId: 'newsletter_config_id',
-        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-        isClosable: true,
-        calledManually: false,
-        shouldRenderPreview: false,
-      });
-      expect(startLocalSpy).to.have.been.calledOnce;
-      expect(startSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
-    });
-
-    it('is calls local flow with preview enabled', async () => {
-      getArticleExpectation
-        .resolves({
-          audienceActions: {
-            actions: [
-              NEWSLETTER_INTERVENTION_PUBLISHER_PROMPT,
-              CONTRIBUTION_INTERVENTION,
-            ],
-            engineId: '123',
-          },
-          previewEnabled: true,
-        })
-        .once();
-
-      await autoPromptManager.showAutoPrompt({});
-
-      expect(actionLocalFlowStub).to.have.been.calledOnce.calledWith(deps, {
-        action: 'TYPE_NEWSLETTER_SIGNUP',
-        configurationId: 'newsletter_config_id',
-        autoPromptType: AutoPromptType.CONTRIBUTION_LARGE,
-        isClosable: true,
-        calledManually: false,
-        shouldRenderPreview: true,
-      });
-      expect(startLocalSpy).to.have.been.calledOnce;
-      expect(startSpy).to.not.have.been.called;
-      expect(autoPromptManager.getLastAudienceActionFlow()).to.not.equal(null);
     });
   });
 

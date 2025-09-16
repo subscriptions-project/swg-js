@@ -44,11 +44,6 @@ export enum ArticleExperimentFlags {
   INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
 
   /**
-   * Experiment flag to enable the standardized rewarded ads.
-   */
-  STANDARD_REWARDED_AD_EXPERIMENT = 'standard_rewarded_ad_experiment',
-
-  /**
    * Experiment flag to enable multiple instances of CTAs (FCA Phase 1).
    */
   MULTI_INSTANCE_CTA_EXPERIMENT = 'multi_instance_cta_experiment',
