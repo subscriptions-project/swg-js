@@ -43,12 +43,12 @@ import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
+import {I18N_STRINGS} from '../i18n/strings';
 import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {ProductType} from '../api/subscriptions';
 import {PromptPreference} from './intervention';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from './fetcher';
@@ -112,7 +112,7 @@ const autopromptTypeToProductTypeMapping: {
 
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
-const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
+const placeholderPatternForEmail = /{EMAIL}/g;
 
 interface DirectCompleteAudienceActionResponse {
   updated?: boolean;
@@ -301,13 +301,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     let customText = '';
     switch (this.params_.action) {
       case InterventionType.TYPE_REGISTRATION_WALL:
-        customText = msg(
-          SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED,
-          lang
-        ).replace(placeholderPatternForEmail, userEmail);
+        customText = msg(I18N_STRINGS.REGWALL_ACCOUNT_CREATED, lang).replace(
+          placeholderPatternForEmail,
+          userEmail
+        );
         break;
       case InterventionType.TYPE_NEWSLETTER_SIGNUP:
-        customText = msg(SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP, lang).replace(
+        customText = msg(I18N_STRINGS.NEWSLETTER_SIGNED_UP, lang).replace(
           placeholderPatternForEmail,
           userEmail
         );
@@ -337,10 +337,10 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     let customText = '';
     switch (this.params_.action) {
       case InterventionType.TYPE_REGISTRATION_WALL:
-        customText = msg(SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED, lang);
+        customText = msg(I18N_STRINGS.REGWALL_REGISTER_FAILED, lang);
         break;
       case InterventionType.TYPE_NEWSLETTER_SIGNUP:
-        customText = msg(SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED, lang);
+        customText = msg(I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED, lang);
         break;
       default:
         // Do not show toast for other types.

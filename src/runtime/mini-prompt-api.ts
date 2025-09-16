@@ -21,7 +21,7 @@ import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {I18N_STRINGS} from '../i18n/strings';
 import {assert, warn} from '../utils/log';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
@@ -103,9 +103,9 @@ export class MiniPromptApi {
     const lang = this.clientConfigManager_.getLanguage();
     let textContent = '';
     if (options.autoPromptType === AutoPromptType.CONTRIBUTION) {
-      textContent = msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE, lang);
+      textContent = msg(I18N_STRINGS.CONTRIBUTION_BUTTON, lang);
     } else if (options.autoPromptType === AutoPromptType.SUBSCRIPTION) {
-      textContent = msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE, lang);
+      textContent = msg(I18N_STRINGS.SUBSCRIPTION_BUTTON, lang);
     }
 
     // Create all the elements for the mini prompt.

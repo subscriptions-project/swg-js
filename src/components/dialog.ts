@@ -19,8 +19,8 @@ import {CloseWindowRequest} from '../proto/api_messages';
 import {Doc, resolveDoc} from '../model/doc';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
+import {I18N_STRINGS} from '../i18n/strings';
 import {LoadingView} from '../ui/loading-view';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {UI_CSS} from '../ui/ui-css';
 import {View} from './view';
 import {
@@ -151,7 +151,7 @@ export class Dialog {
     const iframeCssClass =
       dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
 
-    const title = msg(SWG_I18N_STRINGS.SWG_CTA, titleLang);
+    const title = msg(I18N_STRINGS.SWG_CTA, titleLang);
 
     this.iframe_ = new FriendlyIframe(doc.getWin().document, {
       'class': iframeCssClass,

@@ -15,7 +15,6 @@
  */
 
 import {I18N_STRINGS} from './strings';
-import {SWG_I18N_STRINGS} from './swg-strings';
 
 /* Language code to string mapping. English is always provided. */
 export type Translation = {
@@ -23,4 +22,3 @@ export type Translation = {
 } & Record<string, string>;
 
 I18N_STRINGS satisfies Record<string, Translation>;
-SWG_I18N_STRINGS satisfies Record<string, Translation>;
