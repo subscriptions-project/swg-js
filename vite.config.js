@@ -106,6 +106,10 @@ const builds = {
     output: args.minifiedGaaName || 'subscriptions-gaa.js',
     input: './src/gaa-main.ts',
   },
+  publisherButton: {
+    output: args.minifiedPublisherButtonName || 'publisher-button.js',
+    input: './src/publisher-button-main.ts',
+  },
 };
 
 const {input, output} = builds[args.target || 'classic'];
@@ -118,7 +122,7 @@ export default defineConfig({
     commonjsOptions: {
       sourceMap: true,
     },
-    target: 'ios12',
+    target: 'ios15',
 
     minify: 'terser',
     terserOptions: {
