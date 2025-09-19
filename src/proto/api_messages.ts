@@ -319,6 +319,13 @@ export enum EventOriginator {
 }
 
 /** */
+export enum OptInType {
+  OPT_IN_TYPE_UNSPECIFIED = 0,
+  OPT_IN_TYPE_FIRST_PARTY = 1,
+  OPT_IN_TYPE_READER_SPECIFIED = 2,
+}
+
+/** */
 export enum ReaderSurfaceType {
   READER_SURFACE_TYPE_UNSPECIFIED = 0,
   READER_SURFACE_WORDPRESS = 1,
@@ -1278,6 +1285,7 @@ export class EventParams implements Message {
   private campaignId_: string | null;
   private linkedPublicationsCount_: number | null;
   private ctaMode_: CtaMode | null;
+  private optInType_: OptInType | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1306,6 +1314,8 @@ export class EventParams implements Message {
     this.linkedPublicationsCount_ = data[9 + base] == null ? null : (data[9 + base] as number);
 
     this.ctaMode_ = data[10 + base] == null ? null : (data[10 + base] as CtaMode);
+
+    this.optInType_ = data[11 + base] == null ? null : (data[11 + base] as OptInType);
   }
 
   getSmartboxMessage(): string | null {
@@ -1396,6 +1406,14 @@ export class EventParams implements Message {
     this.ctaMode_ = value;
   }
 
+  getOptInType(): OptInType | null {
+    return this.optInType_;
+  }
+
+  setOptInType(value: OptInType): void {
+    this.optInType_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1409,6 +1427,7 @@ export class EventParams implements Message {
       this.campaignId_, // field 9 - campaign_id
       this.linkedPublicationsCount_, // field 10 - linked_publications_count
       this.ctaMode_, // field 11 - cta_mode
+      this.optInType_, // field 12 - opt_in_type
     ];
     if (includeLabel) {
       arr.unshift(this.label());
