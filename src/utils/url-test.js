@@ -288,6 +288,7 @@ describe('serializeProtoMessageForUrl', () => {
       null,
       null,
       null,
+      null,	
     ];
     const analyticsRequestArray = [
       'AnalyticsRequest',
