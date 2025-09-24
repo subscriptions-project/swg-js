@@ -42,7 +42,6 @@ exports.compile = async (options = {}) => {
 
   // Optionally compile only a subset of scripts, if the --target flag is used.
   // Example: npx gulp --target classic --target basic
-  options.watch = args.watch;
   const scriptCompilations = {
     classic: () =>
       compileScript(
