@@ -40,61 +40,62 @@ exports.compile = async (options = {}) => {
   mkdirSync('build/fake-module/src');
   mkdirSync('build/css');
 
-  // For compilation with babel we start with the main-babel entry point,
-  // but then rename to the subscriptions.js which we've been using all along.
-  await Promise.all([
-    compileScript(
-      './src/',
-      'main.ts',
-      './dist',
-      Object.assign(
-        {
-          toName: 'subscriptions.max.js',
-          minifiedName: options.checkTypes
-            ? 'subscriptions.checktypes.js'
-            : args.minifiedName || 'subscriptions.js',
-          // If there is a sync JS error during initial load,
-          // at least try to unhide the body.
-          wrapper: '(function(){<%= contents %>})();',
-        },
-        options
-      )
-    ),
-    compileScript(
-      './src/',
-      'gaa-main.ts',
-      './dist',
-      Object.assign(
-        {
-          toName: 'subscriptions-gaa.max.js',
-          minifiedName: options.checkTypes
-            ? 'subscriptions-gaa.checktypes.js'
-            : args.minifiedGaaName || 'subscriptions-gaa.js',
-          // If there is a sync JS error during initial load,
-          // at least try to unhide the body.
-          wrapper: '(function(){<%= contents %>})();',
-        },
-        options
-      )
-    ),
-    compileScript(
-      './src/',
-      'basic-main.ts',
-      './dist',
-      Object.assign(
-        {
-          toName: 'basic-subscriptions.max.js',
-          minifiedName: options.checkTypes
-            ? 'basic-subscriptions.checktypes.js'
-            : args.minifiedBasicName || 'basic-subscriptions.js',
-          // If there is a sync JS error during initial load,
-          // at least try to unhide the body.
-          wrapper: '(function(){<%= contents %>})();',
-        },
-        options
-      )
-    ),
-  ]);
+  // Optionally compile only a subset of scripts, if the --scripts flag is used.
+  // Example: npx gulp --scripts main.ts --scripts basic-main.ts
+  options.watch = args.watch;
+  const scriptCompilations = {
+    'main.ts': () =>
+      compileScript(
+        './src/',
+        'main.ts',
+        './dist',
+        Object.assign(
+          {
+            toName: 'subscriptions.max.js',
+            minifiedName: args.minifiedName || 'subscriptions.js',
+            // If there is a sync JS error during initial load,
+            // at least try to unhide the body.
+            wrapper: '(function(){<%= contents %>})();',
+          },
+          options
+        )
+      ),
+    'gaa-main.ts': () =>
+      compileScript(
+        './src/',
+        'gaa-main.ts',
+        './dist',
+        Object.assign(
+          {
+            toName: 'subscriptions-gaa.max.js',
+            minifiedName: args.minifiedGaaName || 'subscriptions-gaa.js',
+            // If there is a sync JS error during initial load,
+            // at least try to unhide the body.
+            wrapper: '(function(){<%= contents %>})();',
+          },
+          options
+        )
+      ),
+    'basic-main.ts': () =>
+      compileScript(
+        './src/',
+        'basic-main.ts',
+        './dist',
+        Object.assign(
+          {
+            toName: 'basic-subscriptions.max.js',
+            minifiedName: args.minifiedBasicName || 'basic-subscriptions.js',
+            // If there is a sync JS error during initial load,
+            // at least try to unhide the body.
+            wrapper: '(function(){<%= contents %>})();',
+          },
+          options
+        )
+      ),
+  };
+  const scripts = [].concat(args.scripts) || Object.keys(scriptCompilations);
+  const compilations = scripts.map((script) => scriptCompilations[script]());
+  await Promise.all(compilations);
 };
 
 /**
