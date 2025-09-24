@@ -93,7 +93,9 @@ exports.compile = async (options = {}) => {
         )
       ),
   };
-  const scripts = [].concat(args.scripts) || Object.keys(scriptCompilations);
+  const scripts = args.scripts
+    ? [].concat(args.scripts) // Handle a single or multiple values for --scripts.
+    : Object.keys(scriptCompilations);
   const compilations = scripts.map((script) => scriptCompilations[script]());
   await Promise.all(compilations);
 };
