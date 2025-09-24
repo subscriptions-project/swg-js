@@ -40,11 +40,11 @@ exports.compile = async (options = {}) => {
   mkdirSync('build/fake-module/src');
   mkdirSync('build/css');
 
-  // Optionally compile only a subset of scripts, if the --scripts flag is used.
-  // Example: npx gulp --scripts main.ts --scripts basic-main.ts
+  // Optionally compile only a subset of scripts, if the --target flag is used.
+  // Example: npx gulp --target classic --target basic
   options.watch = args.watch;
   const scriptCompilations = {
-    'main.ts': () =>
+    classic: () =>
       compileScript(
         './src/',
         'main.ts',
@@ -60,7 +60,7 @@ exports.compile = async (options = {}) => {
           options
         )
       ),
-    'gaa-main.ts': () =>
+    gaa: () =>
       compileScript(
         './src/',
         'gaa-main.ts',
@@ -76,7 +76,7 @@ exports.compile = async (options = {}) => {
           options
         )
       ),
-    'basic-main.ts': () =>
+    basic: () =>
       compileScript(
         './src/',
         'basic-main.ts',
@@ -93,8 +93,8 @@ exports.compile = async (options = {}) => {
         )
       ),
   };
-  const scripts = args.scripts
-    ? [].concat(args.scripts) // Handle a single or multiple values for --scripts.
+  const scripts = args.target
+    ? [].concat(args.target) // Handle a single or multiple values for --target.
     : Object.keys(scriptCompilations);
   const compilations = scripts.map((script) => scriptCompilations[script]());
   await Promise.all(compilations);
