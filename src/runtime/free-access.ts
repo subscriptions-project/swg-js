@@ -19,7 +19,7 @@ import {LocationProvider} from './location-provider';
 
 export class FreeAccess implements FreeAccessApi {
   private static readonly GOOGLE_REFERERS_PREFIX_LIST = [
-    'https://www.google.com',
+    'https://www.google.',
     'android-app://com.google.android.googlequicksearchbox',
     'android-app://com.google.android.googlequicksearchbox/https/www.google.com',
     'ios-app://com.google.app.ios',
