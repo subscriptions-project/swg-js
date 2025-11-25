@@ -21,11 +21,11 @@
  */
 
 const https = require('https');
-const {getStdout} = require('./exec');
-const {isCiBuild} = require('./ci');
+const { getStdout } = require('./exec');
+const { isCiBuild } = require('./ci');
 
 const nodeDistributionsUrl = 'https://nodejs.org/dist/index.json';
-const warningDelaySecs = 10;
+const warningDelaySecs = 2;
 const updatesNeeded = new Set();
 const log = console /*OK*/.log;
 
@@ -58,14 +58,14 @@ function checkNodeVersion() {
             log(
               yellow(
                 'WARNING: Something went wrong. ' +
-                  'Could not determine the latest LTS version of node.'
+                'Could not determine the latest LTS version of node.'
               )
             );
           } else if (nodeVersion !== latestLtsVersion) {
             log(
               yellow('WARNING: Detected node version'),
               cyan(nodeVersion) +
-                yellow('. Recommended (latest LTS) version is'),
+              yellow('. Recommended (latest LTS) version is'),
               cyan(latestLtsVersion) + yellow('.')
             );
             log(
@@ -91,9 +91,9 @@ function checkNodeVersion() {
         log(
           yellow(
             'WARNING: Something went wrong. ' +
-              'Could not download node version info from ' +
-              cyan(nodeDistributionsUrl) +
-              yellow('.')
+            'Could not download node version info from ' +
+            cyan(nodeDistributionsUrl) +
+            yellow('.')
           )
         );
         log(yellow('⤷ Detected node version'), cyan(nodeVersion) + yellow('.'));
