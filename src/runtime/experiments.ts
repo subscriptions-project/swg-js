@@ -196,8 +196,8 @@ function parseSelection(s: string | null): Selection | null {
   return s == Selection.EXPERIMENT
     ? Selection.EXPERIMENT
     : s == Selection.CONTROL
-    ? Selection.CONTROL
-    : null;
+      ? Selection.CONTROL
+      : null;
 }
 
 /**

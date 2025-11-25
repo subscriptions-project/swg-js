@@ -74,7 +74,10 @@ export class SubscribeResponse {
 export class PurchaseData {
   readonly data: string;
 
-  constructor(readonly raw: string, readonly signature: string) {
+  constructor(
+    readonly raw: string,
+    readonly signature: string
+  ) {
     this.data = raw;
   }
 

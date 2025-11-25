@@ -484,8 +484,8 @@ export class AutoPromptManager {
           ? AutoPromptType.CONTRIBUTION
           : AutoPromptType.CONTRIBUTION_LARGE
         : autoPromptType === AutoPromptType.SUBSCRIPTION
-        ? AutoPromptType.SUBSCRIPTION
-        : AutoPromptType.SUBSCRIPTION_LARGE;
+          ? AutoPromptType.SUBSCRIPTION
+          : AutoPromptType.SUBSCRIPTION_LARGE;
 
     return this.getPromptTypeToDisplay_(snippetAction);
   }

@@ -59,7 +59,8 @@ export const UI_CSS = css`
       border-top-left-radius: 8px !important;
       border-top-right-radius: 8px !important;
       background-color: rgba(255, 255, 255, 1) !important;
-      box-shadow: rgba(60, 64, 67, 0.3) 0 1px 1px,
+      box-shadow:
+        rgba(60, 64, 67, 0.3) 0 1px 1px,
         rgba(60, 64, 67, 0.15) 0 1px 4px 1px !important;
     }
 
@@ -161,7 +162,8 @@ export const DIALOG_CSS = css`
       margin-inline-start: calc(100vw - 100vw / 2) !important;
       border-top-left-radius: 8px !important;
       border-top-right-radius: 8px !important;
-      box-shadow: rgba(60, 64, 67, 0.3) 0 1px 1px,
+      box-shadow:
+        rgba(60, 64, 67, 0.3) 0 1px 1px,
         rgba(60, 64, 67, 0.15) 0 1px 4px 1px !important;
     }
 
@@ -188,7 +190,9 @@ export const DIALOG_CSS = css`
     .swg-toast {
       border-radius: 4px !important;
       bottom: 8px !important;
-      box-shadow: 0 3px 1px -2px rgb(0 0 0 / 20%), 0 2px 2px 0 rgb(0 0 0 / 14%),
+      box-shadow:
+        0 3px 1px -2px rgb(0 0 0 / 20%),
+        0 2px 2px 0 rgb(0 0 0 / 14%),
         0 1px 5px 0 rgb(0 0 0 / 12%) !important;
       left: 8px !important;
     }

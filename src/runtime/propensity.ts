@@ -38,7 +38,11 @@ export class Propensity implements PropensityApi {
    * available immediately, other function should be gated on a ready promise.
    * #TODO(jpettitt) switch refactor to take out the win and use deps to get win
    */
-  constructor(private readonly win_: Window, deps: Deps, fetcher: Fetcher) {
+  constructor(
+    private readonly win_: Window,
+    deps: Deps,
+    fetcher: Fetcher
+  ) {
     this.propensityServer_ = new PropensityServer(win_, deps, fetcher);
 
     this.eventManager_ = deps.eventManager();
