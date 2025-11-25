@@ -117,7 +117,7 @@
     "jsonwebtoken": "9.0.2",
     "nightwatch": "2.6.25",
     "rollup-plugin-visualizer": "6.0.5",
-    "vite": "7.1.11"
+    "vite": "7.2.4"
   },
   "cloud-repo-tools": {
     "requiresKeyFile": true,
