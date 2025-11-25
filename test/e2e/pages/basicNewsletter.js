@@ -18,7 +18,7 @@
  */
 'use strict';
 
-const { swgPageUrl } = require('../util');
+const {swgPageUrl} = require('../util');
 
 /**
  * @fileoverview Page object for the first article with contribution on scenic.
