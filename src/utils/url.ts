@@ -100,9 +100,8 @@ export function parseQueryString(query: string): {[key: string]: string} {
   if (!query) {
     return {};
   }
-  return (/^[?#]/.test(query) ? query.slice(1) : query)
-    .split('&')
-    .reduce((params, param) => {
+  return (/^[?#]/.test(query) ? query.slice(1) : query).split('&').reduce(
+    (params, param) => {
       const item = param.split('=');
       try {
         const key = decodeURIComponent(item[0] || '');
@@ -115,7 +114,9 @@ export function parseQueryString(query: string): {[key: string]: string} {
         warn(`SwG could not parse a URL query param: ${item[0]}`);
       }
       return params;
-    }, {} as {[key: string]: string});
+    },
+    {} as {[key: string]: string}
+  );
 }
 
 /**

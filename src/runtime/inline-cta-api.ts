@@ -158,13 +158,13 @@ export class InlineCtaApi {
             /* isInlineCta */ true
           )
         : action.type === InterventionType.TYPE_CONTRIBUTION
-        ? getContributionsUrl(
-            clientConfig,
-            this.clientConfigManager_,
-            this.deps_.pageConfig(),
-            /* isInlineCta */ true
-          )
-        : this.getUrl_(urlPrefix, configId);
+          ? getContributionsUrl(
+              clientConfig,
+              this.clientConfigManager_,
+              this.deps_.pageConfig(),
+              /* isInlineCta */ true
+            )
+          : this.getUrl_(urlPrefix, configId);
     const fetchArgs =
       action.type === InterventionType.TYPE_SUBSCRIPTION
         ? (this.activityPorts_.addDefaultArguments({
@@ -176,19 +176,19 @@ export class InlineCtaApi {
             'supportsEventManager': true,
           }) as {[key: string]: string})
         : action.type === InterventionType.TYPE_CONTRIBUTION
-        ? feArgs({
-            'productId': this.deps_.pageConfig().getProductId(),
-            'publicationId': this.deps_.pageConfig().getPublicationId(),
-            'productType': ProductType.UI_CONTRIBUTION,
-            'list': 'default',
-            'skus': null,
-            'isClosable': false,
-            'supportsEventManager': true,
-          })
-        : feArgs({
-            'supportsEventManager': true,
-            'productType': DEFAULT_PRODUCT_TYPE,
-          });
+          ? feArgs({
+              'productId': this.deps_.pageConfig().getProductId(),
+              'publicationId': this.deps_.pageConfig().getPublicationId(),
+              'productType': ProductType.UI_CONTRIBUTION,
+              'list': 'default',
+              'skus': null,
+              'isClosable': false,
+              'supportsEventManager': true,
+            })
+          : feArgs({
+              'supportsEventManager': true,
+              'productType': DEFAULT_PRODUCT_TYPE,
+            });
 
     const activityIframeView = new ActivityIframeView(
       this.win_,
