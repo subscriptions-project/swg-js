@@ -30,14 +30,14 @@ const updatesNeeded = new Set();
 const log = console /*OK*/.log;
 
 // Color formatting libraries may not be available when this script is run.
-function cyan() {
-  return '\x1b[36m';
+function cyan(text) {
+  return '\x1b[36m' + text + '\x1b[0m';
 }
-function green() {
-  return '\x1b[32m';
+function green(text) {
+  return '\x1b[32m' + text + '\x1b[0m';
 }
-function yellow() {
-  return '\x1b[33m';
+function yellow(text) {
+  return '\x1b[33m' + text + '\x1b[0m';
 }
 
 // Check the node version and print a warning if it is not the latest LTS.
@@ -56,30 +56,32 @@ function checkNodeVersion() {
           const latestLtsVersion = getNodeLatestLtsVersion(distributionsJson);
           if (latestLtsVersion === '') {
             log(
-              yellow(),
-              'WARNING: Something went wrong. Could not determine the latest LTS version of node.'
+              yellow(
+                'WARNING: Something went wrong. ' +
+                  'Could not determine the latest LTS version of node.'
+              )
             );
           } else if (nodeVersion !== latestLtsVersion) {
             log(
-              yellow() + 'WARNING: Detected node version',
-              cyan() + nodeVersion + yellow() + '.',
-              'Recommended (latest LTS) version is',
-              cyan() + latestLtsVersion + yellow() + '.'
+              yellow('WARNING: Detected node version'),
+              cyan(nodeVersion) +
+                yellow('. Recommended (latest LTS) version is'),
+              cyan(latestLtsVersion) + yellow('.')
             );
             log(
-              yellow() + '⤷ To fix this, run',
-              cyan() + '"nvm install --lts"',
-              yellow() + 'or see',
-              cyan() + 'https://nodejs.org/en/download/package-manager',
-              yellow() + 'for instructions.'
+              yellow('⤷ To fix this, run'),
+              cyan('"nvm install --lts"'),
+              yellow('or see'),
+              cyan('https://nodejs.org/en/download/package-manager'),
+              yellow('for instructions.')
             );
             updatesNeeded.add('node');
           } else {
             log(
-              green() + 'Detected',
-              cyan() + 'node',
-              green() + 'version',
-              cyan() + nodeVersion + ' (latest LTS)' + green() + '.'
+              green('Detected'),
+              cyan('node'),
+              green('version'),
+              cyan(nodeVersion + ' (latest LTS)') + green('.')
             );
           }
           resolve();
@@ -87,10 +89,14 @@ function checkNodeVersion() {
       })
       .on('error', () => {
         log(
-          yellow() + 'WARNING: Something went wrong. Could not download node version info from',
-          cyan() + nodeDistributionsUrl + yellow() + '.'
+          yellow(
+            'WARNING: Something went wrong. ' +
+              'Could not download node version info from ' +
+              cyan(nodeDistributionsUrl) +
+              yellow('.')
+          )
         );
-        log(yellow() + '⤷ Detected node version', cyan() + nodeVersion + yellow() + '.');
+        log(yellow('⤷ Detected node version'), cyan(nodeVersion) + yellow('.'));
         resolve();
       });
   });
@@ -118,16 +124,16 @@ function main() {
   return checkNodeVersion().then(() => {
     if (updatesNeeded.size > 0) {
       log(
-        yellow() + '\nWARNING: Detected problems with',
-        cyan() + Array.from(updatesNeeded).join(', ')
+        yellow('\nWARNING: Detected problems with'),
+        cyan(Array.from(updatesNeeded).join(', '))
       );
-      log(yellow() + '⤷ Press', cyan() + 'Ctrl + C', yellow() + 'to abort and fix...');
+      log(yellow('⤷ Press'), cyan('Ctrl + C'), yellow('to abort and fix...'));
       let resolver;
       const deferred = new Promise((resolverIn) => {
         resolver = resolverIn;
       });
       setTimeout(() => {
-        log(yellow() + '\nAttempting to install packages...');
+        log(yellow('\nAttempting to install packages...'));
         resolver();
       }, warningDelaySecs * 1000);
       return deferred;
