@@ -17,7 +17,6 @@
 import {defineConfig} from 'vite';
 import {readFileSync, readdirSync, writeFileSync} from 'fs';
 import {visualizer} from 'rollup-plugin-visualizer';
-import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 
 import {resolveConfig} from './build-system/tasks/compile-config';
@@ -30,9 +29,6 @@ const replacementValues = Object.entries(config).reduce((obj, [key, value]) => {
   return obj;
 }, {});
 const plugins = [
-  commonjs({
-    transformMixedEsModules: true,
-  }),
   replace({
     delimiters: ['const ', ' = '],
     include: ['./src/constants.ts'],
@@ -114,10 +110,8 @@ export default defineConfig({
   plugins,
 
   build: {
+    sourcemap: true,
     emptyOutDir: false,
-    commonjsOptions: {
-      sourceMap: true,
-    },
     target: 'ios12',
 
     minify: 'terser',
@@ -143,7 +137,6 @@ export default defineConfig({
         {
           format: 'iife',
           entryFileNames: output,
-          sourcemap: true,
         },
       ],
     },
