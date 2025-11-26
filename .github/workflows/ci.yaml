@@ -33,6 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Install chromedriver
+        uses: nanasess/setup-chromedriver@v2
+
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v6
         with:
@@ -63,6 +66,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Install chromedriver
+        uses: nanasess/setup-chromedriver@v2
 
       - name: Install the right version of Nodejs
         uses: actions/setup-node@v6
