@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-/* eslint-disable google-camelcase/google-camelcase */
+console.log('Chromedriver:', require('chromedriver'));
+console.log('Chromedriver path:', require('chromedriver').path);
+
 module.exports = {
   src_folders: ['test/e2e/tests'],
   globals_path: 'globals.js',
