@@ -69,7 +69,10 @@ export class OffersFlow {
   private readonly shouldAnimateFade_: boolean;
   private readonly isClosable_?: boolean;
 
-  constructor(private readonly deps_: Deps, options?: OffersRequest) {
+  constructor(
+    private readonly deps_: Deps,
+    options?: OffersRequest
+  ) {
     this.win_ = deps_.win();
 
     this.activityPorts_ = deps_.activities();

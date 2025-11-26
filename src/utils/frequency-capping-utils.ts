@@ -92,9 +92,9 @@ export function getFrequencyCappedOrchestration(
           multiInstanceCtaExperiment && key === nextOrchestration!.configId
             ? timestamps.completions
             : // For backwards compatability, continue to get completions of matching action type
-            key === nextOrchestration!.type
-            ? timestamps.completions
-            : timestamps.impressions
+              key === nextOrchestration!.type
+              ? timestamps.completions
+              : timestamps.impressions
         )
     );
     if (isFrequencyCapped(globalFrequencyCapDuration!, globalTimestamps)) {

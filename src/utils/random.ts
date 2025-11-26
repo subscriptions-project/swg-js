@@ -24,8 +24,8 @@ export function getRandomInts(numInts: number, maxVal: number) {
     maxVal < 256
       ? new Uint8Array(numInts)
       : maxVal < 32768
-      ? new Uint16Array(numInts)
-      : new Uint32Array(numInts);
+        ? new Uint16Array(numInts)
+        : new Uint32Array(numInts);
 
   self.crypto.getRandomValues(arr);
   for (let i = arr.length - 1; i > -1; i--) {

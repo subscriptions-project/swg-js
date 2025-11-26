@@ -118,9 +118,12 @@ export class Toast {
     });
 
     // Close the Toast after the specified duration.
-    this.doc_.getWin().setTimeout(() => {
-      this.close();
-    }, (toastDurationSeconds + 1) * 1000);
+    this.doc_.getWin().setTimeout(
+      () => {
+        this.close();
+      },
+      (toastDurationSeconds + 1) * 1000
+    );
   }
 
   private async animate_({
