@@ -21,7 +21,7 @@ import {assert} from './log';
  * into a Uint8Array with the corresponding bytes.
  * If you have a string of characters, you probably want to be using utf8Encode.
  */
-export function stringToBytes(str: string): Uint8Array {
+export function stringToBytes(str: string): Uint8Array<ArrayBuffer> {
   const bytes = new Uint8Array(str.length);
   for (let i = 0; i < str.length; i++) {
     const charCode = str.charCodeAt(i);
@@ -58,7 +58,7 @@ export function utf8DecodeSync(bytes: Uint8Array): string {
 /**
  * Turn a string into UTF-8 bytes.
  */
-export function utf8EncodeSync(string: string): Uint8Array {
+export function utf8EncodeSync(string: string): Uint8Array<ArrayBuffer> {
   if (typeof TextEncoder !== 'undefined') {
     return new TextEncoder().encode(string);
   }
@@ -69,7 +69,7 @@ export function utf8EncodeSync(string: string): Uint8Array {
  * Converts a string which is in base64url encoding into a Uint8Array
  * containing the decoded value.
  */
-export function base64UrlDecodeToBytes(str: string): Uint8Array {
+export function base64UrlDecodeToBytes(str: string): Uint8Array<ArrayBuffer> {
   const encoded = atob(str.replaceAll('-', '+').replaceAll('_', '/'));
   return stringToBytes(encoded);
 }
