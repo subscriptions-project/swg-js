@@ -15,6 +15,7 @@
  */
 
 import {ArticleExperimentFlags} from '../runtime/experiment-flags';
+import {CloseWindowRequest} from '../proto/api_messages';
 import {Dialog} from './dialog';
 import {GlobalDoc} from '../model/doc';
 import {getStyle} from '../utils/style';
@@ -42,13 +43,13 @@ describes.realWin('Dialog', (env) => {
     globalDoc = new GlobalDoc(win);
 
     element = doc.createElement('div');
-    element.contentWindow = {postMessage: (message) => (lastMessage = message)};
     view = {
       getElement: () => element,
       init: (dialog) => Promise.resolve(dialog),
       resized: () => {},
       shouldFadeBody: () => true,
       shouldAnimateFade: () => true,
+      execute: (msg) => (lastMessage = msg),
     };
 
     sandbox.stub(self, 'requestAnimationFrame').callsFake((callback) => {
@@ -63,7 +64,7 @@ describes.realWin('Dialog', (env) => {
 
   describe('dialog', () => {
     beforeEach(() => {
-      dialog = new Dialog(globalDoc, {height: `${documentHeight}px`});
+      dialog = new Dialog(globalDoc, 'en', {height: `${documentHeight}px`});
       graypaneStubs = sandbox.stub(dialog.graypane_);
     });
 
@@ -446,6 +447,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true}
@@ -455,11 +457,11 @@ describes.realWin('Dialog', (env) => {
         await openedDialog.openView(view);
         doc.body.addEventListener('click', clickFun);
         // This class is added when the screen is opened.
-        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(doc.documentElement).to.have.class('swg-disable-scroll');
 
         el.click();
 
-        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(doc.documentElement).to.have.class('swg-disable-scroll');
         expect(wasClicked).to.be.true;
       });
 
@@ -470,6 +472,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true}
@@ -479,11 +482,11 @@ describes.realWin('Dialog', (env) => {
         await openedDialog.openView(view);
         doc.body.addEventListener('click', clickFun);
         // This class is added when the screen is opened.
-        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(doc.documentElement).to.have.class('swg-disable-scroll');
 
         el.click();
 
-        expect(doc.body).to.have.class('swg-disable-scroll');
+        expect(doc.documentElement).to.have.class('swg-disable-scroll');
         expect(wasClicked).to.be.true;
       });
     });
@@ -502,6 +505,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          'en',
           undefined,
           undefined,
           undefined,
@@ -523,6 +527,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: false},
@@ -544,7 +549,7 @@ describes.realWin('Dialog', (env) => {
         };
         dialog = new Dialog(
           globalDoc,
-
+          'en',
           {},
           {},
           {closeOnBackgroundClick: true},
@@ -562,6 +567,7 @@ describes.realWin('Dialog', (env) => {
       it('respects not closable', async () => {
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: false, shouldDisableBodyScrolling: true},
@@ -581,6 +587,7 @@ describes.realWin('Dialog', (env) => {
       it('respects closable', async () => {
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true},
@@ -595,16 +602,17 @@ describes.realWin('Dialog', (env) => {
 
         await el.click();
 
-        //swg-js is expected to post a message of 'close' to the iframe's
-        //contentWindow. Boq listens for the message and then clicks the close
-        //button so it can handle logging.
-        expect(lastMessage).to.equal('close');
+        //swg-js is expected to post a message of CloseWindowRequest to activity
+        //port.  Boq listens for the message and then clicks the close button so
+        //it can handle logging.
+        expect(lastMessage).to.deep.equal(new CloseWindowRequest());
       });
 
       it('respects closable with domain', async () => {
         element.src = 'http://www.test.com';
         dialog = new Dialog(
           globalDoc,
+          'en',
           {},
           {},
           {closeOnBackgroundClick: true, shouldDisableBodyScrolling: true},
@@ -619,10 +627,10 @@ describes.realWin('Dialog', (env) => {
 
         await el.click();
 
-        //swg-js is expected to post a message of 'close' to the iframe's
-        //contentWindow. Boq listens for the message and then clicks the close
-        //button so it can handle logging.
-        expect(lastMessage).to.equal('close');
+        //swg-js is expected to post a message of CloseWindowRequest to activity
+        //port.  Boq listens for the message and then clicks the close button so
+        //it can handle logging.
+        expect(lastMessage).to.deep.equal(new CloseWindowRequest());
 
         element.src = null;
       });
@@ -633,6 +641,7 @@ describes.realWin('Dialog', (env) => {
         it('adds swg-disable-scroll class if config specifies scrolling should be disabled', async () => {
           dialog = new Dialog(
             globalDoc,
+            /* titleLang */ 'en',
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: true}
@@ -640,12 +649,13 @@ describes.realWin('Dialog', (env) => {
           await dialog.open();
           view.shouldDisableBodyScrolling = () => true;
           await dialog.openView(view);
-          expect(doc.body).to.have.class('swg-disable-scroll');
+          expect(doc.documentElement).to.have.class('swg-disable-scroll');
         });
 
         it('does not add swg-disable-scroll otherwise', async () => {
           dialog = new Dialog(
             globalDoc,
+            /* titleLang */ 'en',
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: false}
@@ -653,7 +663,7 @@ describes.realWin('Dialog', (env) => {
           await dialog.open();
           view.shouldDisableBodyScrolling = () => false;
           await dialog.openView(view);
-          expect(doc.body).not.to.have.class('swg-disable-scroll');
+          expect(doc.documentElement).not.to.have.class('swg-disable-scroll');
         });
       });
 
@@ -661,6 +671,7 @@ describes.realWin('Dialog', (env) => {
         it('removes swg-disable-scroll class', async () => {
           dialog = new Dialog(
             globalDoc,
+            /* titleLang */ 'en',
             /* importantStyles */ {},
             /* styles */ {},
             {shouldDisableBodyScrolling: true}
@@ -668,9 +679,9 @@ describes.realWin('Dialog', (env) => {
           await dialog.open();
           view.shouldDisableBodyScrolling = () => true;
           await dialog.openView(view);
-          expect(doc.body).to.have.class('swg-disable-scroll');
+          expect(doc.documentElement).to.have.class('swg-disable-scroll');
           await dialog.close();
-          expect(doc.body).not.to.have.class('swg-disable-scroll');
+          expect(doc.documentElement).not.to.have.class('swg-disable-scroll');
         });
       });
     });
@@ -682,6 +693,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {maxAllowedHeightRatio: MAX_ALLOWED_HEIGHT_RATIO}
@@ -711,6 +723,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {supportsWideScreen: true}}
@@ -730,6 +743,7 @@ describes.realWin('Dialog', (env) => {
     beforeEach(() => {
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {iframeCssClassOverride}
@@ -766,6 +780,7 @@ describes.realWin('Dialog', (env) => {
 
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {isCenterPositioned: true}}
@@ -834,6 +849,7 @@ describes.realWin('Dialog', (env) => {
 
       dialog = new Dialog(
         globalDoc,
+        /* titleLang */ 'en',
         {height: `${documentHeight}px`},
         /* styles */ {},
         {desktopConfig: {isCenterPositioned: true}}

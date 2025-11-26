@@ -24,6 +24,7 @@
 
 import {
   AccountCreationRequest,
+  CtaMode,
   EntitlementsResponse,
 } from '../proto/api_messages';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
@@ -55,6 +56,10 @@ import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString} from '../utils/json';
 import {getSwgMode} from './services';
 import {isCancelError} from '../utils/errors';
+import {setImportantStyles} from '../utils/style';
+
+const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
+const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
 
 /**
  * Subscribe with Google request to pass to payments.
@@ -86,9 +91,18 @@ export const RecurrenceMapping = {
 
 function getEventParams(
   sku: string,
+  isInlineCta: boolean,
   subscriptionFlow: string | null = null
 ): EventParams {
-  return new EventParams([, , , , sku, , , subscriptionFlow]);
+  const eventParams: EventParams = new EventParams();
+  eventParams.setSku(sku);
+  if (subscriptionFlow != null) {
+    eventParams.setSubscriptionFlow(subscriptionFlow);
+  }
+  eventParams.setCtaMode(
+    isInlineCta ? CtaMode.CTA_MODE_INLINE : CtaMode.CTA_MODE_POPUP
+  );
+  return eventParams;
 }
 
 /**
@@ -104,7 +118,9 @@ export class PayStartFlow {
   constructor(
     private readonly deps_: Deps,
     private readonly subscriptionRequest_: SubscriptionRequest,
-    private readonly productType_: ProductType = ProductType.SUBSCRIPTION
+    private readonly productType_: ProductType = ProductType.SUBSCRIPTION,
+    private readonly isInlineCta_: boolean = false,
+    private readonly configId_: string = ''
   ) {
     this.payClient_ = deps_.payClient();
 
@@ -123,13 +139,15 @@ export class PayStartFlow {
   async start(): Promise<void> {
     // Get the paySwgVersion for buyflow.
     const clientConfig = await this.clientConfigManager_.getClientConfig();
-    this.start_(clientConfig.paySwgVersion);
+    PayCompleteFlow.isInlineCta = this.isInlineCta_;
+    PayCompleteFlow.inlineConfigId = this.configId_;
+    this.start_(clientConfig.useUpdatedOfferFlows, clientConfig.paySwgVersion);
   }
 
   /**
    * Starts the payments flow for the given version.
    */
-  private start_(paySwgVersion?: string): void {
+  private start_(usePayFlow?: boolean, paySwgVersion?: string): void {
     const swgPaymentRequest: SwgPaymentRequest = {
       'skuId': this.subscriptionRequest_['skuId'],
       'publicationId': this.pageConfig_.getPublicationId(),
@@ -175,8 +193,16 @@ export class PayStartFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
       true,
-      getEventParams(swgPaymentRequest['skuId'])
+      getEventParams(swgPaymentRequest['skuId'], this.isInlineCta_)
     );
+    this.eventManager_.logSwgEvent(
+      usePayFlow
+        ? AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED
+        : AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+      true,
+      getEventParams('', this.isInlineCta_)
+    );
+
     PayCompleteFlow.waitingForPayClient = true;
     this.payClient_.start(
       {
@@ -205,6 +231,8 @@ export class PayStartFlow {
  */
 export class PayCompleteFlow {
   static waitingForPayClient = false;
+  static isInlineCta = false;
+  static inlineConfigId = '';
 
   static configurePending(deps: Deps): void {
     const eventManager = deps.eventManager();
@@ -228,22 +256,40 @@ export class PayCompleteFlow {
           true,
           getEventParams(
             sku || '',
+            PayCompleteFlow.isInlineCta,
             response.productType == ProductType.UI_CONTRIBUTION
               ? SubscriptionFlows.CONTRIBUTE
               : SubscriptionFlows.SUBSCRIBE
           )
         );
+
+        const clientConfig = await deps.clientConfigManager().getClientConfig();
+        if (clientConfig.useUpdatedOfferFlows) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE,
+            true,
+            getEventParams('', PayCompleteFlow.isInlineCta)
+          );
+        }
         if (response.productType == ProductType.UI_CONTRIBUTION) {
           eventManager.logSwgEvent(
             AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
             true,
-            getEventParams(sku || '', SubscriptionFlows.CONTRIBUTE)
+            getEventParams(
+              sku || '',
+              PayCompleteFlow.isInlineCta,
+              SubscriptionFlows.CONTRIBUTE
+            )
           );
         } else if (response.productType == ProductType.SUBSCRIPTION) {
           eventManager.logSwgEvent(
             AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
             true,
-            getEventParams(sku || '', SubscriptionFlows.SUBSCRIBE)
+            getEventParams(
+              sku || '',
+              PayCompleteFlow.isInlineCta,
+              SubscriptionFlows.SUBSCRIBE
+            )
           );
         }
         flow.start(response);
@@ -258,11 +304,19 @@ export class PayCompleteFlow {
           deps.callbacks().triggerFlowCanceled(flow);
           deps
             .eventManager()
-            .logSwgEvent(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true);
+            .logSwgEvent(
+              AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW,
+              true,
+              getEventParams('', PayCompleteFlow.isInlineCta)
+            );
         } else {
           deps
             .eventManager()
-            .logSwgEvent(AnalyticsEvent.EVENT_PAYMENT_FAILED, false);
+            .logSwgEvent(
+              AnalyticsEvent.EVENT_PAYMENT_FAILED,
+              false,
+              getEventParams('', PayCompleteFlow.isInlineCta)
+            );
           deps.jserror().error('Pay failed', reason as Error);
           throw reason;
         }
@@ -300,7 +354,7 @@ export class PayCompleteFlow {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
       true,
-      getEventParams(this.sku_ || '')
+      getEventParams(this.sku_ || '', PayCompleteFlow.isInlineCta)
     );
     this.deps_.entitlementsManager().reset(true);
     // TODO(dianajing): future-proof isOneTime flag
@@ -331,6 +385,11 @@ export class PayCompleteFlow {
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       urlParams.hl = this.clientConfigManager_.getLanguage();
     }
+
+    if (PayCompleteFlow.isInlineCta) {
+      urlParams.ctaMode = 'CTA_MODE_INLINE';
+    }
+
     const confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
 
     const clientConfig = await this.clientConfigManager_.getClientConfig();
@@ -342,6 +401,7 @@ export class PayCompleteFlow {
       this.activityPorts_,
       confirmFeUrl,
       feArgs(args),
+      /* titleLang */ this.clientConfigManager_.getLanguage(),
       /* shouldFadeBody */ true
     );
     this.activityIframeView_.on(
@@ -349,12 +409,30 @@ export class PayCompleteFlow {
       this.handleEntitlementsResponse_.bind(this)
     );
 
-    this.activityIframeView_.acceptResult().then(() => {
-      // The flow is complete.
-      this.dialogManager_.completeView(this.activityIframeView_);
-    });
-
-    this.readyPromise_ = this.dialogManager_.openView(this.activityIframeView_);
+    if (PayCompleteFlow.isInlineCta) {
+      const inlineDiv = this.getInlineCtaDiv_(PayCompleteFlow.inlineConfigId);
+      if (!inlineDiv) {
+        return;
+      }
+      // Remove pay iframe
+      if (inlineDiv.firstChild) {
+        inlineDiv.removeChild(inlineDiv.firstChild);
+      }
+      // Attach confirmation iframe
+      setImportantStyles(this.activityIframeView_.getElement(), {
+        'width': '100%',
+      });
+      inlineDiv.appendChild(this.activityIframeView_.getElement());
+      this.readyPromise_ = this.activityIframeView_.init();
+    } else {
+      this.activityIframeView_.acceptResult().then(() => {
+        // The flow is complete.
+        this.dialogManager_.completeView(this.activityIframeView_);
+      });
+      this.readyPromise_ = this.dialogManager_.openView(
+        this.activityIframeView_
+      );
+    }
 
     this.readyPromise_.then(() => {
       this.deps_.callbacks().triggerPayConfirmOpened(this.activityIframeView_!);
@@ -368,11 +446,34 @@ export class PayCompleteFlow {
     }
   }
 
+  private getInlineCtaDiv_(configId: string): HTMLElement | null {
+    if (!configId) {
+      return null;
+    }
+    const elements: HTMLElement[] = Array.from(
+      this.win_.document.querySelectorAll(INLINE_CTA_ATTRIUBUTE_QUERY)
+    );
+
+    if (elements.length === 0) {
+      return null;
+    }
+    for (const element of elements) {
+      const inlineConfigId = element
+        .getAttribute(INLINE_CTA_ATTRIUBUTE)
+        ?.trim()
+        .replace(/['"“”‘’]/g, '');
+      if (configId === inlineConfigId) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   async complete(): Promise<void> {
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_ACCOUNT_CREATED,
       true,
-      getEventParams(this.sku_ || '')
+      getEventParams(this.sku_ || '', PayCompleteFlow.isInlineCta)
     );
 
     const now = Date.now().toString();
@@ -395,7 +496,7 @@ export class PayCompleteFlow {
 
     try {
       await this.activityIframeView_!.acceptResult();
-    } catch (err) {
+    } catch {
       // Ignore errors.
     }
 
@@ -403,7 +504,7 @@ export class PayCompleteFlow {
       this.eventManager_.logSwgEvent(
         AnalyticsEvent.ACTION_ACCOUNT_ACKNOWLEDGED,
         true,
-        getEventParams(this.sku_ || '')
+        getEventParams(this.sku_ || '', PayCompleteFlow.isInlineCta)
       );
     }
 

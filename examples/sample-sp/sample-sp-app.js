@@ -38,7 +38,7 @@ const RESPONSES = new Set([
 /**
  * An Article. ?url=(([^&]+)&test_response=([^&]+).*
  */
-app.get(/\/api/, (req, res) => {
+app.get('/api', (req, res) => {
   const options = {
     root: __dirname,
     dotfiles: 'deny',

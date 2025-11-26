@@ -51,6 +51,7 @@ export class WaitForSubscriptionLookupApi {
         publicationId: deps.pageConfig().getPublicationId(),
         productId: deps.pageConfig().getProductId(),
       }),
+      /* titleLang */ deps.clientConfigManager().getLanguage(),
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator */ true
     );

@@ -47,6 +47,7 @@ export class LoginNotificationApi {
         // No need to ask the user. Just tell them you're logging them in.
         userConsent: false,
       }),
+      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
       /* shouldFadeBody */ true
     );
   }

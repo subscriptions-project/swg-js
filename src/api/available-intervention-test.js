@@ -15,7 +15,6 @@
  */
 
 import * as audienceActionFlow from '../runtime/audience-action-flow';
-import * as audienceActionLocalFlow from '../runtime/audience-action-local-flow';
 import {AvailableIntervention} from './available-intervention';
 import {InterventionType} from './intervention-type';
 import {MockDeps} from '../../test/mock-deps';
@@ -28,6 +27,9 @@ describes.realWin('AvailableIntervention', (env) => {
   });
 
   it('calls audience action flow', async () => {
+    const resultHandler = () => {};
+    const alternateActionHandler = () => {};
+    const signInHandler = () => {};
     const startStub = sandbox.stub();
     const actionFlowStub = sandbox
       .stub(audienceActionFlow, 'AudienceActionIframeFlow')
@@ -36,6 +38,7 @@ describes.realWin('AvailableIntervention', (env) => {
     const availableIntervention = new AvailableIntervention({
         type: InterventionType.TYPE_NEWSLETTER_SIGNUP,
         configurationId: 'TEST_CONFIGURATION_ID',
+        preference: 'TEST_PREFERENCE'
       },
       deps
     );
@@ -43,50 +46,21 @@ describes.realWin('AvailableIntervention', (env) => {
     await availableIntervention.show({
       isClosable: true,
       suppressToast: true,
+      onResult: resultHandler,
+      onAlternateAction: alternateActionHandler,
+      onSignIn: signInHandler,
     });
 
     expect(actionFlowStub).to.have.been.calledWith(deps, {
       isClosable: true,
       action: InterventionType.TYPE_NEWSLETTER_SIGNUP,
       configurationId: 'TEST_CONFIGURATION_ID',
-      onResult: undefined,
+      onResult: resultHandler,
       calledManually: true,
       suppressToast: true,
-    });
-    expect(startStub).to.have.been.calledOnce;
-  });
-
-  it('calls audience action local flow', async () => {
-    const onResultHanlder = () => {};
-    const alternateActionHandler = () => {};
-    const signInHandler = () => {};
-    const startStub = sandbox.stub();
-    const actionFlowStub = sandbox
-      .stub(audienceActionLocalFlow, 'AudienceActionLocalFlow')
-      .returns({start: startStub});
-
-    const availableIntervention = new AvailableIntervention({
-        type: InterventionType.TYPE_REWARDED_AD,
-        configurationId: 'TEST_CONFIGURATION_ID',
-      },
-      deps
-    );
-
-    await availableIntervention.show({
-      isClosable: true,
-      onResult: onResultHanlder,
       onAlternateAction: alternateActionHandler,
       onSignIn: signInHandler,
-    });
-
-    expect(actionFlowStub).to.have.been.calledWith(deps, {
-      isClosable: true,
-      action: InterventionType.TYPE_REWARDED_AD,
-      configurationId: 'TEST_CONFIGURATION_ID',
-      onResult: onResultHanlder,
-      calledManually: true,
-      onAlternateAction: alternateActionHandler,
-      onSignIn: signInHandler,
+      preference: 'TEST_PREFERENCE'
     });
     expect(startStub).to.have.been.calledOnce;
   });

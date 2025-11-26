@@ -16,6 +16,7 @@
 
 import {
   AnalyticsEvent,
+  CtaMode,
   EventOriginator,
   EventParams,
 } from '../proto/api_messages';
@@ -248,6 +249,49 @@ describes.realWin('GoogleAnalyticsEventListener', (env) => {
       'event_label': 'TEST LABEL',
       'non_interaction': gaEvent.nonInteraction,
       'configurationId': '',
+    });
+    winMock.verify();
+  });
+
+  it('Should log with cta mode param', async () => {
+    setupEnvironment(
+      Object.assign({}, env.win, {
+        ga: () => {},
+        gtag: () => {},
+      }),
+      /* callStart= */ true,
+      /* addDataLayer= */ true
+    );
+    const gaEvent = analyticsEventToGoogleAnalyticsEvent(
+      AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN
+    );
+
+    expectEventLoggedToGa(gaEvent);
+    winMock
+      .expects('gtag')
+      .withExactArgs('event', gaEvent.eventAction, {
+        'event_category': gaEvent.eventCategory,
+        'event_label': gaEvent.eventLabel,
+        'non_interaction': gaEvent.nonInteraction,
+        'cta_mode': 'inline',
+      })
+      .once();
+    eventManager.logEvent({
+      eventType: AnalyticsEvent.IMPRESSION_NEWSLETTER_OPT_IN,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      additionalParameters: {
+        ctaMode: CtaMode.CTA_MODE_INLINE,
+      },
+    });
+    await eventManager.lastAction_;
+
+    expect(gtmEventPushFn).to.be.calledWith({
+      'event': gaEvent.eventAction,
+      'event_category': gaEvent.eventCategory,
+      'event_label': gaEvent.eventLabel,
+      'non_interaction': gaEvent.nonInteraction,
+      'configurationId': '',
+      'cta_mode': 'inline',
     });
     winMock.verify();
   });

@@ -29,6 +29,7 @@ import {ClientEvent} from '../api/client-event-manager-api';
 import {ClientEventManager} from './client-event-manager';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
+import {I18N_STRINGS} from '../i18n/strings';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
@@ -108,7 +109,9 @@ export class AnalyticsService {
 
     this.activityPorts_ = deps_.activities();
 
-    this.iframe_ = createElement(this.doc_.getWin().document, 'iframe', {});
+    this.iframe_ = createElement(this.doc_.getWin().document, 'iframe', {
+      'title': I18N_STRINGS.SWG_SERVICE.en,
+    });
     setImportantStyles(this.iframe_, iframeStyles);
     this.doc_.getBody()?.appendChild(this.getElement());
 
@@ -167,6 +170,19 @@ export class AnalyticsService {
       for (const label of labels) {
         if (newLabels.indexOf(label) == -1) {
           newLabels.push(label);
+        }
+      }
+      this.context_.setLabelList(newLabels);
+    }
+  }
+
+  removeLabels(labels: string[]): void {
+    if (labels && labels.length > 0) {
+      const newLabels = ([] as string[]).concat(this.context_.getLabelList()!);
+      for (const label of labels) {
+        const labelIndex = newLabels.indexOf(label);
+        if (labelIndex > -1) {
+          newLabels.splice(labelIndex, 1);
         }
       }
       this.context_.setLabelList(newLabels);

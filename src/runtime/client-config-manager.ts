@@ -194,8 +194,6 @@ export class ClientConfigManager {
         globalFrequencyCapDurationNano:
           autoPromptConfigJson.frequencyCapConfig?.globalFrequencyCap
             ?.frequencyCapDuration?.nano,
-        promptFrequencyCaps:
-          autoPromptConfigJson.frequencyCapConfig?.promptFrequencyCaps,
         anyPromptFrequencyCapDurationSeconds:
           autoPromptConfigJson.frequencyCapConfig?.anyPromptFrequencyCap
             ?.frequencyCapDuration?.seconds,

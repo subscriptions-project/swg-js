@@ -49,16 +49,13 @@ module.exports = {
   commands: [commands],
   elements: {
     consentCheckbox: {
-      selector: '.MlG5Jc input',
+      selector: '[jsname="ERYeZe"] input',
     },
     consentMessage: {
-      selector: '.MlG5Jc label',
-    },
-    newsletterHeader: {
-      selector: '.sJIgh',
+      selector: '[jsname="ERYeZe"] label',
     },
     optInButton: {
-      selector: '.C2qNIf button',
+      selector: '[jsname="rANL7b"] button',
     },
     swgDialog: {
       selector: '.swg-dialog',

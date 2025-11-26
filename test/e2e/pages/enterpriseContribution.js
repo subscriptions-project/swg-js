@@ -51,7 +51,7 @@ module.exports = {
       selector: '.PNojLb button',
     },
     contributionHeader: {
-      selector: '.XWoc8b',
+      selector: '.jNru1c',
     },
     priceChip: {
       selector: '.h57Fgb',

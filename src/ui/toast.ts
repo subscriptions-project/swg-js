@@ -17,7 +17,9 @@
 import {ActivityPorts} from '../components/activities';
 import {Deps} from '../runtime/deps';
 import {Doc} from '../model/doc';
+import {I18N_STRINGS} from '../i18n/strings';
 import {createElement} from '../utils/dom';
+import {msg} from '../utils/i18n';
 import {resetStyles, setImportantStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
@@ -29,12 +31,6 @@ export interface ToastSpecDef {
   text: string;
   action?: {label: string; handler: () => void};
 }
-
-const iframeAttributes = {
-  'frameborder': '0',
-  'scrolling': 'no',
-  'class': 'swg-toast',
-};
 
 /**
  * The class Notification toast.
@@ -53,6 +49,16 @@ export class Toast {
     this.doc_ = deps.doc();
 
     this.activityPorts_ = deps.activities();
+
+    const lang = deps.clientConfigManager().getLanguage();
+    const title = msg(I18N_STRINGS.SWG_NOTIFICATION, lang);
+
+    const iframeAttributes = {
+      'frameborder': '0',
+      'scrolling': 'no',
+      'class': 'swg-toast',
+      'title': title,
+    };
 
     this.iframe_ = createElement(
       this.doc_.getWin().document,
@@ -112,9 +118,12 @@ export class Toast {
     });
 
     // Close the Toast after the specified duration.
-    this.doc_.getWin().setTimeout(() => {
-      this.close();
-    }, (toastDurationSeconds + 1) * 1000);
+    this.doc_.getWin().setTimeout(
+      () => {
+        this.close();
+      },
+      (toastDurationSeconds + 1) * 1000
+    );
   }
 
   private async animate_({
@@ -127,7 +136,7 @@ export class Toast {
 
     try {
       await callback();
-    } catch (err) {
+    } catch {
       // Ignore errors to make sure animations don't get stuck.
     }
   }

@@ -16,7 +16,7 @@
 
 import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
-import {AudienceActionLocalFlow} from './audience-action-local-flow';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {
@@ -37,12 +37,13 @@ import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {I18N_STRINGS} from '../i18n/strings';
+import {InlineCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {PageConfigWriter} from '../model/page-config-writer';
 import {PayClient} from './pay-client';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {SubscribeResponse} from '../api/subscribe-response';
@@ -121,6 +122,8 @@ export function installBasicRuntime(win: Window): void {
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
+
+  basicRuntime.setupInlineCta();
 }
 
 export class BasicRuntime implements BasicSubscriptions {
@@ -231,8 +234,9 @@ export class BasicRuntime implements BasicSubscriptions {
       isPartOfProductId,
     });
 
-    this.clientOptions_ = Object.assign({}, clientOptions, {
-      forceLangInIframes: true,
+    const lang = this.doc_.getRootElement().lang;
+    this.clientOptions_ = Object.assign({lang}, clientOptions, {
+      forceLangInIframes: !!lang || !!clientOptions?.lang,
     });
 
     let isClosable = isAccessibleForFree;
@@ -293,6 +297,15 @@ export class BasicRuntime implements BasicSubscriptions {
     runtime.setupButtons();
   }
 
+  /**
+   * Sets up all the inline CTA on the page with attribute
+   * 'rrm-inline-cta'.
+   */
+  async setupInlineCta(): Promise<void> {
+    const runtime = await this.configured_(false);
+    runtime.setupInlineCta();
+  }
+
   /** Process result from checkentitlements view */
   async processEntitlements(): Promise<void> {
     const runtime = await this.configured_(false);
@@ -323,6 +336,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly configuredClassicRuntime_: ConfiguredRuntime;
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
+  private readonly inlineCtaApi_: InlineCtaApi;
 
   constructor(
     winOrDoc: Window | Document | Doc,
@@ -392,6 +406,8 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       this,
       this.configuredClassicRuntime_
     );
+
+    this.inlineCtaApi_ = new InlineCtaApi(this);
 
     this.buttonApi_ = new ButtonApi(
       this.doc_,
@@ -522,13 +538,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     const jwt = response['jwt'];
     if (jwt) {
       // If entitlements are returned, close the prompt
-      const lastAudienceActionFlow =
-        this.autoPromptManager_.getLastAudienceActionFlow();
-      if (lastAudienceActionFlow instanceof AudienceActionLocalFlow) {
-        lastAudienceActionFlow.close();
-      } else {
-        this.configuredClassicRuntime_.closeDialog();
-      }
+      this.configuredClassicRuntime_.closeDialog();
 
       // Also save the entitlements and user token
       this.entitlementsManager().pushNextEntitlements(jwt);
@@ -560,6 +570,12 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
         return;
       }
 
+      const lastMeterFlow = this.entitlementsManager().getLastMeterToast();
+      if (lastMeterFlow) {
+        lastMeterFlow.showNoEntitlementFoundToast();
+        return;
+      }
+
       const lastAudienceActionFlow =
         this.autoPromptManager_.getLastAudienceActionFlow();
       if (lastAudienceActionFlow) {
@@ -570,10 +586,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       // Fallback in case there is no active flow. This occurs when the entitlment check
       // runs as a redirect.
       const language = this.clientConfigManager().getLanguage();
-      const customText = msg(
-        SWG_I18N_STRINGS['NO_MEMBERSHIP_FOUND_LANG_MAP'],
-        language
-      )!;
+      const customText = msg(I18N_STRINGS.NO_MEMBERSHIP_FOUND, language);
       new Toast(
         this,
         feUrl('/toastiframe', {
@@ -626,6 +639,22 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
         },
       }
     );
+  }
+
+  /**
+   * Renders all the inline CTAs on the page with attribute
+   * 'rrm-inline-cta' when experiment is enabled.
+   */
+  async setupInlineCta(): Promise<void> {
+    await this.entitlementsManager()
+      .getExperimentConfigFlags()
+      .then((flags) => {
+        if (flags.includes(ArticleExperimentFlags.INLINE_CTA_EXPERIMENT)) {
+          this.win().setTimeout(() => {
+            this.inlineCtaApi_.attachInlineCtasWithAttribute();
+          }, 2000);
+        }
+      });
   }
 
   /**

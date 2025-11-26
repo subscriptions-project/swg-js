@@ -1,0 +1,219 @@
+/**
+ * Copyright 2025 The Subscribe with Google Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License atCONST_GOOGLE_LOGO
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {
+  AnalyticsEvent,
+  CtaMode,
+  EventParams,
+  SkuSelectedResponse,
+  ViewSubscriptionsResponse,
+} from '../proto/api_messages';
+import {ClientConfig} from '../model/client-config';
+import {ClientConfigManager} from '../runtime/client-config-manager';
+import {Deps} from '../runtime/deps';
+import {I18N_STRINGS} from '../i18n/strings';
+import {PageConfig} from '../model/page-config';
+import {PayStartFlow} from '../runtime/pay-flow';
+import {ProductType, SubscriptionRequest} from '../api/subscriptions';
+import {Toast} from '../ui/toast';
+import {feUrl} from '../runtime/services';
+import {msg} from './i18n';
+import {parseQueryString} from './url';
+
+const INLINE_CTA_LABEL = 'CTA_MODE_INLINE';
+
+/** Show a toast idicating that reader has already registered before. */
+export function showAlreadyOptedInToast(
+  actionType: string,
+  lang: string,
+  deps: Deps
+): void {
+  let urlParams;
+  switch (actionType) {
+    case 'TYPE_REGISTRATION_WALL':
+      // Show 'Signed in as abc@gmail.com' toast on the pub page.
+      urlParams = {
+        flavor: 'basic',
+      };
+      break;
+    case 'TYPE_NEWSLETTER_SIGNUP':
+      const customText = msg(I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP, lang);
+      urlParams = {
+        flavor: 'custom',
+        customText,
+      };
+      break;
+    default:
+      // Do not show toast for other types.
+      return;
+  }
+  new Toast(deps, feUrl('/toastiframe', urlParams)).open();
+}
+
+/**
+ * Gets the complete contribution URL that should be used for the activity iFrame view.
+ */
+export function getContributionsUrl(
+  clientConfig: ClientConfig,
+  clientConfigManager: ClientConfigManager,
+  pageConfig: PageConfig,
+  isInlineCta: boolean = false
+): string {
+  if (!clientConfig.useUpdatedOfferFlows) {
+    return feUrl('/contributionsiframe');
+  }
+
+  const params: {[key: string]: string} = {
+    'publicationId': pageConfig.getPublicationId(),
+  };
+
+  if (clientConfigManager.shouldForceLangInIframes()) {
+    params['hl'] = clientConfigManager.getLanguage();
+  }
+  if (clientConfig.uiPredicates?.purchaseUnavailableRegion) {
+    params['purchaseUnavailableRegion'] = 'true';
+  }
+  if (isInlineCta) {
+    params['ctaMode'] = INLINE_CTA_LABEL;
+  }
+
+  return feUrl('/contributionoffersiframe', params);
+}
+
+export function startContributionPayFlow(
+  deps: Deps,
+  response: SkuSelectedResponse,
+  isInlineCta: boolean = false,
+  configId: string = ''
+): void {
+  const sku = response.getSku();
+  const isOneTime = response.getOneTime();
+  if (sku) {
+    const contributionRequest: SubscriptionRequest = {
+      'skuId': sku,
+    };
+    if (isOneTime) {
+      contributionRequest['oneTime'] = isOneTime;
+    }
+    if (isInlineCta) {
+      deps.analytics().addLabels([INLINE_CTA_LABEL]);
+    } else {
+      deps.analytics().removeLabels([INLINE_CTA_LABEL]);
+    }
+    new PayStartFlow(
+      deps,
+      contributionRequest,
+      ProductType.UI_CONTRIBUTION,
+      isInlineCta,
+      configId
+    ).start();
+  }
+}
+
+/**
+ * Gets the complete subscription offers URL that should be used for the activity iFrame view.
+ */
+export function getSubscriptionUrl(
+  clientConfig: ClientConfig,
+  clientConfigManager: ClientConfigManager,
+  pageConfig: PageConfig,
+  query: string,
+  isInlineCta: boolean = false
+): string {
+  if (!clientConfig.useUpdatedOfferFlows) {
+    const offerCardParam = parseQueryString(query)['swg.newoffercard'];
+    const params: {[key: string]: string} = offerCardParam
+      ? {'useNewOfferCard': offerCardParam}
+      : {};
+    return feUrl('/offersiframe', params);
+  }
+
+  const params: {[key: string]: string} = {
+    'publicationId': pageConfig.getPublicationId(),
+  };
+
+  if (clientConfigManager.shouldForceLangInIframes()) {
+    params['hl'] = clientConfigManager.getLanguage();
+  }
+
+  if (clientConfig.uiPredicates?.purchaseUnavailableRegion) {
+    params['purchaseUnavailableRegion'] = 'true';
+  }
+
+  if (isInlineCta) {
+    params['ctaMode'] = INLINE_CTA_LABEL;
+  }
+
+  return feUrl('/subscriptionoffersiframe', params);
+}
+
+export function startSubscriptionPayFlow(
+  deps: Deps,
+  response: SkuSelectedResponse,
+  isInlineCta: boolean = false,
+  configId: string = ''
+): void {
+  const sku = response.getSku();
+  if (sku) {
+    const subscriptionRequest: SubscriptionRequest = {
+      'skuId': sku,
+    };
+    const oldSku = response.getOldSku();
+    if (oldSku) {
+      subscriptionRequest['oldSku'] = oldSku;
+      deps.analytics().setSku(oldSku);
+    }
+
+    if (isInlineCta) {
+      deps.analytics().addLabels([INLINE_CTA_LABEL]);
+    } else {
+      deps.analytics().removeLabels([INLINE_CTA_LABEL]);
+    }
+
+    deps
+      .eventManager()
+      .logSwgEvent(
+        AnalyticsEvent.ACTION_OFFER_SELECTED,
+        true,
+        getEventParams(sku, isInlineCta)
+      );
+    new PayStartFlow(
+      deps,
+      subscriptionRequest,
+      ProductType.SUBSCRIPTION,
+      isInlineCta,
+      configId
+    ).start();
+  }
+}
+
+function getEventParams(sku: string, isInlineCta: boolean): EventParams {
+  const eventParams: EventParams = new EventParams();
+  eventParams.setSku(sku);
+  eventParams.setCtaMode(
+    isInlineCta ? CtaMode.CTA_MODE_INLINE : CtaMode.CTA_MODE_POPUP
+  );
+  return eventParams;
+}
+
+export function startNativeFlow(
+  deps: Deps,
+  response: ViewSubscriptionsResponse
+): void {
+  if (response.getNative()) {
+    deps.callbacks().triggerSubscribeRequest();
+  }
+}

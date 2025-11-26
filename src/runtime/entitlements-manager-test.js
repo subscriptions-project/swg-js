@@ -3092,6 +3092,7 @@ describes.realWin('EntitlementsManager', (env) => {
         {
           type: 'TYPE_NEWSLETTER_SIGNUP',
           configurationId: 'TEST_CONFIGURATION_ID',
+          preference: 'TEST_PREFERENCE',
         },
         deps
       );
@@ -3117,6 +3118,9 @@ describes.realWin('EntitlementsManager', (env) => {
         onResult: undefined,
         calledManually: true,
         suppressToast: true,
+        onAlternateAction: undefined,
+        onSignIn: undefined,
+        preference: 'TEST_PREFERENCE',
       });
       expect(startSpy).to.have.been.calledOnce;
     });

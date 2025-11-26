@@ -17,6 +17,7 @@
 import {
   AccountCreationRequest,
   AnalyticsEvent,
+  CtaMode,
   EntitlementsResponse,
   EventParams,
 } from '../proto/api_messages';
@@ -44,6 +45,7 @@ import {
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
 import {StorageKeys} from '../utils/constants';
 import {UserData} from '../api/user-data';
+import {createElement} from '../utils/dom';
 import {tick} from '../../test/tick';
 
 const INTEGR_DATA_STRING =
@@ -95,10 +97,15 @@ const INTEGR_DATA_OBJ_DECODED_NO_ENTITLEMENTS = {
 /**
  * @param {string} sku
  * @param {string=} subscriptionFlow
+ * @param {CtaMode} ctaMode
  * @return {!EventParams}
  */
-function getEventParams(sku, subscriptionFlow = null) {
-  return new EventParams([, , , , sku, , , subscriptionFlow]);
+function getEventParams(
+  sku,
+  subscriptionFlow = null,
+  ctaMode = CtaMode.CTA_MODE_POPUP
+) {
+  return new EventParams([, , , , sku, , , subscriptionFlow, , , , ctaMode]);
 }
 
 const USER_ID_TOKEN = 'ID_TOK';
@@ -202,6 +209,13 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('sku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('', null, CtaMode.CTA_MODE_POPUP)
+      );
     await flow.start();
   });
 
@@ -246,6 +260,13 @@ describes.realWin('PayStartFlow', (env) => {
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
         getEventParams('sku1')
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
       );
     await contribFlow.start();
   });
@@ -292,6 +313,13 @@ describes.realWin('PayStartFlow', (env) => {
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
         getEventParams('newSku')
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
       );
     await oneTimeFlow.start();
   });
@@ -342,6 +370,13 @@ describes.realWin('PayStartFlow', (env) => {
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
         getEventParams('newSku')
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
       );
     await metadataFlow.start();
   });
@@ -394,6 +429,13 @@ describes.realWin('PayStartFlow', (env) => {
         true,
         getEventParams('newSku1')
       );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
+      );
     await replaceFlow.start();
   });
 
@@ -407,6 +449,9 @@ describes.realWin('PayStartFlow', (env) => {
       runtime,
       subscriptionRequest
     );
+    clientConfigManagerMock
+      .expects('getClientConfig')
+      .returns(Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true})));
     callbacksMock
       .expects('triggerFlowStarted')
       .withExactArgs('subscribe', subscriptionRequest)
@@ -442,6 +487,13 @@ describes.realWin('PayStartFlow', (env) => {
         AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
         true,
         getEventParams('newSku2')
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
       );
     await replaceFlowNoProrationMode.start();
   });
@@ -967,7 +1019,7 @@ describes.realWin('PayCompleteFlow', (env) => {
       .expects('shouldForceLangInIframes')
       .returns(true)
       .once();
-    clientConfigManagerMock.expects('getLanguage').returns('fr-CA').once();
+    clientConfigManagerMock.expects('getLanguage').returns('fr-CA').thrice();
     const response = createDefaultSubscribeResponse();
     entitlementsManagerMock
       .expects('pushNextEntitlements')
@@ -1268,11 +1320,203 @@ describes.realWin('PayCompleteFlow', (env) => {
     await flow.readyPromise_;
   });
 
+  it('no iframe open if inline config id is empty', async () => {
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = '';
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+  });
+
+  it('no iframe open if inline code snippet not found', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
+  it('no iframe open if inline code snippet not match config id', async () => {
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = 'contribution_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': 'subscription_config_id',
+    });
+    win.document.body.appendChild(subscriptionSnippet);
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
+      );
+
+    activitiesMock.expects('openIframe').never();
+    await flow.start(response);
+    await flow.readyPromise_;
+  });
+
+  it('child element removed when code snippet was found', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': subscriptionConfigId,
+    });
+    const childDiv = createElement(win.document, 'span', {
+      'id': 'childElement',
+    });
+    subscriptionSnippet.appendChild(childDiv);
+    win.document.body.appendChild(subscriptionSnippet);
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
+      );
+
+    activitiesMock.expects('openIframe').resolves(port);
+    expect(win.document.getElementById('childElement')).to.not.be.null;
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+    expect(win.document.getElementById('childElement')).to.be.null;
+  });
+
+  it('should have valid flow constructed for inline CTA', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': subscriptionConfigId,
+    });
+    win.document.body.appendChild(subscriptionSnippet);
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
+      );
+
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/ui/v1/payconfirmiframe?_=_&ctaMode=CTA_MODE_INLINE',
+        {
+          _client: 'SwG 0.0.0',
+          publicationId: 'pub1',
+          idToken: USER_ID_TOKEN,
+          productType: ProductType.SUBSCRIPTION,
+          isSubscriptionUpdate: false,
+          isOneTime: false,
+          useUpdatedConfirmUi: false,
+          skipAccountCreationScreen: false,
+        }
+      )
+      .resolves(port);
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+    expect(subscriptionSnippet.firstChild.style.width).to.equal('100%');
+  });
+
+  it('should have valid flow for inline CTA with config id in quotation', async () => {
+    const subscriptionConfigId = 'subscription_config_id';
+    const subscriptionSnippet = createElement(win.document, 'div', {
+      'rrm-inline-cta': '"' + subscriptionConfigId + '"',
+    });
+    win.document.body.appendChild(subscriptionSnippet);
+    PayCompleteFlow.isInlineCta = true;
+    PayCompleteFlow.inlineConfigId = subscriptionConfigId;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('', null, CtaMode.CTA_MODE_INLINE)
+      );
+
+    activitiesMock.expects('openIframe').resolves(port);
+    await flow.start(response);
+    await flow.readyPromise_;
+    expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+  });
+
   describe('payments response', () => {
     let startStub;
     let triggerPromise;
 
     beforeEach(() => {
+      PayCompleteFlow.isInlineCta = false;
       startStub = sandbox.stub(PayCompleteFlow.prototype, 'start');
       triggerPromise = undefined;
       callbacksMock
@@ -1292,7 +1536,11 @@ describes.realWin('PayCompleteFlow', (env) => {
       analyticsMock.expects('addLabels').never();
       eventManagerMock
         .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.EVENT_PAYMENT_FAILED, false)
+        .withExactArgs(
+          AnalyticsEvent.EVENT_PAYMENT_FAILED,
+          false,
+          getEventParams('')
+        )
         .once();
       jserrorMock.expects('error').withExactArgs('Pay failed', error).once();
 
@@ -1313,7 +1561,11 @@ describes.realWin('PayCompleteFlow', (env) => {
       analyticsMock.expects('addLabels').never();
       eventManagerMock
         .expects('logSwgEvent')
-        .withExactArgs(AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW, true)
+        .withExactArgs(
+          AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW,
+          true,
+          getEventParams('')
+        )
         .once();
       callbacksMock
         .expects('triggerFlowCanceled')
@@ -1503,6 +1755,51 @@ describes.realWin('PayCompleteFlow', (env) => {
         expect(response).to.be.instanceof(SubscribeResponse);
         expect(response.purchaseData.raw).to.equal('{"orderId":"ORDER"}');
       });
+    });
+
+    it('should log EVENT_PAY_PAYMENT_COMPLETE with useUpdatedOfferFlows config', async () => {
+      PayCompleteFlow.waitingForPayClient = true;
+      clientConfigManagerMock
+        .expects('getClientConfig')
+        .returns(
+          Promise.resolve(new ClientConfig({useUpdatedOfferFlows: true}))
+        );
+
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.EVENT_PAY_PAYMENT_COMPLETE,
+          true,
+          getEventParams('')
+        );
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.CONTRIBUTE)
+        );
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.EVENT_CONTRIBUTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.CONTRIBUTE)
+        );
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+      data['googleTransactionId'] = runtime.analytics().getTransactionId();
+      data['paymentRequest'] = {
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.UI_CONTRIBUTION},
+      };
+      await responseCallback(Promise.resolve(data));
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
     });
 
     it('should log ACTION_PAYMENT_COMPLETE with contribution param', async () => {

@@ -63,7 +63,7 @@ export class GaaSignInWithGoogleButton {
     // Apply iframe styles.
     const styleText = GOOGLE_SIGN_IN_IFRAME_STYLES.replace(
       '$SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON$',
-      msg(I18N_STRINGS['SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON'], languageCode)!
+      msg(I18N_STRINGS.SHOWCASE_REGWALL_GOOGLE_SIGN_IN_BUTTON, languageCode)
     );
     injectStyleSheet(resolveDoc(self.document), styleText);
 
@@ -136,6 +136,7 @@ export class GaaSignInWithGoogleButton {
           client_id: clientId,
           callback: resolve,
           allowed_parent_origin: allowedOrigins,
+          use_fedcm_for_button: true,
           /* eslint-enable google-camelcase/google-camelcase */
         });
         self.google.accounts.id.renderButton(
@@ -166,7 +167,7 @@ export class GaaSignInWithGoogleButton {
         jwtPayload,
         returnedJwt,
       });
-    } catch (err) {
+    } catch {
       sendErrorMessageToParent();
     }
   }

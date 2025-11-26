@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Deps} from '../runtime/deps';
 import {Doc} from '../model/doc';
+import {InterventionType} from '../api/intervention-type';
 import {Message} from '../proto/api_messages';
 import {warn} from './log';
 
@@ -98,9 +100,8 @@ export function parseQueryString(query: string): {[key: string]: string} {
   if (!query) {
     return {};
   }
-  return (/^[?#]/.test(query) ? query.slice(1) : query)
-    .split('&')
-    .reduce((params, param) => {
+  return (/^[?#]/.test(query) ? query.slice(1) : query).split('&').reduce(
+    (params, param) => {
       const item = param.split('=');
       try {
         const key = decodeURIComponent(item[0] || '');
@@ -108,12 +109,14 @@ export function parseQueryString(query: string): {[key: string]: string} {
         if (key) {
           params[key] = value;
         }
-      } catch (err) {
+      } catch {
         // eslint-disable-next-line no-console
         warn(`SwG could not parse a URL query param: ${item[0]}`);
       }
       return params;
-    }, {} as {[key: string]: string});
+    },
+    {} as {[key: string]: string}
+  );
 }
 
 /**
@@ -191,4 +194,26 @@ export function isSecure(parsedUrl = PARSED_URL): boolean {
  */
 export function wasReferredByGoogle(parsedReferrer = PARSED_REFERRER): boolean {
   return isSecure(parsedReferrer) && isGoogleDomain(parsedReferrer);
+}
+
+/**
+ * Map audience action type to their iframe url prefix.
+ * TODO: mhkawano - make all our endpoints into an enum.
+ */
+const ActionToIframeMapping: Record<InterventionType, string> = {
+  [InterventionType.TYPE_SUBSCRIPTION]: '/subscriptionoffersiframe',
+  [InterventionType.TYPE_CONTRIBUTION]: '/contributionoffersiframe',
+  [InterventionType.TYPE_REGISTRATION_WALL]: '/regwalliframe',
+  [InterventionType.TYPE_NEWSLETTER_SIGNUP]: '/newsletteriframe',
+  [InterventionType.TYPE_REWARDED_SURVEY]: '/surveyiframe',
+  [InterventionType.TYPE_BYO_CTA]: '/byoctaiframe',
+  [InterventionType.TYPE_REWARDED_AD]: '/rewardedadiframe',
+};
+
+export {ActionToIframeMapping};
+
+export function getQueryParam(param: string, deps: Deps): string | null {
+  const queryString = deps.win().location.search;
+  const urlParams = new URLSearchParams(queryString);
+  return urlParams.get(param);
 }

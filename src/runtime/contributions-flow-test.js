@@ -250,7 +250,7 @@ describes.realWin('ContributionsFlow', (env) => {
       .expects('openIframe')
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&hl=fr-CA&publicationId=pub1',
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&hl=fr-CA',
         {
           _client: 'SwG 0.0.0',
           publicationId: 'pub1',

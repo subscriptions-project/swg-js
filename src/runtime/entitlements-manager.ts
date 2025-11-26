@@ -100,6 +100,7 @@ export class EntitlementsManager {
   private blockNextNotification_ = false;
   private blockNextToast_ = false;
   private enableMeteredByGoogle_ = false;
+  private lastMeterToast_: MeterToastApi | null = null;
 
   /**
    * String containing encoded metering parameters currently.
@@ -502,6 +503,11 @@ export class EntitlementsManager {
     this.enableMeteredByGoogle_ = true;
   }
 
+  /** Get the last shown meter toast. */
+  getLastMeterToast(): MeterToastApi | null {
+    return this.lastMeterToast_;
+  }
+
   /**
    * The JSON must either contain a "signedEntitlements" with JWT, or
    * "entitlements" field with plain JSON object.
@@ -744,6 +750,7 @@ export class EntitlementsManager {
             subscriptionTokenContents['metering']['clientUserAttribute'],
         });
         meterToastApi.setOnConsumeCallback(onConsumeCallback);
+        this.lastMeterToast_ = meterToastApi;
         return meterToastApi.start();
       } else {
         // If showToast isn't true, don't show a toast, and return

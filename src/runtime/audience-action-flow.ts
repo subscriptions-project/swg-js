@@ -24,46 +24,72 @@
  * 4) Close the prompt that initiated the flow.
  */
 
+import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
   AnalyticsEvent,
   CompleteAudienceActionResponse,
+  CtaMode,
   EntitlementsResponse,
-  EventOriginator,
+  RewardedAdAlternateActionRequest,
+  RewardedAdLoadAdRequest,
+  RewardedAdLoadAdResponse,
+  RewardedAdViewAdRequest,
   SurveyDataTransferRequest,
-  SurveyDataTransferResponse,
 } from '../proto/api_messages';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientConfigManager} from './client-config-manager';
-import {
-  Constants,
-  StorageKeys,
-  StorageKeysWithoutPublicationIdSuffix,
-} from '../utils/constants';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
-import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
+import {I18N_STRINGS} from '../i18n/strings';
 import {InterventionResult} from '../api/available-intervention';
+import {InterventionType} from '../api/intervention-type';
+import {Message} from '../proto/api_messages';
 import {ProductType} from '../api/subscriptions';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
-import {Storage} from './storage';
+import {PromptPreference} from './intervention';
+import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
+import {XhrFetcher} from './fetcher';
+import {addQueryParam} from '../utils/url';
 import {feArgs, feUrl} from './services';
+import {getQueryParam} from '../utils/url';
+import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
 import {msg} from '../utils/i18n';
-import {parseUrl} from '../utils/url';
+import {serviceUrl} from './services';
 import {setImportantStyles} from '../utils/style';
-import {warn} from '../utils/log';
+import {showAlreadyOptedInToast} from '../utils/cta-utils';
 
 export interface AudienceActionFlow {
   start: () => Promise<void>;
   showNoEntitlementFoundToast: () => void;
 }
 
+const TIMEOUT_MS = 5000;
+
+const AUDIENCE_ACTION_TYPES_VALUES = [
+  InterventionType.TYPE_BYO_CTA,
+  InterventionType.TYPE_REGISTRATION_WALL,
+  InterventionType.TYPE_NEWSLETTER_SIGNUP,
+  InterventionType.TYPE_REWARDED_AD,
+  InterventionType.TYPE_REWARDED_SURVEY,
+] as const;
+
+export type AudienceActionType = (typeof AUDIENCE_ACTION_TYPES_VALUES)[number];
+
+const values = AUDIENCE_ACTION_TYPES_VALUES as ReadonlyArray<InterventionType>;
+
+export function isAudienceActionType(
+  actionType: InterventionType
+): actionType is AudienceActionType {
+  return values.includes(actionType);
+}
+
 export interface AudienceActionIframeParams {
-  action: string;
+  action: AudienceActionType;
   configurationId?: string;
+  preference?: PromptPreference;
   onCancel?: () => void;
   autoPromptType?: AutoPromptType;
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean;
@@ -71,22 +97,9 @@ export interface AudienceActionIframeParams {
   calledManually: boolean;
   shouldRenderPreview?: boolean;
   suppressToast?: boolean;
+  onAlternateAction?: () => void;
+  onSignIn?: () => void;
 }
-
-// TODO: mhkawano - replace these consts in the project with these
-// Action types returned by the article endpoint
-export const TYPE_REGISTRATION_WALL = 'TYPE_REGISTRATION_WALL';
-export const TYPE_NEWSLETTER_SIGNUP = 'TYPE_NEWSLETTER_SIGNUP';
-export const TYPE_REWARDED_SURVEY = 'TYPE_REWARDED_SURVEY';
-export const TYPE_REWARDED_AD = 'TYPE_REWARDED_AD';
-export const TYPE_BYO_CTA = 'TYPE_BYO_CTA';
-
-const actionToIframeMapping: {[key: string]: string} = {
-  TYPE_REGISTRATION_WALL: '/regwalliframe',
-  TYPE_NEWSLETTER_SIGNUP: '/newsletteriframe',
-  TYPE_REWARDED_SURVEY: '/surveyiframe',
-  TYPE_BYO_CTA: '/byoctaiframe',
-};
 
 const autopromptTypeToProductTypeMapping: {
   [key in AutoPromptType]?: ProductType;
@@ -99,7 +112,13 @@ const autopromptTypeToProductTypeMapping: {
 
 const DEFAULT_PRODUCT_TYPE = ProductType.SUBSCRIPTION;
 
-const placeholderPatternForEmail = /<ph name="EMAIL".+?\/ph>/g;
+const placeholderPatternForEmail = /{EMAIL}/g;
+
+interface DirectCompleteAudienceActionResponse {
+  updated?: boolean;
+  alreadyCompleted?: boolean;
+  swgUserToken?: string;
+}
 
 /**
  * The flow to initiate and manage handling an audience action.
@@ -109,8 +128,16 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly dialogManager_: DialogManager;
   private readonly entitlementsManager_: EntitlementsManager;
   private readonly clientConfigManager_: ClientConfigManager;
-  private readonly storage_: Storage;
   private readonly activityIframeView_: ActivityIframeView;
+  private readonly fetcher: XhrFetcher;
+  private showRewardedAd?: () => void;
+  private disposeAd?: () => void;
+  private rewardedAdSlot?: googletag.Slot;
+  private rewardedAdTimeout?: NodeJS.Timeout;
+  private readonly rewardedSlotReadyHandler;
+  private readonly rewardedSlotClosedHandler;
+  private readonly rewardedSlotGrantedHandler;
+  private readonly slotRenderEndedHandler;
 
   constructor(
     private readonly deps_: Deps,
@@ -126,7 +153,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
     this.clientConfigManager_ = deps_.clientConfigManager();
 
-    this.storage_ = deps_.storage();
+    this.fetcher = new XhrFetcher(deps_.win());
+
+    this.rewardedSlotReadyHandler = this.rewardedSlotReady.bind(this);
+    this.rewardedSlotClosedHandler = this.rewardedSlotClosed.bind(this);
+    this.rewardedSlotGrantedHandler = this.rewardedSlotGranted.bind(this);
+    this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
 
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(deps_.win().location.href).origin,
@@ -138,19 +170,29 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();
     }
+    if (this.params_.onAlternateAction) {
+      iframeParams['onaa'] = 'true';
+    }
+    if (this.params_.onSignIn) {
+      iframeParams['onsi'] = 'true';
+    }
     this.activityIframeView_ = new ActivityIframeView(
       deps_.win(),
       deps_.activities(),
-      feUrl(actionToIframeMapping[params_.action], iframeParams),
+      feUrl(ActionToIframeMapping[params_.action], iframeParams),
       feArgs({
         'supportsEventManager': true,
         'productType': this.productType_,
         'windowHeight': deps_.win()./* OK */ innerHeight,
       }),
+      /* titleLang */ this.clientConfigManager_.getLanguage(),
       /* shouldFadeBody */ true
     );
     // Disables interaction with prompt if rendering for preview.
-    if (!!params_.shouldRenderPreview && params_.action !== TYPE_BYO_CTA) {
+    if (
+      !!params_.shouldRenderPreview &&
+      params_.action !== InterventionType.TYPE_BYO_CTA
+    ) {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });
@@ -166,7 +208,14 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     );
 
     this.activityIframeView_.on(SurveyDataTransferRequest, (request) =>
-      this.handleSurveyDataTransferRequest_(request)
+      handleSurveyDataTransferRequest(
+        request,
+        this.deps_,
+        this.activityIframeView_,
+        this.params_.configurationId!,
+        CtaMode.CTA_MODE_POPUP,
+        this.params_.onResult
+      )
     );
 
     this.activityIframeView_.on(
@@ -174,10 +223,26 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       this.handleLinkRequest_.bind(this)
     );
 
-    const {onCancel} = this.params_;
-    if (onCancel) {
-      this.activityIframeView_.onCancel(onCancel);
-    }
+    this.activityIframeView_.on(
+      RewardedAdLoadAdRequest,
+      this.handleRewardedAdLoadAdRequest.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      RewardedAdViewAdRequest,
+      this.handleRewardedAdViewAdRequest.bind(this)
+    );
+
+    this.activityIframeView_.on(
+      RewardedAdAlternateActionRequest,
+      this.handleRewardedAdAlternateActionRequest.bind(this)
+    );
+
+    this.activityIframeView_.onCancel(() => {
+      this.params_.onCancel?.();
+      this.cleanUpGoogletag();
+      this.disposeAd?.();
+    });
 
     return this.dialogManager_.openView(
       this.activityIframeView_,
@@ -196,16 +261,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
    * 3) Update READ_TIME in local storage to indicate that entitlements may have changed recently
    * 4) Re-fetch entitlements which may potentially provide access to the page
    */
-  private handleCompleteAudienceActionResponse_(
+  private async handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse
-  ): void {
+  ) {
     const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
-    this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
-    if (userToken) {
-      this.deps_.storage().set(StorageKeys.USER_TOKEN, userToken, true);
-    }
+    await this.updateEntitlements(userToken);
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
         configurationId,
@@ -214,6 +276,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           displayName: response.getDisplayName(),
           givenName: response.getGivenName(),
           familyName: response.getFamilyName(),
+          termsAndConditionsConsent: response.getTermsAndConditionsConsent(),
         },
       });
     }
@@ -222,33 +285,32 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       if (response.getActionCompleted()) {
         this.showSignedInToast_(response.getUserEmail() ?? '');
       } else if (response.getAlreadyCompleted()) {
-        this.showAlreadyOptedInToast_();
+        showAlreadyOptedInToast(
+          this.params_.action,
+          this.clientConfigManager_.getLanguage(),
+          this.deps_
+        );
       } else {
         this.showFailedOptedInToast_();
       }
     }
-    const now = Date.now().toString();
-    this.deps_
-      .storage()
-      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
-    this.entitlementsManager_.getEntitlements();
   }
 
   private showSignedInToast_(userEmail: string): void {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
-        customText = msg(
-          SWG_I18N_STRINGS.REGWALL_ACCOUNT_CREATED_LANG_MAP,
-          lang
-        )!.replace(placeholderPatternForEmail, userEmail);
+      case InterventionType.TYPE_REGISTRATION_WALL:
+        customText = msg(I18N_STRINGS.REGWALL_ACCOUNT_CREATED, lang).replace(
+          placeholderPatternForEmail,
+          userEmail
+        );
         break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
-        customText = msg(
-          SWG_I18N_STRINGS.NEWSLETTER_SIGNED_UP_LANG_MAP,
-          lang
-        )!.replace(placeholderPatternForEmail, userEmail);
+      case InterventionType.TYPE_NEWSLETTER_SIGNUP:
+        customText = msg(I18N_STRINGS.NEWSLETTER_SIGNED_UP, lang).replace(
+          placeholderPatternForEmail,
+          userEmail
+        );
         break;
       default:
         // Do not show toast for other types.
@@ -265,52 +327,20 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
   private isOptIn(action: string): boolean {
     return (
-      action === TYPE_NEWSLETTER_SIGNUP || action === TYPE_REGISTRATION_WALL
+      action === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      action === InterventionType.TYPE_REGISTRATION_WALL
     );
-  }
-
-  private showAlreadyOptedInToast_(): void {
-    let urlParams;
-    switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
-        // Show 'Signed in as abc@gmail.com' toast on the pub page.
-        urlParams = {
-          flavor: 'basic',
-        };
-        break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
-        const lang = this.clientConfigManager_.getLanguage();
-        const customText = msg(
-          SWG_I18N_STRINGS.NEWSLETTER_ALREADY_SIGNED_UP_LANG_MAP,
-          lang
-        )!;
-        urlParams = {
-          flavor: 'custom',
-          customText,
-        };
-        break;
-      default:
-        // Do not show toast for other types.
-        return;
-    }
-    new Toast(this.deps_, feUrl('/toastiframe', urlParams)).open();
   }
 
   private showFailedOptedInToast_(): void {
     const lang = this.clientConfigManager_.getLanguage();
     let customText = '';
     switch (this.params_.action) {
-      case 'TYPE_REGISTRATION_WALL':
-        customText = msg(
-          SWG_I18N_STRINGS.REGWALL_REGISTER_FAILED_LANG_MAP,
-          lang
-        )!;
+      case InterventionType.TYPE_REGISTRATION_WALL:
+        customText = msg(I18N_STRINGS.REGWALL_REGISTER_FAILED, lang);
         break;
-      case 'TYPE_NEWSLETTER_SIGNUP':
-        customText = msg(
-          SWG_I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED_LANG_MAP,
-          lang
-        )!;
+      case InterventionType.TYPE_NEWSLETTER_SIGNUP:
+        customText = msg(I18N_STRINGS.NEWSLETTER_SIGN_UP_FAILED, lang);
         break;
       default:
         // Do not show toast for other types.
@@ -327,157 +357,276 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   }
 
   private handleLinkRequest_(response: AlreadySubscribedResponse): void {
-    if (response.getSubscriberOrMember()) {
+    if (this.params_.onSignIn) {
+      this.params_.onSignIn();
+    } else if (response.getSubscriberOrMember()) {
       this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
     }
   }
 
-  private async handleSurveyDataTransferRequest_(
-    request: SurveyDataTransferRequest
-  ): Promise<void> {
-    const dataTransferSuccess = await this.attemptSurveyDataTransfer(request);
-    if (dataTransferSuccess) {
-      this.deps_
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-          /* isFromUserAction */ true
-        );
-    } else {
-      this.deps_
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-          /* isFromUserAction */ false
-        );
-    }
-    const surveyDataTransferResponse = new SurveyDataTransferResponse();
-    const isPpsEligible = request.getStorePpsInLocalStorage();
-
-    if (isPpsEligible) {
-      await this.storePpsValuesFromSurveyAnswers(request);
-    }
-
-    surveyDataTransferResponse.setSuccess(dataTransferSuccess);
-    this.activityIframeView_.execute(surveyDataTransferResponse);
-  }
-
-  /**
-   * Attempts to log survey data.
-   */
-  private async attemptSurveyDataTransfer(
-    request: SurveyDataTransferRequest
-  ): Promise<boolean> {
-    // @TODO(justinchou): execute callback with setOnInterventionComplete
-    // then check for success
-    const {onResult} = this.params_;
-    if (onResult) {
-      try {
-        return await onResult({
-          configurationId: this.params_.configurationId,
-          data: request,
-        });
-      } catch (e) {
-        warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
-        return false;
-      }
-    }
-    return this.logSurveyDataToGoogleAnalytics(request);
-  }
-
-  /**
-   * Populates localStorage with PPS configuration parameters based on
-   * SurveyDataTransferRequest.
-   **/
-  private async storePpsValuesFromSurveyAnswers(
-    request: SurveyDataTransferRequest
-  ): Promise<void> {
-    const iabAudienceKey = StorageKeysWithoutPublicationIdSuffix.PPS_TAXONOMIES;
-    // PPS value field is optional and category may not be populated
-    // in accordance to IAB taxonomies.
-    const ppsConfigParams = request
-      .getSurveyQuestionsList()!
-      .flatMap((question) => question.getSurveyAnswersList())
-      .map((answer) => answer?.getPpsValue())
-      .filter((ppsValue) => ppsValue !== null);
-
-    const existingIabTaxonomy = await this.storage_.get(
-      iabAudienceKey,
-      /* useLocalStorage= */ true
-    );
-    let existingIabTaxonomyValues: string[] = [];
-    try {
-      const parsedExistingIabTaxonomyValues = JSON.parse(
-        existingIabTaxonomy!
-      )?.[Constants.PPS_AUDIENCE_TAXONOMY_KEY]?.values;
-      existingIabTaxonomyValues = Array.isArray(parsedExistingIabTaxonomyValues)
-        ? parsedExistingIabTaxonomyValues
-        : [];
-    } catch (e) {
-      // Ignore error since it defaults to empty array.
-    }
-
-    const iabTaxonomyValues = Array.from(
-      new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
-    );
-    const iabTaxonomy = {
-      [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
-    };
-
-    await Promise.resolve(
-      this.storage_.set(
-        iabAudienceKey,
-        JSON.stringify(iabTaxonomy),
-        /* useLocalStorage= */ true
-      )
-    );
-    // TODO(caroljli): clearcut event logging
-  }
-
-  /*
-   * Logs SurveyDataTransferRequest to Google Analytics. Returns boolean
-   * for whether or not logging was successful.
-   */
-  private logSurveyDataToGoogleAnalytics(
-    request: SurveyDataTransferRequest
-  ): boolean {
+  private handleRewardedAdLoadAdRequest(request: RewardedAdLoadAdRequest) {
     if (
-      !GoogleAnalyticsEventListener.isGaEligible(this.deps_) &&
-      !GoogleAnalyticsEventListener.isGtagEligible(this.deps_) &&
-      !GoogleAnalyticsEventListener.isGtmEligible(this.deps_)
+      this.params_.preference ===
+      PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
     ) {
-      return false;
-    }
-    request.getSurveyQuestionsList()?.map((question) => {
-      const answer = question.getSurveyAnswersList()![0];
-      const event = {
-        eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-        eventOriginator: EventOriginator.SWG_CLIENT,
-        isFromUserAction: true,
-        additionalParameters: null,
-      };
-
-      const eventParams = {
-        googleAnalyticsParameters: {
-          // Custom dimensions.
-          'survey_question': question.getQuestionText() || '',
-          'survey_question_category': question.getQuestionCategory() || '',
-          'survey_answer': answer.getAnswerText() || '',
-          'survey_answer_category': answer.getAnswerCategory() || '',
-          // GA4 Default dimensions.
-          'content_id': question.getQuestionCategory() || '',
-          'content_group': question.getQuestionText() || '',
-          'content_type': answer.getAnswerText() || '',
-          // UA Default dimensions.
-          // TODO(yeongjinoh): Remove default dimensions once beta publishers
-          // complete migration to GA4.
-          'event_category': question.getQuestionCategory() || '',
-          'event_label': answer.getAnswerText() || '',
+      const adsbygoogle = this.deps_.win().adsbygoogle;
+      if (!adsbygoogle) {
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_MISSING_ERROR);
+        this.sendRewardedAdLoadAdResponse(false);
+        return;
+      }
+      adsbygoogle?.push({
+        params: {
+          'google_adtest': getQueryParam('google_adtest', this.deps_),
+          'google_tag_origin': 'rrm',
+          'google_reactive_ad_format': 11,
+          'google_wrap_fullscreen_ad': true,
+          'google_video_play_muted': false,
+          'google_acr': this.showASRewardedAd.bind(this),
         },
-      };
-      this.deps_.eventManager().logEvent(event, eventParams);
+      });
+    } else {
+      const googletag = this.deps_.win().googletag;
+      if (!googletag) {
+        this.deps_
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_MISSING_ERROR);
+        this.sendRewardedAdLoadAdResponse(false);
+        return;
+      }
+      googletag.cmd.push(() => this.setUpRewardedAd(request.getAdUnit()));
+    }
+
+    this.rewardedAdTimeout = setTimeout(
+      this.handleRewardedAdLoadAdRequestTimeout.bind(this),
+      TIMEOUT_MS
+    );
+  }
+
+  private handleRewardedAdLoadAdRequestTimeout() {
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_ERROR);
+    this.sendRewardedAdLoadAdResponse(false);
+  }
+
+  private showASRewardedAd(rewardedAd?: {
+    show?: CallableFunction;
+    disposeAd?: () => void;
+  }) {
+    clearTimeout(this.rewardedAdTimeout);
+    if (!rewardedAd?.show) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED);
+      this.sendRewardedAdLoadAdResponse(false);
+    }
+    this.showRewardedAd = () =>
+      rewardedAd!.show!(this.handleASRewardedAdResult.bind(this));
+    this.disposeAd = rewardedAd?.disposeAd;
+    this.sendRewardedAdLoadAdResponse(true);
+  }
+
+  private async handleASRewardedAdResult(result: {
+    status?: string;
+    reward?: {type?: string; amount?: number};
+  }) {
+    if (result.status === 'viewed') {
+      await this.rewardedAdGrant(result?.reward?.amount, result?.reward?.type);
+    } else {
+      this.rewardedSlotClosed();
+    }
+  }
+
+  private setUpRewardedAd(adunit: string | null) {
+    const googletag = this.deps_.win().googletag;
+    this.rewardedAdSlot = googletag.defineOutOfPageSlot(
+      adunit!,
+      googletag.enums.OutOfPageFormat.REWARDED
+    );
+    if (!this.rewardedAdSlot) {
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_PAGE_ERROR);
+      this.sendRewardedAdLoadAdResponse(false);
+      return;
+    }
+    const pubads = googletag.pubads();
+    this.rewardedAdSlot.addService(pubads);
+    pubads.addEventListener('rewardedSlotReady', this.rewardedSlotReadyHandler);
+    pubads.addEventListener(
+      'rewardedSlotClosed',
+      this.rewardedSlotClosedHandler
+    );
+    pubads.addEventListener(
+      'rewardedSlotGranted',
+      this.rewardedSlotGrantedHandler
+    );
+    pubads.addEventListener('slotRenderEnded', this.slotRenderEndedHandler);
+    googletag.enableServices();
+    googletag.display(this.rewardedAdSlot);
+    pubads.refresh([this.rewardedAdSlot]);
+  }
+
+  private rewardedSlotReady(
+    rewardedAd: googletag.events.RewardedSlotReadyEvent
+  ) {
+    clearTimeout(this.rewardedAdTimeout);
+    this.showRewardedAd = rewardedAd.makeRewardedVisible;
+    this.sendRewardedAdLoadAdResponse(true);
+  }
+
+  private rewardedSlotClosed() {
+    this.cleanUpGoogletag();
+    this.deps_
+      .eventManager()
+      .logSwgEvent(
+        AnalyticsEvent.ACTION_REWARDED_AD_CLOSE_AD,
+        /* isFromUserAction */ true
+      );
+    if (this.params_.onAlternateAction) {
+      this.params_.onAlternateAction();
+    }
+    this.dialogManager_.completeView(this.activityIframeView_);
+    this.params_.onResult?.({
+      configurationId: this.params_.configurationId,
+      data: {
+        rendered: true,
+        rewardGranted: false,
+      },
     });
-    return true;
+  }
+
+  private async rewardedSlotGranted(
+    event?: googletag.events.RewardedSlotGrantedEvent
+  ) {
+    this.cleanUpGoogletag();
+    await this.rewardedAdGrant(event?.payload?.amount, event?.payload?.type);
+  }
+
+  private async rewardedAdGrant(amount?: number, type?: string) {
+    this.deps_
+      .eventManager()
+      .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GRANTED);
+    this.params_.onResult?.({
+      configurationId: this.params_.configurationId,
+      data: {
+        rendered: true,
+        rewardGranted: true,
+        reward: amount,
+        type,
+      },
+    });
+    this.dialogManager_.completeView(this.activityIframeView_);
+    await this.completeAudienceAction();
+  }
+
+  private slotRenderEnded(event: googletag.events.SlotRenderEndedEvent) {
+    if (event.slot === this.rewardedAdSlot && event.isEmpty) {
+      clearTimeout(this.rewardedAdTimeout);
+      this.deps_
+        .eventManager()
+        .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_NOT_FILLED);
+      this.sendRewardedAdLoadAdResponse(false);
+    }
+  }
+
+  private sendRewardedAdLoadAdResponse(success: boolean) {
+    const response = new RewardedAdLoadAdResponse();
+    response.setSuccess(success);
+    this.activityIframeView_.execute(response);
+    if (!success) {
+      this.params_.onResult?.({
+        configurationId: this.params_.configurationId,
+        data: {
+          rendered: false,
+          rewardGranted: false,
+        },
+      });
+    }
+  }
+
+  private handleRewardedAdViewAdRequest() {
+    this.showRewardedAd?.();
+  }
+
+  private handleRewardedAdAlternateActionRequest() {
+    if (this.params_.onAlternateAction) {
+      this.params_.onAlternateAction();
+    }
+  }
+
+  private cleanUpGoogletag() {
+    const googletag = this.deps_.win().googletag;
+    if (this.rewardedAdSlot) {
+      googletag?.destroySlots?.([this.rewardedAdSlot]);
+    }
+    const pubads = googletag?.pubads?.();
+    pubads?.removeEventListener?.(
+      'rewardedSlotReady',
+      this.rewardedSlotReadyHandler
+    );
+    pubads?.removeEventListener?.(
+      'rewardedSlotClosed',
+      this.rewardedSlotClosedHandler
+    );
+    pubads?.removeEventListener?.(
+      'rewardedSlotGranted',
+      this.rewardedSlotGrantedHandler
+    );
+    pubads?.removeEventListener?.(
+      'slotRenderEnded',
+      this.slotRenderEndedHandler
+    );
+  }
+
+  private async completeAudienceAction() {
+    const swgUserToken = await this.deps_
+      .storage()
+      .get(StorageKeys.USER_TOKEN, true);
+    const queryParams = [
+      ['sut', swgUserToken!],
+      ['configurationId', this.params_.configurationId!],
+      ['audienceActionType', this.params_.action],
+    ];
+    const publicationId = this.deps_.pageConfig().getPublicationId();
+    const baseUrl = `/publication/${encodeURIComponent(
+      publicationId
+    )}/completeaudienceaction`;
+    const url = queryParams.reduce(
+      (url, [param, value]) => addQueryParam(url, param, value),
+      serviceUrl(baseUrl)
+    );
+
+    // Empty message send as part of the post.
+    const emptyMessage: Message = {
+      toArray: () => [],
+      label: String,
+    };
+    const response = (await this.fetcher.sendPost(
+      url,
+      emptyMessage
+    )) as unknown as DirectCompleteAudienceActionResponse;
+    if (response.updated) {
+      await this.updateEntitlements(response.swgUserToken);
+    }
+    // TODO: mhkawano - else log error
+  }
+
+  private async updateEntitlements(swgUserToken?: string | null) {
+    this.entitlementsManager_.clear();
+    if (swgUserToken) {
+      await this.deps_
+        .storage()
+        .set(StorageKeys.USER_TOKEN, swgUserToken, true);
+    }
+    const now = Date.now().toString();
+    await this.deps_
+      .storage()
+      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
+    await this.entitlementsManager_.getEntitlements();
   }
 
   /**

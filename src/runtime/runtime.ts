@@ -29,6 +29,8 @@ import {
   Config,
   LinkSubscriptionRequest,
   LinkSubscriptionResult,
+  LinkSubscriptionsRequest,
+  LinkSubscriptionsResult,
   LoginRequest,
   OffersRequest,
   PublisherEntitlement,
@@ -58,6 +60,8 @@ import {Doc as DocInterface, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
+import {FreeAccess} from './free-access';
+import {FreeAccessApi} from '../api/free-access-api';
 import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
@@ -589,9 +593,21 @@ export class Runtime implements SubscriptionsInterface {
     return runtime.linkSubscription(request);
   }
 
+  async linkSubscriptions(
+    request: LinkSubscriptionsRequest
+  ): Promise<LinkSubscriptionsResult> {
+    const runtime = await this.configured_(true);
+    return runtime.linkSubscriptions(request);
+  }
+
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
     const runtime = await this.configured_(true);
     return runtime.getAvailableInterventions();
+  }
+
+  async getFreeAccess(): Promise<FreeAccessApi> {
+    const runtime = await this.configured_(true);
+    return runtime.getFreeAccess();
   }
 }
 
@@ -694,13 +710,16 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       integr.enableDefaultMeteringHandler || false
     );
 
-    this.dialogManager_ = new DialogManager(this.doc_);
-
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above
       pageConfig.getPublicationId(),
       this.fetcher_,
       clientOptions
+    );
+
+    this.dialogManager_ = new DialogManager(
+      this.doc_,
+      this.clientConfigManager_
     );
 
     this.propensityModule_ = new Propensity(
@@ -929,7 +948,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
         if (skus.length > 0) {
           this.analyticsService_.setSku(skus.join(','));
         }
-      } catch (ex) {}
+      } catch {}
     }
 
     const experiment = await this.entitlementsManager_
@@ -1237,9 +1256,22 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
   }
 
+  async linkSubscriptions(
+    linkSubscriptionsRequest: LinkSubscriptionsRequest
+  ): Promise<LinkSubscriptionsResult> {
+    await this.documentParsed_;
+    return new SubscriptionLinkingFlow(this).startMultipleLinks(
+      linkSubscriptionsRequest
+    );
+  }
+
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
     await this.getEntitlements();
     return this.entitlementsManager().getAvailableInterventions();
+  }
+
+  async getFreeAccess(): Promise<FreeAccessApi> {
+    return new FreeAccess();
   }
 }
 
@@ -1290,6 +1322,8 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    linkSubscriptions: runtime.linkSubscriptions.bind(runtime),
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
+    getFreeAccess: runtime.getFreeAccess.bind(runtime),
   };
 }

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+import {ActivityIframeView} from '../ui/activity-iframe-view';
+import {CloseWindowRequest} from '../proto/api_messages';
 import {Doc, resolveDoc} from '../model/doc';
 import {FriendlyIframe} from './friendly-iframe';
 import {Graypane} from './graypane';
+import {I18N_STRINGS} from '../i18n/strings';
 import {LoadingView} from '../ui/loading-view';
 import {UI_CSS} from '../ui/ui-css';
 import {View} from './view';
@@ -26,6 +29,7 @@ import {
   removeChildren,
   removeElement,
 } from '../utils/dom';
+import {msg} from '../utils/i18n';
 import {setImportantStyles, setStyles} from '../utils/style';
 import {transition} from '../utils/animation';
 
@@ -130,6 +134,7 @@ export class Dialog {
    */
   constructor(
     doc: Doc,
+    titleLang: string,
     importantStyles: {[key: string]: string} = {},
     styles: {[key: string]: string} = {},
     dialogConfig: DialogConfig = {},
@@ -146,8 +151,11 @@ export class Dialog {
     const iframeCssClass =
       dialogConfig.iframeCssClassOverride || defaultIframeCssClass;
 
+    const title = msg(I18N_STRINGS.SWG_CTA, titleLang);
+
     this.iframe_ = new FriendlyIframe(doc.getWin().document, {
       'class': iframeCssClass,
+      'title': title,
     });
 
     this.graypane_ = new Graypane(doc, Z_INDEX - 1);
@@ -291,7 +299,7 @@ export class Dialog {
       animating = Promise.resolve();
     }
 
-    this.doc_.getBody()?.classList.remove('swg-disable-scroll');
+    this.doc_.getRootElement().classList.remove('swg-disable-scroll');
 
     await animating;
 
@@ -394,7 +402,7 @@ export class Dialog {
     this.getContainer().appendChild(view.getElement());
 
     if (this.shouldDisableBodyScrolling_) {
-      this.doc_.getBody()?.classList.add('swg-disable-scroll');
+      this.doc_.getRootElement()?.classList.add('swg-disable-scroll');
     }
 
     // If the current view should fade the parent document.
@@ -422,20 +430,22 @@ export class Dialog {
     this.animate_(async () => {
       setImportantStyles(this.getElement(), {
         'transform': 'translateY(100%)',
-        'opactiy': '1',
+        'opacity': '1',
         'visibility': 'visible',
       });
 
-      await transition(
-        this.getElement(),
-        {
-          'transform': this.getDefaultTranslateY_(),
-          'opacity': '1',
-          'visibility': 'visible',
-        },
-        300,
-        'ease-out'
-      );
+      if (this.shouldPositionCenter_()) {
+        await transition(
+          this.getElement(),
+          {
+            'transform': this.getDefaultTranslateY_(),
+            'opacity': '1',
+            'visibility': 'visible',
+          },
+          300,
+          'ease-out'
+        );
+      }
 
       // Focus the dialog contents, per WAI-ARIA best practices.
       this.getElement().focus();
@@ -448,13 +458,9 @@ export class Dialog {
   private onGrayPaneClick_(event: Event) {
     event.stopPropagation();
     if (this.closeOnBackgroundClick_) {
-      const viewEl = this.view_!.getElement();
-      const contentWindow = viewEl.contentWindow!;
-      if (contentWindow) {
-        const origin = viewEl.src ? new URL(viewEl.src).origin : '*';
-        // The boq iframe must be listening for this event in order for it to
-        // work.
-        contentWindow.postMessage('close', origin);
+      const view = this.view_ as ActivityIframeView;
+      if (view.execute) {
+        view.execute(new CloseWindowRequest());
       }
     }
     return false;
@@ -562,7 +568,7 @@ export class Dialog {
 
     try {
       await callback();
-    } catch (err) {
+    } catch {
       // Ignore errors to make sure animations don't get stuck.
     }
 

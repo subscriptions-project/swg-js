@@ -20,7 +20,7 @@ import {ButtonOptions, SmartButtonOptions} from '../api/subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
-import {SWG_I18N_STRINGS} from '../i18n/swg-strings';
+import {I18N_STRINGS} from '../i18n/strings';
 import {SmartSubscriptionButtonApi, Theme} from './smart-button-api';
 import {createElement} from '../utils/dom';
 import {msg} from '../utils/i18n';
@@ -106,10 +106,7 @@ export class ButtonApi {
     if (options['lang']) {
       button.setAttribute('lang', options['lang']);
     }
-    button.setAttribute(
-      'title',
-      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button)!
-    );
+    button.setAttribute('title', msg(I18N_STRINGS.SUBSCRIPTION_BUTTON, button));
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SWG_BUTTON);
 
     return button;
@@ -142,10 +139,7 @@ export class ButtonApi {
     button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
       '$theme$',
       theme!
-    ).replace(
-      '$textContent$',
-      msg(SWG_I18N_STRINGS.SUBSCRIPTION_TITLE_LANG_MAP, button)!
-    );
+    ).replace('$textContent$', msg(I18N_STRINGS.SUBSCRIPTION_BUTTON, button));
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_OFFERS_SWG_BUTTON);
 
     return button;
@@ -178,10 +172,7 @@ export class ButtonApi {
     button./*OK*/ innerHTML = BUTTON_INNER_HTML.replace(
       '$theme$',
       theme!
-    ).replace(
-      '$textContent$',
-      msg(SWG_I18N_STRINGS.CONTRIBUTION_TITLE_LANG_MAP, button)!
-    );
+    ).replace('$textContent$', msg(I18N_STRINGS.CONTRIBUTION_BUTTON, button));
     this.logSwgEvent_(AnalyticsEvent.IMPRESSION_SHOW_CONTRIBUTIONS_SWG_BUTTON);
 
     return button;

@@ -741,23 +741,34 @@ describes.realWin('Storage', (env) => {
   });
 
   describe('pruneTimestamps', () => {
+    const NOW = 1234567;
+    const ONE_WEEK = 604800000;
+
     beforeEach(() => {
-      sandbox.stub(Date, 'now').returns(3500);
+      sandbox.stub(Date, 'now').returns(NOW);
     });
 
-    function arraysAreEqual(arr1, arr2) {
-      if (arr1.length !== arr2.length) {
-        return false;
-      }
-      return arr1.every((value, index) => value === arr2[index]);
-    }
+    it('should prune timestamps older than two weeks', async () => {
+      const result = pruneTimestamps([
+        NOW - ONE_WEEK * 5,
+        NOW - ONE_WEEK * 4.5,
+        NOW - ONE_WEEK * 4,
+        NOW - ONE_WEEK * 3.5,
+        NOW - ONE_WEEK * 3,
+        NOW - ONE_WEEK * 2.5,
+        // Everything above this line should be pruned.
+        NOW - ONE_WEEK * 2,
+        NOW - ONE_WEEK * 1.5,
+        NOW - ONE_WEEK,
+        NOW,
+      ]);
 
-    it('should prune timestamps', async () => {
-      const result = pruneTimestamps(
-        [1000, 2000, 3000, 4000],
-        /* timestampLifespan= */ 1000
-      );
-      expect(arraysAreEqual(result, [3000, 4000])).to.be.true;
+      expect(result).to.deep.equal([
+        NOW - ONE_WEEK * 2,
+        NOW - ONE_WEEK * 1.5,
+        NOW - ONE_WEEK,
+        NOW,
+      ]);
     });
   });
 });

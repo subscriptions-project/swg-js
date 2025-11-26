@@ -827,6 +827,18 @@ describes.realWin('Runtime', (env) => {
       expect(result).to.deep.equal(mockResult);
     });
 
+    it('delegates linkSubscriptions', async () => {
+      const mockResult = {success: true};
+      configuredRuntimeMock
+        .expects('linkSubscriptions')
+        .once()
+        .resolves(mockResult);
+
+      const result = await runtime.linkSubscriptions({});
+
+      expect(result).to.deep.equal(mockResult);
+    });
+
     it('delegates getAvailableInterventions', async () => {
       const mockResult = [];
       configuredRuntimeMock
@@ -912,6 +924,12 @@ describes.realWin('Runtime', (env) => {
       const propensityModule = await runtime.getPropensityModule();
       expect(configureStub).to.be.calledOnce.calledWith(true);
       expect(propensityModule).to.equal(propensity);
+    });
+
+    it('should return free access module', async () => {
+      const freeAccessApi = await runtime.getFreeAccess();
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+      expect(freeAccessApi).to.not.equal(null);
     });
 
     it('should delegate "setShowcaseEntitlement"', async () => {
@@ -1424,7 +1442,7 @@ describes.realWin('ConfiguredRuntime', (env) => {
       expect(runtime.pageConfig()).to.equal(config);
       expect(runtime.activities()).to.be.instanceof(ActivityPorts);
       expect(runtime.dialogManager()).to.be.instanceof(DialogManager);
-      expect(runtime.dialogManager().doc_).to.equal(runtime.doc());
+      expect(runtime.dialogManager().doc).to.equal(runtime.doc());
       expect(runtime.entitlementsManager().blockNextNotification_).to.be.false;
       expect(runtime.analytics()).to.be.instanceOf(AnalyticsService);
       expect(runtime.jserror()).to.be.instanceOf(JsError);
@@ -2319,6 +2337,29 @@ subscribe() method'
           .returns(mockResult);
 
         const result = await runtime.linkSubscription(request);
+
+        expect(start).to.be.calledOnceWith(request);
+        expect(result).to.deep.equal(mockResult);
+      });
+    });
+
+    describe('linkSubscriptions', () => {
+      it('starts SubscriptionLinkingFlow', async () => {
+        const request = {
+          linkTo: [{publicationId: 'pub1', publisherPovidedId: 'foo'}],
+        };
+        const mockResult = {
+          anySuccess: true,
+          anyFailure: false,
+          links: [
+            {success: true, publicationId: 'pub1', publisherPovidedId: 'foo'},
+          ],
+        };
+        const start = sandbox
+          .stub(SubscriptionLinkingFlow.prototype, 'startMultipleLinks')
+          .returns(mockResult);
+
+        const result = await runtime.linkSubscriptions(request);
 
         expect(start).to.be.calledOnceWith(request);
         expect(result).to.deep.equal(mockResult);

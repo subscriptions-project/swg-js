@@ -15,7 +15,6 @@
  */
 
 import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
-import {AudienceActionLocalFlow} from '../runtime/audience-action-local-flow';
 import {Deps} from '../runtime/deps';
 import {Intervention} from '../runtime/intervention';
 import {InterventionType} from './intervention-type';
@@ -34,6 +33,8 @@ export interface OptInResult {
   givenName: string | null;
   // Family name of the opted-in user, ex. Johnson
   familyName: string | null;
+  // Whether the user has consented to the terms and conditions. Null is returned if the CTA does not have terms.
+  termsAndConditionsConsent: boolean | null;
 }
 
 /**
@@ -100,9 +101,10 @@ export class AvailableIntervention {
    */
   async show(params: ShowInterventionParams): Promise<void> {
     if (
-      this.intervention.type == InterventionType.TYPE_NEWSLETTER_SIGNUP ||
-      this.intervention.type == InterventionType.TYPE_REWARDED_SURVEY ||
-      this.intervention.type == InterventionType.TYPE_BYO_CTA
+      this.intervention.type === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
+      this.intervention.type === InterventionType.TYPE_REWARDED_SURVEY ||
+      this.intervention.type === InterventionType.TYPE_BYO_CTA ||
+      this.intervention.type === InterventionType.TYPE_REWARDED_AD
     ) {
       return new AudienceActionIframeFlow(this.deps_, {
         action: this.intervention.type,
@@ -111,16 +113,9 @@ export class AvailableIntervention {
         isClosable: params.isClosable,
         calledManually: true,
         suppressToast: params.suppressToast,
-      }).start();
-    } else if (this.intervention.type == InterventionType.TYPE_REWARDED_AD) {
-      return new AudienceActionLocalFlow(this.deps_, {
-        action: this.intervention.type,
-        configurationId: this.intervention.configurationId,
-        onResult: params.onResult,
-        isClosable: params.isClosable,
-        calledManually: true,
         onAlternateAction: params.onAlternateAction,
         onSignIn: params.onSignIn,
+        preference: this.intervention.preference,
       }).start();
     }
     throw Error(`Can't show ${this.type}`);

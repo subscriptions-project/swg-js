@@ -50,9 +50,6 @@ module.exports = {
     contributeBtn: {
       selector: '.PNojLb button',
     },
-    contributionHeader: {
-      selector: '.XWoc8b',
-    },
     priceChip: {
       selector: '.h57Fgb',
     },

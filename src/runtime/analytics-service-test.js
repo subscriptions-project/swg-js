@@ -135,6 +135,9 @@ describes.realWin('AnalyticsService', (env) => {
       const activityIframe = analyticsService.getElement();
       expect(activityIframe.nodeType).to.equal(1);
       expect(activityIframe.nodeName).to.equal('IFRAME');
+      expect(activityIframe.getAttribute('title')).to.equal(
+        'Subscribe with Google Service'
+      );
       for (const key in IFRAME_STYLES) {
         if (typeof IFRAME_STYLES[key] === 'string') {
           expect(getStyle(activityIframe, key)).to.equal(IFRAME_STYLES[key]);
@@ -603,6 +606,17 @@ describes.realWin('AnalyticsService', (env) => {
         'L2',
         'L3',
       ]);
+    });
+
+    it('can remove labels', () => {
+      analyticsService.addLabels(['L1', 'L2']);
+      expect(analyticsService.context_.getLabelList()).to.deep.equal([
+        'L1',
+        'L2',
+      ]);
+
+      analyticsService.removeLabels(['L2', 'L2', 'L3']);
+      expect(analyticsService.context_.getLabelList()).to.deep.equal(['L1']);
     });
 
     it('should respect custom URLs', async () => {

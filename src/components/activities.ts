@@ -198,7 +198,7 @@ export class ActivityIframePort implements ActivityPortDef {
     let label = null;
     try {
       label = getLabel(message);
-    } catch (ex) {
+    } catch {
       // Thrown if message is not a proto object and has no label
       label = null;
     }

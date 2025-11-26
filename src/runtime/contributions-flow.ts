@@ -30,11 +30,12 @@ import {
   OffersRequest,
   ProductType,
   SubscriptionFlows,
-  SubscriptionRequest,
 } from '../api/subscriptions';
-import {PageConfig} from '../model/page-config';
-import {PayStartFlow} from './pay-flow';
-import {feArgs, feUrl} from './services';
+import {feArgs} from './services';
+import {
+  getContributionsUrl,
+  startContributionPayFlow,
+} from '../utils/cta-utils';
 
 /**
  * The class for Contributions flow.
@@ -76,7 +77,11 @@ export class ContributionsFlow {
     return new ActivityIframeView(
       this.win_,
       this.activityPorts_,
-      this.getUrl_(clientConfig, this.deps_.pageConfig()),
+      getContributionsUrl(
+        clientConfig,
+        this.clientConfigManager_,
+        this.deps_.pageConfig()
+      ),
       feArgs({
         'productId': this.deps_.pageConfig().getProductId(),
         'publicationId': this.deps_.pageConfig().getPublicationId(),
@@ -86,6 +91,7 @@ export class ContributionsFlow {
         'isClosable': this.isClosable_,
         'supportsEventManager': true,
       }),
+      /* titleLang */ this.clientConfigManager_.getLanguage(),
       /* shouldFadeBody */ true,
       /* hasLoadingIndicator_ */ false,
       /* shouldAnimateFade */ this.shouldAnimateFade_
@@ -97,24 +103,6 @@ export class ContributionsFlow {
       this.deps_.callbacks().triggerLoginRequest({
         linkRequested: !!response.getLinkRequested(),
       });
-    }
-  }
-
-  private startPayFlow_(response: SkuSelectedResponse): void {
-    const sku = response.getSku();
-    const isOneTime = response.getOneTime();
-    if (sku) {
-      const contributionRequest: SubscriptionRequest = {
-        'skuId': sku,
-      };
-      if (isOneTime) {
-        contributionRequest['oneTime'] = isOneTime;
-      }
-      new PayStartFlow(
-        this.deps_,
-        contributionRequest,
-        ProductType.UI_CONTRIBUTION
-      ).start();
     }
   }
 
@@ -137,7 +125,9 @@ export class ContributionsFlow {
       AlreadySubscribedResponse,
       this.handleLinkRequest_.bind(this)
     );
-    activityIframeView.on(SkuSelectedResponse, this.startPayFlow_.bind(this));
+    activityIframeView.on(SkuSelectedResponse, (response) =>
+      startContributionPayFlow(this.deps_, response)
+    );
 
     const clientConfig = await this.clientConfigManager_.getClientConfig();
     return this.dialogManager_.openView(
@@ -165,26 +155,6 @@ export class ContributionsFlow {
           closeOnBackgroundClick: this.isClosable_,
         }
       : {};
-  }
-
-  /**
-   * Gets the complete URL that should be used for the activity iFrame view.
-   */
-  private getUrl_(clientConfig: ClientConfig, pageConfig: PageConfig): string {
-    if (!clientConfig.useUpdatedOfferFlows) {
-      return feUrl('/contributionsiframe');
-    }
-
-    if (this.clientConfigManager_.shouldForceLangInIframes()) {
-      return feUrl('/contributionoffersiframe', {
-        'hl': this.clientConfigManager_.getLanguage(),
-        'publicationId': pageConfig.getPublicationId(),
-      });
-    }
-
-    return feUrl('/contributionoffersiframe', {
-      'publicationId': pageConfig.getPublicationId(),
-    });
   }
 
   /**

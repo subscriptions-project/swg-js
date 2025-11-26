@@ -39,9 +39,19 @@ export enum ArticleExperimentFlags {
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 
   /**
-   * [FPA M0.5] Experiment flag to enable the new autoPromptManager flow to use
-   * actionOrchestration from the article response as the source of the
-   * targeted intervention funnel.
+   * Experiment flag to enable the rendering of the CTAs inline.
    */
-  ACTION_ORCHESTRATION_EXPERIMENT = 'action_orchestration_experiment',
+  INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
+
+  /**
+   * Experiment flag to enable multiple instances of CTAs (FCA Phase 1).
+   */
+  MULTI_INSTANCE_CTA_EXPERIMENT = 'multi_instance_cta_experiment',
+
+  /**
+   * Experiment flag that shows non-dismissible contribution CTA regardless of
+   * reader's region. (If reader is in RRM-unsupported region, expect
+   * contribution CTA to render "purchase not available").
+   */
+  ALWAYS_SHOW_BLOCKING_CONTRIBUTION_EXPERIMENT = 'bcontrib_experiment',
 }

@@ -87,5 +87,6 @@ export interface GoogleAnalyticsParameters {
   survey_question?: string;
   survey_answer_category?: string;
   event_label?: string;
+  cta_mode?: string;
   /* eslint-enable google-camelcase/google-camelcase */
 }
