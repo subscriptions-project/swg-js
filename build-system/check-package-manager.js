@@ -25,7 +25,7 @@ const {getStdout} = require('./exec');
 const {isCiBuild} = require('./ci');
 
 const nodeDistributionsUrl = 'https://nodejs.org/dist/index.json';
-const warningDelaySecs = 10;
+const warningDelaySecs = 1;
 const updatesNeeded = new Set();
 const log = console /*OK*/.log;
 
@@ -126,11 +126,6 @@ function main() {
       log(
         yellow('\nWARNING: Detected problems with'),
         cyan(Array.from(updatesNeeded).join(', '))
-      );
-      log(
-        yellow('⤷ Continuing install in'),
-        cyan(warningDelaySecs),
-        yellow('seconds...')
       );
       log(yellow('⤷ Press'), cyan('Ctrl + C'), yellow('to abort and fix...'));
       let resolver;
