@@ -372,14 +372,12 @@ describes.realWin('GaaGoogle3pSignInButton', () => {
         imageUrl: 'imageUrl',
         name: 'name',
         authorizationData: {
-          /* eslint-disable google-camelcase/google-camelcase */
           access_token: 'accessToken',
           id_token: 'idToken',
           scope: 'scope',
           expires_in: 0,
           first_issued_at: 0,
           expires_at: 0,
-          /* eslint-enable google-camelcase/google-camelcase */
         },
       };
       GaaGoogle3pSignInButton.gaaNotifySignIn({gaaUser});

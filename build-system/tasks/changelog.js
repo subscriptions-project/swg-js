@@ -156,14 +156,12 @@ async function getGithubPullRequestsMetadata(release) {
   const prs = [].concat.apply([], requests);
   release.prs = prs;
   const githubPrRequest = release.logs.map((log) => {
-    // eslint-disable-next-line google-camelcase/google-camelcase
     const pr = prs.find(({merge_commit_sha}) => merge_commit_sha === log.sha);
     if (pr) {
       log.pr = {
         id: pr['number'],
         title: pr['title'],
         body: pr['body'],
-        // eslint-disable-next-line google-camelcase/google-camelcase
         merge_commit_sha: pr['merge_commit_sha'],
         url: pr['_links']['self']['href'],
       };

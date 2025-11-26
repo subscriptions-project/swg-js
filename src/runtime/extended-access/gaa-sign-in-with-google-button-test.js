@@ -80,12 +80,10 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
       expect(argsInit).to.deep.equal([
         [
           {
-            /* eslint-disable google-camelcase/google-camelcase */
             client_id: clientId,
             callback: argsInit[0][0].callback,
             allowed_parent_origin: allowedOrigins,
             use_fedcm_for_button: true,
-            /* eslint-enable google-camelcase/google-camelcase */
           },
         ],
       ]);
@@ -182,7 +180,6 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
       // Mock decrypted GIS response with JWT object.
       const jwtDecoded = {
         credential: {
-          /* eslint-disable google-camelcase/google-camelcase */
           payload: {
             iss: 'https://accounts.google.com', // The JWT's issuer
             nbf: 161803398874,
@@ -202,7 +199,6 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
             exp: 1596477600, // Unix timestamp of the assertion's expiration time
             jti: 'abc161803398874def',
           },
-          /* eslint-enable google-camelcase/google-camelcase */
         },
       };
 
@@ -259,7 +255,6 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
       // Mock decrypted GIS response with JWT object.
       const jwtDecoded = {
         credential: {
-          /* eslint-disable google-camelcase/google-camelcase */
           payload: {
             iss: 'https://accounts.google.com', // The JWT's issuer
             nbf: 161803398874,
@@ -279,7 +274,6 @@ describes.realWin('GaaSignInWithGoogleButton', () => {
             exp: 1596477600, // Unix timestamp of the assertion's expiration time
             jti: 'abc161803398874def',
           },
-          /* eslint-enable google-camelcase/google-camelcase */
         },
       };
 

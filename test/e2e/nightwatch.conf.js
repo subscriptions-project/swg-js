@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-/* eslint-disable google-camelcase/google-camelcase */
 module.exports = {
   src_folders: ['test/e2e/tests'],
   globals_path: 'globals.js',

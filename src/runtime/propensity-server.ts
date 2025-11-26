@@ -34,10 +34,8 @@ interface PropensityResponse {
     ok: boolean;
   };
   scores: {
-    /* eslint-disable-next-line google-camelcase/google-camelcase */
     error_message?: string;
     product: string;
-    /* eslint-disable-next-line google-camelcase/google-camelcase */
     score_type: number;
     score: number;
   }[];
@@ -151,7 +149,6 @@ export class PropensityServer {
       | {
           state?: string;
           productsOrSkus?: string | null;
-          /* eslint-disable-next-line google-camelcase/google-camelcase */
           is_active?: boolean | null;
         }
       | undefined;

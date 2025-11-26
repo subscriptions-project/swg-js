@@ -74,12 +74,10 @@ declare global {
       accounts: {
         id: {
           initialize: (params: {
-            /* eslint-disable google-camelcase/google-camelcase */
             client_id: string;
             callback: (data: {credential: string}) => void;
             allowed_parent_origin?: string[];
             use_fedcm_for_button?: boolean;
-            /* eslint-enable google-camelcase/google-camelcase */
           }) => void;
           renderButton: (
             element: HTMLElement | null,

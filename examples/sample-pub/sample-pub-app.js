@@ -32,9 +32,7 @@ const JS_TARGET = process.env.SERVE_JS_TARGET || 'local';
 
 const SWG_JS_URLS = {
   local: '/dist/subscriptions.max.js',
-  /* eslint-disable google-camelcase/google-camelcase */
   local_min: '/dist/subscriptions.js',
-  /* eslint-enable google-camelcase/google-camelcase */
   prod: 'https://news.google.com/swg/js/v1/swg.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-autopush.js',
   qual: 'https://news.google.com/swg/js/v1/swg-qual.js',
@@ -42,7 +40,6 @@ const SWG_JS_URLS = {
 
 const SWG_GAA_JS_URLS = {
   local: '/dist/subscriptions-gaa.max.js',
-  /* eslint-disable-next-line google-camelcase/google-camelcase */
   local_min: '/dist/subscriptions-gaa.js',
   prod: 'https://news.google.com/swg/js/v1/swg-gaa.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-gaa-autopush.js',
@@ -51,7 +48,6 @@ const SWG_GAA_JS_URLS = {
 
 const SWG_BASIC_JS_URLS = {
   local: '/dist/basic-subscriptions.max.js',
-  /* eslint-disable-next-line google-camelcase/google-camelcase */
   local_min: '/dist/basic-subscriptions.js',
   prod: 'https://news.google.com/swg/js/v1/swg-basic.js',
   autopush: 'https://news.google.com/swg/js/v1/swg-basic-autopush.js',

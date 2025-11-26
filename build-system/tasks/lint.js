@@ -18,7 +18,7 @@
 
 const args = require('./args');
 const config = require('../config');
-const eslint = require('../../third_party/gulp-eslint');
+const eslint = require('gulp-eslint-new');
 const eslintIfFixed = require('gulp-eslint-if-fixed');
 const fs = require('fs-extra');
 const gulp = require('gulp');
@@ -33,6 +33,7 @@ const {isCiBuild} = require('../ci');
 const isWatching = args.watch || args.w || false;
 const options = {
   fix: false,
+  configType: 'eslintrc',
 };
 
 const rootDir = path.dirname(path.dirname(__dirname));
@@ -85,7 +86,7 @@ function runLinter(filePath, stream, options) {
     .pipe(eslint(options))
     .pipe(
       eslint.formatEach((msg) => {
-        logOnSameLine(msg.trim() + '\n');
+        logOnSameLine(msg[0]?.filePath.trim() + '\n');
       })
     )
     .pipe(eslintIfFixed(filePath))

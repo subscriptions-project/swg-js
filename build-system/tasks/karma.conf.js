@@ -100,13 +100,11 @@ module.exports = {
   concurrency: 6,
 
   customLaunchers: {
-    // eslint-disable-next-line google-camelcase/google-camelcase
     Chrome_no_extensions: {
       base: 'Chrome',
       // Dramatically speeds up iframe creation time.
       flags: ['--disable-extensions'],
     },
-    // eslint-disable-next-line google-camelcase/google-camelcase
     Chrome_no_extensions_headless: {
       base: 'ChromeHeadless',
       // Dramatically speeds up iframe creation time.

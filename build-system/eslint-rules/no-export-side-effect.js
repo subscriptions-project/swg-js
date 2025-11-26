@@ -15,20 +15,22 @@
  */
 'use strict';
 
-module.exports = (context) => ({
-  ExportNamedDeclaration: ({declaration}) => {
-    if (declaration?.type !== 'VariableDeclaration') {
-      return;
-    }
+module.exports = {
+  create: (context) => ({
+    ExportNamedDeclaration: ({declaration}) => {
+      if (declaration?.type !== 'VariableDeclaration') {
+        return;
+      }
 
-    const inits = declaration.declarations
-      .map(({init}) => init)
-      .filter((init) => init && /(?:Call|New)Expression/.test(init.type));
-    for (const init of inits) {
-      context.report({
-        node: init,
-        message: 'Cannot export side-effect',
-      });
-    }
-  },
-});
+      const inits = declaration.declarations
+        .map(({init}) => init)
+        .filter((init) => init && /(?:Call|New)Expression/.test(init.type));
+      for (const init of inits) {
+        context.report({
+          node: init,
+          message: 'Cannot export side-effect',
+        });
+      }
+    },
+  }),
+};

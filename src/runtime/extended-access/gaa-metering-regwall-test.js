@@ -95,7 +95,6 @@ const SIGN_IN_WITH_GOOGLE_JWT =
 
 const SIGN_IN_WITH_GOOGLE_DECODED_JWT = {
   credential: {
-    /* eslint-disable google-camelcase/google-camelcase */
     payload: {
       iss: 'https://accounts.google.com', // The JWT's issuer
       nbf: 161803398874,
@@ -115,7 +114,6 @@ const SIGN_IN_WITH_GOOGLE_DECODED_JWT = {
       exp: 1596477600, // Unix timestamp of the assertion's expiration time
       jti: 'abc161803398874def',
     },
-    /* eslint-enable google-camelcase/google-camelcase */
   },
 };
 
@@ -820,10 +818,8 @@ describes.realWin('GaaMeteringRegwall', () => {
       expect(argsInit).to.deep.equal([
         [
           {
-            /* eslint-disable google-camelcase/google-camelcase */
             client_id: GOOGLE_API_CLIENT_ID,
             callback: argsInit[0][0].callback,
-            /* eslint-enable google-camelcase/google-camelcase */
           },
         ],
       ]);

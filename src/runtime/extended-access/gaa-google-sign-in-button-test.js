@@ -171,14 +171,12 @@ describes.realWin('GaaGoogleSignInButton', () => {
         imageUrl: 'imageUrl',
         email: 'email',
         authorizationData: {
-          /* eslint-disable google-camelcase/google-camelcase */
           access_token: 'accessToken',
           id_token: 'idToken',
           scope: 'scope',
           expires_in: 0,
           first_issued_at: 0,
           expires_at: 0,
-          /* eslint-enable google-camelcase/google-camelcase */
         },
       };
       const googleUser = {
@@ -216,14 +214,12 @@ describes.realWin('GaaGoogleSignInButton', () => {
             imageUrl: 'imageUrl',
             name: 'name',
             authorizationData: {
-              /* eslint-disable google-camelcase/google-camelcase */
               access_token: 'accessToken',
               id_token: 'idToken',
               scope: 'scope',
               expires_in: 0,
               first_issued_at: 0,
               expires_at: 0,
-              /* eslint-enable google-camelcase/google-camelcase */
             },
           },
           stamp: POST_MESSAGE_STAMP,
