@@ -57,7 +57,7 @@
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-sort-requires": "2.1.0",
     "eslint": "8.57.1",
-    "express": "5.1.0",
+    "express": "5.2.0",
     "fancy-log": "2.0.0",
     "fs-extra": "11.3.2",
     "glob": "13.0.0",
