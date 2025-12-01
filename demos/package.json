@@ -9,6 +9,6 @@
   "author": "Subscribe with Google Authors",
   "license": "Apache-2.0",
   "dependencies": {
-    "express": "5.2.0"
+    "express": "5.2.1"
   }
 }
