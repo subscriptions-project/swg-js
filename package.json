@@ -46,7 +46,7 @@
     "body-parser": "2.2.1",
     "browserify": "17.0.1",
     "chai-as-promised": "7.1.2",
-    "chai": "4.5.0",
+    "chai": "6.2.1",
     "cheerio": "1.1.2",
     "chromedriver": "142.0.3",
     "cookie-parser": "1.4.7",
