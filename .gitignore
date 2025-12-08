@@ -20,3 +20,10 @@ build-system/runner/TESTS-TestSuites.xml
 test/coverage
 vrt-report
 yarn.lock
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
