@@ -46,14 +46,14 @@ jobs:
 
       - name: Upload e2e VRT baseline
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: vrt-baseline
           path: test/e2e/vrt/baseline
 
       - name: Upload e2e VRT report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: vrt-report
           path: vrt-report
@@ -77,14 +77,14 @@ jobs:
 
       - name: Upload e2e with all experiments VRT baseline
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: all-experiments-vrt-baseline
           path: test/e2e/vrt/baseline
 
       - name: Upload e2e with all experiments VRT report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: all-experiments-vrt-report
           path: vrt-report
@@ -107,7 +107,7 @@ jobs:
         run: . ./build_binaries.sh
 
       - name: Archive binaries
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: binaries
           path: |
