@@ -48,7 +48,7 @@
     "chai-as-promised": "7.1.2",
     "chai": "4.5.0",
     "cheerio": "1.1.2",
-    "chromedriver": "143.0.2",
+    "chromedriver": "143.0.3",
     "cookie-parser": "1.4.7",
     "cssnano": "7.1.2",
     "del": "8.0.1",
