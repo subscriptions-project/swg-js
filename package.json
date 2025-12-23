@@ -56,7 +56,7 @@
     "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-sort-requires": "2.1.0",
-    "eslint": "8.57.1",
+    "eslint": "9.39.2",
     "express": "5.2.1",
     "fancy-log": "2.0.0",
     "fs-extra": "11.3.3",
