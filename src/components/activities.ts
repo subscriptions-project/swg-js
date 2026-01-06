@@ -29,11 +29,16 @@ import {
   ActivityMode,
   ActivityOpenOptions,
   ActivityResult,
-  ActivityIframePort as WebActivityIframePort,
+  ActivityIframePort as WebActivityIframePortType,
   ActivityPort as WebActivityPort,
-  ActivityPorts as WebActivityPorts,
+  ActivityPorts as WebActivityPortsType,
 } from 'web-activities/activity-ports';
 import {Deps} from '../runtime/deps';
+
+const {
+  ActivityIframePort: WebActivityIframePort,
+  ActivityPorts: WebActivityPorts,
+} = require('web-activities/activity-ports');
 
 export interface ActivityPortDef {
   acceptResult(): Promise<ActivityResult>;
@@ -100,7 +105,7 @@ class ActivityPortDeprecated implements ActivityPortDef {
 }
 
 export class ActivityIframePort implements ActivityPortDef {
-  private readonly iframePort_: WebActivityIframePort;
+  private readonly iframePort_: WebActivityIframePortType;
   private readonly callbackMap_: {[key: string]: (message: Message) => void};
 
   constructor(
@@ -220,7 +225,7 @@ export class ActivityIframePort implements ActivityPortDef {
 }
 
 export class ActivityPorts {
-  activityPorts_: WebActivityPorts;
+  activityPorts_: WebActivityPortsType;
 
   constructor(private readonly deps_: Deps) {
     this.activityPorts_ = new WebActivityPorts(deps_.win());
@@ -357,7 +362,7 @@ export class ActivityPorts {
     this.activityPorts_.onRedirectError(handler);
   }
 
-  getOriginalWebActivityPorts(): WebActivityPorts {
+  getOriginalWebActivityPorts(): WebActivityPortsType {
     return this.activityPorts_;
   }
 }
