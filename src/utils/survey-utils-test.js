@@ -668,6 +668,55 @@ describes.realWin('Survey utils', (env) => {
         onResultMock.verify();
       });
 
+      it(`with empty result successful`, async () => {
+        const successSurveyDataTransferResponse =
+          new SurveyDataTransferResponse();
+        successSurveyDataTransferResponse.setSuccess(true);
+        activityIframeViewMock
+          .expects('execute')
+          .withExactArgs(successSurveyDataTransferResponse)
+          .once();
+        const onResultMock = sandbox
+          .mock()
+          .withExactArgs({
+            configurationId: TEST_SURVEYONRESULTCONFIGID,
+            data: {
+              he: null,
+              ae: [],
+              answers: [],
+            },
+          })
+          .resolves(true)
+          .once();
+        eventManagerMock.expects('logEvent').withExactArgs(
+          {
+            eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+            eventOriginator: EventOriginator.SWG_CLIENT,
+            isFromUserAction: true,
+            // Called through logSwgEvent(), therefore need to create new EventParams
+            additionalParameters: createCtaModeEventParams(
+              CtaMode.CTA_MODE_UNSPECIFIED
+            ),
+            configurationId: null,
+          },
+          undefined,
+          undefined
+        );
+
+        handleSurveyDataTransferRequest(
+          new SurveyDataTransferRequest(),
+          deps,
+          activityIframeView,
+          TEST_SURVEYONRESULTCONFIGID,
+          CtaMode.CTA_MODE_UNSPECIFIED,
+          onResultMock
+        );
+        await tick(10);
+
+        activityIframeViewMock.verify();
+        onResultMock.verify();
+      });
+
       it(`with failed logging`, async () => {
         const onResultMock = sandbox
           .mock()
