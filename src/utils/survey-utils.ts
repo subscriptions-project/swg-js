@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ActivityIframeView } from '../ui/activity-iframe-view';
+import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {
   AnalyticsEvent,
   CtaMode,
@@ -23,11 +23,15 @@ import {
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
-import { Constants, StorageKeysWithoutPublicationIdSuffix } from './constants';
-import { Deps } from '../runtime/deps';
-import { GoogleAnalyticsEventListener } from '../runtime/google-analytics-event-listener';
-import { InterventionResult, SurveyAnswer, SurveyAnswers, ObsfucatedSurvey, SurveyResult } from '../api/available-intervention';
-import { warn } from '../utils/log';
+import {Constants, StorageKeysWithoutPublicationIdSuffix} from './constants';
+import {Deps} from '../runtime/deps';
+import {GoogleAnalyticsEventListener} from '../runtime/google-analytics-event-listener';
+import {
+  InterventionResult,
+  ObsfucatedSurveyAnswers,
+  SurveyAnswers,
+} from '../api/available-intervention';
+import {warn} from '../utils/log';
 
 /* Supports survey data tansfer, log survey events and store PPS values.*/
 export async function handleSurveyDataTransferRequest(
@@ -82,24 +86,85 @@ async function attemptSurveyDataTransfer(
   ctaMode: CtaMode,
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean
 ): Promise<boolean> {
+  const gaLogggingSuccess = logSurveyDataToGoogleAnalytics(
+    request,
+    deps,
+    ctaMode
+  );
+  const onResultSuccess = await callOnResult(
+    request,
+    configurationId,
+    onResult
+  );
+  return onResultSuccess || gaLogggingSuccess;
+}
+
+async function callOnResult(
+  request: SurveyDataTransferRequest,
+  configurationId: string,
+  onResult?: (result: InterventionResult) => Promise<boolean> | boolean
+) {
+  if (!onResult) {
+    return false;
+  }
   // @TODO(justinchou): execute callback with setOnInterventionComplete
   // then check for success
-  if (onResult) {
-    try {
-      const data: SurveyResult = {
-        ...surveyDataTransferRequestToObsfucatedSurvey(request),
-        ...surveyDataTransferRequestToSurveyResult(request)
-      }
-      return await onResult({
-        configurationId,
-        data,
-      });
-    } catch (e) {
-      warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
-      return false;
-    }
+  try {
+    return await onResult({
+      configurationId,
+      data: {
+        ...makeObsfucatedSurveyAnswers(request),
+        ...makeSurveyAnswers(request),
+      },
+    });
+  } catch (e) {
+    warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
+    return false;
   }
-  return logSurveyDataToGoogleAnalytics(request, deps, ctaMode);
+}
+
+function makeObsfucatedSurveyAnswers(
+  request: SurveyDataTransferRequest
+): ObsfucatedSurveyAnswers {
+  return {
+    'he': request.getStorePpsInLocalStorage() || false,
+    'ae':
+      request.getSurveyQuestionsList()?.map((question) => {
+        return {
+          'le': question.getQuestionId() || 0,
+          'ue': question.getQuestionText() || '',
+          'ce': question.getQuestionCategory() || '',
+          'ge':
+            question.getSurveyAnswersList()?.map((answer) => {
+              return {
+                'ie': answer.getAnswerId() || 0,
+                'ne': answer.getAnswerText() || '',
+                're': answer.getAnswerCategory() || '',
+                'oe': answer.getPpsValue() || '',
+              };
+            }) || [],
+        };
+      }) || [],
+  };
+}
+
+function makeSurveyAnswers(request: SurveyDataTransferRequest): SurveyAnswers {
+  return {
+    answers:
+      request.getSurveyQuestionsList()?.map((question) => {
+        return {
+          questionText: question.getQuestionText() || '',
+          questionCategory: question.getQuestionCategory() || '',
+          surveyAnswers:
+            question.getSurveyAnswersList()?.map((answer) => {
+              return {
+                answerText: answer.getAnswerText() || '',
+                answerCategory: answer.getAnswerCategory() || '',
+              };
+            }) || [],
+        };
+      }) || [],
+  };
 }
 
 /*
@@ -118,18 +183,34 @@ function logSurveyDataToGoogleAnalytics(
   ) {
     return false;
   }
-  const event = {
-    eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-    eventOriginator: EventOriginator.SWG_CLIENT,
-    isFromUserAction: true,
-    additionalParameters: { ctaMode },
-  };
-  const survery_answers = surveyDataTransferRequestToSurveyResult(request);
-  survery_answers.answers.forEach((answer) => {
-    const eventParams = {
-      googleAnalyticsParameters: answer
+  request.getSurveyQuestionsList()?.map((question) => {
+    const event = {
+      eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+      eventOriginator: EventOriginator.SWG_CLIENT,
+      isFromUserAction: true,
+      additionalParameters: {ctaMode},
     };
-    deps.eventManager().logEvent(event, eventParams);
+    question.getSurveyAnswersList()?.map((answer) => {
+      const eventParams = {
+        googleAnalyticsParameters: {
+          // Custom dimensions.
+          'survey_question': question.getQuestionText() || '',
+          'survey_question_category': question.getQuestionCategory() || '',
+          'survey_answer': answer.getAnswerText() || '',
+          'survey_answer_category': answer.getAnswerCategory() || '',
+          // GA4 Default dimensions.
+          'content_id': question.getQuestionCategory() || '',
+          'content_group': question.getQuestionText() || '',
+          'content_type': answer.getAnswerText() || '',
+          // UA Default dimensions.
+          // TODO(yeongjinoh): Remove default dimensions once beta publishers
+          // complete migration to GA4.
+          'event_category': question.getQuestionCategory() || '',
+          'event_label': answer.getAnswerText() || '',
+        },
+      };
+      deps.eventManager().logEvent(event, eventParams);
+    });
   });
   return true;
 }
@@ -170,7 +251,7 @@ async function storePpsValuesFromSurveyAnswers(
     new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
   );
   const iabTaxonomy = {
-    [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: { values: iabTaxonomyValues },
+    [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
   };
 
   await Promise.resolve(
@@ -190,32 +271,4 @@ export function createCtaModeEventParams(ctaMode: CtaMode): EventParams {
   const eventParams: EventParams = new EventParams();
   eventParams.setCtaMode(ctaMode);
   return eventParams;
-}
-
-function surveyDataTransferRequestToObsfucatedSurvey(request: SurveyDataTransferRequest): ObsfucatedSurvey {
-  return {
-
-  };
-}
-
-
-function surveyDataTransferRequestToSurveyResult(request: SurveyDataTransferRequest): SurveyAnswers {
-  const answers: SurveyAnswer[] = [];
-  request.getSurveyQuestionsList()?.map((question) => {
-    question.getSurveyAnswersList()?.map((answer) => {
-      const surveyAnswer: SurveyAnswer = {
-        survey_question: question.getQuestionText() || '',
-        survey_question_category: question.getQuestionCategory() || '',
-        survey_answer: answer.getAnswerText() || '',
-        survey_answer_category: answer.getAnswerCategory() || '',
-        content_id: question.getQuestionCategory() || '',
-        content_group: question.getQuestionText() || '',
-        content_type: answer.getAnswerText() || '',
-        event_category: question.getQuestionCategory() || '',
-        event_label: answer.getAnswerText() || '',
-      };
-      answers.push(surveyAnswer);
-    });
-  });
-  return { answers };
 }
