@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
-import {Deps} from '../runtime/deps';
-import {Intervention} from '../runtime/intervention';
-import {InterventionType} from './intervention-type';
-import {SurveyDataTransferRequest} from '../proto/api_messages';
+import { AudienceActionIframeFlow } from '../runtime/audience-action-flow';
+import { Deps } from '../runtime/deps';
+import { Intervention } from '../runtime/intervention';
+import { InterventionType } from './intervention-type';
 
 /**
  * Opt-in data passed to the AvailableIntervention.show callback for an opt-in
@@ -52,6 +51,49 @@ export interface RewardedAdResult {
   type?: string;
 }
 
+// For backward compatibility
+export interface ObsfucatedSurvey {
+  he: boolean;    // store_pps_in_local_storage
+  ae: {           // survey_questions
+    le: number;   // question_id
+    ue: string;   // question_text
+    ce: string;   // question_category 
+    ge: {         // survey_answers
+      ie: number; // answer_id
+      ne: string; // answer_text
+      re: string; // answer_category
+      oe: string; // pps_value
+    }[];
+  }[];
+};
+
+export interface SurveyAnswer {
+  // Custom dimensions.
+  survey_question: string;
+  survey_question_category: string;
+  survey_answer: string;
+  survey_answer_category: string;
+  // GA4 Default dimensions.
+  content_id: string;
+  content_group: string;
+  content_type: string;
+  // UA Default dimensions.
+  // TODO(yeongjinoh): Remove default dimensions once beta publishers
+  // complete migration to GA4.
+  event_category: string;
+  event_label: string;
+}
+
+export interface SurveyAnswers {
+  answers: SurveyAnswer[];
+}
+
+/**
+ * Completion data passed to the AvailableIntervention.show callback for a the
+ * survey intervention.
+ */
+export type SurveyResult = ObsfucatedSurvey & SurveyAnswers;
+
 /**
  * Result of an intervention passed to the AvailableIntervention.show callback.
  */
@@ -59,7 +101,7 @@ export interface InterventionResult {
   // Configuration id of the intervention
   configurationId?: string;
   // Data returned from the intervention
-  data: OptInResult | SurveyDataTransferRequest | RewardedAdResult;
+  data: OptInResult | SurveyResult | RewardedAdResult;
 }
 
 /**

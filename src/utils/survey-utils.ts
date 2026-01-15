@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityIframeView} from '../ui/activity-iframe-view';
+import { ActivityIframeView } from '../ui/activity-iframe-view';
 import {
   AnalyticsEvent,
   CtaMode,
@@ -23,11 +23,11 @@ import {
   SurveyDataTransferRequest,
   SurveyDataTransferResponse,
 } from '../proto/api_messages';
-import {Constants, StorageKeysWithoutPublicationIdSuffix} from './constants';
-import {Deps} from '../runtime/deps';
-import {GoogleAnalyticsEventListener} from '../runtime/google-analytics-event-listener';
-import {InterventionResult} from '../api/available-intervention';
-import {warn} from '../utils/log';
+import { Constants, StorageKeysWithoutPublicationIdSuffix } from './constants';
+import { Deps } from '../runtime/deps';
+import { GoogleAnalyticsEventListener } from '../runtime/google-analytics-event-listener';
+import { InterventionResult, SurveyAnswer, SurveyAnswers, ObsfucatedSurvey, SurveyResult } from '../api/available-intervention';
+import { warn } from '../utils/log';
 
 /* Supports survey data tansfer, log survey events and store PPS values.*/
 export async function handleSurveyDataTransferRequest(
@@ -86,9 +86,13 @@ async function attemptSurveyDataTransfer(
   // then check for success
   if (onResult) {
     try {
+      const data: SurveyResult = {
+        ...surveyDataTransferRequestToObsfucatedSurvey(request),
+        ...surveyDataTransferRequestToSurveyResult(request)
+      }
       return await onResult({
         configurationId,
-        data: request,
+        data,
       });
     } catch (e) {
       warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
@@ -114,34 +118,18 @@ function logSurveyDataToGoogleAnalytics(
   ) {
     return false;
   }
-  request.getSurveyQuestionsList()?.map((question) => {
-    const event = {
-      eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
-      eventOriginator: EventOriginator.SWG_CLIENT,
-      isFromUserAction: true,
-      additionalParameters: {ctaMode},
+  const event = {
+    eventType: AnalyticsEvent.ACTION_SURVEY_DATA_TRANSFER,
+    eventOriginator: EventOriginator.SWG_CLIENT,
+    isFromUserAction: true,
+    additionalParameters: { ctaMode },
+  };
+  const survery_answers = surveyDataTransferRequestToSurveyResult(request);
+  survery_answers.answers.forEach((answer) => {
+    const eventParams = {
+      googleAnalyticsParameters: answer
     };
-    question.getSurveyAnswersList()?.map((answer) => {
-      const eventParams = {
-        googleAnalyticsParameters: {
-          // Custom dimensions.
-          'survey_question': question.getQuestionText() || '',
-          'survey_question_category': question.getQuestionCategory() || '',
-          'survey_answer': answer.getAnswerText() || '',
-          'survey_answer_category': answer.getAnswerCategory() || '',
-          // GA4 Default dimensions.
-          'content_id': question.getQuestionCategory() || '',
-          'content_group': question.getQuestionText() || '',
-          'content_type': answer.getAnswerText() || '',
-          // UA Default dimensions.
-          // TODO(yeongjinoh): Remove default dimensions once beta publishers
-          // complete migration to GA4.
-          'event_category': question.getQuestionCategory() || '',
-          'event_label': answer.getAnswerText() || '',
-        },
-      };
-      deps.eventManager().logEvent(event, eventParams);
-    });
+    deps.eventManager().logEvent(event, eventParams);
   });
   return true;
 }
@@ -182,7 +170,7 @@ async function storePpsValuesFromSurveyAnswers(
     new Set(ppsConfigParams.concat(existingIabTaxonomyValues))
   );
   const iabTaxonomy = {
-    [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: {values: iabTaxonomyValues},
+    [Constants.PPS_AUDIENCE_TAXONOMY_KEY]: { values: iabTaxonomyValues },
   };
 
   await Promise.resolve(
@@ -202,4 +190,32 @@ export function createCtaModeEventParams(ctaMode: CtaMode): EventParams {
   const eventParams: EventParams = new EventParams();
   eventParams.setCtaMode(ctaMode);
   return eventParams;
+}
+
+function surveyDataTransferRequestToObsfucatedSurvey(request: SurveyDataTransferRequest): ObsfucatedSurvey {
+  return {
+
+  };
+}
+
+
+function surveyDataTransferRequestToSurveyResult(request: SurveyDataTransferRequest): SurveyAnswers {
+  const answers: SurveyAnswer[] = [];
+  request.getSurveyQuestionsList()?.map((question) => {
+    question.getSurveyAnswersList()?.map((answer) => {
+      const surveyAnswer: SurveyAnswer = {
+        survey_question: question.getQuestionText() || '',
+        survey_question_category: question.getQuestionCategory() || '',
+        survey_answer: answer.getAnswerText() || '',
+        survey_answer_category: answer.getAnswerCategory() || '',
+        content_id: question.getQuestionCategory() || '',
+        content_group: question.getQuestionText() || '',
+        content_type: answer.getAnswerText() || '',
+        event_category: question.getQuestionCategory() || '',
+        event_label: answer.getAnswerText() || '',
+      };
+      answers.push(surveyAnswer);
+    });
+  });
+  return { answers };
 }
