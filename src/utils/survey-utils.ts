@@ -30,6 +30,7 @@ import {
   InterventionResult,
   ObsfucatedSurveyAnswers,
   SurveyAnswers,
+  SurveyResult,
 } from '../api/available-intervention';
 import {warn} from '../utils/log';
 
@@ -110,13 +111,15 @@ async function callOnResult(
   // @TODO(justinchou): execute callback with setOnInterventionComplete
   // then check for success
   try {
-    return await onResult({
+    const data: SurveyResult = {
+      ...makeObsfucatedSurveyAnswers(request),
+      ...makeSurveyAnswers(request),
+    };
+    const result = await onResult({
       configurationId,
-      data: {
-        ...makeObsfucatedSurveyAnswers(request),
-        ...makeSurveyAnswers(request),
-      },
+      data,
     });
+    return result;
   } catch (e) {
     warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
     return false;
@@ -127,7 +130,7 @@ function makeObsfucatedSurveyAnswers(
   request: SurveyDataTransferRequest
 ): ObsfucatedSurveyAnswers {
   return {
-    'he': request.getStorePpsInLocalStorage() || false,
+    'he': request.getStorePpsInLocalStorage(),
     'ae':
       request.getSurveyQuestionsList()?.map((question) => {
         return {

@@ -79,23 +79,38 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
 const TEST_SURVEYONRESULTRESPONSE = {
   configurationId: TEST_SURVEYONRESULTCONFIGID,
   data: {
-    he: false,
+    he: null,
     ae: [
       {
-        le: 0,
+        le: null,
         ue: 'Test Question 1',
         ce: 'Test Question Category 1',
         ge: [
-          {ie: 0, ne: 'Test Answer 1', re: 'Test Answer Category 1', oe: '1'},
-          {ie: 0, ne: 'Test Answer 2', re: 'Test Answer Category 2', oe: '2'},
+          {
+            ie: null,
+            ne: 'Test Answer 1',
+            re: 'Test Answer Category 1',
+            oe: '1',
+          },
+          {
+            ie: null,
+            ne: 'Test Answer 2',
+            re: 'Test Answer Category 2',
+            oe: '2',
+          },
         ],
       },
       {
-        le: 0,
+        le: null,
         ue: 'Test Question 2',
         ce: 'Test Question Category 2',
         ge: [
-          {ie: 0, ne: 'Test Answer 2', re: 'Test Answer Category 2', oe: '2'},
+          {
+            ie: null,
+            ne: 'Test Answer 2',
+            re: 'Test Answer Category 2',
+            oe: '2',
+          },
         ],
       },
     ],
