@@ -131,16 +131,16 @@ function makeObsfucatedSurveyAnswers(
     'ae':
       request.getSurveyQuestionsList()?.map((question) => {
         return {
-          'le': question.getQuestionId() || 0,
-          'ue': question.getQuestionText() || '',
-          'ce': question.getQuestionCategory() || '',
+          'le': question.getQuestionId(),
+          'ue': question.getQuestionText(),
+          'ce': question.getQuestionCategory(),
           'ge':
             question.getSurveyAnswersList()?.map((answer) => {
               return {
-                'ie': answer.getAnswerId() || 0,
-                'ne': answer.getAnswerText() || '',
-                're': answer.getAnswerCategory() || '',
-                'oe': answer.getPpsValue() || '',
+                'ie': answer.getAnswerId(),
+                'ne': answer.getAnswerText(),
+                're': answer.getAnswerCategory(),
+                'oe': answer.getPpsValue(),
               };
             }) || [],
         };
@@ -153,13 +153,13 @@ function makeSurveyAnswers(request: SurveyDataTransferRequest): SurveyAnswers {
     answers:
       request.getSurveyQuestionsList()?.map((question) => {
         return {
-          questionText: question.getQuestionText() || '',
-          questionCategory: question.getQuestionCategory() || '',
+          questionText: question.getQuestionText(),
+          questionCategory: question.getQuestionCategory(),
           surveyAnswers:
             question.getSurveyAnswersList()?.map((answer) => {
               return {
-                answerText: answer.getAnswerText() || '',
-                answerCategory: answer.getAnswerCategory() || '',
+                answerText: answer.getAnswerText(),
+                answerCategory: answer.getAnswerCategory(),
               };
             }) || [],
         };

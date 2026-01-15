@@ -53,29 +53,29 @@ export interface RewardedAdResult {
 
 // For backward compatibility
 export interface ObsfucatedSurveyAnswers {
-  he: boolean; // store_pps_in_local_storage
+  he: boolean | null; // store_pps_in_local_storage
   ae: Array<{
     // survey_questions
-    le: number; // question_id
-    ue: string; // question_text
-    ce: string; // question_category
+    le: number | null; // question_id
+    ue: string | null; // question_text
+    ce: string | null; // question_category
     ge: Array<{
       // survey_answers
-      ie: number; // answer_id
-      ne: string; // answer_text
-      re: string; // answer_category
-      oe: string; // pps_value
-    }>;
-  }>;
+      ie: number | null; // answer_id
+      ne: string | null; // answer_text
+      re: string | null; // answer_category
+      oe: string | null; // pps_value
+    }> | null;
+  }> | null;
 }
 
 export interface SurveyAnswer {
-  questionText: string;
-  questionCategory: string;
+  questionText: string | null;
+  questionCategory: string | null;
   surveyAnswers: Array<{
-    answerText: string;
-    answerCategory: string;
-  }>;
+    answerText: string | null;
+    answerCategory: string | null;
+  }> | null;
 }
 
 export interface SurveyAnswers {
