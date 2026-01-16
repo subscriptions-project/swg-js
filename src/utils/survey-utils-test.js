@@ -711,17 +711,34 @@ describes.realWin('Survey utils', (env) => {
               configurationId: TEST_SURVEYONRESULTCONFIGID,
               data: {
                 he: null,
-                ae: [],
-                answers: [],
+                ae: [
+                  {
+                    le: 1,
+                    ue: 'Question Text',
+                    ce: 'Question Category',
+                    ge: [],
+                  },
+                ],
+                answers: [
+                  {
+                    questionText: 'Question Text',
+                    questionCategory: 'Question Category',
+                    surveyAnswers: [],
+                  },
+                ],
               },
             })
             .resolves(true)
             .once();
 
+          const question = new SurveyQuestion();
+          question.setQuestionId(1);
+          question.setQuestionText('Question Text');
+          question.setQuestionCategory('Question Category');
+          question.setSurveyAnswersList(null);
+
           const request = new SurveyDataTransferRequest();
-          request.setSurveyQuestionsList(
-            new SurveyQuestion().setSurveyAnswersList(null)
-          );
+          request.setSurveyQuestionsList([question]);
 
           handleSurveyDataTransferRequest(
             request,
