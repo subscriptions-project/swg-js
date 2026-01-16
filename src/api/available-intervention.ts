@@ -18,7 +18,6 @@ import {AudienceActionIframeFlow} from '../runtime/audience-action-flow';
 import {Deps} from '../runtime/deps';
 import {Intervention} from '../runtime/intervention';
 import {InterventionType} from './intervention-type';
-import {SurveyDataTransferRequest} from '../proto/api_messages';
 
 /**
  * Opt-in data passed to the AvailableIntervention.show callback for an opt-in
@@ -52,6 +51,43 @@ export interface RewardedAdResult {
   type?: string;
 }
 
+// For backward compatibility
+export interface ObsfucatedSurveyAnswers {
+  he: boolean | null; // store_pps_in_local_storage
+  ae: Array<{
+    // survey_questions
+    le: number | null; // question_id
+    ue: string | null; // question_text
+    ce: string | null; // question_category
+    ge: Array<{
+      // survey_answers
+      ie: number | null; // answer_id
+      ne: string | null; // answer_text
+      re: string | null; // answer_category
+      oe: string | null; // pps_value
+    }> | null;
+  }> | null;
+}
+
+export interface SurveyAnswer {
+  questionText: string | null;
+  questionCategory: string | null;
+  surveyAnswers: Array<{
+    answerText: string | null;
+    answerCategory: string | null;
+  }> | null;
+}
+
+export interface SurveyAnswers {
+  answers: SurveyAnswer[];
+}
+
+/**
+ * Completion data passed to the AvailableIntervention.show callback for a the
+ * survey intervention.
+ */
+export type SurveyResult = ObsfucatedSurveyAnswers & SurveyAnswers;
+
 /**
  * Result of an intervention passed to the AvailableIntervention.show callback.
  */
@@ -59,7 +95,7 @@ export interface InterventionResult {
   // Configuration id of the intervention
   configurationId?: string;
   // Data returned from the intervention
-  data: OptInResult | SurveyDataTransferRequest | RewardedAdResult;
+  data: OptInResult | SurveyResult | RewardedAdResult;
 }
 
 /**

@@ -250,6 +250,7 @@ export class Runtime implements SubscriptionsInterface {
       pageConfig,
       /* integr */ {
         configPromise: this.configuredRuntimePromise_.then(),
+        enableGoogleAnalytics: true,
       },
       this.config_,
       {
