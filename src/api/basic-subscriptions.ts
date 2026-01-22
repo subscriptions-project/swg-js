@@ -100,7 +100,7 @@ export enum AutoPromptType {
 
 /**
  * The types of supported publication content type. Should be maintained with:
- * google3/java/com/google/subscribewithgoogle/audienceactions/proto/audience_member_flow_service.proto.
+ * google3/java/com/google/subscribewithgoogle/client/http/constants/SubscribewithgoogleClientHttpConstants.java;l=44-54.
  */
 export enum ContentType {
   OPEN = 'OPEN',
