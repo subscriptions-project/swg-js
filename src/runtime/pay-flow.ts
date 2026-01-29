@@ -141,6 +141,12 @@ export class PayStartFlow {
     const clientConfig = await this.clientConfigManager_.getClientConfig();
     PayCompleteFlow.isInlineCta = this.isInlineCta_;
     PayCompleteFlow.inlineConfigId = this.configId_;
+
+    if (this.deps_.config().enableMockBuyFlow) {
+      this.startMockFlow_();
+      return;
+    }
+
     this.start_(clientConfig.useUpdatedOfferFlows, clientConfig.paySwgVersion);
   }
 
@@ -223,6 +229,49 @@ export class PayStartFlow {
         forceDisableNative: paySwgVersion == '2',
       }
     );
+  }
+
+  /**
+   * Starts the mock payments flow.
+   */
+  private startMockFlow_(): void {
+    const sku = this.subscriptionRequest_['skuId'];
+
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+      true,
+      getEventParams(sku, this.isInlineCta_)
+    );
+
+    this.analyticsService_.setSku(sku);
+
+    const mockPurchaseData = new PurchaseData(
+      JSON.stringify({productId: sku}),
+      'mock-signature'
+    );
+
+    const mockUserData =
+      this.deps_.config().mockUserData ||
+      new UserData('mock-id-token', {
+        'email': 'mock-user@example.com',
+      });
+
+    const mockResponse = new SubscribeResponse(
+      'mock-raw-data',
+      mockPurchaseData,
+      mockUserData,
+      null, // entitlements
+      this.productType_,
+      () => Promise.resolve(), // completeHandler
+      this.subscriptionRequest_['oldSku'],
+      'mock-swg-user-token'
+    );
+
+    this.deps_
+      .callbacks()
+      .triggerPaymentResponse(Promise.resolve(mockResponse));
+
+    new PayCompleteFlow(this.deps_).start(mockResponse);
   }
 }
 

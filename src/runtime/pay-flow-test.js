@@ -591,6 +591,80 @@ describes.realWin('PayStartFlow', (env) => {
       .once();
     await flow.start();
   });
+
+  it('should trigger the mock flow if enableMockBuyFlow is true', async () => {
+    runtime.configure({enableMockBuyFlow: true});
+
+    // PayClient should NOT be started.
+    payClientMock.expects('start').never();
+
+    // PayCompleteFlow should be started.
+    const startStub = sandbox
+      .stub(PayCompleteFlow.prototype, 'start')
+      .resolves();
+
+    // Analytics event should be logged.
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('sku1')
+      );
+
+    // Payment response should be triggered.
+    let triggeredResponse;
+    callbacksMock
+      .expects('triggerPaymentResponse')
+      .withExactArgs(
+        sandbox.match((arg) => {
+          triggeredResponse = arg;
+          return true;
+        })
+      )
+      .once();
+
+    await flow.start();
+
+    expect(startStub).to.be.calledOnce;
+    const response = await triggeredResponse;
+    expect(response.purchaseData.raw).to.contain('"productId":"sku1"');
+    expect(response.userData.email).to.equal('mock-user@example.com');
+  });
+
+  it('should use mockUserData from config if provided', async () => {
+    const customUserData = new UserData('custom-token', {
+      'email': 'custom-user@example.com',
+    });
+    runtime.configure({
+      enableMockBuyFlow: true,
+      mockUserData: customUserData,
+    });
+
+    // PayCompleteFlow should be started.
+    const startStub = sandbox
+      .stub(PayCompleteFlow.prototype, 'start')
+      .resolves();
+
+    // Payment response should be triggered.
+    let triggeredResponse;
+    callbacksMock
+      .expects('triggerPaymentResponse')
+      .withExactArgs(
+        sandbox.match((arg) => {
+          triggeredResponse = arg;
+          return true;
+        })
+      )
+      .once();
+
+    await flow.start();
+
+    expect(startStub).to.be.calledOnce;
+    const response = await triggeredResponse;
+    expect(response.userData.email).to.equal('custom-user@example.com');
+    expect(response.userData.idToken).to.equal('custom-token');
+  });
 });
 
 describes.realWin('PayCompleteFlow', (env) => {
