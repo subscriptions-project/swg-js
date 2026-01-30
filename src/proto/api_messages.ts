@@ -104,6 +104,8 @@ export enum AnalyticsEvent {
   IMPRESSION_BYO_CTA = 56,
   IMPRESSION_BYO_CTA_ERROR = 57,
   IMPRESSION_CONTRIBUTION_OFFERS_PURCHASE_UNAVAILABLE = 58,
+  IMPRESSION_BYOE_POP_UP_OPT_IN = 59,
+  IMPRESSION_BYOE_POP_UP_OPT_IN_ERROR = 60,
   ACTION_SUBSCRIBE = 1000,
   ACTION_PAYMENT_COMPLETE = 1001,
   ACTION_ACCOUNT_CREATED = 1002,
@@ -196,6 +198,7 @@ export enum AnalyticsEvent {
   ACTION_BYO_CTA_CLOSE = 1087,
   ACTION_BYO_CTA_BUTTON_CLICK = 1088,
   ACTION_BYO_CTA_PAGE_REFRESH = 1089,
+  ACTION_BYOE_POP_UP_OPT_IN = 1092,
   EVENT_PAYMENT_FAILED = 2000,
   EVENT_REGWALL_OPT_IN_FAILED = 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED = 2002,
@@ -268,6 +271,8 @@ export enum AnalyticsEvent {
   EVENT_HOSTED_PAGE_SUBSCRIPTION_PAYMENT_COMPLETE = 3054,
   EVENT_HOSTED_PAGE_CONTRIBUTION_PAYMENT_COMPLETE = 3055,
   EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR = 3056,
+  EVENT_BYOE_POP_UP_EMAIL_VALIDATION_ERROR = 3062,
+  EVENT_BYOE_POP_UP_NAME_VALIDATION_ERROR = 3063,
   EVENT_SUBSCRIPTION_STATE = 4000,
   FREE_ACCESS_EVENT_LANDING = 5000,
   FREE_ACCESS_EVENT_FREE_ACCESS_PROGRAM = 5001,
@@ -285,6 +290,13 @@ export enum CtaMode {
   CTA_MODE_UNSPECIFIED = 0,
   CTA_MODE_POPUP = 1,
   CTA_MODE_INLINE = 2,
+}
+
+/** */
+export enum EmailValidationStatus {
+  EMAIL_VALIDATION_STATUS_UNSPECIFIED = 0,
+  EMAIL_VALIDATION_STATUS_EMAIL_EMPTY = 1,
+  EMAIL_VALIDATION_STATUS_EMAIL_MALFORMED = 2,
 }
 
 /** */
@@ -1286,6 +1298,7 @@ export class EventParams implements Message {
   private linkedPublicationsCount_: number | null;
   private ctaMode_: CtaMode | null;
   private optInType_: OptInType | null;
+  private emailValidationStatus_: EmailValidationStatus | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1316,6 +1329,8 @@ export class EventParams implements Message {
     this.ctaMode_ = data[10 + base] == null ? null : (data[10 + base] as CtaMode);
 
     this.optInType_ = data[11 + base] == null ? null : (data[11 + base] as OptInType);
+
+    this.emailValidationStatus_ = data[12 + base] == null ? null : (data[12 + base] as EmailValidationStatus);
   }
 
   getSmartboxMessage(): string | null {
@@ -1414,6 +1429,14 @@ export class EventParams implements Message {
     this.optInType_ = value;
   }
 
+  getEmailValidationStatus(): EmailValidationStatus | null {
+    return this.emailValidationStatus_;
+  }
+
+  setEmailValidationStatus(value: EmailValidationStatus): void {
+    this.emailValidationStatus_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1428,6 +1451,7 @@ export class EventParams implements Message {
       this.linkedPublicationsCount_, // field 10 - linked_publications_count
       this.ctaMode_, // field 11 - cta_mode
       this.optInType_, // field 12 - opt_in_type
+      this.emailValidationStatus_, // field 13 - email_validation_status
     ];
     if (includeLabel) {
       arr.unshift(this.label());

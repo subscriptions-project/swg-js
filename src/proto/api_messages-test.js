@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -458,6 +458,7 @@ describe('AnalyticsRequest', () => {
     eventparams1.setLinkedPublicationsCount(0);
     eventparams1.setCtaMode(CtaMode.CTA_MODE_UNSPECIFIED);
     eventparams1.setOptInType(OptInType.OPT_IN_TYPE_UNSPECIFIED);
+    eventparams1.setEmailValidationStatus(EmailValidationStatus.EMAIL_VALIDATION_STATUS_UNSPECIFIED);
     analyticsrequest1.setParams(eventparams1);
 
     let analyticsrequestDeserialized;
@@ -940,6 +941,7 @@ describe('EventParams', () => {
     eventparams1.setLinkedPublicationsCount(0);
     eventparams1.setCtaMode(CtaMode.CTA_MODE_UNSPECIFIED);
     eventparams1.setOptInType(OptInType.OPT_IN_TYPE_UNSPECIFIED);
+    eventparams1.setEmailValidationStatus(EmailValidationStatus.EMAIL_VALIDATION_STATUS_UNSPECIFIED);
 
     let eventparamsDeserialized;
 
@@ -975,6 +977,8 @@ describe('EventParams', () => {
         eventparams1.getCtaMode());
     expect(eventparamsDeserialized.getOptInType()).to.deep.equal(
         eventparams1.getOptInType());
+    expect(eventparamsDeserialized.getEmailValidationStatus()).to.deep.equal(
+        eventparams1.getEmailValidationStatus());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -1008,6 +1012,8 @@ describe('EventParams', () => {
         eventparams1.getCtaMode());
     expect(eventparamsDeserialized.getOptInType()).to.deep.equal(
         eventparams1.getOptInType());
+    expect(eventparamsDeserialized.getEmailValidationStatus()).to.deep.equal(
+        eventparams1.getEmailValidationStatus());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -1040,6 +1046,8 @@ describe('EventParams', () => {
         eventparams1.getCtaMode());
     expect(eventparamsDeserialized.getOptInType()).to.deep.equal(
         eventparams1.getOptInType());
+    expect(eventparamsDeserialized.getEmailValidationStatus()).to.deep.equal(
+        eventparams1.getEmailValidationStatus());
   });
 });
 
