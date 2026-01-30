@@ -26,6 +26,7 @@ import {LoggerApi} from './logger-api';
 import {Offer} from './offer';
 import {PropensityApi} from './propensity-api';
 import {SubscribeResponse} from './subscribe-response';
+import {UserData} from './user-data';
 
 export interface Subscriptions {
   /**
@@ -393,6 +394,15 @@ export interface Config {
   enablePropensity?: boolean;
   publisherProvidedId?: string;
   paySwgVersion?: string;
+  /**
+   * If true, bypasses the actual payment client and simulates a successful
+   * subscription purchase. Intended for development and testing only.
+   */
+  enableMockBuyFlow?: boolean;
+  /**
+   * Optional mock user data to be used when enableMockBuyFlow is true.
+   */
+  mockUserData?: UserData;
 }
 
 /**
@@ -508,6 +518,7 @@ export function defaultConfig(): Config {
     analyticsMode: AnalyticsMode.DEFAULT,
     enableSwgAnalytics: false,
     enablePropensity: false,
+    enableMockBuyFlow: false,
   };
 }
 

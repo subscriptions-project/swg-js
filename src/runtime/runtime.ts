@@ -95,6 +95,7 @@ import {PropensityApi} from '../api/propensity-api';
 import {Storage} from './storage';
 import {SubscribeResponse} from '../api/subscribe-response';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
+import {UserData} from '../api/user-data';
 import {WaitForSubscriptionLookupApi} from './wait-for-subscription-lookup-api';
 import {assert} from '../utils/log';
 import {
@@ -880,6 +881,17 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           if (typeof value !== 'string') {
             error = 'paySwgVersion must be a string, type: ' + typeof value;
             break;
+          }
+          break;
+        case 'enableMockBuyFlow':
+          if (!isBoolean(value)) {
+            error =
+              'enableMockBuyFlow must be a boolean, type: ' + typeof value;
+          }
+          break;
+        case 'mockUserData':
+          if (!(value instanceof UserData)) {
+            error = 'mockUserData must be an instance of UserData';
           }
           break;
         default:
