@@ -38,6 +38,11 @@ describes.sandboxed('services', () => {
       expect(getSwgMode()).to.deep.equal(MODES.prod);
     });
 
+    it('should override with swg.mode=paytest', () => {
+      self.location.hash = 'swg.mode=paytest';
+      expect(getSwgMode()).to.deep.equal(MODES.paytest);
+    });
+
     it('should override with swg.mode=qual', () => {
       self.location.hash = 'swg.mode=qual';
       expect(getSwgMode()).to.deep.equal(MODES.qual);
