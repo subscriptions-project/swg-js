@@ -97,7 +97,7 @@
     "lazypipe": "1.0.2",
     "minimist": "1.2.8",
     "mocha": "11.7.5",
-    "nightwatch": "2.6.25",
+    "nightwatch": "3.15.0",
     "nodemon": "3.1.11",
     "plugin-error": "2.0.1",
     "postcss-import": "16.1.1",
