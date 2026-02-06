@@ -78,6 +78,13 @@ export class GaaMetering {
   }
 
   /**
+   * Returns a promise that resolves when the subscriptions runtime is ready.
+   */
+  static async ready(): Promise<void> {
+    await GaaMetering.getOnReadyPromise();
+  }
+
+  /**
    * Initialize GaaMetering flow
    */
   static init(params: InitParamsDef): boolean {

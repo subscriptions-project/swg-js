@@ -28,6 +28,7 @@ import {
   ConfiguredBasicRuntime,
   getBasicRuntime,
   installBasicRuntime,
+  resetBasicRuntimeForTesting,
 } from './basic-runtime';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientTheme} from '../api/subscriptions';
@@ -54,6 +55,7 @@ describes.realWin('installBasicRuntime', (env) => {
 
   beforeEach(() => {
     win = env.win;
+    resetBasicRuntimeForTesting();
   });
 
   function dep(callback) {

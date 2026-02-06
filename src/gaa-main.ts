@@ -37,3 +37,11 @@ self.GaaGoogle3pSignInButton = GaaGoogle3pSignInButton;
 self.GaaSignInWithGoogleButton = GaaSignInWithGoogleButton;
 self.GaaMeteringRegwall = GaaMeteringRegwall;
 self.GaaMetering = GaaMetering;
+
+export {
+  GaaGoogleSignInButton,
+  GaaGoogle3pSignInButton,
+  GaaSignInWithGoogleButton,
+  GaaMeteringRegwall,
+  GaaMetering,
+};

@@ -27,3 +27,4 @@ export const INTERNAL_RUNTIME_VERSION = '0.0.0';
 export const ASSETS = '/assets';
 export const ADS_SERVER = 'https://pubads.g.doubleclick.net';
 export const EXPERIMENTS = '';
+export const IS_ESM = false;

@@ -63,6 +63,19 @@ const CHECK_ENTITLEMENTS_REQUEST_ID = 'CHECK_ENTITLEMENTS';
 let basicRuntimeInstance: BasicRuntime;
 
 /**
+ * Reference to the public basic runtime, for idempotency.
+ */
+let publicBasicRuntimeInstance: BasicSubscriptions;
+
+/**
+ * Resets the basic runtime instance for testing.
+ */
+export function resetBasicRuntimeForTesting(): void {
+  basicRuntimeInstance = (undefined as unknown) as BasicRuntime;
+  publicBasicRuntimeInstance = (undefined as unknown) as BasicSubscriptions;
+}
+
+/**
  * Returns runtime for testing if available. Throws if the runtime is not
  * initialized yet.
  */
@@ -74,12 +87,14 @@ export function getBasicRuntime(): BasicRuntime {
 /**
  * Installs runtime for SwG Basic.
  */
-export function installBasicRuntime(win: Window): void {
+export function installBasicRuntime(
+  win: Window,
+  options?: {autoStart?: boolean}
+): BasicSubscriptions {
   // Only install the SwG Basic runtime once.
-  if (win[BASIC_RUNTIME_PROP] && !Array.isArray(win[BASIC_RUNTIME_PROP])) {
-    return;
+  if (publicBasicRuntimeInstance) {
+    return publicBasicRuntimeInstance;
   }
-
   // Create the runtime.
   const basicRuntime = new BasicRuntime(win);
 
@@ -108,22 +123,29 @@ export function installBasicRuntime(win: Window): void {
     win[BASIC_RUNTIME_PROP]
   );
   for (const waitingCallback of waitingCallbacks) {
+    if (typeof waitingCallback !== "function") {
+      continue;
+    }
     callWhenRuntimeIsReady(waitingCallback);
   }
 
   // If any more callbacks are `push`ed to the global SwG Basic variables,
-  // they'll be queued up to receive the SwG Basic runtime when it's ready.
-  (win[BASIC_RUNTIME_PROP] as {}) = {
+  const proxy = {
     push: callWhenRuntimeIsReady,
+    ready: () => Promise.resolve(publicBasicRuntime),
   };
-
-  // Set variable for testing.
+  win[BASIC_RUNTIME_PROP] = Object.assign(win[BASIC_RUNTIME_PROP] || [], proxy);
   basicRuntimeInstance = basicRuntime;
+
+  // Set public instance.
+  publicBasicRuntimeInstance = publicBasicRuntime;
 
   // Automatically set up buttons already on the page.
   basicRuntime.setupButtons();
 
   basicRuntime.setupInlineCta();
+
+  return publicBasicRuntime;
 }
 
 export class BasicRuntime implements BasicSubscriptions {
@@ -200,6 +222,10 @@ export class BasicRuntime implements BasicSubscriptions {
     await this.pageConfigWriter_.writeConfigWhenReady(markupValues);
     this.pageConfigWriter_ = null;
     this.configured_(true);
+  }
+
+  async ready(): Promise<void> {
+    await 0;
   }
 
   init({
@@ -481,6 +507,10 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     return this.configuredClassicRuntime_.clientConfigManager();
   }
 
+  async ready(): Promise<void> {
+    await 0;
+  }
+
   init(): void {
     // Implemented by the 'BasicRuntime' class.
   }
@@ -672,6 +702,7 @@ function createPublicBasicRuntime(
   basicRuntime: BasicRuntime
 ): BasicSubscriptions {
   return {
+    ready: basicRuntime.ready.bind(basicRuntime),
     init: basicRuntime.init.bind(basicRuntime),
     setOnEntitlementsResponse:
       basicRuntime.setOnEntitlementsResponse.bind(basicRuntime),

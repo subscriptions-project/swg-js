@@ -60,7 +60,13 @@ export function queryStringHasFreshGaaParams(
  * Calls Swgjs.
  */
 export function callSwg(callback: (api: Subscriptions) => void) {
-  (self.SWG = self.SWG || []).push(callback);
+  if (Array.isArray(self.SWG as any)) {
+    (self.SWG as any).push(callback);
+  } else if (((self.SWG as any) && typeof (self.SWG as any).push) === "function") {
+    (self.SWG as any).push(callback);
+  } else {
+    ((self as any).SWG = (self as any).SWG || []).push(callback);
+  }
 }
 
 /**
