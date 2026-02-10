@@ -578,6 +578,16 @@ describes.realWin('Runtime', (env) => {
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
 
+    it('should delegate "conferTimeBoundPass"', async () => {
+      configuredRuntimeMock
+        .expects('conferTimeBoundPass')
+        .withExactArgs('sku1')
+        .once();
+
+      await runtime.conferTimeBoundPass('sku1');
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
     it('should delegate "updateSubscription"', async () => {
       configuredRuntimeMock
         .expects('updateSubscription')
@@ -1856,6 +1866,21 @@ new subscribers. Use the showOffers() method instead.'
       expect(startStub).to.be.calledOnce;
       expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
       expect(flowInstance.productType_).to.equal(ProductType.SUBSCRIPTION);
+    });
+
+    it('should start PayStartFlow for time bound pass', async () => {
+      let flowInstance;
+      const startStub = sandbox
+        .stub(PayStartFlow.prototype, 'start')
+        .callsFake(function () {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+
+      await runtime.conferTimeBoundPass('sku1');
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+      expect(flowInstance.productType_).to.equal(ProductType.TIME_BOUND_PASS);
     });
 
     it('throws if subscribe() is used to replace a subscription', async () => {
