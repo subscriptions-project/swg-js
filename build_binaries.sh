@@ -21,20 +21,36 @@ function build_template_binary() {
     if [[ $target != "classic" ]]; then
         filename="$filename-$target"
     fi
-    filename="$filename.template.js"
+    local -r template_filename="$filename.template"
 
+    # Build IIFE
     npx vite build -- \
         "--assets=https://news.google.com/swg/js/v1" \
         "--experiments=$experiments" \
         "--frontend=https://FRONTEND.com" \
         "--frontendCache=nocache" \
-        "--minifiedBasicName=$filename" \
-        "--minifiedGaaName=$filename" \
-        "--minifiedName=$filename" \
+        "--minifiedBasicName=$template_filename.js" \
+        "--minifiedGaaName=$template_filename.js" \
+        "--minifiedName=$template_filename.js" \
         "--payEnvironment=___PAY_ENVIRONMENT___" \
         "--playEnvironment=___PLAY_ENVIRONMENT___" \
         "--swgVersion=$SWG_VERSION" \
         "--target=$target"
+
+    # Build ESM
+    npx vite build -- \
+        "--assets=https://news.google.com/swg/js/v1" \
+        "--experiments=$experiments" \
+        "--frontend=https://FRONTEND.com" \
+        "--frontendCache=nocache" \
+        "--minifiedBasicName=$template_filename.js" \
+        "--minifiedGaaName=$template_filename.js" \
+        "--minifiedName=$template_filename.js" \
+        "--payEnvironment=___PAY_ENVIRONMENT___" \
+        "--playEnvironment=___PLAY_ENVIRONMENT___" \
+        "--swgVersion=$SWG_VERSION" \
+        "--target=$target" \
+        "--esm"
 }
 build_template_binary basic   $EXPERIMENTS &
 build_template_binary classic $EXPERIMENTS &
@@ -50,15 +66,17 @@ function create_binaries_for_environment() {
     shift 4
 
     for variant in "" "-basic" "-gaa"; do
-        # Copy files.
-        cp dist/swg$variant.template.js dist/swg$variant$target.js
-        cp dist/swg$variant.template.js.map dist/swg$variant$target.js.map
+        for ext in "js" "mjs"; do
+            # Copy files.
+            cp dist/swg$variant.template.$ext dist/swg$variant$target.$ext
+            cp dist/swg$variant.template.$ext.map dist/swg$variant$target.$ext.map
 
-        # Replace values.
-        sed -i "s|https://FRONTEND.com|$frontend|g"                dist/swg$variant$target*
-        sed -i "s|___PAY_ENVIRONMENT___|$pay_environment|g"        dist/swg$variant$target*
-        sed -i "s|___PLAY_ENVIRONMENT___|$play_environment|g"      dist/swg$variant$target*
-        sed -i "s|swg$variant.template.js.map|swg$variant$target.js.map|g" dist/swg$variant$target*
+            # Replace values.
+            sed -i "s|https://FRONTEND.com|$frontend|g"                dist/swg$variant$target.$ext*
+            sed -i "s|___PAY_ENVIRONMENT___|$pay_environment|g"        dist/swg$variant$target.$ext*
+            sed -i "s|___PLAY_ENVIRONMENT___|$play_environment|g"      dist/swg$variant$target.$ext*
+            sed -i "s|swg$variant.template.$ext.map|swg$variant$target.$ext.map|g" dist/swg$variant$target.$ext*
+        done
     done
 }
 create_binaries_for_environment \
@@ -80,3 +98,4 @@ wait
 
 # Remove template binaries.
 rm dist/*template.js*
+rm dist/*template.mjs*

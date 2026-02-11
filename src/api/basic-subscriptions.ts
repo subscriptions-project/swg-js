@@ -23,6 +23,11 @@ import {SubscribeResponse} from './subscribe-response';
  */
 export interface BasicSubscriptions {
   /**
+   * Returns a promise that resolves when the subscriptions runtime is ready.
+   */
+  ready(): Promise<void>;
+
+  /**
    * Initializes the basic subscriptions runtime. This includes setting of the
    * specified param values in the JSON-LD markup of the page, sets up any SwG
    * buttons with attribute 'swg-standard-button', and inserts a SwG prompt for
