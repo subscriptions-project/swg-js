@@ -1,65 +1,61 @@
-# Research Report: SwG Initialization Patterns
+# Evolution of SwG Initialization: From Snippets to Modules
 
-## Executive Summary
-The `(self.SWG = self.SWG || []).push(...)` pattern used by `swg.js` is a specialized implementation of the **Async Snippet** pattern. While it effectively solves the problem of asynchronous script loading in non-module environments, it lacks the ergonomics of modern JavaScript features like Promises and ES Modules. This report outlines why this pattern exists and how it can be evolved.
-
----
-
-## 1. Why the Current Pattern Exists
-The "Array Push" pattern was the industry standard for third-party libraries (similar to Google Analytics, Facebook Pixel, etc.) for several years. It was chosen for SwG for three primary reasons:
-
-### A. Asynchronous Loading Resilience
-By allowing publishers to interact with `self.SWG` before the script has even begun downloading, the library prevents race conditions. The publisher can "queue" their initialization logic in an array. Once `swg.js` loads and executes, it iterates through this array and processes the queued functions.
-
-### B. Non-Blocking Integration
-Publishers can include the SwG script using the `async` or `defer` attributes. This ensures that the SwG library doesn't block the critical rendering path of the publisher's website.
-
-### C. Execution Order Independence
-Because the library replaces the `.push` method with its own execution handler after initialization (found in `src/runtime/runtime.ts`), any subsequent calls to `.push` by the publisher are executed immediately, ensuring a consistent API regardless of when the code is called.
+This document details the transition of the `swg-js` initialization from the legacy "Async Snippet" pattern to a modern, module-based architecture. It explains why the original pattern existed and how the new implementation provides a modern experience without breaking existing sites.
 
 ---
 
-## 2. Modernizing the Initialization Pattern
-To align with modern development practices while maintaining backwards compatibility, we can introduce two primary enhancements.
+## 1. The Legacy: The "Array Push" Pattern
+Historically, `swg.js` used a specialized version of the Async Snippet pattern: `(self.SWG = self.SWG || []).push(...)`. This was necessary for several reasons:
 
-### Proposal A: Promise-Based Initialization
-Instead of a callback-based queue, we can expose a Promise that resolves when the runtime is ready. This allows for cleaner `async/await` syntax.
+- **Async Resilience:** It allowed sites to start using the `SWG` object before the script had even finished downloading. Code could be "queued" in an array and processed once the library executed.
+- **Non-Blocking:** By using `async` or `defer` attributes, the library stayed out of the critical rendering path.
+- **Automatic Execution:** The IIFE version of the library is "Active-by-Default." As soon as it loads, it scans the DOM for buttons and configuration, handling everything automatically for simple integrations.
 
-**Proposed Usage:**
+---
+
+## 2. The Modernization: ESM and Promises
+The implementation now supports two modern initialization tracks alongside the legacy snippet.
+
+### 2.1. Side-Effect-Free ES Modules
+Developers can now import the library directly as a module. Unlike the legacy script, the ESM version is "Passive-by-Default."
+
+**Usage:**
+```javascript
+import { subscriptions } from 'swg.mjs';
+
+// The library is loaded, but hasn't scanned the DOM yet.
+subscriptions.init({ ... });
+```
+
+The implementation achieves this using a build-time flag, `IS_ESM_BUILD`. When the library is built as a module, it suppresses the automatic DOM scanning and setup. This gives developers full control over when initialization happens, which is standard for modern dependencies.
+
+### 2.2. The .ready() Promise
+To move away from callback-heavy code, the `SWG` and `SWG_BASIC` objects now include a `.ready()` method. This returns a Promise that resolves to the public API once the library is fully loaded and initialized.
+
+**Usage:**
 ```javascript
 const subscriptions = await self.SWG.ready();
-subscriptions.init({ ... });
-```
-
-**Implementation Strategy:**
-We can modify `installRuntime` in `src/runtime/runtime.ts` to attach a `ready` function to the `SWG` object that returns a singleton Promise.
-
-### Proposal B: ES Module Support
-Currently, SwG is bundled primarily as an IIFE (Immediately Invoked Function Expression). By updating the build configuration to also output an ES Module (ESM), developers using modern build tools (Vite, Webpack, etc.) can import the library directly.
-
-**Proposed Usage:**
-```javascript
-import { subscriptions } from 'swg-js';
-
-subscriptions.init({ ... });
+subscriptions.setupButtons();
 ```
 
 ---
 
-## 3. Implementation Roadmap (Backwards Compatible)
+## 3. Technical Architecture
 
-To implement these changes without breaking existing implementations:
+### 3.1. Singletons and Idempotency
+The core installers (`installRuntime` and `installBasicRuntime`) were refactored into singletons. The public API instance is stored in a module-level variable. 
 
-1.  **Update `vite.config.js`:** Update the configuration to produce both IIFE and ESM outputs.
-2.  **Modify `src/main.ts`:** Export the initialized runtime.
-    ```typescript
-    // src/main.ts
-    export const subscriptions = installRuntime(self);
-    ```
-3.  **Enhance `installRuntime`:**
-    *   Initialize `self.SWG` as an object that still supports `.push` (for legacy code).
-    *   Add a `.ready()` method to `self.SWG` that returns a Promise resolving to the API.
-    *   Ensure that if `self.SWG` was already an array, its contents are still processed.
+If a site mixes patterns—for example, using a legacy snippet and then importing the module later—the library detects the existing instance and returns it immediately. This prevents the creation of duplicate managers, redundant event listeners, or multiple DOM scans.
+
+### 3.2. Granular Initialization Control
+The installers now accept an `options` object: `installRuntime(win, {autoStart: boolean})`. 
+- **autoStart (true):** The library performs legacy tasks like `setupButtons()` and `setupInlineCta()` automatically.
+- **autoStart (false):** The library initializes its internal managers but remains idle until the developer calls a method.
+
+The entry points decide which behavior to use based on the build format. The IIFE bundle defaults to `true` to maintain backward compatibility, while the ESM bundle defaults to `false` to avoid side effects during import.
+
+### 3.3. Multi-Format Build System
+The build system was updated to produce both formats simultaneously. Vite generates `.js` (IIFE) and `.mjs` (ESM) files for all entry points. Format-specific logic, such as the outer IIFE wrapper used for certain environments, is gated to ensure it doesn't corrupt the standard exports required for modules.
 
 ## 4. Conclusion
-The current initialization pattern is a robust legacy solution for a pre-ESM web. Transitioning to a Promise-based API and providing official ESM exports will significantly improve the developer experience, making SwG feel like a modern dependency rather than a legacy "snippet."
+The current architecture bridges the gap between legacy and modern web development. It preserves the "auto-pilot" behavior for simple script-tag integrations while providing a clean, side-effect-free, Promise-based experience for developers using modern module-based workflows.

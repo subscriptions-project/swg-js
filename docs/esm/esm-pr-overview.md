@@ -1,64 +1,41 @@
-# Overview: ES Module Support and Modern Initialization
+# Moving swg-js to ES Modules
 
-This document provides a comprehensive summary of the changes implemented to support ES Modules (ESM) and modern initialization patterns in `swg-js`. It is intended to guide reviewers through the architectural decisions and implementation details.
+This PR gets `swg-js` ready for the modern web without breaking the thousands of sites that already use it. It adds ES Module (ESM) support and cleans up how the library starts up.
 
-## 1. Motivation and Goals
-The primary goal of this update is to evolve the library's initialization from a legacy "Async Snippet" pattern to a modern, module-ready API without breaking existing integrations.
+## The Goal
 
-### Key Objectives:
-- **Enable ESM Imports:** Allow developers to use `import { subscriptions } from 'swg.mjs'`.
-- **Passive-by-Default ESM:** Ensure that importing the library as a module does not trigger automatic side effects (like DOM scanning) unless explicitly requested.
-- **100% Backwards Compatibility:** Maintain the "Active-by-Default" behavior for the IIFE build (`swg.js`) to support zero-config markup-only implementations.
-- **Improved Async Handling:** Introduce a Promise-based `.ready()` API for cleaner asynchronous interaction.
-- **Idempotency:** Guarantee that the library only initializes once per page, regardless of how many times it is imported or pushed to the global queue.
+The web has moved to native modules, and `swg-js` needs to follow. But we have a lot of history here. This implementation avoids breaking the "Async Snippet" pattern that publishers have relied on for years.
 
-## 2. Architectural Approach
+The compromise is simple:
+- **Modules are quiet.** If a site uses `import { subscriptions } from 'swg.mjs'`, nothing happens automatically. There are no surprise DOM scans or side effects. The developer is in control.
+- **Script tags are loud.** The traditional `swg.js` bundle still acts as it always has—it scans the page and sets up buttons on its own.
+- **It's safe.** Every one of the 1,900+ existing tests still passes.
 
-### 2.1. Runtime Refactoring
-The core installation functions (`installRuntime` and `installBasicRuntime`) were refactored into a singleton pattern.
-- **Singleton Storage:** The public API instance is now stored in a module-level variable.
-- **Return Value:** `installRuntime` now returns the `SubscriptionsInterface`, allowing entry points to export it directly.
-- **Idempotency:** Subsequent calls to `installRuntime` detect the existing instance and return it immediately.
+## How it works
 
-### 2.2. Conditional Auto-Start Logic
-To distinguish between the IIFE (Active) and ESM (Passive) environments, we introduced a build-time flag:
-- **`IS_ESM_BUILD`:** Injected by Vite during the build process.
-- **Safe Branching:** Entry points use a safe check (`typeof IS_ESM_BUILD !== 'undefined'`) to ensure stability in development (Gulp) environments where the flag may not be defined.
-- **Behavior:**
-    - If `IS_ESM_BUILD` is true, `autoStart` is disabled.
-    - If false (IIFE), `autoStart` remains enabled to preserve legacy behavior.
+### Singletons
+This PR refactors `installRuntime` and `installBasicRuntime` into singletons. The library now stores the API instance in a module-level variable. If the installer is called twice—which is easy to do when mixing imports and snippets—it just returns the existing instance. This prevents doubling up on event listeners or managers.
 
-### 2.3. The `ready()` Promise API
-The global `SWG` and `SWG_BASIC` objects now include a `.ready()` method. This method returns a Promise that resolves to the public API, providing an alternative to the `.push(callback)` pattern.
+### The autoStart option
+The installers now include an `autoStart` flag. 
+- In the IIFE build, this defaults to `true` to keep things simple for markup-only sites.
+- In the ESM build, it defaults to `false`. 
+The entry points use a build-time constant (`IS_ESM_BUILD`) to decide which behavior to use.
 
-## 3. Build System Updates
+### The ready() Promise
+This PR adds a `.ready()` method to the global `SWG` and `SWG_BASIC` objects. This provides a promise-based alternative to the legacy `.push(callback)` pattern, offering a more modern way to handle asynchronous initialization.
 
-### 3.1. Vite Configuration
-`vite.config.js` was updated to support multi-format output:
-- **Dual Formats:** Now generates both `iife` and `es` bundles.
-- **Smart Wrapping:** The `add-outer-iife` plugin is gated to only apply to IIFE builds, preventing it from breaking standard ES exports in the `.mjs` files.
-- **Filename Extension:** ESM builds are explicitly named with the `.mjs` extension.
+## Build System
 
-### 3.2. Production Script (`build_binaries.sh`)
-The official build script was expanded to:
-- Build template binaries for both JS and MJS formats.
-- Specialized environment variants (Production, Autopush, Qual) are now generated for both formats.
-- All environment-specific string replacements (Frontend URLs, Pay/Play environments) are applied to both extensions.
+Vite is now configured to output both formats. Format-specific hacks (like the outer IIFE wrapper) are now gated so they only apply to the `.js` files, preventing them from breaking standard ES exports.
 
-## 4. Verification and Testing
+The `build_binaries.sh` script also handles both formats now, ensuring that the right URLs are injected into both the legacy and module versions for Prod, Autopush, and Qual.
 
-### 4.1. Unit & Integration Tests
-- **Existing Coverage:** All ~1900 existing tests were executed and passed, confirming no regressions in legacy logic.
-- **New Tests:** Two new integration suites were added:
-    - `src/runtime/esm-integration-test.js`
-    - `src/runtime/esm-basic-integration-test.js`
-- **Scenarios Covered:**
-    - Idempotency of `installRuntime`.
-    - Return value of `installRuntime` matches the public API.
-    - Legacy `.push()` functionality remains intact.
-    - New `.ready()` promise resolves correctly.
-    - `autoStart: false` successfully suppresses automatic initialization in module mode.
+## Verification
 
-### 4.2. Build Integrity
-- I manually verified that the Gulp-based development build remains stable and does not suffer from `ReferenceError` issues due to the new build-time constants.
-- Verified that Vite correctly produces `.mjs` files with the expected `export` statements.
+The migration was validated with an emphasis on preventing regressions in the production runtime:
+1.  **100% Pass Rate:** The entire suite of ~1,900 tests was executed with no failures.
+2.  **New ESM Tests:** Integration suites were added to test module-only scenarios, verifying that `autoStart: false` works and that multiple imports do not collide.
+3.  **Manual Checks:** The development server was verified for stability, and the generated `.mjs` files were confirmed to be valid and exportable.
+
+This PR delivers modules and a cleaner API without breaking existing integrations.
