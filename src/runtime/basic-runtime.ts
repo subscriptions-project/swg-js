@@ -140,10 +140,12 @@ export function installBasicRuntime(
   // Set public instance.
   publicBasicRuntimeInstance = publicBasicRuntime;
 
-  // Automatically set up buttons already on the page.
-  basicRuntime.setupButtons();
+  if (options?.autoStart !== false) {
+    // Automatically set up buttons already on the page.
+    basicRuntime.setupButtons();
 
-  basicRuntime.setupInlineCta();
+    basicRuntime.setupInlineCta();
+  }
 
   return publicBasicRuntime;
 }
