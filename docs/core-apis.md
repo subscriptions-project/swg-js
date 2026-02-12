@@ -18,7 +18,7 @@ limitations under the License.
 
 ## Subscriptions API
 
-[Subscriptions service](../src/api/subscriptions.js) is the main service that provides
+[Subscriptions service](../src/api/subscriptions.ts) is the main service that provides
 access to all SwG APIs.
 
 See [Include SwG client on a site](./embed-client.md) on how to load and get access
@@ -36,9 +36,9 @@ For Contribution APIs see [Contributions flow](./contributions-flow.md)
 ## Types used within the Subscriptions API
 
 Some of the main types are:
-- [Entitlements](../src/api/entitlements.js)
-- [SubscribeResponse](../src/api/subscribe-response.js)
-- [UserData](../src/api/user-data.js)
+- [Entitlements](../src/api/entitlements.ts) 
+- [SubscribeResponse](../src/api/subscribe-response.ts)
+- [UserData](../src/api/user-data.ts)
 
 For details on how these types and related APIs are used, see see [Subscriptions flows](./flows.md).
 
