@@ -47,7 +47,7 @@ interface OperatingMode {
 }
 
 /**
- * Default operating Mode
+ * Default operating mode.
  */
 export const DEFAULT: OperatingMode = {
   frontEnd: FRONTEND,
@@ -57,7 +57,7 @@ export const DEFAULT: OperatingMode = {
 };
 
 /**
- * Default operating Mode
+ * Production operating mode.
  */
 const PROD: OperatingMode = {
   frontEnd: 'https://news.google.com',
@@ -67,7 +67,15 @@ const PROD: OperatingMode = {
 };
 
 /**
- * Default operating Mode
+ * Production operating mode with test pay env.
+ */
+const PAY_TEST: OperatingMode = {
+  ...PROD,
+  payEnv: 'TEST',
+};
+
+/**
+ * Autopush operating mode.
  */
 const AUTOPUSH: OperatingMode = {
   frontEnd: 'https://subscribe-autopush.sandbox.google.com',
@@ -77,7 +85,7 @@ const AUTOPUSH: OperatingMode = {
 };
 
 /**
- * Default operating Mode
+ * Qual operating mode.
  */
 const QUAL: OperatingMode = {
   frontEnd: 'https://subscribe-qual.sandbox.google.com',
@@ -95,6 +103,7 @@ const QUAL: OperatingMode = {
 export const MODES: {[key: string]: OperatingMode} = {
   'default': DEFAULT,
   'prod': PROD,
+  'paytest': PAY_TEST,
   'autopush': AUTOPUSH,
   'qual': QUAL,
 };
