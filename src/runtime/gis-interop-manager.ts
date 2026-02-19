@@ -21,15 +21,17 @@ import {exhaustiveCheck} from '../utils/exhaustive';
 import {feUrl} from './services';
 import {isString} from '../utils/types';
 import {setImportantStyles} from '../utils/style';
-import {warn} from '../utils/log';
 
-enum GisInteropManagerStates {
-  LISTENING,
+/**
+ * The states of the GisInteropManager.
+ */
+export enum GisInteropManagerStates {
+  WAITING_FOR_PING,
   LOADING_COMMUNICATION_IFRAME,
-  ERROR,
+  COMMUNICATION_IFRAME_ESTABLISHED,
 }
 
-export const RRM_GIS_MSG_TYPE = [
+const RRM_GIS_MSG_TYPE = [
   // Initial message from gis.js to swg.js for establishing the handshake.
   'RRM_GIS_PING',
   // Acknowledgement from swg.js to gis.js for establishign the handshake.
@@ -59,68 +61,85 @@ export const RRM_GIS_MSG_TYPE = [
 ] as const;
 
 export class GisInteropManager {
-  private state = GisInteropManagerStates.LISTENING;
+  private state = GisInteropManagerStates.WAITING_FOR_PING;
+  // UUID for the connection between swg.js and gis.js. Established in initial PING from gis.js.
   private sessionId?: string;
-  private source: MessageEventSource | null = null;
+  // The source of the message from gis.js.
+  private gisSource: MessageEventSource | null = null;
+  // The origin of the message from gis.js.
   private sourceOrigin?: string;
-  private iframe?: HTMLElement;
+  // Secure channel to pass secrets between swg.js and gis.js.
+  private communicationIframe?: HTMLIFrameElement;
+  // Whether the communication iframe has loaded.
+  private iframeLoaded = false;
+  // Whether gis.js is ready to receive messages through the communication iframe.
+  private gisReady = false;
   private readonly messageHandlerValue = this.messageHandler.bind(this);
 
   constructor(private readonly doc: Doc) {
     this.doc.getWin().addEventListener('message', this.messageHandlerValue);
   }
 
+  public getState(): GisInteropManagerStates {
+    return this.state;
+  }
+
   private messageHandler(ev: MessageEvent) {
-    if (!RRM_GIS_MSG_TYPE.includes(ev.data.type)) {
+    const notRrmGisMessage = !RRM_GIS_MSG_TYPE.includes(ev.data.type);
+    const sessionNeeded =
+      this.state !== GisInteropManagerStates.WAITING_FOR_PING;
+    const wrongSession = ev.data.sessionId !== this.sessionId;
+    const shouldIgnoreMessage =
+      notRrmGisMessage || (sessionNeeded && wrongSession);
+    if (shouldIgnoreMessage) {
       return;
     }
 
     switch (this.state) {
-      case GisInteropManagerStates.LISTENING:
-        this.handleListeningState(ev);
+      case GisInteropManagerStates.WAITING_FOR_PING:
+        this.handleWaitingForPingState(ev);
         break;
       case GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME:
-      case GisInteropManagerStates.ERROR:
+        this.handleLoadingCommunicationIframeState(ev);
+        break;
+      case GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED:
         break;
       default:
         exhaustiveCheck(this.state);
     }
   }
 
-  private handleListeningState(ev: MessageEvent) {
-    // Validate the message.
-    if (ev.data.type !== 'RRM_GIS_PING' || !isString(ev.data.sessionId)) {
-      this.state = GisInteropManagerStates.ERROR;
-      warn(
-        `[GisInteropManager] Unexpected message in LISTENING state: ${ev.data.type}`
-      );
+  private handleWaitingForPingState(ev: MessageEvent) {
+    const notPingMessage = ev.data.type !== 'RRM_GIS_PING';
+    const invalidSessionId = !isString(ev.data.sessionId);
+    if (notPingMessage || invalidSessionId) {
       return;
     }
 
-    // Process the valid message
     this.state = GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME;
     this.sessionId = ev.data.sessionId;
-    this.source = ev.source;
+    this.gisSource = ev.source;
     this.sourceOrigin = ev.origin;
-    this.source?.postMessage({
+
+    this.gisSource?.postMessage({
       type: 'RRM_GIS_ACK',
       sessionId: this.sessionId,
     });
 
     const src = addQueryParams(feUrl('/rrmgisinterop'), {
       'sessionId': this.sessionId!,
-      'origin': encodeURIComponent(this.doc.getWin().origin),
-      'rrmOrigin': encodeURIComponent(this.doc.getWin().origin),
-      'gisOrigin': encodeURIComponent(this.sourceOrigin!),
+      'origin': this.doc.getWin().origin,
+      'rrmOrigin': this.doc.getWin().origin,
+      'gisOrigin': this.sourceOrigin!,
     });
 
-    this.iframe = createElement(this.doc.getRootNode(), 'iframe', {
+    this.communicationIframe = createElement(this.doc.getRootNode(), 'iframe', {
       'src': src,
       'tabindex': '-1',
       'aria-hidden': 'true',
-    });
+    }) as HTMLIFrameElement;
 
-    setImportantStyles(this.iframe, {
+    setImportantStyles(this.communicationIframe, {
       'width': '0',
       'height': '0',
       'border': 'none',
@@ -128,6 +147,27 @@ export class GisInteropManager {
       'visibility': 'hidden',
     });
 
-    this.doc.getBody()?.appendChild(this.iframe);
+    this.doc.getBody()?.appendChild(this.communicationIframe);
+  }
+
+  private handleLoadingCommunicationIframeState(ev: MessageEvent) {
+    const isIframeLoadedMessage = ev.data.type === 'RRM_GIS_IFRAME_LOADED';
+    const isFromCommunicationIframe =
+      ev.source === this.communicationIframe?.contentWindow;
+    const isGisReadyMessage = ev.data.type === 'RRM_GIS_READY';
+    const isFromGis = ev.source === this.gisSource;
+    if (isIframeLoadedMessage && isFromCommunicationIframe) {
+      this.gisSource?.postMessage({
+        type: 'RRM_GIS_READY',
+        sessionId: this.sessionId,
+      });
+      this.iframeLoaded = true;
+    } else if (isGisReadyMessage && isFromGis) {
+      this.gisReady = true;
+    }
+
+    if (this.iframeLoaded && this.gisReady) {
+      this.state = GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED;
+    }
   }
 }

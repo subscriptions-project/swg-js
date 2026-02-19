@@ -14,72 +14,234 @@
  * limitations under the License.
  */
 
-import * as log from '../utils/log';
-import {GisInteropManager} from './gis-interop-manager';
+import {
+  GisInteropManager,
+  GisInteropManagerStates,
+} from './gis-interop-manager';
 import {GlobalDoc} from '../model/doc';
 
 describes.realWin('GisInteropManager', (env) => {
   let win;
   let doc;
   let manager;
+  let mockGisFrame;
 
   beforeEach(() => {
     win = env.win;
     doc = new GlobalDoc(win);
     manager = new GisInteropManager(doc);
+    mockGisFrame = doc.getRootNode().createElement('iframe');
+    doc.getBody().appendChild(mockGisFrame);
   });
 
-  it('should be created in listening state', () => {
-    expect(manager).to.be.ok;
+  afterEach(() => {
+    if (mockGisFrame && mockGisFrame.parentNode) {
+      mockGisFrame.parentNode.removeChild(mockGisFrame);
+    }
   });
 
-  it('should ignore non-RRM messages', () => {
-    const warnStub = sandbox.stub(log, 'warn');
-
-    const event = new MessageEvent('message', {
-      data: {type: 'RANDOM_MESSAGE'},
-      source: win,
+  describe('in WAITING_FOR_PING state', () => {
+    it('should be in WAITING_FOR_PING state initially', () => {
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.WAITING_FOR_PING
+      );
     });
 
-    win.dispatchEvent(event);
-
-    expect(warnStub).to.not.have.been.called;
-  });
-
-  it('should handle invalid RRM_GIS_PING (missing sessionId) by transitioning to ERROR', () => {
-    const warnStub = sandbox.stub(log, 'warn');
-
-    // This is an RRM message, but missing sessionId, so handleListeningState should catch it.
-    const event = new MessageEvent('message', {
-      data: {
-        type: 'RRM_GIS_PING',
-        // Missing sessionId
-      },
-      source: win,
+    it('should ignore non-PING messages', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {type: 'RANDOM_MESSAGE'},
+          source: win,
+        })
+      );
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.WAITING_FOR_PING
+      );
     });
 
-    win.dispatchEvent(event);
+    it('should ignore PING without sessionId', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {type: 'RRM_GIS_PING'},
+          source: win,
+        })
+      );
 
-    expect(warnStub).to.have.been.calledWithMatch(
-      /Unexpected message in LISTENING state/
-    );
-  });
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.WAITING_FOR_PING
+      );
+    });
 
-  it('should handle valid RRM_GIS_PING', () => {
-    const warnStub = sandbox.stub(log, 'warn');
+    it('should transition to LOADING_COMMUNICATION_IFRAME on valid PING', () => {
+      const gisSource = mockGisFrame.contentWindow;
+      const postMessageSpy = sandbox.spy(gisSource, 'postMessage');
 
-    // Valid ping
-    const event = new MessageEvent('message', {
-      data: {
-        type: 'RRM_GIS_PING',
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_PING',
+            sessionId: 'test-session-id',
+          },
+          source: gisSource,
+          origin: 'https://example.com',
+        })
+      );
+
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+      );
+
+      expect(postMessageSpy).to.have.been.calledWith({
+        type: 'RRM_GIS_ACK',
         sessionId: 'test-session-id',
-      },
-      source: win,
-      origin: 'https://example.com',
+      });
+
+      const iframes = doc.getBody().querySelectorAll('iframe');
+      const communicationIframe = Array.from(iframes).find(
+        (f) => f !== mockGisFrame
+      );
+      expect(communicationIframe).to.exist;
+      expect(communicationIframe.getAttribute('src')).to.contain(
+        '/rrmgisinterop'
+      );
+      expect(communicationIframe.getAttribute('src')).to.contain(
+        'sessionId=test-session-id'
+      );
+    });
+  });
+
+  describe('in LOADING_COMMUNICATION_IFRAME state', () => {
+    let communicationIframe;
+    let gisSource;
+    let postMessageSpy;
+
+    beforeEach(() => {
+      gisSource = mockGisFrame.contentWindow;
+      postMessageSpy = sandbox.spy(gisSource, 'postMessage');
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_PING',
+            sessionId: 'test-session-id',
+          },
+          source: gisSource,
+          origin: 'https://example.com',
+        })
+      );
+
+      const iframes = doc.getBody().querySelectorAll('iframe');
+      communicationIframe = Array.from(iframes).find((f) => f !== mockGisFrame);
+
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+      );
     });
 
-    win.dispatchEvent(event);
+    it('should ignore messages with wrong sessionId', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_READY',
+            sessionId: 'wrong-session-id',
+          },
+          source: gisSource,
+        })
+      );
 
-    expect(warnStub).to.not.have.been.called;
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+      );
+    });
+
+    it('should ignore IFRAME_LOADED from wrong source', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_IFRAME_LOADED',
+            sessionId: 'test-session-id',
+          },
+          source: win,
+        })
+      );
+
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+      );
+
+      expect(postMessageSpy).to.not.have.been.calledWithMatch({
+        type: 'RRM_GIS_READY',
+      });
+    });
+
+    it('should transition to COMMUNICATION_IFRAME_ESTABLISHED (Scenario 1: IFRAME_LOADED then READY)', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_IFRAME_LOADED',
+            sessionId: 'test-session-id',
+          },
+          source: communicationIframe.contentWindow,
+        })
+      );
+
+      expect(postMessageSpy).to.have.been.calledWith({
+        type: 'RRM_GIS_READY',
+        sessionId: 'test-session-id',
+      });
+
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+      );
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_READY',
+            sessionId: 'test-session-id',
+          },
+          source: gisSource,
+        })
+      );
+
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED
+      );
+    });
+
+    it('should transition to COMMUNICATION_IFRAME_ESTABLISHED (Scenario 2: READY then IFRAME_LOADED)', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_READY',
+            sessionId: 'test-session-id',
+          },
+          source: gisSource,
+        })
+      );
+
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+      );
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_IFRAME_LOADED',
+            sessionId: 'test-session-id',
+          },
+          source: communicationIframe.contentWindow,
+        })
+      );
+
+      expect(postMessageSpy).to.have.been.calledWith({
+        type: 'RRM_GIS_READY',
+        sessionId: 'test-session-id',
+      });
+
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED
+      );
+    });
   });
 });
