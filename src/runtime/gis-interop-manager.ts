@@ -17,9 +17,7 @@
 import {Doc} from '../model/doc';
 import {addQueryParams} from '../utils/url';
 import {createElement} from '../utils/dom';
-import {exhaustiveCheck} from '../utils/exhaustive';
 import {feUrl} from './services';
-import {isString} from '../utils/types';
 import {setImportantStyles} from '../utils/style';
 
 /**
@@ -95,23 +93,18 @@ export class GisInteropManager {
       return;
     }
 
-    switch (this.state) {
-      case GisInteropManagerStates.WAITING_FOR_PING:
-        this.handleWaitingForPingState(ev);
-        break;
-      case GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME:
-        this.handleLoadingCommunicationIframeState(ev);
-        break;
-      case GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED:
-        break;
-      default:
-        exhaustiveCheck(this.state);
+    if (this.state === GisInteropManagerStates.WAITING_FOR_PING) {
+      this.handleWaitingForPingState(ev);
+    } else if (
+      this.state === GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+    ) {
+      this.handleLoadingCommunicationIframeState(ev);
     }
   }
 
   private handleWaitingForPingState(ev: MessageEvent) {
     const notPingMessage = ev.data.type !== 'RRM_GIS_PING';
-    const invalidSessionId = !isString(ev.data.sessionId);
+    const invalidSessionId = typeof ev.data.sessionId !== 'string';
     if (notPingMessage || invalidSessionId) {
       return;
     }
