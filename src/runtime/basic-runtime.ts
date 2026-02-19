@@ -215,6 +215,7 @@ export class BasicRuntime implements BasicSubscriptions {
     alwaysShow = false,
     disableDefaultMeteringHandler = false,
     publisherProvidedId,
+    // GIS interop is WIP / experimental. Do not use.
     gisInterop,
   }: {
     type: string | string[];
