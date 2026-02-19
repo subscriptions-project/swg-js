@@ -1491,7 +1491,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
 
   describe('GisInteropManager integration', () => {
     beforeEach(() => {
-      win.addEventListener = sandbox.spy()
+      win.addEventListener = sandbox.spy();
     });
 
     it('should instantiate GisInteropManager when enabled', () => {
