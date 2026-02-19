@@ -14,44 +14,45 @@
  * limitations under the License.
  */
 
-import {ActivityPortDef, ActivityPorts} from '../components/activities';
-import {AnalyticsService} from './analytics-service';
-import {ArticleExperimentFlags} from './experiment-flags';
-import {AudienceActivityEventListener} from './audience-activity-listener';
-import {AutoPromptManager} from './auto-prompt-manager';
+import { ActivityPortDef, ActivityPorts } from '../components/activities';
+import { AnalyticsService } from './analytics-service';
+import { ArticleExperimentFlags } from './experiment-flags';
+import { AudienceActivityEventListener } from './audience-activity-listener';
+import { AutoPromptManager } from './auto-prompt-manager';
 import {
   AutoPromptType,
   BasicSubscriptions,
   ClientOptions,
   ContentType,
 } from '../api/basic-subscriptions';
-import {ButtonApi, ButtonAttributeValues} from './button-api';
-import {Callbacks} from './callbacks';
-import {ClientConfigManager} from './client-config-manager';
-import {ClientEventManager} from './client-event-manager';
-import {Config} from '../api/subscriptions';
-import {ConfiguredRuntime} from './runtime';
-import {Deps} from './deps';
-import {DialogManager} from '../components/dialog-manager';
-import {Doc, resolveDoc} from '../model/doc';
-import {Entitlements} from '../api/entitlements';
-import {EntitlementsManager} from './entitlements-manager';
-import {Fetcher, XhrFetcher} from './fetcher';
-import {I18N_STRINGS} from '../i18n/strings';
-import {InlineCtaApi} from './inline-cta-api';
-import {JsError} from './jserror';
-import {PageConfig} from '../model/page-config';
-import {PageConfigResolver} from '../model/page-config-resolver';
-import {PageConfigWriter} from '../model/page-config-writer';
-import {PayClient} from './pay-client';
-import {Storage} from './storage';
-import {StorageKeys} from '../utils/constants';
-import {SubscribeResponse} from '../api/subscribe-response';
-import {Toast} from '../ui/toast';
-import {acceptPortResultData} from '../utils/activity-utils';
-import {assert} from '../utils/log';
-import {feArgs, feOrigin, feUrl} from './services';
-import {msg} from '../utils/i18n';
+import { ButtonApi, ButtonAttributeValues } from './button-api';
+import { Callbacks } from './callbacks';
+import { ClientConfigManager } from './client-config-manager';
+import { ClientEventManager } from './client-event-manager';
+import { Config } from '../api/subscriptions';
+import { ConfiguredRuntime } from './runtime';
+import { Deps } from './deps';
+import { DialogManager } from '../components/dialog-manager';
+import { Doc, resolveDoc } from '../model/doc';
+import { Entitlements } from '../api/entitlements';
+import { EntitlementsManager } from './entitlements-manager';
+import { Fetcher, XhrFetcher } from './fetcher';
+import { I18N_STRINGS } from '../i18n/strings';
+import { InlineCtaApi } from './inline-cta-api';
+import { JsError } from './jserror';
+import { PageConfig } from '../model/page-config';
+import { PageConfigResolver } from '../model/page-config-resolver';
+import { PageConfigWriter } from '../model/page-config-writer';
+import { PayClient } from './pay-client';
+import { Storage } from './storage';
+import { StorageKeys } from '../utils/constants';
+import { SubscribeResponse } from '../api/subscribe-response';
+import { Toast } from '../ui/toast';
+import { acceptPortResultData } from '../utils/activity-utils';
+import { assert } from '../utils/log';
+import { feArgs, feOrigin, feUrl } from './services';
+import { msg } from '../utils/i18n';
+import { GisInteropManager } from './gis-interop-manager';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
@@ -131,13 +132,14 @@ export class BasicRuntime implements BasicSubscriptions {
   private committed_ = false;
   private configuredResolver_:
     | ((
-        runtime: ConfiguredBasicRuntime | Promise<ConfiguredBasicRuntime>
-      ) => void)
+      runtime: ConfiguredBasicRuntime | Promise<ConfiguredBasicRuntime>
+    ) => void)
     | null = null;
   private pageConfigWriter_: PageConfigWriter | null = null;
   private pageConfigResolver_: PageConfigResolver | null = null;
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
+  private gisInterop?: boolean;
 
   private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
@@ -171,6 +173,7 @@ export class BasicRuntime implements BasicSubscriptions {
                 configPromise: this.configuredPromise_.then(),
                 enableDefaultMeteringHandler:
                   this.enableDefaultMeteringHandler_,
+                gisInterop: this.gisInterop,
               },
               this.config_,
               this.clientOptions_,
@@ -212,6 +215,7 @@ export class BasicRuntime implements BasicSubscriptions {
     alwaysShow = false,
     disableDefaultMeteringHandler = false,
     publisherProvidedId,
+    gisInterop,
   }: {
     type: string | string[];
     isAccessibleForFree?: boolean;
@@ -222,9 +226,11 @@ export class BasicRuntime implements BasicSubscriptions {
     alwaysShow?: boolean;
     disableDefaultMeteringHandler?: boolean;
     publisherProvidedId?: string;
+    gisInterop?: boolean;
   }): void {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.publisherProvidedId_ = publisherProvidedId;
+    this.gisInterop = gisInterop;
     const isOpenAccess = this.isOpenAccessProductId_(isPartOfProductId);
 
     this.writePageConfig_({
@@ -235,7 +241,7 @@ export class BasicRuntime implements BasicSubscriptions {
     });
 
     const lang = this.doc_.getRootElement().lang;
-    this.clientOptions_ = Object.assign({lang}, clientOptions, {
+    this.clientOptions_ = Object.assign({ lang }, clientOptions, {
       forceLangInIframes: !!lang || !!clientOptions?.lang,
     });
 
@@ -337,6 +343,9 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
   private readonly inlineCtaApi_: InlineCtaApi;
+  // TODO: Use this variable.
+  // @ts-ignore: Unused variable
+  private readonly gisInteropManager_?: GisInteropManager;
 
   constructor(
     winOrDoc: Window | Document | Doc,
@@ -346,12 +355,15 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       configPromise?: Promise<void>;
       enableDefaultMeteringHandler?: boolean;
       enableGoogleAnalytics?: boolean;
+      gisInterop?: boolean;
     } = {},
     config?: Config,
     clientOptions?: ClientOptions,
     private readonly creationTimestamp_ = 0
   ) {
     this.doc_ = resolveDoc(winOrDoc);
+
+    this.gisInteropManager_ = !!integr.gisInterop ? new GisInteropManager(this.doc_) : undefined;
 
     this.win_ = this.doc_.getWin();
 
@@ -383,7 +395,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       // Close the current dialog to allow a new one with potentially different configurations
       // to take over the screen.
       this.dismissSwgUI();
-      this.configuredClassicRuntime_.showOffers({isClosable: true});
+      this.configuredClassicRuntime_.showOffers({ isClosable: true });
     });
 
     // Fetches entitlements.
@@ -511,7 +523,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
         }),
         '_blank',
         args,
-        {'width': 600, 'height': 600}
+        { 'width': 600, 'height': 600 }
       );
     });
   }
@@ -533,7 +545,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       feOrigin(),
       /* requireOriginVerified */ true,
       /* requireSecureChannel */ false
-    )) as {jwt?: string; usertoken?: string};
+    )) as { jwt?: string; usertoken?: string };
 
     const jwt = response['jwt'];
     if (jwt) {
