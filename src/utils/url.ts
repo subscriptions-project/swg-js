@@ -122,8 +122,14 @@ export function parseQueryString(query: string): {[key: string]: string} {
 /**
  * Adds parameters to a query string.
  */
-export function addQueryParams(url: string, params: Record<string, string>): string {
-  return Object.entries(params).reduce((a, [k, v]) => addQueryParam(a, k, v), url);
+export function addQueryParams(
+  url: string,
+  params: Record<string, string>
+): string {
+  return Object.entries(params).reduce(
+    (a, [k, v]) => addQueryParam(a, k, v),
+    url
+  );
 }
 
 /**

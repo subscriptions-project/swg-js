@@ -141,4 +141,33 @@ describes.realWin('Types', () => {
       }
     });
   });
+
+  describe('isString', () => {
+    it('identifies strings', () => {
+      const values = ['', 'foo'];
+      for (const value of values) {
+        expect(types.isString(value)).to.be.true;
+      }
+    });
+
+    it('identifies non-strings', () => {
+      const values = [
+        [],
+        [1, 2, 3],
+        {},
+        {x: 1},
+        /Hi/,
+        0,
+        1,
+        true,
+        false,
+        () => {},
+        null,
+        undefined,
+      ];
+      for (const value of values) {
+        expect(types.isString(value)).to.be.false;
+      }
+    });
+  });
 });
