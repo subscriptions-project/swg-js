@@ -1,3 +1,20 @@
+/* eslint-disable */
+/**
+ * Copyright 2026 The Subscribe with Google Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 const clientId =
   '365425805315-ulc9hop6lvq3blgc7ubvtcu5322t3fcn.apps.googleusercontent.com';
 const sessionId = 'test-session-123';
@@ -19,14 +36,8 @@ function initLog() {
 }
 
 function messageHandler(e) {
-  if (
-    e.data &&
-    typeof e.data === 'object' &&
-    e.data.role !== role &&
-    typeof e.data.type === 'string' &&
-    e.data.type.startsWith('RRM_GIS')
-  ) {
-    log(`Received: ${JSON.stringify(e.data)}`);
+  if (typeof e.data.type === 'string' && e.data.type.startsWith('RRM_GIS')) {
+    log(JSON.stringify(e.data));
   }
 }
 
@@ -49,7 +60,7 @@ function initSwg() {
       isPartOfType: ['Product'],
       isPartOfProductId: 'CAow37yEAQ:basic',
       autoPromptType: 'subscription',
-      clientOptions: {theme: 'dark', lang: 'en'},
+      clientOptions: { theme: 'dark', lang: 'en' },
       gisInterop: true,
     });
   });
@@ -86,13 +97,13 @@ function log(msg) {
 }
 
 function sendPing() {
-  const msg = {type: 'RRM_GIS_PING', sessionId, role};
+  const msg = { type: 'RRM_GIS_PING', sessionId };
   window.postMessage(msg, '*');
   log(`Sent: ${JSON.stringify(msg)}`);
 }
 
 function sendReady() {
-  const msg = {type: 'RRM_GIS_READY', sessionId, role};
+  const msg = { type: 'RRM_GIS_READY_GIS', sessionId };
   window.postMessage(msg, '*');
   log(`Sent: ${JSON.stringify(msg)}`);
 }
@@ -102,7 +113,6 @@ function sendIdToken(idToken) {
     type: 'RRM_GIS_ID_TOKEN',
     idToken,
     sessionId,
-    role,
   };
 
   iframe.contentWindow.postMessage(msg, '*');

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Doc } from '../model/doc';
-import { EntitlementsManager } from './entitlements-manager';
-import { Storage } from '../runtime/storage';
-import { StorageKeys } from '../utils/constants';
-import { addQueryParams } from '../utils/url';
-import { createElement } from '../utils/dom';
-import { feUrl } from './services';
-import { setImportantStyles } from '../utils/style';
+import {Doc} from '../model/doc';
+import {EntitlementsManager} from './entitlements-manager';
+import {Storage} from '../runtime/storage';
+import {StorageKeys} from '../utils/constants';
+import {addQueryParams} from '../utils/url';
+import {createElement} from '../utils/dom';
+import {feUrl} from './services';
+import {setImportantStyles} from '../utils/style';
 
 /**
  * The states of the GisInteropManager.
@@ -38,10 +38,14 @@ type RrmGisMsgType =
   | 'RRM_GIS_PING'
   // Acknowledgement from swg.js to gis.js for establishign the handshake.
   | 'RRM_GIS_ACK'
-  // Message from the secure channel to swg.js and gis.js notifying them it has loaded.
-  | 'RRM_GIS_IFRAME_LOADED'
-  // Final two-way message between swg.js and gis.js to establish the handshake.
-  | 'RRM_GIS_READY'
+  // Message from the secure channel to swg.js notifying it has loaded.
+  | 'RRM_GIS_IFRAME_LOADED_RRM'
+  // Message from the secure channel to gis.js notifying it has loaded.
+  | 'RRM_GIS_IFRAME_LOADED_GIS'
+  // Final two-way message from swg.js to gis.js to establish the handshake.
+  | 'RRM_GIS_READY_RRM'
+  // Final two-way message from gis.js to swg.js to establish the handshake.
+  | 'RRM_GIS_READY_GIS'
   // Message from gis.js to swg.js with the settings needed to start a login flow.
   | 'RRM_GIS_SETTINGS'
   // Message from swg.js to gis.js yeilding control of showing the prompt.
@@ -61,12 +65,6 @@ type RrmGisMsgType =
 
 function isType(ev: MessageEvent, type: RrmGisMsgType): boolean {
   return ev.data.type === type;
-}
-
-type RrmGisRole = 'RRM' | 'GIS';
-
-function isFrom(ev: MessageEvent, role: RrmGisRole): boolean {
-  return ev.data.role === role;
 }
 
 function hasSessionId(ev: MessageEvent): boolean {
@@ -133,7 +131,7 @@ export class GisInteropManager {
   }
 
   private handleWaitingForPingState(e: MessageEvent) {
-    if (!isType(e, 'RRM_GIS_PING') || !hasSessionId(e) || !isFrom(e, 'GIS')) {
+    if (!isType(e, 'RRM_GIS_PING') || !hasSessionId(e)) {
       return;
     }
 
@@ -141,7 +139,7 @@ export class GisInteropManager {
 
     this.sessionId = e.data.sessionId;
 
-    this.reply(e, { type: 'RRM_GIS_ACK' });
+    this.reply(e, {type: 'RRM_GIS_ACK'});
 
     const src = addQueryParams(feUrl('/rrmgisinterop'), {
       'sessionId': this.sessionId!,
@@ -173,10 +171,10 @@ export class GisInteropManager {
       return;
     }
 
-    if (isType(e, 'RRM_GIS_IFRAME_LOADED') && this.fromIframe(e)) {
-      this.reply(e, { type: 'RRM_GIS_READY' });
+    if (isType(e, 'RRM_GIS_IFRAME_LOADED_RRM')) {
+      this.reply(e, {type: 'RRM_GIS_READY_RRM'});
       this.iframeLoaded = true;
-    } else if (isType(e, 'RRM_GIS_READY') && isFrom(e, 'GIS')) {
+    } else if (isType(e, 'RRM_GIS_READY_GIS')) {
       this.gisReady = true;
     }
 
@@ -192,10 +190,10 @@ export class GisInteropManager {
 
     if (isType(e, 'RRM_GIS_TOKEN_UPDATE_START')) {
       const swgUserToken = await this.storage.get(StorageKeys.USER_TOKEN, true);
-      this.reply(e, { type: 'RRM_GIS_SWG_USER_TOKEN', swgUserToken });
+      this.reply(e, {type: 'RRM_GIS_SWG_USER_TOKEN', swgUserToken});
     } else if (isType(e, 'RRM_GIS_TOKEN_UPDATED') && hasSwgUserToken(e)) {
       await this.entitlementsManager.updateEntitlements(e.data.swgUserToken);
-      this.reply(e, { type: 'RRM_GIS_REDIRECT_OK' });
+      this.reply(e, {type: 'RRM_GIS_REDIRECT_OK'});
     }
   }
 
@@ -204,7 +202,6 @@ export class GisInteropManager {
       {
         ...msg,
         sessionId: this.sessionId,
-        role: 'RRM',
       },
       {
         targetOrigin: ev.origin,

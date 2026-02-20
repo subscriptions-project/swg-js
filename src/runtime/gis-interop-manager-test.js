@@ -19,17 +19,26 @@ import {
   GisInteropManagerStates,
 } from './gis-interop-manager';
 import { GlobalDoc } from '../model/doc';
+import { StorageKeys } from '../utils/constants';
 
 describes.realWin('GisInteropManager', (env) => {
   let win;
   let doc;
   let manager;
   let mockGisFrame;
+  let storageMock;
+  let entitlementsManagerMock;
 
   beforeEach(() => {
     win = env.win;
     doc = new GlobalDoc(win);
-    manager = new GisInteropManager(doc);
+    storageMock = {
+      get: sandbox.stub(),
+    };
+    entitlementsManagerMock = {
+      updateEntitlements: sandbox.stub(),
+    };
+    manager = new GisInteropManager(doc, storageMock, entitlementsManagerMock);
     mockGisFrame = doc.getRootNode().createElement('iframe');
     doc.getBody().appendChild(mockGisFrame);
   });
@@ -63,7 +72,7 @@ describes.realWin('GisInteropManager', (env) => {
     it('should ignore PING without sessionId', () => {
       win.dispatchEvent(
         new MessageEvent('message', {
-          data: { type: 'RRM_GIS_PING', role: 'GIS' },
+          data: { type: 'RRM_GIS_PING' },
           source: win,
           origin: 'https://example.com',
         })
@@ -83,7 +92,6 @@ describes.realWin('GisInteropManager', (env) => {
           data: {
             type: 'RRM_GIS_PING',
             sessionId: 'test-session-id',
-            role: 'GIS',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -97,7 +105,6 @@ describes.realWin('GisInteropManager', (env) => {
       expect(postMessageSpy).to.have.been.calledWith({
         type: 'RRM_GIS_ACK',
         sessionId: 'test-session-id',
-        role: 'RRM',
       });
 
       const iframes = doc.getBody().querySelectorAll('iframe');
@@ -128,7 +135,6 @@ describes.realWin('GisInteropManager', (env) => {
           data: {
             type: 'RRM_GIS_PING',
             sessionId: 'test-session-id',
-            role: 'GIS',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -164,7 +170,7 @@ describes.realWin('GisInteropManager', (env) => {
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
-            type: 'RRM_GIS_IFRAME_LOADED',
+            type: 'RRM_GIS_IFRAME_LOADED_RRM',
             sessionId: 'test-session-id',
           },
           source: win,
@@ -182,8 +188,6 @@ describes.realWin('GisInteropManager', (env) => {
     });
 
     it('should transition to COMMUNICATION_IFRAME_ESTABLISHED (Scenario 1: IFRAME_LOADED then READY)', () => {
-
-
       const iframeSpy = sandbox.spy(
         communicationIframe.contentWindow,
         'postMessage'
@@ -192,7 +196,7 @@ describes.realWin('GisInteropManager', (env) => {
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
-            type: 'RRM_GIS_IFRAME_LOADED',
+            type: 'RRM_GIS_IFRAME_LOADED_RRM',
             sessionId: 'test-session-id',
           },
           source: communicationIframe.contentWindow,
@@ -200,12 +204,11 @@ describes.realWin('GisInteropManager', (env) => {
         })
       );
 
-      expect(postMessageSpy).to.have.callCount(1); // Only ACK
+      expect(postMessageSpy).to.have.callCount(1);
       expect(iframeSpy).to.have.been.calledWith(
         {
-          type: 'RRM_GIS_READY',
+          type: 'RRM_GIS_READY_RRM',
           sessionId: 'test-session-id',
-          role: 'RRM',
         },
         {
           targetOrigin: 'https://example.com',
@@ -219,9 +222,8 @@ describes.realWin('GisInteropManager', (env) => {
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
-            type: 'RRM_GIS_READY',
+            type: 'RRM_GIS_READY_GIS',
             sessionId: 'test-session-id',
-            role: 'GIS',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -237,9 +239,8 @@ describes.realWin('GisInteropManager', (env) => {
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
-            type: 'RRM_GIS_READY',
+            type: 'RRM_GIS_READY_GIS',
             sessionId: 'test-session-id',
-            role: 'GIS',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -258,7 +259,7 @@ describes.realWin('GisInteropManager', (env) => {
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
-            type: 'RRM_GIS_IFRAME_LOADED',
+            type: 'RRM_GIS_IFRAME_LOADED_RRM',
             sessionId: 'test-session-id',
           },
           source: communicationIframe.contentWindow,
@@ -266,12 +267,11 @@ describes.realWin('GisInteropManager', (env) => {
         })
       );
 
-      expect(postMessageSpy).to.have.callCount(1); // Only ACK
+      expect(postMessageSpy).to.have.callCount(1);
       expect(iframeSpy).to.have.been.calledWith(
         {
-          type: 'RRM_GIS_READY',
+          type: 'RRM_GIS_READY_RRM',
           sessionId: 'test-session-id',
-          role: 'RRM',
         },
         {
           targetOrigin: 'https://example.com',
@@ -288,14 +288,12 @@ describes.realWin('GisInteropManager', (env) => {
     let communicationIframe;
 
     beforeEach(() => {
-      // Setup established state
       const gisSource = mockGisFrame.contentWindow;
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
             type: 'RRM_GIS_PING',
             sessionId: 'test-session-id',
-            role: 'GIS',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -308,7 +306,7 @@ describes.realWin('GisInteropManager', (env) => {
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
-            type: 'RRM_GIS_IFRAME_LOADED',
+            type: 'RRM_GIS_IFRAME_LOADED_RRM',
             sessionId: 'test-session-id',
           },
           source: communicationIframe.contentWindow,
@@ -319,9 +317,8 @@ describes.realWin('GisInteropManager', (env) => {
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
-            type: 'RRM_GIS_READY',
+            type: 'RRM_GIS_READY_GIS',
             sessionId: 'test-session-id',
-            role: 'GIS',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -336,7 +333,6 @@ describes.realWin('GisInteropManager', (env) => {
 
       expect(manager.getState()).to.equal(GisInteropManagerStates.YIELDED);
 
-      // Verify iframe removal (happens after timeout)
       clock.tick(1001);
 
       const iframes = doc.getBody().querySelectorAll('iframe');
@@ -344,6 +340,121 @@ describes.realWin('GisInteropManager', (env) => {
         (f) => f === communicationIframe
       );
       expect(foundcommunicationIframe).to.be.undefined;
+    });
+  });
+
+  describe('Sync Flow', () => {
+    let communicationIframe;
+
+    beforeEach(() => {
+      const gisSource = mockGisFrame.contentWindow;
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_PING',
+            sessionId: 'test-session-id',
+          },
+          source: gisSource,
+          origin: 'https://example.com',
+        })
+      );
+
+      const iframes = doc.getBody().querySelectorAll('iframe');
+      communicationIframe = Array.from(iframes).find((f) => f !== mockGisFrame);
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_IFRAME_LOADED_RRM',
+            sessionId: 'test-session-id',
+          },
+          source: communicationIframe.contentWindow,
+          origin: 'https://example.com',
+        })
+      );
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_READY_GIS',
+            sessionId: 'test-session-id',
+          },
+          source: gisSource,
+          origin: 'https://example.com',
+        })
+      );
+    });
+
+    it('should handle RRM_GIS_TOKEN_UPDATE_START', async () => {
+      storageMock.get
+        .withArgs(StorageKeys.USER_TOKEN, true)
+        .resolves('test-user-token');
+
+      const iframeSpy = sandbox.spy(
+        communicationIframe.contentWindow,
+        'postMessage'
+      );
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_TOKEN_UPDATE_START',
+            sessionId: 'test-session-id',
+          },
+          source: communicationIframe.contentWindow,
+          origin: 'https://example.com',
+        })
+      );
+
+      await Promise.resolve();
+
+      expect(iframeSpy).to.have.been.calledWith(
+        {
+          type: 'RRM_GIS_SWG_USER_TOKEN',
+          swgUserToken: 'test-user-token',
+          sessionId: 'test-session-id',
+        },
+        {
+          targetOrigin: 'https://example.com',
+        }
+      );
+    });
+
+    it('should handle RRM_GIS_TOKEN_UPDATED', async () => {
+      entitlementsManagerMock.updateEntitlements.resolves();
+
+      const iframeSpy = sandbox.spy(
+        communicationIframe.contentWindow,
+        'postMessage'
+      );
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_TOKEN_UPDATED',
+            swgUserToken: 'new-user-token',
+            sessionId: 'test-session-id',
+          },
+          source: communicationIframe.contentWindow,
+          origin: 'https://example.com',
+        })
+      );
+
+      await Promise.resolve();
+
+      expect(
+        entitlementsManagerMock.updateEntitlements
+      ).to.have.been.calledWith('new-user-token');
+
+      expect(iframeSpy).to.have.been.calledWith(
+        {
+          type: 'RRM_GIS_REDIRECT_OK',
+          sessionId: 'test-session-id',
+        },
+        {
+          targetOrigin: 'https://example.com',
+        }
+      );
     });
   });
 });

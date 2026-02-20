@@ -364,10 +364,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   ) {
     this.doc_ = resolveDoc(winOrDoc);
 
-    this.gisInteropManager_ = !!integr.gisInterop
-      ? new GisInteropManager(this.doc_)
-      : undefined;
-
     this.win_ = this.doc_.getWin();
 
     integr.configPromise ||= Promise.resolve();
