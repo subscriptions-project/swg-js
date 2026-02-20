@@ -37,6 +37,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {GisInteropManager} from './gis-interop-manager';
 import {I18N_STRINGS} from '../i18n/strings';
 import {InlineCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';
@@ -138,6 +139,7 @@ export class BasicRuntime implements BasicSubscriptions {
   private pageConfigResolver_: PageConfigResolver | null = null;
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
+  private gisInterop?: boolean;
 
   private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
@@ -171,6 +173,7 @@ export class BasicRuntime implements BasicSubscriptions {
                 configPromise: this.configuredPromise_.then(),
                 enableDefaultMeteringHandler:
                   this.enableDefaultMeteringHandler_,
+                gisInterop: this.gisInterop,
               },
               this.config_,
               this.clientOptions_,
@@ -212,6 +215,8 @@ export class BasicRuntime implements BasicSubscriptions {
     alwaysShow = false,
     disableDefaultMeteringHandler = false,
     publisherProvidedId,
+    // GIS interop is WIP / experimental. Do not use.
+    gisInterop,
   }: {
     type: string | string[];
     isAccessibleForFree?: boolean;
@@ -222,9 +227,11 @@ export class BasicRuntime implements BasicSubscriptions {
     alwaysShow?: boolean;
     disableDefaultMeteringHandler?: boolean;
     publisherProvidedId?: string;
+    gisInterop?: boolean;
   }): void {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.publisherProvidedId_ = publisherProvidedId;
+    this.gisInterop = gisInterop;
     const isOpenAccess = this.isOpenAccessProductId_(isPartOfProductId);
 
     this.writePageConfig_({
@@ -337,6 +344,9 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
   private readonly inlineCtaApi_: InlineCtaApi;
+  // TODO: Use this variable.
+  // @ts-ignore: Unused variable
+  private readonly gisInteropManager_?: GisInteropManager;
 
   constructor(
     winOrDoc: Window | Document | Doc,
@@ -346,12 +356,17 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       configPromise?: Promise<void>;
       enableDefaultMeteringHandler?: boolean;
       enableGoogleAnalytics?: boolean;
+      gisInterop?: boolean;
     } = {},
     config?: Config,
     clientOptions?: ClientOptions,
     private readonly creationTimestamp_ = 0
   ) {
     this.doc_ = resolveDoc(winOrDoc);
+
+    this.gisInteropManager_ = !!integr.gisInterop
+      ? new GisInteropManager(this.doc_)
+      : undefined;
 
     this.win_ = this.doc_.getWin();
 

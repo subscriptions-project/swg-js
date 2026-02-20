@@ -467,6 +467,20 @@ describes.realWin('BasicRuntime', (env) => {
         });
       }
     );
+
+    it('should set gisInterop integration flag', async () => {
+      basicRuntime.init({
+        type: 'NewsArticle',
+        isAccessibleForFree: true,
+        isPartOfType: ['Product'],
+        isPartOfProductId: 'herald-foo-times.com:basic',
+        gisInterop: true,
+      });
+
+      await basicRuntime.configured_(true);
+
+      expect(configuredRuntimeSpy.getCall(0).args[2].gisInterop).to.be.true;
+    });
   });
 
   describe('configured', () => {
@@ -1472,6 +1486,34 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       inlineCtaMock.expects('attachInlineCtasWithAttribute').never();
 
       await configuredBasicRuntime.setupInlineCta();
+    });
+  });
+
+  describe('GisInteropManager integration', () => {
+    beforeEach(() => {
+      win.addEventListener = sandbox.spy();
+    });
+
+    it('should instantiate GisInteropManager when enabled', () => {
+      new ConfiguredBasicRuntime(win, pageConfig, {
+        gisInterop: true,
+      });
+
+      expect(win.addEventListener).to.have.been.calledWith(
+        'message',
+        sandbox.match.func
+      );
+    });
+
+    it('should NOT instantiate GisInteropManager when disabled', () => {
+      new ConfiguredBasicRuntime(win, pageConfig, {
+        gisInterop: false,
+      });
+
+      expect(win.addEventListener).to.not.have.been.calledWith(
+        'message',
+        sandbox.match.func
+      );
     });
   });
 });
