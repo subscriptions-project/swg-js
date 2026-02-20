@@ -115,18 +115,16 @@ export class GisInteropManager {
   }
 
   private messageHandler(ev: MessageEvent) {
-    switch (this.state) {
-      case GisInteropManagerStates.WAITING_FOR_PING:
-        this.handleWaitingForPingState(ev);
-        break;
-      case GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME:
-        this.handleLoadingCommunicationIframeState(ev);
-        break;
-      case GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED:
-        this.handleCommunicationIframeEstablishedState(ev);
-        break;
-      default:
-        break;
+    if (this.state === GisInteropManagerStates.WAITING_FOR_PING) {
+      this.handleWaitingForPingState(ev);
+    } else if (
+      this.state === GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+    ) {
+      this.handleLoadingCommunicationIframeState(ev);
+    } else if (
+      this.state === GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED
+    ) {
+      this.handleCommunicationIframeEstablishedState(ev);
     }
   }
 

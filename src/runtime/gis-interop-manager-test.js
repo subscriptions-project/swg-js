@@ -34,6 +34,7 @@ describes.realWin('GisInteropManager', (env) => {
     doc = new GlobalDoc(win);
     storageMock = {
       get: sandbox.stub(),
+      remove: sandbox.stub(),
     };
     entitlementsManagerMock = {
       updateEntitlements: sandbox.stub(),
@@ -51,6 +52,14 @@ describes.realWin('GisInteropManager', (env) => {
 
   describe('in WAITING_FOR_PING state', () => {
     it('should be in WAITING_FOR_PING state initially', () => {
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.WAITING_FOR_PING
+      );
+    });
+
+    it('should ignore yield() call', () => {
+      manager.yield();
+
       expect(manager.getState()).to.equal(
         GisInteropManagerStates.WAITING_FOR_PING
       );
@@ -324,6 +333,48 @@ describes.realWin('GisInteropManager', (env) => {
           origin: 'https://example.com',
         })
       );
+    });
+
+    it('should ignore messages with wrong sessionId', () => {
+      const gisSource = mockGisFrame.contentWindow;
+      const iframeSpy = sandbox.spy(
+        communicationIframe.contentWindow,
+        'postMessage'
+      );
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_TOKEN_UPDATE_START',
+            sessionId: 'wrong-session-id',
+          },
+          source: communicationIframe.contentWindow,
+          origin: 'https://example.com',
+        })
+      );
+
+      expect(iframeSpy).to.not.have.been.called;
+    });
+
+    it('should ignore messages from wrong source', () => {
+      const gisSource = mockGisFrame.contentWindow;
+      const iframeSpy = sandbox.spy(
+        communicationIframe.contentWindow,
+        'postMessage'
+      );
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_TOKEN_UPDATE_START',
+            sessionId: 'test-session-id',
+          },
+          source: win, // Wrong source
+          origin: 'https://example.com',
+        })
+      );
+
+      expect(iframeSpy).to.not.have.been.called;
     });
 
     it('should remove iframe and transition to YIELDED on yield()', () => {
