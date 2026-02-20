@@ -385,6 +385,14 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       creationTimestamp_
     );
 
+    this.gisInteropManager_ = !!integr.gisInterop
+      ? new GisInteropManager(
+          this.doc_,
+          this.storage(),
+          this.entitlementsManager()
+        )
+      : undefined;
+
     // Do not show toast in swgz.
     this.entitlementsManager().blockNextToast();
 

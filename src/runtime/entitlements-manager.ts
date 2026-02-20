@@ -151,6 +151,25 @@ export class EntitlementsManager {
   }
 
   /**
+   * Updates the entitlements in the cache.
+   */
+  async updateEntitlements(
+    swgUserToken?: string | null
+  ): Promise<Entitlements> {
+    this.clear();
+    if (swgUserToken) {
+      await this.storage_.set(StorageKeys.USER_TOKEN, swgUserToken, true);
+    }
+    const now = Date.now().toString();
+    await this.storage_.set(
+      StorageKeys.READ_TIME,
+      now,
+      /*useLocalStorage=*/ false
+    );
+    return await this.getEntitlements();
+  }
+
+  /**
    * Clears all of the entitlements state and cache.
    */
   clear(): void {
