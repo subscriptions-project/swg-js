@@ -20,6 +20,7 @@ import {Storage} from '../runtime/storage';
 import {StorageKeys} from '../utils/constants';
 import {addQueryParams} from '../utils/url';
 import {createElement} from '../utils/dom';
+import {feOrigin} from './services';
 import {feUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
@@ -81,6 +82,10 @@ export class GisInteropManager {
   private state = GisInteropManagerStates.WAITING_FOR_PING;
   // UUID for the connection between swg.js and gis.js. Established in initial PING from gis.js.
   private sessionId?: string;
+  // The sourc of the GIS message.
+  private gisSource: MessageEventSource | null = null;
+  // The origin of the GIS message.
+  private gisOrigin?: string;
   // Secure channel to pass secrets between swg.js and gis.js.
   private communicationIframe?: HTMLIFrameElement;
   // Whether the communication iframe has loaded.
@@ -134,16 +139,17 @@ export class GisInteropManager {
     }
 
     this.state = GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME;
-
     this.sessionId = e.data.sessionId;
+    this.gisSource = e.source;
+    this.gisOrigin = e.origin;
 
-    this.reply(e, {type: 'RRM_GIS_ACK'});
+    this.sendGis({type: 'RRM_GIS_ACK'});
 
     const src = addQueryParams(feUrl('/rrmgisinterop'), {
       'sessionId': this.sessionId!,
       'origin': this.doc.getWin().origin,
       'rrmOrigin': this.doc.getWin().origin,
-      'gisOrigin': e.origin,
+      'gisOrigin': this.gisOrigin,
       'role': 'RRM',
     });
 
@@ -170,7 +176,7 @@ export class GisInteropManager {
     }
 
     if (isType(e, 'RRM_GIS_IFRAME_LOADED_RRM')) {
-      this.reply(e, {type: 'RRM_GIS_READY_RRM'});
+      this.sendGis({type: 'RRM_GIS_READY_RRM'});
       this.iframeLoaded = true;
     } else if (isType(e, 'RRM_GIS_READY_GIS')) {
       this.gisReady = true;
@@ -188,21 +194,33 @@ export class GisInteropManager {
 
     if (isType(e, 'RRM_GIS_TOKEN_UPDATE_START')) {
       const swgUserToken = await this.storage.get(StorageKeys.USER_TOKEN, true);
-      this.reply(e, {type: 'RRM_GIS_SWG_USER_TOKEN', swgUserToken});
+      this.sendIframe({type: 'RRM_GIS_SWG_USER_TOKEN', swgUserToken});
     } else if (isType(e, 'RRM_GIS_TOKEN_UPDATED') && hasSwgUserToken(e)) {
       await this.entitlementsManager.updateEntitlements(e.data.swgUserToken);
-      this.reply(e, {type: 'RRM_GIS_REDIRECT_OK'});
+      this.sendIframe({type: 'RRM_GIS_REDIRECT_OK'});
     }
   }
 
-  private reply(ev: MessageEvent, msg: Record<string, unknown>) {
-    ev.source?.postMessage(
+  private sendGis(msg: Record<string, unknown>) {
+    this.gisSource?.postMessage(
       {
         ...msg,
         sessionId: this.sessionId,
       },
       {
-        targetOrigin: ev.origin,
+        targetOrigin: this.gisOrigin,
+      }
+    );
+  }
+
+  private sendIframe(msg: Record<string, unknown>) {
+    this.communicationIframe?.contentWindow?.postMessage(
+      {
+        ...msg,
+        sessionId: this.sessionId,
+      },
+      {
+        targetOrigin: feOrigin(),
       }
     );
   }

@@ -55,12 +55,10 @@ function gisCallback(response) {
 function initSwg() {
   (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
     basicSubscriptions.init({
-      type: 'NewsArticle',
-      isAccessibleForFree: false,
-      isPartOfType: ['Product'],
-      isPartOfProductId: 'CAow37yEAQ:basic',
-      autoPromptType: 'subscription',
-      clientOptions: { theme: 'dark', lang: 'en' },
+      type: "NewsArticle",
+      isPartOfType: ["Product"],
+      isPartOfProductId: "CAow0cGDAQ:openaccess",
+      clientOptions: { theme: "light", lang: "pl" },
       gisInterop: true,
     });
   });
@@ -100,13 +98,11 @@ function log(msg) {
 function sendPing() {
   const msg = { type: 'RRM_GIS_PING', sessionId };
   window.postMessage(msg, '*');
-  log(`Sent: ${JSON.stringify(msg)}`);
 }
 
 function sendReady() {
   const msg = { type: 'RRM_GIS_READY_GIS', sessionId };
   window.postMessage(msg, '*');
-  log(`Sent: ${JSON.stringify(msg)}`);
 }
 
 function sendIdToken(idToken) {
@@ -117,5 +113,4 @@ function sendIdToken(idToken) {
   };
 
   iframe.contentWindow.postMessage(msg, '*');
-  log(`Sent to Iframe: ${JSON.stringify(msg)}`);
 }

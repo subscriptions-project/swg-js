@@ -197,11 +197,6 @@ describes.realWin('GisInteropManager', (env) => {
     });
 
     it('should transition to COMMUNICATION_IFRAME_ESTABLISHED (Scenario 1: IFRAME_LOADED then READY)', () => {
-      const iframeSpy = sandbox.spy(
-        communicationIframe.contentWindow,
-        'postMessage'
-      );
-
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
@@ -213,8 +208,8 @@ describes.realWin('GisInteropManager', (env) => {
         })
       );
 
-      expect(postMessageSpy).to.have.callCount(1);
-      expect(iframeSpy).to.have.been.calledWith(
+      expect(postMessageSpy).to.have.callCount(2);
+      expect(postMessageSpy).to.have.been.calledWith(
         {
           type: 'RRM_GIS_READY_RRM',
           sessionId: 'test-session-id',
@@ -260,11 +255,6 @@ describes.realWin('GisInteropManager', (env) => {
         GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
       );
 
-      const iframeSpy = sandbox.spy(
-        communicationIframe.contentWindow,
-        'postMessage'
-      );
-
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
@@ -276,8 +266,8 @@ describes.realWin('GisInteropManager', (env) => {
         })
       );
 
-      expect(postMessageSpy).to.have.callCount(1);
-      expect(iframeSpy).to.have.been.calledWith(
+      expect(postMessageSpy).to.have.callCount(2);
+      expect(postMessageSpy).to.have.been.calledWith(
         {
           type: 'RRM_GIS_READY_RRM',
           sessionId: 'test-session-id',
@@ -336,7 +326,6 @@ describes.realWin('GisInteropManager', (env) => {
     });
 
     it('should ignore messages with wrong sessionId', () => {
-      const gisSource = mockGisFrame.contentWindow;
       const iframeSpy = sandbox.spy(
         communicationIframe.contentWindow,
         'postMessage'
@@ -357,7 +346,6 @@ describes.realWin('GisInteropManager', (env) => {
     });
 
     it('should ignore messages from wrong source', () => {
-      const gisSource = mockGisFrame.contentWindow;
       const iframeSpy = sandbox.spy(
         communicationIframe.contentWindow,
         'postMessage'
@@ -369,7 +357,7 @@ describes.realWin('GisInteropManager', (env) => {
             type: 'RRM_GIS_TOKEN_UPDATE_START',
             sessionId: 'test-session-id',
           },
-          source: win, // Wrong source
+          source: win,
           origin: 'https://example.com',
         })
       );
@@ -466,7 +454,7 @@ describes.realWin('GisInteropManager', (env) => {
           sessionId: 'test-session-id',
         },
         {
-          targetOrigin: 'https://example.com',
+          targetOrigin: 'https://news.google.com',
         }
       );
     });
@@ -503,7 +491,7 @@ describes.realWin('GisInteropManager', (env) => {
           sessionId: 'test-session-id',
         },
         {
-          targetOrigin: 'https://example.com',
+          targetOrigin: 'https://news.google.com',
         }
       );
     });
