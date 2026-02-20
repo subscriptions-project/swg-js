@@ -364,10 +364,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   ) {
     this.doc_ = resolveDoc(winOrDoc);
 
-    this.gisInteropManager_ = !!integr.gisInterop
-      ? new GisInteropManager(this.doc_)
-      : undefined;
-
     this.win_ = this.doc_.getWin();
 
     integr.configPromise ||= Promise.resolve();
@@ -384,6 +380,14 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       clientOptions,
       creationTimestamp_
     );
+
+    this.gisInteropManager_ = !!integr.gisInterop
+      ? new GisInteropManager(
+          this.doc_,
+          this.storage(),
+          this.entitlementsManager()
+        )
+      : undefined;
 
     // Do not show toast in swgz.
     this.entitlementsManager().blockNextToast();
