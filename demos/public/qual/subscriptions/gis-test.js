@@ -18,7 +18,7 @@
 const clientId =
   '365425805315-ulc9hop6lvq3blgc7ubvtcu5322t3fcn.apps.googleusercontent.com';
 const sessionId = 'test-session-123';
-const role = 'GIS';
+
 
 let iframe = null;
 let logDiv = null;
@@ -79,7 +79,8 @@ function initIframe() {
   url.searchParams.append('origin', window.location.origin);
   url.searchParams.append('rrmOrigin', window.location.origin);
   url.searchParams.append('gisOrigin', window.location.origin);
-  url.searchParams.append('role', role);
+  url.searchParams.append('role', 'GIS');
+
 
   iframe.src = url.toString();
   document.body.appendChild(iframe);

@@ -18,8 +18,8 @@ import {
   GisInteropManager,
   GisInteropManagerStates,
 } from './gis-interop-manager';
-import { GlobalDoc } from '../model/doc';
-import { StorageKeys } from '../utils/constants';
+import {GlobalDoc} from '../model/doc';
+import {StorageKeys} from '../utils/constants';
 
 describes.realWin('GisInteropManager', (env) => {
   let win;
@@ -59,7 +59,7 @@ describes.realWin('GisInteropManager', (env) => {
     it('should ignore non-PING messages', () => {
       win.dispatchEvent(
         new MessageEvent('message', {
-          data: { type: 'RANDOM_MESSAGE' },
+          data: {type: 'RANDOM_MESSAGE'},
           source: win,
           origin: 'https://example.com',
         })
@@ -72,7 +72,7 @@ describes.realWin('GisInteropManager', (env) => {
     it('should ignore PING without sessionId', () => {
       win.dispatchEvent(
         new MessageEvent('message', {
-          data: { type: 'RRM_GIS_PING' },
+          data: {type: 'RRM_GIS_PING'},
           source: win,
           origin: 'https://example.com',
         })
