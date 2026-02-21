@@ -98,7 +98,7 @@
     "minimist": "1.2.8",
     "mocha": "11.7.5",
     "nightwatch": "2.6.25",
-    "nodemon": "3.1.13",
+    "nodemon": "3.1.14",
     "plugin-error": "2.0.1",
     "postcss": "8.5.6",
     "postcss-import": "16.1.1",
