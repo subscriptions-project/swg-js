@@ -15,8 +15,12 @@
  */
 
 import {Doc} from '../model/doc';
+import {EntitlementsManager} from './entitlements-manager';
+import {Storage} from '../runtime/storage';
+import {StorageKeys} from '../utils/constants';
 import {addQueryParams} from '../utils/url';
 import {createElement} from '../utils/dom';
+import {feOrigin} from './services';
 import {feUrl} from './services';
 import {setImportantStyles} from '../utils/style';
 
@@ -27,103 +31,127 @@ export enum GisInteropManagerStates {
   WAITING_FOR_PING,
   LOADING_COMMUNICATION_IFRAME,
   COMMUNICATION_IFRAME_ESTABLISHED,
+  YIELDED,
 }
 
-const RRM_GIS_MSG_TYPE = [
+type RrmGisMsgType =
   // Initial message from gis.js to swg.js for establishing the handshake.
-  'RRM_GIS_PING',
+  | 'RRM_GIS_PING'
   // Acknowledgement from swg.js to gis.js for establishign the handshake.
-  'RRM_GIS_ACK',
-  // Message from the secure channel to swg.js and gis.js notifying them it has loaded.
-  'RRM_GIS_IFRAME_LOADED',
-  // Final two-way message between swg.js and gis.js to establish the handshake.
-  'RRM_GIS_READY',
+  | 'RRM_GIS_ACK'
+  // Message from the secure channel to swg.js notifying it has loaded.
+  | 'RRM_GIS_IFRAME_LOADED_RRM'
+  // Message from the secure channel to gis.js notifying it has loaded.
+  | 'RRM_GIS_IFRAME_LOADED_GIS'
+  // Final two-way message from swg.js to gis.js to establish the handshake.
+  | 'RRM_GIS_READY_RRM'
+  // Final two-way message from gis.js to swg.js to establish the handshake.
+  | 'RRM_GIS_READY_GIS'
   // Message from gis.js to swg.js with the settings needed to start a login flow.
-  'RRM_GIS_SETTINGS',
+  | 'RRM_GIS_SETTINGS'
   // Message from swg.js to gis.js yeilding control of showing the prompt.
-  'RRM_GIS_YIELD',
-  // Message from an RRM prompt to gis.js with a id token to be handled.
-  'RRM_GIS_LOGIN',
+  | 'RRM_GIS_YIELD'
   // Message from the secure channel to swg.js with the updated token.
-  'RRM_GIS_ID_TOKEN',
+  | 'RRM_GIS_ID_TOKEN'
   // Request for swg.js to provide the secure channel a SwgUserToken for the sync flow.
-  'RRM_GIS_TOKEN_UPDATE_START',
+  | 'RRM_GIS_TOKEN_UPDATE_START'
   // Message from swg.js to the secure channel for the sync flow.
-  'RRM_GIS_SWG_USER_TOKEN',
+  | 'RRM_GIS_SWG_USER_TOKEN'
   // Message from the secure channel to swg.js with the updated token.
-  'RRM_GIS_TOKEN_UPDATED',
+  | 'RRM_GIS_TOKEN_UPDATED'
   // Message from swg.js to gis.js indicating that the page can be redirected.
-  'RRM_GIS_REDIRECT_OK',
+  | 'RRM_GIS_REDIRECT_OK'
   // Message indicating an error.
-  'RRM_GIS_ERROR',
-] as const;
+  | 'RRM_GIS_ERROR';
+
+function isType(ev: MessageEvent, type: RrmGisMsgType): boolean {
+  return ev.data.type === type;
+}
+
+function hasSessionId(ev: MessageEvent): boolean {
+  return typeof ev.data.sessionId === 'string' && ev.data.sessionId.length > 0;
+}
+
+function hasSwgUserToken(ev: MessageEvent): boolean {
+  return (
+    typeof ev.data.swgUserToken === 'string' && ev.data.swgUserToken.length > 0
+  );
+}
 
 export class GisInteropManager {
   private state = GisInteropManagerStates.WAITING_FOR_PING;
   // UUID for the connection between swg.js and gis.js. Established in initial PING from gis.js.
   private sessionId?: string;
-  // The source of the message from gis.js.
+  // The source of the GIS message.
   private gisSource: MessageEventSource | null = null;
-  // The origin of the message from gis.js.
-  private sourceOrigin?: string;
+  // The origin of the GIS message.
+  private gisOrigin?: string;
   // Secure channel to pass secrets between swg.js and gis.js.
   private communicationIframe?: HTMLIFrameElement;
   // Whether the communication iframe has loaded.
   private iframeLoaded = false;
   // Whether gis.js is ready to receive messages through the communication iframe.
   private gisReady = false;
-  private readonly messageHandlerValue = this.messageHandler.bind(this);
+  private readonly messageHandlerBound = this.messageHandler.bind(this);
 
-  constructor(private readonly doc: Doc) {
-    this.doc.getWin().addEventListener('message', this.messageHandlerValue);
+  constructor(
+    private readonly doc: Doc,
+    private readonly storage: Storage,
+    private readonly entitlementsManager: EntitlementsManager
+  ) {
+    this.doc.getWin().addEventListener('message', this.messageHandlerBound);
   }
 
   public getState(): GisInteropManagerStates {
     return this.state;
   }
 
-  private messageHandler(ev: MessageEvent) {
-    const notRrmGisMessage = !RRM_GIS_MSG_TYPE.includes(ev.data.type);
-    const sessionNeeded =
-      this.state !== GisInteropManagerStates.WAITING_FOR_PING;
-    const wrongSession = ev.data.sessionId !== this.sessionId;
-    const shouldIgnoreMessage =
-      notRrmGisMessage || (sessionNeeded && wrongSession);
-    if (shouldIgnoreMessage) {
+  public yield() {
+    if (
+      this.state !== GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED
+    ) {
       return;
     }
+    this.state = GisInteropManagerStates.YIELDED;
+    this.doc.getWin().removeEventListener('message', this.messageHandlerBound);
+    this.sendIframe({type: 'RRM_GIS_YIELD'});
+    setTimeout(() => {
+      this.communicationIframe?.remove();
+    }, 1000);
+  }
 
+  private messageHandler(ev: MessageEvent) {
     if (this.state === GisInteropManagerStates.WAITING_FOR_PING) {
       this.handleWaitingForPingState(ev);
     } else if (
       this.state === GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
     ) {
       this.handleLoadingCommunicationIframeState(ev);
+    } else if (
+      this.state === GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED
+    ) {
+      this.handleCommunicationIframeEstablishedState(ev);
     }
   }
 
-  private handleWaitingForPingState(ev: MessageEvent) {
-    const notPingMessage = ev.data.type !== 'RRM_GIS_PING';
-    const invalidSessionId = typeof ev.data.sessionId !== 'string';
-    if (notPingMessage || invalidSessionId) {
+  private handleWaitingForPingState(e: MessageEvent) {
+    if (!isType(e, 'RRM_GIS_PING') || !hasSessionId(e)) {
       return;
     }
 
     this.state = GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME;
-    this.sessionId = ev.data.sessionId;
-    this.gisSource = ev.source;
-    this.sourceOrigin = ev.origin;
+    this.sessionId = e.data.sessionId;
+    this.gisSource = e.source;
+    this.gisOrigin = e.origin;
 
-    this.gisSource?.postMessage({
-      type: 'RRM_GIS_ACK',
-      sessionId: this.sessionId,
-    });
+    this.sendGis({type: 'RRM_GIS_ACK'});
 
     const src = addQueryParams(feUrl('/rrmgisinterop'), {
       'sessionId': this.sessionId!,
       'origin': this.doc.getWin().origin,
       'rrmOrigin': this.doc.getWin().origin,
-      'gisOrigin': this.sourceOrigin!,
+      'gisOrigin': this.gisOrigin,
+      'role': 'RRM',
     });
 
     this.communicationIframe = createElement(this.doc.getRootNode(), 'iframe', {
@@ -143,24 +171,66 @@ export class GisInteropManager {
     this.doc.getBody()?.appendChild(this.communicationIframe);
   }
 
-  private handleLoadingCommunicationIframeState(ev: MessageEvent) {
-    const isIframeLoadedMessage = ev.data.type === 'RRM_GIS_IFRAME_LOADED';
-    const isFromCommunicationIframe =
-      ev.source === this.communicationIframe?.contentWindow;
-    const isGisReadyMessage = ev.data.type === 'RRM_GIS_READY';
-    const isFromGis = ev.source === this.gisSource;
-    if (isIframeLoadedMessage && isFromCommunicationIframe) {
-      this.gisSource?.postMessage({
-        type: 'RRM_GIS_READY',
-        sessionId: this.sessionId,
-      });
+  private handleLoadingCommunicationIframeState(e: MessageEvent) {
+    if (this.invalidSessionId(e)) {
+      return;
+    }
+
+    if (isType(e, 'RRM_GIS_IFRAME_LOADED_RRM')) {
+      this.sendGis({type: 'RRM_GIS_READY_RRM'});
       this.iframeLoaded = true;
-    } else if (isGisReadyMessage && isFromGis) {
+    } else if (isType(e, 'RRM_GIS_READY_GIS')) {
       this.gisReady = true;
     }
 
     if (this.iframeLoaded && this.gisReady) {
       this.state = GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED;
     }
+  }
+
+  private async handleCommunicationIframeEstablishedState(e: MessageEvent) {
+    if (this.invalidSessionId(e) || !this.fromIframe(e)) {
+      return;
+    }
+
+    if (isType(e, 'RRM_GIS_TOKEN_UPDATE_START')) {
+      const swgUserToken = await this.storage.get(StorageKeys.USER_TOKEN, true);
+      this.sendIframe({type: 'RRM_GIS_SWG_USER_TOKEN', swgUserToken});
+    } else if (isType(e, 'RRM_GIS_TOKEN_UPDATED') && hasSwgUserToken(e)) {
+      await this.entitlementsManager.updateEntitlements(e.data.swgUserToken);
+      this.sendIframe({type: 'RRM_GIS_REDIRECT_OK'});
+    }
+  }
+
+  private sendGis(msg: Record<string, unknown>) {
+    this.gisSource?.postMessage(
+      {
+        ...msg,
+        sessionId: this.sessionId,
+      },
+      {
+        targetOrigin: this.gisOrigin,
+      }
+    );
+  }
+
+  private sendIframe(msg: Record<string, unknown>) {
+    this.communicationIframe?.contentWindow?.postMessage(
+      {
+        ...msg,
+        sessionId: this.sessionId,
+      },
+      {
+        targetOrigin: feOrigin(),
+      }
+    );
+  }
+
+  private fromIframe(ev: MessageEvent): boolean {
+    return ev.source === this.communicationIframe?.contentWindow;
+  }
+
+  private invalidSessionId(ev: MessageEvent): boolean {
+    return !hasSessionId(ev) || ev.data.sessionId !== this.sessionId;
   }
 }

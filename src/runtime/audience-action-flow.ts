@@ -267,7 +267,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
     const userToken = response.getSwgUserToken();
-    await this.updateEntitlements(userToken);
+    await this.entitlementsManager_.updateEntitlements(userToken);
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
         configurationId,
@@ -610,23 +610,9 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       emptyMessage
     )) as unknown as DirectCompleteAudienceActionResponse;
     if (response.updated) {
-      await this.updateEntitlements(response.swgUserToken);
+      await this.entitlementsManager_.updateEntitlements(response.swgUserToken);
     }
     // TODO: mhkawano - else log error
-  }
-
-  private async updateEntitlements(swgUserToken?: string | null) {
-    this.entitlementsManager_.clear();
-    if (swgUserToken) {
-      await this.deps_
-        .storage()
-        .set(StorageKeys.USER_TOKEN, swgUserToken, true);
-    }
-    const now = Date.now().toString();
-    await this.deps_
-      .storage()
-      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
-    await this.entitlementsManager_.getEntitlements();
   }
 
   /**

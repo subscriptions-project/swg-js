@@ -3084,6 +3084,27 @@ describes.realWin('EntitlementsManager', (env) => {
       storageMock.expects('remove').withExactArgs('isreadytopay').once();
       manager.reset(true);
     });
+
+    it('should update entitlements', async () => {
+      storageMock.expects('remove').withExactArgs('ents').once();
+      storageMock.expects('remove').withExactArgs('toast').once();
+      storageMock.expects('remove').withExactArgs('isreadytopay').atLeast(1);
+      storageMock.expects('get').withArgs('ents').resolves(null);
+      storageMock.expects('get').withArgs('isreadytopay').resolves(null);
+      storageMock
+        .expects('set')
+        .withExactArgs(StorageKeys.USER_TOKEN, 'test-token', true)
+        .once();
+      storageMock
+        .expects('set')
+        .withArgs(StorageKeys.READ_TIME, '1600389016959', false)
+        .once();
+
+      expectNoResponse();
+      expectGetSwgUserTokenToBeCalled();
+
+      await manager.updateEntitlements('test-token');
+    });
   });
 
   describe('AvailableIntervention', () => {
