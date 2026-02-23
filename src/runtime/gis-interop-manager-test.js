@@ -28,6 +28,7 @@ describes.realWin('GisInteropManager', (env) => {
   let mockGisFrame;
   let storageMock;
   let entitlementsManagerMock;
+  let pageConfigMock;
 
   beforeEach(() => {
     win = env.win;
@@ -39,7 +40,15 @@ describes.realWin('GisInteropManager', (env) => {
     entitlementsManagerMock = {
       updateEntitlements: sandbox.stub(),
     };
-    manager = new GisInteropManager(doc, storageMock, entitlementsManagerMock);
+    pageConfigMock = {
+      getPublicationId: sandbox.stub().returns('test-pub-id'),
+    };
+    manager = new GisInteropManager(
+      doc,
+      storageMock,
+      entitlementsManagerMock,
+      pageConfigMock
+    );
     mockGisFrame = doc.getRootNode().createElement('iframe');
     doc.getBody().appendChild(mockGisFrame);
   });
@@ -101,6 +110,7 @@ describes.realWin('GisInteropManager', (env) => {
           data: {
             type: 'RRM_GIS_PING',
             sessionId: 'test-session-id',
+            clientId: 'test-client-id',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -144,6 +154,7 @@ describes.realWin('GisInteropManager', (env) => {
           data: {
             type: 'RRM_GIS_PING',
             sessionId: 'test-session-id',
+            clientId: 'test-client-id',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -293,6 +304,7 @@ describes.realWin('GisInteropManager', (env) => {
           data: {
             type: 'RRM_GIS_PING',
             sessionId: 'test-session-id',
+            clientId: 'test-client-id',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -406,6 +418,7 @@ describes.realWin('GisInteropManager', (env) => {
           data: {
             type: 'RRM_GIS_PING',
             sessionId: 'test-session-id',
+            clientId: 'test-client-id',
           },
           source: gisSource,
           origin: 'https://example.com',
@@ -466,6 +479,8 @@ describes.realWin('GisInteropManager', (env) => {
           type: 'RRM_GIS_SWG_USER_TOKEN',
           swgUserToken: 'test-user-token',
           sessionId: 'test-session-id',
+          clientId: 'test-client-id',
+          publicationId: 'test-pub-id',
         },
         {
           targetOrigin: 'https://news.google.com',
