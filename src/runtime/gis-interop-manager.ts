@@ -82,7 +82,7 @@ export class GisInteropManager {
   private state = GisInteropManagerStates.WAITING_FOR_PING;
   // UUID for the connection between swg.js and gis.js. Established in initial PING from gis.js.
   private sessionId?: string;
-  // The sourc of the GIS message.
+  // The source of the GIS message.
   private gisSource: MessageEventSource | null = null;
   // The origin of the GIS message.
   private gisOrigin?: string;
