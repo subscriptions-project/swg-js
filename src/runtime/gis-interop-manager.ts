@@ -114,6 +114,7 @@ export class GisInteropManager {
     }
     this.state = GisInteropManagerStates.YIELDED;
     this.doc.getWin().removeEventListener('message', this.messageHandlerBound);
+    this.sendIframe({type: 'RRM_GIS_YIELD'});
     setTimeout(() => {
       this.communicationIframe?.remove();
     }, 1000);

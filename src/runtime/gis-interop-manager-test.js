@@ -367,10 +367,24 @@ describes.realWin('GisInteropManager', (env) => {
 
     it('should remove iframe and transition to YIELDED on yield()', () => {
       const clock = sandbox.useFakeTimers();
+      const iframeSpy = sandbox.spy(
+        communicationIframe.contentWindow,
+        'postMessage'
+      );
 
       manager.yield();
 
       expect(manager.getState()).to.equal(GisInteropManagerStates.YIELDED);
+
+      expect(iframeSpy).to.have.been.calledWith(
+        {
+          type: 'RRM_GIS_YIELD',
+          sessionId: 'test-session-id',
+        },
+        {
+          targetOrigin: 'https://news.google.com',
+        }
+      );
 
       clock.tick(1001);
 
