@@ -96,7 +96,7 @@ function log(msg) {
 }
 
 function sendPing() {
-  const msg = { type: 'RRM_GIS_PING', sessionId };
+  const msg = { type: 'RRM_GIS_PING', sessionId, clientId };
   window.postMessage(msg, '*');
 }
 

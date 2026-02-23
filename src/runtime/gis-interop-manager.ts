@@ -16,6 +16,7 @@
 
 import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
+import {PageConfig} from '../model/page-config';
 import {Storage} from '../runtime/storage';
 import {StorageKeys} from '../utils/constants';
 import {addQueryParams} from '../utils/url';
@@ -78,10 +79,16 @@ function hasSwgUserToken(ev: MessageEvent): boolean {
   );
 }
 
+function hasClientId(ev: MessageEvent): boolean {
+  return typeof ev.data.clientId === 'string' && ev.data.clientId.length > 0;
+}
+
 export class GisInteropManager {
   private state = GisInteropManagerStates.WAITING_FOR_PING;
   // UUID for the connection between swg.js and gis.js. Established in initial PING from gis.js.
   private sessionId?: string;
+  // The client ID of the publisher.
+  private clientId?: string;
   // The source of the GIS message.
   private gisSource: MessageEventSource | null = null;
   // The origin of the GIS message.
@@ -97,7 +104,8 @@ export class GisInteropManager {
   constructor(
     private readonly doc: Doc,
     private readonly storage: Storage,
-    private readonly entitlementsManager: EntitlementsManager
+    private readonly entitlementsManager: EntitlementsManager,
+    private readonly pageConfig: PageConfig
   ) {
     this.doc.getWin().addEventListener('message', this.messageHandlerBound);
   }
@@ -135,7 +143,7 @@ export class GisInteropManager {
   }
 
   private handleWaitingForPingState(e: MessageEvent) {
-    if (!isType(e, 'RRM_GIS_PING') || !hasSessionId(e)) {
+    if (!isType(e, 'RRM_GIS_PING') || !hasSessionId(e) || !hasClientId(e)) {
       return;
     }
 
@@ -143,6 +151,7 @@ export class GisInteropManager {
     this.sessionId = e.data.sessionId;
     this.gisSource = e.source;
     this.gisOrigin = e.origin;
+    this.clientId = e.data.clientId;
 
     this.sendGis({type: 'RRM_GIS_ACK'});
 
@@ -195,7 +204,12 @@ export class GisInteropManager {
 
     if (isType(e, 'RRM_GIS_TOKEN_UPDATE_START')) {
       const swgUserToken = await this.storage.get(StorageKeys.USER_TOKEN, true);
-      this.sendIframe({type: 'RRM_GIS_SWG_USER_TOKEN', swgUserToken});
+      this.sendIframe({
+        type: 'RRM_GIS_SWG_USER_TOKEN',
+        swgUserToken,
+        clientId: this.clientId,
+        publicationId: this.pageConfig.getPublicationId(),
+      });
     } else if (isType(e, 'RRM_GIS_TOKEN_UPDATED') && hasSwgUserToken(e)) {
       await this.entitlementsManager.updateEntitlements(e.data.swgUserToken);
       this.sendIframe({type: 'RRM_GIS_REDIRECT_OK'});
