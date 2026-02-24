@@ -412,6 +412,11 @@ export class Runtime implements SubscriptionsInterface {
     return runtime.subscribe(sku);
   }
 
+  async conferTimeBoundPass(sku: string): Promise<void> {
+    const runtime = await this.configured_(true);
+    return runtime.conferTimeBoundPass(sku);
+  }
+
   async updateSubscription(
     subscriptionRequest: SubscriptionRequest
   ): Promise<void> {
@@ -1089,6 +1094,15 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new PayStartFlow(this, {'skuId': sku}).start();
   }
 
+  async conferTimeBoundPass(sku: string): Promise<void> {
+    await this.documentParsed_;
+    return new PayStartFlow(
+      this,
+      { 'skuId': sku },
+      ProductType.TIME_BOUND_PASS
+    ).start();
+  }
+
   async updateSubscription(
     subscriptionRequest: SubscriptionRequest
   ): Promise<void> {
@@ -1295,6 +1309,7 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    conferTimeBoundPass: runtime.conferTimeBoundPass.bind(runtime),
     updateSubscription: runtime.updateSubscription.bind(runtime),
     contribute: runtime.contribute.bind(runtime),
     completeDeferredAccountCreation:

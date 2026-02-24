@@ -147,6 +147,11 @@ export interface Subscriptions {
   ): Promise<void>;
 
   /**
+   * Starts purchase flow for Time Bound Pass.
+   */
+  conferTimeBoundPass(sku: string): Promise<void>;
+
+  /**
    * Starts the deferred account creation flow.
    * See `DeferredAccountCreationRequest` for more details.
    */
@@ -365,6 +370,7 @@ export enum SubscriptionFlows {
   SHOW_LOGIN_PROMPT = 'showLoginPrompt',
   SHOW_LOGIN_NOTIFICATION = 'showLoginNotification',
   SHOW_METER_TOAST = 'showMeterToast',
+  TIME_BOUND_PASS = 'timeBoundPass',
 }
 
 export interface Config {
@@ -495,6 +501,7 @@ export enum ReplaceSkuProrationMode {
 export enum ProductType {
   SUBSCRIPTION = 'SUBSCRIPTION',
   UI_CONTRIBUTION = 'UI_CONTRIBUTION',
+  TIME_BOUND_PASS = 'TIME_BOUND_PASS',
 }
 
 export enum ClientTheme {
