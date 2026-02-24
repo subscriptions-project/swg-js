@@ -579,7 +579,10 @@ describes.realWin('Runtime', (env) => {
     });
 
     it('should delegate "conferTimeBoundPass"', async () => {
-      configuredRuntimeMock.expects('conferTimeBoundPass').withExactArgs('sku1').once();
+      configuredRuntimeMock
+        .expects('conferTimeBoundPass')
+        .withExactArgs('sku1')
+        .once();
 
       await runtime.conferTimeBoundPass('sku1');
       expect(configureStub).to.be.calledOnce.calledWith(true);

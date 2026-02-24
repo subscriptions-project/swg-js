@@ -1098,7 +1098,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     await this.documentParsed_;
     return new PayStartFlow(
       this,
-      { 'skuId': sku },
+      {'skuId': sku},
       ProductType.TIME_BOUND_PASS
     ).start();
   }
