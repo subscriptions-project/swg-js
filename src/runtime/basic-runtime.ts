@@ -385,7 +385,8 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       ? new GisInteropManager(
           this.doc_,
           this.storage(),
-          this.entitlementsManager()
+          this.entitlementsManager(),
+          pageConfig
         )
       : undefined;
 
