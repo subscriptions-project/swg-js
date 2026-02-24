@@ -18,8 +18,8 @@ import {
   GisInteropManager,
   GisInteropManagerStates,
 } from './gis-interop-manager';
-import {GlobalDoc} from '../model/doc';
-import {StorageKeys} from '../utils/constants';
+import {GlobalDoc} from '../../model/doc';
+import {StorageKeys} from '../../utils/constants';
 
 describes.realWin('GisInteropManager', (env) => {
   let win;
