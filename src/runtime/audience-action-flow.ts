@@ -24,8 +24,8 @@
  * 4) Close the prompt that initiated the flow.
  */
 
-import {ActionToIframeMapping, parseUrl} from '../utils/url';
-import {ActivityIframeView} from '../ui/activity-iframe-view';
+import { ActionToIframeMapping, parseUrl } from '../utils/url';
+import { ActivityIframeView } from '../ui/activity-iframe-view';
 import {
   AlreadySubscribedResponse,
   AnalyticsEvent,
@@ -37,29 +37,31 @@ import {
   RewardedAdLoadAdResponse,
   RewardedAdViewAdRequest,
   SurveyDataTransferRequest,
+  LoginButtonCoordinates,
 } from '../proto/api_messages';
-import {AutoPromptType} from '../api/basic-subscriptions';
-import {ClientConfigManager} from './client-config-manager';
-import {Deps} from './deps';
-import {DialogManager} from '../components/dialog-manager';
-import {EntitlementsManager} from './entitlements-manager';
-import {I18N_STRINGS} from '../i18n/strings';
-import {InterventionResult} from '../api/available-intervention';
-import {InterventionType} from '../api/intervention-type';
-import {Message} from '../proto/api_messages';
-import {ProductType} from '../api/subscriptions';
-import {PromptPreference} from './intervention';
-import {StorageKeys} from '../utils/constants';
-import {Toast} from '../ui/toast';
-import {XhrFetcher} from './fetcher';
-import {addQueryParam} from '../utils/url';
-import {feArgs, feUrl} from './services';
-import {getQueryParam} from '../utils/url';
-import {handleSurveyDataTransferRequest} from '../utils/survey-utils';
-import {msg} from '../utils/i18n';
-import {serviceUrl} from './services';
-import {setImportantStyles} from '../utils/style';
-import {showAlreadyOptedInToast} from '../utils/cta-utils';
+import { AutoPromptType } from '../api/basic-subscriptions';
+import { ClientConfigManager } from './client-config-manager';
+import { Deps } from './deps';
+import { DialogManager } from '../components/dialog-manager';
+import { EntitlementsManager } from './entitlements-manager';
+import { I18N_STRINGS } from '../i18n/strings';
+import { InterventionResult } from '../api/available-intervention';
+import { InterventionType } from '../api/intervention-type';
+import { Message } from '../proto/api_messages';
+import { ProductType } from '../api/subscriptions';
+import { PromptPreference } from './intervention';
+import { StorageKeys } from '../utils/constants';
+import { Toast } from '../ui/toast';
+import { XhrFetcher } from './fetcher';
+import { addQueryParam } from '../utils/url';
+import { feArgs, feUrl } from './services';
+import { getQueryParam } from '../utils/url';
+import { handleSurveyDataTransferRequest } from '../utils/survey-utils';
+import { msg } from '../utils/i18n';
+import { serviceUrl } from './services';
+import { setImportantStyles } from '../utils/style';
+import { showAlreadyOptedInToast } from '../utils/cta-utils';
+import { GisLoginFlow } from './gis/gis-login-flow';
 
 export interface AudienceActionFlow {
   start: () => Promise<void>;
@@ -138,6 +140,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly rewardedSlotClosedHandler;
   private readonly rewardedSlotGrantedHandler;
   private readonly slotRenderEndedHandler;
+  private readonly gisLoginFlow?: GisLoginFlow;
 
   constructor(
     private readonly deps_: Deps,
@@ -155,12 +158,19 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
     this.fetcher = new XhrFetcher(deps_.win());
 
+    const clientId = this.clientConfigManager_.getGisClientId();
+    const onGisIdToken = this.clientConfigManager_.getGisCallback();
+    if (!!clientId && !!onGisIdToken) {
+      this.gisLoginFlow = new GisLoginFlow(this.deps_.doc(), clientId, this.handleGisLogin.bind(this)
+      );
+    }
+
     this.rewardedSlotReadyHandler = this.rewardedSlotReady.bind(this);
     this.rewardedSlotClosedHandler = this.rewardedSlotClosed.bind(this);
     this.rewardedSlotGrantedHandler = this.rewardedSlotGranted.bind(this);
     this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
 
-    const iframeParams: {[key: string]: string} = {
+    const iframeParams: { [key: string]: string } = {
       'origin': parseUrl(deps_.win().location.href).origin,
       'configurationId': this.params_.configurationId || '',
       'isClosable': (!!params_.isClosable).toString(),
@@ -238,6 +248,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       this.handleRewardedAdAlternateActionRequest.bind(this)
     );
 
+    if (this.gisLoginFlow) {
+      this.activityIframeView_.on(
+        LoginButtonCoordinates,
+        this.handleLoginButtonCoordinates.bind(this)
+      );
+    }
+
     this.activityIframeView_.onCancel(() => {
       this.params_.onCancel?.();
       this.cleanUpGoogletag();
@@ -264,7 +281,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private async handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse
   ) {
-    const {onResult, configurationId} = this.params_;
+    const { onResult, configurationId } = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
     const userToken = response.getSwgUserToken();
     await this.entitlementsManager_.updateEntitlements(userToken);
@@ -360,7 +377,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     if (this.params_.onSignIn) {
       this.params_.onSignIn();
     } else if (response.getSubscriberOrMember()) {
-      this.deps_.callbacks().triggerLoginRequest({linkRequested: false});
+      this.deps_.callbacks().triggerLoginRequest({ linkRequested: false });
     }
   }
 
@@ -431,7 +448,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
 
   private async handleASRewardedAdResult(result: {
     status?: string;
-    reward?: {type?: string; amount?: number};
+    reward?: { type?: string; amount?: number };
   }) {
     if (result.status === 'viewed') {
       await this.rewardedAdGrant(result?.reward?.amount, result?.reward?.type);
@@ -620,5 +637,16 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
    */
   showNoEntitlementFoundToast(): void {
     this.activityIframeView_.execute(new EntitlementsResponse());
+  }
+
+  private handleLoginButtonCoordinates(message: LoginButtonCoordinates) {
+    this.gisLoginFlow?.updateOverlays(message);
+  }
+
+  private handleGisLogin(idToken: string) {
+    // Sync token
+    // Complete action
+    // Close prompt
+    this.clientConfigManager_.getGisCallback()?.(idToken);
   }
 }

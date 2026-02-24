@@ -35,7 +35,7 @@ describes.realWin('GisLoginFlow', (env) => {
 
     iframe = doc.createElement('iframe');
     doc.getBody().appendChild(iframe);
-    
+
     // Mock iframe position/dimensions
     Object.defineProperties(iframe, {
       offsetLeft: {value: 100},
@@ -51,9 +51,11 @@ describes.realWin('GisLoginFlow', (env) => {
 
   it('should create overlay with correct style', () => {
     const position = {left: 10, top: 10, width: 50, height: 50};
-    flow.setOverlay(iframe, position);
+    flow.updateOverlays(iframe, {key1: position});
 
-    const overlay = doc.getBody().querySelector('div[style*="z-index: 2147483647"]');
+    const overlay = doc
+      .getBody()
+      .querySelector('div[style*="z-index: 2147483647"]');
     expect(overlay).to.exist;
     expect(overlay.style.left).to.equal('110px'); // 100 + 10
     expect(overlay.style.top).to.equal('110px'); // 100 + 10
@@ -62,36 +64,70 @@ describes.realWin('GisLoginFlow', (env) => {
     expect(overlay.style.visibility).to.equal('visible');
   });
 
+  it('should create multiple overlays', () => {
+    const pos1 = {left: 10, top: 10, width: 50, height: 50};
+    const pos2 = {left: 60, top: 60, width: 20, height: 20};
+    flow.updateOverlays(iframe, {key1: pos1, key2: pos2});
+
+    const overlays = doc
+      .getBody()
+      .querySelectorAll('div[style*="z-index: 2147483647"]');
+    expect(overlays.length).to.equal(2);
+  });
+
+  it('should remove overlays not in the list', () => {
+    const pos1 = {left: 10, top: 10, width: 50, height: 50};
+    flow.updateOverlays(iframe, {key1: pos1});
+    expect(
+      doc.getBody().querySelectorAll('div[style*="z-index: 2147483647"]').length
+    ).to.equal(1);
+
+    flow.updateOverlays(iframe, {});
+    expect(
+      doc.getBody().querySelectorAll('div[style*="z-index: 2147483647"]').length
+    ).to.equal(0);
+  });
+
   it('should hide overlay if clipped out', () => {
     // Position outside iframe bounds
     const position = {left: -200, top: 0, width: 50, height: 50};
-    flow.setOverlay(iframe, position);
+    flow.updateOverlays(iframe, {key1: position});
 
-    const overlay = doc.getBody().querySelector('div[style*="z-index: 2147483647"]');
+    const overlay = doc
+      .getBody()
+      .querySelector('div[style*="z-index: 2147483647"]');
     expect(overlay).to.exist;
     expect(overlay.style.visibility).to.equal('hidden');
   });
 
   it('should handle click event', async () => {
     const position = {left: 10, top: 10, width: 50, height: 50};
-    flow.setOverlay(iframe, position);
-    
-    const overlay = doc.getBody().querySelector('div[style*="z-index: 2147483647"]');
+    flow.updateOverlays(iframe, {key1: position});
+
+    const overlay = doc
+      .getBody()
+      .querySelector('div[style*="z-index: 2147483647"]');
     await overlay.click();
 
-    expect(clientOptionsMock.onGisIdToken).to.have.been.calledWith('test-client-id');
+    expect(clientOptionsMock.onGisIdToken).to.have.been.calledWith(
+      'test-client-id'
+    );
   });
-  
+
   it('should use dummy token if gisClientId is missing', async () => {
     clientOptionsMock.gisClientId = undefined;
     flow = new GisLoginFlow(doc, clientOptionsMock);
-    
+
     const position = {left: 10, top: 10, width: 50, height: 50};
-    flow.setOverlay(iframe, position);
-    
-    const overlay = doc.getBody().querySelector('div[style*="z-index: 2147483647"]');
+    flow.updateOverlays(iframe, {key1: position});
+
+    const overlay = doc
+      .getBody()
+      .querySelector('div[style*="z-index: 2147483647"]');
     await overlay.click();
 
-    expect(clientOptionsMock.onGisIdToken).to.have.been.calledWith('dummy_token');
+    expect(clientOptionsMock.onGisIdToken).to.have.been.calledWith(
+      'dummy_token'
+    );
   });
 });
