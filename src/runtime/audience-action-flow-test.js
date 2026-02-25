@@ -1390,6 +1390,32 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     expect(audienceActionFlow.gisLoginFlow).to.not.be.undefined;
   });
 
+  it('does not create GisLoginFlow when clientId is missing', async () => {
+    clientOptions.gisClientId = undefined;
+    clientOptions.onGisIdToken = () => {};
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+    });
+    expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
+  });
+
+  it('does not create GisLoginFlow when onGisIdToken is missing', async () => {
+    clientOptions.gisClientId = 'clientId';
+    clientOptions.onGisIdToken = undefined;
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+    });
+    expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
+  });
+
   it('disposes GisLoginFlow on complete', async () => {
     clientOptions.gisClientId = 'clientId';
     clientOptions.onGisIdToken = () => {};

@@ -132,7 +132,6 @@ describes.realWin('GisLoginFlow', (env) => {
     coordinates.setTop(10);
     coordinates.setWidth(100);
     coordinates.setHeight(30);
-
     const message = new LoginButtonCoordinates();
     message.setLoginButtonCoordinatesList([coordinates]);
 
@@ -153,12 +152,71 @@ describes.realWin('GisLoginFlow', (env) => {
             };
           },
         },
+        id: {
+          prompt: () => {},
+          initialize: (config) => {
+            config.callback({credential: 'fakeIdToken'});
+          },
+        },
       },
     };
 
     await overlay.onclick();
 
+    await new Promise((resolve) => {
+      setTimeout(resolve, 10);
+    });
     expect(requestAccessTokenSpy).to.have.been.called;
     expect(onGisIdToken).to.have.been.calledWith('fakeIdToken');
+  });
+
+  it('handles missing overlay during update', () => {
+    const coordinates = new ElementCoordinates();
+    coordinates.setId('1');
+    coordinates.setLeft(10);
+    coordinates.setTop(10);
+    coordinates.setWidth(100);
+    coordinates.setHeight(30);
+
+    const message = new LoginButtonCoordinates();
+    message.setLoginButtonCoordinatesList([coordinates]);
+
+    messageMap[message.label()](message);
+
+    // Remove the overlay manually immediately after it is created
+    const overlay = win.document.body.querySelector('div');
+    overlay.remove();
+
+    // Call updateOverlays, which should now handle the missing element gracefully
+    messageMap[message.label()](message);
+
+    const overlays = win.document.body.querySelectorAll('div');
+    expect(overlays.length).to.equal(0); // The second message handles the missing element correctly
+  });
+
+  it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
+    const coordinates = new ElementCoordinates();
+    coordinates.setId('1');
+    coordinates.setLeft(10);
+    coordinates.setTop(10);
+    coordinates.setWidth(100);
+    coordinates.setHeight(30);
+
+    const message = new LoginButtonCoordinates();
+    message.setLoginButtonCoordinatesList([coordinates]);
+
+    sandbox.restore();
+    sandbox.stub(self, 'requestAnimationFrame').returns(123);
+    const cancelAnimationFrameSpy = sandbox.spy(self, 'cancelAnimationFrame');
+
+    // Call it twice to trigger the cancelAnimationFrame branch
+    messageMap[message.label()](message);
+
+    expect(cancelAnimationFrameSpy).to.have.not.been.called;
+
+    // Fake the rafId existing by overriding the gis login flow's state
+    messageMap[message.label()](message);
+
+    expect(cancelAnimationFrameSpy).to.have.been.called;
   });
 });
