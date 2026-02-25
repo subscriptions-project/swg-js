@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
+import {ActivityIframeView} from '../../ui/activity-iframe-view';
 import {Doc} from '../../model/doc';
+import {
+  ElementCoordinates,
+  LoginButtonCoordinates,
+} from '../../proto/api_messages';
 import {createElement} from '../../utils/dom';
 import {setImportantStyles} from '../../utils/style';
 
 /**Position of the overlay inside the iframe.*/
-export interface OverlayPosition {
+interface ValidatedCoordinates {
+  id: string;
   left: number;
   top: number;
   width: number;
@@ -31,91 +37,19 @@ export interface OverlayPosition {
  */
 export class GisLoginFlow {
   private readonly overlays = new Map<string, HTMLElement>();
+  private readonly positions = new Map<string, ValidatedCoordinates>();
+  private rafId: number | null = null;
 
   constructor(
     private readonly doc: Doc,
     private readonly clientId: string,
-    private readonly onGisIdToken: (idToken: string) => void
-  ) {}
-
-  /**
-   * Creates or updates invisible overlays and positions them based on the provided positions.
-   * Overlays not present in the positions object will be removed.
-   */
-  updateOverlays(
-    iframe: HTMLIFrameElement,
-    positions: Record<string, OverlayPosition>
+    private readonly onGisIdToken: (idToken: string) => void,
+    private readonly activityIframeView_: ActivityIframeView
   ) {
-    // 1. Create or update overlays.
-    for (const [key, position] of Object.entries(positions)) {
-      let overlay = this.overlays.get(key);
-      if (!overlay) {
-        overlay = createElement(this.doc.getRootNode(), 'div', {});
-        setImportantStyles(overlay, {
-          'position': 'absolute',
-          'background-color': 'transparent',
-          'z-index': '2147483647',
-          'pointer-events': 'auto',
-        });
-        overlay.onclick = async () => {
-          const idToken = await this.login(this.clientId);
-          await this.syncToken(idToken);
-          this.onGisIdToken(idToken);
-          this.dispose(); // Or maybe just hide/remove this overlay?
-          // The snippet says "Update entitlements. Close prompt." which implies the whole flow ends.
-        };
-        this.doc.getBody()?.appendChild(overlay);
-        this.overlays.set(key, overlay);
-      }
-
-      // Overlay position = iframe position + button position inside iframe
-      const overlayLeft = iframe.offsetLeft + position.left;
-      const overlayTop = iframe.offsetTop + position.top;
-
-      setImportantStyles(overlay, {
-        'left': `${overlayLeft}px`,
-        'top': `${overlayTop}px`,
-        'width': `${position.width}px`,
-        'height': `${position.height}px`,
-      });
-
-      // The bounds of the iframe relative to the overlay's coordinate space
-      const maxClipTop = Math.max(0, -position.top);
-      const maxClipBottom = Math.min(
-        position.height,
-        iframe.offsetHeight - position.top
-      );
-      const maxClipLeft = Math.max(0, -position.left);
-      const maxClipRight = Math.min(
-        position.width,
-        iframe.offsetWidth - position.left
-      );
-
-      // Only show the overlay if at least SOME part of it is visible
-      if (maxClipTop >= maxClipBottom || maxClipLeft >= maxClipRight) {
-        setImportantStyles(overlay, {
-          'visibility': 'hidden',
-        });
-      } else {
-        setImportantStyles(overlay, {
-          'visibility': 'visible',
-          'clip-path': `polygon(
-            ${maxClipLeft}px ${maxClipTop}px,
-            ${maxClipRight}px ${maxClipTop}px,
-            ${maxClipRight}px ${maxClipBottom}px,
-            ${maxClipLeft}px ${maxClipBottom}px
-          )`,
-        });
-      }
-    }
-
-    // 2. Remove overlays that are no longer requested.
-    for (const key of this.overlays.keys()) {
-      if (!positions[key]) {
-        this.overlays.get(key)?.remove();
-        this.overlays.delete(key);
-      }
-    }
+    this.activityIframeView_.on(
+      LoginButtonCoordinates,
+      this.handleLoginButtonCoordinates.bind(this)
+    );
   }
 
   /**
@@ -126,17 +60,112 @@ export class GisLoginFlow {
       overlay.remove();
     }
     this.overlays.clear();
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+    }
   }
 
-  // @ts-ignore
-  private async login(unused: string): Promise<string> {
-    // Call GIS API, return id_token.
-    return 'dummy_id_token';
+  private updateOverlays() {
+    this.positions.forEach((p, id) => {
+      const overlay = this.overlays.get(id);
+      if (!overlay) {
+        return;
+      }
+
+      const iframe = this.activityIframeView_.getElement();
+      const iframeBoundingBox = iframe.getBoundingClientRect();
+      const iframeHeight = iframeBoundingBox.height;
+      const iframeWidth = iframeBoundingBox.width;
+      const windowWidth = this.doc.getWin().innerWidth;
+      const windowHeight = this.doc.getWin().innerHeight;
+
+      const offsetLeft = (windowWidth - iframeWidth) / 2 + p.left;
+      const offsetTop = windowHeight - (iframeHeight - p.top);
+
+      setImportantStyles(overlay, {
+        'left': `${offsetLeft}px`,
+        'top': `${offsetTop}px`,
+        'width': `${p.width}px`,
+        'height': `${p.height}px`,
+      });
+    });
   }
 
-  // @ts-ignore
-  private async syncToken(unused: string): Promise<void> {
-    // Call SWG API to sync the token.
-    return Promise.resolve();
+  private handleLoginButtonCoordinates(message: LoginButtonCoordinates) {
+    message.getLoginButtonCoordinatesList()?.forEach((position) => {
+      const p = this.validatedPosition(position);
+      if (!p) {
+        return;
+      }
+      if (!this.positions.has(p.id)) {
+        this.createOverlay(p.id);
+      }
+      this.positions.set(p.id, p);
+    });
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    this.rafId = requestAnimationFrame(() => {
+      this.rafId = null;
+      this.updateOverlays();
+    });
+  }
+
+  private validatedPosition(
+    position: ElementCoordinates
+  ): ValidatedCoordinates | null {
+    const id = position.getId();
+    const left = position.getLeft();
+    const top = position.getTop();
+    const width = position.getWidth();
+    const height = position.getHeight();
+
+    if (
+      id === null ||
+      left === null ||
+      top === null ||
+      width === null ||
+      height === null
+    ) {
+      return null;
+    }
+    return {id, left, top, width, height};
+  }
+
+  private createOverlay(key: string) {
+    const overlay = createElement(this.doc.getRootNode(), 'div', {});
+    setImportantStyles(overlay, {
+      'position': 'absolute',
+      'background-color': 'red', // TODO: set 'transparent',
+      'z-index': '2147483647',
+      'pointer-events': 'auto',
+    });
+    overlay.onclick = this.login.bind(this);
+    this.overlays.set(key, overlay);
+    this.doc.getBody()?.appendChild(overlay);
+    return overlay;
+  }
+
+  private async login() {
+    const idToken = await this.getIdToken();
+    // Sync token, update entitlements, issue update to iframe.
+    this.onGisIdToken(idToken);
+  }
+
+  private async getIdToken(): Promise<string> {
+    // TODO: replace with id token call.
+    return new Promise<string>((resolve) => {
+      // @ts-ignore
+      const tc = google.accounts.oauth2.initTokenClient({
+        'client_id': this.clientId,
+        'scope': 'openid email profile',
+        'callback': (response: any) => {
+          console.log(response);
+          resolve('fakeIdToken');
+        },
+      });
+      tc.requestAccessToken();
+    });
   }
 }

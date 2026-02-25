@@ -57,8 +57,15 @@ function initSwg() {
     basicSubscriptions.init({
       type: "NewsArticle",
       isPartOfType: ["Product"],
-      isPartOfProductId: "CAow0cGDAQ:openaccess",
-      clientOptions: { theme: "light", lang: "pl" },
+      isPartOfProductId: "CAowwoSCAQ:basic",
+      clientOptions: {
+        theme: "light",
+        lang: "ja",
+        gisClientId: clientId,
+        onGisIdToken: (idToken) => {
+          log('onGisIdToken', idToken);
+        }
+      },
       gisInterop: true,
     });
   });
