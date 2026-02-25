@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {ActivityIframeView} from '../../ui/activity-iframe-view';
-import {Doc} from '../../model/doc';
+import { ActivityIframeView } from '../../ui/activity-iframe-view';
+import { Doc } from '../../model/doc';
 import {
   ElementCoordinates,
   LoginButtonCoordinates,
 } from '../../proto/api_messages';
-import {createElement} from '../../utils/dom';
-import {setImportantStyles} from '../../utils/style';
+import { createElement } from '../../utils/dom';
+import { setImportantStyles } from '../../utils/style';
 
 /**Position of the overlay inside the iframe.*/
 interface ValidatedCoordinates {
@@ -50,6 +50,7 @@ export class GisLoginFlow {
       LoginButtonCoordinates,
       this.handleLoginButtonCoordinates.bind(this)
     );
+    this.doc.getWin().addEventListener('resize', this.scheduleUpdate.bind(this));
   }
 
   /**
@@ -91,6 +92,17 @@ export class GisLoginFlow {
     });
   }
 
+  private scheduleUpdate() {
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    this.rafId = requestAnimationFrame(() => {
+      this.rafId = null;
+      this.updateOverlays();
+    });
+  }
+
   private handleLoginButtonCoordinates(message: LoginButtonCoordinates) {
     message.getLoginButtonCoordinatesList()?.forEach((position) => {
       const p = this.validatedPosition(position);
@@ -102,14 +114,7 @@ export class GisLoginFlow {
       }
       this.positions.set(p.id, p);
     });
-    if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
-    this.rafId = requestAnimationFrame(() => {
-      this.rafId = null;
-      this.updateOverlays();
-    });
+    this.scheduleUpdate();
   }
 
   private validatedPosition(
@@ -130,7 +135,7 @@ export class GisLoginFlow {
     ) {
       return null;
     }
-    return {id, left, top, width, height};
+    return { id, left, top, width, height };
   }
 
   private createOverlay(key: string) {
